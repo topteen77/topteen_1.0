@@ -1,0 +1,805 @@
+<!-- quiz/templates/pdf_template.html -->
+<!-- {% url_for static %} -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="preload stylesheet" href="/static/font/font-style.css">
+  <title> Stream Sorter
+
+    Assessment Report </title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    
+
+    body {
+      margin: 0;
+      padding: 0;
+      color: var(--text-color);
+      font-family: 'Galano Grotesque';
+      font-size: 10pt;
+      counter-reset: chapters;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+      color:#494949;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    hr {
+      height: 0;
+      border: 0;
+      border-top: 1px solid #494949;
+      margin: 10px 0 10px 0;
+    }
+
+    header {
+      position: running(header);
+      height: 2cm;
+      border-bottom: .5mm solid var(--table-row-separator-color);
+    }
+
+    .coverPage,
+    .tocPage,
+    .chapterPage {
+      page-break-after: always;
+    }
+
+    .pageBreak {
+      page-break-before: always;
+      height: 1cm;
+    }
+
+    .coverPage {
+
+      margin: .5cm;
+    }
+
+    .coverPage h1 {
+      margin-top: 0.23cm;
+      font-size: 35px;
+      color: #3F37C9;
+    }
+
+    .coverPage .coverFooter {
+      text-transform: uppercase;
+      font-size: 8pt;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: absolute;
+      bottom: 1cm;
+      width: calc(100% - 4cm);
+    }
+
+    .coverPage .coverFooter a:first-of-type {
+      font-weight: bold;
+    }
+
+    .coverPage .coverFooter hr {
+      height: .5mm;
+      background-color: white;
+      border-top: 0;
+      width: 40%;
+    }
+
+    .top-info {
+      display: flex;
+    }
+
+    .info-box {
+      border: 1px solid #3F37C9;
+      width: 100%;
+      display: flex;
+      margin-bottom: 26px;
+      border-radius: 5px;
+    }
+
+    .top-info .info-box:last-child {
+      margin-left: 26px;
+    }
+
+    .dt-i-info {
+      background: #3F37C9;
+      width: 2cm;
+      font-size: 16px;
+      font-weight: 600;
+      padding-left: 20px;
+      display: flex;
+      align-items: center;
+      padding: 10px 0 13px 20px;
+      border-radius: 4px;
+    }
+
+    .top-info .info-box:first-child {
+      margin-right: 26px;
+    }
+
+    .output p {
+      font-size: 14px;
+      color: var(--text-color);
+      font-weight: 500;
+      display: flex;
+      justify-content: center;
+      line-height: 44px;
+      margin-bottom: 0px;
+      padding-left: 21px;
+    }
+
+    .bibliographyPage {
+      page: bibliography;
+    }
+
+    .disclaimer-box {
+      border: 1px solid #3F37C9;
+      margin-top: 10px;
+      position: relative;
+      border-radius: 4px;
+      color: #000;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-top: 140px;
+    }
+
+    .disclaimer-heading {
+      /*background: #3F37C9;*/
+      width: 120px;
+      text-align: center;
+      
+      margin-bottom: 13px;
+      color: #fff;
+      border-radius: 4px 5px 0 0;
+      line-height: 31px;
+      font-weight: 600;
+    }
+
+    .disclaimer-box {
+      color: #000;
+      text-align: center;
+    }
+
+    .top-info.last-info {
+      margin-right: 0px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .top-info.last-info .info-box {
+      margin-left: 0px;
+      width: 369px;
+    }
+
+    .chapterPage h1,
+    .tocPage h1,
+    .bibliographyPage h1 {
+      margin-top: 1cm;
+      text-transform: uppercase;
+    }
+
+    h4 {
+      font-size: 10pt;
+      margin: 0;
+    }
+
+    p {
+      margin-top: 0;
+      color:#494949;
+    }
+
+    dt {
+      font-size: 16pt;
+    }
+
+    dd {
+      margin: 0 0 .5cm 0;
+    }
+
+    .intro-box p {
+      font-size: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 4px;
+      text-align: left;
+      outline: 0px;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .text-info-paragraph p {
+      font-size: 16px;
+    }
+
+  
+    .box-info {
+      background: #E7E5FF;
+      border-radius: 10px;
+      border-right: 4px solid #3F37C9;
+      border-bottom: 4px solid #3F37C9;
+      width: 180px;
+      margin:10px;
+      float: left;
+    }
+
+    .box-info .img {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    
+
+    .box-info h5 {
+      font-size: 14px;
+      text-align: center;
+      color: #000;
+      margin-bottom: 11px;
+    }
+
+    .box-i {
+      width: 250px;
+      height: 150px;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .bullet ul li {
+      font-size: 16px;
+    }
+
+    .two-box {
+      display: flex;
+      justify-content: center;
+      margin: 32px 0;
+    }
+
+    .two-box {
+      display: flex;
+      justify-content: center;
+      margin: 32px 0;
+    }
+
+    .two-box-in {
+      width: 210px;
+      height: 138px;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      background: #E7E5FF;
+      grid-gap: 1rem;
+      align-items: center;
+      text-align: center;
+      margin: 0 9px;
+      padding: 3px 7px;
+      border-radius: 10px;
+      border-right: 3px solid #3F37CB;
+      border-bottom: 3px solid #3F37C9;
+    }
+
+    .img-tow {
+      margin-top: 16px;
+    }
+
+    .odd-even-color tr {
+      background: #D4EAFD;
+      color: #000;
+    }
+
+    .odd-even-color tr:nth-child(2n),
+    .odd-even-color tr:nth-child(2n) {
+      background: #7737C9;
+      color: #fff !important;
+    }
+
+    .cat-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .cat-one-box .cat-head {
+      background: #E7E5FF;
+    }
+
+    .cat-head {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: gray;
+      border-radius: 7px 7px 0 0;
+      padding: 13px 0;
+      color: #494949;
+    }
+
+    .cat-one-box .cat-list {
+      background: #F7F6FF;
+    }
+
+    .cat-head h4 img {
+      margin-right: 20px;
+    }
+
+    .cat-head h4 {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .cat-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-bottom: 31px;
+    }
+
+    .cat-two-box .cat-list {
+      background: #FFEDEB;
+    }
+
+    .cat-two-box .cat-head {
+      background: #FFD4CF;
+    }
+
+    .cat-three-box .cat-list {
+      background: #FFFCEC;
+    }
+
+    .cat-three-box .cat-head {
+      background: #FFF2B6;
+    }
+
+    .cat-four-box .cat-list {
+      background: #F0FFEA;
+    }
+
+    .cat-four-box .cat-head {
+      background: #C8F8B6;
+    }
+
+    .cat-five-box .cat-list {
+      background: #E5F9FF;
+    }
+
+    .cat-five-box .cat-head {
+      background: #C9EDF8;
+    }
+
+    .contact-detail {
+      text-align: center;
+      margin-top: 44px;
+    }
+
+    .detail-options {
+      display: flex;
+      justify-items: last baseline;
+      align-items: center;
+      text-align: center;
+      justify-content: center;
+      margin-top: 19px;
+      margin-bottom: 45px;
+    }
+
+    .b-box {
+      background: #3F37C9;
+      border-radius: 50px;
+      padding: 10px 17px;
+      font-size: 16px;
+      color: #fff;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      margin: 0 11px;
+    }
+
+
+    .b-box {
+      font-size: 16px;
+      color: #fff;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+
+ 
+
+
+
+
+  <div class="coverPage">
+    <div class="img-top" style="width: 100%; text-align: center;"> <img style="width: 200px;" src="{% static 'images/logo.png' %}"
+        alt="logo" /> </div>
+    <div class="heading-cover" style="width: 100%; text-align: center;">
+      <h1 style="font-family: 'Galano Grotesque'; margin-top: 0.23cm;
+      font-size: 35px;
+      color: #3F37C9;">Stream Sorter Assessment Report </h1>
+    </div>
+    <div class="image-cover" style="width: 100%; text-align: center;"> <img style="width: 320px;"
+        src="{% static 'images/report-image.png'%} " alt="img" /> </div>
+    
+    
+        <div class="student-detail-info" style="margin-top: 0px; width:600px; margin-bottom:30px;">
+      <div class="top-info">
+        <div class="info-box">
+          <div class="dt-i-info" style="color:#fff;"> Name </div>
+          <div class="output">
+            <p>Dilpreet Singh</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div class="dt-i-info" style="color:#fff;"> DOB </div>
+          <div class="output">
+            <p>24-08-2024</p>
+          </div>
+        </div>
+      </div>
+      <div class="top-info">
+        <div class="info-box">
+          <div class="dt-i-info" style="color:#fff;"> Age </div>
+          <div class="output">
+            <p>12 Years</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div class="dt-i-info" style="color:#fff;"> Grade</div>
+          <div class="output">
+            <p>8th </p>
+          </div>
+        </div>
+      </div>
+      <div class="top-info last-info">
+        <div class="info-box">
+          <div class="dt-i-info" style="width: 3cm;color:#fff;"> Date of Test </div>
+          <div class="output">
+            <p>23-07-2024</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div  style="width:100%; margin-top: 80px; float: left;"><table style="width:100%; margin-top: 20px;">
+  <tbody>
+    <tr style="border: 1px solid  #3F37CB; border-radius: 10px;">
+<td>
+
+
+  <div class="disclaimer-heading" style="width:100%; text-align: center; color: #3F37CB; text-align: center; margin-top: -19px;"><p style="background-color: #3F37CB; padding:2px; color: #fff; font-size: 12px; border-radius: 5px 5px 0 0; text-align: center; width:150px;  margin: 0px auto;"> Disclaimer </p></div>
+<p style="width:100%; text-align: center;">The results of this assessment are based on the responses given by the
+  individual on the self report questionnaire and are subject to change
+  based on multiple factors.</p>
+
+    
+
+    </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+  </div>
+  <div class="chapterPage">
+    <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png' %}" alt="logo" />
+    </div>
+    <hr />
+    <div class="db-header" style="margin-top: 66px; text-align: center;">
+      <h1 style="color: #3F37C9;">INTRODUCTION</h1>
+    </div>
+<table >
+
+  <tbody>
+
+<tr style="background: #E7FEFF;">
+
+<td>
+
+
+    <div class="intro-box" style="background: #E7FEFF;  padding: 18px;">
+      <p style="font-family: 'Galano Grotesque';">Selecting the right academic stream is a significant milestone in a student's educational journey. It’s like
+        choosing a path in a vast, exciting forest where each trail leads to unique adventures and destinations. This
+        decision lays the foundation for future career prospects and academic pursuits, making it crucial for students
+        to carefully evaluate their options.</p>
+      <p style="font-family: 'Galano Grotesque';">Imagine standing at a crossroads with a map in hand, each route offering a glimpse into different
+        worlds—science teeming with discoveries, commerce bustling with business acumen, and humanities rich with
+        cultural insights. This pivotal choice is not just about subjects and exams; it’s about uncovering your
+        passions, unlocking potential, and setting the stage for your future. Whether you dream of becoming an engineer,
+        an entrepreneur, or an artist, the right stream can be the launch pad to your aspirations, turning your academic
+        journey into an exhilarating quest for knowledge and success.</p>
+      <p style="font-family: 'Galano Grotesque';"> The Stream Sorter Assessment Test aims to guide students in this
+        decision by evaluating three key aspects: <strong>Interest, Personality, and Intelligence</strong>. These elements are essential in identifying the most suitable
+        academic path for each individual.</p>
+    </div>
+
+  </td>
+
+
+</tr>
+
+  </tbody>
+
+  </table>
+
+    <div class="img-info" style="width: 100%; text-align: center; margin-top:30px;"> <img style="width:500px"
+        src="{% static 'images/student-sitting.png'%}" alt="Student" /> </div>
+  </div>
+  <div class="chapterPage">
+    <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png' %}" alt="logo" />
+    </div>
+    <hr />
+    <div class="db-header" style="margin-top: 10px; text-align: center;">
+      <h1 style="color: #3F37C9;">HOW TO USE THIS REPORT</h1>
+    </div>
+    <div class="text-info-paragraph">
+      <p>This test typically consists of a series of questions in 3 parts that evaluate
+        various aspects of a student's <stong>Personality, Interest and Intelligence</stong> and it
+        helps you decide the suggested stream to consider in your high school.</p>
+    </div>
+
+    <div class="boxthree" style="margin: 20px 0 40px 0; float:left; width: 100%;">
+      <div class="box-info" style="text-align: center;">
+        <div class="img"> <img style="width:50px;"   src="{% static 'images/interest-icon.png' %}" alt="img" /> </div>
+        <h5>Interest</h5>
+      </div>
+
+      <div class="box-info" style="text-align: center;">
+        <div class="img"> <img style="width:50px;"   src="{% static 'images/intelligence-icon.png' %}" alt="img" /> </div>
+        <h5>Intelligence</h5>
+      </div>
+      <div class="box-info" style="text-align: center;">
+        <div class="img"> <img style="width:50px;"   src="{% static 'images/personality-icon.png' %}" alt="img" /> </div>
+        <h5>Personality</h5>
+      </div>
+     
+    </div>
+
+
+    <table style="margin-bottom: 30px; margin-top:25px; ">
+      <thead>
+        <tr>
+          <th style="background: 
+
+#E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px;">Part</th>
+          <th style="background: 
+
+#E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border:1px solid #9490dd;">
+          <td style=" width: 200px; padding-left:14px; color: #000; font-weight: 700;">Part I</td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span
+              style="color:#2720A7;">Interest</span> refers to the subjects and activities that naturally engage and
+            excite you</td>
+        </tr>
+
+        <tr style="border:1px solid #9490dd; width: 200px; ">
+          <td style=" padding-left:14px;  color: #000; font-weight: 700;">Part II</td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span
+              style="color:#2720A7;">Intelligence</span> refers to your cognitive abilities, including logical
+            reasoning, problem-solving skills, and understanding of complex concepts</td>
+        </tr>
+
+
+        <tr style="border:1px solid #9490dd;">
+          <td style=" width: 200px; padding-left:14px;  color: #000; font-weight: 700;">Part III</td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span
+              style="color:#2720A7;">Personality</span> encompasses the traits & characteristics that define how you
+            interact with the world and approach tasks</td>
+        </tr>
+      
+      </tbody>
+    </table>
+    <div class="text-info-paragraph">
+      <p> This comprehensive report ensures that you make informed decision about
+        your academic path, leading to more successful and fulfilling career.</p>
+    </div>
+  </div>
+
+
+
+
+  <div class="chapterPage">
+    <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+    </div>
+    <hr />
+    <div class="text-color-top" style="display: flex;  justify-content: center;">
+      <div class="top-layout" style="background: #3F37C9;
+  color: #fff;
+  font-size: 16px;
+  padding: 11px 38px;
+  margin-top: 28px;
+  font-weight: 600;
+  border-radius: 10px 10px 0 0;">Part -1</div>
+    </div>
+    <div class="db-header" style="margin-top: 10px; text-align: center;">
+      <h1 style="color: #3F37C9;">CAREER INTEREST ASSESSMENT REPORT</h1>
+    </div>
+    <div class="text-info-paragraph">
+      <p>This report is based on the <strong>RIASEC</strong> model, developed by John Holland, which categorizes career
+        interests into six distinct types: <strong>Realistic, Investigative, Artistic, Social, Enterprising, and
+          Conventional</strong>. By identifying your dominant interest types, you can better understand your career
+        preferences and suggest suitable career paths that align with your strengths and passions.</p>
+    </div>
+    <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 10px; ">Holland’s Code
+      description</div>
+    <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px;"> <img
+        style="width:600px;" src="{% static 'images/riasec-ig.png'%}" alt="riasec" /> </div>
+    
+  </div>
+  <div class="chapterPage">
+    <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+    </div>
+    <hr />
+    <table style="margin-bottom: 30px; margin-top:0px; ">
+      <thead>
+        <tr>
+          <th style="background: 
+
+#E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px; font-size: 14px;">
+            Holland Code</th>
+          <th style="background: 
+
+#E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr style="border:1px solid #9490dd;">
+          <td style=" width: 200px; padding-left:14px; text-align: center;">
+            <div class="r-img"><img style="width:45px;" img src="{% static 'images/r.png'%}" alt="text" /> <br>
+              <span style="color:#057190; font-size: 14px; font-weight: 600; ">Realistic</span>
+            </div>
+          </td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+            Individuals with Realistic interests prefer hands-on activities and practical tasks. They enjoy working with
+            tools, machines, or animals & often excel in environments that require physical activity & problem-solving.
+            Careers that suit Realistic types include engineering, construction, agriculture, and skilled trades. </td>
+        </tr>
+
+
+        <tr style="border:1px solid #9490dd;">
+          <td style=" width: 200px; padding-left:14px; text-align: center; ">
+            <div class="1-img"><img style="width:45px;" img src="{% static 'images/i.png'%}" alt="text" /> <br>
+              <span style="color:#A92CAF; font-size: 16px; font-weight: 600; ">Investigative</span>
+            </div>
+          </td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+            Investigative individuals are curious and analytical, often drawn to research and intellectual challenges.
+            They enjoy exploring ideas, conducting experiments, and solving complex problems. Suitable careers include
+            those in science, medicine, technology, and academia, where critical thinking and data analysis are
+            paramount. </td>
+        </tr>
+        <tr style="border:1px solid #9490dd;">
+          <td style=" width: 200px; padding-left:14px; text-align: center;">
+            <div class="1-img"><img style="width:45px;" img src="{% static 'images/a.png'%}" alt="text" /> <br>
+              <span style="color:#2A740E; font-size: 16px; font-weight: 600; ">Artistic</span>
+            </div>
+          </td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">Artistic
+            individuals thrive in creative and expressive environments. They enjoy activities that involve art, music,
+            writing, and design, often seeking opportunities to innovate and express themselves. Careers in the arts,
+            entertainment, fashion, and media are ideal for Artistic types, as they allow for personal expression and
+            creativity. </td>
+        </tr>
+        <tr style="border:1px solid #9490dd;">
+          <td style=" width: 200px; padding-left:14px; text-align: center;">
+            <div class="1-img"><img style="width:45px;" img src="{% static 'images/s.png' %}" alt="text" /> <br>
+              <span style="color:#6D5C04; font-size: 16px; font-weight: 600; ">Social</span>
+            </div>
+          </td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">Social
+            individuals are empathetic and enjoy helping others. They excel in roles that involve teaching, counseling,
+            and providing support. Careers in education, healthcare, social work, and human resources are well-suited
+            for Social types, where they can make a positive impact on people's lives. </td>
+        </tr>
+        <tr style="border:1px solid #9490dd;">
+          <td style=" width: 200px; padding-left:14px; text-align: center;">
+            <div class="1-img"><img style="width:45px;" img src="{% static 'images/e.png'%}" alt="text" /> <br>
+              <span style="color:#A22717; font-size: 16px; font-weight: 600; ">Enterprising</span>
+            </div>
+          </td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+            Enterprising individuals are natural leaders and persuaders. They enjoy activities that involve leading
+            teams, making decisions, and taking risks. They often thrive in dynamic environments where they can
+            influence others and achieve goals. Careers in business, management, sales, and entrepreneurship are ideal
+            for Enterprising types, who are driven by ambition and leadership opportunities. </td>
+        </tr>
+        <tr style="border:1px solid #9490dd;">
+          <td style=" width: 200px; padding-left:14px; text-align: center;">
+            <div class="1-img"><img style="width:45px;" img src="{% static 'images/c.png'%}" alt="text" /> <br>
+              <span style="color:#0B5BA1; font-size: 16px; font-weight: 600; ">Conventional</span>
+            </div>
+          </td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+            Conventional individuals prefer structured and orderly tasks. They excel in roles that involve organization,
+            data management, and attention to detail. Careers in accounting, administration, finance, and logistics suit
+            Conventional types, where precision and reliability is the key. </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="chapterPage">
+    <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+    </div>
+    <hr />
+    <div class="db-header" style="margin-top: 10px; text-align: center;">
+      <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
+    </div>
+    <div class="text-info-paragraph " style="margin-bottom: 0px;">
+      <p>Based on your test results, your strongest areas of interest are:</p>
+    </div>
+    {% for content in analysis_content %}
+      {% if content.category in top_3_categories %}
+      <div class="text-color-top" style="display: flex;  justify-content: center;">
+        <div class="top-layout" style="background: #3F37C9;color: #fff;font-size: 16px;padding: 11px 38px;margin-top: 28px;font-weight: 600;border-radius: 10px 10px 0 0;">
+          {{ content.fullname }}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}  
+
+
+ 
+        {% for result in top_categories %}
+        <div class="threebox-col" >
+          <div class="box-i onebox" style="background: #E7E5FF;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; float: left; width:190px; height:100px; ;">
+            <p style="color: #3F37C9;font-weight: 700;font-size: 23px;margin-bottom: 0px;">{{ result.score }}</p>
+            <p style="color: #494949;font-size: 18px;font-weight: 600;margin-bottom: 0px;">{{ result.category }}</p>
+          </div>
+        </div>
+        {% endfor %}
+
+    {% for content in analysis_content %}
+      {% if content.category in top_3_categories %}
+
+      <div class="text-info-paragraph">
+        <p> {{content.summary}}</p>
+
+        <!-- ## Get the courses.careers from the risec.json file -->
+        <!-- <div>
+          {% for key, value in content.courses.items %}
+              <h2>{{ key }}</h2>
+              <ul>
+                    <li>{{ value }}</li>                 
+              </ul>
+          {% endfor %}
+      </div> -->
+      <!-- ## Get the courses.streams from the risec.json file -->
+      <!-- <div>
+        {% for category, subjects in content.streams.items %}
+            <h2>{{ category }}</h2>
+            <ul>
+                {% for subject in subjects %}
+                    <li>{{ subject }}</li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </div> -->
+      </div>
+    {% endif %}
+    {% endfor %}
+    <div class="graph" style="width:100%; text-align: center; margin-top: 30px; float: left;"> <img style="width:400px;"
+        src="{% static 'graph_images/Interest_Assessment.png' %}" alt="graph" /> </div>
+  </div>
+
+
+</body>
+
+</html>

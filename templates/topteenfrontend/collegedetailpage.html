@@ -1,0 +1,592 @@
+{% extends 'topteenfrontend/base.html' %}
+{% block main %}
+    <!-- MAIN CONTENT -->
+
+<div class="addDataPop fixed leadPopup hidden">
+  <div class="h-full w-full relative">
+
+    <!-- Add Multiple Student -->
+    <div data-tab-content id="leadpopup" class="hidden addDataContent w-full max-w-[440px]  absolute bg-[#ffffff] rounded-xl inline-block mx-auto">
+      <div class="relative h-full w-full inline-block pb-[22px]">
+
+          <button class="dataCloseBtn absolute right-[15px] top-[10px]">
+              <i class="fa fa-xmark boldFont text-[16px] text-[#4f4f4f]"></i>
+          </button>
+
+          <div class="lg:pb-[25px] lg:border-b-[2px] lg:border-b-[#efefee] py-[26px] px-[20px]">
+              <div class="lg:flex lg:justify-center lg:gap-[10px]">
+                  <img src="{{static('topteenfrontend//assets/images/logo/Group 26534.png')}}" class="hidden lg:block h-[24px] object-cover my-auto" alt="">
+                  <p class="text-[24px] leading-[32.4px] semibold text-[#333333] my-auto">Connect with Us</p>
+              </div>
+              <!-- <p class="text-[12px] leading-[16.2px] regularFont text-[#828282] mt-[7px] lg:text-center">Amet minim mollit non deserunt ullamco</p> -->
+          </div>
+
+
+          <form id="leadpop" onsubmit="return false" class="pt-[22px] px-[23px] lg:px-[48px] flex flex-col gap-[10px] " action="{{url('core:lead_submit')}}" method="POST">
+              <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" required>
+              <!-- Error Text -->
+              <!-- End of Error text -->
+
+              <small class="errorText text-left"></small>
+              <input name="lead_name" id="lead_name" type="text" class="mx-auto w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]" placeholder="Name" required>
+
+              <small class="errorText text-left"></small>
+              <input name="lead_mobile" id="lead_mobile" type="text" class="mx-auto w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]" placeholder="Phone number" required>
+
+              <!-- <small class="errorText text-left">For multiple student enter comma seperated emails<br>eg - email1@gmail.com, email2gmail.com and so on</small>
+              <textarea name="student_email" class="mx-auto w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]" cols="30" rows="10" placeholder="Email" required></textarea> -->
+              
+              <button type="submit" class="w-full h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+                  <div class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+                      <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">DONE</p>
+                  </div>
+              </button>
+          </form>
+
+      </div>
+      
+
+    </div>
+    
+  </div>
+</div>
+    
+    <main class="container mt-0 lg:mx-auto lg:mt-10 mb-0">
+      <div class="mb-[16px] lg:px-0 px-2 mt-[12px] lg:mt-0">
+        {% include'topteenfrontend/includes/breadcrumb.html'%}
+      </div>  
+      <div class="lg:grid lg:grid-cols-4 gap-8 lg:px-0 lg:mb-[92px] px-2">
+        <!-- breadcrumb -->
+        <!-- LEFT PART -->
+        <div class="lg:col-start-1 lg:col-span-3">
+          <!-- INTRODUCTION -->
+          <section class="mb-[60px]">
+            
+            <div class="w-full h-[329px] mb-[17px]">
+              <img
+                {% if college.banner %}
+                src="{{college.banner.url}}"
+                {% else %}
+                src="{{static('topteenfrontend/assets/images/University-Transparent.png')}}"
+                {% endif %}
+                class="h-full w-full object-cover"
+              />
+            </div>
+
+            <!-- CONTENT -->
+            <div>
+              <!-- HEADING -->
+              <div
+                class="flex flex-row justify-start items-center gap-x-3 mb-[17px]"
+              >
+                <div class="h-[42px] w-[42px]">
+                  <img
+                    src="{{college.logo.url}}"
+                    class="h-full w-full object-cover"
+                  />
+                </div>
+                <h1 class="uppercase text-lg font-semibold">{{college.name}}</h1>
+              </div>
+
+            </div>
+            <div
+            class="font-normal text-[16px] leading-[25.6px] tracking-[-0.015em] text-[#4F4F4F] mb-16 parentContainer"
+            data-limit="150"
+          >
+          {% for ct in college.texts.all() %}
+          <p>{{ct.value|safe}}</p>
+          {%endfor%}
+            <button class="font-bold text-[#3f37c9] knowMore inline-block">
+              KNOW MORE
+            </button>
+          </div>
+          </section>
+
+          {% if courses %}
+          <!-- BACHELORS PROGRAM -->
+
+          <section class="lg:block hidden mb-[60px]">
+            <div class="mb-6 flex flex-row justify-between items-center">
+              <h5 class="font-semibold text-xl">Bachelors Program</h5>
+              <a href="{{url('colleges:college')}}" class="text-[#3f37c9] font-semibold text-xs"
+                >View All</a
+              >
+            </div>
+
+            <!-- Image block -->
+            <div class="grid grid-cols-3 gap-[30px] align-center mb-16">
+            
+              {%for course in courses[:3]%}
+            
+              <div class="w-full">
+                <figure class="w-full">
+                  <div class="h-[214px] w-full mb-[18px] ">
+                  <img
+                    {% if course.logo %}
+                    src="{{course.logo.url}}"
+                    {% else %}
+                    src="{{static('topteenfrontend/assets/images/course3.jpg')}}"
+                    {% endif %}
+                    alt="first Image"
+                    class="w-full rounded-lg h-full object-cover"
+                    
+                  />
+                </div>
+                  <figcaption class="text-[#333333] font-semibold text-sm mb-1">
+                    {{course.name}}
+                  </figcaption>
+                  <div
+                    class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                  >
+                    <span>16 LPA &#x2022;</span>&nbsp;
+                    <img
+                      src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+                      class="inline-block"
+                    /><span> 4.4</span>
+                  </div>
+                </figure>
+              </div>
+              {%endfor%}
+              
+            </div>
+          </section>          
+          {% endif %}
+          {%if college.entrance_exams%}
+          <!-- IMPORTANT EXAMS -->
+           <section class="mb-[60px]">
+            <!-- HEADING -->
+            <div class="mb-6 flex flex-row justify-between items-center">
+              <h5
+                class="font-semibold text-xl tracking-[0.035em] text-[#333333]"
+              >
+                Important Exams
+              </h5>
+              <a href="#" class="text-[#3f37c9] font-semibold text-xs"
+                >View All</a
+              >
+            </div>
+            <!-- CONTENT -->
+            <div class="grid grid-cols-3 gap-[30px] items-center">
+              <!-- FIRST -->
+              {%if college.entrance_exams%}
+              {%for exam in college.entrance_exams%}
+              <div
+                class="px-[14px] pt-3 pb-[18px] w-full rounded-[12px] shadow-[0_7px_32px_rgba(0,0,0,0.07)] relative"
+              >
+                <div
+                  class="flex flex-row justify-start gap-x-2.5 items-center mb-4"
+                >
+                  
+                  <div>
+                    <h3
+                      class="text-[14px] leading-[16px] font-semibold text-[#131415] mb-[5px] tracking-[-0.23px]"
+                    >
+                      BITSAT
+                    </h3>
+                    <p
+                      class="text-[10px] leading-[11px] font-normal text-black text-opacity-[0.25]"
+                    >
+                      {{exam.exam.name}}
+                    </p>
+                  </div>
+                </div>
+                <!-- DIVIDER -->
+                <div
+                  class="h-[0.8px] w-full bg-black bg-opacity-10 mb-[8.5px]"
+                ></div>
+                <!-- BOTTOM PART -->
+                <div
+                  class="flex flex-row justify-between items-center mb-[14px]"
+                >
+                  <div class="text-xs font-normal text-[#131415]">
+                    <h6
+                      class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                    >
+                      Fees
+                    </h6>
+                    <p>&#8377;{{exam.exam.fees}}</p>
+                  </div>
+
+                  <div class="text-xs font-normal text-[#131415]">
+                    <h6
+                      class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                    >
+                      Prep Time
+                    </h6>
+                    <p>{{exam.exam.prep_time}}</p>
+                  </div>
+
+                  <div class="text-xs font-normal text-[#131415]">
+                    <h6
+                      class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                    >
+                      Next Exam Date
+                    </h6>
+                    <p>{{date_format(exam.exam.next_exam_date)}}</p>
+                  </div>
+                </div>
+
+                <div class="flex flex-row justify-between items-center">
+                  <button
+                    class="px-5 py-[9px] text-[10px] leading-[14px] text-[#141414] font-normal border-[0.8px] border-[#E0E0E0] rounded-[39px]"
+                  >
+                    View Details
+                  </button>
+
+                  <button
+                    class="px-5 py-[9px] text-[11px] leading-[15px] text-white font-normal rounded-[39px] bg-[#3F37C9]"
+                  >
+                    Register &rarr;
+                  </button>
+                </div>
+
+                <div class="absolute top-3 right-3">
+                  <div
+                    class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]"
+                  >
+                    <img
+                      src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                      class="w-[12px] h-[16px]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+            {%endfor%}
+             {%endif%}
+            </div>
+          </section>
+          {%endif%}
+          <!-- RELATED COLLEGES -->
+          <!-- COLLEGE RECOMMENDATIONS -->
+      <section
+        class="lg:mb-[76px] mb-[35px] lg:block relative tabContainer mx-[17px] lg:mx-0 "
+        >
+        <div
+          class="flex flex-row justify-between items-center mb-4 lg:mb-6"
+        >
+          <h3
+            class="text-[15px] leading-[20px] lg:text-[28px] lg:leading-[37.8px] font-semibold tracking-[0.035em] lg:tracking-[0.035em] text-[#0F0F0F] lg:text-[#333333]"
+          >
+            Explore Colleges
+          </h3>
+          <div
+            class="text-[13px] leading-[18px] text-[#541BCF] font-semibold lg:hidden"
+          >
+            View More
+          </div>
+        </div>
+        <!-- COUNTRY TABS -->
+        
+
+        <div
+              class="flex flex-row justify-between items-center gap-2.5 mb-6"
+            >
+              <div
+                class="flex flex-row lg:gap-[18px] gap-3 lg:w-full collegeTabList tabList overflow-x-scroll no-scrollbar"
+              >
+              {%for country in countries%}
+                <button
+                  class="border-2 border-[#E0E0E0] text-[#4F4F4F] flex flex-row justify-center gap-2.5 py-2.5 px-4 font-semibold text-xs items-center tracking-[0.01em] rounded-[100px] hover:border-2 hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-5 hover:text-[#3f37c9] collegeTab {# tab #}"
+                  role="tab"
+                  {#
+                  data-tabs-target="#{{country.short_name}}"
+                  #}
+                  {% if country.short_name == 'IND' %}
+                  onclick="window.open('https://kaunsacollege.com/search-university', '_blank')"
+                  {% elif country.short_name == 'CA' %}
+                  onclick="window.open('https://www.canamgroup.com/study-in-canada', '_blank')"
+                  {% elif country.short_name == 'USA' %}
+                  onclick="window.open('https://www.canamgroup.com/study-in-usa', '_blank')"
+                  {% elif country.short_name == 'UK' %}
+                  onclick="window.open('https://www.canamgroup.com/study-in-uk', '_blank')"
+                  {% elif country.short_name == 'NZ' %}
+                  onclick="window.open('https://www.canamgroup.com/study-in-newzealand', '_blank')"
+                  {% elif country.short_name == 'AU' %}
+                  onclick="window.open('https://www.canamgroup.com/study-in-australia', '_blank')"
+                  {% endif %}
+                  >
+                  {% if country.flag %}
+                  <span class="inline-block h-[40px] w-[70px] overflow-x-hidden rounded-lg">
+                    <img
+                      src="{{country.flag.url}}"
+                      alt="india-flag"
+                      class="h-full w-full object-cover"
+                    />
+                  </span>
+                  {%endif%}
+                  <p class="text-[#4F4F4F] text-lg semibold group-hover:text-[#3F37C9]">{{country.short_name}}</p>
+                </button>
+                {%endfor%}
+              </div>
+              <!-- <button
+                class="rounded-[50%] border px-2.5 h-75 text-[#333333] border-[#E0E0E0] lg:block hidden"
+              >
+                <i class="fa fa-angle-right"></i>
+              </button> -->
+            </div>
+
+        <!-- CAROUSEL FOR DESKTOP -->
+
+        <!-- NAVIGATION ARROWS -->
+        {#
+        <ul class="hidden lg:block navArrows">
+          <li
+            class="absolute nextCollege rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[250px] right-[-40px] flex flex-row justify-center items-center z-10 nextArrow border"
+          >
+            <i class="fa fa-angle-right"></i>
+          </li>
+          <li
+            class="absolute prevCollege rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[250px] left-[-40px] flex justify-center items-center z-1 prevArrow border"
+          >
+            <i class="fa fa-angle-left"></i>
+          </li>
+        </ul>
+        <!-- CAROUSEL SECTION -->
+        
+        
+        {%include 'topteenfrontend/includes/explore_college.html'%}
+        #}
+
+      </section>
+          <!-- HAVE A QUESTION -->
+          <aside
+            class="py-[25px] rounded-[10px] flex flex-row justify-start items-center gap-x-[46px] blue-banner w-full"
+          >
+            <div class="w-[110px] h-[152px] shrink-0">
+              <img src="{{static('topteenfrontend/assets/images/student.png')}}" class="h-full w-full" />
+            </div>
+
+            <div class="w-[491px]">
+              <h5
+                class="text-xl font-bold tracking-[0.035em] text-white mb-1.5"
+              >
+                Have a question? Connect with Alumni.
+              </h5>
+              <p class="text-[13px] leading-[19px] font-normal text-white mb-4">
+                Our counsellors guide you on all the steps of the way from
+                application to your job interview, connect now!
+              </p>
+
+              <button onclick="window.location='{{url('core:contactus')}}'"
+                class="uppercase px-[64px] pt-4 pb-[13px] text-sm font-bold text-[#4F4F4F] bg-white rounded-[10px] border-b-[6px] border-[#EAEAEA]"
+              >
+                Connect Now
+              </button>
+            </div>
+          </aside>
+        </div>
+
+        <!-- RIGHT PART -->
+        <div>
+
+          <button data-tab-target="#leadpopup" class="border-2 border-[#E0E0E0] text-[#4F4F4F] flex flex-row justify-center gap-2.5 py-2.5 px-4 semibold text-xs items-center tracking-[0.01em] rounded-[100px] hover:border-2 hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-5 hover:text-[#3F37C9] mt-5">
+            Check Eligibility
+          </button>
+
+          <!-- Facts section --> 
+          {% if college.facts.all() %}
+          <section
+            class="px-[21px] pt-3.5 pb-[22px] rounded-[10px] bg-white border border-[#DEDEDE] mb-[31px] mt-[36px]"
+          >
+            <h3
+              class="text-lg tracking-[-0.02em] text-[#333333] font-semibold mb-3.5"
+            >
+              Quick Facts
+            </h3>
+            <!-- DIVIDER -->
+            <div class="h-px w-full bg-[#EFEFEF] mb-3.5"></div>
+            <!-- CONTENT -->
+            <ul
+              class="flex flex-col justify-start gap-y-3.5 items-center w-full"
+              >
+              {%for fact in college.facts.all() %}
+              <li class="flex flex-row justify-start gap-x-[18px] items-start">
+                <p
+                  class="text-[13px] leading-[18px] font-normal text-[#4F4F4F] tracking-[0.01em]"
+                >
+                {% if fact.type == 0 %}Year of Established{% elif fact.type == 1 %}Total Student{% elif fact.type == 2 %}International Student{% elif fact.type == 3 %}views{% endif %}
+                </p>
+                <p
+                  class="text-[13px] leading-[18px] font-normal text-[#4F4F4F] tracking-[0.01em]"
+                >
+                {{fact.value}}
+                </p>
+              </li>
+              {%endfor%}
+            </ul>
+          </section>
+          {% endif %}
+         
+
+          <!-- STREAMS -->
+          {% if streams|length != 0 %}
+          <div class="mb-[30px]">
+            <h4 class="font-semibold text-lg mb-[9px]">Streams{{streams|length}}</h4>
+            <!-- CONTENT -->
+            <div class="flex flex-row flex-wrap gap-x-[13px] gap-y-[8px]">
+              {%for stm in streams%}
+              <div
+                class="bg-[#3F37C9] bg-opacity-[0.15] text-xs text-[#3F37C9] py-[11px] px-4 font-semibold rounded-[100px] tracking-[1%]"
+               >{% if stm.name %}{{stm.name}}{% endif %}
+              </div>
+              {%endfor%}
+              </div>
+
+          </div>
+          {% endif %}
+          
+        </div>
+      </div>
+    </main>
+        <!-- ASIDE DARK BLUE BANNER -->
+        <aside
+        class="w-full lg:py-[39px] lg:px-[103px] px-[17px] lg:bg-[#3F37C9] flex lg:flex-row flex-col justify-between items-center"
+      >
+        <p
+          class="lg:text-white lg:text-[28px] lg:leading-[38px] text-xxs font-semibold tracking-[0.035em] shrink-0 lg:text-left text-center mb-[15px]"
+        >
+          Interested? Take the next step now!
+        </p>
+        <div
+          class="flex flex-row justify-center items-center w-full gap-x-[10px]"
+        >
+          <button onclick="window.location='{{url('core:contactus')}}'"
+            class="flex flex-row justify-start lg:gap-x-2 py-[15px] lg:px-[35px] py-[10px] px-[15px] lg:bg-white bg-[#F8F8F8] border-b-[6px] border-[#EAEAEA] rounded-[10px]"
+          >
+            <div class="h-[18px] w-[18px]">
+              <img src="{{static('topteenfrontend//assets/images/msg.png')}}" class="h-full w-full" />
+            </div>
+            <div
+              class="uppercase text-sm font-bold tracking-[0.01em] text-[#4F4F4F]"
+            >
+              Know more today
+            </div>
+          </button>
+          <button type="button"
+            class="flex flex-row justify-start lg:gap-x-2 py-[15px] lg:px-[35px] py-[10px] px-[15px] lg:bg-white bg-[#3F37C9] border-b-[6px] border-[#EAEAEA] rounded-[10px] shortlistcollege" data-collegeslug="{{college.slug}}"
+          >
+            <div class="h-[18px] w-[18px]">
+              <img src="{{static('topteenfrontend/assets/images/bookmark.png')}}" class="h-full w-full" />
+            </div>
+            <div
+              class="uppercase text-sm font-bold tracking-[0.01em] lg:text-[#4F4F4F] text-white buttontext"
+            >
+              
+              {% if shortlisted_college%}
+              Remove shortlisted 
+            {%else%}
+            Shortlist College
+            {%endif%}
+            </div>
+          </button>
+        </div>
+      </aside>
+{%endblock%}
+
+{%block additionalfooter%}
+
+<script>
+ 
+ 
+  $(".country_btn").each(function(e){
+    var $this = $(this);
+    
+    $this.on("click", function(){
+      var country = $(this).attr('data-country');
+      console.log(country);
+      var parameter = "?country_name="+country;
+      explore_colleges(parameter);
+
+    })
+   
+  });
+
+  function explore_colleges(parameter){
+    $.ajax({
+      url: window.location.href+parameter,
+      type: 'GET',
+      success: function (html) {
+       console.log("abc");
+        $(".explore_colleges").children(".customCarousel").slick("unslick");
+        $('.explore_colleges').html(html);
+
+        $(".carouselContainer").each(function (idx, el) {
+  const noOfSlides = +el?.dataset?.slides || 4;
+  const carousel = el.querySelector(".customCarousel");
+  console.log(carousel)
+  const sliderId = `slider-${idx + 1}`;
+  carousel.dataset.id = sliderId;
+   const arrowsDiv = $(this).siblings(".navArrows")[0];
+   const nextArrow = arrowsDiv.querySelector(".nextArrow");
+   const prevArrow = arrowsDiv.querySelector(".prevArrow");
+   nextArrow.id = `next-${idx + 1}`;
+   prevArrow.id = `prev-${idx + 1}`;
+   $(`*[data-id="${sliderId}"]`).slick({
+    vertical : false,
+    default: true,
+    infinite: true,
+    slidesToShow: noOfSlides,
+    slidesToScroll: 1,
+     arrows: true,
+     nextArrow: $(`#next-${idx + 1}`),
+     prevArrow: $(`#prev-${idx + 1}`),
+    responsive: [
+      {
+        breakpoint: 480,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+          vertical : false,
+           arrows: true,
+        },
+      },
+      {
+        breakpoint: 1200,
+        settings: {
+          slidesToShow: noOfSlides,
+          slidesToScroll: 1,
+          vertical : false,
+           arrows: true,
+        },
+      },
+    ],
+  });
+});
+
+      }
+  });
+  }
+
+  var shortlistcollege = "{{ url('shortlistcollege')}}"
+
+</script>
+
+<script>
+  document.getElementById("leadpop").onsubmit=function(){
+    $.ajax({
+      url: "{{url('core:lead_submit')}}",
+      type: "POST",
+      data: {"lead_name":document.getElementById("lead_name").value,"lead_mobile":document.getElementById("lead_mobile").value,"csrfmiddlewaretoken":"{{ csrf_token }}"},
+      success: function(response){
+        if(response["success"]==="true"){
+          Swal.fire ('Submitted', response['message'], 'success')
+          document.querySelector(".leadPopup").classList.add("hidden")
+          document.getElementById("leadpop").reset()
+        }else{
+          Swal.fire ('Invalid !', response['message'], 'error')
+          document.querySelector(".leadPopup").classList.add("hidden")
+          document.getElementById("leadpop").reset()
+        }
+      },
+      error: function(response){
+        Swal.fire ('Invalid !',response['message'], 'error')
+        document.querySelector(".leadPopup").classList.add("hidden")
+        document.getElementById("leadpop").reset()
+      }
+    });
+    return false;
+  };
+</script>
+
+{%endblock%}

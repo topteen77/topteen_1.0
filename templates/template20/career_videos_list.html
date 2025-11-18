@@ -1,0 +1,313 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{% if search_videos %}{{ search_videos }} - Search Videos{% else %}Explore Career Videos{% endif %} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+{% if search_videos %}Search results for {{ search_videos }} in career videos.{% else %}Explore our collection of career videos to learn about different professions, industries, and career paths. Watch expert interviews, career guides, and educational content.{% endif %}
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Video Resources
+        </span>
+        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+          {% if search_videos %}
+          Results for '{{ search_videos }}'
+          {% else %}
+          Explore Career Videos
+          {% endif %}
+        </h1>
+        <p class="text-gray fs-16">Watch expert interviews, career guides, and educational content to learn about different professions and career paths.</p>
+      </div>
+
+      <div class="col-lg-4 col-md-12">
+        <div class="right-banner d-md-flex justify-content-end">
+          <img class="img-fluid" src="{{ static('images_new/careers/career-track.svg') }}" alt="Career Videos Banner" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Hero Section -->
+
+<!-- Videos Section -->
+<section class="pb-10">
+  <div class="container">
+    <div class="row">
+      <!-- Main Content -->
+      <div class="col-lg-9 col-md-12">
+        <!-- Search Form (Mobile) -->
+        <div class="d-md-none mb-4">
+          <form action="{{ url('careers:careervideos') }}" method="GET" class="d-flex gap-2">
+            <input type="text" name="search" class="form-control" placeholder="Search videos..." value="{{ search_videos if search_videos else '' }}">
+            <button type="submit" class="btn custom-button purple-button">
+              <i class='bx bx-search'></i>
+            </button>
+          </form>
+        </div>
+
+        <!-- Videos List -->
+        <div class="videos-list">
+          {% if page_obj and page_obj.object_list %}
+            {% for video in page_obj.object_list %}
+            <div class="video-item mb-4 pb-4 border-bottom">
+              <div class="row">
+                <div class="col-md-4 col-sm-12 mb-3 mb-md-0">
+                  <div class="video-thumbnail position-relative">
+                    {% if video.upload_video %}
+                      <video class="w-100" controls style="max-height: 200px;">
+                        <source src="{{ video.get_video_or_url() }}" type="video/mp4">
+                      </video>
+                    {% elif video.video_image %}
+                      <img src="{{ video.video_image.url }}" alt="{{ video.name }}" class="img-fluid w-100" style="max-height: 200px; object-fit: cover;">
+                    {% else %}
+                      <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class='bx bx-play-circle fs-48 text-gray'></i>
+                      </div>
+                    {% endif %}
+                    {% if not video.upload_video %}
+                    <div class="video-play-overlay position-absolute top-50 start-50 translate-middle">
+                      <button class="btn btn-link text-white p-0" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="{{ video.get_video_or_url() }}">
+                        <i class='bx bx-play-circle fs-48'></i>
+                      </button>
+                    </div>
+                    {% endif %}
+                    {% if request.user.is_authenticated %}
+                    <div class="video-shortlist position-absolute top-0 end-0 m-2">
+                      <button type="button" class="btn btn-sm btn-light rounded-circle p-2" onclick="shortlistVideo('{{ video.id }}')" id="shortlist_{{ video.id }}" title="Shortlist">
+                        <i class='bx {% if video.shortlist.filter(id=request.user.id).exists() %}bxs{% else %}bx{% endif %}-bookmark'></i>
+                      </button>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-md-8 col-sm-12">
+                  <div class="video-content">
+                    <h3 class="video-title mb-2">
+                      <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="text-decoration-none">{{ video.name }}</a>
+                    </h3>
+                    <div class="video-meta mb-2">
+                      <span class="text-gray fs-14">
+                        <i class='bx bx-calendar'></i> {{ date_format(video.created) }}
+                      </span>
+                      {% if video.category.all() %}
+                      <span class="text-gray fs-14 ms-3">
+                        <i class='bx bx-category'></i>
+                        {% for cat in video.category.all() %}
+                          <a href="{{ url('careers:category', args=[cat.slug]) }}" class="text-decoration-none">{{ cat.name }}</a>{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                      </span>
+                      {% endif %}
+                    </div>
+                    {% if video.description %}
+                    <p class="video-description text-gray mb-3">{{ video.description|striptags|truncate(200) }}</p>
+                    {% endif %}
+                    <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="read-more">Watch Video <i class="bx bx-right-arrow-alt"></i></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+          <div class="text-center py-5">
+            <i class='bx bx-video-recording fs-48 text-gray mb-3'></i>
+            <h3 class="text-gray mb-3">No videos found</h3>
+            <p class="text-gray mb-4">{% if search_videos %}Try adjusting your search criteria.{% else %}Check back later for new videos.{% endif %}</p>
+            {% if search_videos %}
+            <a href="{{ url('careers:careervideos') }}" class="btn custom-button purple-button">View All Videos</a>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj and page_obj.paginator.num_pages > 1 %}
+        <div class="row mt-4">
+          <div class="col-12">
+            <nav aria-label="Video pagination">
+              <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous() %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number() }}{% if search_videos %}&search={{ search_videos }}{% endif %}" aria-label="Previous">
+                    <i class='bx bx-chevron-left'></i>
+                  </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Previous">
+                    <i class='bx bx-chevron-left'></i>
+                  </a>
+                </li>
+                {% endif %}
+
+                {% for page_num in page_obj.paginator.page_range %}
+                  {% if page_num == page_obj.number %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
+                  {% elif page_num > (page_obj.number - 3) and page_num < (page_obj.number + 3) %}
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{ page_num }}{% if search_videos %}&search={{ search_videos }}{% endif %}">{{ page_num }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next() %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number() }}{% if search_videos %}&search={{ search_videos }}{% endif %}" aria-label="Next">
+                    <i class='bx bx-chevron-right'></i>
+                  </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Next">
+                    <i class='bx bx-chevron-right'></i>
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-3 col-md-12">
+        <div class="video-sidebar">
+          <!-- Search Form (Desktop) -->
+          <div class="sidebar-widget mb-4 d-none d-md-block">
+            <h4 class="widget-title mb-3">Search</h4>
+            <form action="{{ url('careers:careervideos') }}" method="GET">
+              <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Search videos..." value="{{ search_videos if search_videos else '' }}">
+                <button type="submit" class="btn custom-button purple-button">
+                  <i class='bx bx-search'></i>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Categories -->
+          <div class="sidebar-widget">
+            <h4 class="widget-title mb-3">Categories</h4>
+            <ul class="category-list">
+              <li class="category-item">
+                <a href="{{ url('careers:careervideos') }}" class="text-decoration-none {% if not category %}active{% endif %}">All Videos</a>
+              </li>
+              {% for cat in categories %}
+              <li class="category-item">
+                <a href="{{ url('careers:category', args=[cat.slug]) }}" class="text-decoration-none {% if category and category.slug == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Video Modal -->
+<div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="videoModalLabel">Video Player</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="ratio ratio-16x9">
+          <iframe id="videoFrame" src="" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+// Video Modal Handler
+document.addEventListener('DOMContentLoaded', function() {
+  const videoModal = document.getElementById('videoModal');
+  if (videoModal) {
+    videoModal.addEventListener('show.bs.modal', function(event) {
+      const button = event.relatedTarget;
+      const videoUrl = button.getAttribute('data-video');
+      const videoFrame = document.getElementById('videoFrame');
+      if (videoFrame && videoUrl) {
+        // Convert YouTube URLs to embed format if needed
+        let embedUrl = videoUrl;
+        if (videoUrl.includes('youtube.com/watch')) {
+          const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        } else if (videoUrl.includes('youtu.be/')) {
+          const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        }
+        videoFrame.src = embedUrl;
+      }
+    });
+    
+    videoModal.addEventListener('hide.bs.modal', function() {
+      const videoFrame = document.getElementById('videoFrame');
+      if (videoFrame) {
+        videoFrame.src = '';
+      }
+    });
+  }
+});
+
+// Shortlist Video Function
+function shortlistVideo(videoId) {
+  {% if request.user.is_authenticated %}
+  fetch('{{ url("careers:shortlist_video") }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({
+      video_id: videoId
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const btn = document.getElementById('shortlist_' + videoId);
+      if (btn) {
+        const icon = btn.querySelector('i');
+        if (data.shortlisted) {
+          icon.classList.remove('bx-bookmark');
+          icon.classList.add('bxs-bookmark');
+        } else {
+          icon.classList.remove('bxs-bookmark');
+          icon.classList.add('bx-bookmark');
+        }
+      }
+    }
+  })
+  .catch(error => console.error('Error:', error));
+  {% else %}
+  window.location.href = '{{ url("users:loginsingup") }}';
+  {% endif %}
+}
+</script>
+{% endblock %}
+

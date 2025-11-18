@@ -1,0 +1,789 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex" />
+  <meta name="googlebot" content="noindex">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta name="msapplication-TileColor" content="#da532c">
+  <title>Every Student, Career Ready | Top Teen</title>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  <link rel="stylesheet" href="{% static '/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static '/css/style.css' %}">
+  <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+  <link rel="stylesheet" href="{% static '/css/custom-min_test.css' %}" type="text/css" media="all" />
+  <link rel="stylesheet" href="{% static '/font/font-style.css' %}">
+
+  <style>
+    /* Base styles */
+    body {
+      font-family: 'Galano Grotesque', sans-serif;
+      position: relative;
+      overflow-x: hidden;
+      color: #333;
+    }
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-family: 'Galano Grotesque', sans-serif;
+    }
+
+    p {
+      margin-bottom: 0px;
+      color: #000;
+    }
+
+    /* Header styles */
+    .navbar {
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 0.5rem 0;
+    }
+
+    .navbar-brand img {
+      max-height: 65px;
+    }
+
+    .custom-nav .nav-item {
+      padding: 4px 12px;
+    }
+
+    .custom-nav .nav-link {
+      padding: 13px 0;
+      transition: color 0.3s;
+    }
+
+    .custom-nav .nav-link:hover {
+      color: #3f37c9;
+    }
+
+    .user-cirlce {
+      background: #056c4b;
+      width: 35px;
+      height: 35px;
+      border-radius: 50px;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+      margin-left: 8px;
+    }
+
+    /* Mobile navigation */
+    @media (max-width: 991.98px) {
+      .navbar-collapse {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .custom-nav .nav-item {
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f1f1;
+        width: 100%;
+      }
+
+      .custom-nav .nav-item:last-child {
+        border-bottom: none;
+      }
+
+      .dropdown-menu {
+        position: static !important;
+        float: none;
+        width: auto;
+        margin-top: 8px;
+        background-color: #f8f9fa;
+        border: none;
+        border-radius: 8px;
+        box-shadow: none;
+        padding: 10px;
+      }
+
+      .dropdown-menu.show {
+        display: block;
+      }
+
+      .dropdown-item {
+        padding: 8px 15px;
+        border-radius: 4px;
+      }
+
+      .dropdown-item:hover {
+        background-color: #e9ecef;
+      }
+    }
+
+    /* Footer styles */
+    .footer-section {
+      background-color: #fdfcff;
+      padding: 40px 0;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .footer-logo img {
+      width: 151px;
+    }
+
+    .footer-logo-text {
+      font-size: 14px;
+      font-weight: bold;
+      color: #494949;
+      margin-left: 10px;
+    }
+
+    .footer-slogan {
+      font-size: 16px;
+      color: #828282;
+      margin-bottom: 30px;
+    }
+
+    .footer-column h3 {
+      font-size: 16px;
+      color: #333333;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .footer-links a {
+      display: block;
+      color: #828282;
+      font-size: 16px;
+      margin-bottom: 16px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: #3f37c9;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      padding-top: 15px;
+      margin-top: 30px;
+    }
+
+    .footer-bottom-links a {
+      color: #828282;
+      text-decoration: none;
+      padding: 0 8px;
+      border-right: 1px solid #eee;
+    }
+
+    .footer-bottom-links a:last-child {
+      border-right: none;
+    }
+
+    /* Mobile footer navigation */
+    .mobile-footer-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+    }
+
+    .mobile-footer-nav ul {
+      display: flex;
+      justify-content: space-around;
+      list-style: none;
+      padding: 10px 0;
+      margin: 0;
+    }
+
+    .mobile-footer-nav li {
+      text-align: center;
+    }
+
+    .mobile-footer-nav a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #666;
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .mobile-footer-nav a i {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .mobile-footer-nav a.active {
+      color: #3f37c9;
+    }
+
+    .breadcrumb .breadcrumb-item a {
+      color: #3f37c9;
+    }
+
+    /* Collapsible footer sections for mobile */
+    @media (max-width: 767.98px) {
+      .footer-section {
+        padding: 30px 0 80px;
+        /* Added bottom padding for mobile nav */
+      }
+
+      .footer-column {
+        margin-bottom: 15px;
+      }
+
+      .footer-column h3 {
+        position: relative;
+        cursor: pointer;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 10px;
+      }
+
+      .footer-column h3::after {
+        content: '\f107';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 10px;
+      }
+
+      .footer-column.active h3::after {
+        content: '\f106';
+      }
+
+      .footer-links {
+        display: none;
+        padding: 10px 0;
+      }
+
+      .footer-column.active .footer-links {
+        display: block;
+      }
+
+      .footer-bottom {
+        text-align: center;
+      }
+
+      .footer-copyright,
+      .footer-bottom-links {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .footer-logo img {
+        width: 175px;
+        height: auto;
+      }
+
+
+
+
+    }
+  </style>
+  <style>
+    /* Enhanced Loader styles */
+    #preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .loader {
+      text-align: center;
+      position: relative;
+    }
+
+    .spinner {
+      width: 80px;
+      height: 80px;
+      border: 4px solid rgba(63, 55, 201, 0.1);
+      border-radius: 50%;
+      border-left-color: #3f37c9;
+      margin: 0 auto 20px;
+      animation: spin 1s ease infinite;
+      position: relative;
+    }
+
+
+    .loader p {
+      color: #3f37c9;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      margin-top: 15px;
+      opacity: 0;
+      animation: fadeInOut 2s ease-in-out infinite;
+    }
+
+    .loader .progress-bar {
+      width: 130px;
+      height: 3px;
+      background: rgba(63, 55, 201, 0.1);
+      border-radius: 10px;
+      margin: 10px auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .loader .progress-bar::after {
+      content: '';
+      position: absolute;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: #3f37c9;
+      animation: progress 2s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes fadeInOut {
+
+      0%,
+      100% {
+        opacity: 0.3;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes progress {
+      0% {
+        left: -100%;
+      }
+
+      100% {
+        left: 100%;
+      }
+    }
+
+    /* When loading is complete */
+    .loaded {
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.8s ease-out;
+    }
+
+    .loaded .spinner,
+    .loaded .progress-bar,
+    .loaded p {
+      animation: none;
+      opacity: 0;
+      transition: all 0.3s ease-out;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="preloader">
+    <div class="loader">
+      <div class="spinner"></div>
+      <div class="progress-bar"></div>
+      <p>Loading TopTeen...</p>
+    </div>
+  </div>
+  <!-- Header -->
+  <nav class="navbar navbar-expand-lg bg-body-tertiary py-0">
+    <div class="container flex-row">
+      <a class="navbar-brand py-0" href="/">
+        <img src="{% static 'images/topteen.png' %}" alt="TopTeen Logo">
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse justify-content-end custom-nav" id="navbarNav">
+        <ul class="navbar-nav align-items-center">
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == '/' %}active{% endif %}" aria-current="page"
+              href="{% url 'post_matric:home' %}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'post_matric:tests' %}">Tests</a>
+          </li>
+          <!-- <li class="nav-item">
+            <a class="nav-link" href="{% url 'post_matric:results' %}">Results</a>
+          </li> -->
+          {% if user.is_authenticated %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              <span class="user-cirlce">
+
+                {{ user.username|slice:":1"|capfirst }}
+              </span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item d-none" href="{% url 'post_matric:profile' %}"><i
+                    class="fas fa-user me-2"></i> Profile</a></li>
+              <li>
+                <a class="dropdown-item" href="{% url 'users:logout' %}"><i
+                    class="fas fa-sign-out-alt me-2"></i> Logout
+                </a>
+              </li>
+            </ul>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'post_matric:register' %}">Register</a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    {% block main-content %}
+    {% endblock %}
+  </main>
+
+  <!-- Desktop Footer -->
+  <footer class="footer-section d-none d-md-block">
+    <div class="container ">
+      <div class="row">
+        <div class="col-lg-3 col-md-6">
+          <div class="footer-logo">
+            <img src="{% static 'images/logo.png' %}" alt="TopTeen Logo">
+
+          </div>
+          <p class="footer-slogan">Every Student, Career Ready!</p>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="footer-column">
+            <h3>About the company</h3>
+            <div class="footer-links">
+              <a href="/">TopTeen</a>
+              <a href="/about-us">About Us</a>
+              <a href="/contact-us">Contact Us</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="footer-column">
+            <h3>Product</h3>
+            <div class="footer-links">
+              <a href="/psychometrictest/">Career Assessment Test</a>
+              <a href="/blogs/category/blogs">Blogs For Students</a>
+              <a href="/blogs/category/parenting-blogs">Blogs For Parents</a>
+              <a href="/all-faq">FAQs</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="footer-column">
+            <h3>Socials</h3>
+            <div class="footer-links">
+              <a href="https://www.instagram.com/topteen.careers/" target="_blank">
+                <i class="fab fa-instagram me-2"></i> Instagram
+              </a>
+              <a href="https://twitter.com/topteencareers" target="_blank">
+                <i class="fab fa-twitter me-2"></i> Twitter
+              </a>
+              <a href="https://www.facebook.com/topteen.in" target="_blank">
+                <i class="fab fa-facebook me-2"></i> Facebook
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row footer-bottom">
+        <div class="col-md-6">
+          <p class="footer-copyright">© 2025 TopTeen. All rights reserved.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <div class="footer-bottom-links">
+            <a href="/terms-and-condition">Terms and Conditions</a>
+            <a href="/privacy-policy">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile Footer -->
+  <footer class="footer-section d-block d-md-none">
+    <div class="container">
+      <div class="footer-logo">
+        <img src="{% static 'images/topteen.png' %}" alt="TopTeen Logo">
+      </div>
+      <p class="footer-slogan">Every Student, Career Ready!</p>
+
+      <div class="footer-column">
+        <h3 data-toggle="collapse" data-target="#aboutLinks">About the company</h3>
+        <div class="footer-links" id="aboutLinks">
+          <a href="/">TopTeen</a>
+          <a href="/about-us">About Us</a>
+          <a href="/contact-us">Contact Us</a>
+        </div>
+      </div>
+
+      <div class="footer-column">
+        <h3 data-toggle="collapse" data-target="#productLinks">Product</h3>
+        <div class="footer-links" id="productLinks">
+          <a href="/psychometrictest/">Career Assessment Test</a>
+          <a href="/blogs/category/blogs">Blogs For Students</a>
+          <a href="/blogs/category/parenting-blogs">Blogs For Parents</a>
+          <a href="/all-faq">FAQs</a>
+        </div>
+      </div>
+
+      <div class="footer-column">
+        <h3 data-toggle="collapse" data-target="#socialLinks">Socials</h3>
+        <div class="footer-links" id="socialLinks">
+          <a href="https://www.instagram.com/topteen.careers/" target="_blank">
+            <i class="fab fa-instagram me-2"></i> Instagram
+          </a>
+          <a href="https://twitter.com/topteencareers" target="_blank">
+            <i class="fab fa-twitter me-2"></i> Twitter
+          </a>
+          <a href="https://www.facebook.com/topteen.in" target="_blank">
+            <i class="fab fa-facebook me-2"></i> Facebook
+          </a>
+        </div>
+      </div>
+
+      <div class="row footer-bottom">
+        <div class="footer-copyright">
+          <p>© 2025 TopTeen. All rights reserved.</p>
+        </div>
+        <div class="footer-bottom-links">
+          <a href="/terms-and-condition">Terms and Conditions</a>
+          <a href="/privacy-policy">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- Keep your existing modals here -->
+  <!-- Edit Stream Modal -->
+  <div class="modal fade custom-modal" id="edit-stream" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Create Follow up</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="row">
+              <div class="col">
+                <input type="text" class="form-control custom-input" placeholder="First name" aria-label="First name">
+              </div>
+              <div class="col">
+                <input type="text" class="form-control custom-input" placeholder="Last name" aria-label="Last name">
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Institute Modal -->
+  <div id="add-institute" tabindex="-1" aria-hidden="true"
+    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 max-w-[690px] w-full">
+      <!-- Modal content -->
+      <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+        <!-- Modal header -->
+        <div class="flex items-center justify-center p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+          <h3
+            class="text-lg font-semibold text-gray-900 dark:text-white flex align-items-center w-100 justify-center mb-0">
+            <img class="me-3" src="{% static 'images/create-icon.png' %}" alt="icon"> Create Institute
+          </h3>
+          <button type="button"
+            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm h-8 w-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+            data-modal-toggle="add-institute">
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            </svg>
+            <span class="sr-only">Close modal</span> </button>
+        </div>
+
+        <!-- Modal body -->
+        <form class="p-4 md:p-5">
+          <div class="grid gap-3 mb-3 md:grid-cols-2">
+            <div>
+              <input type="text" id="inst-name" class="form-control custom-input" placeholder="Institute Name"
+                required />
+            </div>
+            <div>
+              <input type="text" id="Email" class="form-control custom-input" placeholder="Email" required />
+            </div>
+            <div>
+              <input type="text" id="address" class="form-control custom-input" placeholder="Address" required />
+            </div>
+            <div>
+              <input type="tel" id="cont" class="form-control custom-input" placeholder="Contact No."
+                pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}" required />
+            </div>
+            <div>
+              <select id="countries" class="form-control custom-input">
+                <option selected>Groups</option>
+                <option value="US">United States</option>
+                <option value="CA">Canada</option>
+                <option value="FR">France</option>
+                <option value="DE">Germany</option>
+              </select>
+            </div>
+            <div>
+              <input type="text" id="credit" class="form-control custom-input" placeholder="Exam Credits" />
+            </div>
+          </div>
+          <div class="custom-browse">
+            <input name="institute_logo" type="file" accept=".jpg,.png" oninput="checkfilesize(this)" alt="Submit"
+              class="form-control custom-input" placeholder="Institute Logo">
+          </div>
+          <div class="flex w-full justify-center">
+            <button type="submit" class="width-[228px] h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+              <div
+                class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+                <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">Submit</p>
+              </div>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://kit.fontawesome.com/df31b3ad5b.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
+    integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
+    integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.35.3/apexcharts.min.js"
+    integrity="sha512-yhdujT21BI/kqk9gcupTh4jMwqLhb+gc6Ytgs4cL0BJjXW+Jo9QyllqLbuluI0cBHqV4XsR7US3lemEGjogQ0w=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- Dropdown and collapsible functionality -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Dropdown functionality
+      var dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+
+      dropdownToggles.forEach(function (toggle) {
+        toggle.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          var dropdownItem = this.closest('.dropdown');
+          var dropdownMenu = dropdownItem.querySelector('.dropdown-menu');
+
+          dropdownMenu.classList.toggle('show');
+        });
+      });
+
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.dropdown')) {
+          var openDropdowns = document.querySelectorAll('.dropdown-menu.show');
+          openDropdowns.forEach(function (dropdown) {
+            dropdown.classList.remove('show');
+          });
+        }
+      });
+
+      // Mobile footer collapsible sections
+      var footerHeadings = document.querySelectorAll('.footer-column h3');
+
+      footerHeadings.forEach(function (heading) {
+        heading.addEventListener('click', function () {
+          var parentColumn = this.closest('.footer-column');
+          parentColumn.classList.toggle('active');
+        });
+      });
+    });
+  </script>
+
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Highlight active navbar link
+      const currentPath = window.location.pathname;
+      const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+
+      navLinks.forEach(function (link) {
+        // Clear existing active class
+        link.classList.remove('active');
+
+        // Match exact or partial path (optional logic tweak)
+        if (link.getAttribute('href') === currentPath) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+
+</body>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const preloader = document.getElementById('preloader');
+    const loadingText = preloader.querySelector('p');
+    const dots = ['Loading TopTeen', 'Loading TopTeen.', 'Loading TopTeen..', 'Loading TopTeen...'];
+    let currentDot = 0;
+
+    // Animate the loading text
+    const textInterval = setInterval(() => {
+      loadingText.textContent = dots[currentDot];
+      currentDot = (currentDot + 1) % dots.length;
+    }, 500);
+
+    // Hide loader after 3 seconds
+    setTimeout(() => {
+      clearInterval(textInterval);
+      preloader.classList.add('loaded');
+
+      // Remove the preloader from DOM after fade out
+      setTimeout(() => {
+        preloader.style.display = 'none';
+      }, 800);
+    }, 1000);
+  });
+</script>
+
+</html>

@@ -1,0 +1,83 @@
+<section class="mt-[30px] lg:mt-[50px]">
+    <p class="mb-[20px] lg:mb-[28px] semibold text-[20px] leading-[26px] lg:text-[24px] lg:leading-[32px] text-[#131415] text-center">Choose the best option for you</p>
+
+    <div class="flex flex-col gap-[30px] lg:flex-row lg:justify-center lg:gap-[215px]">
+
+      <div class="w-[340px] mx-auto lg:mx-0 ">
+        {% if not is_student %}
+        <div class="flex gap-[12px] bg-[#f7f7fa] pt-[13px] pb-[10px] lg:pb-[22px] rounded-[10px]">
+          <img src="{{static("topteenfrontend/assets/images/advancedCube.svg")}}" class="my-auto w-[36px] h-[36px] lg:w-[55px] lg:h-[55px] object-cover" alt="">
+          <div class="my-auto">
+            <p class="text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21px] semibold text-[#333333]">Advanced</p>
+            <p class="text-[20px] leading-[26px] lg:text-[24px] lg:leading-[32px] semibold text-[#333333]">₹ {{pyschometric_test_amount}}    <del>{{psychometric_cross_test_amount}}</del></p>
+            <p class="text-[12px] leading-[16.2px] text-[#828282] mediumFont">Career guidance • 1 year validity</p>
+          </div>
+        </div>
+        {% endif %}
+
+
+
+        <div class="px-[46px] lg:px-[60px] py-[14px] lg:py-[21px] mt-[4px] bg-[#f7f7fa] rounded-[10px]">
+
+          <div class="flex flex-col gap-[8px]">
+
+            <div class="flex gap-[10px] lg:gap-[16px]">
+              <img src="{{static("topteenfrontend/assets/images/greenCheck.png")}}" class="my-auto w-[12px] h-[12px] lg:w-[16px] lg:h-[16px] object-cover" alt="">
+              <p class="text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21px] mediumFont text-[#777777] ">Detailed Career</p>
+            </div>
+
+            <div class="flex gap-[10px] lg:gap-[16px]">
+              <img src="{{static("topteenfrontend/assets/images/greenCheck.png")}}" class="my-auto w-[12px] h-[12px] lg:w-[16px] lg:h-[16px] object-cover" alt="">
+              <p class="text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21px] mediumFont text-[#777777] ">Interest Analysis</p>
+            </div>
+
+            
+            <div class="flex gap-[10px] lg:gap-[16px]">
+              <img src="{{static("topteenfrontend/assets/images/greenCheck.png")}}" class="my-auto w-[12px] h-[12px] lg:w-[16px] lg:h-[16px] object-cover" alt="">
+              <p class="text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21px] mediumFont text-[#777777] ">Access to Career</p>
+            </div>
+
+            <div class="flex gap-[10px] lg:gap-[16px]">
+              <img src="{{static("topteenfrontend/assets/images/greenCheck.png")}}" class="my-auto w-[12px] h-[12px] lg:w-[16px] lg:h-[16px] object-cover" alt="">
+              <p class="text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21px] mediumFont text-[#777777] ">Library & Colleges</p>
+            </div>
+
+            <div class="flex gap-[10px] lg:gap-[16px] w-[160px] lg:w-[214px]">
+              <img src="{{static("topteenfrontend/assets/images/greenCheck.png")}}" class="my-auto w-[12px] h-[12px] lg:w-[16px] lg:h-[16px] object-cover" alt="">
+              <p class="text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21px] mediumFont text-[#777777] ">Personalised Career Counselling Session</p>
+            </div>
+
+          </div>
+          {#
+          <button id="checkoutadvanced" data-test-type='{{test_type.advanced_test_type}}' class="w-[160px] h-[41px] lg:w-[216px] lg:h-[53px] mt-[10px] lg:mt-[14px] relative bg-[#31b0ff] rounded-[10px]">
+            <div class="absolute top-0 w-[160px] h-[38px] lg:w-[216px] lg:h-[48px] bg-[#4cc9f0] rounded-[10px] flex justify-center items-center">
+              <p class="text-[12px] leading-[16px] lg:text-[14px] lg:leading-[19px] text-[#ffffff] text-center boldFont">Select Package <span>pay with razorpay</span></p> 
+            </div>
+          </button>
+          #}
+          <button onclick="window.location='{{psychometric_test_payment_url}}'" class="w-[160px] h-[41px] lg:w-[216px] lg:h-[53px] mt-[10px] lg:mt-[14px] relative bg-[#31b0ff] rounded-[10px]">
+            <div class="absolute top-0 w-[160px] h-[38px] lg:w-[216px] lg:h-[48px] bg-[#4cc9f0] rounded-[10px] flex justify-center items-center">
+              <p class="text-[12px] leading-[16px] lg:text-[14px] lg:leading-[19px] text-[#ffffff] text-center boldFont">Proceed{% if not is_student %} to Buy{% endif %}</p> 
+            </div>
+          </button>
+          {% if delete_demo_payment_url %}
+          <button onclick="delete_demo_payment()" class="w-[160px] h-[41px] lg:w-[216px] lg:h-[53px] mt-[10px] lg:mt-[14px] relative bg-[#31b0ff] rounded-[10px]">
+            <div class="absolute top-0 w-[160px] h-[38px] lg:w-[216px] lg:h-[48px] bg-[#4cc9f0] rounded-[10px] flex justify-center items-center">
+              <p class="text-[12px] leading-[16px] lg:text-[14px] lg:leading-[19px] text-[#ffffff] text-center boldFont">Clear Demo Test</p> 
+            </div>
+          </button>
+          {% endif %}
+          {#
+          <button class="w-[160px] h-[41px] lg:w-[216px] lg:h-[53px] mt-[10px] lg:mt-[14px] relative triggerProfilePopup bg-[#31b0ff] rounded-[10px]">
+            <div class="absolute top-0 w-[160px] h-[38px] lg:w-[216px] lg:h-[48px] bg-[#4cc9f0] rounded-[10px] flex justify-center items-center">
+              <p class="text-[12px] leading-[16px] lg:text-[14px] lg:leading-[19px] text-[#ffffff] text-center boldFont">Select</p>
+            </div>
+          </button>
+          #}
+        </div>
+
+      </div>
+    </div>
+
+
+  </section>

@@ -1,0 +1,677 @@
+{% extends 'topteenfrontend/super_base.html' %} {%block staticadditionalheader%}
+
+<meta name="robots" content="noindex">    
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link
+  href="{{static('topteenfrontend/assets/css/styles.css')}}"
+  rel="stylesheet"
+/>
+<link
+  href="{{static('topteenfrontend/assets/css/custom.css')}}"
+  rel="stylesheet"
+/>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+/>
+{%endblock%}
+<!-- HEADER PORTION for mobile -->
+<!-- HEADER PORTION -->
+{%block title%}TEST PREP{% endblock %} {% block body %}
+<div
+  class="lg:mx-auto flex justify-between py-[16px] border-b-[2px] border-[#EBEBEE] bg-white"
+>
+  <div
+    class="flex flex-row justify-between items-center lg:container lg:mx-auto px-3 lg:px-0 w-full"
+  >
+    <ul class="lg:flex gap-[24px]">
+      <li class="flex">
+        <a href="{{url('core:home')}}">
+          <img
+            src="{{static('topteenfrontend/assets/images/graduation-hat 1.png')}}"
+            class="w-[38.5px] h-[38.5px]"
+            alt=""
+          />
+        </a>
+        <a href="{{url('core:home')}}">
+          <p
+            class="text-[13.8px] leading-[18px] mt-[14px] ml-[8px] font-bold text-[#494949] tracking-[0.01em]"
+          >
+            TOPTEEN
+          </p>
+        </a>
+      </li>
+      
+      <li class="lg:flex hidden">
+            
+        <i
+          class="fa fa-search mt-[15px] -mr-[32px] text-[#bdbdbd] z-[20]"
+        ></i>
+        
+        <form action="{{url('core:searchandexploreresult')}}" method="get" autocomplete="off">
+        <div class="relative">
+        <input
+          name="search"
+          type="text"
+          placeholder=" Careers, colleges, courses..."
+          class="searchBox searchinput h-[48px] w-[300px] rounded-[10px] pl-[36px] bg-[#f7f7fa] border-[1.5px] border-solid border-[#dcdcdc] placeholder-[#bdbdbd] z-[10]"
+          id="collegesearch"
+          onfocus="focusFunc()" required oninput="inputFunc()"
+          required
+          {%if searchname%} value="{{searchname}}" {%else%} value=""{%endif%}
+          />
+        </form>
+        <div id="searchresults">
+
+        </div>
+        {% include 'topteenfrontend/includes/recentsearch.html' %}
+
+      </div>
+      </li>
+    </ul>
+
+    <ul class="lg:flex gap-[12px] hidden">
+      {% if request.user.institute_created.all() %}
+      <a href="{{url('institute:institutedashboard',args=[request.user.institute_created.last().slug])}}">
+        <li class="flex">
+          <img
+            src="{{static('topteenfrontend/assets/images/myPlans.svg')}}"
+            class="w-[22px] h-[22px] mt-[10px]"
+            alt=""
+          />
+          <p
+            class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]"
+          >
+            My Dashboard
+          </p>
+        </li>
+      </a>
+      {% elif request.user.institute_group.all() %}
+      <a href="{{url('institute:institutegroupdashboard')}}">
+        <li class="flex">
+          <img
+            src="{{static('topteenfrontend/assets/images/myPlans.svg')}}"
+            class="w-[22px] h-[22px] mt-[10px]"
+            alt=""
+          />
+          <p
+            class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]"
+          >
+            My Dashboard
+          </p>
+        </li>
+      </a>
+      {% else %}
+      <a href="{{url('users:userfeeds')}}">
+        <li class="flex">
+        <img
+          src="{{static('topteenfrontend/assets/images/discover.svg')}}"
+          class="w-[22px] h-[22px] mt-[10px]"
+          alt=""
+        />
+        <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[4px]">
+          Discover
+        </p>
+      </li>
+      </a>
+      <a href="{{url('entrance_exams:testpreptenth')}}">
+        <li class="flex">
+          <img src="{{static("topteenfrontend/assets/images/myPlans.svg")}}"
+          class="w-[22px] h-[22px] mt-[10px]" alt="" />
+          <p
+            class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]"
+          >
+            Test prep
+          </p>
+        </li>
+        </a>
+        <a href="{{url('users:userdashboard')}}">
+          <li class="flex">
+            <img
+              src="{{static('topteenfrontend/assets/images/myPlans.svg')}}"
+              class="w-[22px] h-[22px] mt-[10px]"
+              alt=""
+            />
+            <p
+              class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]"
+            >
+              My Dashboard
+            </p>
+          </li>
+        </a>
+        {% if request.user.is_superuser %}
+        <a href="{{url('institute:admindashboard')}}">
+          <li class="flex">
+            <img
+              src="{{static('topteenfrontend/assets/images/myPlans.svg')}}"
+              class="w-[22px] h-[22px] mt-[10px]"
+              alt=""
+            />
+            <p
+              class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]"
+            >
+              Admin
+            </p>
+          </li>
+        </a>
+        {% endif %}
+      {% endif %}
+      {#
+      <li class="flex">
+        <img
+          src="{{static('topteenfrontend/assets/images/learn.svg')}}"
+          class="w-[22px] h-[22px] mt-[10px]"
+          alt=""
+        />
+        <p
+          class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[4px] text-[#828282]"
+        >
+          Learn
+        </p>
+      </li>
+      #}
+      <li class="flex relative">
+        <button class=" popTrigr h-[42px] w-[42px] rounded-full -mr-[16px]">
+          <img
+            src="{{request.user.image.url}}"
+            alt=""
+            class="h-full w-full rounded-full object-cover"
+          />
+        </button>
+
+        <div  class="absolute z-10 popDiv w-[144px]">
+          <div id="smallPop" class="hidden px-[10px] py-[10px] bg-[#FFFFFF] shadow-lg rounded-[8px] relative flex flex-col gap-[6px]">
+            <button onclick="window.location='{{url('users:logout')}}'" value="3" class='text-black hover:bg-slate-200 text-[16px] font-bold py-1  h-full transition-all duration-[600ms] ease-in-out w-full'>
+              Logout
+            </button>
+            <div class="trianglePop absolute left-[50%] -translate-x-[50%]">
+            </div>
+          </div>
+        </div>
+
+      </li>
+    </ul>
+
+    <div class="flex lg:hidden flex-row justify-start gap-x-3 items-center">
+      <a href="{{url('core:searchandexplore')}}">
+        
+      <button>
+        
+        <i class="fa fa-search"></i>
+      </button>
+    </a>
+      <!-- <button>
+        <i class="fa fa-bars"></i>
+      </button> -->
+    </div>
+  </div>
+</div>
+<!-- HEADER ENDS -->
+<!-- main containt -->
+<div class="lg:min-h-[300px] w-full">
+{% block main %} 
+
+{% endblock %}
+</div>
+<!-- end main containt -->
+
+<!-- ASIDE DARK BLUE BANNER -->
+<aside
+  class="w-full lg:py-[39px] lg:px-[103px] px-[17px] lg:bg-[#3F37C9] flex lg:flex-row flex-col justify-center items-center gap-x-[35px] mb-10 lg:mb-0"
+>
+  <p
+    class="lg:text-white lg:text-[28px] lg:leading-[38px] text-xxs font-semibold tracking-[0.035em] shrink-0 lg:text-left text-center mb-[15px]"
+  >
+    Interested? Take the next step now!
+  </p>
+  <div class="flex flex-row justify-center items-center gap-x-[10px]">
+    <a href="{{url('core:contactus')}}">
+      <button
+        class="flex flex-row justify-start items-center gap-[12px] lg:gap-x-2 py-[15px] lg:px-[35px] px-[15px] lg:bg-white bg-[#F8F8F8] border-b-[6px] border-[#EAEAEA] rounded-[10px]"
+      >
+        <div class="h-[18px] w-[18px]">
+          <img
+            src="{{static('topteenfrontend/assets/images/msg.png')}}"
+            class="h-full w-full"
+          />
+        </div>
+        <div class="uppercase text-sm font-bold tracking-[0.01em] text-[#4F4F4F]">
+          CONTACT US
+        </div>
+      </button>
+    </a>
+  </div>
+</aside>
+
+<!-- Mobile footer -->
+<footer class="lg:hidden bg-[#f7f7fa] fixed bottom-0 z-30 w-full">
+  {% if request.user.institute_created.all() %}
+  <li
+    class="list-none flex justify-between px-[24px] border-y-[1px] border-y-[#3f37c9] border-y-solid border-opacity-[0.15] pt-[13px] pb-[18.67px] mx-auto bg-[#ffffff]"
+  >
+  <ul class="pt-[4.5px] group text-center">
+    <a href="{{url('institute:institutedashboard',args=[request.user.institute_created.last().slug])}}">
+      <i
+        class="fa fa-users-rectangle text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('institute:institutedashboard',args=[request.user.institute_created.last().slug]) %}activefooter{% endif %}"
+      ></i>
+      <p
+        class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+      >
+        Dashboard
+      </p>
+    </a>
+  </ul>
+  </li>
+  {% elif request.user.institute_group.all() %}
+  <li
+    class="list-none flex justify-between px-[24px] border-y-[1px] border-y-[#3f37c9] border-y-solid border-opacity-[0.15] pt-[13px] pb-[18.67px] mx-auto bg-[#ffffff]"
+  >
+  <ul class="pt-[4.5px] group text-center">
+    <a href="{{url('institute:institutegroupdashboard')}}">
+      <i
+        class="fa fa-users-rectangle text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('institute:institutegroupdashboard') %}activefooter{% endif %}"
+      ></i>
+      <p
+        class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+      >
+        Dashboard
+      </p>
+    </a>
+  </ul>
+  </li>
+  {% else %}
+  <li
+    class="list-none flex justify-between px-[24px] border-y-[1px] border-y-[#3f37c9] border-y-solid border-opacity-[0.15] pt-[13px] pb-[18.67px] mx-auto bg-[#ffffff]"
+  >
+    <ul class="pt-[4.5px] group text-center">
+      <a href="{{url("users:userfeeds")}}">
+      <i
+        class="fa fa-bolt text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('users:userfeeds') %}activefooter{% endif %}"
+      ></i>
+      <p
+        class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+      >
+        Discover
+      </p>
+      </a>
+    </ul>
+
+    <ul class="pt-[4.5px] group text-center">
+      <a href="{{url('core:searchandexplore')}}">
+    
+      <i
+        class="fa fa-magnifying-glass text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('core:searchandexplore') %}activefooter{% endif %}"
+      ></i>
+      <p
+        class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+      >
+        Search
+      </p>
+      </a>
+    </ul>
+
+    <ul class="pt-[4.5px] group text-center">
+      <a href="{{url('users:userdashboard')}}">
+        <i
+          class="fa fa-users-rectangle text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('users:userdashboard') %}activefooter{% endif %}"
+        ></i>
+        <p
+          class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+        >
+          Dashboard
+        </p>
+      </a>
+    </ul>
+
+    <ul class="pt-[4.5px] group text-center">
+      <a href="{{url('entrance_exams:testpreptenth')}}">
+        <i
+          class="fa fa-book text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('entrance_exams:testpreptenth') %}activefooter{% endif %}"
+        ></i>
+        <p
+          class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+        >
+          Test Prep
+        </p>
+      </a>
+    </ul>
+
+    <ul class="pt-[4.5px] group text-center">
+      <a href="{{url('users:userdashboard')}}">
+      <i
+        class="fa-regular fa-circle-user text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"
+      ></i>
+      <p
+        class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] group-hover:scale-110 mx-auto"
+      >
+        Profile
+      </p>
+      </a>
+    </ul>
+  </li>
+  {% endif %}
+</footer>
+<!-- End of mobile footer -->
+
+<!-- FOOTER PORTION -->
+
+<footer class="w-full bg-[#FDFCFF]  lg:block">
+  <div
+    class=" lg:container mx-auto px-0 pt-10  h-auto tracking-wide lg:block hidden"
+    id="footer">
+    <div
+      class="grid grid-cols-2 pb-10 border-b border-[#000000] border-opacity-20 gap-10"
+    >
+      <div>
+        <h4 class="text-sm font-bold mb-4 footer-heading">
+          <span
+            >
+            <a href="{{url('core:home')}}"><img
+              src="{{static("topteenfrontend/assets/images/logo/topteen.png")}}"
+              class="h-[70px] inline-block"
+          />
+        </a></span>
+          &nbsp;<span class="font-bold text-[13.13px] leading-[18px]"
+            ></span
+          >
+        </h4>
+        <p class="text-left text-[#828282] text-[20px]  font-bold text">
+          Every Student, Career Ready!
+        </p>
+      </div>
+      <div class="flex flex-row justify-between items-start">
+        <ul class="flex flex-col justify-evenly items-start">
+          <li
+            class="text-lg font-bold tracking-[0.01em] text-[#333333] mb-[14px] footer-heading "
+          >
+            TopTeen
+          </li>
+       
+          <li class="text-lg font-normal text-[#828282] mb-2 tracking-[0.01em] ">
+            <a class="hover-[#3f37c9]" href="{{url('core:aboutus')}}"> About Us </a>
+          </li>
+          <li class="text-lg font-normal text-[#828282] mb-2 tracking-[0.01em] ">
+            <a class="hover-[#3f37c9]" href="{{url('core:contactus')}}"> Contact Us </a>
+          </li>
+          
+        
+          
+        </ul>
+
+        <ul class="flex flex-col justify-evenly items-start">
+          <li
+            class="text-lg font-bold tracking-[0.01em] text-[#333333] mb-[14px] footer-heading"
+          >
+            Product
+          </li>
+          <li
+            class="text-lg font-normal text-[#828282] mb-2 tracking-[0.01em]"
+          >
+            <a class="hover-[#3f37c9]" href="{{url('psychometrictests:psychometrictest')}}"> Career Assesment Test </a>
+          </li>
+          {%for popular_category in popular_categories[:2]%}
+          <li
+            class="text-lg font-normal text-[#828282] mb-2 tracking-[0.01em]"
+          >
+            <a class="hover-[#3f37c9]" href="{{popular_category.url()}}">Blogs {{popular_category.name}} </a>
+          </li>
+          {% endfor %}
+          <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+            <a class="hover-[#3f37c9]" href="{{url('core:allfaq')}}"> FAQs </a>
+          </li>
+        </ul>
+        <ul class="flex flex-col justify-evenly items-start">
+          <li
+            class="text-lg font-bold tracking-[0.01em] text-[#333333] mb-[14px] footer-heading"
+          >
+            Socials
+          </li>
+          <li
+            class="text-lg font-normal text-[#828282] mb-2 tracking-[0.01em]"
+          >
+            <a class="flex items-center hover-[#3f37c9]" href="https://www.instagram.com/topteen.careers/" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(130, 130, 130, 1);transform: ;msFilter:;" class="mr-2"><path d="M20.947 8.305a6.53 6.53 0 0 0-.419-2.216 4.61 4.61 0 0 0-2.633-2.633 6.606 6.606 0 0 0-2.186-.42c-.962-.043-1.267-.055-3.709-.055s-2.755 0-3.71.055a6.606 6.606 0 0 0-2.185.42 4.607 4.607 0 0 0-2.633 2.633 6.554 6.554 0 0 0-.419 2.185c-.043.963-.056 1.268-.056 3.71s0 2.754.056 3.71c.015.748.156 1.486.419 2.187a4.61 4.61 0 0 0 2.634 2.632 6.584 6.584 0 0 0 2.185.45c.963.043 1.268.056 3.71.056s2.755 0 3.71-.056a6.59 6.59 0 0 0 2.186-.419 4.615 4.615 0 0 0 2.633-2.633c.263-.7.404-1.438.419-2.187.043-.962.056-1.267.056-3.71-.002-2.442-.002-2.752-.058-3.709zm-8.953 8.297c-2.554 0-4.623-2.069-4.623-4.623s2.069-4.623 4.623-4.623a4.623 4.623 0 0 1 0 9.246zm4.807-8.339a1.077 1.077 0 0 1-1.078-1.078 1.077 1.077 0 1 1 2.155 0c0 .596-.482 1.078-1.077 1.078z"></path><circle cx="11.994" cy="11.979" r="3.003"></circle></svg> <span class="ml-2">Instagram </span>  </a>
+          </li>
+
+          <li
+            class="text-lg font-normal text-[#828282] mb-2 tracking-[0.01em]"
+          >
+            <a class="flex items-center hover-[#3f37c9]" href="https://twitter.com/topteencareers" target="_blank"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(130, 130, 130, 1);transform: ;msFilter:;" class="mr-2"><path d="M19.633 7.997c.013.175.013.349.013.523 0 5.325-4.053 11.461-11.46 11.461-2.282 0-4.402-.661-6.186-1.809.324.037.636.05.973.05a8.07 8.07 0 0 0 5.001-1.721 4.036 4.036 0 0 1-3.767-2.793c.249.037.499.062.761.062.361 0 .724-.05 1.061-.137a4.027 4.027 0 0 1-3.23-3.953v-.05c.537.299 1.16.486 1.82.511a4.022 4.022 0 0 1-1.796-3.354c0-.748.199-1.434.548-2.032a11.457 11.457 0 0 0 8.306 4.215c-.062-.3-.1-.611-.1-.923a4.026 4.026 0 0 1 4.028-4.028c1.16 0 2.207.486 2.943 1.272a7.957 7.957 0 0 0 2.556-.973 4.02 4.02 0 0 1-1.771 2.22 8.073 8.073 0 0 0 2.319-.624 8.645 8.645 0 0 1-2.019 2.083z"></path></svg><span class="ml-2"> Twitter</span>  </a>
+          </li>
+          <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+            <a class="flex items-center hover-[#3f37c9]" href="https://www.facebook.com/topteen.in" target="_blank"> <svg  xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(130, 130, 130, 1);transform: ;msFilter:;" class="mr-2"><path d="M20 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h8.615v-6.96h-2.338v-2.725h2.338v-2c0-2.325 1.42-3.592 3.5-3.592.699-.002 1.399.034 2.095.107v2.42h-1.435c-1.128 0-1.348.538-1.348 1.325v1.735h2.697l-.35 2.725h-2.348V21H20a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1z"></path></svg> <span class="ml-2"> Facebook</span>  </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div
+      class="flex flex-row justify-between my-2 text-[#828282] font-normal py-3"
+    >
+      <div class="text-xs">&copy; 2025 TopTeen. All rights reserved.</div>
+      <div class="text-xs">
+        <a href="{{url('core:terms&condition')}}" class="underline  hover-[#3f37c9]">Terms & Conditions</a
+        ><span class="font-extrabold">.</span
+        ><a href="{{url('core:privacypolicy')}}" class="underline ml-2 hover-[#3f37c9]"> Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+<!-- <footer class="w-full bg-[#FDFCFF] hidden lg:block">
+  <div
+    class="lg:container mx-auto px-0 pt-10 my-8 h-auto tracking-wide lg:block hidden"
+    id="footer"
+  >
+    <div
+      class="grid grid-cols-2 pb-10 border-b border-[#000000] border-opacity-20 gap-10"
+    >
+      <div>
+        <h4 class="text-sm font-bold mb-4 footer-heading">
+          <span>
+            <a href="{{url('core:home')}}"
+              ><img
+              src="{{static("topteenfrontend/assets/images/logo/topteen.png")}}"
+              class="h-10 inline-block" />
+            </a></span
+          >
+          &nbsp;<span class="font-bold text-[13.13px] leading-[18px]"></span>
+        </h4>
+        <p class="text-left text-[#828282] text-lg w-1/2 font-normal">
+          Every Student, Career Ready!
+        </p>
+      </div>
+      <div class="flex flex-row justify-between items-start">
+        <ul class="flex flex-col justify-evenly items-start">
+          <li
+            class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+          >
+            About the company
+          </li>
+          <li class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]">
+            <a href="/"> TopTeen </a>
+          </li>
+
+          <li class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]">
+            <a href="{{url('core:aboutus')}}"> About Us </a>
+          </li>
+          <li class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]">
+            <a href="{{url('core:contactus')}}"> Contact Us </a>
+          </li>
+        </ul>
+
+        <ul class="flex flex-col justify-evenly items-start">
+          <li
+            class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+          >
+            Product
+          </li>
+          <li class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]">
+            <a href="{{url('psychometrictests:psychometrictest')}}"> Career Assesment Test </a>
+          </li>
+          {%for popular_category in popular_categories[:2]%}
+          <li class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]">
+            <a href="{{popular_category.url()}}"> Blogs {{popular_category.name}} </a>
+          </li>
+          {% endfor %}
+          <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+            <a href="{{url('core:allfaq')}}"> FAQs </a>
+          </li>
+        </ul>
+        <ul class="flex flex-col justify-evenly items-start">
+          <li
+            class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+          >
+            Socials
+          </li>
+          <li class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]">
+            <a href="https://www.instagram.com/topteen.careers/" target="_blank"> Instagram </a>
+          </li>
+
+          <li class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]">
+            <a href="https://twitter.com/topteencareers" target="_blank"> Twitter </a>
+          </li>
+          <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+            <a href="https://www.facebook.com/topteen.in" target="_blank"> Facebook </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div
+      class="flex flex-row justify-between my-2 text-[#828282] font-normal mb-6"
+    >
+      <div class="text-xs">&copy; 2025 TopTeen. All rights reserved.</div>
+      <div class="text-xs">
+        <a href="{{url('core:terms&condition')}}" class="underline"
+          >Terms & Conditions</a
+        ><span class="font-extrabold">.</span
+        ><a href="{{url('core:privacypolicy')}}" class="underline">
+          Privacy Policy</a
+        >
+      </div>
+    </div>
+  </div>
+</footer> -->
+<!-- FOOTER FOR MOBILE -->
+<div class="lg:hidden mobile-footer" style="padding-bottom:45px ;">
+  
+  <div
+  class="w-full pt-[64px] flex flex-col justify-start gap-y-[18px] items-center mb-[57px] lg:hidden"
+  >
+    <div
+      class="flex flex-row justify-start items-center gap-x-[8px] mb-[19px]"
+    >
+      <div class="h-[39px] w-[39px]">
+        <img
+          src="{{static('topteenfrontend/assets/images/graduation-hat 1.png')}}"
+          class="h-full w-full"
+        />
+      </div>
+      <div class="text-[14px] leading-[16px] font-bold">TOP TEEN</div>
+    </div>
+    <div class="text-center w-[246px] text-lg font-normal text-[#828282]">
+      Every Student, Career Ready!
+    </div>
+    <br>
+    <br>
+
+    
+  </div>
+
+<div
+  class="flex flex-row justify-between items-start mx-[23px] mb-[52px] lg:hidden"
+>
+  <ul>
+    <li class="text-lg font-normal text-[#333333] mb-[22px] font-bold">TopTeen</li>
+
+    <li class="text-lg font-normal text-[#828282]"><a href="{{url('core:aboutus')}}">About Us</a></li>
+    <li class="text-lg font-normal text-[#828282]"><a href="{{url('core:contactus')}}">Contact Us</a></li>
+  </ul>
+  <ul>
+    <li class="text-lg font-normal text-[#333333] mb-[22px] font-bold">Product</li>
+    <li class="text-lg font-normal text-[#828282] mb-[16px]"><a href="{{url('psychometrictests:psychometrictest')}}">Career Assesment Test</a></li>
+    {%for popular_category in popular_categories[:2]%}
+    <li class="text-lg font-normal text-[#828282] mb-[16px]"><a href="{{popular_category.url()}}">Blogs {{popular_category.name}}</a></li>
+    {% endfor %}
+    <li class="text-lg font-normal text-[#828282]"><a href="{{url('core:allfaq')}}">FAQs</a></li>
+  </ul>
+  <ul>
+    <li class="text-lg font-normal text-[#333333] mb-[22px]">Social</li>
+    <li class="text-lg font-normal text-[#828282] mb-[16px]">  <a class="flex items-center" href="https://www.instagram.com/topteen.careers/" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(130, 130, 130, 1);transform: ;msFilter:;" class="mr-2"><path d="M20.947 8.305a6.53 6.53 0 0 0-.419-2.216 4.61 4.61 0 0 0-2.633-2.633 6.606 6.606 0 0 0-2.186-.42c-.962-.043-1.267-.055-3.709-.055s-2.755 0-3.71.055a6.606 6.606 0 0 0-2.185.42 4.607 4.607 0 0 0-2.633 2.633 6.554 6.554 0 0 0-.419 2.185c-.043.963-.056 1.268-.056 3.71s0 2.754.056 3.71c.015.748.156 1.486.419 2.187a4.61 4.61 0 0 0 2.634 2.632 6.584 6.584 0 0 0 2.185.45c.963.043 1.268.056 3.71.056s2.755 0 3.71-.056a6.59 6.59 0 0 0 2.186-.419 4.615 4.615 0 0 0 2.633-2.633c.263-.7.404-1.438.419-2.187.043-.962.056-1.267.056-3.71-.002-2.442-.002-2.752-.058-3.709zm-8.953 8.297c-2.554 0-4.623-2.069-4.623-4.623s2.069-4.623 4.623-4.623a4.623 4.623 0 0 1 0 9.246zm4.807-8.339a1.077 1.077 0 0 1-1.078-1.078 1.077 1.077 0 1 1 2.155 0c0 .596-.482 1.078-1.077 1.078z"></path><circle cx="11.994" cy="11.979" r="3.003"></circle></svg> <span class="ml-2">Instagram </span>  </a></li>
+    <li class="text-lg font-normal text-[#828282] mb-[16px]"> <a class="flex items-center" href="https://twitter.com/topteencareers" target="_blank"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(130, 130, 130, 1);transform: ;msFilter:;" class="mr-2"><path d="M19.633 7.997c.013.175.013.349.013.523 0 5.325-4.053 11.461-11.46 11.461-2.282 0-4.402-.661-6.186-1.809.324.037.636.05.973.05a8.07 8.07 0 0 0 5.001-1.721 4.036 4.036 0 0 1-3.767-2.793c.249.037.499.062.761.062.361 0 .724-.05 1.061-.137a4.027 4.027 0 0 1-3.23-3.953v-.05c.537.299 1.16.486 1.82.511a4.022 4.022 0 0 1-1.796-3.354c0-.748.199-1.434.548-2.032a11.457 11.457 0 0 0 8.306 4.215c-.062-.3-.1-.611-.1-.923a4.026 4.026 0 0 1 4.028-4.028c1.16 0 2.207.486 2.943 1.272a7.957 7.957 0 0 0 2.556-.973 4.02 4.02 0 0 1-1.771 2.22 8.073 8.073 0 0 0 2.319-.624 8.645 8.645 0 0 1-2.019 2.083z"></path></svg><span class="ml-2"> Twitter</span>  </a></li>
+    <li class="text-lg font-normal text-[#828282]">  <a class="flex items-center" href="https://www.facebook.com/topteen.in" target="_blank"> <svg  xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(130, 130, 130, 1);transform: ;msFilter:;" class="mr-2"><path d="M20 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h8.615v-6.96h-2.338v-2.725h2.338v-2c0-2.325 1.42-3.592 3.5-3.592.699-.002 1.399.034 2.095.107v2.42h-1.435c-1.128 0-1.348.538-1.348 1.325v1.735h2.697l-.35 2.725h-2.348V21H20a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1z"></path></svg> <span class="ml-2"> Facebook</span>  </a></li>
+  </ul>
+</div>
+
+<div
+  class="h-[1px] w-full border-b-[1px] bg-black bg-opacity-20 mb-[20px] lg:hidden"
+></div>
+
+<div
+  class="flex flex-col justify-start items-center pt-3 lg:hidden gap-y-3 mb-[65px]"
+>
+  <p class="text-lg text-[#828282]">© 2023 TopTeen. All rights reserved.</p>
+  <p class="text-lg text-[#828282]"><a href="{{url('core:terms&condition')}}">Terms & Conditions</a> •<a href="{{url('core:privacypolicy')}}">Privacy Policy</a></p>
+</div>
+
+</div>
+
+{% endblock %} {% block staticfooter %}
+
+<script
+  type="text/javascript"
+  src="{{static('topteenfrontend/assets/js/slick.min.js')}}"
+></script>
+<script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
+<script src="{{static('topteenfrontend/assets/js/homePage.js')}}"></script>
+<script
+  type="text/javascript"
+  src="{{static('topteenfrontend/assets/js/common.js')}}"
+></script>
+<script
+  type="text/javascript"
+  src="{{static('topteenfrontend/assets/js/careerDetailPageJS.js')}}"
+></script>
+<script
+  type="text/javascript"
+  src="{{static('topteenfrontend/assets/js/drawer.js')}}"
+></script>
+<script
+  type="text/javascript"
+  src="{{static('topteenfrontend/assets/js/modal.js')}}"
+></script>
+<script
+type="text/javascript"
+src="{{static('topteenfrontend/assets/js/search.js')}}">
+</script>
+
+<script>
+var clgajxsrchlst="{{url('core:recommandedsearch')}}"
+</script>
+<script>
+  let popDiv = document.querySelector(".popDiv");
+  let popTrigr = document.querySelector(".popTrigr");
+  let smallPop = document.getElementById("smallPop")
+  popTrigr.addEventListener("click", function(){
+    smallPop.classList.toggle("hidden");
+  })
+</script>
+<script type="text/javascript">
+  function examshortlist(param){
+    $.ajax({
+      type:"GET",
+      url:"{{url('entrance_exams:shortlist_exam')}}",
+      data:{id:param}
+    }).done(function(response){
+      if(response["success"]==="true"){
+        $('#exam_'+param).css({"background-color":"blue"});
+        Swal.fire ('Added!', 'Added to Bookmark!', 'success');
+      }else{
+        $('#exam_'+param).css({"background-color":"white"});
+        Swal.fire ('Removed!', 'Removed to Bookmark!', 'error');
+      }
+    console.log(response);
+  });
+  }   
+</script>
+{% endblock staticfooter %}

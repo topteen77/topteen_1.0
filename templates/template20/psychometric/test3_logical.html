@@ -1,0 +1,544 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Logical Reasoning Test | Top Teen{% endblock %}
+{% block description_content %}Take the Logical Reasoning test to assess your analytical thinking abilities.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} test-view-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .test-view-page {
+    padding-top: 80px;
+  }
+  .question {
+    display: none;
+  }
+  .question.active {
+    display: block;
+  }
+  .question-box {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+  }
+  .custom-radio {
+    display: block;
+    margin-bottom: 12px;
+    padding: 12px;
+    border: 2px solid #efefee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .custom-radio:hover {
+    border-color: #8a2be2;
+    background: rgba(138, 43, 226, 0.05);
+  }
+  .custom-radio input[type="radio"] {
+    margin-right: 12px;
+  }
+  .custom-radio input[type="radio"]:checked + .radio-btn {
+    color: #8a2be2;
+    font-weight: 600;
+  }
+  .custom-radio input[type="radio"]:checked ~ .radio-btn,
+  .custom-radio:has(input[type="radio"]:checked) {
+    border-color: #8a2be2;
+    background: rgba(138, 43, 226, 0.1);
+  }
+  .test-stats-box {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+  .test-stats-box .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #8a2be2;
+  }
+  .test-stats-box .stat-label {
+    font-size: 12px;
+    color: #828282;
+    margin-top: 5px;
+  }
+  .question-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 15px 0;
+    cursor: pointer;
+  }
+  .image-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.9);
+  }
+  .image-modal-content {
+    margin: auto;
+    display: block;
+    width: 90%;
+    max-width: 800px;
+    margin-top: 50px;
+  }
+  .image-modal-content img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+  }
+  .image-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .image-modal-close:hover {
+    color: #bbb;
+  }
+  .radio-buttons.image-box {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  .radio-buttons.image-box .custom-radio {
+    text-align: center;
+    padding: 15px;
+  }
+  .radio-buttons.image-box .radio-btn img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+  }
+  .loader {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 20px auto;
+  }
+  .loader-inner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border-radius: 50%;
+  }
+  .loader-inner.box1 {
+    left: 0%;
+    top: 0%;
+    animation: cssload-rotate-one 1.15s linear infinite;
+    border-bottom: 3px solid #5C5EDC;
+  }
+  .loader-inner.box2 {
+    right: 0%;
+    top: 0%;
+    animation: cssload-rotate-two 1.15s linear infinite;
+    border-right: 3px solid rgba(76, 70, 101, 0.99);
+  }
+  .loader-inner.box3 {
+    right: 0%;
+    bottom: 0%;
+    animation: cssload-rotate-three 1.15s linear infinite;
+    border-top: 3px solid #e9908a;
+  }
+  @keyframes cssload-rotate-one {
+    0% { transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg); }
+    100% { transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg); }
+  }
+  @keyframes cssload-rotate-two {
+    0% { transform: rotateX(50deg) rotateY(10deg) rotateZ(0deg); }
+    100% { transform: rotateX(50deg) rotateY(10deg) rotateZ(360deg); }
+  }
+  @keyframes cssload-rotate-three {
+    0% { transform: rotateX(35deg) rotateY(55deg) rotateZ(0deg); }
+    100% { transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg); }
+  }
+  .load-effect {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  @media (max-width: 767.98px) {
+    .test-view-page {
+      padding-top: 60px;
+    }
+    .question-box {
+      padding: 20px;
+    }
+    .radio-buttons.image-box {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="main-content-wrapper">
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Left Sidebar (User Profile) -->
+      {% include 'template20/includes/user_profile_sidebar.html' %}
+
+      <!-- Main Content Area -->
+      <div class="col-lg-9 col-md-8 col-12 pt-md-18 pt-14 ps-lg-5">
+        <!-- Desktop Test Stats -->
+        <div class="d-none d-lg-block mb-4">
+          <div class="test-stats-box">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-time fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="totalTime">00:00</p>
+                <p class="stat-label">Total Time</p>
+              </div>
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-list-check fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="questionProgress">1/{{ questions.count() }}</p>
+                <p class="stat-label">Question</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Header -->
+        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+          <h2 class="fs-20 fw-semibold mb-0">Logical Reasoning</h2>
+          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
+            <i class='bx bx-cog'></i>
+          </button>
+        </div>
+
+        <!-- Mobile Test Stats -->
+        <div class="d-lg-none mb-4">
+          <div class="test-stats-box">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-time fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="totalTimeMobile">00:00</p>
+                <p class="stat-label">Total Time</p>
+              </div>
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-list-check fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="questionProgressMobile">1/{{ questions.count() }}</p>
+                <p class="stat-label">Question</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="fs-24 fw-semibold mb-3 d-none d-lg-block">Logical Reasoning</h2>
+        
+        <div class="alert alert-info d-flex align-items-center mb-4">
+          <i class='bx bx-info-circle me-2 fs-20'></i>
+          <div class="fs-14">Select the most appropriate answer from the choices provided based on the given information.</div>
+        </div>
+
+        <form id="multiStepForm" method="post" action="{{ url('app:test3_view') }}">
+          <div class="alert alert-danger" id="error-message" style="display: none;">
+            <i class='bx bx-error-circle me-2'></i> Please select an option for all questions before submitting.
+          </div>
+          
+          <input type="hidden" name="test_paper" value="{{ test_paper }}">
+          <input type="hidden" name="category" value="{{ category }}">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          
+          {% for question in questions %}
+          <div class="question {% if loop.first %}active{% endif %}" id="question{{ loop.index }}">
+            <div class="question-box" data-question-id="{{ question.id }}">
+
+              {% if question.question_text and question.question_image %}
+              <!-- Case where both text and image are present -->
+              <div class="question-label fs-18 fw-semibold mb-3">
+                <span class="text-purple me-2">Q{{ loop.index }}:</span>
+                {{ question.question_text }}
+              </div>
+              <div class="img-tags mb-3">
+                <img class="question-image modal-trigger" src="{{ question.question_image.url }}" alt="Question Image">
+              </div>
+              <div class="radio-buttons">
+                {% for answer in question.answer_set.all() %}
+                <label class="custom-radio" for="answer_{{ answer.id }}">
+                  <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}">
+                  <span class="radio-btn">{{ answer.answer_text }}</span>
+                </label>
+                {% endfor %}
+              </div>
+
+              {% elif question.question_text %}
+              <!-- Case where only text is present -->
+              <div class="question-label fs-18 fw-semibold mb-4">
+                <span class="text-purple me-2">Q{{ loop.index }}:</span>
+                {{ question.question_text }}
+              </div>
+              <div class="radio-buttons">
+                {% for answer in question.answer_set.all() %}
+                <label class="custom-radio" for="answer_{{ answer.id }}">
+                  <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}">
+                  <span class="radio-btn">{{ answer.answer_text }}</span>
+                </label>
+                {% endfor %}
+              </div>
+
+              {% elif question.question_image %}
+              <!-- Case where only image is present -->
+              <div class="question-label mb-3">
+                <span class="text-purple me-2 fs-18 fw-semibold">Q{{ loop.index }}:</span>
+                <img class="question-image modal-trigger" src="{{ question.question_image.url }}" alt="Question Image">
+              </div>
+              <div class="radio-buttons image-box">
+                {% for answer in question.answer_set.all() %}
+                <div class="im">
+                  {% if answer.answer_text %}
+                  <span class="d-block mb-2 fw-semibold">{{ answer.answer_text }}</span>
+                  {% endif %}
+                  <label class="custom-radio" for="answer_{{ answer.id }}">
+                    <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}">
+                    <div class="radio-btn">
+                      {% if answer.answer_image %}
+                      <img src="{{ answer.answer_image.url }}" alt="Answer Image">
+                      {% endif %}
+                    </div>
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+
+              {% else %}
+              <!-- Case where neither text nor image is present -->
+              <div class="question-label fs-18 fw-semibold mb-4">
+                <span class="text-purple me-2">Q{{ loop.index }}:</span>
+              </div>
+              <div class="radio-buttons">
+                {% for answer in question.answer_set.all() %}
+                <label class="custom-radio" for="answer_{{ answer.id }}">
+                  <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}">
+                  <span class="radio-btn">{{ answer.answer_text }}</span>
+                </label>
+                {% endfor %}
+              </div>
+
+              {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-center gap-3 my-4">
+              {% if not loop.first %}
+              <button type="button" class="btn custom-button blue-button prev-button">Back</button>
+              {% endif %}
+              {% if not loop.last %}
+              <button type="button" class="btn custom-button purple-button next-button">Continue</button>
+              {% else %}
+              <button type="submit" onclick="return validateForm()" class="btn btn-success submit-button">
+                <i class='bx bx-check me-2'></i> Submit Test
+              </button>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Image Modal -->
+<div id="imageModal" class="image-modal">
+  <span class="image-modal-close">&times;</span>
+  <div class="image-modal-content">
+    <img id="modalImage" src="" alt="Question Image">
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loader" class="load-effect" style="display: none;">
+  <div class="loader">
+    <div class="loader-inner box1"></div>
+    <div class="loader-inner box2"></div>
+    <div class="loader-inner box3"></div>
+  </div>
+  <p class="mt-3">
+    <img src="{{ static('images_new/logos/topteen-logo.svg') }}" style="height: 45px;" alt="TopTeen">
+  </p>
+</div>
+
+<!-- Mobile Drawer -->
+<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-lg-none" data-direction="translate-y-full">
+  <div class="drawerContent bg-white w-100 rounded-t-lg absolute bottom-0">
+    <div class="p-4 d-flex flex-column gap-3">
+      <a href="{{ url('users:logout') }}" class="d-flex justify-content-between align-items-center text-decoration-none text-danger">
+        <div>
+          <h6 class="mb-0">Sign Out</h6>
+          <p class="text-danger fs-12 mb-0">Log out from your account</p>
+        </div>
+        <i class='bx bx-chevron-right'></i>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script>
+  $(document).ready(function () {
+    let currentQuestion = 1;
+    const totalQuestions = $('.question').length;
+    let startTime, timerInterval;
+    let totalSeconds = 20 * 60; // 20 minutes in seconds
+
+    // Timer functionality
+    function startTimer() {
+      startTime = Date.now();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+      const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+      
+      const minutes = Math.floor(remainingSeconds / 60);
+      const seconds = remainingSeconds % 60;
+      const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+      $('#totalTime').text(timeString);
+      $('#totalTimeMobile').text(timeString);
+
+      // Auto-submit when time is up (optional - currently commented)
+      // if (remainingSeconds <= 0) {
+      //   clearInterval(timerInterval);
+      //   $('#multiStepForm').submit();
+      // }
+    }
+
+    // Question navigation
+    function showQuestion(number) {
+      $('.question').removeClass('active');
+      $('#question' + number).addClass('active');
+      
+      const progressText = number + ' / ' + totalQuestions;
+      $('#questionProgress').text(progressText);
+      $('#questionProgressMobile').text(progressText);
+      
+      $('.next-button').toggle(number < totalQuestions);
+      $('.prev-button').toggle(number > 1);
+      $('.submit-button').toggle(number === totalQuestions);
+    }
+
+    // Next button
+    $('.next-button').on('click', function () {
+      const questionId = $('.question.active').find('.question-box').data('question-id');
+      const radioChecked = $('input[name="question_' + questionId + '"]:checked').length > 0;
+      
+      if (radioChecked) {
+        if (currentQuestion < totalQuestions) {
+          currentQuestion++;
+          showQuestion(currentQuestion);
+          $('#error-message').hide();
+        }
+      } else {
+        $('#error-message').show();
+        setTimeout(function () {
+          $('#error-message').hide();
+        }, 3000);
+      }
+    });
+
+    // Previous button
+    $('.prev-button').on('click', function () {
+      if (currentQuestion > 1) {
+        currentQuestion--;
+        showQuestion(currentQuestion);
+      }
+    });
+
+    // Form validation
+    function validateForm() {
+      let allAnswered = true;
+      $('.question').each(function () {
+        const questionId = $(this).find('.question-box').data('question-id');
+        if ($('input[name="question_' + questionId + '"]:checked').length === 0) {
+          allAnswered = false;
+          return false;
+        }
+      });
+
+      if (!allAnswered) {
+        $('#error-message').show();
+        setTimeout(function () {
+          $('#error-message').hide();
+        }, 3000);
+        return false;
+      }
+
+      // Show loader
+      $('#loader').show();
+      return true;
+    }
+
+    // Image modal functionality
+    $('.modal-trigger').on('click', function () {
+      const imgSrc = $(this).attr('src');
+      $('#modalImage').attr('src', imgSrc);
+      $('#imageModal').show();
+    });
+
+    $('.image-modal-close').on('click', function () {
+      $('#imageModal').hide();
+    });
+
+    $(window).on('click', function (event) {
+      if ($(event.target).is('#imageModal')) {
+        $('#imageModal').hide();
+      }
+    });
+
+    // Drawer functionality
+    const drawerTrigger = document.querySelector('.drawerTrigger');
+    const drawerModal = document.querySelector('.drawerModal');
+    
+    if (drawerTrigger && drawerModal) {
+      drawerTrigger.addEventListener('click', function () {
+        drawerModal.classList.remove('translate-y-full');
+      });
+
+      drawerModal.addEventListener('click', function (e) {
+        if (e.target === drawerModal) {
+          drawerModal.classList.add('translate-y-full');
+        }
+      });
+    }
+
+    // Start timer
+    startTimer();
+  });
+</script>
+{% endblock %}
+

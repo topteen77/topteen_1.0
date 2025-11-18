@@ -1,0 +1,96 @@
+{% extends 'topteenfrontend/base.html' %}
+
+{% block main %}
+
+<main class="w-full lg:max-w-[1280px] mx-auto lg:pt-[51px]">
+
+
+  <div class="lg:container mx-auto lg:flex px-[12px] lg:px-0 lg:gap-[24px]">
+  
+    <!-- Left Part -->
+    <div class="w-full lg:w-[711px] h-full mx-auto lg:mx-0">
+        {% include'topteenfrontend/includes/breadcrumb.html'%}
+        
+        <h2 class="text-[27.65px] leading-[37.33px] text-[#333333] mt-[16px] semibold">{{video.name}}</h2>
+    
+        <p class="text-[11.11px] leading-[16.66px] text-[#4f4f4f] mt-[4px] mediumFont">{{localtime(video.created)}}</p>    
+        <div>
+            {% if video.upload_video %}
+            <video controls muted class="md:w-[533.25px] h-full lg:w-[711px] mt-[30px] mx-auto">
+                <source src="{{video.get_video_or_url()}}" type="video/mp4">
+            </video>
+            {% else %}
+            <iframe class="md:w-[533.25px] w-full h-[259px] md:h-[354px] lg:h-[475px] lg:w-[711px] mt-[30px] mx-auto"
+            src="{{video.get_video_or_url()}}" muted>
+            </iframe>
+            {% endif %}
+        </div>
+   
+  
+        <!-- Text content -->
+        <div class="text-justify blogDetail mt-[10px]" >
+        <p>{{ video.description|safe }}</p>
+        </div>
+        <!-- End of text content -->
+        <button type="button" onclick="shortlist('{{video.id}}')"
+            class="flex flex-row justify-start lg:gap-x-2 py-[15px] lg:px-[35px] py-[10px] px-[15px] lg:bg-white border-b-[6px] border-[#EAEAEA] rounded-[10px]" style="margin-top: 30px;"
+          >
+            <div class="h-[18px] w-[18px]">
+              <img src="{{static('topteenfrontend/assets/images/bookmark.png')}}" class="h-full w-full" id="video_{{video.id}}" {% if video.shortlist.filter(id=request.user.id).exists() %} style="background-color: blue;" {% endif %}/>
+            </div>
+            <div
+              class="uppercase text-sm font-bold tracking-[0.01em] lg:text-[#4F4F4F] buttontext"
+            >
+              Bookmark 
+            </div>
+          </button>
+  
+    </div>
+    
+    <!--Right Part-->
+    <div class="mt-[36px] lg:mt-0 lg:sticky lg:top-[100px] h-full">
+
+        <!-- Search -->
+        <div class=" mx-auto lg:mx-0">
+          <div class="border-b-[3px] border-[#4074fe] pb-[10px] max-w-[400px] lg:max-w-[248px]">
+            <p class="text-[21px] leading-[20px] text-[#080808] mediumFont">Search</p>
+          </div>
+  
+          <div class="flex relative">
+            <form action="{{url('careers:careervideos')}}" method="GET">
+  
+            <input type="text" placeholder="Search" name ="search" id="vsearch" required type="submit" 
+              class=" mt-[21px] max-h-[37px] pt-[14px] w-[360px] lg:max-w-[248px] border-[#939393] border-solid border-[1px]">
+            <button class="absolute" type="submit"><i class="fa fa-magnifying-glass mt-[28px] -ml-[34px] text-[22px]"></i></button>
+            </form>
+          </div>
+  
+        </div>
+        <!-- End of Search -->
+        <div
+          class="flex flex-col w-full  max-w-lg mx-auto md:pl-7 md:w-[20rem] mt-[30px]"
+          >
+          <h3 class="text-green-700 regularFont text-[18.72px]">CATEGORIES</h3>
+      
+          <ul class="flex flex-col">
+              <li
+              class="mt-[0.6rem] list-none regularFont text-[1rem] cursor-pointer p-[5px] leading-[1.43rem] border-b-2"
+              >
+              <a href="{{url('careers:careervideos')}}">All</a>
+              </li>
+              {% for category in categories%}
+              <li
+              class="text-[1rem] p-[5px] list-none regularFont cursor-pointer leading-[1.43rem] border-b-2"
+              >
+               <a href="{{url('careers:category',args=[category.slug])}}">{{category.name}} </a>
+              </li>
+              {%endfor%}
+          </ul>
+      </div>
+  
+  
+  
+  </main>
+
+
+{% endblock main %}

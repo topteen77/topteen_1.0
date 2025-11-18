@@ -1,0 +1,328 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Displaying 99 PDFs</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <style>
+  body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+.pdf-header {
+  text-align: center;
+  font-size: 26px;
+  margin: 20px 0;
+  color: #444;
+  font-weight: bold;
+}
+
+.pdf-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.pdfviewer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  padding: 15px;
+}
+
+.pdfviewer:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+}
+
+.pdfviewer i {
+  font-size: 48px;
+  color: rgba(236, 20, 24, 0.93);
+}
+
+.pdfviewer p {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #555;
+}
+
+/* Modal styling */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 1000px;
+  height: 90%;
+  max-height: 700px;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  animation: modalFadeIn 0.3s ease-in-out;
+}
+
+.modal-content iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 24px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 1001;
+  transition: background-color 0.3s;
+}
+
+.close:hover {
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Animations */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pdf-container {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .pdfviewer i {
+    font-size: 36px;
+  }
+
+  .pdfviewer p {
+    font-size: 14px;
+  }
+
+  .modal-content {
+    width: 95%;
+    height: 85%;
+  }
+}
+    
+  </style>
+</head>
+
+<style>
+  p {
+      margin: 0px;
+      color: inherit;
+  }
+</style>
+
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
+
+  <!-- <div class="lg:flex lg:gap-[30px] pt-[32px] w-full"> -->
+
+    <div class="pdf-header">Displaying 99 PDFs</div>
+
+
+  <div class="pdf-container" id="pdfContainer">
+    <!-- Links will be generated here -->
+</div>
+
+<div id="pdfModal" class="modal">
+  <span class="close" onclick="closePDF()">&times;</span>
+  <div class="modal-content">
+    <iframe id="pdfViewer" src=""></iframe>
+  </div>
+
+  <!-- <div class="modal-content">
+    <object id="pdfViewer" type="application/pdf" data="" width="100%" height="500px" style="pointer-events: none;">
+      <p>Your browser does not support viewing PDFs.</p>
+    </object>
+  </div> -->
+</div>
+  <!-- </div> -->
+</main>
+
+<script>
+    // Data for your case studies
+    const caseStudies = [
+        { id: 1, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_1.pdf" },
+        { id: 2, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_2.pdf" },
+        { id: 3, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_3.pdf" },
+        { id: 4, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_4.pdf" },
+        { id: 5, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_5.pdf" },
+        { id: 6, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_6.pdf" },
+        { id: 7, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_7.pdf" },
+        { id: 8, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_8.pdf" },
+        { id: 9, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_9.pdf" },
+        { id: 10, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_10.pdf" },
+        { id: 11, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_11.pdf" },
+        { id: 12, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_12.pdf" },
+        { id: 13, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_13.pdf" },
+        { id: 14, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_14.pdf" },
+        { id: 15, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_15.pdf" },
+        { id: 16, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_16.pdf" },
+        { id: 17, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_17.pdf" },
+        { id: 18, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_18.pdf" },
+        { id: 19, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_19.pdf" },
+        { id: 20, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_20.pdf" },
+        { id: 21, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_21.pdf" },
+        { id: 22, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_22.pdf" },
+        { id: 23, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_23.pdf" },
+        { id: 24, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_24.pdf" },
+        { id: 25, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_25.pdf" },
+        { id: 26, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_26.pdf" },
+        { id: 27, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_27.pdf" },
+        { id: 28, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_28.pdf" },
+        { id: 29, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_29.pdf" },
+        { id: 30, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_30.pdf" },
+        { id: 31, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_31.pdf" },
+        { id: 32, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_32.pdf" },
+        { id: 33, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_33.pdf" },
+        { id: 34, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_34.pdf" },
+        { id: 35, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_35.pdf" },
+        { id: 36, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_36.pdf" },
+        { id: 37, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_37.pdf" },
+        { id: 38, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_38.pdf" },
+        { id: 39, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_39.pdf" },
+        { id: 40, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_40.pdf" },
+        { id: 41, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_41.pdf" },
+        { id: 42, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_42.pdf" },
+        { id: 43, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_43.pdf" },
+        { id: 44, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_44.pdf" },
+        { id: 45, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_45.pdf" },
+        { id: 46, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_46.pdf" },
+        { id: 47, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_47.pdf" },
+        { id: 48, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_48.pdf" },
+        { id: 49, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_49.pdf" },
+        { id: 50, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_50.pdf" },
+        { id: 51, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_51.pdf" },
+        { id: 51, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_51.pdf" },
+        { id: 52, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_52.pdf" },
+        { id: 53, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_53.pdf" },
+        { id: 54, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_54.pdf" },
+        { id: 55, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_55.pdf" },
+        { id: 56, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_56.pdf" },
+        { id: 57, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_57.pdf" },
+        { id: 58, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_58.pdf" },
+        { id: 59, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_59.pdf" },
+        { id: 60, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_60.pdf" },
+        { id: 61, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_61.pdf" },
+        { id: 62, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_62.pdf" },
+        { id: 63, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_63.pdf" },
+        { id: 64, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_64.pdf" },
+        { id: 65, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_65.pdf" },
+        { id: 66, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_66.pdf" },
+        { id: 67, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_67.pdf" },
+        { id: 68, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_68.pdf" },
+        { id: 69, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_69.pdf" },
+        { id: 70, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_70.pdf" },
+        { id: 71, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_71.pdf" },
+        { id: 72, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_72.pdf" },
+        { id: 73, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_73.pdf" },
+        { id: 74, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_74.pdf" },
+        { id: 75, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_75.pdf" },
+        { id: 76, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_76.pdf" },
+        { id: 77, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_77.pdf" },
+        { id: 78, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_78.pdf" },
+        { id: 79, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_79.pdf" },
+        { id: 80, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_80.pdf" },
+        { id: 81, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_81.pdf" },
+        { id: 82, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_82.pdf" },
+        { id: 83, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_83.pdf" },
+        { id: 84, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_84.pdf" },
+        { id: 85, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_85.pdf" },
+        { id: 86, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_86.pdf" },
+        { id: 87, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_87.pdf" },
+        { id: 88, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_88.pdf" },
+        { id: 89, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_89.pdf" },
+        { id: 90, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_90.pdf" },
+        { id: 91, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_91.pdf" },
+        { id: 92, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_92.pdf" },
+        { id: 93, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_93.pdf" },
+        { id: 94, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_94.pdf" },
+        { id: 95, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_95.pdf" },
+        { id: 96, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_96.pdf" },
+        { id: 97, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_97.pdf" },
+        { id: 98, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_98.pdf" },
+        { id: 99, url: "https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_99.pdf" },
+	{ id: 100, url:"https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/pdf/Ch_17/CS_100.pdf"}
+        // Add more case studies as needed
+    ];
+
+    const container = document.getElementById("pdfContainer");
+
+    // Generate links dynamically
+    caseStudies.forEach(caseStudy => {
+        const link = document.createElement("a");
+        link.className = "pdfviewer";
+        link.href = "#";
+        link.setAttribute("onclick", `openPDF('${caseStudy.url}')`);
+        link.innerHTML = `
+            <i class='bx bxs-file-pdf' style='color:rgba(236,20,24,0.93)'></i>
+            <p>Case Study-${caseStudy.id}</p>
+        `;
+        container.appendChild(link);
+    });
+
+    function openPDF(pdfURL) {
+      document.getElementById('pdfViewer').src = pdfURL;
+      document.getElementById('pdfModal').style.display = 'flex';
+    }
+
+    // Function to close the modal
+    function closePDF() {
+      document.getElementById('pdfModal').style.display = 'none';
+      document.getElementById('pdfViewer').src = ""; // Clear the iframe
+    }
+    // Disable right-click on the modal
+    document.getElementById('pdfModal').addEventListener('contextmenu', event => event.preventDefault());
+</script>
+
+
+</body>
+
+{% endblock %}

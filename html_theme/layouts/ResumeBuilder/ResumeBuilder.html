@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!-- <link rel="stylesheet" href="./style1.css"> -->
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        background-color: #f6f6f6;
+      }
+
+      body {
+        font-family: sans-serif;
+      }
+
+      .main {
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .container {
+        width: 803px;
+        margin: 0px auto;
+        padding-top: 28px;
+        padding-left: 63px;
+        padding-right: 63px;
+      }
+
+      .header {
+        height: 50px;
+        /* width: 667px; */
+        background-color: rgba(25, 113, 140, 0.75);
+      }
+
+      .resume {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 43px;
+        /* border: 1px solid yellow; */
+      }
+
+      .left_container {
+        width: 462px;
+      }
+
+      .person_name {
+        font-size: 40px;
+        line-height: 33px;
+        font-weight: 600;
+        font-style: normal;
+        color: #5193a7;
+        text-transform: uppercase;
+      }
+
+      .person_profession_heading {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 20px;
+        text-transform: uppercase;
+        margin-top: 7px;
+      }
+
+      .person_summary {
+        display: flex;
+        margin-top: 59px;
+        justify-content: space-between;
+      }
+
+      .person_summary_heading p {
+        margin-top: -8px;
+        font-style: normal;
+        font-weight: 500;
+        font-style: 16px;
+        line-height: 20px;
+        color: #19718c;
+        text-transform: uppercase;
+      }
+
+      .person_summary_information,
+      .person_education_information {
+        display: flex;
+        flex-direction: column;
+        width: 340px;
+      }
+
+      .person_summary_information hr,
+      .person_education_information hr {
+        height: 5px;
+        background: #d9d9d9;
+        border: none;
+        margin-bottom: 10px;
+      }
+
+      .person_summary_information p {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .bar {
+        border: 2px solid #19718c;
+        margin-top: 35px;
+        margin-bottom: 35px;
+      }
+
+      .person_education_qualification {
+        text-transform: capitalize;
+        font-weight: 450;
+        font-size: 14px;
+        line-height: 16px;
+        margin-bottom: 5px;
+        font-style: normal;
+      }
+
+      .person_college {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 16px;
+      }
+
+      .person_college_state {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 16px;
+        margin-bottom: 13px;
+      }
+
+      .person_education_data {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .person_img {
+        width: 184px;
+        height: 236px;
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.5);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin-bottom: 25px;
+      }
+
+      .person_img_null {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+      }
+
+      .person_img_null p {
+        font-style: normal;
+        font-weight: 500;
+        font-size: 9px;
+        line-height: 12px;
+      }
+
+      .person_contact,
+      .person_interest {
+        width: 184px;
+      }
+
+      .person_contact_heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 13px;
+      }
+
+      .person_contact_heading p {
+        font-style: normal;
+        font-weight: 500;
+        font-style: 16px;
+        color: #19718c;
+        text-transform: uppercase;
+      }
+
+      .person_contact_heading hr {
+        width: 91px;
+        height: 5px;
+        background-color: #d9d9d9;
+        border: none;
+      }
+
+      .person_contact_information {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .person_contact_box {
+        display: flex;
+        align-items: center;
+
+        gap: 15px;
+      }
+
+      .person_contact_box p {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 18px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="main">
+      <div class="container">
+        <div class="header"></div>
+        <div class="resume">
+          <div class="left_container">
+            <div class="person_name_box">
+              <p class="person_name">rajesh kumar</p>
+              <p class="person_profession_heading">profession</p>
+            </div>
+            <div class="person_summary">
+              <div class="person_summary_heading">
+                <p>summary</p>
+              </div>
+              <div class="person_summary_information">
+                <hr />
+                <p>
+                  Reference site about Lorem Ipsum, giving information on its
+                  origins, as well as a random Lipsum generator.
+                </p>
+              </div>
+            </div>
+            <div class="bar"></div>
+            <div class="person_summary">
+              <div class="person_summary_heading">
+                <p>education</p>
+              </div>
+              <div class="person_education_information">
+                <hr />
+                <div>
+                  <p class="person_education_qualification">
+                    Bachelor of Business and Marketing (1999)
+                  </p>
+                  <p class="person_college">Punjab University</p>
+                  <p class="person_college_state">Chandigarh</p>
+                  <p class="person_education_data">
+                    Reference site about Lorem Ipsum, giving information on its
+                    origins, as well as a random Lipsum generator.
+                  </p>
+                </div>
+                <div style="margin-top: 38px">
+                  <p class="person_education_qualification">
+                    Bachelor of Business and Marketing (1999)
+                  </p>
+                  <p class="person_college">Punjab University</p>
+                  <p class="person_college_state">Chandigarh</p>
+                  <p class="person_education_data">
+                    Reference site about Lorem Ipsum, giving information on its
+                    origins, as well as a random Lipsum generator.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="bar"></div>
+            <div class="person_summary">
+              <div class="person_summary_heading">
+                <p>skills</p>
+              </div>
+              <div class="person_summary_information">
+                <hr />
+                <p>
+                  Reference site about Lorem Ipsum, giving information on its
+                  origins, as well as a random Lipsum generator.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="right_container">
+            <div class="person_img">
+              <div class="person_img_null">
+                <img alt="" src="./edit.png" />
+                <p>Edit Photo</p>
+              </div>
+            </div>
+
+            <div class="person_contact">
+              <div class="person_contact_heading">
+                <p>contact</p>
+                <hr />
+              </div>
+
+              <div class="person_contact_information">
+                <div class="person_contact_box">
+                  <img src="./house.png" />
+                  <p>House No 4242, Sector 20C, Chandigarh 160020</p>
+                </div>
+
+                <div class="person_contact_box">
+                  <img src="./call.png" />
+                  <p>8595623559</p>
+                </div>
+
+                <div class="person_contact_box">
+                  <img src="./email.png" />
+                  <p>abc@gmail.com</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="person_contact" style="margin-top: 57px">
+              <div class="person_contact_heading">
+                <p>contact</p>
+                <hr />
+              </div>
+
+              <div class="person_contact_information">
+                <div class="person_contact_box">
+                  <img src="./book.png" />
+                  <p>Book Reading</p>
+                </div>
+
+                <div class="person_contact_box">
+                  <img src="./music.png" />
+                  <p>Music</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

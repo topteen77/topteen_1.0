@@ -1,0 +1,426 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{{ college.name }} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+{{ college.name }} - Explore courses, facilities, and admission details. Find out everything you need to know about this college.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="college-hero pt-md-18 pt-14 pb-8">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8">
+        <!-- College Banner -->
+        {% if college.banner %}
+        <div class="college-banner mb-4">
+          <img src="{{ college.banner.url }}" alt="{{ college.name }}" class="img-fluid w-100 rounded" style="max-height: 400px; object-fit: cover;">
+        </div>
+        {% elif college.logo %}
+        <div class="college-banner mb-4">
+          <img src="{{ college.logo.url }}" alt="{{ college.name }}" class="img-fluid w-100 rounded" style="max-height: 400px; object-fit: cover;">
+        </div>
+        {% endif %}
+
+        <!-- College Header -->
+        <div class="college-header d-flex align-items-center mb-4">
+          {% if college.logo %}
+          <div class="college-logo me-3" style="width: 60px; height: 60px;">
+            <img src="{{ college.logo.url }}" alt="{{ college.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+          </div>
+          {% endif %}
+          <div>
+            <h1 class="college-title mb-0">{{ college.name }}</h1>
+            {% if college.get_location() %}
+            <p class="text-gray mb-0">
+              <i class='bx bx-map-pin'></i> {{ college.get_location() }}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- College About -->
+        {% if college.texts.all() %}
+        <div class="college-about mb-5">
+          <div class="college-description">
+            {% for ct in college.texts.all() %}
+            <div class="mb-3">{{ ct.value|safe }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Share Section -->
+        <div class="blog-share mb-4">
+          <div class="blog-share-title">Share this college:</div>
+          <div class="blog-share-icons">
+            <a href="#" class="blog-share-icon" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank'); return false;"><i class="bx bxl-facebook"></i></a>
+            <a href="#" class="blog-share-icon" onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent('{{ college.name }}'), '_blank'); return false;"><i class="bx bxl-twitter"></i></a>
+            <a href="#" class="blog-share-icon" onclick="window.open('https://www.linkedin.com/shareArticle?url=' + encodeURIComponent(window.location.href) + '&title=' + encodeURIComponent('{{ college.name }}'), '_blank'); return false;"><i class="bx bxl-linkedin"></i></a>
+            <a href="#" class="blog-share-icon" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('{{ college.name }} ' + window.location.href), '_blank'); return false;"><i class="bx bxl-whatsapp"></i></a>
+            <a href="#" class="blog-share-icon copy-link" data-url="{{ url('colleges:collegedetail', args=[college.slug]) }}"><i class="bx bx-link"></i></a>
+          </div>
+        </div>
+
+        <!-- Courses Section -->
+        {% if courses %}
+        <section class="courses-section mb-5">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="section-title mb-0">Courses Offered</h3>
+            <a href="{{ url('colleges:college') }}" class="text-primary text-decoration-none">View All Colleges</a>
+          </div>
+          <div class="row">
+            {% for course in courses[:6] %}
+            <div class="col-md-4 col-sm-6 mb-4">
+              <div class="course-card h-100">
+                <div class="course-image mb-3">
+                  <a href="#">
+                    {% if course.logo %}
+                    <img src="{{ course.logo.url }}" alt="{{ course.name }}" class="img-fluid w-100 rounded" style="height: 180px; object-fit: cover;">
+                    {% else %}
+                    <img src="{{ static('images_new/general/course-placeholder.png') }}" alt="{{ course.name }}" class="img-fluid w-100 rounded" style="height: 180px; object-fit: cover;">
+                    {% endif %}
+                  </a>
+                </div>
+                <h5 class="course-name mb-2">
+                  <a href="#" class="text-decoration-none">{{ course.name }}</a>
+                </h5>
+                {% if course.get_max_salary() %}
+                <div class="course-salary text-gray fs-14">
+                  <i class='bx bx-rupee'></i> {{ course.get_max_salary() }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- Entrance Exams Section -->
+        {% if college.entrance_exams.all() %}
+        <section class="exams-section mb-5">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="section-title mb-0">Important Exams</h3>
+            <a href="#" class="text-primary text-decoration-none">View All</a>
+          </div>
+          <div class="row">
+            {% for exam_rel in college.entrance_exams.all() %}
+            <div class="col-md-4 col-sm-6 mb-4">
+              <div class="exam-card h-100 p-3 rounded shadow-sm position-relative">
+                <div class="d-flex align-items-center mb-3">
+                  <div>
+                    <h5 class="mb-1">{{ exam_rel.exam.name if exam_rel.exam else 'N/A' }}</h5>
+                    <p class="text-gray fs-12 mb-0">Entrance Exam</p>
+                  </div>
+                </div>
+                <div class="border-top pt-3 mb-3">
+                  <div class="row g-2">
+                    {% if exam_rel.exam.fees %}
+                    <div class="col-4">
+                      <h6 class="text-gray fs-10 mb-1">Fees</h6>
+                      <p class="mb-0 fs-12">&#8377;{{ exam_rel.exam.fees }}</p>
+                    </div>
+                    {% endif %}
+                    {% if exam_rel.exam.prep_time %}
+                    <div class="col-4">
+                      <h6 class="text-gray fs-10 mb-1">Prep Time</h6>
+                      <p class="mb-0 fs-12">{{ exam_rel.exam.prep_time }}</p>
+                    </div>
+                    {% endif %}
+                    {% if exam_rel.exam.next_exam_date %}
+                    <div class="col-4">
+                      <h6 class="text-gray fs-10 mb-1">Next Exam</h6>
+                      <p class="mb-0 fs-12">{{ date_format(exam_rel.exam.next_exam_date) }}</p>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between gap-2">
+                  <button class="btn btn-outline-secondary btn-sm">View Details</button>
+                  <button class="btn btn-primary btn-sm">Register</button>
+                </div>
+                <div class="position-absolute top-0 end-0 m-2">
+                  <button class="btn btn-sm p-1 bg-light">
+                    <i class='bx bx-bookmark'></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- College Images Gallery -->
+        {% if college.college_images.all() %}
+        <section class="images-section mb-5">
+          <h3 class="section-title mb-4">College Images</h3>
+          <div class="row">
+            {% for img in college.college_images.all()[:6] %}
+            <div class="col-md-4 col-sm-6 mb-3">
+              <a href="{{ img.college_image.url }}" data-lightbox="college-gallery" data-title="{{ img.image_alt_text }}">
+                <img src="{{ img.college_image.url }}" alt="{{ img.image_alt_text }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- Facilities Section -->
+        {% if college.facilities.all() %}
+        <section class="facilities-section mb-5">
+          <h3 class="section-title mb-4">Facilities</h3>
+          <div class="row">
+            {% for facility_rel in college.facilities.all() %}
+            <div class="col-md-3 col-sm-4 col-6 mb-3">
+              <div class="facility-item text-center">
+                {% if facility_rel.facility.logo %}
+                <img src="{{ facility_rel.facility.logo.url }}" alt="{{ facility_rel.facility.name }}" class="img-fluid mb-2" style="max-height: 60px; max-width: 60px;">
+                {% endif %}
+                <p class="mb-0 fs-14">{{ facility_rel.facility.name }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- Related Colleges Section -->
+        {% if colleges %}
+        <section class="related-colleges-section mb-5">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="section-title mb-0">Explore Colleges</h3>
+          </div>
+          <div class="row">
+            {% for related_college in colleges[:6] %}
+            {% if related_college.slug != college.slug %}
+            <div class="col-md-4 col-sm-6 mb-4">
+              <div class="college-card h-100">
+                <div class="college-image">
+                  <a href="{{ url('colleges:collegedetail', args=[related_college.slug]) }}">
+                    {% if related_college.logo %}
+                    <img src="{{ related_college.logo.url }}" alt="{{ related_college.name }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <img src="{{ static('images_new/general/college-placeholder.png') }}" alt="{{ related_college.name }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                  </a>
+                </div>
+                <div class="college-content mt-3">
+                  <h5 class="college-name mb-2">
+                    <a href="{{ url('colleges:collegedetail', args=[related_college.slug]) }}" class="text-decoration-none">{{ related_college.name }}</a>
+                  </h5>
+                  {% if related_college.get_location() %}
+                  <p class="text-gray fs-14 mb-0">
+                    <i class='bx bx-map-pin'></i> {{ related_college.get_location() }}
+                  </p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- CTA Section -->
+        <section class="cta-section mb-5">
+          <div class="bg-primary text-white p-4 rounded">
+            <div class="row align-items-center">
+              <div class="col-md-8 mb-3 mb-md-0">
+                <h4 class="text-white mb-2">Have a question? Connect with Alumni.</h4>
+                <p class="text-white-50 mb-0">Our counsellors guide you on all the steps of the way from application to your job interview, connect now!</p>
+              </div>
+              <div class="col-md-4 text-center text-md-end">
+                <a href="{{ url('core:contactus') }}" class="btn btn-light">Connect Now</a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="col-lg-4">
+        <div class="college-sidebar">
+          <!-- Check Eligibility Button -->
+          <div class="mb-4">
+            <button class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#eligibilityModal">
+              Check Eligibility
+            </button>
+          </div>
+
+          <!-- Quick Facts -->
+          {% if college.facts.all() %}
+          <div class="sidebar-widget mb-4">
+            <h4 class="sidebar-title mb-3">Quick Facts</h4>
+            <ul class="list-unstyled">
+              {% for fact in college.facts.all() %}
+              <li class="d-flex justify-content-between py-2 border-bottom">
+                <span class="text-gray">{{ fact.get_type_display() }}</span>
+                <span class="fw-semibold">{{ fact.value }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          <!-- Streams -->
+          {% if streams %}
+          <div class="sidebar-widget mb-4">
+            <h4 class="sidebar-title mb-3">Streams ({{ streams|length }})</h4>
+            <div class="d-flex flex-wrap gap-2">
+              {% for stream in streams %}
+              {% if stream.name %}
+              <span class="badge bg-primary bg-opacity-10 text-primary">{{ stream.name }}</span>
+              {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Contact Information -->
+          {% if college.get_email() or college.get_mobile() or college.get_website() %}
+          <div class="sidebar-widget mb-4">
+            <h4 class="sidebar-title mb-3">Contact Information</h4>
+            <ul class="list-unstyled">
+              {% if college.get_email() %}
+              <li class="mb-2">
+                <i class='bx bx-envelope me-2'></i>
+                <a href="mailto:{{ college.get_email() }}" class="text-decoration-none">{{ college.get_email() }}</a>
+              </li>
+              {% endif %}
+              {% if college.get_mobile() %}
+              <li class="mb-2">
+                <i class='bx bx-phone me-2'></i>
+                <a href="tel:{{ college.get_mobile() }}" class="text-decoration-none">{{ college.get_mobile() }}</a>
+              </li>
+              {% endif %}
+              {% if college.get_website() %}
+              <li class="mb-2">
+                <i class='bx bx-globe me-2'></i>
+                <a href="{{ college.get_website() }}" target="_blank" class="text-decoration-none" rel="noopener">Visit Website</a>
+              </li>
+              {% endif %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Bottom CTA Section -->
+<section class="bottom-cta bg-primary text-white py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8 mb-3 mb-md-0">
+        <h4 class="text-white mb-0">Interested? Take the next step now!</h4>
+      </div>
+      <div class="col-md-4 text-center text-md-end">
+        <div class="d-flex gap-2 justify-content-center justify-content-md-end">
+          <a href="{{ url('core:contactus') }}" class="btn btn-light">
+            <i class='bx bx-message me-2'></i> Know More Today
+          </a>
+          <button type="button" class="btn btn-light shortlistcollege" data-collegeslug="{{ college.slug }}">
+            <i class='bx bx-bookmark me-2'></i>
+            <span class="buttontext">
+              {% if shortlisted_college %}Remove Shortlisted{% else %}Shortlist College{% endif %}
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Eligibility Modal -->
+<div class="modal fade" id="eligibilityModal" tabindex="-1" aria-labelledby="eligibilityModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="eligibilityModalLabel">Connect with Us</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="leadpop" action="{{ url('core:lead_submit') }}" method="POST">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          <div class="mb-3">
+            <input type="text" name="lead_name" id="lead_name" class="form-control" placeholder="Name" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" name="lead_mobile" id="lead_mobile" class="form-control" placeholder="Phone number" required>
+          </div>
+          <button type="submit" class="btn custom-button purple-button w-100">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+// Copy Link Functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const copyLinks = document.querySelectorAll('.copy-link');
+  copyLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const url = this.getAttribute('data-url');
+      const fullUrl = window.location.origin + url;
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        alert('Link copied to clipboard!');
+      });
+    });
+  });
+
+  // Shortlist College
+  const shortlistButtons = document.querySelectorAll('.shortlistcollege');
+  shortlistButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const collegeSlug = this.getAttribute('data-collegeslug');
+      const buttonText = this.querySelector('.buttontext');
+      
+      fetch('{{ url("colleges:shortlistcollege") }}?id=' + collegeSlug, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          if (data.shortlisted) {
+            buttonText.textContent = 'Remove Shortlisted';
+            this.classList.add('active');
+          } else {
+            buttonText.textContent = 'Shortlist College';
+            this.classList.remove('active');
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    });
+  });
+});
+</script>
+{% endblock %}
+

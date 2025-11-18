@@ -1,0 +1,55 @@
+{% for blog in page_obj %}
+
+<div id="blog-box" class="lg:flex lg:gap-x-[29px] mx-auto lg:mx-0 lg:max-w-[698px] overflow-hidden">
+
+    <div class="relative max-w-[340px] lg:max-w-[248px]">
+      <a href="{{url('blog:blogdetail',args=[blog.slug])}}">
+      <img src="{{blog.image.url}}" class="w-[340px] lg:w-[248px] h-[162px]" alt="">
+      </a>
+
+      <a href="{{url('core:home')}}">
+      <div class="bg-[#ffffff] w-[37px] h-[37px] rounded-full absolute top-[10px] right-[7px]">
+        <img src="{{static("topteenfrontend/assets/images/graduation-hat 1.png")}}" class="w-[25px] h-[25px] mx-auto mt-[5.5px]" alt="">
+        </a>
+      </div>
+    </div>
+
+    <div class="max-w-[494px] lg:w-full mt-[12px] lg:mt-0 overflow:hidden">
+      <div class="border-b-[2px] border-solid border-[#3f37c9] pb-[15px]">
+        <a href="{{blog.category.url()}}">
+        <p class="text-[10px] leading-[10px] text-[#007fb6] regularFont h-[10px]">{{blog.category}}</p>
+        </a>  
+        <a href="{{url('blog:blogdetail',args=[blog.slug])}}">
+        <p class="text-[21px] leading-[28.35px] mediumFont text-[#333333] mt-[5px] h-[56px] overflow-hidden">{{blog.title}}</p>
+        </a>
+        <div class="mt-[4px] flex gap-[11px] text-[#777777] text-[10px] leading-[16.5px]  h-[17px] overflow-hidden">
+          <p class="text-[#333333]">{{blog.author}}</p>
+          <p class="text-[9px] capitalize hidden">{{localtime(blog.created)}}</p>
+        </div>
+        <p class="text-[14px] leading-[22.12px] text-[#525252] regularFont mt-[9px] h-[45px] overflow-hidden">{{blog.summary}}</p>
+      </div>
+
+      <div class="flex justify-between pr-[120px] hidden">
+        <div class="flex pt-[6px]">
+          <a href="http://www.facebook.com/sharer/sharer.php?u={{site_url}}{{url('blog:blogdetail',args=[blog.slug])}}" target="_blank" >
+          <img src="{{static("topteenfrontend/assets/images/Facebook.png")}}" class="w-[11px] h-[11px] my-[4px]" alt="">
+          </a>
+          <a href="https://www.instagram.com/sharer.php?u={{site_url}}{{url('blog:blogdetail',args=[blog.slug])}}" target="_blank">
+          <img src="{{static("topteenfrontend/assets/images/Instagram.png")}}" class="w-[11px] h-[11px] my-[4px]" alt="">
+          </a>
+          <a href="http://www.linkedin.com/sharing/share-offsite/?url={{site_url}}{{url('blog:blogdetail',args=[blog.slug])}}" target="_blank">
+          <img src="{{static("topteenfrontend/assets/images/Linkedin.png")}}" class="w-[11px] h-[11px] my-[4px] ml-[2px]" alt="">
+          </a>
+        </div>
+        <div class="pt-[6px]">
+          <p class="text-[14px] leading-[22.12px] font-normal text-[#333333]">8 Likes</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+  {% endfor %}
+  {% if page_obj|length == 0 %}
+  <h1 class="boldFont">No Result Found</h1>
+  {% endif %}

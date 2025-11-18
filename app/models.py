@@ -1,0 +1,120 @@
+# quiz/models.py
+
+from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.urls import reverse
+from . import choices
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+from users.models import User
+
+class Question(models.Model):
+    question_text = models.CharField(max_length=300, blank=True, null=True)
+    question_image = models.ImageField(upload_to='question_images/', blank=True, null=True)
+    category = models.CharField(max_length=100)
+    test_paper = models.CharField(max_length=100,default='')
+
+    def __str__(self):
+        return self.question_text or 'Question'
+
+class Answer(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    answer_text = models.CharField(max_length=200, blank=True, null=True)
+    answer_image = models.ImageField(upload_to='answer_images/', blank=True, null=True)
+    is_correct = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Answer {self.id} for Question {self.question.id}"
+    
+class TestCompletion(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    test1_complete = models.BooleanField(default=False)  # Default to False
+    test2_complete = models.BooleanField(default=False)
+    test3_complete = models.BooleanField(default=False)
+    numerical_complete = models.BooleanField(default=False)
+    verbal_complete = models.BooleanField(default=False)
+    logical_complete = models.BooleanField(default=False)
+    emotional_complete = models.BooleanField(default=False)
+    machanical_complete = models.BooleanField(default=False)
+    language_complete = models.BooleanField(default=False)
+    spatial_complete = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Test Completion for {self.user}"
+
+    def are_all_primary_tests_completed(self):
+        return self.test1_complete and self.test2_complete and self.test3_complete
+    
+class Results(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    test_paper = models.CharField(max_length=100)
+    scores = models.JSONField(default=dict)
+    results = models.JSONField(default=dict)
+    selected_answers = models.JSONField(default=dict)
+    modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Scores for {self.test_paper} -| {self.user} -| {self.modified.astimezone().strftime('%Y-%m-%d - %H:%M %Z')}"
+
+    # Property to check if the user has completed all the required tests
+    @property
+    def is_test_successful(self):   
+        test_completion = TestCompletion.objects.filter(user=self.user).first()        
+        if test_completion:            
+            return test_completion.are_all_primary_tests_completed()
+        return False
+        
+        
+    # Custom method to get the test report link or a placeholder
+    def get_test_report_or_test_link(self, user):
+        """
+        Generates a link to the final assessment report if all required tests
+        are successfully completed; otherwise, redirects to the test buttons page.
+        """
+
+        # Check if is_success is a method or a property
+        if hasattr(self, 'is_test_successful') and callable(self.is_test_successful):
+            is_test_successful = self.is_test_successful()  # Call it if it's a method
+        else:
+            is_test_successful = self.is_test_successful  # Use it directly if it's a property
+
+        # Determine the link based on test success status
+        if is_test_successful:  # No parentheses since this is now a boolean
+            # Generate the URL for the final assessment report view
+            report_url = reverse('app:Assessment_pdf_inst_user', args=[user.id])
+            return report_url  # Link to the final assessment report
+        else:
+            # Link to test buttons page if tests are not completed
+            return '#'
+
+
+# inserting the RIASEC.json
+
+class Category(models.Model):
+    category = models.CharField(max_length=3, unique=True)  # e.g., 'RIA'
+    fullname = models.CharField(max_length=255)  # e.g., 'RIA (Realistic, Investigative, Artistic)'
+    summary = models.TextField()
+    fields = models.TextField()
+    best_colleges = models.TextField(blank=True, null=True)  # Colleges may be empty
+
+    def __str__(self):
+        return self.fullname
+    
+class Course(models.Model):
+    category = models.ForeignKey(Category, related_name='courses', on_delete=models.CASCADE)
+    course_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.course_name
+
+
+class Stream(models.Model):
+    category = models.ForeignKey(Category, related_name='streams', on_delete=models.CASCADE)
+    stream_name = models.CharField(max_length=10)  # e.g., 'PCM'
+    subjects = models.TextField()  # e.g., 'Physics Chemistry Mathematics'
+
+    def __str__(self):
+        return f"{self.stream_name}: {self.subjects}"

@@ -1,0 +1,86 @@
+{% extends 'topteenfrontend/app/app_base.html' %}
+
+{% block main %}
+<div class="col-lg-8 col-md-12 mt-md-0 mt-5">
+  <h2 class="title-test-info mb-4">Reports </h2>
+  <!--        <p>Start the 5 dimensional assessment and also discover your best fit career matches</p>-->
+  <div class="view-reports">
+    <div class="report-list">
+      <div class="vi-r-info">
+        <div class="mgs-icon">
+          <img class="img-fluid" src="{{ static('images/interest-icon.svg') }}" alt="Interest" />
+          <h3 class="">Career Interest assessment</h3>
+        </div>
+        <div class="view-rr">
+          {% if test_completion.test1_complete %}
+          <form id="downloadForm" action="{url('app:download-pdf')}" method="GET" target="_blank">
+            <button type="submit" class="btn blue-button ms-3">View report</button>
+          </form>
+          {% else %}
+          <!-- <form action="{{ url('app:test1_view') }}" method="GET"> -->
+          <form action="{{ url('app:test1_view') }}" method="GET">
+            <button type="submit" id="startTestButton" class="btn purple-button me-3">Start Test</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      <div class="vi-r-info">
+        <div class="mgs-icon">
+          <img class="img-fluid" src="{{ static('images/personality-icon.svg') }}" alt="Personality" />
+          <h3 class="">Intelligence assessment</h3>
+        </div>
+        <div class="view-rr">
+          <form id="downloadForma" action="{{ url('app:download-pdf') }}" method="GET" target="_blank">
+            <button type="submit" class="btn blue-button ms-3">View report </button>
+          </form>
+          <form action="{{ url('app:test2_view') }}" method="GET">
+            <button type="submit" id="startTestButton" class="btn purple-button me-3">Start Test</button>
+          </form>
+        </div>
+      </div>
+      <div class="vi-r-info">
+        <img class="img-fluid" src="{{ static('images/aptitute-icon.svg') }}" alt="Aptitude" />
+        <h3 class="">Personality assessment</h3>
+      </div>
+      <div class="view-rr">
+        <form id="downloadForma" action="{{ url('app:download-pdf') }}" method="GET" target="_blank">
+          <button type="submit" class="btn blue-button ms-3" target="_blank">View report </button>
+        </form>
+        <form action="{{ url('app:test3_view') }}" method="GET">
+          <button type="submit" id="startTestButton" class="btn purple-button me-3">Start Test</button>
+        </form>
+      </div>
+    </div>
+    <div class="assestment-button d-flex justify-content-center my-5">
+      <form id="downloadForm" action="{{ url('app:download-pdf') }}" method="GET" target="_blank">
+        <button type="submit" class="btn purple-button me-3">Download Complete Report</button>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+
+<section class="footer-nav d-lg-none d-block">
+  <div class="nav-footer">
+    <ul>
+      <li> <a href="#" class="ft-dis-icon"> <span></span>
+          <p>Discover</p>
+        </a> </li>
+      <li> <a href="#" class="ft-search-icon"> <span></span>
+          <p>Search</p>
+        </a> </li>
+      <li> <a href="#" class="ft-dash-icon"> <span></span>
+          <p>My Dashboard</p>
+        </a> </li>
+      <li> <a href="#" class="ft-learn-icon"> <span></span>
+          <p>Learn</p>
+        </a> </li>
+      <li> <a href="#" class="ft-profile-icon"> <span></span>
+          <p>Profile</p>
+        </a> </li>
+    </ul>
+  </div>
+</section>
+
+</html>
+{% endblock %}

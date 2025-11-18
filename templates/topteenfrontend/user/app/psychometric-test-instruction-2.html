@@ -1,0 +1,561 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+
+
+<style>
+  ol {
+    margin-left: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  table,
+  th,
+  td {
+    border: 1px solid #ddd;
+  }
+
+  th,
+  td {
+    padding: 12px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f4f4f4;
+    color: #000;
+    font-weight: bold;
+  }
+
+  td {
+    background-color: #fff;
+    color: #333;
+  }
+
+  caption {
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  tr:hover {
+    background-color: #e2e2e2;
+  }
+
+  span {
+    font-size: large;
+    text-decoration: underline;
+    color: rgb(10, 10, 10); /* Text color */
+    padding: 2px 5px; /* Optional: spacing around text */
+    border-radius: 3px; /* Optional: rounded corners */
+}
+
+p{margin-bottom: 0px;}
+
+@media screen and (max-width: 768px) {
+ol, ul {
+  padding-left: 0px !important;
+}
+
+.list-none {
+	padding-bottom: 0px;
+}
+
+  }
+  
+</style>
+
+<body>
+	
+<div data-direction="translate-y-full"
+  class=" h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto translate-y-full transition-all duration-500">
+
+  <div class="inline-block bg-[#ffffff] w-full rounded-t-[10px] absolute bottom-0 drawerContent">
+
+    <div class="pl-[24px] pr-[30px] w-full py-[32px] flex flex-col gap-[20px]">   
+
+      <a href="{{url('users:logout')}}" class="inline-block w-full">
+        <div class="flex justify-between w-full">
+          <div>
+            <p class="text-[16px] leading-[21.6px] semibold text-[#f20a18]">Sign Out</p>
+            <p class="text-[12px] leading-[16px] regularFont text-opacity-60 text-[#f20a18]">You
+              answered - Indoors</p>
+          </div>
+          <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+	
+
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
+
+  <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+    <!-- Left Part Mobile -->
+    <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+      <!-- User -->
+      <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+        <div class="flex gap-[17px]">
+          <div>
+            <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" />
+          </div>
+          <div class="flex flex-col gap-y-[5px]">
+            <div class="pt-[5px]">
+              <p class="text-[15px] leading-[20.25px] font-semibold">
+                {{request.user}}
+              </p>
+            </div>
+            <div class="flex flex-col gap-y-[3px]">
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  Joined {{request.user.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
+                  class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  {% if request.user.user_profile %} 
+                  {% if request.user.student_management.last().class_and_section %}
+                  {{request.user.student_management.last().class_and_section}}
+                  {% endif %} • {% if request.user.user_profile.schoolname %}
+                  {{request.user.user_profile.schoolname}}{% endif %}
+                  {% else %} - • - {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-direction="translate-y-full"
+          class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+          <i class="fa fa-gear text-white text-[12.5px]"></i>
+        </button>
+      </div>
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div id="comppro"
+        class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[100px] pt-[18px] relative">
+        <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+          <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+        </div>
+        <div>
+          <div class="flex relative">
+            <div class="absolute -left-[24px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" class="w-[81px] h-[81px]"
+                alt="" />
+            </div>
+            <div class="text-left max-w-[217.5px] ml-[74px]">
+              <div>
+                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+
+    <!-- End of left Part Mobile -->
+
+    <!-- Left part Desktop -->
+    <div class=" hidden lg:block w-[338px] h-[515px] border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto sticky top-[20px]">
+      <!-- User -->
+      <div class="flex justify-center border-b-[1px] border-solid border-[#dedede] ">
+        <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px]">
+
+          <div class=" flex flex-col justify-center items-center">
+
+            <div class="flex justify-center items-center w-full">
+              <div class="flex gap-[8px]">
+                <div class="relative">
+                  <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" />
+                  <!-- <img src="{{static('topteenfrontend/assets/images/test_Img.png')}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" /> -->
+
+                  <!-- XP  -->
+                  <!-- <div
+                          class="w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px] absolute bottom-1 left-20"
+                        >
+                          <div
+                            class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
+                          >
+                            <img
+                              src="{{static("topteenfrontend/assets/images/xp.svg")}}"
+                              class="w-[20px] h-[20px]"
+                              alt=""
+                            />
+                            <p
+                              class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
+                            >
+                              1280 XP
+                            </p>
+                          </div>
+                        </div> -->
+                  <!-- End of XP -->
+                </div>
+              </div>
+            </div>
+
+            <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
+
+          </div>
+
+
+          <div class="flex flex-col gap-y-[8px]">
+
+            <div class="flex gap-[14px] align-items-center">
+              <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                Joined {{request.user.created.strftime("%B, %Y")}}
+              </p>
+            </div>
+            <div class="flex gap-[14px] align-items-center">
+              <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}" class="w-[18px] h-[14px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                {% if request.user.user_profile %} {% if request.user.student_management.last().class_and_section
+                %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if
+                request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{% else %} - •
+                - {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div class="flex justify-center pt-[18px]">
+        <div>
+          <div class="flex gap-[18px]">
+            <div class="w-[45px] h-[44px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" alt="no image" />
+            </div>
+            <div class="text-left max-w-[206px] flex flex-col gap-y-[5px]">
+              <div>
+                <p class="text-[12px] leading-[16.2px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[10px] leading-[14.5px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[205px] h-[10px] rounded-[100px] bg-[#4cc9f0] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div class="w-[295px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[19px] d-none">
+            <a href="">
+              <div class="w-full h-[48px] flex gap-[11.56px] justify-center rounded-[10px] bg-[#3f37c9] text-[#ffffff]">
+                <i class="fa fa-gear my-auto"></i>
+
+                <p class="text-[14px] leading-[18.9px] font-bold my-auto text-[#ffffff]">
+                  SETTINGS
+                </p>
+
+              </div>
+            </a>
+          </div>
+          <!-- End of settings -->
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+    <!-- End of Left part Desktop -->
+
+    <!-- Right Part -->
+    <!-- <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20"> -->
+
+
+
+      <div class="col-lg-8 col-md-12 mt-md-0 mt-5">
+        <h2 class="title-test-info mb-0">Psychometric Test </h2>
+        <div class="test-info-box  mt-5">
+          <div class="row">
+            
+            <div class="col-md-12">
+              <div class="ts-i-dets px-0 align-items-start text-start py-md-5 pt-0 mt-0">
+
+                <div class="d-flex flex-row items-center">
+                  <div class="img-test-i py-md-5"> <img class="img-fluid" src="{{ static ('images/info-tree.svg') }}"
+                    alt="" /> </div>
+                  
+
+                    <div class="ms-2">
+
+                  <h4>Part 2- Career Interest Inventory Quiz </h4>
+                
+                </div>
+                </div>
+
+     
+                <h5>Purpose of the Career Interest Inventory Quiz</h5>
+                <p style="color: black;">The Career Interest Inventory Quiz is a valuable tool designed to assist you in understanding your career preferences and interests. The primary goals of this quiz are:</p>
+                
+                <ol class="m-0 mb-3" style="    list-style: num;">
+                  <li><span class="fw-bold">Identify Personal Interests:</span>The quiz helps you identify the types of work and occupational environments that align with your personal interests and passions. By focusing on what you enjoy and find fulfilling, you can gain insights into career paths that are likely to be satisfying and engaging for you.
+                  </li>
+                  <li><span style="color: #000;" class="fw-bold"> Explore Career Options: </span>Through this quiz, you will explore a broad range of occupations. This exploration helps uncover career possibilities that you may not have previously considered. It’s about opening up a spectrum of career options based on your preferences rather than traditional factors like income or social status.</li>
+                  <li><span class="fw-bold">Self-Assessment: </span>The quiz provides a self-assessment that allows you to reflect on your career aspirations and goals. It’s a step toward understanding what motivates and excites you professionally, which is crucial for making informed career decisions.</li>
+                  <li><span class="fw-bold">Align Interests with Careers:</span> By identifying which occupations align best with your interests, the quiz helps you pinpoint career paths that could be a good fit for you. This alignment can lead to greater job satisfaction and a more fulfilling career.</li>
+                  <li><span class="fw-bold">Facilitate Career Planning: </span>The results from this quiz can serve as a foundation for further career planning and exploration. Whether you’re just starting your career journey or considering a career change, the quiz results can guide you in making choices that are more aligned with your personal interests.</li>
+                  <li><span class="fw-bold">Non-Judgmental Assessment: </span>The quiz is not designed to measure your intelligence or specific skills. Instead, it focuses on your preferences and interests, ensuring that the results reflect what you find meaningful and engaging in a professional context.</li>
+                </ol>
+                <h5>Test Instructions!</h5>
+                <ul class="ml-0" style="list-style: disc;">
+                  <li>For each question, express your preferences for the listed occupations. Consider your interests, likes, and dislikes without worrying about income or social status.</li>
+                  <li>Mark your responses on each page according to your level of interest in each occupation. There is no need to overthink; choose the options that genuinely resonate with you.</li>
+                  <li>Answer each question as honestly as possible. There are no right or wrong answers—just your personal preferences.</li>
+                  <li>Review all listed occupations before making a choice. It’s important to consider a range of options to get a comprehensive view of your interests.</li>
+                  <li>The quiz should take approximately 10 minutes to complete. </li>
+                  <li>Once you have completed the quiz, you can review your marked responses to see which occupations received the highest interest scores.</li>
+                  <li>Use the results to explore careers that align with your interests. You may also want to discuss your results with a career counselor for further insights and guidance.</li>
+                  
+                </ul>
+
+                <h4 style="font-weight: bold; color: black;">Sample Table of Career Options</h4>
+                <p style="color: black;">
+                  Below is an example of the types of career pairs you will encounter in the test:
+                </p>
+                
+                <div class="relative overflow-x-auto w-full">
+		
+					
+					
+			
+					
+                <table class="table">
+                 
+
+
+
+      
+                
+                  <tbody>
+                    <tr ><td colspan="4" class="text-center">   <strong>  Example of Career Pairs</strong></td></tr>
+                    <tr>
+                      <td>Biochemist</td>
+                      <td>Statistician</td>
+                      <td>Geologist</td>
+                      <td>Forensic Scientist</td>
+                    </tr>
+                    <tr>
+                      <td>Mathematician</td>
+                      <td>Food Scientist</td>
+                      <td>Robotics Engineer</td>
+                      <td>Urban Planner</td>
+                    </tr>
+                    <tr>
+                      <td>Data Scientist</td>
+                      <td>Zoologist</td>
+                      <td>Chemist</td>
+                      <td>Operations Research Analyst</td>
+                    </tr>
+
+                  </tbody>
+                </table>
+								
+              </div>
+
+                <p style="color: black;">By understanding your interests, you can make more informed decisions about
+                  your education and future career. Good luck, and enjoy the process of discovering more about your
+                  interests and potential career paths!</p>
+              </div>
+
+
+              <div class="ft-purple-btn justify-content-end mb-5">
+                <form action="{{ url ('app:test2_view') }}" method="GET">
+                  <button type="submit" class="btn purple-button">Start</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <!-- </div> -->
+  </div>
+</main>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+    integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- <script src="{{ static ('js/bootstrap.min.js')}}"></script> -->
+    <script src="{{ static ('js/main.js')}}"></script>
+    <script src="{{ static ('js/jquery.sticky.js')}}"></script>
+</body>
+
+<script>
+
+
+  $(document).ready(function () {
+    var owl = $('.explore-theme');
+    owl.owlCarousel({
+      loop: true,
+      margin: 10,
+      responsiveClass: true,
+      nav: false,
+      dots: false,
+
+      responsive: {
+        0: {
+          items: 1.5,
+        },
+        400: {
+          items: 1.5,
+        },
+        600: {
+          items: 1.5,
+        },
+        1000: {
+          items: 2.5,
+        },
+        1920: {
+          items: 2.5
+        }
+      }
+    });
+
+    // Custom Button
+    $('.customNextBtn').click(function () {
+      owl.trigger('next.owl.carousel');
+    });
+    $('.customPreviousBtn').click(function () {
+      owl.trigger('prev.owl.carousel');
+    });
+
+  });
+
+
+
+  $('.partner-logo').owlCarousel({
+    loop: true,
+    margin: 40,
+    responsiveClass: true,
+    dots: false,
+    autoplay: true,
+    slideTransition: 'linear',
+    autoplayTimeout: 6000,
+    autoplaySpeed: 6000,
+    autoplayHoverPause: true,
+    responsive: {
+      0: {
+        items: 2,
+      },
+      400: {
+        items: 3,
+      },
+      600: {
+        items: 5,
+      },
+      1000: {
+        items: 5,
+      },
+      1920: {
+        items: 5
+      }
+    }
+  });
+
+
+
+  $(document).ready(function () {
+    var owl = $('.top-courses');
+    owl.owlCarousel({
+      loop: true,
+      margin: 10,
+      responsiveClass: true,
+      nav: false,
+      dots: false,
+      responsive: {
+        0: {
+          items: 1.5,
+        },
+        400: {
+          items: 1.5,
+        },
+        600: {
+          items: 3,
+        },
+        1000: {
+          items: 4.5,
+        },
+        1920: {
+          items: 4.5
+        }
+      }
+    });
+
+    // Custom Button
+    $('.customNextBtn').click(function () {
+      owl.trigger('next.owl.carousel');
+    });
+    $('.customPreviousBtn').click(function () {
+      owl.trigger('prev.owl.carousel');
+    });
+
+  });
+
+
+
+  jQuery(document).ready(function ($) {
+    "use strict";
+    //  TESTIMONIALS CAROUSEL HOOK
+    $('#customers-testimonials').owlCarousel({
+      loop: true,
+      center: true,
+      items: 3,
+      margin: 0,
+      autoplay: true,
+      dots: false,
+      autoplayTimeout: 8500,
+      smartSpeed: 450,
+
+      responsive: {
+        0: {
+          items: 1
+        },
+        768: {
+          items: 1.5
+        },
+        1170: {
+          items: 1.5
+        }
+      }
+    });
+  });
+
+</script>
+{% endblock %}

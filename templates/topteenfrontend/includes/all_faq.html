@@ -1,0 +1,172 @@
+{% extends 'topteenfrontend/base.html' %} 
+{% block main %}
+<!-- Search FAQ Section -->
+{% if search_faq %}
+  <div class="lg:max-w-[1082px] mx-auto py-[24px]">
+    <h1
+    class="boldFont lg:leading-[1.35em] lg:text-[32px] text-[#333333] mb-[9px] boldFont text-center lg:text-left text-[24px] leading-[32px]">
+        {{heading}}
+    </h1>
+  </div>
+
+  
+  <section class="lg:flex lg:flex-row-reverse lg:justify-between lg:max-w-[1082px] mx-auto ">
+      <!-- Right Part -->
+      <div class=" mx-auto lg:mx-0 px-[12px] lg:px-0">
+        <div class="lg:border-b-[3px] lg:border-[#4074FE] hidden lg:block pb-[10px] w-[360px] lg:max-w-[248px]">
+          <p class="text-[21px] leading-[20px] text-[#080808] hidden lg:block mediumFont">Search FAQs</p>
+        </div>
+        <div class="flex">
+          <form action="{{url('core:allfaq')}}" method="GET" class=" mx-auto inline-block w-full relative">
+            <input type="text" placeholder="Search" id="fsearch" class=" lg:mt-[21px] w-full mx-auto max-h-[37px] pr-[36px] sm:w-[400px] lg:max-w-[248px] border-[#939393] border-solid border-[1px]" name="search" required type="submit" value="{% if search_faq %}{{search_faq}}{% endif %}">
+            <button type="submit" class=" absolute right-[16px] top-[50%] -translate-y-[50%]"><i class="fa fa-magnifying-glass text-[22px]"></i></button>
+          </form>
+        </div>
+      </div> 
+	  
+	  
+      <div class="w-full lg:max-w-[820px] mt-[25px] lg:mt-0 order-2 lg:order-1">
+        <section class=" mx-auto px-[12px] lg:px-0 lg:mb-[76px] mb-[35px]" data-tab-content>  
+          <div class="cdFaq flex flex-col gap-y-[12px]">
+            <!--<h2 class="font-bold text-[35px] text-center">FAQs</h2>-->
+            {% if faq_question %}
+              {% for faq  in faq_question %}
+                <div id="accordion-collapse regularFont" data-accordion="open">
+                  <h2 id="accordion-collapse-heading-{{faq.id}}1">
+                    <button type="button" class="rounded-lg shadow-lg flex items-center justify-between w-full px-[20px] py-[12px] font-medium text-left border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800  dark:bg-gray-800 text-gray-900 dark:text-white" data-accordion-target="#accordion-collapse-body-{{faq.id}}" aria-expanded="false" aria-controls="accordion-collapse-body-{{faq.id}}">
+                      <span>{{faq.question|safe}}</span>
+                      <svg data-accordion-icon="" class="w-6 h-6 rotate-90 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
+                  </h2>
+                  <div id="accordion-collapse-body-{{faq.id}}" class="hidden" aria-labelledby="accordion-collapse-heading-{{faq.id}}1">
+                    <div class="px-[12px] py-[12px] text-[16px] font-light border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900 ckeditorStyles">
+                      <p class="mb-2 dark:text-gray-400">{{faq.answer|safe}}</p> 
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+            <p class="text-[20px] leading-[30px] font-normal text-[#4F4F4F] mb-6">
+              "No Results"
+            </p>
+            {% endif %}
+          </div>
+      </section>  
+    </div>
+  </section> 
+
+  <!-- FAQ Section -->
+{% else %}
+  <div class="lg:max-w-[1082px] mx-auto py-[24px]">
+    <h1
+    class="boldFont lg:leading-[1.35em] lg:text-[32px] text-[#333333] mb-[9px] boldFont text-center lg:text-left text-[24px] leading-[32px]">
+        Frequently Asked Questions
+    </h1>
+  </div>
+
+  <section class="lg:flex lg:flex-row-reverse lg:justify-between lg:max-w-[1082px] mx-auto ">
+    <!-- Right Part -->
+    <div class=" mx-auto lg:mx-0 px-[12px] lg:px-0">
+      <div class="lg:border-b-[3px] lg:border-[#4074FE] hidden lg:block pb-[10px] w-[360px] lg:max-w-[248px]">
+        <p class="text-[21px] leading-[20px] text-[#080808] hidden lg:block mediumFont">Search FAQs</p>
+      </div>
+      <div class="flex w-full ">
+        <form action="{{url('core:allfaq')}}" method="GET" class="mx-auto inline-block w-full relative h-[37px] lg:mt-[21px] ">
+          <input type="text" placeholder="Search" id="fsearch" class="  w-full mx-auto max-h-[37px] pr-[36px] sm:w-[400px] lg:max-w-[248px] border-[#939393] border-solid border-[1px]" name="search" required type="submit" >
+          <button type="submit" class="absolute right-[16px] top-[50%] -translate-y-[50%]"><i class="fa fa-magnifying-glass text-[22px]"></i></button>
+        </form>
+      </div>
+    </div>
+
+    <div class="w-full lg:max-w-[820px] mt-[25px] lg:mt-0 order-2 lg:order-1">
+  <div
+      class="flex flex-row justify-center gap-x-[15px] items-center lg:mb-[52px] w-full overflow-x-auto lg:w-auto pb-2 mb-[20px] tabList"
+      role="tablist" data-tabs-toggle="#careerFaqs"> 
+    <!-- TAB --> 
+  
+    <button
+      role="tab"
+        class="px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[3px] bg-[#F8F8F8] items-center group hover:border-[2px] hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-[0.05] border-[2px] border-transparent shrink-0 tab activeTab "
+        data-tabs-target="#parentFAQ" >
+    <div>
+   
+    </div>
+    <p class="text-[#4F4F4F] text-xs semibold group-hover:text-[#3F37C9]"> FAQ for Parents  </p>
+    </button>
+   
+    <button
+      role="tab"
+        class="px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[3px] bg-[#F8F8F8] items-center group hover:border-[2px] hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-[0.05] border-[2px] border-transparent shrink-0 tab "
+        data-tabs-target="#childFAQ" >
+   
+    <p class="text-[#4F4F4F] text-xs semibold group-hover:text-[#3F37C9]">  FAQ for Student</p>
+    </button>
+  </div>
+		
+
+		
+		  <div class="w-full lg:block  tabPanelsList" id="careerFaqs"> 
+    <div
+        class="px-[12px] lg:px-0 hidden mx-auto lg:mb-[76px] mb-[35px] tabpanel tabPanel faqs-list"
+        role="tabpanel" id="parentFAQ" data-tab-content> 
+        {% if parent_faq %}
+          <div class="cdFaq w-full">
+            <!--<h2 class="font-bold text-[35px] text-center">FAQs</h2>-->
+            {% for faq  in parent_faq %}
+            <div id="accordion-collapse regularFont" data-accordion="open">
+              <h2 id="accordion-collapse-heading-{{faq.id}}1">
+                <button type="button" class="rounded-lg shadow-lg flex items-center justify-between w-full px-[20px] py-[12px] font-medium text-left border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800  dark:bg-gray-800 text-gray-900 dark:text-white" data-accordion-target="#accordion-collapse-body-{{faq.id}}" aria-expanded="false" aria-controls="accordion-collapse-body-{{faq.id}}">
+                  <span>{{faq.question|safe}}</span>
+                  <svg data-accordion-icon="" class="w-6 h-6 rotate-90 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-{{faq.id}}" class="hidden" aria-labelledby="accordion-collapse-heading-{{faq.id}}1">
+                <div class="px-[12px] py-[12px] text-[16px] font-light border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+                  <p class="mb-2 dark:text-gray-400">{{faq.answer|safe}}</p> 
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}  
+    
+ </div>
+		
+		
+		
+    <div
+        class="px-[12px] lg:px-0 hidden mx-auto lg:mb-[76px] mb-[35px] tabpanel hidden tabPanel faqs-list"
+        role="tabpanel" id="childFAQ"> 
+ {% if student_faq  %}
+          <div class="cdFaq w-full">
+            <!--<h2 class="font-bold text-[35px] text-center">FAQs</h2>-->
+ <!--<h2 class="font-bold text-[35px] text-center">FAQs</h2>-->
+            {% for faq  in student_faq %}
+            <div id="accordion-collapse regularFont" data-accordion="collapse">
+              <h2 id="accordion-collapse-heading-{{faq.id}}">
+                <button type="button" class="rounded-lg shadow-lg flex items-center justify-between w-full px-[20px] py-[12px] font-medium text-left border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800  dark:bg-gray-800 text-gray-900 dark:text-white" data-accordion-target="#accordion-collapse-body-{{faq.id}}" aria-expanded="false" aria-controls="accordion-collapse-body-{{faq.id}}">
+                  <span>{{faq.question|safe}} </span>
+                  <svg data-accordion-icon="" class="w-6 h-6 rotate-90 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-{{faq.id}}" class="hidden" aria-labelledby="accordion-collapse-heading-{{faq.id}}1">
+                <div class="px-[12px] py-[12px] text-[16px] font-light border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900 ckeditorStyles">
+                  <p class="mb-2 dark:text-gray-400">{{faq.answer|safe}}</p> 
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% endif %}  
+      
+        </div>
+		
+   </div>
+        
+     
+			  
+		</div>
+    </div>
+  </section>
+{% endif %}
+
+{% endblock  %}

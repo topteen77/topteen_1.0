@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://kit.fontawesome.com/df31b3ad5b.js"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="../assets/css/customCSS.css" />
+    <link rel="stylesheet" href="../layouts/css/styles.css" />
+    <title>Profile Page</title>
+  </head>
+  <body class="no-scrollbar">
+    <!-- Header -->
+
+    <div
+      class="mx-auto hidden lg:flex justify-between py-[16px] lg:max-w-[1280px] border-b-[2px] border-[#EBEBEE]"
+    >
+      <div class="hidden lg:flex justify-between lg:container mx-auto">
+        <ul class="flex gap-[24px]">
+          <li class="flex">
+            <img
+              src="../assets/images/logo.svg"
+              class="w-[38.5px] h-[38.5px]"
+              alt=""
+            />
+            <p
+              class="text-[13.8px] leading-[18px] mt-[14px] ml-[8px] font-bold text-[#494949] tracking-[0.01em]"
+            >
+              TOPTEEN
+            </p>
+          </li>
+
+          <li class="flex">
+            <i
+              class="fa fa-search mt-[15px] -mr-[32px] text-[#bdbdbd] z-[20]"
+            ></i>
+            <input
+              type="text]"
+              placeholder=" Careers, colleges, courses..."
+              class="h-[48px] w-[300px] rounded-[10px] pl-[36px] bg-[#f7f7fa] border-[1.5px] border-solid border-[#dcdcdc] placeholder-[#bdbdbd] z-[10]"
+            />
+          </li>
+        </ul>
+
+        <ul class="flex gap-[12px]">
+          <li class="flex">
+            <img
+              src="../assets/images/discover.svg"
+              class="w-[22px] h-[22px] mt-[10px]"
+              alt=""
+            />
+            <p
+              class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[4px]"
+            >
+              Discover
+            </p>
+          </li>
+          <li class="flex">
+            <img
+              src="../assets/images/myPlans.svg"
+              class="w-[22px] h-[22px] mt-[10px]"
+              alt=""
+            />
+            <p
+              class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]"
+            >
+              My Plans
+            </p>
+          </li>
+          <li class="flex">
+            <img
+              src="../assets/images/learn.svg"
+              class="w-[22px] h-[22px] mt-[10px]"
+              alt=""
+            />
+            <p
+              class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[4px] text-[#828282]"
+            >
+              Learn
+            </p>
+          </li>
+          <li class="flex relative z-0">
+          <img src="../assets/images/user.svg" alt="" />
+            <div
+              class="popTrigr -ml-[16px] w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px]"
+            >
+              <div
+                class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
+              >
+                <img
+                  src="../assets/images/xp.svg"
+                  class="w-[20px] h-[20px]"
+                  alt=""
+                />
+                <p
+                  class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
+                >
+                  1280 XP
+                </p>
+              </div>
+            </div>
+
+            <div  class="absolute z-10 popDiv">
+
+              <div id="smallPop" class="hidden px-[6px] py-[4px] bg-[#ffffff] shadow-lg rounded-[8px] relative">
+                <button value="1" class='text-black hover:bg-slate-200 text-[12px] font-bold py-1  h-full transition-all duration-[600ms] ease-in-out w-full'>
+                  <a href="#">View profile</a> 
+                </button>
+                <button value="2" class='text-black hover:bg-slate-200 text-[12px] font-bold py-1  h-full transition-all duration-[600ms] ease-in-out w-full'>
+                  <a href="#">Logout</a> 
+                </button>
+                <div class="trianglePop absolute left-[50%] -translate-x-[50%]">
+          
+                </div>
+              </div>
+
+            </div>
+            
+          </li>
+        </ul>
+      </div>
+    </div>
+    <!-- End of Desktop Header -->
+
+    <!-- No header for the Mobile -->
+
+    <!-- End of Header -->
+
+   
+
+    <!-- Main Content -->
+    <main class="lg:container mx-auto px-[15px] lg:px-0">
+      <div class="lg:flex lg:gap-[30px] pt-[32px]">
+        <!-- Left Part Mobile -->
+        <div class="max-w-[640px] lg:hidden mx-auto">
+          <!-- User -->
+          <div class="flex justify-between">
+            <div class="flex gap-[17px]">
+              <div>
+                <img
+                  src="../assets/images/user.svg"
+                  class="w-[71px] h-[71px] rounded-full"
+                  alt=""
+                />
+              </div>
+              <div class="flex flex-col gap-y-[5px]">
+                <div class="pt-[12px]">
+                  <p class="text-[15px] leading-[20.25px] font-semibold">
+                    Nikhil Verma
+                  </p>
+                </div>
+                <div class="flex flex-col gap-y-[3px]">
+                  <div class="flex gap-[4px]">
+                    <img
+                      src="../assets/images/clock.fill.png"
+                      class="w-[12.83px] h-[9.67px]"
+                      alt=""
+                    />
+                    <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                      Joined December 2021
+                    </p>
+                  </div>
+                  <div class="flex gap-[4px]">
+                    <img
+                      src="../assets/images/userGrade.png"
+                      class="w-[10.83px] h-[8.67px]"
+                      alt=""
+                    />
+                    <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                      11th Grade • DPS, RK Puram
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-[#3f37c9] w-[25px] h-[25px] rounded-full text-center my-auto lg:hidden"
+            >
+              <i class="fa fa-gear text-white text-[12.5px]"></i>
+            </div>
+          </div>
+          <!-- End of User -->
+
+          <!-- Complete Profile -->
+          <div
+            class="flex max-w-[356px] h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[18px] pt-[18px] relative"
+          >
+            <div class="absolute top-[8px] right-[20px]">
+              <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+            </div>
+            <div>
+              <div class="flex relative">
+                <div class="absolute -left-[24px]">
+                  <img
+                    src="../assets/images/verified-account 2.png"
+                    class="w-[81px] h-[81px]"
+                    alt=""
+                  />
+                </div>
+                <div class="text-left max-w-[217.5px] ml-[74px]">
+                  <div>
+                    <p
+                      class="text-[15px] leading-[20.25px] font-semibold text-[#333333]"
+                    >
+                      Complete your profile
+                    </p>
+                    <p
+                      class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]"
+                    >
+                      A complete profile helps us cater the best content to you
+                    </p>
+                  </div>
+                  <!-- Progress Bar -->
+                  <div
+                    class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]"
+                  >
+                    <div
+                      class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"
+                    ></div>
+                  </div>
+                  <!-- End of Progress Bar -->
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- End of Complete Profile -->
+        </div>
+
+        <!-- End of left Part Mobile -->
+
+        <!-- Left part Desktop -->
+        <div
+          class="hidden lg:block w-[338px] h-[382px] border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto"
+        >
+          <!-- User -->
+          <div
+            class="flex justify-center border-b-[1px] border-solid border-[#dedede]"
+          >
+            <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px]">
+              <div class="flex justify-between w-full">
+                <div class="flex gap-[8px]">
+                  <div class="relative">
+                    <img
+                      src="../assets/images/user.svg"
+                      class="w-[104px] h-[104px]"
+                      alt=""
+                    />
+
+                    <!-- XP  -->
+                    <div
+                      class="w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px] absolute bottom-1 left-20"
+                    >
+                      <div
+                        class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
+                      >
+                        <img
+                          src="../assets/images/xp.svg"
+                          class="w-[20px] h-[20px]"
+                          alt=""
+                        />
+                        <p
+                          class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
+                        >
+                          1280 XP
+                        </p>
+                      </div>
+                    </div>
+                    <!-- End of XP -->
+                  </div>
+                  <div class="flex flex-col gap-y-[5px]">
+                    <div class="pt-[12px]">
+                      <p
+                        class="text-[15px] leading-[20.25px] lg:text-[24px] lg:leading-[32.4px] font-semibold"
+                      >
+                        Nikhil Verma
+                      </p>
+                    </div>
+                    <div class="flex lg:hidden flex-col gap-y-[3px]">
+                      <div class="flex gap-[4px]">
+                        <img
+                          src="../assets/images/clock.fill.png"
+                          class="w-[12.83px] h-[9.67px]"
+                          alt=""
+                        />
+                        <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                          Joined December 2021
+                        </p>
+                      </div>
+                      <div class="flex gap-[4px]">
+                        <img
+                          src="../assets/images/userGrade.png"
+                          class="w-[10.83px] h-[8.67px]"
+                          alt=""
+                        />
+                        <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                          11th Grade • DPS, RK Puram
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-y-[8px]">
+                <div class="flex gap-[14px]">
+                  <img
+                    src="../assets/images/clock.fill.png"
+                    class="w-[18px] h-[18px]"
+                    alt=""
+                  />
+                  <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                    Joined December 2021
+                  </p>
+                </div>
+                <div class="flex gap-[14px]">
+                  <img
+                    src="../assets/images/userGrade.png"
+                    class="w-[18px] h-[14px]"
+                    alt=""
+                  />
+                  <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                    11th Grade • DPS, RK Puram
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- End of User -->
+
+          <!-- Complete Profile -->
+          <div class="flex justify-center pt-[18px]">
+            <div>
+              <div class="flex gap-[18px]">
+                <div class="w-[45px] h-[44px]">
+                  <img src="../assets/images/verified-account 2.png" alt="" />
+                </div>
+                <div class="text-left max-w-[206px] flex flex-col gap-y-[5px]">
+                  <div>
+                    <p
+                      class="text-[12px] leading-[16.2px] font-semibold text-[#333333]"
+                    >
+                      Complete your profile
+                    </p>
+                    <p
+                      class="text-[10px] leading-[14.5px] font-normal text-[#828282]"
+                    >
+                      A complete profile helps us cater the best content to you
+                    </p>
+                  </div>
+                  <!-- Progress Bar -->
+                  <div
+                    class="w-[205px] h-[10px] rounded-[100px] bg-[#4cc9f0] bg-opacity-[0.15]"
+                  >
+                    <div
+                      class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"
+                    ></div>
+                  </div>
+                  <!-- End of Progress Bar -->
+                </div>
+              </div>
+
+              <!-- Settings -->
+              <div
+                class="w-[295px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[19px] d-none"
+              >
+                <div
+                  class="w-full h-[48px] flex gap-[11.56px] justify-center rounded-[10px] bg-[#3f37c9] text-[#ffffff]"
+                >
+                  <i class="fa fa-gear my-auto"></i>
+                  <p class="text-[14px] leading-[18.9px] font-bold my-auto">
+                    SETTINGS
+                  </p>
+                </div>
+              </div>
+              <!-- End of settings -->
+            </div>
+          </div>
+          <!-- End of Complete Profile -->
+        </div>
+        <!-- End of Left part Desktop -->
+
+        <!-- Right Part -->
+        <div class="mx-auto lg:w-[712px] lg:pt-[8px]">
+          <!-- Statistics -->
+          <div class="mx-auto max-w-[640px] lg:max-w-full mt-[24px] lg:mt-0">
+            <p
+              class="text-[15px] lg:text-[24px] leading-[20.25px] lg:leading-[32.4px] font-semibold"
+            >
+              Statistics
+            </p>
+
+            <div
+              class="flex flex-wrap justify-center sm:justify-start gap-[10px] lg:gap-[30px] pt-[14px] lg:pt-[16px] mx-auto"
+            >
+              <div
+                class="flex gap-[12px] px-[11px] w-[173px] lg:w-[155px] py-[15px] bg-[#f7f7fa] rounded-[10px]"
+              >
+                <div>
+                  <img
+                    src="../assets/images/trophy.png"
+                    class="w-[30px] h-[30px]"
+                    alt=""
+                  />
+                </div>
+                <div>
+                  <p
+                    class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold"
+                  >
+                    12
+                  </p>
+                  <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                    Trophies Unlocked
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="flex gap-[12px] px-[11px] w-[173px] lg:w-[155px] py-[15px] bg-[#f7f7fa] rounded-[10px]"
+              >
+                <div>
+                  <img
+                    src="../assets/images/badge.png"
+                    class="w-[30px] h-[30px]"
+                    alt=""
+                  />
+                </div>
+                <div>
+                  <p
+                    class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold"
+                  >
+                    1200
+                  </p>
+                  <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                    Total Points
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="flex gap-[12px] px-[11px] w-[173px] lg:w-[155px] py-[15px] bg-[#f7f7fa] rounded-[10px]"
+              >
+                <div>
+                  <img
+                    src="../assets/images/fire.png"
+                    class="w-[30px] h-[30px]"
+                    alt=""
+                  />
+                </div>
+                <div>
+                  <p
+                    class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold"
+                  >
+                    5 days
+                  </p>
+                  <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                    Streak
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="flex gap-[12px] px-[11px] w-[173px] lg:w-[155px] py-[15px] bg-[#f7f7fa] rounded-[10px]"
+              >
+                <div>
+                  <img
+                    src="../assets/images/medal.png"
+                    class="w-[30px] h-[30px]"
+                    alt=""
+                  />
+                </div>
+                <div>
+                  <p
+                    class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold"
+                  >
+                    Rookie
+                  </p>
+                  <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                    Current Level
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- End of Statistics -->
+
+          <!-- Quick Links Mobile -->
+          <div class="lg:hidden max-w-[640px] mx-auto mt-[35px]">
+            <p class="text-[15px] leading-[20.25px] font-semibold">
+              Quick Links
+            </p>
+
+            <div class="flex flex-col gap-y-[10px] pt-[14px]">
+              <!-- Psychometric-->
+              <div
+                class="h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden"
+              >
+                <div
+                  class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]"
+                >
+                  <img
+                    src="../assets/images/planning.png"
+                    class="w-[34.8px] h-[34.8px]"
+                    alt=""
+                  />
+                </div>
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p
+                    class="text-[13px] leading-[17.55px] font-semibold text-[#333333]"
+                  >
+                    Psychometric Test Reports
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                    Access past reports or take a new test
+                  </p>
+                </div>
+                <div class="my-auto">
+                  <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+                </div>
+              </div>
+              <!-- End of Psychometric -->
+
+              <!-- Scrapbook -->
+              <div
+                class="h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden"
+              >
+                <div
+                  class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]"
+                >
+                  <img
+                    src="../assets/images/diary.png"
+                    class="w-[34.8px] h-[34.8px]"
+                    alt=""
+                  />
+                </div>
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p
+                    class="text-[13px] leading-[17.55px] font-semibold text-[#333333]"
+                  >
+                    Digital Scrapbook
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                    Your notes, reminders, and post-its
+                  </p>
+                </div>
+                <div class="my-auto">
+                  <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+                </div>
+              </div>
+              <!-- End of scrapbook -->
+
+              <!-- Calender -->
+              <div
+                class="h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden"
+              >
+                <div
+                  class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]"
+                >
+                  <img
+                    src="../assets/images/calendar1.png"
+                    class="w-[34.8px] h-[34.8px]"
+                    alt=""
+                  />
+                </div>
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p
+                    class="text-[13px] leading-[17.55px] font-semibold text-[#333333]"
+                  >
+                    Your Calender
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                    Your notes, reminders, and post-its
+                  </p>
+                </div>
+                <div class="my-auto">
+                  <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+                </div>
+              </div>
+              <!-- End of Calender -->
+
+              <!-- Parent Accounts -->
+              <div
+                class="h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden"
+              >
+                <div
+                  class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]"
+                >
+                  <img
+                    src="../assets/images/employee.png"
+                    class="w-[34.8px] h-[34.8px]"
+                    alt=""
+                  />
+                </div>
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p
+                    class="text-[13px] leading-[17.55px] font-semibold text-[#333333]"
+                  >
+                    Add parent Accounts
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                    Add parents to your account for view access
+                  </p>
+                </div>
+                <div class="my-auto">
+                  <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+                </div>
+              </div>
+              <!-- End of Parent Accounts -->
+
+              <!-- refer/invite -->
+              <div
+                class="h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden"
+              >
+                <div
+                  class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]"
+                >
+                  <img
+                    src="../assets/images/boy.png"
+                    class="w-[34.8px] h-[34.8px]"
+                    alt=""
+                  />
+                </div>
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p
+                    class="text-[13px] leading-[17.55px] font-semibold text-[#333333]"
+                  >
+                    Refer/Invite Friends
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                    Earn points and discounts by inviting friends
+                  </p>
+                </div>
+                <div class="my-auto">
+                  <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+                </div>
+              </div>
+              <!-- End of refer/invite -->
+            </div>
+          </div>
+          <!-- End of Quick links Mobile -->
+
+          <!-- Quick Links Desktop -->
+          <div class="hidden lg:block lg:pt-[50px]">
+            <p
+              class="text-[15px] leading-[20.25px] lg:text-[24px] lg:leading-[32.4px] mb-[16px] font-semibold"
+            >
+              Quick REPORT
+            </p>
+
+            <div class="w-[712px] border-[1px] border-solid border-[#dedede] rounded-[10px]">
+              <!-- Psychometric Test Reports -->
+              <div
+                class="h-[67px] flex gap-[18.33px] border-b-[1px] border-[#dedede] pl-[16px] pr-[21.34px]"
+              >
+                <div class="flex justify-between w-full">
+                  <div class="flex gap-[22px]">
+                    <div class="my-auto">
+                      <img
+                        src="../assets/images/planning.png"
+                        class="w-[35px] h-[35px]"
+                        alt=""
+                      />
+                    </div>
+                    <div class="flex flex-col gap-y-[3px] my-auto">
+                      <p class="text-[13px] leading-[17.55px] font-semibold">
+                        Psychometric Test Reports
+                      </p>
+                      <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                        Access past reports or take a new test
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="flex gap-[4.94px] my-auto">
+                    <div
+                      class="w-[55.37px] h-[46.97px] rounded-[4.94px] bg-[#2e289d] pt-[3.96px]"
+                    >
+                      <p
+                        class="text-[15.82px] leading-[21px] font-bold text-[#ffffff] text-center"
+                      >
+                        S
+                      </p>
+                      <p
+                        class="text-[7.415px] leading-[10px] font-semibold text-[#ffffff] text-center"
+                      >
+                        Social
+                      </p>
+                      <p
+                        class="text-[4.94px] leading-[7px] font-semibold opacity-[0.6] text-[#ffffff] text-center"
+                      >
+                        8.0/10
+                      </p>
+                    </div>
+
+                    <div
+                      class="w-[55.37px] h-[46.97px] rounded-[4.94px] bg-[#3cbae1] pt-[3.96px]"
+                    >
+                      <p
+                        class="text-[15.82px] leading-[21px] font-bold text-[#ffffff] text-center"
+                      >
+                        E
+                      </p>
+                      <p
+                        class="text-[7.415px] leading-[10px] font-semibold text-[#ffffff] text-center"
+                      >
+                        Enterprising
+                      </p>
+                      <p
+                        class="text-[4.94px] leading-[7px] font-semibold opacity-[0.6] text-[#ffffff] text-center"
+                      >
+                        6.5/10
+                      </p>
+                    </div>
+
+                    <div
+                      class="w-[55.37px] h-[46.97px] rounded-[4.94px] bg-[#ef5da8] pt-[3.96px]"
+                    >
+                      <p
+                        class="text-[15.82px] leading-[21px] font-bold text-[#ffffff] text-center"
+                      >
+                        R
+                      </p>
+                      <p
+                        class="text-[7.415px] leading-[10px] font-semibold text-[#ffffff] text-center"
+                      >
+                        Realistic
+                      </p>
+                      <p
+                        class="text-[4.94px] leading-[7px] font-semibold opacity-[0.6] text-[#ffffff] text-center"
+                      >
+                        6.5/10
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="my-auto">
+                  <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+                </div>
+              </div>
+              <!-- End of Psychometric Test Reports -->
+
+              <!-- Your Calender -->
+              <div
+                class="h-[67px] flex gap-[18.33px] border-b-[1px] border-[#dedede] pl-[16px] pr-[21.34px]"
+              >
+                <div class="flex justify-between w-full">
+                  <div class="flex gap-[22px]">
+                    <div class="my-auto">
+                      <img
+                        src="../assets/images/calendar1.png"
+                        class="w-[35px] h-[35px]"
+                        alt=""
+                      />
+                    </div>
+                    <div class="flex flex-col gap-y-[3px] my-auto">
+                      <p class="text-[13px] leading-[17.55px] font-semibold">
+                        Your Calender
+                      </p>
+                      <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                        Your notes, reminders and post-its
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    class="my-auto min-w-[116px] bg-[#f7f7fa] rounded-[7.42px] pt-[7.42px] pb-[6.03px] pl-[5.57px] pr-[8.35px] h-[52.9px]"
+                  >
+                    <div class="mx-auto">
+                      <div class="flex justify-between">
+                        <p
+                          class="text-[7px] leading-[10.5px] text-[#4f4f4f] font-semibold"
+                        >
+                          Complete Course
+                        </p>
+                        <i class="fa fa-ellipsis-vertical text-[11px]"></i>
+                      </div>
+                      <div class="mt-[1.86px]">
+                        <p
+                          class="text-[5.57px] leading-[8.35px] text-[#4f4f4f]"
+                        >
+                          Computer Science Career Tree
+                        </p>
+                      </div>
+                      <div class="flex gap-[2px] mt-[5.1px]">
+                        <img
+                          src="../assets/images/badge1.svg"
+                          class="w-[13px] h-[13px]"
+                          alt=""
+                        />
+                        <p
+                          class="font-semibold text-[5.57px] leading-[8.07px] my-auto"
+                        >
+                          400 Points
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="my-auto">
+                  <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+                </div>
+              </div>
+              <!-- End of Your Calender -->
+
+              <!-- Digital Scrapbook -->
+              <div
+                class="h-[67px] flex gap-[18.33px] border-b-[1px] border-[#dedede] pl-[16px] pr-[21.34px]"
+              >
+                <div class="flex justify-between w-full">
+                  <div class="flex gap-[22px]">
+                    <div class="my-auto">
+                      <img
+                        src="../assets/images/diary.png"
+                        class="w-[35px] h-[35px]"
+                        alt=""
+                      />
+                    </div>
+                    <div class="flex flex-col gap-y-[3px] my-auto">
+                      <p class="text-[13px] leading-[17.55px] font-semibold">
+                        Digital Scrapbook
+                      </p>
+                      <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                        Your notes, reminders and post-its
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="my-auto flex gap-[4px]">
+                    <div
+                      class="flex gap-[3px] mx-auto px-[9px] py-[6px] bg-[#f7f7fa] rounded-[7.42px]"
+                    >
+                      <img
+                        src="../assets/images/pin.png"
+                        class="w-[12px] h-[17px]"
+                        alt=""
+                      />
+                      <p
+                        class="text-[7px] leading-[9.87px] text-[#494949] font-semibold my-auto"
+                      >
+                        SOP Points
+                      </p>
+                    </div>
+                    <div
+                      class="flex gap-[3px] mx-auto px-[9px] py-[6px] bg-[#f7f7fa] rounded-[7.42px]"
+                    >
+                      <img
+                        src="../assets/images/pin.png"
+                        class="w-[12px] h-[17px]"
+                        alt=""
+                      />
+                      <p
+                        class="text-[7px] leading-[9.87px] text-[#494949] font-semibold my-auto"
+                      >
+                        Colleges
+                      </p>
+                    </div>
+                    <div
+                      class="flex gap-[3px] mx-auto px-[9px] py-[6px] bg-[#f7f7fa] rounded-[7.42px]"
+                    >
+                      <img
+                        src="../assets/images/pin.png"
+                        class="w-[12px] h-[17px]"
+                        alt=""
+                      />
+                      <p
+                        class="text-[7px] leading-[9.87px] text-[#494949] font-semibold my-auto"
+                      >
+                        Untitled
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="my-auto">
+                  <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+                </div>
+              </div>
+              <!-- End of Digital Scrapbook -->
+
+              <!-- Parent Accounts -->
+              <div
+                class="h-[67px] flex gap-[18.33px] border-b-[1px] border-[#dedede] pl-[16px] pr-[21.34px]"
+              >
+                <div class="flex justify-between w-full">
+                  <div class="flex gap-[22px]">
+                    <div class="my-auto">
+                      <img
+                        src="../assets/images/employee.png"
+                        class="w-[35px] h-[35px]"
+                        alt=""
+                      />
+                    </div>
+                    <div class="flex flex-col gap-y-[3px] my-auto">
+                      <p class="text-[13px] leading-[17.55px] font-semibold">
+                        Add Parent Accounts
+                      </p>
+                      <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                        Add parents to your accounts for view access
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="my-auto flex gap-[5.28px]">
+                    <div
+                      class="flex gap-[8px] bg-[#f7f7fa] rounded-[7.42px] pl-[10.48px] pr-[11.72px] pt-[5.87px] pb-[7.12px]"
+                    >
+                      <img
+                        src="../assets/images/female.png"
+                        class="w-[15.5px] h-[31px] my-auto"
+                        alt=""
+                      />
+                      <div class="flex flex-col gap-y-[1.1px] my-auto">
+                        <p class="text-[7px] leading-[9.45px] font-semibold">
+                          Chitra Verma
+                        </p>
+                        <p
+                          class="text-[5.57px] leading-[8.08px] text-[#828282]"
+                        >
+                          Mother • +91-3278288213
+                        </p>
+                      </div>
+                    </div>
+
+                    <div
+                      class="flex gap-[8px] bg-[#f7f7fa] rounded-[7.42px] pl-[10.48px] pr-[11.72px] pt-[5.87px] pb-[7.12px]"
+                    >
+                      <img
+                        src="../assets/images/male.png"
+                        class="w-[15.5px] h-[31px] my-auto"
+                        alt=""
+                      />
+                      <div class="flex flex-col gap-y-[1.1px] my-auto">
+                        <p class="text-[7px] leading-[9.45px] font-semibold">
+                          Dinesh Verma
+                        </p>
+                        <p
+                          class="text-[5.57px] leading-[8.08px] text-[#828282]"
+                        >
+                          Father • +91-3278288213
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="my-auto">
+                  <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+                </div>
+              </div>
+              <!-- End of parent Accounts -->
+
+              <!-- Refer Friends -->
+              <div class="h-[67px] flex gap-[18.33px] pl-[16px] pr-[21.34px]">
+                <div class="flex justify-between w-full">
+                  <div class="flex gap-[22px]">
+                    <div class="my-auto">
+                      <img
+                        src="../assets/images/boy.png"
+                        class="w-[35px] h-[35px]"
+                        alt=""
+                      />
+                    </div>
+                    <div class="flex flex-col gap-y-[3px] my-auto">
+                      <p class="text-[13px] leading-[17.55px] font-semibold">
+                        Refer/Invite Friends
+                      </p>
+                      <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                        Earn points and discounts by inviting friends
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="my-auto">
+                  <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+                </div>
+              </div>
+              <!-- End of Refer Friends -->
+            </div> <!-- # End of my logic adding -->
+          </div>
+          <!-- End of Quick Links desktop -->
+        </div>
+        <!-- End of Right Part -->
+      </div>
+    </main>
+    <!-- End of Main Content -->
+
+    
+    <!-- Footer -->
+
+    <!-- Mobile footer -->
+    <footer class="lg:hidden bg-[#f7f7fa] mt-[58px] pb-[12px]">
+      <li
+        class="list-none flex justify-between px-[24px] border-y-[1px] border-y-[#3f37c9] border-y-solid border-opacity-[0.15] pt-[13px] pb-[18.67px] mx-auto bg-[#ffffff]"
+      >
+        <ul class="pt-[4.5px] group text-center">
+          <i
+            class="fa fa-bolt text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"
+          ></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+          >
+            Discover
+          </p>
+        </ul>
+
+        <ul class="pt-[4.5px] group text-center">
+          <i
+            class="fa fa-magnifying-glass text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"
+          ></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+          >
+            Search
+          </p>
+        </ul>
+
+        <ul class="pt-[4.5px] group text-center">
+          <i
+            class="fa fa-users-rectangle text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"
+          ></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+          >
+            My Plans
+          </p>
+        </ul>
+
+        <ul class="pt-[4.5px] group text-center">
+          <i
+            class="fa fa-book text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"
+          ></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+          >
+            Learn
+          </p>
+        </ul>
+
+        <ul class="pt-[4.5px] group text-center">
+          <i
+            class="fa-regular fa-circle-user text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"
+          ></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] group-hover:scale-110 mx-auto"
+          >
+            Profile
+          </p>
+        </ul>
+      </li>
+      <div class="flex justify-center mt-[12px]">
+        <p class="text-[12.66px] leading-[15px] text-[#333333] my-auto">
+          topteen.com &nbsp;
+        </p>
+        <i class="fa fa-lock text-[10px] text-[#7f7f83] my-auto"></i>
+      </div>
+    </footer>
+    <!-- End of mobile footer -->
+
+    <!-- Desktop Footer -->
+    <div class="w-full bg-[#FDFCFF]">
+      <footer
+        class="lg:container mx-auto px-20 pt-10 mt-8 h-auto tracking-wide lg:block hidden"
+        id="footer"
+      >
+        <div
+          class="grid grid-cols-2 pb-10 border-b border-[#000000] border-opacity-20 gap-10"
+        >
+          <div>
+            <h4 class="text-sm font-bold mb-4 footer-heading">
+              <span
+                ><img
+                  src="../assets/images/graduation-hat 1.png"
+                  class="h-10 inline-block"
+              /></span>
+              &nbsp;<span class="font-bold text-[13.13px] leading-[18px]"
+                >TOPTEEN</span
+              >
+            </h4>
+            <p class="text-left text-[#828282] text-lg w-1/2 font-normal">
+              Amet minim mollit non deserunt ullamco est sit aliqua dolor do
+              amet sint.
+            </p>
+          </div>
+          <div class="flex flex-row justify-between items-start">
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Resources
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Learn more </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Downloads </a>
+              </li>
+            </ul>
+
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Product
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Pricing </a>
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Features </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Log In </a>
+              </li>
+            </ul>
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Socials
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Instagram </a>
+              </li>
+
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Linkedin </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Facebook </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div
+          class="flex flex-row justify-between my-2 text-[#828282] font-normal mb-6"
+        >
+          <div class="text-xs">&copy; 2021 TopTeen. All rights reserved.</div>
+          <div class="text-xs">
+            <a href="#" class="underline">Terms & Conditions</a
+            ><span class="font-extrabold">.</span
+            ><a href="#" class="underline"> Privacy Policy</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <!-- End of Desktop Footer -->
+
+    <!-- End of Footer -->
+  </body>
+
+  <script>
+    let popDiv = document.querySelector(".popDiv");
+    let popTrigr = document.querySelector(".popTrigr");
+    let smallPop = document.getElementById("smallPop")
+
+popTrigr.addEventListener("click", function(){
+  smallPop.classList.toggle("hidden");
+})
+
+
+
+// document.onclick = function(e){
+//   if(e.target.classList !== "popTrigr" && e.target.classList !== "popDiv"){
+//     smallPop.classList.add("hidden");
+//   }
+// }
+  </script>
+</html>

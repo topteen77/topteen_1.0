@@ -1,0 +1,74 @@
+{% for video in page_obj.object_list %}
+    
+<div class="popUpDivEV fixed  mx-auto">
+    <div class="lg:max-w-[1280px] h-full mx-auto relative">
+
+      <div class="yTContent absolute my-auto popUpContent">
+        <div class="w-full h-full relative">
+          <button onclick="closePopUpEV()" class="btnDiv absolute" >
+            <i class="fa fa-xmark lg:text-[16px]"></i>
+          </button>
+          <iframe
+          class="mx-auto yTembedEV"
+            src=""
+            title=""
+            frameborder="0"
+            allow="accelerometer;  clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+
+        </div>
+
+      </div>
+    </div>
+    
+  </div>
+    <div id="blog-box" class="lg:flex lg:flex-row flex-col  lg:gap-x-[29px] lg:mx-0 lg:max-w-[698px]">
+        <div class="" id="EVurl">
+            <div class="mx-auto h-[208px] w-full lg:w-[300px] relative">
+                {% if video.upload_video %}
+                <video controls muted>
+                    <source src="{{video.get_video_or_url()}}" type="video/mp4">
+                </video>
+                {% else %}
+                <iframe class="h-full w-full" allowfullscreen
+                src="{{video.get_video_or_url()}}" muted>
+                
+                </iframe>
+                <div class="absolute inset-0 flex justify-center items-center">
+                <button class="careerpopup w-[68px]" data-url="{{video.get_video_or_url()}}">
+                    <!-- <i class="fa-brands fa-youtube z-10 evPlayBtn2"></i>
+                     -->
+                     <img src="{{static('topteenfrontend/assets/images/youtube.svg')}}" alt="">
+                </button>
+            </div>
+                {% endif %}
+                <div
+                id="video_{{video.id}}"
+                class="absolute z-10 top-[6px] right-[4px] lg:top-[10px] lg:right-[10px] w-[27px] h-[27px] bg-[#ffffff] rounded-full"
+                onclick="shortlist('{{video.id}}')"
+                {% if video.shortlist.filter(id=request.user.id).exists() %}
+                style="background-color: blue;"
+                {% endif %}
+                >
+                <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.5px]"></i>
+              </div>
+            </div>
+        </div>
+
+        <div class="lg:max-w-[494px] lg:h-full lg:w-full mt-[12px] lg:mt-0">
+            <div class="border-b-[2px] lg:h-full border-solid border-[#3f37c9] pb-[15px]">
+            <a href="{{url('careers:videodetail',args=[video.slug])}}">
+                <p class="text-[21px] leading-[28.35px] mediumFont text-[#333333] mt-[5px] overflow-hidden">{{video.name}}</p>
+            </a>
+            <div class="mt-[4px] flex gap-[11px] text-[#777777] text-[10px] leading-[16.5px] overflow-hidden">
+                <p class="text-[9px] capitalize">{{localtime(video.created)}}</p>
+            </div>
+            <p class="text-[14px] leading-[22.12px] text-[#525252] regularFont mt-[9px] overflow-hidden">{{video.description|truncate(400)|safe}}</p>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% if page_obj.object_list.count() == 0 %}
+<h1 class="boldFont text-[#ef5da8]">Result Not Matching </h1>
+{% endif %}

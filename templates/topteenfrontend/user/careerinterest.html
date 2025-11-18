@@ -1,0 +1,169 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+ 
+{% block main %}
+
+<!-- Delete popUp -->
+<div class="careerDeletePop fixed hidden">
+    <div class="h-full w-full relative">
+        <div class="careerDeleteContent  absolute bg-[#ffffff] rounded-xl py-[26px] px-[20px] inline-block mx-auto">
+            <p class="text-[16px] leading-[21px] mediumFont text-[#828282]">Are you sure you want to delete this?</p>
+            <div class="flex mt-[24px] gap-[30px] justify-end">
+                <button class="noDeleteCareerBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                    No
+                </button>
+                <button class="yesDeleteCareerBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                    Yes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Delete PopUp -->
+
+<main class="lg:max-w-[1280px] mx-auto relative px-[20px] lg:pl-[100px] lg:pr-[90px] lg:pt-[30px] pb-[200px] lg:pb-0 bg-[#ffffff]">
+
+
+    {% if breadcrumb  %}
+    <!-- BreadCrumb -->
+    <section class="gap-[16px] hidden lg:flex">
+        {% for brd in breadcrumb %}
+        {% if not loop.last and loop.first %}
+        <a href="{{brd.url}}" class="">
+            <img src="{{static("topteenfrontend/assets/images/home.svg")}}" class=" my-auto" alt="">
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if not loop.last and not loop.first  %}
+        <a href="{{brd.url}}" class="my-auto">
+            <p class="text-[12px] my-auto">{{brd.title}}</p>
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if loop.last%}
+        <a href="#" class="my-auto">
+            <p class="text-[12px]">{{brd.title}}</p>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </section>
+    <!-- End of Breadcrumb -->
+    {% endif %}
+    <!-- Career Heading -->
+    <section class="lg:pt-[21px] fixed left-0 lg:relative top-[12px] z-30 w-full bg-[#ffffff]">
+        <div
+            class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+            <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">Career Interests</p>
+            <button class="absolute bottom-[18px]" onclick="window.location='{{url('users:scrapbook')}}'">
+                <i class="fa-solid fa-arrow-left text-[#828282] text-[18px] leading-[50px]"></i>
+            </button>
+            <button class="absolute bottom-[18px] right-[24px]">
+                <i class="fa-solid fa-search text-[#828282] text-[18px] leading-[50px]"></i>
+            </button>
+        </div>
+
+        <div class="hidden lg:flex ">
+            <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">Career Interests</p>
+        </div>
+
+    </section>
+    <!-- End of Career Heading -->
+
+    <!-- Career Cards -->
+    <section
+        class="pt-[110px] pb-[24px] lg:py-[36px] flex justify-start gap-[12px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+        {% if career_interests|length == 0 %}
+        <h1 class="boldFont">No Career Shortlisted</h1>
+        {% endif %}
+        {% for clstr in clstrs %}
+        <div
+            class="relative w-[144px] h-[182px] lg:w-[248px] lg:h-[236px] flex flex-col justify-between lg:flex-col-reverse items-center lg:justify-end lg:pt-[24px] pt-[9px] bg-[#333333] rounded-[10px] shrink-0">
+            <div class="lg:mt-[24px] flex flex-col items-center px-[8px]">
+                <h6
+                    class="h-[72px] text-[13px] text-center leading-[14px] lg:text-[18px] lg:leading-[24.3px] tracking-[0.035em] semibold mb-[6px] text-white">
+                    {{clstr.name}}
+                </h6>
+                <div
+                    class="text-center inline-block mx-auto px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px]  text-white semibold">
+                    {{clstr.get_clstr_career_count(career_ids)}} shortlisted
+                </div>
+            </div>
+
+            <div class="h-[48px] w-[63px] lg:w-[72px] lg:h-[72px]">
+                <img class="h-[48px] w-[63px] lg:w-[72px] lg:h-[72px] object-cover object-top"
+                    src="{% if clstr.image %}{{clstr.image.url}} {% else %}{{static("topteenfrontend/assets/images/engineering.png")}}{% endif %}" />
+            </div>
+
+        </div>
+        {% endfor %}
+    </section>
+    <!-- End of Career Cards -->
+
+    <!-- Career info -->
+    <section class="pt-[28px] lg:pt-[40px] flex flex-col flex-wrap inline-block mx-auto gap-y-[16px] lg:gap-y-[24px]">
+        {% for career_interest in career_interests %}
+        
+        <div class="flex justify-between lg:max-w-[400px] shortlistedCareer" >
+            <a href="{{career_interest.career.url()}}">
+            <div class="flex gap-[12px]">
+                <img src="{% if career_interest.career.image and career_interest.career.image.name %}{{career_interest.career.image.url}}{% else %}{{static('images/career-icon.png')}}{% endif %}" class="w-[69px] h-[69px] object-cover rounded-[10px] my-auto" alt="">
+                <div class="my-auto">
+                    <p class="text-[13px] leading-[17.55px] semibold text-[#333333]">{{career_interest.career.name}}</p>
+                    <div
+                        class="mt-[2px] text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline">
+                        <span>{{career_interest.career.get_max_salary()}} LPA &#x2022;</span>&nbsp;
+                        <img src="{{static('topteenfrontend//assets/images/favourite 1.png')}}" class="inline-block" /><span> 4.4</span>
+                    </div>
+                </div>
+            </div>
+            </a>
+            <button type="button" class="deleteCareer" data-id='{{career_interest.career.slug}}'><i class="fa-solid fa-circle-xmark text-[#bdbdbd] my-auto"></i></button>
+        </div>
+        
+        {% endfor %}
+    </section>
+
+</main>
+{% endblock %}
+{% block additionalfooter %} 
+<script
+type="text/javascript"
+src="{{static('topteenfrontend/assets/js/careerInterest.js')}}">
+</script>
+<script type="text/javascript">
+     function deletecareerinterest(slug){
+         var form = document.createElement("form");
+        form.setAttribute("method","POST");
+         var hiddenField = document.createElement("input");
+         hiddenField.setAttribute("type", "hidden");
+         hiddenField.setAttribute("name", 'csrfmiddlewaretoken');
+         hiddenField.setAttribute("value", '{{ csrf_token }}');
+         form.appendChild(hiddenField);
+         var hiddenField = document.createElement("input");
+         hiddenField.setAttribute("type", "text");
+        hiddenField.setAttribute("name","careerslug");
+         hiddenField.setAttribute("value",slug);
+
+         form.appendChild(hiddenField);
+         var formData = new FormData(form);
+         $.ajax({
+             url: "{{url('shortlistcareer')}}",
+             type: 'POST',
+             data: formData,
+            success: function (data) {
+                window.location.reload()
+            },
+             error: function(data){
+                try{
+                   fireAlert(data.responseJSON.message,"error");
+                }
+                catch(e){
+                    fireAlert("Internal Server Error","error");
+                }
+              },
+           cache: false,
+           contentType: false,
+            processData: false
+        });
+    }
+</script>
+{% endblock %}

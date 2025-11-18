@@ -1,0 +1,11 @@
+{% for c in resumecertificate %}
+<div class="addedData flex justify-between w-full py-[12px] selectedSkillMobile">
+    <div class="flex flex-col gap-[5px]">
+        <p class="text-[15px] leading-[20.25px] semibold text-[#4f4f4f]">{{c.title}}</p>
+        <p class=" text-[#828282] regularFont text-[13px] leading-[17.55px]">{% if c.issue_date %}{{c.issue_date.strftime("%b, %Y")}}{% endif %}</p>
+    </div>
+
+    <button type="button" class="dataDelete" onclick="addedDeleteHandler(this)" data-id="{{c.id}}" data-title="{{c.title}}" data-url="{{url('resumecertificate')}}" data-mdivid="certificatem" data-ddivid="certificated" ><i
+            class="fa-solid fa-circle-xmark text-[#bdbdbd] my-auto"></i></button>
+</div>
+{% endfor %}

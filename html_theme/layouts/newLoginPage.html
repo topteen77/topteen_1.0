@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../assets/css/customCSS.css" />
+    <link rel="stylesheet" href="../layouts/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    />
+    <title>Login Page</title>
+  </head>
+  <body>
+    <!-- OTP -->
+    <div
+      class="top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen blur flex flex-row justify-center items-center hideModal"
+      id="otpDiv"
+    >
+      <div
+        class="lg:max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center"
+      >
+        <div
+          id="otpPopUp"
+          class="bg-[#ffffff] modalContent rounded-[10px] relative w-[96%] max-w-[395px] lg:w-[395px] pb-[24px] pt-[55px] lg:pt-[69px]"
+        >
+          <button
+            class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] modalCloser"
+          >
+            <i class="fa fa-xmark"></i>
+          </button>
+
+          <div class="w-[68px] h-[68px] mx-auto">
+            <img
+              src="../assets/images/smartphone 1.png"
+              class="w-[68px] h-[68px]"
+              alt=""
+            />
+          </div>
+
+          <p
+            class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold mt-[22px]"
+          >
+            Check your phone
+          </p>
+
+          <p
+            class="text-[16px] leading-[21.6px] -tracking-[1.5%] regularFont text-center w-[354px] mx-auto mt-[17px] text-[#494949] text-opacity-80"
+          >
+            To confirm your account, please enter the six digit code sent to
+            your phone
+            <span class="text-opacity-100 text-[#3f37c9] semibold"
+              >9234793942
+            </span>
+          </p>
+
+          <form
+            class="w-[344px] mx-auto flex justify-between items-center mt-[25px]"
+          >
+            <input
+              class="w-[48px] h-[48px] border-[2px] border-[#DCDCDC] rounded-[10px]"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="1"
+            />
+
+            <input
+              class="w-[48px] h-[48px] border-[2px] border-[#DCDCDC] rounded-[10px]"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="1"
+            />
+
+            <input
+              class="w-[48px] h-[48px] border-[2px] border-[#DCDCDC] rounded-[10px]"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="1"
+            />
+
+            <input
+              class="w-[48px] h-[48px] border-[2px] border-[#DCDCDC] rounded-[10px]"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="1"
+            />
+
+            <input
+              class="w-[48px] h-[48px] border-[2px] border-[#DCDCDC] rounded-[10px]"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="1"
+            />
+
+            <input
+              class="w-[48px] h-[48px] border-[2px] border-[#DCDCDC] rounded-[10px]"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="1"
+            />
+          </form>
+
+          <p
+            class="mt-[21px] text-[16px] leading-[21.6px] -tracking-[1.5%] text-center regularFont text-[#494949] text-opacity-80"
+          >
+            Didn’t receive it?
+            <span class="text-opacity-100 text-[#3f37c9] semibold"
+              >Resend code</span
+            >
+          </p>
+
+          <div
+            class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]"
+          >
+            <button
+              onclick=""
+              class="w-[344px] h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]"
+            >
+              SUBMIT
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End of OTP -->
+
+    <main>
+      <div class="max-w-[1280px] my-auto mx-auto">
+        <!-- Logo -->
+        <div
+          class="hidden lg:flex gap-[8.2px] mt-[48px] justify-center w-[101.8px] mx-auto"
+        >
+          <img
+            src="../assets/images/graduation-hat 1.png"
+            class="w-[38.58px] h-[38.58px]"
+            alt=""
+          />
+          <p
+            class="text-[13.13px] leading-[15.76px] tracking-[1%] boldFont my-auto text-[#494949]"
+          >
+            TOPTEEN
+          </p>
+        </div>
+        <!-- End of Logo -->
+
+        <!-- Back button -->
+        <div class="hidden lg:block -mt-[36px] ml-[100px]">
+          <i class="fa fa-arrow-left text-[#828282] w-[28px] h-[28px]"></i>
+        </div>
+        <!-- End of Back Button -->
+
+        <!-- Login Part -->
+        <div
+          class="mt-[27px] md:mt-[42px] lg:mt-[80px] mx-auto w-full h-full lg:w-[400px] lg:h-[541px] rounded-[10px] lg:border-[1px] lg:border-[#dedede] relative pt-[22px]"
+        >
+          <div class="absolute left-[23px] lg:hidden">
+            <i class="fa fa-arrow-left text-[#828282] w-[28px] h-[28px]"></i>
+          </div>
+
+          <p
+            class="text-[16px] leading-[21.6px] tracking-[1%] boldFont text-[#4f4f4f] text-center"
+          >
+            LOG IN
+          </p>
+
+          <div
+            class="w-[344px] h-[48px] rounded-[10px] mx-auto mt-[40px] lg:mt-[22px]"
+          >
+            <input
+              type="text"
+              placeholder="Email or phone number"
+              class="mx-auto w-[344px] h-[48px] rounded-[10px] border-[1.5px] border-[#dcdcdc] bg-[#f8f8f8]"
+            />
+          </div>
+
+          <div
+            class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]"
+          >
+            <button
+              class="w-[344px] h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%] modalTrigger"
+              data-target="#otpDiv"
+              data-hiddenclass="hideModal"
+            >
+              CONTINUE
+            </button>
+          </div>
+
+          <div class="mx-auto flex mt-[27px] justify-center">
+            <hr class="w-[151px] h-[2px] bg-[#e4e4e4] my-auto" />
+            <span
+              class="w-[42px] text-center text-[12px] leading-[16.2px] tracking-[1%] boldFont text-[#494949] text-opacity-[0.63]"
+              >OR</span
+            >
+            <hr class="w-[151px] h-[2px] bg-[#e4e4e4] my-auto" />
+          </div>
+
+          <div
+            class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#1662c3] mt-[12px]"
+          >
+            <button
+              class="w-[344px] h-[48px] rounded-[10px] bg-[#1877f2] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%] flex justify-center gap-[12.5px]"
+            >
+              <img src="../assets/images/Facebook Logo.png" class="my-auto" />
+              <p class="my-auto">CONTINUE WITH FACEBOOK</p>
+            </button>
+          </div>
+
+          <div
+            class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#e8e8e8] mt-[12px]"
+          >
+            <button
+              class="w-[344px] h-[48px] rounded-[10px] bg-[#f8f8f8] boldFont text-[14px] leading-[18.9px] text-[#454545] tracking-[1%] flex justify-center gap-[12.5px]"
+            >
+              <img
+                src="../assets/images/logo googleg 48dp.png"
+                class="my-auto"
+              />
+              <p class="my-auto">CONTINUE WITH GOOGLE</p>
+            </button>
+          </div>
+
+          <div
+            class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#1b1b1b] mt-[12px]"
+          >
+            <button
+              class="w-[344px] h-[48px] rounded-[10px] bg-[#454545] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%] flex justify-center gap-[12.5px]"
+            >
+              <img src="../assets/images/Apple Logo.png" class="my-auto" />
+              <p class="my-auto">CONTINUE WITH APPLE</p>
+            </button>
+          </div>
+
+          <div class="hidden lg:block">
+            <p
+              class="text-[16px] leading-[23.2px] tracking-[1%] regularFont text-center w-[344px] mx-auto mt-[27px] text-[#414141] text-opacity-60"
+            >
+              By signing up for TopTeen, you agree to the
+              <span class="text-opacity-100 text-blue-600 boldFont"
+                >Terms and Conditions</span
+              >
+              and
+              <span class="text-opacity-100 text-blue-600 boldFont"
+                >Privacy Policy
+              </span>
+            </p>
+          </div>
+        </div>
+        <!-- End of Login Part -->
+      </div>
+
+      <!-- Footer Text -->
+      <div
+        class="regularFont text-[#828282] text-center mt-[35px] hidden lg:block"
+      >
+        <p class="text-[12px] leading-[16.2px] tracking-[1%] regularFont">
+          © 2023 TopTeen. All rights reserved.
+        </p>
+      </div>
+
+      <div class="absolute bottom-0 w-full lg:hidden">
+        <div>
+          <div class="w-[344px] sm:w-[450px] mx-auto">
+            <p
+              class="text-[16px] leading-[23.2px] tracking-[1%] regularFont text-center w-[344px] mx-auto mt-[27px] text-[#414141] text-opacity-60"
+            >
+              By signing up for TopTeen, you agree to the
+              <span class="text-opacity-100 text-blue-600 boldFont"
+                >Terms and Conditions</span
+              >
+              and
+              <span class="text-opacity-100 text-blue-600 boldFont"
+                >Privacy Policy
+              </span>
+            </p>
+          </div>
+
+          <div class="mt-[27.67px]">
+            <hr class="w-full h-[3px] bg-black" />
+            <div
+              class="flex gap-[3px] w-[78px] justify-center mx-auto py-[12px]"
+            >
+              <p>topteen.com</p>
+              <img
+                src="../assets/images/trust.png"
+                class="w-[6.2px] h-[9px] my-auto"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../assets/js/homePage.js"></script>
+    <script src="../assets/js/generalModal.js"></script>
+  </body>
+</html>

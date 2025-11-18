@@ -1,0 +1,1512 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Every Student, Career Ready | Top Teen
+{% endblock %}
+
+{% block description_content %}
+TopTeen helps students find their perfect career path with confidence. Join 10k+ students working towards figuring out their ideal streams and colleges.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+  <!-- Hero Section -->
+  <section class="hero-section pt-md-18 pt-14 pb-5" style="background: url('{{ static('images_new/careers/career-hero-banner.svg') }}'); background-repeat: no-repeat; background-position: 100% 72%; min-height: 679px;">
+    <div class="container">
+      <div class="row">
+
+        <div class="col-lg-6 col-md-12">
+
+          <span class="highlighter">
+            <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="iocn" /> TopTeen helps You
+          </span>
+          <h1 class="heading-title mt-md-9 mb-md-8 mt-8 mb-3">
+            Find Your Perfect Career
+            <p>Path with <span class="text-yellow">Confidence!</span> </p>
+          </h1>
+          <p class="text-gray fs-16 fs-sm-16">TopTeen is a thriving community
+            of 10k+ students from all sorts of schools
+            and
+            grades working towards figuring out their ideal streams and
+            colleges.</p>
+
+          <div class="hero-button d-flex flex-row mt-md-8 mt-5">
+            <button onclick="location.replace('{{ url('users:login') }}')" type="button"
+              class="btn custom-button purple-button me-3">Get
+              Started</button>
+            <button type="button" class=" btn custom-button  blue-button d-flex align-items-center"
+              data-bs-toggle="modal" data-bs-target="#staticDemo"> <i class='bx  bx-play-circle me-1 fs-18'
+                style='color:#ffffff'></i> Watch Video</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Hero Section -->
+
+  <!-- Hero Stats-->
+
+  <section class="hero-stats">
+    <div class="container">
+      <div class="row">
+
+        <div class="col-md-12 stat-grid-info">
+          <div class="stat-grid-box">
+            <div class="bg-light-pruple d-flex stat-box p-3">
+              <div class="stat-icon me-md-3 mb-md-0 mb-2">
+                <img src="{{ static('images_new/icons/grad-icon.svg') }}" alt="Student Impacted" />
+              </div>
+              <div class="stat-info">
+                <p class="text-purple fs-22 fw-800 mb-1">28+</p>
+                <p class="mb-0">Years of Experience</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-grid-box">
+            <div class="bg-light-pruple d-flex stat-box p-3">
+              <div class="stat-icon me-md-3 mb-md-0 mb-2">
+                <img src="{{ static('images_new/icons/award-icon.svg') }}" alt="Educator Certified" />
+              </div>
+              <div class="stat-info">
+                <p class="text-purple fs-22 fw-800 mb-1">2,000+</p>
+                <p class="mb-0">Listed Occupations</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-grid-box">
+            <div class="bg-light-pruple d-flex stat-box p-3">
+              <div class="stat-icon me-md-3 mb-md-0 mb-2">
+                <img src="{{ static('images_new/icons/school-icon.svg') }}" alt="Partner Schools" />
+              </div>
+              <div class="stat-info">
+                <p class="text-purple fs-22 fw-800 mb-1">5M+</p>
+                <p class="mb-0">Students Counselled</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-grid-box">
+            <div class="bg-light-pruple d-flex stat-box p-3">
+              <div class="stat-icon me-md-3 mb-md-0 mb-2">
+                <img src="{{ static('images_new/icons/uni-icon.svg') }}" alt="University Partners" />
+              </div>
+              <div class="stat-info">
+                <p class="text-purple fs-22 fw-800 mb-1">50+</p>
+                <p class="mb-0">Students Enrolled</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Hero Stats-->
+
+  <!-- find direction-->
+
+  <section class="find-direction py-10">
+
+    <div class="container">
+      <div class="row">
+        <div class="col-md-5">
+          <div class="find-c-img">
+
+            <img class="img-fluid" src="{{ static('images_new/general/find-career.svg') }}" alt="Find Direction" />
+
+          </div>
+
+        </div>
+
+        <div class="offset-md-1 col-md-6  d-flex flex-column justify-content-center align-items-start mt-md-0 mt-5">
+
+          <span class="highlighter text-gray fw-400 ">
+            <img class="position-relative top--10" src="{{ static('images_new/general/find-direction.svg') }}" alt="iocn" /> Find Direction,
+            Embrace
+            Success.
+          </span>
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Confused about
+            which career track suits you best?</h3>
+          <div class="top-list-style">
+            <ul>
+              <li><strong> Gain Clarity:</strong> Identify careers that match
+                your skills & personality.</li>
+              <li><strong>Make Informed Choices:</strong> Get personalized
+                insights to navigate your future with
+                confidence.</li>
+              <li><strong> Discover Your Strengths:</strong> Understand what
+                makes you unique and how to leverage it for
+                success.</li>
+            </ul>
+
+          </div>
+          <button onclick="location.replace('{{ url('psychometrictests:psychometrictest') }}')" type="button"
+            class="btn custom-button purple-button mt-md-3 me-3">Take The Test
+            Now!</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- find direction-->
+
+  <!-- Gateway Higher Eduction -->
+
+  <section class="gateway">
+    <div class="container">
+      <div class="cta-purple px-5 py-md-10 py-5  ">
+        <div class="row">
+
+          <div
+            class="col-md-7 d-flex justify-content-center align-items-start flex-column order-md-1 order-2 mt-md-0 mt-5">
+            <span class="highlighter text-gray fw-400 ">
+              <img class="position-relative top--10" src="{{ static('images_new/icons/entrance-exam.svg') }}" alt="iocn" /> Entrance Exam
+            </span>
+            <h3 class="title-two mt-3 fs-38 fs-sm-28 fw-700 my-4 text-white">Your
+              Gateway to Higher Education and Career
+              Success!
+            </h3>
+
+            <p class="text-white fs-16">Get expert guidance on entrance exams,
+              Olympiads, and government exams after
+              10th, 12th, and graduation. Stay updated with eligibility,
+              resources, and career insights for a successful
+              future!</p>
+            <div class="com-btn mt-3">
+              <button type="button" class="btn custom-button blue-button me-2 mb-md-0  mb-2">After
+                10th</button>
+              <button type="button" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After
+                12th</button>
+              <button type="button" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After
+                Graduation</button>
+            </div>
+          </div>
+          <div class="col-md-5 d-flex justify-content-center align-items-center order-md-2 order-1">
+            <div class="cta-image">
+              <img class="img-fluid" src="{{ static('images_new/general/gateway.svg') }}" alt="gateway" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Gateway Higher Eduction -->
+
+
+
+
+  <!-- Vocational Course Section -->
+  <section class="vocational-course mt-10">
+    <div class="container">
+
+      <div class="row">
+        <div class="col-md-5 d-flex justify-content-center align-items-center">
+          <div class="cta-image">
+            <img class="img-fluid" src="{{ static('images_new/general/vocational-course.svg') }}" alt="Vocational Courses" />
+          </div>
+        </div>
+        <div class="col-md-6 offset-md-1 d-flex justify-content-center align-items-start flex-column mt-md-0 mt-5">
+          <span class="highlighter text-gray fw-400 ">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/vocational-icon.svg') }}" alt="icon" /> Vocational Courses
+          </span>
+          <h3 class="title-two mt-3 fs-38 fs-sm-28 fw-700 my-4 ">Practical Skills for
+            Real-World Success
+          </h3>
+
+          <p class="text-gray fs-16">Discover hands-on vocational programs that prepare you for in-demand careers.
+            From technical trades to creative fields, gain practical skills that employers value and build a
+            successful career path aligned with your interests.</p>
+
+
+          <a href="{{ url('skilllabcourse:skilllabcourselist') }}" class="btn custom-button purple-button mt-md-3 me-3">Explore More</a>
+
+        </div>
+      </div>
+    </div>
+
+  </section>
+  <!-- Vocational Course Section -->
+
+  <!-- Extra Curricular Activities Section -->
+  <section class="extral-curriculam mt-10">
+    <div class="container">
+
+      <div class="row">
+        <div
+          class="col-md-7 d-flex justify-content-center align-items-start flex-column order-md-1 order-2 mt-md-0 mt-5">
+          <span class="highlighter text-gray fw-400 ">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/activity-icon.svg') }}" alt="icon" /> Extra Curricular
+            Activities
+          </span>
+          <h3 class="title-two mt-3 fs-38 fs-sm-28 fw-700 my-4 ">Build Well-Rounded Skills
+            Beyond Academics
+          </h3>
+
+          <p class="text-gray fs-16">Enhance your college applications and develop essential life skills through
+            extracurricular activities. From sports and arts to community service and leadership roles, discover
+            how these experiences shape your character and boost your career prospects.</p>
+          <a href="{{ url('skilllabcourse:skilllabcourselist') }}" class="btn custom-button purple-button mt-md-3 me-3">Explore More</a>
+        </div>
+        <div class="col-md-5 d-flex justify-content-center align-items-center order-md-2 order-1">
+          <div class="cta-image">
+            <img class="img-fluid" src="{{ static('images_new/general/extracurricular.svg') }}" alt="Extra Curricular Activities" />
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+  <!-- Extra Curricular Activities Section -->
+
+  <!-- Career Tracks -->
+  <section class="career-tracks py-10 mt-10">
+    <div class="container">
+
+      <div class="row">
+        <div class="col-md-8 mx-auto d-flex align-items-center flex-column text-center">
+          <span class="highlighter text-gray fw-400 ">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/readiness-icon.svg') }}" alt="iocn" /> Explore Career
+            Tracks
+          </span>
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Find Your
+            Perfect Fit!</h3>
+          <p class="text-gray fs-16"> Discover careers that match your
+            interests, skills, and aspirations. Uncover
+            opportunities, gain insights, and take the first step toward a
+            future that excites you!</p>
+        </div>
+      </div>
+    </div>
+    <div class="scroller" data-direction="left" data-speed="slow">
+      <ul class="tag-list scroller__inner">
+
+        <li>
+          <a class="career-t-box" href="#" title=">Agriculture &
+                Environmental Sciences">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/agriculture-icon.svg') }}" alt="Agriculture &
+                Natural Resources" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Agriculture &
+                Environmental Sciences</p>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="career-t-box" href="#" title=Architecture & Constructions">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/architecture-icon.svg') }}" alt="Architecture &
+                Constructions" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Architecture &
+                Constructions</p>
+            </div>
+          </a>
+        </li>
+
+        <li>
+          <a class="career-t-box" href="#" title="Arts, Media & Mass Communication">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/avtechnology.svg') }}" alt="Art, AV Technology
+                & Design" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Arts, Media & Mass Communication</p>
+            </div>
+          </a>
+        </li>
+
+
+        <li>
+          <a class="career-t-box" href="#" title="Business, 
+              Management
+              & Administration">
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/businessmanage-icon.svg') }}" alt="Business
+                Management
+                & Administration" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Business,
+                Management
+                & Administration</p>
+            </div>
+          </a>
+        </li>
+
+
+        <li>
+          <a class="career-t-box" href="#" title="Finance, Economics and Statistics">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/finance-icon.svg') }}" alt="Finance" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Finance, Economics and Statistics</p>
+            </div>
+          </a>
+        </li>
+
+        <li>
+          <a class="career-t-box" href="#" title="Finance">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/educationtraining.svg') }}" alt="Education And 
+                Training " />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Education And
+                Training </p>
+            </div>
+          </a>
+        </li>
+
+
+        <li>
+          <a class="career-t-box" href="#" title="Government Sector, Pub Adm. & Int. Relations">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/government-services.svg') }}" alt="Engineering &
+                Technology" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Government Sector, Pub Adm. & Int. Relations</p>
+            </div>
+          </a>
+        </li>
+
+
+        <li>
+          <a class="career-t-box" href="#" title="Finance">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/eit-icon.svg') }}" alt="Engineering &
+                Technology" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Engineering &
+                Technology</p>
+            </div>
+          </a>
+        </li>
+
+        <li>
+          <a class="career-t-box" href="#" title="Finance">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/it-icon.svg') }}" alt="Information
+                  Technology (IT)" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Information
+                Technology (IT)</p>
+            </div>
+          </a>
+        </li>
+
+
+
+
+      </ul>
+    </div>
+    <div class="scroller" data-direction="right" data-speed="slow">
+      <ul class="tag-list scroller__inner">
+
+        <li>
+          <a class="career-t-box" href="#" title="Finance">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/stem-icon.svg') }}"
+                alt="STEM (Science, Technology, Engineering and Mathematis)" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">STEM </p>
+            </div>
+          </a>
+        </li>
+
+        <li>
+          <a class="career-t-box" href="#" title="Finance">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/health-services.svg') }}" alt="Health Science & Medical Services<" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Health Science & Medical Services</p>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="career-t-box" href="#" title="Finance">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/tourism-icon.svg') }}" alt="Hospitality and 
+                Tourism" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Hospitality and
+                Tourism</p>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="career-t-box" href="#" title="Humanities, Social Work & Psychology">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/humanities-icon.svg') }}" alt="Finance" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Humanities, Social Work & Psychology</p>
+            </div>
+          </a>
+        </li>
+
+
+        <li>
+          <a class="career-t-box" href="#" title="Finance">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/law-icon.svg') }}" alt="Law and Public Safety" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Law and Public Safety</p>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="career-t-box" href="#" title="Distribution, Transportation & Logistics">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/transport.svg') }}" alt="Architecture &
+                Constructions" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Distribution, Transportation & Logistics</p>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="career-t-box" href="#" title="Finance">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/marketing-icon.svg') }}" alt="Marketing & Sales" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Marketing & Sales</p>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="career-t-box" href="#" title="Finance">
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/scientific-research.svg') }}" alt="Scientific Research, R&D" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray"> Scientific Research, R & D</p>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="career-t-box" href="#" title="Finance">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/sports-icon.svg') }}" alt="Education And 
+                Training " />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Sports, Fitness & Wellness </p>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="career-t-box" href="#" title="Finance">
+
+            <div class="c-m-image">
+              <img src="{{ static('images_new/careers/career-tracks/faishion-icon.svg') }}" alt="Fashion, Design & Creativity" />
+            </div>
+            <div class="c-m-title">
+              <p class="text-gray">Fashion, Design & Creativity</p>
+            </div>
+          </a>
+        </li>
+
+
+
+      </ul>
+    </div>
+
+    <div class="text-center pt-5">
+      <a class="text-purple text-decoration-underline fs-17" href="#" target="_blank">Explore All <i
+          class="bx bx-chevrons-right"></i></a>
+    </div>
+  </section>
+  <!-- Career Tracks -->
+
+  <!-- Design Your future-->
+  <section class="desing py-12">
+    <div class="container">
+      <div class="row">
+        <div
+          class="col-md-6 d-flex justify-content-center align-items-start flex-column order-md-1 order-2 mt-md-0 mt-5">
+          <span class="highlighter text-gray fw-400 ">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/d-future-icon.svg') }}" alt="iocn" /> Design Your Future
+          </span>
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">A Complete
+            Guide to Career Planning</h3>
+          <p class="text-gray fs-16">Empower your future with career planning
+            after high school. Explore interests,
+            choose the right paths, and make informed decisions for higher
+            studies, vocational courses, or government
+            exams. Start early and set clear goals for a fulfilling
+            career!</p>
+
+          <button type="button" class="btn custom-button purple-button mt-3 me-3">Explore
+            More</button>
+        </div>
+        <div class="col-md-5 offset-md-1 order-md-2 order-1">
+          <div class="cta-image">
+            <img class="img-fluid" src="{{ static('images_new/careers/career-guide.svg') }}" alt="gateway" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Design Your future-->
+
+  <!-- College Readiness-->
+
+  <section class="readiness py-md-8 pt-0 pb-10">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <span class="highlighter text-gray fw-400 ">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/readiness-icon.svg') }}" alt="iocn" /> College Readiness
+          </span>
+        </div>
+        <div class="col-md-12 d-flex justify-content-between align-items-center">
+          <div class="col-md-8">
+            <h3 class="title-two mt-3 fs-38 fs-sm-28 fw-700 mt-4 mb-3">Boost
+              Your Skills with Short Courses!</h3>
+            <p class="text-gray fs-16"> Boost your skills with expert-led
+              short courses for college prep, career growth,
+              and personal development. Start learning today to stay ahead!
+            </p>
+          </div>
+          <a class="text-purple text-decoration-underline fs-17 d-md-block d-none" href="#" target="_blank">View All <i
+              class='bx bx-chevrons-right'></i></a>
+        </div>
+        <div class="col-md-12">
+          <div class="grid-3 py-5">
+            <div class="grid-box">
+              <img src="{{ static('images_new/short-courses/career-ready.jpg') }}" alt="img" />
+
+              <div class="text-in">
+                <span> After 10th </span>
+                <div class="text-explore">
+                  <p>Are your Career Ready?</p>
+                  <button type="button" class="btn custom-button blue-button ">Explore
+                    Now</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-box">
+              <img src="{{ static('images_new/short-courses/soft-skills.jpg') }}" alt="img" />
+              <div class="text-in">
+                <span> After 12th </span>
+                <div class="text-explore">
+                  <p>Soft Skills</p>
+                  <button type="button" class="btn custom-button blue-button ">Explore
+                    Now</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-box">
+              <img src="{{ static('images_new/short-courses/career-planning.jpg') }}" alt="img" />
+
+              <div class="text-in">
+                <span> After College </span>
+                <div class="text-explore">
+                  <p>Career Planning after College </p>
+                  <button type="button" class="btn custom-button blue-button ">Explore
+                    Now</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-12 text-center">
+
+            <a class="text-purple text-decoration-underline fs-17 d-md-none d-block" href="#" target="_blank">View All
+              <i class='bx bx-chevrons-right'></i></a>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- College Readiness-->
+
+
+
+  <!-- Career Video-->
+
+  <section class="explore-video py-10">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <span class="highlighter text-gray fw-400 ">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/explore-video.svg') }}" alt="iocn" /> Explore Career
+            Videos
+          </span>
+        </div>
+        <div class="col-md-12 d-flex justify-content-between align-items-center">
+          <div class="col-md-8">
+            <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Your
+              Ultimate Video Library for Success!</h3>
+            <p class="text-gray fs-16"> From Curiosity to Expertise, Your
+              Personal Learning Hub- Start Watching Now!
+            </p>
+
+          </div>
+
+          <a class="text-purple text-decoration-underline fs-17 d-md-block d-none" href="#" target="_blank">View All <i
+              class="bx bx-chevrons-right"></i></a>
+        </div>
+
+      </div>
+
+      <div class="grid-video py-5">
+
+
+
+
+
+        <div class="video-box">
+
+          <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
+            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Agriculture%2C+Food+and+Natural+Resources/Farmers_Ranchers_and_Other_Agricultural_Managers_Career_Video.mp4">
+            <div class="text-in">
+              <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
+                Agriculture
+              </span>
+
+              <div class="video-play"><img src="{{ static('images_new/icons/video-play.svg') }}" alt="Icon" /> </div>
+              <div class="text-explore">
+                <p>Geographic Information Systems Technologists and
+                  Technicians Career Video </p>
+              </div>
+            </div>
+            <div class="video-thumb-auto">
+              <video class="videoPlayer" controls>
+                <source
+                  src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Agriculture%2C+Food+and+Natural+Resources/Farmers_Ranchers_and_Other_Agricultural_Managers_Career_Video.mp4"
+                  type="video/mp4">
+              </video>
+              <canvas class="thumbnailCanvas"></canvas>
+            </div>
+          </a>
+
+        </div>
+
+        <div class="video-box">
+          <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
+            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Information+Technology/Web_Administrators_Career_Video.mp4">
+            <div class="text-in">
+              <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
+                Information
+                Technology </span>
+
+              <div class="video-play"><img src="{{ static('images_new/icons/video-play.svg') }}" alt="Icon" /> </div>
+              <div class="text-explore">
+                <p>Web Administrators Career Video </p>
+              </div>
+            </div>
+            <div class="video-thumb-auto">
+              <video class="videoPlayer" controls>
+                <source
+                  src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Information+Technology/Web_Administrators_Career_Video.mp4"
+                  type="video/mp4">
+              </video>
+              <canvas class="thumbnailCanvas"></canvas>
+            </div>
+          </a>
+        </div>
+
+        <div class="video-box">
+          <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
+            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Business+Management+and+Administration/Customer_Service_Representatives_Career_Video.mp4">
+            <div class="text-in">
+              <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
+                Business
+                Management </span>
+              <div class="video-play"><img src="{{ static('images_new/icons/video-play.svg') }}" alt="Icon" /> </div>
+              <div class="text-explore">
+                <p>Customer Service Representatives Career Video </p>
+              </div>
+            </div>
+            <div class="video-thumb-auto">
+              <video class="videoPlayer" controls>
+                <source
+                  src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Business+Management+and+Administration/Customer_Service_Representatives_Career_Video.mp4"
+                  type="video/mp4">
+              </video>
+              <canvas class="thumbnailCanvas"></canvas>
+            </div>
+          </a>
+        </div>
+
+        <div class="video-box">
+          <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
+            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Human+services/39-9041.00.mp4">
+            <div class="text-in">
+              <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
+                Human Services
+              </span>
+              <div class="video-play"><img src="{{ static('images_new/icons/video-play.svg') }}" alt="Icon" /> </div>
+              <div class="text-explore">
+                <p>Residential Advisors Career Video </p>
+              </div>
+            </div>
+            <div class="video-thumb-auto">
+              <video class="videoPlayer" controls>
+                <source src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Human+services/39-9041.00.mp4"
+                  type="video/mp4">
+              </video>
+              <canvas class="thumbnailCanvas"></canvas>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <a class="text-purple text-decoration-underline fs-17 d-md-none d-block" href="#" target="_blank">View All <i
+              class='bx bx-chevrons-right'></i></a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Career Video-->
+
+  <!-- Video modal -->
+
+  <!-- Video Modal -->
+  <div class="modal fade video-modal" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content ">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-body p-0">
+          <iframe id="videoFrame" width="100%" src frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Video modal -->
+
+  <!-- Smooth Scrolling-->
+  <section class="smooth-scrolling py-10 mb-10">
+    <div class="container">
+      <div class="row">
+
+        <div class="col-md-12 infocard">
+          <ul id="cards" class="ps-0">
+            <li class="cardui" id="card-1">
+              <div class="card-content india-bg">
+                <div class="uicard-content">
+                  <span class="highlighter text-gray fw-400 ">
+                    <img class="position-relative top--10" src="{{ static('images_new/general/india-map.svg') }}" alt="iocn" /> Study in India
+                  </span>
+                  <h5 class="title-two mt-md-3 mb-0 fs-22 fw-700 my-4 ">Discover
+                    Top Colleges and Universities in India
+
+                  </h5>
+                  <p class="text-gray fs-16 fs-sm-16">Finding the right
+                    college or university can be a daunting task.
+                    But with KaunsaCollege, it is easier than ever! Explore
+                    top colleges and universities throughout
+                    India, suitable by ranking and location. Whether you are
+                    looking for engineering colleges in Mumbai
+                    or medical colleges in Delhi, facility is provided to the
+                    students throughout in India.
+                  </p>
+                  <button type="button" class="btn custom-button blue-button "
+                    onclick="location.replace('https://kaunsacollege.com/')">Get
+                    Started</button>
+                </div>
+              </div>
+            </li>
+
+            <li class="cardui" id="card-2">
+              <div class="card-content australia-bg">
+                <div class="uicard-content">
+                  <span class="highlighter text-gray fw-400 ">
+                    <img class="position-relative top--10" src="{{ static('images_new/icons/australia-flag-icon.svg') }}" alt="iocn" /> Study
+                    in
+                    Australia
+                  </span>
+                  <h5 class="title-two mt-md-3 mb-0 fs-22 fw-700 my-4">Know
+                    everything about universities, costs,
+                    scholarships,
+                    admission process & more.</h5>
+                  <p class="text-gray fs-16 fs-sm-16">Australian education
+                    focuses on practical aspects & research that
+                    makes it
+                    one of the top five destinations for international
+                    students. It also houses the Group Eight
+                    Universities, which are equivalent to Ivy League
+                    Universities.</p>
+                  <button type="button" class="btn custom-button blue-button "
+                    onclick="location.replace('https://www.canamgroup.com/study-in-australia')">Get
+                    Started</button>
+                </div>
+              </div>
+            </li>
+
+            <li class="cardui" id="card-3">
+              <div class="card-content canada-bg">
+                <div class="uicard-content">
+                  <span class="highlighter text-gray fw-400 ">
+                    <img class="position-relative top--10" src="{{ static('images_new/icons/canada-icon.svg') }}" alt="iocn" /> Study in
+                    Canada
+                  </span>
+                  <h5 class="title-two mt-md-3 mb-0 fs-22 fw-700 my-4">Learn
+                    everything about universities, costs,
+                    scholarships,
+                    admission process & more.</h5>
+                  <p class="text-gray fs-16 fs-sm-16">Canada facilitates
+                    academic, professional and personal development
+                    for
+                    students with a constantly upgraded education system in a
+                    multicultural environment. </p>
+                  <button type="button" class="btn custom-button blue-button "
+                    onclick="location.replace('https://www.canamgroup.com/study-in-canada')">Get
+                    Started</button>
+                </div>
+              </div>
+
+            <li class="cardui" id="card-4">
+              <div class="card-content usa-bg">
+                <div class="uicard-content">
+                  <span class="highlighter text-gray fw-400 ">
+                    <img class="position-relative top--10" src="{{ static('images_new/icons/usa-flag-icon.svg') }}" alt="iocn" /> Study in
+                    USA
+                  </span>
+                  <h5 class="title-two mt-md-3 mb-0 fs-22 fw-700 my-4">Explore
+                    educational institutions, studying and
+                    living
+                    costs, and financial aid.</h5>
+                  <p class="text-gray fs-16 fs-sm-16">USA is home to the
+                    highest top-ranked universities in the world.
+                    Its
+                    diverse and modern culture and educational trends offer
+                    the best of opportunities for academic and
+                    professional growth at the nucleus of all things
+                    technology. </p>
+                  <button type="button" class="btn custom-button blue-button "
+                    onclick="location.replace('https://www.canamgroup.com/study-in-usa')">Get
+                    Started</button>
+                </div>
+              </div>
+
+            </li>
+
+            <li class="cardui" id="card-5">
+              <div class="card-content uk-bg">
+                <div class="uicard-content">
+                  <span class="highlighter text-gray fw-400 ">
+                    <img class="position-relative top--10" src="{{ static('images_new/icons/uk-flag-icon.svg') }}" alt="iocn" /> Study in
+                    UK
+                  </span>
+                  <h5 class="title-two mt-md-3 mb-0 fs-22 fw-700 my-4">Plan
+                    a successful future. Explore educational
+                    institutions and related costs.</h5>
+                  <p class="text-gray fs-16 fs-sm-16">The UK is a leading
+                    study abroad destination known for its
+                    esteemed universities, multicultural environment, and
+                    globally recognized pedagogy. </p>
+                  <button type="button" class="btn custom-button blue-button "
+                    onclick="location.replace('https://www.canamgroup.com/study-in-uk')">Get
+                    Started</button>
+                </div>
+              </div>
+
+            </li>
+
+            <li class="cardui" id="card-6">
+              <div class="card-content nz-bg">
+                <div class="uicard-content">
+                  <span class="highlighter text-gray fw-400 ">
+                    <img class="position-relative top--10" src="{{ static('images_new/icons/nz-flag-icon.svg') }}" alt="iocn" /> Study in
+                    New
+                    Zeland
+                  </span>
+                  <h5 class="title-two mt-md-3 mb-0 fs-22 fw-700 my-4">Explore
+                    institutions, cost of living, and
+                    scholarships to study in New Zealand.</h5>
+                  <p class="text-gray fs-16 fs-sm-16">New Zealand is an
+                    emerging study abroad destination with an
+                    excellent education system and internationally
+                    accredited qualifications. </p>
+                  <button type="button" class="btn custom-button blue-button "
+                    onclick="location.replace('https://www.canamgroup.com/study-in-newzealand')">Get
+                    Started</button>
+                </div>
+              </div>
+
+            </li>
+
+            <div class="bg-cards">
+            </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Smooth Scrolling-->
+
+
+
+  <!-- Career Counselling -->
+  <section class="gateway  pb-md-10 pb-10">
+    <div class="container">
+      <div class="cta-purple px-5 py-md-10 py-5   ">
+        <div class="row">
+          <div class="col-md-5 d-flex justify-content-center align-items-center">
+            <div class="cta-image">
+              <img class="img-fluid" src="{{ static('images_new/careers/career-counselling-img.svg') }}" alt="Career Counseling" />
+            </div>
+          </div>
+          <div class="col-md-6 offset-md-1 d-flex justify-content-center align-items-start flex-column mt-md-0 mt-5">
+            <span class="highlighter text-gray fw-400 ">
+              <img class="position-relative top--10" src="{{ static('images_new/icons/expert-counsellor-icon.svg') }}" alt="iocn" /> Expert
+              Counseling Course
+            </span>
+            <h3 class="title-two mt-3 fs-38 fw-700 my-4 text-white fs-sm-28"><span class="text-yellow"> Career
+                Counseling </span> Course</h3>
+
+            <p class="text-white">Unlock your true potential with expert
+              career counselling! Gain clarity, set goals,
+              and take the next step toward your dream career. Let’s turn
+              your ambitions into achievements!</p>
+            <div class="com-btn mt-2">
+              <button type="button" class="btn custom-button blue-button me-3">Enrol
+                Now</button>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Career Counselling -->
+
+
+  <!-- Success Stories-->
+  <section class="success-stories py-10">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-5">
+          <span class="highlighter text-gray fw-400 mb-3">
+            <img class="position-relative top--10 " src="{{ static('images_new/icons/success-storie-icon.svg') }}" alt="iocn" /> Real-Life
+            Wins
+          </span>
+          <h3 class="title-two mt-6 fs-38 fw-700 my-4 fs-sm-28">Your
+            Success Is <span class="text-yellow"> Our Story
+            </span>!</h3>
+
+          <p class="text-gray fs-16">Loved every minute studying and
+            gained great knowledge. Looking forward to my
+            college life and achieving success!</p>
+          <div class="ar mt-md-5 d-md-block d-none">
+            <span class="arrow left-arrow"><i class='bx bx-chevron-left'></i></span>
+            <span class="arrow right-arrow"><i class='bx bx-chevron-right'></i></span>
+          </div>
+        </div>
+
+        <div class="col-md-7 position-relative">
+
+          <div id="testim" class="testim">
+            <div class="wrap">
+
+              <ul id="testim-dots" class="dots d-none">
+                <li class="dot active"></li>
+                <li class="dot"></li>
+                <li class="dot"></li>
+              </ul>
+              <div id="testim-background" class="demo">
+                <div class="slider"></div>
+                <div class="slider"></div>
+              </div>
+              <div id="testim-content" class="cont">
+
+                <div class="slider active">
+                  <div class="test-text">
+                    <div class="test-img"><img src="{{ static('images_new/general/puneet-img.svg') }}" alt="TestImg" /> </div>
+                    <div class="test-test-info">
+                      <p class="test-name text-purple fs-16 fw-600">Preet
+                        Kunwar Singh</p>
+                      <p class="test-cas text-gray">Student</p>
+                      <div class="quote-text">
+                        <div class="text-gray">
+                          <p class="text-purple fw-500   mb-2 ts-st">"Dream
+                            to Reality – Thanks to
+                            TopTeen! </p>
+                          <p class="mt-2">
+                            TopTeen made my study abroad journey seamless,
+                            from university selection to visa processing.
+                            With their expert guidance, I graduated from
+                            the University of the Fraser Valley, BC, and
+                            am
+                            now happily settled in Canada. Their
+                            personalized support and commitment to student
+                            success
+                            are truly commendable!"
+                          </p>
+
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="slider ">
+                  <div class="test-text">
+                    <div class="test-img"><img src="{{ static('images_new/general/achirabhasingh.svg') }}" alt="TestImg" />
+                    </div>
+                    <div class="test-test-info">
+                      <p class="test-name text-purple fs-16 fw-600">Ms.
+                        Achirabha Singh</p>
+                      <p class="test-cas text-gray">Student</p>
+                      <div class="quote-text">
+                        <div class="text-gray">
+
+                          <p class="text-purple fw-500   mb-2 ts-st">"Dream
+                            to Reality – Thanks to
+                            TopTeen! </p>
+                          <p class="mt-2">
+                            TopTeen’s expert counseling made my study
+                            abroad journey smooth and stress-free. With
+                            their
+                            support, I chose the right course and am now
+                            pursuing my Post Graduate Diploma at Langara
+                            College, BC. Their guidance gave me confidence
+                            in my future—highly recommended!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+    </div>
+  </section>
+  <!-- Success Stories-->
+
+  <!-- Blog Section -->
+
+  <section class="blog-section pb-10">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
+          <span class="highlighter text-gray fw-400 ">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/gudiance-icona.svg') }}" alt="iocn"> Guidance for Every
+            Step
+          </span>
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Explore
+            Expert Blogs for Parents & Students!</h3>
+          <p class="text-gray">Stay informed with insights, tips, and
+            resources to help students make confident career
+            and academic choices.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+
+          <div class="grid-3 blog-grid pt-5">
+
+            <a class="blog-box" href="#" title="blog title">
+              <div class="blog-img-d">
+                <img src="{{ static('images_new/blogs/blog-image-1.svg') }}" alt="Blog Title" />
+              </div>
+              <div class="blog-info">
+                <span class="blog-tags text-gray fw-400 fs-14 mb-3"> For
+                  Student </span>
+                <h4 class="blog-title text-white fs-22 fw-600">Your
+                  Definitive Guide To Choosing The Perfect Stream In
+                  Class 11</h4>
+              </div>
+            </a>
+
+            <a class="blog-box" href="#" title="blog title">
+              <div class="blog-img-d">
+                <img src="{{ static('images_new/blogs/blog-image-2.svg') }}" alt="Blog Title" />
+              </div>
+              <div class="blog-info">
+                <span class="blog-tags text-gray fw-400 fs-14  mb-3"> For
+                  Parents </span>
+                <h4 class="blog-title text-white fs-22 fw-600">Career in
+                  Machine learning</h4>
+              </div>
+            </a>
+
+            <a class="blog-box" href="#" title="blog title">
+              <div class="blog-img-d">
+                <img src="{{ static('images_new/blogs/blog-image-3.svg') }}" alt="Blog Title" />
+              </div>
+              <div class="blog-info">
+                <span class="blog-tags text-gray fw-400 fs-14  mb-3"> For
+                  Student </span>
+                <h4 class="blog-title text-white fs-22 fw-600">Career in
+                  Artificial Intelligence</h4>
+              </div>
+            </a>
+
+          </div>
+
+          <div class="text-center pt-5">
+            <a class="text-purple text-decoration-underline fs-17" href="{{ url('blog:blogs') }}" target="_blank">Explore More <i
+                class="bx bx-chevrons-right"></i></a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Blog Section -->
+
+  <!-- FAQ Section -->
+
+  <section class="blog-section pb-10">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
+          <span class="highlighter text-gray fw-400 ">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/gudiance-icona.svg') }}" alt="iocn"> Frequently Asked
+            Questions
+          </span>
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Got
+            Questions? We've Got Answers!</h3>
+          <p class="text-gray">Explore our FAQ section for quick and
+            reliable answers to common queries. Whether you're
+            a student or a parent, find the guidance you need to make
+            informed decisions about education and career
+            choices.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-10 mx-auto custom-faq">
+
+          <ul class="nav nav-pills mb-3 d-flex justify-content-center my-3 gap-2" id="pills-tab" role="tablist">
+            <li class="nav-item" role="student">
+              <button class="nav-link active" id="pills-student-tab" data-bs-toggle="pill"
+                data-bs-target="#pills-student" type="button" role="tab" aria-controls="pills-student"
+                aria-selected="true">For Students</button>
+            </li>
+            <li class="nav-item" role="parents">
+              <button class="nav-link" id="pills-parents-tab" data-bs-toggle="pill" data-bs-target="#pills-parents"
+                type="button" role="tab" aria-controls="pills-parents" aria-selected="false">For Parents</button>
+            </li>
+
+          </ul>
+          <div class="tab-content" id="pills-tabContent">
+            <div class="tab-pane fade show active" id="pills-student" role="tabpanel"
+              aria-labelledby="pills-student-tab">
+
+              <div class="accordion" id="accordionStudent">
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                      When should I start career counselling?
+                    </button>
+                  </h2>
+                  <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionStudent">
+                    <div class="accordion-body">
+                      The earlier, the better! Ideally, career counselling
+                      should start in Class 9 or 10 to help you
+                      choose the right stream. For Class 11-12 students, it
+                      helps in making informed career decisions,
+                      selecting college courses, and planning for entrance
+                      exams.
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                      What if I don’t know what career I want to pursue?
+                    </button>
+                  </h2>
+                  <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                    <div class="accordion-body">
+                      That’s completely normal! Career counselling helps you
+                      explore different fields, understand your
+                      strengths and interests, and narrow down options
+                      through scientific assessments and expert advice.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                      What is the Stream Selector Test, and how does it
+                      help?
+                    </button>
+                  </h2>
+                  <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                    <div class="accordion-body">
+                      The Stream Selector Test analyzes your interests,
+                      aptitude, and personality to recommend the most
+                      suitable stream (Science, Commerce, or Humanities) for
+                      you.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                      I have multiple interests. How do I choose one career
+                      path?
+                    </button>
+                  </h2>
+                  <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                    <div class="accordion-body">
+                      Many students have diverse interests. Career guidance
+                      can help you identify careers that combine
+                      your strengths and passions. A counsellor can also
+                      help you explore multi-disciplinary fields.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                      Can I change my stream later if I realize it’s not the
+                      right fit?
+                    </button>
+                  </h2>
+                  <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                    <div class="accordion-body">
+                      Yes, but changing streams later can be difficult.
+                      That’s why it’s best to make an informed
+                      decision early with the help of career tests and
+                      counselling.
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+            <div class="tab-pane fade" id="pills-parents" role="tabpanel" aria-labelledby="pills-parents-tab">
+
+              <div class="accordion" id="accordionParents">
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapsepOne" aria-expanded="true" aria-controls="collapsepOne">
+                      What role do parents play in their child's career
+                      decision-making?
+                    </button>
+                  </h2>
+                  <div id="collapsepOne" class="accordion-collapse collapse show" data-bs-parent="#accordionParents">
+                    <div class="accordion-body">
+                      Parents are a child's first mentors and play a crucial
+                      role in guiding career decisions,
+                      especially when children are too young to decide
+                      independently. While parental involvement is
+                      important, it’s essential to encourage children to
+                      explore their own interests. We recommend
+                      parents accompany their child to counselling sessions
+                      for a broader understanding of career
+                      options.
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapsepTwo" aria-expanded="false" aria-controls="collapsepTwo">
+                      Can parents be present during testing?
+                    </button>
+                  </h2>
+                  <div id="collapsepTwo" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                    <div class="accordion-body">
+                      Parents are not required during testing but are
+                      encouraged to attend counselling sessions,
+                      especially for students in grades 9-10. For students
+                      18 and above, parental presence is optional
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapsepThree" aria-expanded="false" aria-controls="collapsepThree">
+                      Are parents involved in the counselling process?
+                    </button>
+                  </h2>
+                  <div id="collapsepThree" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                    <div class="accordion-body">
+                      Yes, parents have a significant influence on career
+                      choices. We encourage their participation in
+                      counselling sessions to provide insights and support
+                      their child’s decision-making.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapsepFour" aria-expanded="false" aria-controls="collapsepFour">
+                      My child has already taken an aptitude test. Can we
+                      just do a counselling session?
+                    </button>
+                  </h2>
+                  <div id="collapsepFour" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                    <div class="accordion-body">
+                      Yes, you can book a counselling session if the test
+                      was taken within the last six months. If it
+                      was conducted earlier, we recommend retesting for
+                      updated insights.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapsepFive" aria-expanded="false" aria-controls="collapsepFive">
+                      My child is interested in multiple subjects and is
+                      struggling to choose. What should we do?
+                    </button>
+                  </h2>
+                  <div id="collapsepFive" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                    <div class="accordion-body">
+                      It’s common for students to have diverse interests. We
+                      suggest taking our <strong> Stream Selector
+                        Test </strong> to assess aptitude, interests, and
+                      strengths. A counselling session can further
+                      clarify options and help make an informed decision.
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="text-center pt-5">
+            <a class="text-purple text-decoration-underline fs-17" href="#" target="_blank">View All <i
+                class="bx bx-chevrons-right"></i></a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- FAQ Section -->
+
+{% endblock %}
+
+{% block modals %}
+<!-- Video Modal -->
+<div class="modal fade backthrough" id="staticDemo" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticDemoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content position-relative">
+      <button type="button" class="btn-close position-absolute" data-bs-dismiss="modal" aria-label="Close">
+        <i class="bx bx-x"></i>
+      </button>
+      <div class="modal-body p-0">
+        <div class="ratio ratio-16x9">
+          <iframe src="https://www.youtube.com/embed/pFWtj3YHFPw?si=8Z_cfwL34uKkB6s8" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Video Modal for Career Videos -->
+<div class="modal fade video-modal" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div class="modal-body p-0">
+        <iframe id="videoFrame" width="100%" src="" frameborder="0" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+  // Video modal handler
+  document.addEventListener('DOMContentLoaded', function() {
+    const videoLinks = document.querySelectorAll('.video-link');
+    const videoFrame = document.getElementById('videoFrame');
+    
+    if (videoLinks.length > 0 && videoFrame) {
+      videoLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const videoUrl = this.getAttribute('data-video');
+          if (videoUrl) {
+            videoFrame.src = videoUrl;
+          }
+        });
+      });
+      
+      // Clear video when modal is closed
+      const videoModal = document.getElementById('videoModal');
+      if (videoModal) {
+        videoModal.addEventListener('hidden.bs.modal', function() {
+          videoFrame.src = '';
+        });
+      }
+    }
+  });
+</script>
+{% endblock %}

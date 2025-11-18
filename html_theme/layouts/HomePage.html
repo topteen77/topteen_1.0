@@ -1,0 +1,4267 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HOME PAGE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="./css/styles.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    />
+    <link
+      href="../node_modules/slick-carousel/slick/slick.css"
+      rel="stylesheet"
+    />
+
+    <link
+      href="../node_modules/slick-carousel/slick/slick-theme.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/customCSS.css" />
+    <style>
+      .heroImageGradient {
+        background: linear-gradient(0deg, #f7f7ff 0%, #f1f0ff 100%) !important;
+      }
+
+      .desktopHero {
+        background: linear-gradient(
+          90deg,
+          #f7f7ff,
+          rgba(63, 55, 201, 0.1),
+          rgba(239, 93, 168, 0.1),
+          rgba(60, 186, 225, 0.1)
+        ) !important;
+      }
+
+      .testimonialCarousel .slick-slide {
+        margin: 0px 50px;
+      }
+
+      .backgroundGradient {
+        background: linear-gradient(
+          179.85deg,
+          rgba(0, 0, 0, 0.2) 17.27%,
+          rgba(0, 0, 0, 0) 99.87%
+        );
+      }
+
+      .heroGradient {
+        background: linear-gradient(
+          90deg,
+          rgba(239, 93, 186, 0.1) 17.27%,
+          rgba(60, 186, 225, 0.1) 99.87%
+        );
+      }
+    </style>
+  </head>
+  <body class="no-scrollbar overflow-x-hidden">
+    <!-- HEADER PORTION -->
+    <header
+      class="relative w-full lg:sticky lg:top-0 bg-[#FFFFFF] border-2 border-[#EBEBEE] z-20"
+      id="headerPanel"
+    >
+      <div
+        class="flex flex-row justify-between items-baseline py-3 inset-x-0 lg:mx-auto lg:container lg:px-0 px-[23px] py-[17px]"
+      >
+        <div
+          class="flex lg:hidden flex-row justify-start items-center gap-x-[18px]"
+        >
+          <button id="trigger"><i class="fa fa-bars"></i></button>
+          <div class="h-[39px] w-[39px]">
+            <img
+              src="../assets/images/graduation-hat 1.png"
+              class="h-full w-full"
+            />
+          </div>
+        </div>
+        <div class="lg:block hidden">
+          <span
+            ><img
+              src="../assets/images/graduation-hat 1.png"
+              class="h-10 inline-block" /></span
+          >&nbsp;
+          <span
+            class="text-[#494949] font-bold text-[13.13px] leading-[17.73px]"
+          >
+            TOPTEEN</span
+          >
+        </div>
+        <nav class="lg:block hidden">
+          <ul
+            class="flex flex-row justify-evenly gap-3 tracking-wide font-semibold text-[#4F4F4F] allTabs"
+            data-active="activeBtn"
+            data-tabs-toggle="#careerPanel"
+          >
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link group relative cursor-pointer tab"
+              id="careerTab"
+              data-tabs-target="#career"
+              role="tab"
+            >
+              <span class="text-sm">Browse Careers</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform group-hover:-rotate-180"
+                ></i>
+              </span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer tab"
+              data-tabs-target="#analysis"
+              role="tab"
+            >
+              <span class="text-sm">Self-Analysis</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform hover:-rotate-180"
+                ></i
+              ></span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer tab"
+              data-tabs-target="#resources"
+              role="tab"
+            >
+              <span class="text-sm">Resources</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform hover:-rotate-180"
+                ></i
+              ></span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer"
+            >
+              <span class="text-sm">Pricing</span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer"
+            >
+              <span class="text-sm">Company</span>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="flex flex-row gap-5 items-center">
+          <a
+            href="#"
+            class="text-[#3F37C9] text-sm font-semibold lg:inline-block hidden"
+            >LOG IN</a
+          >
+
+          <button
+            class="bg-[#3F37C9] text-xs text-white font-bold border-b-[6px] border-[#2E289D] rounded-lg lg:px-2 lg:py-3 px-[9px] pt-[12px] pb-[9px]"
+          >
+            GET STARTED
+          </button>
+        </div>
+      </div>
+      <div
+        class="absolute top-[100%] inset-x-0 bg-white hidden border-b-[2px] border-[#EBEBEE] z-50"
+        id="careerPanel"
+      >
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-4 gap-x-[30px] container"
+          id="career"
+        >
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/books 1.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+        </div>
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-4 gap-x-[30px] container"
+          id="analysis"
+        >
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career skills</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/books 1.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+        </div>
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-6 gap-x-3 container"
+          id="resources"
+        >
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#3f37c9] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Courses & Content
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                1.3k Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#3CBAE1] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">Videos</h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                1.3k Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#EF5DA8] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                How to's & Tutorials
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#F2994A] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Exams & Tests
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#27AE60] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Colleges & Schools
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#2F80ED] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">Guides</h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                12 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- MAIN PORTION -->
+    <!-- CHANGES HERE -->
+    <section
+      class="mx-auto lg:px-[0px] px-[17px] py-[17px] lg:py-0 overflow-hidden lg:mb-[-50px] mb-[17px] lg:landingPageDesktopGradient landingPageMobileGradient"
+      id="homepageBanner"
+    >
+      <div
+        class="max-w-[1082px] mx-auto h-full flex lg:flex-row lg:justify-between lg:items-center flex-col-reverse"
+      >
+        <div class="lg:max-w-[525px] self-center">
+          <h1
+            class="boldFont lg:leading-[1.35em] lg:text-[32px] text-[#333333] mb-[9px] boldFont text-center lg:text-left text-[24px] leading-[32px]"
+          >
+            TopTeen helps you find the career you’re made for
+          </h1>
+          <p
+            class="font-normal text-[16px] leading-[1.68em] text-[#0F0F0F] text-opacity-70 mb-[34px] lg:text-left text-center"
+          >
+            TopTeen is a thriving community of 10k+ students from all sorts of
+            schools and grades working towards figuring out their ideal streams
+            and colleges.
+          </p>
+          <div
+            class="flex lg:flex-row lg:justify-start lg:gap-x-[29px] flex-col gap-y-[25px]"
+          >
+            <button
+              class="uppercase px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]"
+            >
+              Get Started
+            </button>
+            <button
+              onclick="openPopUp()"
+              class="uppercase pl-[23px] pr-[18px] py-[13px] bg-[#4CC9F0] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center"
+            >
+              <span class="text-[18px]"> <i class="fa fa-circle-play"></i></span
+              ><span>WATCH VIDEO</span>
+            </button>
+          </div>
+        </div>
+        <div class="h-full lg:w-[640px] lg:block hidden self-start">
+          <img
+            src="../assets/images/hero_image.png"
+            class="h-full w-full object-cover scale-[120%] lg:translate-y-[-20px]"
+          />
+        </div>
+        <div class="h-[347px] w-[90%] lg:hidden block">
+          <img
+            src="../assets/images/hero_image.png"
+            class="w-full h-full object-cover scale-[145%]"
+          />
+        </div>
+      </div>
+
+      <!-- Popup -->
+
+      <div
+        class="popUp bg-white absolute z-20 -mt-[250px] lg:-mt-[350px] w-[300px] lg:w-[420px] left-[50%] right-[50%] -translate-x-[50%] lg:translate-x-0 lg:right-0 lg:left-[320px] h-[200px] lg:h-[240px] rounded-xl lg:-mr-80 opacity-100 shadow-lg"
+      >
+        <div class="relative popUpChild">
+          <div class="absolute top-1 right-2 lg:top-2 lg:right-4 btnDiv">
+            <button onclick="closePopUp()">
+              <i class="fa fa-xmark"></i>
+            </button>
+          </div>
+          <div class="py-[24px] lg:py-[44px] yTContent">
+            <iframe
+              class="w-[240px] lg:w-[300px] mx-auto yTembed"
+              src="https://www.youtube.com/embed/R9x8betNlNA"
+              title="Being Humbled By Nature and Ancient Civilizations"
+              frameborder="0"
+              allow="accelerometer;  clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+          </div>
+        </div>
+      </div>
+      <!-- End of Popup -->
+    </section>
+
+    <aside
+      class="lg:px-[0px] lg:mb-[64px] mb-[35px] px-[17px] container mx-auto"
+    >
+      <div
+        class="grid lg:grid-cols-3 lg:grid-rows-1 lg:gap-x-[30px] grid-cols-1 grid-rows-3 gap-y-[19px] lg:max-w-[1082px] mx-auto"
+      >
+        <div
+          class="border border-[#DEDEDE] bg-white py-[21px] pl-[18px] px-[16px] flex flex-row justify-between items-center rounded-[10px]"
+        >
+          <div class="flex flex-row gap-x-[15px] items-center">
+            <div class="h-[36px] w-[36px]">
+              <img src="../assets/images/books 1.png" class="h-full w-full" />
+            </div>
+            <div>
+              <p class="mb-[5px] text-lg semibold tracking-[0.01em]">
+                I need to figure out a stream
+              </p>
+              <p class="text-xs text-[#828282] font-normal tracking-[0.01em]">
+                Let’s get to know you better
+              </p>
+            </div>
+          </div>
+          <div class="text-[#BDBDBD] leading-[11px]">
+            <i class="fa fa-angle-right"></i>
+          </div>
+        </div>
+        <div
+          class="border border-[#DEDEDE] bg-white py-[21px] pl-[18px] px-[16px] flex flex-row justify-between items-center rounded-[10px]"
+        >
+          <div class="flex flex-row gap-x-[15px] items-center">
+            <div class="h-[36px] w-[36px]">
+              <img src="../assets/images/portfolio.png" class="h-full w-full" />
+            </div>
+            <div>
+              <p class="mb-[5px] text-lg semibold tracking-[0.01em]">
+                I need to plan my career
+              </p>
+              <p class="text-xs text-[#828282] font-normal tracking-[0.01em]">
+                Let’s get to know you better
+              </p>
+            </div>
+          </div>
+          <div class="text-[#BDBDBD] leading-[11px]">
+            <i class="fa fa-angle-right"></i>
+          </div>
+        </div>
+        <div
+          class="border border-[#DEDEDE] bg-white py-[21px] pl-[18px] px-[16px] flex flex-row justify-between items-center rounded-[10px]"
+        >
+          <div class="flex flex-row gap-x-[15px] items-center">
+            <div class="h-[36px] w-[36px]">
+              <img
+                src="../assets/images/binoculars.png"
+                class="h-full w-full"
+              />
+            </div>
+            <div>
+              <p class="mb-[5px] text-lg semibold tracking-[0.01em]">
+                I want to learn more
+              </p>
+              <p class="text-xs text-[#828282] font-normal tracking-[0.01em]">
+                Let’s get to know you better
+              </p>
+            </div>
+          </div>
+          <div class="text-[#BDBDBD] leading-[11px]">
+            <i class="fa fa-angle-right"></i>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="max-w-[1280px] mx-auto">
+      <!-- MY CAREERS -->
+      <section
+        class="flex flex-col justify-start items-center mx-[17px] relative tabContainer lg:max-w-[1176px] lg:mx-auto"
+      >
+        <h3
+          class="lg:text-[28px] lg:leading-[37.8px] text-[24px] leading-[32.4px] tracking-[0.035em] text-[#333333] semibold mb-[38px] mx-[100px] lg:w-[430px] w-[280px] text-center"
+        >
+          Explore careers that interest you, we’ll help you get there
+        </h3>
+        <!-- FILTER TABS -->
+        <div
+          class="flex flex-row justify-start gap-x-[15px] items-center lg:mb-[52px] w-full overflow-x-auto lg:w-auto pb-2 mb-[20px] tabList"
+          role="tablist"
+          data-tabs-toggle="#careerTabs"
+        >
+          <!-- TAB -->
+          <button
+            class="px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[3px] bg-[#F8F8F8] items-center group hover:border-[2px] hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-[0.05] border-[2px] border-transparent shrink-0 tab activeTab"
+            data-tabs-target="#firstSlides"
+            role="tab"
+          >
+            <div>
+              <div class="h-[24px] w-[24px]">
+                <img src="../assets/images/flame.png" class="h-full w-full" />
+              </div>
+            </div>
+            <p
+              class="text-[#4F4F4F] text-xs semibold group-hover:text-[#3F37C9]"
+            >
+              Trending
+            </p>
+          </button>
+          <!-- TAB -->
+          <button
+            class="px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[3px] bg-[#F8F8F8] items-center rounded-[100px] group hover:border-[2px] hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-[0.05] border-[2px] border-transparent shrink-0 tab"
+            data-tabs-target="#secondSlides"
+            role="tab"
+          >
+            <div>
+              <div class="h-[24px] w-[24px]">
+                <img src="../assets/images/flame.png" class="h-full w-full" />
+              </div>
+            </div>
+            <p
+              class="text-[#4F4F4F] text-xs semibold group-hover:text-[#3F37C9]"
+            >
+              Highest Paying
+            </p>
+          </button>
+          <!-- TAB -->
+          <button
+            class="px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[3px] bg-[#F8F8F8] items-center rounded-[100px] group hover:border-[2px] hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-[0.05] border-[2px] border-transparent shrink-0 tab"
+            data-tabs-target="#thirdSlides"
+            role="tab"
+          >
+            <div>
+              <div class="h-[24px] w-[24px]">
+                <img src="../assets/images/flame.png" class="h-full w-full" />
+              </div>
+            </div>
+            <p
+              class="text-[#4F4F4F] text-xs semibold group-hover:text-[#3F37C9]"
+            >
+              Science & Tech
+            </p>
+          </button>
+        </div>
+
+        <!-- NAVIGATION ARROWS -->
+        <ul class="hidden lg:block navArrows">
+          <li
+            class="absolute nextCareer rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] lg:right-[0px] right-0 flex flex-row justify-center items-center z-1 nextArrow"
+          >
+            <i class="fa fa-angle-right"></i>
+          </li>
+          <li
+            class="absolute prevCareer rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] lg:left-[0px] left-0 flex justify-center items-center z-1 prevArrow"
+          >
+            <i class="fa fa-angle-left"></i>
+          </li>
+        </ul>
+
+        <!-- TAB PANELS -->
+        <div
+          class="w-full lg:block carouselContainer tabPanelsList"
+          id="careerTabs"
+        >
+          <!-- TAB CONTENT -->
+          <div
+            class="mx-[-6px] mb-[38px] lg:mx-[39.5px] lg:mb-[76px] carousel tabpanel careersCarousel customCarousel tabPanel"
+            role="tabpanel"
+            id="firstSlides"
+          >
+            <!-- SLIDE -->
+            <div class="lg:max-w-[248px]">
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/college.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div class="lg:max-w-[248px]">
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/course.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div class="lg:max-w-[248px]">
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/video_course.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div class="lg:max-w-[248px]">
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/ux_design.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div class="lg:max-w-[248px]">
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/ux_design.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div class="lg:max-w-[248px]">
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/ux_design.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT -->
+          <div
+            class="mx-[-6px] mb-[38px] lg:mx-[39.5px] lg:mb-[76px] carousel tabpanel careersCarousel customCarousel tabPanel"
+            role="tabpanel"
+            id="secondSlides"
+          >
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/video_course.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/college.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/first-college.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/ux_design.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/ux_design.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/ux_design.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT -->
+          <div
+            class="mx-[-6px] mb-[38px] lg:mx-[39.5px] lg:mb-[76px] carousel tabpanel careersCarousel customCarousel tabPanel"
+            role="tabpanel"
+            id="thirdSlides"
+          >
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/college.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/course.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/video_course.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/ux_design.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/ux_design.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE -->
+            <div>
+              <div class="relative w-full h-full">
+                <!-- IMAGE SECTION -->
+                <div
+                  class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+                >
+                  <img
+                    src="../assets/images/ux_design.png"
+                    class="h-full w-full object-cover"
+                  />
+
+                  <div
+                    class="absolute inset-0 h-full w-full backgroundGradient z-10"
+                  ></div>
+                </div>
+                <!-- CONTENT -->
+                <p
+                  class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+                >
+                  UX Design 101
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BLUE BANNER  CODE -->
+      <section
+        class="lg:max-w-[1082px] flex flex-row justify-between lg:mx-auto blue-banner lg:px-[60px] rounded-[10px] mx-[17px] mb-[35px] lg:mb-[76px]"
+      >
+        <div class="h-full w-[384px] self-end lg:block hidden">
+          <img
+            src="../assets/images/blue_banner_image.png"
+            class="h-full w-full object-cover"
+          />
+        </div>
+        <div class="w-[82px] h-[112px] lg:hidden block self-center">
+          <img
+            src="../assets/images/cardboard.png"
+            class="h-full w-full object-cover"
+          />
+        </div>
+        <div class="lg:w-[432px] w-[250px] self-center">
+          <h3
+            class="lg:text-[28px] lg:leading-[38px] text-[22px] leading-[30px] tracking-[0.035em] semibold mb-2.5 text-white"
+          >
+            Confused about which career track suits you best?
+          </h3>
+          <p
+            class="semibold lg:text-[16px] lg:leading-[1.68em] text-[13px] leading-[19px] mb-[34px] text-white"
+          >
+            Take a quik psychometric test to help us gauge your personality
+            better, it’ll only take a few minutes!
+          </p>
+          <button
+            class="uppercase px-[35px] py-[13px] rounded-[10px] bg-white border-b-[6px] border-[#EAEAEA] text-xs text-[#4F4F4F] boldFont mb-[29px] lg:block hidden"
+          >
+            TAKE PSYCHOMETRIC TEST
+          </button>
+        </div>
+      </section>
+
+      <!-- GREY BANNER  -->
+      <section class="bg-[#FAF9FC] items-center lg:mb-[76px] mb-[35px]">
+        <div
+          class="lg:w-[1082px] mx-auto flex lg:flex-row lg:justify-between lg:items-center lg:py-[36px] py-[24px] flex-col items-center"
+        >
+          <div
+            class="lg:w-[432px] mb-[37px] lg:mb-0 flex flex-col items-center lg:block"
+          >
+            <h3
+              class="lg:text-[28px] lg:leading-[38px] text-[24px] leading-[32px] tracking-[0.035em] mb-2.5 semibold text-center lg:text-left"
+            >
+              Features for every step towards career discovery
+            </h3>
+            <p
+              class="text-[16px] leading-[1.68em] text-[0F0F0F] text-opacity-70 mb-[34px] font-normal text-center lg:text-left w-[90%] lg:w-full"
+            >
+              TopTeen helps you understand yourself better and then guides you
+              in the direction required to reach your goal.
+            </p>
+            <button
+              class="uppercase bg-[#3F37C9] text-white px-[35px] py-[13px] text-xs rounded-[10px] border-b-4 border-[#2E289D] boldFont lg:block hidden"
+            >
+              Get Started
+            </button>
+          </div>
+          <div
+            class="grid lg:grid-cols-3 grid-cols-2 lg:gap-[52px] gap-x-[71px] gap-y-[36px]"
+          >
+            <div class="flex flex-col justify-start items-center">
+              <div class="h-[56px] w-[56px] mb-[19px]">
+                <img
+                  src="../assets/images/tab_image.png"
+                  class="h-full w-full"
+                />
+              </div>
+              <p class="text-lg text-[#333333] semibold mb-[5px]">
+                Self Discovery
+              </p>
+              <p class="text-xs text-[#828282] text-center w-[131px]">
+                Understand your deeper interests
+              </p>
+            </div>
+
+            <!-- ///////////// -->
+            <div class="flex flex-col justify-start items-center">
+              <div class="h-[56px] w-[56px] mb-[19px]">
+                <img
+                  src="../assets/images/suitcase.png"
+                  class="h-full w-full"
+                />
+              </div>
+              <p class="text-lg text-[#333333] semibold mb-[5px]">
+                Job Readiness
+              </p>
+              <p class="text-xs text-[#828282] text-center w-[131px]">
+                Figure out how prepared you are
+              </p>
+            </div>
+            <!-- ////// -->
+            <div class="flex flex-col justify-start items-center">
+              <div class="h-[56px] w-[56px] mb-[19px]">
+                <img src="../assets/images/hat.png" class="h-full w-full" />
+              </div>
+              <p class="text-lg text-[#333333] semibold mb-[5px]">
+                Universities
+              </p>
+              <p class="text-xs text-[#828282] text-center w-[131px]">
+                Get all your applications on track
+              </p>
+            </div>
+
+            <!-- ///////////// -->
+            <div class="flex flex-col justify-start items-center">
+              <div class="h-[56px] w-[56px] mb-[19px]">
+                <img
+                  src="../assets/images/scrapbook.png"
+                  class="h-full w-full"
+                />
+              </div>
+              <p class="text-lg text-[#333333] semibold mb-[5px]">Scrapbook</p>
+              <p class="text-xs text-[#828282] text-center w-[131px]">
+                Note, store, capture everything
+              </p>
+            </div>
+            <!-- //// -->
+            <div class="flex flex-col justify-start items-center">
+              <div class="h-[56px] w-[56px] mb-[19px]">
+                <img
+                  src="../assets/images/networking.png"
+                  class="h-full w-full"
+                />
+              </div>
+              <p class="text-lg text-[#333333] semibold mb-[5px]">Networking</p>
+              <p class="text-xs text-[#828282] text-center w-[131px]">
+                Connect with advisors and alumni
+              </p>
+            </div>
+
+            <!-- ///////////// -->
+            <div class="flex flex-col justify-start items-center">
+              <div class="h-[56px] w-[56px] mb-[19px]">
+                <img
+                  src="../assets/images/calendar_new.png"
+                  class="h-full w-full"
+                />
+              </div>
+              <p class="text-lg text-[#333333] semibold mb-[5px]">
+                Synced Calendar
+              </p>
+              <p class="text-xs text-[#828282] text-center w-[131px]">
+                Stay on top of schedule, always
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPLORE VIDEOS FOR MOBILE -->
+      <section class="block lg:hidden mx-[17px] mb-[35px]">
+        <div class="flex flex-row justify-between items-center mb-[16px]">
+          <span
+            class="text-[15px] leading-[20px] semibold tracking-[0.035em] text-[#0F0F0F]"
+          >
+            Explore Videos
+          </span>
+          <p class="text-[13px] leading-[18px] text-[#541BCF] semibold mb-0">
+            View More
+          </p>
+        </div>
+
+        <div
+          class="flex flex-row justify-start items-center gap-x-[15px] w-full overflow-x-auto pb-2"
+        >
+          <!-- VIDEO -->
+          <div class="w-[326px] shrink-0">
+            <div
+              class="h-[146px] w-full rounded-[10px] overflow-hidden relative mb-[-15px]"
+            >
+              <iframe
+                src="https://www.youtube.com/embed/imy3ooM0UHE"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                class="w-full h-full"
+              ></iframe>
+
+              <div class="absolute top-3 right-3 z-20">
+                <div class="bg-white rounded-full px-[5px] py-[3px]">
+                  <img
+                    src="../assets/images/bookmark.png"
+                    class="w-[21px] h-[21px] object-contain"
+                  />
+                </div>
+              </div>
+              <div class="absolute inset-0 backgroundGradient z-10"></div>
+            </div>
+
+            <div
+              class="w-auto py-[5px] px-[9px] text-white text-[10px] leading-[14px] tracking-[0.01em] bg-[#EF5DA8] inline-block semibold rounded-[100px] relative z-10 mb-[8px]"
+            >
+              Studying Abroad
+            </div>
+
+            <div>
+              <h5
+                class="text-[15px] leading-[20px] semibold tracking-[0.035em] mb-[3px]"
+              >
+                Studying as an exchange student
+              </h5>
+              <p class="text-[13px] leading-[18px] font-normal text-[#828282]">
+                We have all heard about exchange studies, but what are they and
+                how can you apply?
+              </p>
+            </div>
+          </div>
+
+          <!-- VIDEO -->
+          <div class="w-[326px] shrink-0">
+            <div
+              class="h-[146px] w-full rounded-[10px] overflow-hidden relative mb-[-15px]"
+            >
+              <iframe
+                src="https://www.youtube.com/embed/imy3ooM0UHE"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                class="w-full h-full"
+              ></iframe>
+
+              <div class="absolute top-3 right-3 z-20">
+                <div class="bg-white rounded-full px-[5px] py-[3px]">
+                  <img
+                    src="../assets/images/bookmark.png"
+                    class="w-[21px] h-[21px] object-contain"
+                  />
+                </div>
+              </div>
+              <div class="absolute inset-0 backgroundGradient z-10"></div>
+            </div>
+
+            <div
+              class="w-auto py-[5px] px-[9px] text-white text-[10px] leading-[14px] tracking-[0.01em] bg-[#EF5DA8] inline-block semibold rounded-[100px] relative z-10 mb-[8px]"
+            >
+              Studying Abroad
+            </div>
+
+            <div>
+              <h5
+                class="text-[15px] leading-[20px] semibold tracking-[0.035em] mb-[3px]"
+              >
+                Studying as an exchange student
+              </h5>
+              <p class="text-[13px] leading-[18px] font-normal text-[#828282]">
+                We have all heard about exchange studies, but what are they and
+                how can you apply?
+              </p>
+            </div>
+          </div>
+          <!-- VIDEO -->
+          <div class="w-[326px] shrink-0">
+            <div
+              class="h-[146px] w-full rounded-[10px] overflow-hidden relative mb-[-15px]"
+            >
+              <iframe
+                src="https://www.youtube.com/embed/imy3ooM0UHE"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                class="w-full h-full"
+              ></iframe>
+
+              <div class="absolute top-3 right-3 z-20">
+                <div class="bg-white rounded-full px-[5px] py-[3px]">
+                  <img
+                    src="../assets/images/bookmark.png"
+                    class="w-[21px] h-[21px] object-contain"
+                  />
+                </div>
+              </div>
+              <div class="absolute inset-0 backgroundGradient z-10"></div>
+            </div>
+
+            <div
+              class="w-auto py-[5px] px-[9px] text-white text-[10px] leading-[14px] tracking-[0.01em] bg-[#EF5DA8] inline-block semibold rounded-[100px] relative z-10 mb-[8px]"
+            >
+              Studying Abroad
+            </div>
+
+            <div>
+              <h5
+                class="text-[15px] leading-[20px] semibold tracking-[0.035em] mb-[3px]"
+              >
+                Studying as an exchange student
+              </h5>
+              <p class="text-[13px] leading-[18px] font-normal text-[#828282]">
+                We have all heard about exchange studies, but what are they and
+                how can you apply?
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPLORE VIDEOS FOR DESktop -->
+      <section class="mx-auto mb-[76px] lg:block hidden max-w-[1082px]">
+        <h3
+          class="text-[28px] leading-[37.8px] tracking-[0.035em] text-[#333333] semibold mb-6"
+        >
+          Explore Videos
+        </h3>
+        <div class="grid grid-cols-4 gap-x-[30px]">
+          <!-- IMAGE CARD -->
+          <div class="max-w-[248px]">
+            <div class="h-[208px] w-full mb-[23px]">
+              <img
+                src="../assets/images/video_course.png"
+                class="w-full h-full"
+                height="208"
+                width="248"
+              />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#3F37C9] text-white inline-block mb-3.5 semibold"
+            >
+              Coding
+            </div>
+
+            <h5
+              class="text-[16px] leading-[21.6px] semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+          <!-- IMAGE CARD -->
+          <div class="max-w-[248px]">
+            <div class="h-[208px] w-full mb-[23px]">
+              <img
+                src="../assets/images/video_course.png"
+                class="w-full h-full"
+                height="208"
+                width="248"
+              />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#4CC9F0] text-white inline-block mb-3.5 semibold"
+            >
+              Exam Preparations
+            </div>
+
+            <h5
+              class="text-[16px] leading-[21.6px] semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+          <!-- IMAGE CARD -->
+          <div class="max-w-[248px]">
+            <div class="h-[208px] w-full mb-[23px]">
+              <img
+                src="../assets/images/video_course.png"
+                class="w-full h-full"
+                height="208"
+                width="248"
+              />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#EF5DA8] text-white inline-block mb-3.5 semibold"
+            >
+              Studying Abroad
+            </div>
+
+            <h5
+              class="text-[16px] leading-[21.6px] semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+          <!-- IMAGE CARD -->
+          <div class="max-w-[248px]">
+            <div class="h-[208px] w-full mb-[23px]">
+              <img
+                src="../assets/images/video_course.png"
+                class="w-full h-full"
+                height="208"
+                width="248"
+              />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#3F37C9] text-white inline-block mb-3.5 semibold"
+            >
+              Coding
+            </div>
+
+            <h5
+              class="text-[16px] leading-[21.6px] semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPLORE CAREER TRACK FOR MOBILE -->
+      <section class="block lg:hidden mb-[35px] mx-[17px]">
+        <div class="flex flex-row justify-between items-center mb-[16px]">
+          <span
+            class="text-[15px] leading-[20px] semibold tracking-[0.035em] text-[#0F0F0F]"
+          >
+            Explore Career Tracks
+          </span>
+          <div class="text-[13px] leading-[18px] text-[#541BCF] semibold">
+            View More
+          </div>
+        </div>
+
+        <div
+          class="flex flex-row justify-start items-center gap-x-3 overflow-x-auto pb-2"
+        >
+          <div
+            class="w-[125px] h-[125px] flex flex-col items-center justify-start pt-[9px] bg-[#333333] rounded-[10px] shrink-0"
+          >
+            <h6
+              class="text-[13px] leading-[18px] tracking-[0.035em] semibold mb-[6px] text-white"
+            >
+              Engineering
+            </h6>
+            <div
+              class="px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px] text-white semibold mb-[25px]"
+            >
+              122 Careers
+            </div>
+
+            <div class="h-[48px] w-[63px]">
+              <img
+                class="h-full w-full object-cover object-top"
+                src="../assets/images/engineering.png"
+              />
+            </div>
+          </div>
+          <!-- TABS -->
+          <div
+            class="w-[125px] h-[125px] flex flex-col items-center justify-start pt-[9px] bg-[#333333] rounded-[10px] shrink-0"
+          >
+            <h6
+              class="text-[13px] leading-[18px] tracking-[0.035em] semibold mb-[6px] text-white"
+            >
+              Astronomy
+            </h6>
+            <div
+              class="px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px] text-white semibold mb-[25px]"
+            >
+              122 Careers
+            </div>
+
+            <div class="h-[48px] w-[63px]">
+              <img
+                class="h-full w-full object-cover object-top"
+                src="../assets/images/solar-system.png"
+              />
+            </div>
+          </div>
+
+          <!-- TABS -->
+          <div
+            class="w-[125px] h-[125px] flex flex-col items-center justify-start pt-[9px] bg-[#333333] rounded-[10px] shrink-0"
+          >
+            <h6
+              class="text-[13px] leading-[18px] tracking-[0.035em] semibold mb-[6px] text-white"
+            >
+              Arts & Design
+            </h6>
+            <div
+              class="px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px] text-white semibold mb-[25px]"
+            >
+              122 Careers
+            </div>
+
+            <div class="h-[48px] w-[63px]">
+              <img
+                class="h-full w-full object-cover object-top"
+                src="../assets/images/portrait.png"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPLORE CAREER TRACKS FOR DESKTOP -->
+      <section
+        class="relative mb-[76px] mx-auto lg:block hidden max-w-[1176px]"
+      >
+        <h3
+          class="text-[28px] leading-[37.8px] tracking-[0.035em] text-[#333333] semibold mb-[34px] mx-auto max-w-[1065px]"
+        >
+          Explore Career Tracks
+        </h3>
+        <!-- NAVIGATION ARROWS -->
+        <ul class="navArrows">
+          <li
+            class="absolute nextArr rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] right-[0px] flex flex-row justify-center items-center z-1 nextArrow"
+          >
+            <i class="fa fa-angle-right"></i>
+          </li>
+          <li
+            class="absolute prevArr rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] left-[0px] flex justify-center items-center z-1 prevArrow"
+          >
+            <i class="fa fa-angle-left"></i>
+          </li>
+        </ul>
+
+        <div class="carouselContainer w-full">
+          <!-- SLICK CAROUSEL -->
+          <div class="careerTracksCarousel mx-[38.5px] carousel customCarousel">
+            <div class="max-w-[248px]">
+              <div
+                class="w-full h-full bg-[#333333] flex flex-col items-center justify-start pt-6 rounded-[10px]"
+              >
+                <div class="h-[88px] w-[88px] mb-[23px]">
+                  <img
+                    src="../assets/images/engineering.png"
+                    class="h-full w-full"
+                  />
+                </div>
+
+                <p
+                  class="text-[18px] leading-[24.3px] semibold text-white tracking-[0.035em] mb-[4px]"
+                >
+                  Engineering
+                </p>
+
+                <div
+                  class="py-[6px] px-[14px] semibold text-[10px] leading-[14px] tracking-[0.035em] text-white bg-white bg-opacity-[0.22] rounded-[100px] mb-[19px]"
+                >
+                  180 Careers
+                </div>
+              </div>
+            </div>
+            <div class="max-w-[248px]">
+              <div
+                class="w-full h-full bg-[#333333] flex flex-col items-center justify-start pt-6 rounded-[10px]"
+              >
+                <div class="h-[88px] w-[88px] mb-[23px]">
+                  <img
+                    src="../assets/images/portrait.png"
+                    class="h-full w-full"
+                  />
+                </div>
+
+                <p
+                  class="text-[18px] leading-[24.3px] semibold text-white tracking-[0.035em] mb-[4px]"
+                >
+                  Arts & Design
+                </p>
+
+                <div
+                  class="py-[6px] px-[14px] semibold text-[10px] leading-[14px] tracking-[0.035em] text-white bg-white bg-opacity-[0.22] rounded-[100px] mb-[19px]"
+                >
+                  180 Careers
+                </div>
+              </div>
+            </div>
+            <div class="max-w-[248px]">
+              <div
+                class="w-full h-full bg-[#333333] flex flex-col items-center justify-start pt-6 rounded-[10px]"
+              >
+                <div class="h-[88px] w-[88px] mb-[23px]">
+                  <img
+                    src="../assets/images/solar-system.png"
+                    class="h-full w-full"
+                  />
+                </div>
+
+                <p
+                  class="text-[18px] leading-[24.3px] semibold text-white tracking-[0.035em] mb-[4px]"
+                >
+                  Astronomy
+                </p>
+
+                <div
+                  class="py-[6px] px-[14px] semibold text-[10px] leading-[14px] tracking-[0.035em] text-white bg-white bg-opacity-[0.22] rounded-[100px] mb-[19px]"
+                >
+                  180 Careers
+                </div>
+              </div>
+            </div>
+            <div class="max-w-[248px]">
+              <div
+                class="w-full h-full bg-[#333333] flex flex-col items-center justify-start pt-6 rounded-[10px]"
+              >
+                <div class="h-[88px] w-[88px] mb-[23px]">
+                  <img
+                    src="../assets/images/engineering.png"
+                    class="h-full w-full"
+                  />
+                </div>
+
+                <p
+                  class="text-[18px] leading-[24.3px] semibold text-white tracking-[0.035em] mb-[4px]"
+                >
+                  Engineering
+                </p>
+
+                <div
+                  class="py-[6px] px-[14px] semibold text-[10px] leading-[14px] tracking-[0.035em] text-white bg-white bg-opacity-[0.22] rounded-[100px] mb-[19px]"
+                >
+                  180 Careers
+                </div>
+              </div>
+            </div>
+            <div class="max-w-[248px]">
+              <div
+                class="w-full h-full bg-[#333333] flex flex-col items-center justify-start pt-6 rounded-[10px]"
+              >
+                <div class="h-[88px] w-[88px] mb-[23px]">
+                  <img
+                    src="../assets/images/engineering.png"
+                    class="h-full w-full"
+                  />
+                </div>
+
+                <p
+                  class="text-[18px] leading-[24.3px] semibold text-white tracking-[0.035em] mb-[4px]"
+                >
+                  Engineering
+                </p>
+
+                <div
+                  class="py-[6px] px-[14px] semibold text-[10px] leading-[14px] tracking-[0.035em] text-white bg-white bg-opacity-[0.22] rounded-[100px] mb-[19px]"
+                >
+                  180 Careers
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPLORE COLLEGES -->
+      <section
+        class="lg:mb-[76px] mb-[35px] relative tabContainer mx-[17px] lg:mx-auto lg:max-w-[1176px] overflow-hidden"
+      >
+        <div
+          class="flex flex-row justify-between items-center mb-[16px] lg:mb-6 mx-auto lg:max-w-[1065px]"
+        >
+          <span
+            class="text-[15px] leading-[20px] lg:text-[28px] lg:leading-[37.8px] semibold text-[#0F0F0F] lg:text-[#333333]"
+          >
+            Explore Colleges
+          </span>
+          <div
+            class="text-[13px] leading-[18px] text-[#541BCF] semibold lg:hidden"
+          >
+            View More
+          </div>
+        </div>
+        <!-- COUNTRY TABS -->
+        <div
+          class="flex flex-row justify-between items-center gap-2.5 mb-6 lg:mx-auto max-w-[1065px] "
+        >
+          <div
+            class="flex flex-row lg:gap-[18px] gap-3 lg:w-full collegeTabList tabList"
+            data-tabs-toggle="#collegesPanel"
+          >
+            <button
+              class="border-2 border-[#E0E0E0] text-[#4F4F4F] flex flex-row justify-center gap-2.5 py-2.5 px-4 semibold text-xs items-center tracking-[0.01em] rounded-[100px] hover:border-2 hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-5 hover:text-[#3f37c9] activeTab collegeTab tab"
+              role="tab"
+              data-tabs-target="#india"
+            >
+              <span class="inline-block h-[24px] w-[24px]">
+                <img
+                  src="../assets/flags/india.png"
+                  alt="india-flag"
+                  class="h-full w-full"
+                />
+              </span>
+              <span>India</span>
+            </button>
+            <!-- US -->
+            <button
+              class="border-2 border-[#E0E0E0] flex flex-row justify-center gap-2 py-2 px-4 semibold text-[#4F4F4F] text-xs items-center tracking-[0.01em] rounded-[100px] hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-5 hover:text-[#3f37c9] collegeTab tab"
+              role="tab"
+              data-tabs-target="#us"
+            >
+              <span class="h-[24px] w-[24px]">
+                <img
+                  src="../assets/flags/united-states.png"
+                  alt="USA-flag"
+                  class="h-full w-full"
+                />
+              </span>
+              <span>USA</span>
+            </button>
+            <!-- EUROPE -->
+            <button
+              class="border-2 border-[#E0E0E0] flex flex-row justify-center gap-2 py-2 px-4 semibold text-[#4F4F4F] text-xs items-center tracking-[0.01em] rounded-[100px] hover:border-2 hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-5 hover:text-[#3f37c9] collegeTab tab"
+              role="tab"
+              data-tabs-target="#europe"
+            >
+              <span class="h-[24px] w-[24px]">
+                <img
+                  src="../assets/flags/european-union.png"
+                  alt="europe-flag"
+                  class="h-full w-full"
+                />
+              </span>
+              <span>Europe</span>
+            </button>
+            <!-- CANADA -->
+            <!-- <button
+              class="border-2 border-[#E0E0E0] flex flex-row justify-center gap-2 py-2 px-4 font-semibold text-[#4F4F4F] text-xs items-center tracking-[0.01em] rounded-[100px] hover:border-2 hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-5 hover:text-[#3f37c9]"
+            >
+              <img
+                src="../assets/flags/european-union.png"
+                alt="USA-flag"
+                height="24"
+                width="24"
+              />
+              <span>Canada</span>
+            </button> -->
+            <!-- australia -->
+            <!-- <button
+              class="border-2 border-[#E0E0E0] flex flex-row justify-center gap-2 py-2 px-4 font-semibold text-[#4F4F4F] text-xs items-center tracking-[0.01em] rounded-[100px] hover:border-2 hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-5 hover:text-[#3f37c9]"
+            >
+              <img
+                src="../assets/flags/european-union.png"
+                alt="australia-flag"
+                height="24"
+                width="24"
+              />
+              <span>Australia</span>
+            </button> -->
+            <!-- singapore -->
+            <!-- <button
+              class="border-2 border-[#E0E0E0] flex flex-row justify-center gap-2 py-2 px-4 font-semibold text-[#4F4F4F] text-xs items-center tracking-[0.01em] rounded-[100px] hover:border-2 hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-5 hover:text-[#3f37c9]"
+            >
+              <img
+                src="../assets/flags/european-union.png"
+                alt="singapore-flag"
+                height="24"
+                width="24"
+              />
+              <span>Singapore</span>
+            </button> -->
+          </div>
+          <button
+            class="rounded-[50%] border px-2.5 h-75 text-[#333333] border-[#E0E0E0] lg:block hidden"
+          >
+            <i class="fa fa-angle-right"></i>
+          </button>
+        </div>
+
+        <!-- CAROUSEL FOR DESKTOP -->
+
+        <!-- NAVIGATION ARROWS -->
+        <ul class="hidden lg:block navArrows">
+          <li
+            class="absolute nextCollege rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] right-[0px] flex flex-row justify-center items-center z-1 nextArrow"
+          >
+            <i class="fa fa-angle-right"></i>
+          </li>
+          <li
+            class="absolute prevCollege rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] left-[0px] flex justify-center items-center z-1 prevArrow"
+          >
+            <i class="fa fa-angle-left"></i>
+          </li>
+        </ul>
+
+        <!-- CAROUSEL SECTION -->
+        <div class="w-full carouselContainer tabPanelsList" id="collegesPanel">
+          <!-- TAB CONTENT -->
+          <div
+            class="lg:mx-[38.5px] mx-[-6px] collegesCarousel carousel hidden collegeTabPanel customCarousel tabPanel"
+            id="india"
+          >
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/course.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] w-full rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/third.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/first.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/first-college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] w-full rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] w-full rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/first-college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT -->
+          <div
+            class="lg:mx-[38.5px] mx-[-6px] collegesCarousel carousel hidden collegeTabPanel customCarousel tabPanel"
+            id="us"
+          >
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/first-college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] w-full rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/third.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/first.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/first-college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] w-full rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] w-full rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/first-college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT -->
+          <div
+            class="lg:mx-[38.5px] mx-[-6px] collegesCarousel carousel hidden collegeTabPanel customCarousel tabPanel"
+            id="europe"
+          >
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/second-college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] w-full rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/first.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/first-college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] w-full rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] w-full rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="../assets/images/first-college.png"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  University of Waterloo
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>Waterloo, Canada</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="../assets/images/bookmark.png"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- NEW CAREER TREE SECTION -->
+      <section
+        class="lg:max-w-[1082px] lg:mx-auto bg-[#4CC9F0] bg-opacity-[0.15] flex flex-row justify-between lg:pl-[60px] lg:pr-[121px] px-[18px] pt-[24px] rounded-[10px] lg:mb-[76px] mb-[35px] mx-[17px]"
+      >
+        <div
+          class="lg:max-w-[540px] max-w-[203px] self-center lg:mb-[45px] mb-[18px]"
+        >
+          <h4
+            class="lg:text-[28px] lg:leading-[38px] text-[22px] leading-[30px] tracking-[0.0135em] text-[#333333] mb-2.5 semibold"
+          >
+            Plant a new career tree to get started
+          </h4>
+          <p
+            class="font-normal text-[13px] tracking-[0.0145em] text-[#000000] text-opacity-50 lg:mb-[34px]"
+          >
+            Visualise your career progress and always stay on top of your goals.
+          </p>
+          <button
+            class="px-[64px] py-[15px] bg-[#5CCD16] rounded-[10px] text-white flex flex-row justify-start items-center gap-x-[5px] text-sm boldFont uppercase border-b-4 border-[#51B613] lg:block hidden"
+          >
+            <span><i class="fa fa-leaf"></i></span><span>Start tree</span>
+          </button>
+        </div>
+        <div
+          class="lg:self-end self-center lg:h-[248px] lg:w-[248px] h-[143px] w-[128px]"
+        >
+          <img
+            src="../assets/images/tree.png"
+            class="h-full w-full object-cover object-top-left"
+          />
+        </div>
+      </section>
+
+      <!-- RESOURCES FOR MOBILE -->
+      <section class="mb-[35px] mx-[17px] lg:hidden">
+        <div class="flex flex-row justify-between items-center mb-4">
+          <span
+            class="text-[15px] leading-[20px] semibold tracking-[0.035em] text-[#0F0F0F]"
+          >
+            Trending Content
+          </span>
+          <div class="text-[13px] leading-[18px] text-[#541BCF] semibold">
+            View More
+          </div>
+        </div>
+        <!--  -->
+        <div
+          class="flex flex-row justify-start items-center gap-x-3 overflow-x-auto pb-2"
+        >
+          <!-- FIRST COL -->
+          <div
+            class="shrink-0 flex flex-col justify-start items-start gap-y-[19px]"
+          >
+            <!-- FIRST COL FIRST ROW -->
+            <div
+              class="flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+            >
+              <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                <img
+                  src="../assets/images/course.png"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+              <div>
+                <p
+                  class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                >
+                  Career options that will spring up due to the rise of VR
+                </p>
+                <div
+                  class="bg-[#3F37C9] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                >
+                  New Careers
+                </div>
+              </div>
+            </div>
+
+            <!-- FIRST COL FIRST ROW -->
+            <div
+              class="flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+            >
+              <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                <img
+                  src="../assets/images/video_course.png"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+              <div>
+                <p
+                  class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                >
+                  Career options that will spring up due to the rise of VR
+                </p>
+                <div
+                  class="bg-[#4CC9F0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                >
+                  Online Education
+                </div>
+              </div>
+            </div>
+            <!-- FIRST COL FIRST ROW -->
+            <div
+              class="flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+            >
+              <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                <img
+                  src="../assets/images/course.png"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+              <div>
+                <p
+                  class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                >
+                  Career options that will spring up due to the rise of VR
+                </p>
+                <div
+                  class="bg-[#EF5DA8] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                >
+                  Application Guides
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FIRST COL -->
+          <div
+            class="shrink-0 flex flex-col justify-start items-start gap-y-[19px]"
+          >
+            <!-- FIRST COL FIRST ROW -->
+            <div
+              class="flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+            >
+              <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                <img
+                  src="../assets/images/course.png"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+              <div>
+                <p
+                  class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                >
+                  Career options that will spring up due to the rise of VR
+                </p>
+                <div
+                  class="bg-[#3F37C9] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                >
+                  New Careers
+                </div>
+              </div>
+            </div>
+
+            <!-- FIRST COL FIRST ROW -->
+            <div
+              class="flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+            >
+              <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                <img
+                  src="../assets/images/video_course.png"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+              <div>
+                <p
+                  class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                >
+                  Career options that will spring up due to the rise of VR
+                </p>
+                <div
+                  class="bg-[#4CC9F0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                >
+                  Online Education
+                </div>
+              </div>
+            </div>
+            <!-- FIRST COL FIRST ROW -->
+            <div
+              class="flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+            >
+              <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                <img
+                  src="../assets/images/course.png"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+              <div>
+                <p
+                  class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                >
+                  Career options that will spring up due to the rise of VR
+                </p>
+                <div
+                  class="bg-[#EF5DA8] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                >
+                  Application Guides
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FIRST COL -->
+          <div
+            class="shrink-0 flex flex-col justify-start items-start gap-y-[19px]"
+          >
+            <!-- FIRST COL FIRST ROW -->
+            <div
+              class="flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+            >
+              <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                <img
+                  src="../assets/images/course.png"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+              <div>
+                <p
+                  class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                >
+                  Career options that will spring up due to the rise of VR
+                </p>
+                <div
+                  class="bg-[#3F37C9] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                >
+                  New Careers
+                </div>
+              </div>
+            </div>
+
+            <!-- FIRST COL FIRST ROW -->
+            <div
+              class="flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+            >
+              <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                <img
+                  src="../assets/images/video_course.png"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+              <div>
+                <p
+                  class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                >
+                  Career options that will spring up due to the rise of VR
+                </p>
+                <div
+                  class="bg-[#4CC9F0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                >
+                  Online Education
+                </div>
+              </div>
+            </div>
+            <!-- FIRST COL FIRST ROW -->
+            <div
+              class="flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+            >
+              <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                <img
+                  src="../assets/images/course.png"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+              <div>
+                <p
+                  class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                >
+                  Career options that will spring up due to the rise of VR
+                </p>
+                <div
+                  class="bg-[#EF5DA8] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                >
+                  Application Guides
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESOURCES  FOR DESKTOP-->
+      <section
+        class="hidden lg:flex flex-col justify-start items-center max-w-[1082px] mb-[76px] mx-auto"
+      >
+        <h5
+          class="uppercase text-lg semibold tracking-[0.035em] text-[#3F37C9] mb-3"
+        >
+          Resources
+        </h5>
+        <div
+          class="w-[430px] text-center text-[28px] leading-[38px] tracking-[0.035em] text-[#333333] semibold mb-[58px] boldFont"
+        >
+          Some great content to get you up and running
+        </div>
+        <div class="grid grid-cols-4 gap-x-8 gap-y-[48px]">
+          <!-- IMAGE CARD -->
+          <div>
+            <div class="h-[208px] w-full max-w-[248px] mb-[23px]">
+              <img
+                src="../assets/images/video_course.png"
+                class="w-full h-full"
+              />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#3F37C9] text-white inline-block mb-3.5 semibold"
+            >
+              Reading
+            </div>
+
+            <h5
+              class="text-lg semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+          <!-- IMAGE CARD -->
+          <div>
+            <div class="h-[208px] w-full max-w-[248px] mb-[23px]">
+              <img src="../assets/images/course.png" class="w-full h-full" />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#EF5DA8] text-white inline-block mb-3.5 semibold"
+            >
+              Online Education
+            </div>
+
+            <h5
+              class="text-lg semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+          <!-- IMAGE CARD -->
+          <div>
+            <div class="h-[208px] w-full max-w-[248px] mb-[23px]">
+              <img
+                src="../assets/images/video_course.png"
+                class="w-full h-full"
+              />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#3F37C9] text-white inline-block mb-3.5 semibold"
+            >
+              Reading
+            </div>
+
+            <h5
+              class="text-lg semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+          <!-- IMAGE CARD -->
+          <div>
+            <div class="h-[208px] w-full max-w-[248px] mb-[23px]">
+              <img src="../assets/images/course.png" class="w-full h-full" />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#EF5DA8] text-white inline-block mb-3.5 semibold"
+            >
+              Online Education
+            </div>
+
+            <h5
+              class="text-lg semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+          <!-- IMAGE CARD -->
+          <div>
+            <div class="h-[208px] w-full max-w-[248px] mb-[23px]">
+              <img
+                src="../assets/images/video_course.png"
+                class="w-full h-full"
+              />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#3F37C9] text-white inline-block mb-3.5 semibold"
+            >
+              Reading
+            </div>
+
+            <h5
+              class="text-lg semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+          <!-- IMAGE CARD -->
+          <div>
+            <div class="h-[208px] w-full max-w-[248px] mb-[23px]">
+              <img src="../assets/images/course.png" class="w-full h-full" />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#EF5DA8] text-white inline-block mb-3.5 semibold"
+            >
+              Online Education
+            </div>
+
+            <h5
+              class="text-lg semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+          <!-- IMAGE CARD -->
+          <div>
+            <div class="h-[208px] w-full max-w-[248px] mb-[23px]">
+              <img
+                src="../assets/images/video_course.png"
+                class="w-full h-full"
+              />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#3F37C9] text-white inline-block mb-3.5 semibold"
+            >
+              Reading
+            </div>
+
+            <h5
+              class="text-lg semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+          <!-- IMAGE CARD -->
+          <div>
+            <div class="h-[208px] w-full max-w-[248px] mb-[23px]">
+              <img src="../assets/images/course.png" class="w-full h-full" />
+            </div>
+            <div
+              class="px-[9px] py-[5px] rounded-[100px] bg-[#EF5DA8] text-white inline-block mb-3.5 semibold"
+            >
+              Online Education
+            </div>
+
+            <h5
+              class="text-lg semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+            >
+              The current state of Javascipt development
+            </h5>
+            <p class="text-xs font-normal text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TOP COURSES FOR MOBILE -->
+      <section class="mb-[35px] mx-[17px] lg:hidden">
+        <div class="flex flex-row justify-between items-center mb-4">
+          <span
+            class="text-[15px] leading-[20px] semibold tracking-[0.035em] text-[#0F0F0F]"
+          >
+            Top Courses
+          </span>
+          <div class="text-[13px] leading-[18px] text-[#541BCF] semibold">
+            View More
+          </div>
+        </div>
+        <div class="flex flex-col justify-start items-center gap-y-[10px]">
+          <div
+            class="w-full h-[76px] relative rounded-[10px] overflow-hidden pt-[19px] pl-[23px]"
+          >
+            <div
+              class="flex flex-row justify-start items-center gap-x-[15px] relative z-20"
+            >
+              <div class="w-[25px] h-[25px]">
+                <img class="h-full w-full" src="../assets/images/chat.png" />
+              </div>
+              <div>
+                <p
+                  class="text-[10px] leading-[13.5px] font-normal text-white text-opacity-[0.77] mb-[3px]"
+                >
+                  Design Fundamentals • 18 hours
+                </p>
+                <h5 class="text-[15px] leading-[20px] semibold text-white">
+                  UX Design 101: User Research
+                </h5>
+              </div>
+            </div>
+            <div class="absolute inset-0 w-full h-full z-10">
+              <img
+                src="../assets/images/bgImage.jpg"
+                class="w-full h-full object-cover brightness-50"
+              />
+            </div>
+          </div>
+
+          <div
+            class="w-full h-[76px] relative rounded-[10px] overflow-hidden pt-[19px] pl-[23px]"
+          >
+            <div
+              class="flex flex-row justify-start items-center gap-x-[15px] relative z-20"
+            >
+              <div class="w-[25px] h-[25px]">
+                <img class="h-full w-full" src="../assets/images/chat.png" />
+              </div>
+              <div>
+                <p
+                  class="text-[10px] leading-[13.5px] font-normal text-white text-opacity-[0.77] mb-[3px]"
+                >
+                  Design Fundamentals • 18 hours
+                </p>
+                <h5 class="text-[15px] leading-[20px] semibold text-white">
+                  UX Design 101: User Research
+                </h5>
+              </div>
+            </div>
+            <div class="absolute inset-0 w-full h-full z-10">
+              <img
+                src="../assets/images/bgImage.jpg"
+                class="w-full h-full object-cover brightness-50"
+              />
+            </div>
+          </div>
+          <div
+            class="w-full h-[76px] relative rounded-[10px] overflow-hidden pt-[19px] pl-[23px]"
+          >
+            <div
+              class="flex flex-row justify-start items-center gap-x-[15px] relative z-20"
+            >
+              <div class="w-[25px] h-[25px]">
+                <img class="h-full w-full" src="../assets/images/chat.png" />
+              </div>
+              <div>
+                <p
+                  class="text-[10px] leading-[13.5px] font-normal text-white text-opacity-[0.77] mb-[3px]"
+                >
+                  Design Fundamentals • 18 hours
+                </p>
+                <h5 class="text-[15px] leading-[20px] semibold text-white">
+                  UX Design 101: User Research
+                </h5>
+              </div>
+            </div>
+            <div class="absolute inset-0 w-full h-full z-10">
+              <img
+                src="../assets/images/bgImage.jpg"
+                class="w-full h-full object-cover brightness-50"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TOP COURSES FOR DESKTOP -->
+      <section
+        class="relative mb-[76px] lg:block hidden max-w-[1176px] mx-auto"
+      >
+        <h3
+          class="text-[28px] leading-[37.8px] tracking-[0.035em] text-[#333333] semibold mb-6 max-w-[1065px] mx-auto"
+        >
+          Top Courses
+        </h3>
+
+        <!-- NAVIGATION ARROWS -->
+        <ul class="navArrows">
+          <li
+            class="absolute nextCourse rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] right-[0px] flex flex-row justify-center items-center z-1 nextArrow"
+          >
+            <i class="fa fa-angle-right"></i>
+          </li>
+          <li
+            class="absolute prevCourse rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] left-[0px] flex justify-center items-center z-1 prevArrow"
+          >
+            <i class="fa fa-angle-left"></i>
+          </li>
+        </ul>
+
+        <div class="carouselContainer w-[1097px] mx-auto">
+          <!-- SLICK CAROUSEL -->
+          <div class="coursesCarousel carousel customCarousel">
+            <!-- SLIDE 1 -->
+            <div class="max-w-[248px]">
+              <div
+                class="h-[214px] w-full relative flex flex-row justify-start items-end py-[16px] px-[20px] bg-black rounded-[10px] overflow-hidden"
+              >
+                <div
+                  class="grid grid-cols-4 gap-x-[14px] relative z-10 gap-y-[4px]"
+                >
+                  <p
+                    class="text-[10px] leading-[13.5px] font-normal text-opacity-[0.77] col-start-2 col-span-3 text-white"
+                  >
+                    Design Fundamentals &#8226; 23 hours
+                  </p>
+                  <div class="w-[25px] h-[24px]">
+                    <img
+                      src="../assets/images/chat.png"
+                      class="h-full w-full"
+                    />
+                  </div>
+                  <h5
+                    class="semibold text-[15px] leading-[20px] tracking-[0.035em] col-start-2 col-span-3 text-white"
+                  >
+                    UX Design 101: User Research
+                  </h5>
+                  <!-- </div> -->
+                </div>
+
+                <!-- BG IMAGE -->
+                <div class="absolute inset-0">
+                  <img
+                    src="../assets/images/bgImage.jpg"
+                    class="h-full w-full object-cover brightness-50"
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE 1 -->
+            <div class="max-w-[248px]">
+              <div
+                class="h-[214px] w-full relative flex flex-row justify-start items-end py-[16px] px-[20px] bg-black rounded-[10px] overflow-hidden"
+              >
+                <div
+                  class="grid grid-cols-4 gap-x-[14px] relative z-10 gap-y-[4px]"
+                >
+                  <p
+                    class="text-[10px] leading-[13.5px] font-normal text-opacity-[0.77] col-start-2 col-span-3 text-white"
+                  >
+                    Design Fundamentals &#8226; 23 hours
+                  </p>
+                  <div class="w-[25px] h-[24px]">
+                    <img
+                      src="../assets/images/chat.png"
+                      class="h-full w-full"
+                    />
+                  </div>
+                  <h5
+                    class="semibold text-[15px] leading-[20px] tracking-[0.035em] col-start-2 col-span-3 text-white"
+                  >
+                    UX Design 101: User Research
+                  </h5>
+                  <!-- </div> -->
+                </div>
+
+                <!-- BG IMAGE -->
+                <div class="absolute inset-0">
+                  <img
+                    src="../assets/images/bgImage.jpg"
+                    class="h-full w-full object-cover brightness-50"
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE 1 -->
+            <div class="max-w-[248px]">
+              <div
+                class="h-[214px] w-full relative flex flex-row justify-start items-end py-[16px] px-[20px] bg-black rounded-[10px] overflow-hidden"
+              >
+                <div
+                  class="grid grid-cols-4 gap-x-[14px] relative z-10 gap-y-[4px]"
+                >
+                  <p
+                    class="text-[10px] leading-[13.5px] font-normal text-opacity-[0.77] col-start-2 col-span-3 text-white"
+                  >
+                    Design Fundamentals &#8226; 23 hours
+                  </p>
+                  <div class="w-[25px] h-[24px]">
+                    <img
+                      src="../assets/images/chat.png"
+                      class="h-full w-full"
+                    />
+                  </div>
+                  <h5
+                    class="semibold text-[15px] leading-[20px] tracking-[0.035em] col-start-2 col-span-3 text-white"
+                  >
+                    UX Design 101: User Research
+                  </h5>
+                  <!-- </div> -->
+                </div>
+
+                <!-- BG IMAGE -->
+                <div class="absolute inset-0">
+                  <img
+                    src="../assets/images/bgImage.jpg"
+                    class="h-full w-full object-cover brightness-50"
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE 1 -->
+            <div class="max-w-[248px]">
+              <div
+                class="h-[214px] w-full relative flex flex-row justify-start items-end py-[16px] px-[20px] bg-black rounded-[10px] overflow-hidden"
+              >
+                <div
+                  class="grid grid-cols-4 gap-x-[14px] relative z-10 gap-y-[4px]"
+                >
+                  <p
+                    class="text-[10px] leading-[13.5px] font-normal text-opacity-[0.77] col-start-2 col-span-3 text-white"
+                  >
+                    Design Fundamentals &#8226; 23 hours
+                  </p>
+                  <div class="w-[25px] h-[24px]">
+                    <img
+                      src="../assets/images/chat.png"
+                      class="h-full w-full"
+                    />
+                  </div>
+                  <h5
+                    class="semibold text-[15px] leading-[20px] tracking-[0.035em] col-start-2 col-span-3 text-white"
+                  >
+                    UX Design 101: User Research
+                  </h5>
+                  <!-- </div> -->
+                </div>
+
+                <!-- BG IMAGE -->
+                <div class="absolute inset-0">
+                  <img
+                    src="../assets/images/bgImage.jpg"
+                    class="h-full w-full object-cover brightness-50"
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE 1 -->
+            <div class="max-w-[248px]">
+              <div
+                class="h-[214px] w-full relative flex flex-row justify-start items-end py-[16px] px-[20px] bg-black rounded-[10px] overflow-hidden"
+              >
+                <div
+                  class="grid grid-cols-4 gap-x-[14px] relative z-10 gap-y-[4px]"
+                >
+                  <p
+                    class="text-[10px] leading-[13.5px] font-normal text-opacity-[0.77] col-start-2 col-span-3 text-white"
+                  >
+                    Design Fundamentals &#8226; 23 hours
+                  </p>
+                  <div class="w-[25px] h-[24px]">
+                    <img
+                      src="../assets/images/chat.png"
+                      class="h-full w-full"
+                    />
+                  </div>
+                  <h5
+                    class="semibold text-[15px] leading-[20px] tracking-[0.035em] col-start-2 col-span-3 text-white"
+                  >
+                    UX Design 101: User Research
+                  </h5>
+                  <!-- </div> -->
+                </div>
+
+                <!-- BG IMAGE -->
+                <div class="absolute inset-0">
+                  <img
+                    src="../assets/images/bgImage.jpg"
+                    class="h-full w-full object-cover brightness-50"
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE 1 -->
+            <div class="max-w-[248px]">
+              <div
+                class="h-[214px] w-full relative flex flex-row justify-start items-end py-[16px] px-[20px] bg-black rounded-[10px] overflow-hidden"
+              >
+                <div
+                  class="grid grid-cols-4 gap-x-[14px] relative z-10 gap-y-[4px]"
+                >
+                  <p
+                    class="text-[10px] leading-[13.5px] font-normal text-opacity-[0.77] col-start-2 col-span-3 text-white"
+                  >
+                    Design Fundamentals &#8226; 23 hours
+                  </p>
+                  <div class="w-[25px] h-[24px]">
+                    <img
+                      src="../assets/images/chat.png"
+                      class="h-full w-full"
+                    />
+                  </div>
+                  <h5
+                    class="semibold text-[15px] leading-[20px] tracking-[0.035em] col-start-2 col-span-3 text-white"
+                  >
+                    UX Design 101: User Research
+                  </h5>
+                  <!-- </div> -->
+                </div>
+
+                <!-- BG IMAGE -->
+                <div class="absolute inset-0">
+                  <img
+                    src="../assets/images/bgImage.jpg"
+                    class="h-full w-full object-cover brightness-50"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TESTIMONIAL SECTIONS FOR MOBILE -->
+      <section
+        class="lg:hidden flex flex-col justify-start items-center mx-[17px] mb-[25px] mobileTest"
+      >
+        <h4
+          class="text-xl semibold text-center w-[280px] text-[#333333] mb-[44px]"
+        >
+          Trusted by everyone across the board
+        </h4>
+        <div
+          class="flex flex-row justify-between items-start w-full mb-[18px] images"
+          data-tabs-toggle="#mobTestimonial"
+          role="tablist"
+        >
+          <button
+            class="h-[73px] w-[73px] rounded-full overflow-hidden imgDiv"
+            data-idx="0"
+            data-tabs-target="#firstTest"
+            role="tab"
+          >
+            <img
+              src="../assets/images/test_Img.png"
+              class="h-full w-full image"
+            />
+          </button>
+          <button
+            class="h-[73px] w-[73px] rounded-full overflow-hidden opacity-[0.4] imgDiv"
+            data-idx="1"
+            data-tabs-target="#secondTest"
+            role="tab"
+          >
+            <img
+              src="../assets/images/test_Img.png"
+              class="h-full w-full image"
+            />
+          </button>
+          <button
+            class="h-[73px] w-[73px] rounded-full overflow-hidden opacity-[0.4] imgDiv"
+            data-idx="2"
+            data-tabs-target="#thirdTest"
+            role="tab"
+          >
+            <img
+              src="../assets/images/test_Img.png"
+              class="h-full w-full image"
+            />
+          </button>
+
+          <button
+            class="h-[73px] w-[73px] rounded-full overflow-hidden opacity-[0.4] imgDiv"
+            data-idx="3"
+            data-tabs-target="#fourthTest"
+            role="tab"
+          >
+            <img
+              src="../assets/images/test_Img.png"
+              class="h-full w-full image"
+            />
+          </button>
+        </div>
+
+        <div id="mobTestimonial">
+          <div class="tabpanel" id="firstTest">
+            <h4
+              class="mb-[5px] text-[15px] leading-[20px] semibold tracking-[0.035em] text-[#333333] heading"
+            >
+              Darell Steward
+            </h4>
+            <p
+              class="mb-[18px] text-[13px] leading-[18px] font-normal text-[#828282] desg"
+            >
+              Parent
+            </p>
+            <p
+              class="text-[13px] leading-[21px] text-[#333333] font-normal content"
+            >
+              The arts seminar conducted by Dr. Shevchenko helped me understand
+              artistic approaches to human expression. The arts seminar
+              conducted by Dr. Shevchenko helped me understand artistic
+              approaches to human expression and innovation.
+            </p>
+          </div>
+          <div class="tabpanel" id="secondTest">
+            <h4
+              class="mb-[5px] text-[15px] leading-[20px] semibold tracking-[0.035em] text-[#333333] heading"
+            >
+              Second Steward
+            </h4>
+            <p
+              class="mb-[18px] text-[13px] leading-[18px] font-normal text-[#828282] desg"
+            >
+              second
+            </p>
+            <p
+              class="text-[13px] leading-[21px] text-[#333333] font-normal content"
+            >
+              The arts seminar conducted by Dr. Shevchenko helped me understand
+              artistic approaches to human expression. The arts seminar
+              conducted by Dr. Shevchenko helped me understand artistic
+              approaches to human expression and innovation.
+            </p>
+          </div>
+          <div class="tabpanel" id="thirdTest">
+            <h4
+              class="mb-[5px] text-[15px] leading-[20px] semibold tracking-[0.035em] text-[#333333] heading"
+            >
+              Third Steward
+            </h4>
+            <p
+              class="mb-[18px] text-[13px] leading-[18px] font-normal text-[#828282] desg"
+            >
+              Third
+            </p>
+            <p
+              class="text-[13px] leading-[21px] text-[#333333] font-normal content"
+            >
+              The arts seminar conducted by Dr. Shevchenko helped me understand
+              artistic approaches to human expression. The arts seminar
+              conducted by Dr. Shevchenko helped me understand artistic
+              approaches to human expression and innovation.
+            </p>
+          </div>
+          <div class="tabpanel" id="fourthTest">
+            <h4
+              class="mb-[5px] text-[15px] leading-[20px] semibold tracking-[0.035em] text-[#333333] heading"
+            >
+              Fourth Steward
+            </h4>
+            <p
+              class="mb-[18px] text-[13px] leading-[18px] font-normal text-[#828282] desg"
+            >
+              Fourth
+            </p>
+            <p
+              class="text-[13px] leading-[21px] text-[#333333] font-normal content"
+            >
+              The arts seminar conducted by Dr. Shevchenko helped me understand
+              artistic approaches to human expression. The arts seminar
+              conducted by Dr. Shevchenko helped me understand artistic
+              approaches to human expression and innovation.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TESTIMONIALS SECTION FOR DESKTOP -->
+      <!-- ///////////////////////////////////////////////////////////////////////////// -->
+
+      <section
+        class="lg:flex flex-col justify-start items-center hidden relative max-w-[1082px] mx-auto"
+      >
+        <h3
+          class="text-[28px] leading-[37.8px] tracking-[0.035em] text-[#333333] semibold mb-6 mx-[100px] w-[430px] text-center mb-[58px]"
+        >
+          Trusted by everyone across the board
+        </h3>
+
+        <!-- NAVIGATION ARROWS -->
+        <ul>
+          <li
+            class="absolute nextTest rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[50%] right-[0px] flex flex-row justify-center items-center z-1"
+          >
+            <i class="fa fa-angle-right"></i>
+          </li>
+          <li
+            class="absolute prevTest rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[50%] left-[0px] flex justify-center items-center z-1"
+          >
+            <i class="fa fa-angle-left"></i>
+          </li>
+        </ul>
+
+        <div class="w-full">
+          <div class="testimonialCarousel mx-[38.5px] mb-[92px]">
+            <!-- SLIDE 1 -->
+            <div class="mx-[30px]">
+              <div
+                class="flex flex-row justify-start items-center gap-x-[30px]"
+              >
+                <div>
+                  <div class="w-[248px] h-[232px]">
+                    <img
+                      src="../assets/images/test_Img.png"
+                      class="h-full w-full object-cover drop-shadow-[2px_4px_10px_rgba(180,180,180,0.25)]"
+                    />
+                  </div>
+                </div>
+
+                <div class="w-[617px]">
+                  <p
+                    class="text-[20px] leading-[30px] font-normal text-[#4F4F4F] mb-6"
+                  >
+                    <q
+                      >The arts seminar conducted by Dr. Shevchenko helped me
+                      understand artistic approaches to human expression. The
+                      arts seminar conducted by Dr. Shevchenko helped me
+                      understand artistic approaches to human expression and
+                      innovation.</q
+                    >
+                  </p>
+                  <p
+                    class="text-[18px] leading-[24px] tracking-[0.035em] text-[#333333] semibold mb-[4px]"
+                  >
+                    Darell Steward
+                  </p>
+                  <p class="text-lg font-normal text-[#828282]">Art Director</p>
+                </div>
+              </div>
+            </div>
+            <!-- SLIDE 1 -->
+            <div class="mx-[30px]">
+              <div
+                class="flex flex-row justify-start items-center gap-x-[30px]"
+              >
+                <div>
+                  <div class="w-[248px] h-[232px]">
+                    <img
+                      src="../assets/images/test_Img.png"
+                      class="h-full w-full object-cover drop-shadow-[2px_4px_10px_rgba(180,180,180,0.25)]"
+                    />
+                  </div>
+                </div>
+
+                <div class="w-[617px]">
+                  <p
+                    class="text-[20px] leading-[30px] font-normal text-[#4F4F4F] mb-6"
+                  >
+                    <q
+                      >The arts seminar conducted by Dr. Shevchenko helped me
+                      understand artistic approaches to human expression. The
+                      arts seminar conducted by Dr. Shevchenko helped me
+                      understand artistic approaches to human expression and
+                      innovation.</q
+                    >
+                  </p>
+                  <p
+                    class="text-[18px] leading-[24px] tracking-[0.035em] text-[#333333] semibold mb-[4px]"
+                  >
+                    Darell Steward
+                  </p>
+                  <p class="text-lg font-normal text-[#828282]">Art Director</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- //////////////////////////////////////////////////////////////////////////// -->
+
+      <!-- DARK BLUE BANNER (ONLY MOBILE) -->
+      <div
+        class="bg-[#3F37C9] text-white pt-[48px] flex flex-col justify-start items-center text-white lg:hidden"
+      >
+        <div
+          class="text-[24px] leading-[32.4px] semibold text-center mb-[36px]"
+        >
+          Ready to take the first serious step in your career?
+        </div>
+        <button
+          class="uppercase text-[#4F4F4F] text-xs boldFont px-[53px] py-[13px] border-b-[6px] border-[#EAEAEA] bg-white rounded-[10px] mb-[48px]"
+        >
+          Join Topteen Today
+        </button>
+      </div>
+
+      <!-- TOP TEEN ONLY MOBILE -->
+      <div
+        class="w-full pt-[64px] flex flex-col justify-start gap-y-[18px] items-center mb-[57px] lg:hidden"
+      >
+        <div
+          class="flex flex-row justify-start items-center gap-x-[8px] mb-[19px]"
+        >
+          <div class="h-[39px] w-[39px]">
+            <img
+              src="../assets/images/graduation-hat 1.png"
+              class="h-full w-full"
+            />
+          </div>
+          <div class="text-[14px] leading-[16px] boldFont">TOP TEEN</div>
+        </div>
+        <div class="text-center w-[246px] text-lg font-normal text-[#828282]">
+          Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet
+          sint.
+        </div>
+      </div>
+    </main>
+
+    <!-- FOOTER FOR MOBILE -->
+    <div
+      class="flex flex-row justify-between items-start mx-[23px] mb-[52px] lg:hidden"
+    >
+      <ul>
+        <li class="text-lg font-normal text-[#333333] mb-[22px]">Resources</li>
+        <li class="text-lg font-normal text-[#828282] mb-[16px]">Learn More</li>
+        <li class="text-lg font-normal text-[#828282]">Downloads</li>
+      </ul>
+      <ul>
+        <li class="text-lg font-normal text-[#333333] mb-[22px]">Product</li>
+        <li class="text-lg font-normal text-[#828282] mb-[16px]">Pricing</li>
+        <li class="text-lg font-normal text-[#828282] mb-[16px]">Features</li>
+        <li class="text-lg font-normal text-[#828282]">Log In</li>
+      </ul>
+      <ul>
+        <li class="text-lg font-normal text-[#333333] mb-[22px]">Social</li>
+        <li class="text-lg font-normal text-[#828282] mb-[16px]">Instagram</li>
+        <li class="text-lg font-normal text-[#828282] mb-[16px]">Linkedin</li>
+        <li class="text-lg font-normal text-[#828282]">Facebook</li>
+      </ul>
+    </div>
+
+    <div
+      class="h-[1px] w-[344px] mx-[23px] border-b-[1px] bg-black bg-opacity-20 mb-[20px] lg:hidden"
+    ></div>
+
+    <div
+      class="flex flex-col justify-start items-center pt-3 lg:hidden gap-y-3 mb-[65px]"
+    >
+      <p class="text-lg text-[#828282]">© 2023 TopTeen. All rights reserved.</p>
+      <p class="text-lg text-[#828282]">Terms & Conditions • Privacy Policy</p>
+    </div>
+
+    <!-- FOOTER PORTION -->
+    <footer class="w-full bg-[#FDFCFF] hidden lg:block">
+      <div
+        class="container mx-auto px-20 pt-10 my-8 h-auto tracking-wide"
+        id="footer"
+      >
+        <div
+          class="grid grid-cols-2 pb-10 border-b border-[#000000] border-opacity-20 gap-10"
+        >
+          <div>
+            <h4 class="text-sm boldFont mb-4 footer-heading">
+              <span
+                ><img
+                  src="../assets/images/graduation-hat 1.png"
+                  class="h-10 inline-block"
+              /></span>
+              &nbsp;<span class="boldFont text-[13.13px] leading-[18px]"
+                >TOPTEEN</span
+              >
+            </h4>
+            <p class="text-left text-[#828282] text-lg w-1/2 font-normal">
+              Amet minim mollit non deserunt ullamco est sit aliqua dolor do
+              amet sint.
+            </p>
+          </div>
+          <div class="flex flex-row justify-between items-start">
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Resources
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Learn more </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Downloads </a>
+              </li>
+            </ul>
+
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Product
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Pricing </a>
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Features </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Log In </a>
+              </li>
+            </ul>
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Socials
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Instagram </a>
+              </li>
+
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Linkedin </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Facebook </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div
+          class="flex flex-row justify-between my-2 text-[#828282] font-normal mb-6"
+        >
+          <div class="text-xs">&copy; 2021 TopTeen. All rights reserved.</div>
+          <div class="text-xs">
+            <a href="#" class="underline">Terms & Conditions</a
+            ><span class="font-extrabold">.</span
+            ><a href="#" class="underline"> Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- SCRIPTS SECTION -->
+    <!-- <script
+      type="text/javascript"
+      src="//code.jquery.com/jquery-1.11.0.min.js"
+    ></script> -->
+    <!-- <script src="https://unpkg.com/flowbite@1.4.7/dist/flowbite.js"></script> -->
+    <!-- <script
+      type="text/javascript"
+      src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"
+    ></script> -->
+    <script src="../node_modules/flowbite/dist/flowbite.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="../node_modules/slick-carousel/slick/slick.min.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script src="../assets/js/homePage.js"></script>
+    <!-- <script type="text/javascript" src="slick/slick.min.js"></script> -->
+  </body>
+</html>

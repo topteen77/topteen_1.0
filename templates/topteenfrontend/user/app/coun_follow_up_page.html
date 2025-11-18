@@ -1,0 +1,750 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+
+
+
+<style>
+  p {
+    margin: 0px;
+    color: inherit;
+  }
+</style>
+
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full overflow-y-auto pb-[60px] lg:pb-0">
+
+  <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+    <!-- Left Part Mobile -->
+    <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+      <!-- User -->
+      <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+        <div class="flex gap-[17px]">
+          <div>
+            <img src="/media/upload/users/{{counselors.coun_user.id}}/user_{{counselors.coun_user.id}}.jpg" class="w-[104px] h-[104px] rounded-full object-cover"
+                                        alt="no image Uploaded"/>
+            <!-- <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" /> -->
+          </div>
+          <div class="flex flex-col gap-y-[5px]">
+            <div class="pt-[12px]">
+              <p class="text-[15px] leading-[20.25px] font-semibold">
+                {{counselors.counselor_name}}
+              </p>
+            </div>
+            <div class="flex flex-col gap-y-[3px]">
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                   Joined {{counselors.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
+                  class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  {% if counselors.counselor_education %}                                   
+                      {{ counselors.counselor_education }} 
+                  {% else %}
+                      -
+                  {% endif %} • 
+                  {% if counselors.counselor_address %}                                    
+                      {{ counselors.counselor_address }}
+                  {% else %}
+                      -
+                  {% endif %}
+                </p>
+              </div>
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  {{counselors.counselor_admin}}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-direction="translate-y-full"
+          class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+          <i class="fa fa-gear text-white text-[12.5px]"></i>
+        </button>
+      </div>
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div id="comppro"
+        class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[100px] pt-[18px] relative">
+        <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+          <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+        </div>
+        <div>
+          <div class="flex relative">
+            <div class="absolute -left-[24px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" class="w-[81px] h-[81px]"
+                alt="" />
+            </div>
+            <div class="text-left max-w-[217.5px] ml-[74px]">
+              <div>
+                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+
+    <!-- End of left Part Mobile -->
+
+    <!-- Left part Desktop -->
+
+    <div class="flex  hidden lg:block w-[338px] ">
+      <div class=" border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto h-[450px] sticky-sidebar">
+        <!-- User -->
+        <div class="flex justify-center border-b-[1px] border-solid border-[#dedede] ">
+          <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px] px-2">
+
+            <div class=" flex flex-col justify-center items-center">
+
+              <div class="flex justify-center items-center w-full">
+                <div class="flex gap-[8px]">
+                  <div class="relative">
+                    <!-- <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" /> -->
+                    <img src="/media/upload/users/{{counselors.coun_user.id}}/user_{{counselors.coun_user.id}}.jpg" class="w-[104px] h-[104px] rounded-full object-cover"
+                    alt="no image Uploaded"/>
+
+
+                  </div>
+                </div>
+              </div>
+
+              <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{counselors.counselor_name}}</p>
+
+            </div>
+
+
+            <div class="flex flex-col gap-y-[8px]">
+
+              <div class="flex gap-[14px]">
+                <img src="{{ static ('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]"
+                  alt="" />
+                <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                  Joined {{counselors.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[14px]">
+                <img src="{{ static ('topteenfrontend/assets/images/userGrade.png')}}" class="w-[18px] h-[14px]"
+                  alt="" />
+                <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                  {% if counselors.counselor_education %}                                   
+                      {{ counselors.counselor_education }} 
+                  {% else %}
+                      -
+                  {% endif %} • 
+                  {% if counselors.counselor_address %}                                    
+                      {{ counselors.counselor_address }}
+                  {% else %}
+                      -
+                  {% endif %}
+                </p>
+              </div>
+              <div class="flex gap-[14px]">
+                <img src="{{ static ('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]"
+                  alt="" />
+                <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                  {{counselors.counselor_admin}}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- End of User -->
+
+        <!-- Complete Profile -->
+        <div class="flex justify-center pt-[18px] flex-col px-2">
+          <div class="flex flex-col items-center">
+            <div class="flex gap-[18px]">
+              <div class="w-[45px] h-[44px]"><img
+                  src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" alt="no image" /></div>
+              <div class="text-left max-w-[206px] flex flex-col gap-y-[5px]">
+                <div>
+                  <p class="text-[12px] leading-[16.2px] font-semibold text-[#333333]"> Complete your
+                    profile </p>
+                  <p class="text-[10px] leading-[14.5px] font-normal text-[#828282]"> A complete
+                    profile helps us cater the best content to you </p>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-[205px] h-[10px] rounded-[100px] bg-[#4cc9f0] bg-opacity-[0.15]">
+                  <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+                </div>
+                <!-- End of Progress Bar -->
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="w-[295px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[19px] d-none"> <a
+                href="{{ url('users:profiledetails') }}">
+                <div
+                  class="w-full h-[48px] flex gap-[11.56px] justify-center rounded-[10px] bg-[#3f37c9] text-[#ffffff]">
+                  <i class="fa fa-gear my-auto" aria-hidden="true"></i>
+                  <p class="text-[14px] leading-[18.9px] font-bold my-auto text-white"> SETTINGS </p>
+                </div>
+              </a>
+
+
+
+            </div>
+
+            <!-- End of settings -->
+          </div>
+
+
+
+        </div>
+        <!-- End of Complete Profile -->
+      </div>
+    </div>
+    <!-- End of Left part Desktop -->
+    <main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
+
+
+      <!-- Right Part -->
+      <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20">
+
+        <div class="flex justify-between align-items-center mt-md-0 mt-3">
+          <h2 class="title-test-info mb-0 fs-sm-18">Counselor Dashboard </h2>
+          <button onclick="window.location='/counselor/counselor_dashboard/{{coun_id}}'" type="button"
+            class="ms-1 text-gray-900 bg-blue hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:bg-gray-700">
+            <i class="fa-solid fa-arrow-left me-1" aria-hidden="true"></i> Back
+          </button>
+        </div>
+
+        <!--Institute information-->
+        <div
+          class="five-box flex flex-wrap justify-center sm:justify-start gap-[10px] lg:gap-[30px] pt-[14px] lg:pt-[16px] mx-auto">
+          <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px] py-[15px] bg-[#f7f7fa] rounded-[10px]">
+            <div> <img src="{{ static ('images1/graduate-student.png')}}" class="w-[30px] h-[30px]" alt=""> </div>
+            <div>
+              <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                {{students_count.count()}} </p>
+              <p class="text-[10px] leading-[14.5px] text-[#828282]"> Assigned</p>
+            </div>
+          </div>
+          <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px]  py-[15px] bg-[#f7f7fa] rounded-[10px]">
+            <div> <img src="{{ static ('images1/cousellor.png')}}" class="w-[30px] h-[30px]" alt=""> </div>
+            <div>
+              <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                {{total_is_followed_up_count}} </p>
+              <p class="text-[10px] leading-[14.5px] text-[#828282]"> Followed</p>
+            </div>
+          </div>
+        </div>
+
+        <!--Institute information-->
+
+        <!--search filtet from-->
+
+        <div class="flex flex-row justify-between items-center my-3">
+          <h3 class="title-test-info  fs-18 mb-0 mt-3">Students Details </h3>
+        </div>
+        <div class="card-body mt-1 cutom-table-form">
+          <div class=" mt-2 lg:mb-0 ">
+            <form id="filter-form" method="get" class="newdashboardSelect flex justify-between grid grid-new-2 d-md-flex d-none">
+  
+              <div class="flex flex-row">
+  
+                <select name="class_and_section" id="classes" class="select-option me-2">
+                    <option disabled selected>Classes</option>
+                    {% for cas in class_and_sections %}
+                    <option value="{{ cas.class_and_section }}" {% if request.GET.class_and_section == cas.class_and_section %}selected{% endif %}>
+                      {{ cas.class_and_section }}
+                    </option>
+                    {% endfor %}
+                  </select>
+              
+                  <input type="text" placeholder="Student Name" name="student_name" id="student_name"
+                    class="select-option me-2" value="{% if request.GET.student_name %}{{ request.GET.student_name }}{% endif %}">
+                        
+              </div>
+  
+              <div class="flex flex-row justify-end">
+  
+  
+                <button id="parentfaq" type="submit"
+                  class="uppercase  bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] h-[40px] w-[70px] me-2">
+                  Search
+                </button>
+  
+  
+                <a href="{{url('counselor:CounselorDashboardView',args=[coun_id])}}">
+                  <button id="parentfaq" type="button"
+                    class="uppercase bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] h-[40px] w-[50px]">
+                    Reset
+                  </button>
+                </a>
+  
+              </div>
+  
+  
+            </form>
+
+
+
+
+                    <!-- Mobile Filter Button -->
+                    <div class="d-md-none d-flex justify-content-end mb-3">
+                      <button
+                          class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center  bg-purple"
+                          type="button" data-modal-toggle="course-track-modal"> <i class="fa-solid fa-bars me-2"></i>
+                          Filter </button>
+                  </div>
+              </div>
+              <!-- Mobile Filter Button -->
+
+  
+          </div>
+
+          <!-- Search Table -->
+          <div class="table-responsive">
+            <div id="basic-datatables_wrapper" class="dataTables_wrapper container-fluid dt-bootstrap4">
+              <div class="row">
+                <div class="col-sm-12 custom-table mt-md-5 px-0">
+                  <table id="basic-datatables" class="display table " role="grid"
+                    aria-describedby="basic-datatables_info">
+                    <thead>
+                      <tr role="row">
+                        <th>S.No.</th>
+                        <th>Class</th>
+                        <th>Name</th>
+                        <th>Recent Follow-up</th>
+                        <th>Next Follow-up</th>
+                        <th>Remarks</th>
+                        <th> </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% if students %}
+                      {% for stu_info in students %}
+
+                      <tr>
+                        <td>{{ students.start_index() + loop.index0 }}</td>
+                        <td>{{ stu_info.student.class_and_section.class_and_section }}</td>
+                        <td>{{ stu_info.student.student.name }}</td>
+
+                        <td>
+                          {% if stu_info.follow_ups %}
+                          {{ stu_info.follow_ups.0.last_follow_up_date }}
+                          {% else %}
+                          -
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if stu_info.follow_ups %}
+
+                          {{ stu_info.follow_ups.0.next_follow_up_date }}
+                          {% else %}
+                          -
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if stu_info.follow_ups %}
+
+                          {{ stu_info.follow_ups.0.message }}
+                          {% else %}
+                          -
+                          {% endif %}
+                        </td>
+
+
+                        <td align="center">
+                          <button data-modal-target="follow-up-modal" data-modal-toggle="follow-up-modal"
+                            class="btn blue-button sm-button rounded-full"
+                            onclick="setStudentId('{{ stu_info.student.student.id }}')">
+                            <i class="fa-solid fa-user-plus"></i>
+                          </button>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                      {% else %}
+                      <tr>
+                        <td colspan="9">No students found.</td>
+                      </tr>
+                      {% endif %}
+                    </tbody>
+
+
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="table-footer mt-3">
+            <div class="row">
+                <div class="col-sm-12 col-md-5 align-items-center justify-content-md-start justify-content-center d-flex">
+                    <div class="dataTables_info" id="basic-datatables_info" role="status" aria-live="polite">
+                        {% if students %}
+                            Showing {{ students.start_index() }} to {{ students.end_index() }} of {{ students.paginator.count }} entries
+                        {% else %}
+                            No entries to display.
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-7">
+                    <div class="dataTables_paginate paging_simple_numbers d-flex justify-content-end" id="basic-datatables_paginate">
+                      <ul class="pagination mb-0">
+                        {% if students.has_previous() %}
+                        <li class="paginate_button page-item previous" id="basic-datatables_previous">
+                          <a href="{{ my_url(students.previous_page_number(), 'page', request.GET.urlencode()) }}"
+                          aria-controls="basic-datatables" class="page-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;"><path d="m12.707 7.707-1.414-1.414L5.586 12l5.707 5.707 1.414-1.414L8.414 12z"></path><path d="M16.293 6.293 10.586 12l5.707 5.707 1.414-1.414L13.414 12l4.293-4.293z"></path></svg></a>
+                        </li>
+                        {% else %}
+                        <li class="paginate_button page-item previous disabled" id="basic-datatables_previous">
+                            <a href="#" aria-controls="basic-datatables" class="page-link">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;"><path d="m12.707 7.707-1.414-1.414L5.586 12l5.707 5.707 1.414-1.414L8.414 12z"></path><path d="M16.293 6.293 10.586 12l5.707 5.707 1.414-1.414L13.414 12l4.293-4.293z"></path></svg></a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in students.paginator.page_range %}
+                          {% if students.number == num %}
+                          <li class="paginate_button page-item active">
+                              <a href="#" aria-controls="basic-datatables" class="page-link">{{ num }}</a>
+                          </li>
+                          {% elif num <= 3 or num > students.paginator.num_pages - 3 or (num >= students.number - 2 and num <= students.number + 1) %}
+                          <li class="paginate_button page-item">
+                              <a href="{{ my_url(num, 'page', request.GET.urlencode()) }}" aria-controls="basic-datatables" class="page-link">{{ num }}</a>
+                          </li>
+                          {% elif num == 4 or num == students.paginator.num_pages - 3 %}
+                          <li class="paginate_button page-item disabled">
+                              <a href="#" aria-controls="basic-datatables" class="page-link">...</a>
+                          </li>
+                          {% endif %}
+                        {% endfor %}
+
+                        {% if students.has_next() %}
+                        <li class="paginate_button page-item next" id="basic-datatables_next">
+                          <a href="{{ my_url(students.next_page_number(), 'page', request.GET.urlencode()) }}" aria-controls="basic-datatables"
+                          class="page-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;"><path d="M10.296 7.71 14.621 12l-4.325 4.29 1.408 1.42L17.461 12l-5.757-5.71z"></path><path d="M6.704 6.29 5.296 7.71 9.621 12l-4.325 4.29 1.408 1.42L12.461 12z"></path></svg></a>
+                        </li>
+                        {% else %}
+                        <li class="paginate_button page-item next disabled" id="basic-datatables_next">
+                            <a href="#" aria-controls="basic-datatables" class="page-link"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;"><path d="M10.296 7.71 14.621 12l-4.325 4.29 1.408 1.42L17.461 12l-5.757-5.71z"></path><path d="M6.704 6.29 5.296 7.71 9.621 12l-4.325 4.29 1.408 1.42L12.461 12z"></path></svg></a>
+                        </li>
+                        {% endif %}
+                      </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Search Table -->
+
+        <!--search filtet from-->
+
+      </div>
+  </div>
+  <!-- End of Right Part -->
+  </div>
+</main>
+
+<div data-direction="translate-y-full" class="h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto transition-all duration-500 translate-y-full">
+
+  <div class="inline-block bg-[#ffffff] w-full rounded-t-[10px] absolute bottom-0 drawerContent">
+
+      <div class="pl-[24px] pr-[30px] w-full py-[32px] flex flex-col gap-[20px]">
+
+          <a href="/user/profiledetails" class="inline-block w-full">
+              <div class="flex justify-between w-full">
+                  <div>
+                      <p class="text-[16px] leading-[21.6px] semibold">Edit Profile</p>
+                      <p class="text-[12px] leading-[16px] regularFont text-[#828282]">You answered - Indoors</p>
+                  </div>
+                  <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto" aria-hidden="true"></i>
+              </div>
+          </a>
+
+          <a href="/user/user-history" class="inline-block w-full">
+              <div class="flex justify-between w-full">
+                  <div>
+                      <p class="text-[16px] leading-[21.6px] semibold">Manage payment history</p>
+                      <p class="text-[12px] leading-[16px] regularFont text-[#828282]">You answered - Indoors</p>
+                  </div>
+                  <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto" aria-hidden="true"></i>
+              </div>
+          </a>
+
+          <a href="/user/logout" class="inline-block w-full">
+              <div class="flex justify-between w-full">
+                  <div>
+                      <p class="text-[16px] leading-[21.6px] semibold text-[#f20a18]">Sign Out</p>
+                      <p class="text-[12px] leading-[16px] regularFont text-opacity-60 text-[#f20a18]">You
+                          answered - Indoors</p>
+                  </div>
+                  <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto" aria-hidden="true"></i>
+              </div>
+          </a>
+
+      </div>
+
+  </div>
+
+</div>
+
+<!--Filter Mobile Modal -->
+
+<!-- Main modal -->
+<div id="course-track-modal" aria-hidden="true"
+      class="hidden overflow-x-hidden overflow-y-auto fixed h-modal md:h-full top-0 left-0 right-0 md:inset-0 z-50 justify-center items-center">
+  <div class="relative w-full max-w-md  h-full md:h-auto"> 
+    <!-- Modal content -->
+    <div class="bg-white  shadow relative dark:bg-gray-700 h-screen">
+      <div class="flex justify-end p-2">
+        <button type="button"
+              class="top-[36px] right-[36px] text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white"
+              data-modal-toggle="course-track-modal">
+        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+        </svg>
+        <span class="sr-only">Close modal</span> </button>
+      </div>
+      <form id="filter-form" method="get" class="newdashboardSelect mobile-filter">
+  
+
+
+          <select name="class_and_section" id="classes" class="select-option w-full ">
+              <option disabled selected>Classes</option>
+              {% for cas in class_and_sections %}
+              <option value="{{ cas.class_and_section }}" {% if request.GET.class_and_section == cas.class_and_section %}selected{% endif %}>
+                {{ cas.class_and_section }}
+              </option>
+              {% endfor %}
+            </select>
+        
+            <input type="text" placeholder="Student Name" name="student_name" id="student_name"
+              class="select-option w-full" style="width:100%" value="{% if request.GET.student_name %}{{ request.GET.student_name }}{% endif %}">
+                  
+
+
+ 
+
+
+          <button id="parentfaq" type="submit"
+            class="uppercase  bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] h-[40px] w-full ">
+            Search
+          </button>
+
+
+          <a href="{{url('counselor:CounselorDashboardView',args=[coun_id])}}" class="w-full">
+            <button id="parentfaq" type="button"
+              class="uppercase bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] h-[40px] w-full">
+              Reset
+            </button>
+          </a>
+
+
+
+
+      </form>
+    </div>
+  </div>
+</div>
+<!--Filter Mobile Modal -->
+
+
+
+<!--Follw Up Modal -->
+<div id="follow-up-modal" tabindex="-1"
+  class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+  <div class="relative p-4 max-w-[690px] w-full">
+    <!-- Modal content -->
+    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+      <!-- Modal header -->
+      <div class="flex items-center justify-center p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+        <h3
+          class="text-lg font-semibold text-gray-900 dark:text-white flex align-items-center w-100 justify-center mb-0">
+          <img class="me-3" src="{{ static ('images1/create-icon.png')}}" alt="icon"> Create Follow up </h3>
+        <button type="button"
+          class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm h-8 w-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+          data-modal-toggle="follow-up-modal">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <div class="p-4 md:p-5 pb-0 space-y-4">
+        {% if messages %}
+        <div>
+          {% for message in messages %}
+          <p class="alert {{ message.tags }}">{{ message }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <form class="p-4 md:p-5" action="{{ url_('counselor:Counselor_follow_up_page', coun_id=coun_id) }}"
+          method="post">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          <input type="hidden" name="student_id" id="student-id" value="">
+          <div class="grid gap-3 mb-3 md:grid-cols-2">
+            <div>
+              <select name="mode_of_follow_up" class="form-select custom-input">
+                <option selected disabled>Mode of Follow Up*</option>
+                <option value="email">Email</option>
+                <option value="call">Call</option>
+                <option value="meeting">Meeting</option>
+              </select>
+            </div>
+            <div>
+              <select name="follow_up_status" class="form-select custom-input">
+                <option selected disabled>Follow Up Status*</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="follow-up">Follow-up</option>
+                <option value="Special">Special Attention</option>
+              </select>
+            </div>
+            <div class="relative max-w-sm">
+              <input name="last_follow_up_date" id="last_follow_up_date" type="date" onfocus="(this.type = 'date')"
+                value="None" class="form-control custom-input pe-3 fs-12" placeholder="last follow up date"
+                tabindex="-1">
+            </div>
+            <div class="relative max-w-sm">
+              <input name="next_follow_up_date" id="next_follow_up_date" type="date" onfocus="(this.type = 'date')"
+                value="None" class="form-control custom-input pe-3 fs-12" placeholder="next follow up date"
+                tabindex="-1">
+            </div>
+            <!-- <div>
+                <input name="exam_credits" type="text" id="credit" class="form-control custom-input" placeholder="Exam Credits" />
+              </div> -->
+            
+              <div class="flex align-items-center">
+            <input type="checkbox" name="is_followed_up" id="is_followed_up" class="check-box" >
+
+            <label for="session done" class="fs-12 ms-2">Session Completed</label>
+          </div>
+          </div>
+          <div class="w-full">
+            <textarea name="message" id="message" rows="4" class="custom-input w-full p-3"
+              placeholder="Message..."></textarea>
+          </div>
+          <div
+            class="flex items-center justify-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
+            <button data-modal-hide="small-modal" type="submit"
+              class="uppercase ms-3 px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
+              Submit </button>
+          </div>
+        </form>
+      </div>
+      <!-- Modal footer -->
+
+    </div>
+  </div>
+</div>
+<!--Follw Up Modal -->
+
+<!--new js -->
+
+<!-- <script src="js/bootstrap.min.js"></script> -->
+<!--new js -->
+<!-- Date picker js -->
+<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const modalToggle = document.querySelector('[data-modal-toggle="follow-up-modal"]');
+    const modal = document.getElementById('follow-up-modal');
+
+    if (modalToggle) {
+      modalToggle.addEventListener('click', function () {
+        modal.classList.toggle('hidden'); // Toggle visibility
+      });
+    }
+
+    window.addEventListener('click', function (event) {
+      if (event.target === modal) {
+        modal.classList.add('hidden');
+      }
+    });
+  });
+</script>
+
+<script>
+
+
+  // Select all tooltip containers
+  const tooltipContainers = document.querySelectorAll('.tooltip-container');
+
+  // Add click event to toggle tooltip visibility
+  tooltipContainers.forEach(container => {
+    container.addEventListener('click', function () {
+      const tooltip = this.querySelector('.tooltip');
+
+      // Toggle visibility of the tooltip
+      if (tooltip.style.visibility === 'visible') {
+        tooltip.style.visibility = 'hidden';
+        tooltip.style.opacity = 0;
+      } else {
+        tooltip.style.visibility = 'visible';
+        tooltip.style.opacity = 1;
+      }
+    });
+  });
+
+
+  // table edit save //
+
+
+  $(document).ready(function () {
+    $('.edit-btn').click(function () {
+      $(this).closest('tr').next('.edit-row').show();
+      $(this).closest('tr').hide();
+    });
+
+    $('.save-btn').click(function () {
+      var input = $(this).closest('.edit-row').find('input').val();
+      $(this).closest('.edit-row').prev('tr').find('td:eq(1)').text(input);
+      $(this).closest('.edit-row').hide();
+      $(this).closest('.edit-row').prev('tr').show();
+    });
+
+    $('.cancel-btn').click(function () {
+      $(this).closest('.edit-row').hide();
+      $(this).closest('.edit-row').prev('tr').show();
+    });
+  });
+
+  // table edit save //
+
+</script>
+
+<script>
+  function setStudentId(studentId) {
+    setTimeout(function () {
+      const studentInput = document.getElementById('student-id');
+      if (studentInput) {
+        studentInput.value = studentId;
+        console.log("studentId set to:", studentId);
+      } else {
+        console.log("Element with ID 'student_id' not found.");
+      }
+    }, 100); // Adds a 100ms delay
+  }
+</script>
+
+
+
+
+{% endblock %}

@@ -1,0 +1,863 @@
+{% extends 'topteenfrontend/base.html' %}
+{%block additionalheader%}
+<style>
+  .pageBtn {
+    height: 35px;
+    width: 35px;
+    border-radius: 3px;
+    border: 1px solid #dadada;
+    font-size: 14px;
+    color: #898A8D;
+    background-color: #FFFFFF;
+  }
+
+  .pageBtn.active {
+    background-color: #3f37c9;
+    color: #FFFFFF;
+  }
+</style>
+{%endblock%}
+{% block main %}
+
+<section class="lg:container lg:mx-auto lg:mb-[76px] lg:py-[200px] px-4 lg:px-0">
+  <!-- Main Content -->
+  <main class=" px-[15px] lg:px-[px] mx-auto">
+    <h1 class="font-bold text-[28px] text-[#333333] text-center md:text-left">
+      Explore Careers
+    </h1>
+    <form id="form-id" method="GET">
+      <!-- Filters and Results -->
+      <div class="md:flex sm:gap-[30px] pt-[20px]">
+        <!-- Filters -->
+        <div class="flex flex-col gap-y-[24px] mx-auto md:mt-[40px] xl:ml-0">
+          <!-- Career Cluster -->
+          <div class="mx-auto" style="display:none">
+            <h5 class="text-[18px] mb-3">Career Cluster</h5>
+            <select id="careerClusterSelect" 
+                    class="w-[300px] px-4 py-2 border border-gray-300 rounded-md bg-white text-sm"
+                    onchange="handleClusterChange(this.value)">
+              <option value="">All Clusters</option>
+              {% for cluster in clusters %}
+              <option value="{{cluster.id}}" {% if cluster.id|string == selected_cluster %}selected{% endif %}>
+                {{cluster.name}}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <!-- End of Career Cluster -->
+
+          <!-- Profession -->
+          <div class="mx-auto">
+            <h5 class="text-[18px]">Profession</h5>
+
+            <button id="selectProfessionButton" data-dropdown-toggle="selectProfessionDropdown"
+              class="text-black font-medium text-sm px-4 py-2.5 border border-gray-300 w-[300px] text-center inline-flex items-center justify-between relative mt-[8px] hover:bg-gray-50 transition-colors"
+              type="button">
+              <span id="professionButtonText">Select Profession</span>
+              <div class="flex items-center">
+                <span id="professionCount" class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-2 hidden">0</span>
+                <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </button>
+
+            <!-- Dropdown menu -->
+            <div id="selectProfessionDropdown"
+              class="hidden z-10 w-[300px] bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600"
+              data-popper-reference-hidden="" data-popper-escaped="" data-popper-placement="bottom" style="
+              position: absolute;
+              inset: 0px auto auto 0px;
+              left: 0;
+              transform: translate(281px, 70px);
+            ">
+              <!-- Apply and Clear Buttons -->
+              <div class="p-3 border-b bg-gray-50">
+                <div class="flex gap-2">
+                  <button type="button" onclick="applyProfessionFilters()" 
+                          class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                          id="professionApplyBtn">
+                    Apply Filters
+                  </button>
+                  <button type="button" onclick="clearProfessionFilters()" 
+                          class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                          id="professionClearBtn">
+                    Clear
+                  </button>
+                </div>
+              </div>  
+              <!-- Search input -->
+              <div class="p-3 border-b">
+                <input type="text" id="professionSearch" placeholder="Search professions..." 
+                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       onkeyup="filterProfessions(this.value)">
+              </div>
+              <ul
+                class="h-[250px] p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200 overflow-y-scroll no-scrollbar"
+                aria-labelledby="selectProfessionButton" id="professionList">
+                {% for tag,count,selected in facets_filter.profession %}
+                <li class="profession-item" data-name="{{tag.lower()}}">
+                  <div class="flex items-center">
+                    <input id="{{tag}}" type="checkbox" name="professions" value="{{tag}}" 
+                      {% if selected %} checked {% endif %}
+                      class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 dark:ring-offset-gray-700 dark:bg-gray-600 dark:border-gray-500 prof" 
+                      onchange="handleProfessionChange(this)" />
+                    <label for="{{tag.capitalize()}}"
+                      class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300 cursor-pointer">{{tag}}</label>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          <!-- End of Profession -->
+
+          <!-- Skills -->
+          <div class="mx-auto">
+            <h5 class="text-[18px]">Skills</h5>
+
+            <button id="selectSkillsButton" data-dropdown-toggle="selectSkillsDropdown"
+              class="text-black font-medium text-sm px-4 py-2.5 border border-gray-300 w-[300px] text-center inline-flex items-center justify-between relative mt-[8px] hover:bg-gray-50 transition-colors"
+              type="button">
+              <span id="skillsButtonText">Select Skills</span>
+              <div class="flex items-center">
+                <span id="skillsCount" class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mr-2 hidden">0</span>
+                <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </button>
+
+            <!-- Dropdown menu -->
+            <div id="selectSkillsDropdown"
+              class="hidden z-10 w-[300px] bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600"
+              data-popper-reference-hidden="" data-popper-escaped="" data-popper-placement="bottom" style="
+              position: absolute;
+              inset: 0px auto auto 0px;
+              left: 0;
+              transform: translate(281px, 70px);
+            ">
+              <!-- Apply and Clear Buttons -->
+              <div class="p-3 border-b bg-gray-50">
+                <div class="flex gap-2">
+                  <button type="button" onclick="applySkillFilters()" 
+                          class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                          id="skillApplyBtn">
+                    Apply Filters
+                  </button>
+                  <button type="button" onclick="clearSkillFilters()" 
+                          class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                          id="skillClearBtn">
+                    Clear
+                  </button>
+                </div>
+              </div>
+              <!-- Search input -->
+              <div class="p-3 border-b">
+                <input type="text" id="skillsSearch" placeholder="Search skills..." 
+                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       onkeyup="filterSkills(this.value)">
+              </div>
+              <ul
+                class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200 h-[250px] overflow-y-scroll no-scrollbar"
+                aria-labelledby="selectSkillsButton" id="skillsList">
+                {% for tag,count,selected in facets_filter.skill %}
+                <li class="skill-item" data-name="{{tag.lower()}}">
+                  <div class="flex items-center">
+                    <input id="{{tag}}" type="checkbox" name="skills" value="{{tag}}" 
+                      {% if selected %} checked {% endif %}
+                      class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 dark:ring-offset-gray-700 dark:bg-gray-600 dark:border-gray-500" 
+                      onchange="handleSkillChange(this)" />
+                    <label for="{{tag}}"
+                      class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300 cursor-pointer">{{tag.capitalize()}}</label>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          <!-- End of Skills -->
+          
+          <!-- Selected Filters Sidebar -->
+          <div class="mx-auto mt-6" id="selectedFiltersSidebar" style="display: none;">
+            <h5 class="text-[18px] mb-3 font-semibold text-gray-800">Active Filters</h5>
+            <div class="w-[300px] bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <!-- Career Cluster Section -->
+              <div class="mb-4" id="clusterSection">
+                <div class="flex items-center justify-between mb-2">
+                  <h6 class="text-sm font-medium text-gray-700">Career Cluster</h6>
+                  <span id="clusterCount" class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">0</span>
+                </div>
+                <div id="sidebarSelectedCluster" class="flex flex-wrap gap-2">
+                  <!-- Cluster tag will be added here by JavaScript -->
+                </div>
+              </div>
+              
+              <!-- Professions Section -->
+              <div class="mb-4" id="professionsSection">
+                <div class="flex items-center justify-between mb-2">
+                  <h6 class="text-sm font-medium text-gray-700">Professions</h6>
+                  <span id="professionCount" class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">0</span>
+                </div>
+                <div id="sidebarSelectedProfessions" class="flex flex-wrap gap-2">
+                  <!-- Profession tags will be added here by JavaScript -->
+                </div>
+              </div>
+              
+              <!-- Skills Section -->
+              <div class="mb-4" id="skillsSection">
+                <div class="flex items-center justify-between mb-2">
+                  <h6 class="text-sm font-medium text-gray-700">Skills</h6>
+                  <span id="skillCount" class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">0</span>
+                </div>
+                <div id="sidebarSelectedSkills" class="flex flex-wrap gap-2">
+                  <!-- Skill tags will be added here by JavaScript -->
+                </div>
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="pt-3 border-t border-gray-200">
+                <div class="flex gap-2">
+                  <button type="button" onclick="clearAllFilters()" 
+                          class="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                    Clear All
+                  </button>
+                  <button type="button" onclick="applyAllFilters()" 
+                          class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                    Apply Filters
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- End of Selected Filters Sidebar -->
+          
+          {#
+          <!-- Courses -->
+          <div class="mx-auto">
+            <h5 class="text-[18px]">Courses</h5>
+
+            <button id="selectCoursesButton" data-dropdown-toggle="selectCoursesDropdown"
+              class="text-black font-medium text-sm px-4 py-2.5 border border-gray-300 w-[300px] text-center inline-flex items-center relative mt-[8px]"
+              type="button">
+              Select Courses
+              <svg class="absolute right-3 w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+
+            {% if facets_filter.facets.course %}
+            <!-- Dropdown menu -->
+            <div id="selectCoursesDropdown"
+              class="hidden z-10 w-[300px] bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600 overflow-y-scroll no-scrollbar"
+              data-popper-reference-hidden="" data-popper-escaped="" data-popper-placement="bottom" style="
+              position: absolute;
+              inset: 0px auto auto 0px;
+              left: 0;
+              transform: translate(281px, 70px);
+            ">
+              <ul
+                class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200 overflow-y-scrollbar no-scrollbar h-[300px]"
+                aria-labelledby="selectCoursesButton">
+                {% for tag,count,selected in facets_filter.facets.course %}
+                <li>
+                  <div class="flex items-center">
+                    <input id="{{tag}}" type="checkbox" name="courses" value="{{tag}}" onchange="this.form.submit()" {%
+                      if selected %} checked {% endif %}
+                      class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 dark:ring-offset-gray-700 dark:bg-gray-600 dark:border-gray-500" />
+                    <label for="coursesInput"
+                      class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{tag}}</label>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+
+          </div>
+          <!-- End of City -->
+          #}
+        </div>
+    </form>
+    <!-- End of Filters -->
+
+    <!-- College List -->
+    <div class="md:-mt-[20px] mx-auto lg:mr-0">
+      <div class="lg:flex lg:gap-[8px] pt-2 lg:pt-0">
+
+        <h3 class="font-semibold text-[24px] text-[#333333] text-center md:text-left ">
+          Results{% if careers %}: {{careers.paginator.count}} career{% if careers.paginator.count != 1 %}s{% endif %} found{% endif %}
+        </h3>
+
+      </div>
+
+      {% if careers %}
+      <div
+        class="mx-auto md:px-0 gap-y-[30px] grid sm:grid-cols-2 lg:grid-cols-3 justify-center lg:justify-start gap-[30px] mt-[15px]">
+        {% for career in careers %}
+        <div class="max-w-[400px] overflow-hidden rounded">
+          <div>
+            <a href="{{url('careers:careerdetail',args=[career.slug,career.id])}}">
+              <img src="{% if career.image and career.image.name %}{{career.image.url}}{% else %}{{static('images/career-icon.png')}}{% endif %}" class="w-[300px] h-[175px] md:w-[283px] md:h-[165px] mb-[16px]" alt="Career illustration for {{career.name}}" />
+
+          </div>
+          <h5 class="text-[16px] text-[#333333] mb-[5px] font-semibold">
+            {{career.name}}
+          </h5>
+          </a>
+          <div class="flex">
+            <p class="text-[12px] text-[#828282]">{{career.get_max_salary()}}</p>
+            <img src="{{static('topteenfrontend/assets/images/favourite 1.png')}}" class="w-[14px] h-[14px] ml-[8px]"
+              alt="" />
+            <p class="text-[14px] sm:text-[12px] text-[#828282] ml-[6px]">
+              {{career.get_average_rating()}}
+            </p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <!-- No Results Found - Full Width -->
+      <div class="w-full flex flex-col items-center justify-center py-16 px-4 mt-[15px]">
+        <div class="text-center max-w-md">
+          <svg class="mx-auto h-20 w-20 text-gray-400 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">No careers found</h3>
+          <p class="text-gray-500 mb-8 text-lg">Try adjusting your filters or search criteria to find more careers.</p>
+          <div class="flex gap-4 justify-center">
+            <button type="button" onclick="clearAllFilters()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md text-sm font-medium transition-colors">
+              Clear All Filters
+            </button>
+            <button type="button" onclick="window.location.href='/careers/'" 
+                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-md text-sm font-medium transition-colors">
+              View All Careers
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- End of College List -->
+    </div>
+    <!-- End of Filters and Results -->
+  </main>
+  <!-- End of Mian content -->
+</section>
+<br>
+<!-- PAGINATION -->
+{% if careers and careers.paginator.num_pages > 1 %}
+<div class="flex flex-row justify-center items-center gap-x-[9px] mb-[58px]">
+  {% if careers.has_previous() %}
+
+  <button type="button" onclick="window.location='?page={{careers.previous_page_number() }}'"
+    class="h-[35px] w-[35px] rounded-[3px] border border-[#DADADA] text-center align-middle text-sm text-[#898A8D] bg-white">
+
+    &lt;&lt;
+  </button>
+
+
+  <button type="button" onclick="window.location='?page={{careers.number-1}}'" class="pageBtn">
+    {{careers.number-1}}
+  </button>
+  {%endif%}
+
+  <button class="pageBtn active">
+    {{careers.number}}
+  </button>
+  {% if careers.has_next() %}
+
+  <button type="button" onclick="window.location='?page={{careers.number+1}}'" class="pageBtn">
+    {{careers.number+1}}
+  </button>
+
+
+
+  <button type="button"
+    class="h-[35px] w-[35px] rounded-[3px] border border-[#DADADA] text-center align-middle text-sm text-[#898A8D] bg-white pagebtn"
+    onclick="window.location='?page={{ careers.next_page_number() }}'">
+    &gt;&gt;
+  </button>
+
+  {%endif%}
+</div>
+{% endif %}
+{% endblock %}
+{%block additionalfooter%}
+<script>
+
+  const buttons = document.querySelectorAll(".remove_filter");
+  [...buttons].forEach((elem) => {
+    const parent = elem.closest(".btncnt");
+    let name;
+    if (parent) {
+      name = parent.querySelector(".btnsib")?.textContent;
+    }
+    elem.addEventListener("click", function () {
+      let ur = ""
+      const pathname = window.location.pathname
+
+      if (name) {
+        ur = name.trim()?.split(" ")?.join("+")
+        console.log(ur)
+      }
+      const url = window.location.search;
+
+      const a = url.split("&");
+      const b = a.filter((i) => {
+
+        return !i.includes(ur);
+
+      })
+      const pa = window.location.pathname + "?" + b.join("&")?.replace("?", "");
+      window.location.href = pa;
+
+    })
+  })
+// const pa1=window.location.pathname;
+// console.log(pa1)
+
+// Global variables to track selected filters
+let selectedCluster = null;
+let selectedProfessions = new Set();
+let selectedSkills = new Set();
+
+// Initialize selected filters from URL parameters
+document.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // Initialize selected cluster
+  selectedCluster = urlParams.get('cluster');
+  
+  // Get selected professions
+  const professions = urlParams.getAll('professions');
+  professions.forEach(prof => selectedProfessions.add(prof));
+  
+  // Get selected skills
+  const skills = urlParams.getAll('skills');
+  skills.forEach(skill => selectedSkills.add(skill));
+  
+  updateSelectedFiltersDisplay();
+  updateSidebarDisplay();
+});
+
+// Filter functions for profession and skills
+function filterProfessions(searchTerm) {
+  const items = document.querySelectorAll('.profession-item');
+  const term = searchTerm.toLowerCase();
+  
+  items.forEach(item => {
+    const name = item.getAttribute('data-name');
+    if (name.includes(term)) {
+      item.style.display = 'block';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+
+function filterSkills(searchTerm) {
+  const items = document.querySelectorAll('.skill-item');
+  const term = searchTerm.toLowerCase();
+  
+  items.forEach(item => {
+    const name = item.getAttribute('data-name');
+    if (name.includes(term)) {
+      item.style.display = 'block';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+
+// Handle cluster change
+function handleClusterChange(clusterId) {
+  selectedCluster = clusterId;
+  
+  // Clear profession and skill selections when cluster changes
+  selectedProfessions.clear();
+  selectedSkills.clear();
+  
+  // Uncheck all profession and skill checkboxes
+  document.querySelectorAll('input[name="professions"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('input[name="skills"]').forEach(cb => cb.checked = false);
+  
+  // Update displays
+  updateSelectedFiltersDisplay();
+  updateSidebarDisplay();
+  
+  // Apply filters immediately to show filtered professions
+  applyFilters();
+}
+
+// Handle profession checkbox changes (no page reload)
+function handleProfessionChange(checkbox) {
+  const profession = checkbox.value;
+  
+  if (checkbox.checked) {
+    selectedProfessions.add(profession);
+  } else {
+    selectedProfessions.delete(profession);
+  }
+  
+  updateSelectedFiltersDisplay();
+  updateSidebarDisplay();
+}
+
+// Handle skill checkbox changes (no page reload)
+function handleSkillChange(checkbox) {
+  const skill = checkbox.value;
+  
+  if (checkbox.checked) {
+    selectedSkills.add(skill);
+  } else {
+    selectedSkills.delete(skill);
+  }
+  
+  updateSelectedFiltersDisplay();
+  updateSidebarDisplay();
+}
+
+// Apply profession filters (with page reload)
+function applyProfessionFilters() {
+  applyFilters();
+}
+
+// Apply skill filters (with page reload)
+function applySkillFilters() {
+  applyFilters();
+}
+
+// Clear profession filters (clear selections and apply)
+function clearProfessionFilters() {
+  selectedProfessions.clear();
+  
+  // Uncheck all profession checkboxes
+  document.querySelectorAll('input[name="professions"]').forEach(cb => cb.checked = false);
+  
+  updateSelectedFiltersDisplay();
+  updateSidebarDisplay();
+  applyFilters(); // Update search results immediately
+}
+
+// Clear skill filters (clear selections and apply)
+function clearSkillFilters() {
+  selectedSkills.clear();
+  
+  // Uncheck all skill checkboxes
+  document.querySelectorAll('input[name="skills"]').forEach(cb => cb.checked = false);
+  
+  updateSelectedFiltersDisplay();
+  updateSidebarDisplay();
+  applyFilters(); // Update search results immediately
+}
+
+// Update the selected filters display (for button text and counts)
+function updateSelectedFiltersDisplay() {
+  // Update button text and count
+  updateButtonDisplay();
+}
+
+// Apply all filters (from sidebar)
+function applyAllFilters() {
+  applyFilters();
+}
+
+// Update sidebar display with selected filters
+function updateSidebarDisplay() {
+  const sidebarCluster = document.getElementById('sidebarSelectedCluster');
+  const sidebarProfessions = document.getElementById('sidebarSelectedProfessions');
+  const sidebarSkills = document.getElementById('sidebarSelectedSkills');
+  const sidebarContainer = document.getElementById('selectedFiltersSidebar');
+  const clusterSection = document.getElementById('clusterSection');
+  const professionsSection = document.getElementById('professionsSection');
+  const skillsSection = document.getElementById('skillsSection');
+  const clusterCount = document.getElementById('clusterCount');
+  const professionCount = document.getElementById('professionCount');
+  const skillCount = document.getElementById('skillCount');
+  
+  // Clear existing displays
+  sidebarCluster.innerHTML = '';
+  sidebarProfessions.innerHTML = '';
+  sidebarSkills.innerHTML = '';
+  
+  // Add selected cluster to sidebar
+  if (selectedCluster) {
+    const clusterSelect = document.getElementById('careerClusterSelect');
+    const clusterName = clusterSelect.options[clusterSelect.selectedIndex].text;
+    const tag = document.createElement('div');
+    tag.className = 'bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center';
+    tag.innerHTML = `
+      <span class="mr-2">${clusterName}</span>
+      <button type="button" onclick="clearCluster()" 
+              class="text-purple-600 hover:text-purple-800 font-bold ml-1 text-lg leading-none">×</button>
+    `;
+    sidebarCluster.appendChild(tag);
+    clusterCount.textContent = '1';
+    clusterSection.style.display = 'block';
+  } else {
+    clusterSection.style.display = 'none';
+  }
+  
+  // Add selected professions to sidebar
+  selectedProfessions.forEach(profession => {
+    const tag = document.createElement('div');
+    tag.className = 'bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center';
+    tag.innerHTML = `
+      <span class="mr-2">${profession}</span>
+      <button type="button" onclick="removeProfessionFilter('${profession}')" 
+              class="text-blue-600 hover:text-blue-800 font-bold ml-1 text-lg leading-none">×</button>
+    `;
+    sidebarProfessions.appendChild(tag);
+  });
+  
+  // Add selected skills to sidebar
+  selectedSkills.forEach(skill => {
+    const tag = document.createElement('div');
+    tag.className = 'bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center';
+    tag.innerHTML = `
+      <span class="mr-2">${skill}</span>
+      <button type="button" onclick="removeSkillFilter('${skill}')" 
+              class="text-green-600 hover:text-green-800 font-bold ml-1 text-lg leading-none">×</button>
+    `;
+    sidebarSkills.appendChild(tag);
+  });
+  
+  // Update count badges
+  professionCount.textContent = selectedProfessions.size;
+  skillCount.textContent = selectedSkills.size;
+  
+  // Show/hide sections based on content
+  if (selectedProfessions.size > 0) {
+    professionsSection.style.display = 'block';
+  } else {
+    professionsSection.style.display = 'none';
+  }
+  
+  if (selectedSkills.size > 0) {
+    skillsSection.style.display = 'block';
+  } else {
+    skillsSection.style.display = 'none';
+  }
+  
+  // Show/hide entire sidebar based on any selections
+  if (selectedCluster || selectedProfessions.size > 0 || selectedSkills.size > 0) {
+    sidebarContainer.style.display = 'block';
+  } else {
+    sidebarContainer.style.display = 'none';
+  }
+}
+
+// Update button display with count and text
+function updateButtonDisplay() {
+  // Update profession button
+  const professionButtonText = document.getElementById('professionButtonText');
+  const professionCount = document.getElementById('professionCount');
+  
+  if (selectedProfessions.size > 0) {
+    professionButtonText.textContent = `${selectedProfessions.size} Profession${selectedProfessions.size > 1 ? 's' : ''} Selected`;
+    professionCount.textContent = selectedProfessions.size;
+    professionCount.classList.remove('hidden');
+  } else {
+    professionButtonText.textContent = 'Select Profession';
+    professionCount.classList.add('hidden');
+  }
+  
+  // Update skills button
+  const skillsButtonText = document.getElementById('skillsButtonText');
+  const skillsCount = document.getElementById('skillsCount');
+  
+  if (selectedSkills.size > 0) {
+    skillsButtonText.textContent = `${selectedSkills.size} Skill${selectedSkills.size > 1 ? 's' : ''} Selected`;
+    skillsCount.textContent = selectedSkills.size;
+    skillsCount.classList.remove('hidden');
+  } else {
+    skillsButtonText.textContent = 'Select Skills';
+    skillsCount.classList.add('hidden');
+  }
+}
+
+// Remove profession filter
+function removeProfessionFilter(profession) {
+  selectedProfessions.delete(profession);
+  
+  // Uncheck the checkbox
+  const checkbox = document.querySelector(`input[name="professions"][value="${profession}"]`);
+  if (checkbox) {
+    checkbox.checked = false;
+  }
+  
+  updateSelectedFiltersDisplay();
+  updateSidebarDisplay();
+  applyFilters(); // Update search results immediately
+}
+
+// Remove skill filter
+function removeSkillFilter(skill) {
+  selectedSkills.delete(skill);
+  
+  // Uncheck the checkbox
+  const checkbox = document.querySelector(`input[name="skills"][value="${skill}"]`);
+  if (checkbox) {
+    checkbox.checked = false;
+  }
+  
+  updateSelectedFiltersDisplay();
+  updateSidebarDisplay();
+  applyFilters(); // Update search results immediately
+}
+
+// Clear cluster filter
+function clearCluster() {
+  selectedCluster = null;
+  
+  // Reset cluster dropdown
+  document.getElementById('careerClusterSelect').value = '';
+  
+  // Clear profession and skill selections when cluster is cleared
+  selectedProfessions.clear();
+  selectedSkills.clear();
+  
+  // Uncheck all checkboxes
+  document.querySelectorAll('input[name="professions"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('input[name="skills"]').forEach(cb => cb.checked = false);
+  
+  updateSelectedFiltersDisplay();
+  updateSidebarDisplay();
+  applyFilters();
+}
+
+// Clear all filters
+function clearAllFilters() {
+  selectedCluster = null;
+  selectedProfessions.clear();
+  selectedSkills.clear();
+  
+  // Reset cluster dropdown
+  document.getElementById('careerClusterSelect').value = '';
+  
+  // Uncheck all checkboxes
+  document.querySelectorAll('input[name="professions"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('input[name="skills"]').forEach(cb => cb.checked = false);
+  
+  updateSelectedFiltersDisplay();
+  updateSidebarDisplay();
+  applyFilters();
+}
+
+// Apply filters by updating URL and reloading
+function applyFilters() {
+  const url = new URL(window.location);
+  
+  // Clear existing filter parameters
+  url.searchParams.delete('cluster');
+  url.searchParams.delete('professions');
+  url.searchParams.delete('skills');
+  url.searchParams.delete('page'); // Reset to page 1
+  
+  // Add selected cluster
+  if (selectedCluster) {
+    url.searchParams.set('cluster', selectedCluster);
+  }
+  
+  // Add selected professions
+  selectedProfessions.forEach(profession => {
+    url.searchParams.append('professions', profession);
+  });
+  
+  // Add selected skills
+  selectedSkills.forEach(skill => {
+    url.searchParams.append('skills', skill);
+  });
+  
+  // Update URL and reload
+  window.location.href = url.toString();
+}
+
+// Clear search when dropdown is closed
+document.addEventListener('DOMContentLoaded', function() {
+  const professionDropdown = document.getElementById('selectProfessionDropdown');
+  const skillsDropdown = document.getElementById('selectSkillsDropdown');
+  
+  // Clear profession search when dropdown closes
+  professionDropdown.addEventListener('hidden.bs.dropdown', function() {
+    document.getElementById('professionSearch').value = '';
+    filterProfessions('');
+  });
+  
+  // Clear skills search when dropdown closes
+  skillsDropdown.addEventListener('hidden.bs.dropdown', function() {
+    document.getElementById('skillsSearch').value = '';
+    filterSkills('');
+  });
+  
+  // Ensure clear buttons are visible
+  const professionClearBtn = document.getElementById('professionClearBtn');
+  const skillClearBtn = document.getElementById('skillClearBtn');
+  const professionApplyBtn = document.getElementById('professionApplyBtn');
+  const skillApplyBtn = document.getElementById('skillApplyBtn');
+  
+  if (professionClearBtn) {
+    professionClearBtn.style.display = 'block';
+    professionClearBtn.style.visibility = 'visible';
+    professionClearBtn.style.opacity = '1';
+  }
+  
+  if (skillClearBtn) {
+    skillClearBtn.style.display = 'block';
+    skillClearBtn.style.visibility = 'visible';
+    skillClearBtn.style.opacity = '1';
+  }
+  
+  if (professionApplyBtn) {
+    professionApplyBtn.style.display = 'block';
+    professionApplyBtn.style.visibility = 'visible';
+    professionApplyBtn.style.opacity = '1';
+  }
+  
+  if (skillApplyBtn) {
+    skillApplyBtn.style.display = 'block';
+    skillApplyBtn.style.visibility = 'visible';
+    skillApplyBtn.style.opacity = '1';
+  }
+  
+  // Debug: Check if Apply and Clear buttons are visible
+  console.log('Profession Apply button:', professionApplyBtn);
+  console.log('Skills Apply button:', skillApplyBtn);
+  console.log('Profession Clear button:', professionClearBtn);
+  console.log('Skills Clear button:', skillClearBtn);
+  console.log('Selected filters sidebar:', document.getElementById('selectedFiltersSidebar'));
+  
+  // Ensure Apply buttons are visible when dropdown opens
+  const professionButton = document.getElementById('selectProfessionButton');
+  const skillsButton = document.getElementById('selectSkillsButton');
+  
+  professionButton.addEventListener('click', function() {
+    setTimeout(() => {
+      const applyBtn = document.querySelector('[onclick="applyProfessionFilters()"]');
+      if (applyBtn) {
+        applyBtn.style.display = 'block';
+        applyBtn.style.visibility = 'visible';
+      }
+    }, 100);
+  });
+  
+  skillsButton.addEventListener('click', function() {
+    setTimeout(() => {
+      const applyBtn = document.querySelector('[onclick="applySkillFilters()"]');
+      if (applyBtn) {
+        applyBtn.style.display = 'block';
+        applyBtn.style.visibility = 'visible';
+      }
+    }, 100);
+  });
+});
+
+
+</script>
+{%endblock%}

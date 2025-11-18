@@ -1,0 +1,544 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}User Dashboard | Top Teen{% endblock %}
+{% block description_content %}Access your personalized dashboard with statistics, quick links, and recent activity.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} user-dashboard{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .user-dashboard {
+    padding-top: 80px;
+  }
+  .stat-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .quick-link-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 15px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 10px;
+  }
+  .quick-link-card:hover {
+    background: #e9ecef;
+  }
+  .profile-sidebar {
+    border: 1px solid #dedede;
+    border-radius: 10px;
+    padding: 24px;
+  }
+  .profile-image {
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .profile-complete-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 18px;
+    margin-top: 18px;
+  }
+  .progress-bar-custom {
+    height: 10px;
+    background: rgba(76, 201, 240, 0.15);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #4cc9f0;
+    border-radius: 100px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Edit Profile PopUp -->
+<div data-direction="translate-y-full" class="h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto translate-y-full transition-all duration-500">
+  <div class="inline-block bg-white w-full rounded-t-3 position-absolute bottom-0 drawerContent">
+    <div class="p-4">
+      <a href="{{ url('users:profiledetails') }}" class="d-block text-decoration-none mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <p class="fs-16 fw-semibold mb-1">Edit Profile</p>
+            <p class="text-gray fs-12">Update your profile information</p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray"></i>
+        </div>
+      </a>
+      <a href="{{ url('users:userhistory') }}" class="d-block text-decoration-none mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <p class="fs-16 fw-semibold mb-1">Manage payment history</p>
+            <p class="text-gray fs-12">View and manage your payments</p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray"></i>
+        </div>
+      </a>
+      <a href="{{ url('users:logout') }}" class="d-block text-decoration-none">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <p class="fs-16 fw-semibold mb-1 text-danger">Sign Out</p>
+            <p class="text-danger text-opacity-60 fs-12">Logout from your account</p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray"></i>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+<!--End of Edit Profile PopUp -->
+
+<!-- Refer friends PopUp -->
+<div class="modal fade referFriendsPopup" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content position-relative">
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-3 referPopupClose" aria-label="Close"></button>
+      <div class="modal-body p-4 text-center">
+        <h5 class="fs-24 fw-semibold mb-4">Refer/Invite friends</h5>
+        <form onsubmit="return false" id="referform">
+          <div class="mb-3">
+            <input type="email" id="remail" name="email" placeholder="Enter email" class="form-control custom-input" required>
+          </div>
+          <button type="submit" onclick="refersubmit()" class="btn custom-button purple-button w-100">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End of Refer Friends Popup -->
+
+<!-- Main Content -->
+<section class="user-dashboard pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <!-- Left Part Mobile -->
+      <div class="col-12 d-lg-none">
+        <!-- User -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex gap-3">
+            <div>
+              {% if request.user.image %}
+              <img src="{{ request.user.image.url }}" class="profile-image" style="width: 71px; height: 71px;" alt="{{ request.user.name }}" />
+              {% else %}
+              <img src="{{ static('images_new/icons/user-icon.svg') }}" class="profile-image" style="width: 71px; height: 71px;" alt="User" />
+              {% endif %}
+            </div>
+            <div class="d-flex flex-column">
+              <p class="fs-15 fw-semibold mb-1">{{ request.user.name|default(request.user.username) }}</p>
+              <div class="d-flex flex-column gap-1">
+                <div class="d-flex align-items-center gap-1">
+                  <i class='bx bx-time-five fs-12 text-gray'></i>
+                  <p class="text-gray fs-10 mb-0">Joined {{ date_format(request.user.date_joined) }}</p>
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                  <i class='bx bx-book fs-12 text-gray'></i>
+                  <p class="text-gray fs-10 mb-0">
+                    {% if request.user.user_profile %}
+                      {% if request.user.student_management.last() and request.user.student_management.last().class_and_section %}
+                        {{ request.user.student_management.last().class_and_section }}
+                      {% endif %}
+                      {% if request.user.user_profile.schoolname %}
+                        • {{ request.user.user_profile.schoolname }}
+                      {% endif %}
+                    {% else %}
+                      - • -
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type="button" data-direction="translate-y-full" class="btn btn-sm bg-purple text-white rounded-circle drawerTrigger" style="width: 25px; height: 25px;">
+            <i class='bx bx-cog fs-12'></i>
+          </button>
+        </div>
+        <!-- End of User -->
+
+        <!-- Complete Profile -->
+        <div id="comppro" class="profile-complete-card mb-4 position-relative">
+          <button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="document.getElementById('comppro').style.display='none'"></button>
+          <div class="d-flex align-items-center">
+            <div class="me-3">
+              <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 81px;" alt="Verified" />
+            </div>
+            <div class="flex-grow-1">
+              <p class="fs-15 fw-semibold text-dark mb-1">Complete your profile</p>
+              <p class="fs-13 text-gray mb-2">A complete profile helps us cater the best content to you</p>
+              <div class="progress-bar-custom" style="width: 100%;">
+                <div class="progress-fill" style="width: 60%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- End of Complete Profile -->
+      </div>
+      <!-- End of left Part Mobile -->
+
+      <!-- Left part Desktop -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="profile-sidebar">
+          <!-- User -->
+          <div class="text-center border-bottom pb-4 mb-4">
+            <div class="mb-3">
+              {% if request.user.image %}
+              <img src="{{ request.user.image.url }}" class="profile-image mx-auto" alt="{{ request.user.name }}" />
+              {% else %}
+              <img src="{{ static('images_new/icons/user-icon.svg') }}" class="profile-image mx-auto" alt="User" />
+              {% endif %}
+            </div>
+            <p class="fs-16 fw-semibold mb-3">{{ request.user.name|default(request.user.username) }}</p>
+            <div class="d-flex flex-column gap-2">
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                <i class='bx bx-time-five fs-18 text-gray'></i>
+                <p class="text-gray fs-16 mb-0">Joined {{ date_format(request.user.date_joined) }}</p>
+              </div>
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                <i class='bx bx-book fs-18 text-gray'></i>
+                <p class="text-gray fs-16 mb-0">
+                  {% if request.user.user_profile %}
+                    {% if request.user.student_management.last() and request.user.student_management.last().class_and_section %}
+                      {{ request.user.student_management.last().class_and_section }}
+                    {% endif %}
+                    {% if request.user.user_profile.schoolname %}
+                      • {{ request.user.user_profile.schoolname }}
+                    {% endif %}
+                  {% else %}
+                    - • -
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+          <!-- End of User -->
+
+          <!-- Complete Profile -->
+          <div class="profile-complete-card">
+            <div class="d-flex gap-3">
+              <div>
+                <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 45px;" alt="Verified" />
+              </div>
+              <div class="flex-grow-1">
+                <p class="fs-12 fw-semibold text-dark mb-1">Complete your profile</p>
+                <p class="fs-10 text-gray mb-2">A complete profile helps us cater the best content to you</p>
+                <div class="progress-bar-custom" style="width: 100%;">
+                  <div class="progress-fill" style="width: 60%;"></div>
+                </div>
+              </div>
+            </div>
+            <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">
+              <i class='bx bx-cog me-2'></i> SETTINGS
+            </a>
+          </div>
+          <!-- End of Complete Profile -->
+        </div>
+      </div>
+      <!-- End of Left part Desktop -->
+
+      <!-- Right Part -->
+      <div class="col-lg-8">
+        <!-- Statistics -->
+        <div class="mb-4">
+          <h2 class="fs-24 fw-semibold mb-3">
+            Statistics <span class="fs-16 fw-normal text-gray">(Coming soon...)</span>
+          </h2>
+          <div class="row g-3">
+            <div class="col-6 col-md-3">
+              <div class="stat-card">
+                <div>
+                  <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 30px;" alt="Trophy" />
+                </div>
+                <div>
+                  <p class="fs-18 fw-semibold mb-0">12</p>
+                  <p class="text-gray fs-10 mb-0">Trophies Unlocked</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card">
+                <div>
+                  <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 30px;" alt="Badge" />
+                </div>
+                <div>
+                  <p class="fs-18 fw-semibold mb-0">1200</p>
+                  <p class="text-gray fs-10 mb-0">Total Points</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card">
+                <div>
+                  <i class='bx bx-fire fs-30 text-warning'></i>
+                </div>
+                <div>
+                  <p class="fs-18 fw-semibold mb-0">5 days</p>
+                  <p class="text-gray fs-10 mb-0">Streak</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card">
+                <div>
+                  <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 30px;" alt="Medal" />
+                </div>
+                <div>
+                  <p class="fs-18 fw-semibold mb-0">Rookie</p>
+                  <p class="text-gray fs-10 mb-0">Current Level</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- End of Statistics -->
+
+        <!-- Quick Links -->
+        <div class="mb-4">
+          <h2 class="fs-24 fw-semibold mb-3">Quick Links</h2>
+          <div class="border rounded p-3">
+            <!-- Psychometric Test Reports -->
+            {% if psychometric_test_payment and test_dashboard_url %}
+            <div class="quick-link-card" onclick="window.location='{{ test_dashboard_url }}'">
+              <div class="d-flex align-items-center gap-3">
+                <div>
+                  <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 35px;" alt="Planning" />
+                </div>
+                <div>
+                  <p class="fs-13 fw-semibold text-success mb-1">{{ test_name }} Dashboard</p>
+                  <p class="text-success text-opacity-70 fs-10 mb-0">View your test results and reports</p>
+                </div>
+              </div>
+              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+            </div>
+            {% elif central_test_candidate %}
+            <div class="quick-link-card" {% if central_test_candidate.last_test_is_success() %}onclick="window.location='{{ central_test_candidate.get_test_report_or_test_link() }}'"{% else %}onclick="window.open('{{ central_test_candidate.get_test_report_or_test_link() }}','_blank')"{% endif %}>
+              <div class="d-flex align-items-center gap-3">
+                <div>
+                  <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 35px;" alt="Planning" />
+                </div>
+                <div>
+                  {% if central_test_candidate.last_test_is_success() %}
+                  <p class="fs-13 fw-semibold text-success mb-1">Psychometric Test Reports</p>
+                  <p class="text-success text-opacity-70 fs-10 mb-0">Access past reports</p>
+                  {% else %}
+                  <p class="fs-13 fw-semibold text-purple mb-1">Take a Psychometric Test</p>
+                  <p class="text-purple text-opacity-70 fs-10 mb-0">Click here to take a test</p>
+                  {% endif %}
+                </div>
+              </div>
+              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+            </div>
+            {% else %}
+            <div class="quick-link-card" onclick="window.location='{{ url('psychometrictests:psychometrictest') }}'">
+              <div class="d-flex align-items-center gap-3">
+                <div>
+                  <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 35px;" alt="Planning" />
+                </div>
+                <div>
+                  <p class="fs-13 fw-semibold text-danger mb-1">Psychometric Test Reports</p>
+                  <p class="text-danger text-opacity-70 fs-10 mb-0">Take a new Test</p>
+                </div>
+              </div>
+              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+            </div>
+            {% endif %}
+            <!-- End of Psychometric Test Reports -->
+
+            <!-- Your Calendar -->
+            <div class="quick-link-card" onclick="window.location='{{ url('users:usercalender') }}'">
+              <div class="d-flex align-items-center gap-3">
+                <div>
+                  <i class='bx bx-calendar fs-35 text-purple'></i>
+                </div>
+                <div>
+                  <p class="fs-13 fw-semibold mb-1">Your Calendar</p>
+                  <p class="text-gray fs-10 mb-0">Your notes, reminders and post-its</p>
+                </div>
+              </div>
+              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+            </div>
+            <!-- End of Your Calendar -->
+
+            <!-- Digital Scrapbook -->
+            <div class="quick-link-card" onclick="window.location='{{ url('users:scrapbook') }}'">
+              <div class="d-flex align-items-center gap-3">
+                <div>
+                  <i class='bx bx-book fs-35 text-purple'></i>
+                </div>
+                <div>
+                  <p class="fs-13 fw-semibold mb-1">Digital Scrapbook</p>
+                  <p class="text-gray fs-10 mb-0">Your notes, reminders and post-its</p>
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="{{ url('users:mynotepad') }}" class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">
+                  <i class='bx bx-note fs-12 me-1'></i> <span class="fs-7">My Notepad</span>
+                </a>
+                <a href="{{ url('users:resumebuilderwelcome') }}" class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">
+                  <i class='bx bx-file fs-12 me-1'></i> <span class="fs-7">Resume</span>
+                </a>
+                <a href="{{ url('users:careerinterest') }}" class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">
+                  <i class='bx bx-star fs-12 me-1'></i> <span class="fs-7">Interests</span>
+                </a>
+              </div>
+              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+            </div>
+            <!-- End of Digital Scrapbook -->
+
+            <!-- Bookmarks -->
+            <a href="{{ url('users:bookmark') }}" class="text-decoration-none">
+              <div class="quick-link-card">
+                <div class="d-flex align-items-center gap-3">
+                  <div>
+                    <i class='bx bx-bookmark fs-35 text-purple'></i>
+                  </div>
+                  <div>
+                    <p class="fs-13 fw-semibold mb-1">Bookmarks</p>
+                    <p class="text-gray fs-10 mb-0">Get your shortlist items</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+            </a>
+            <!-- End Bookmarks -->
+
+            <!-- Refer Friends -->
+            <div class="quick-link-card referPopupTrigger">
+              <div class="d-flex align-items-center gap-3">
+                <div>
+                  <i class='bx bx-user-plus fs-35 text-purple'></i>
+                </div>
+                <div>
+                  <p class="fs-13 fw-semibold mb-1">Refer/Invite Friends</p>
+                  <p class="text-gray fs-10 mb-0">Earn points and discounts by inviting friends</p>
+                </div>
+              </div>
+              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+            </div>
+            <!-- End of Refer Friends -->
+          </div>
+        </div>
+        <!-- End of Quick Links -->
+
+        <!-- Recent Notes -->
+        {% if notes %}
+        <div class="mb-4">
+          <h2 class="fs-24 fw-semibold mb-3">Recent Notes</h2>
+          <div class="border rounded p-3">
+            {% for note in notes %}
+            <div class="mb-3 pb-3 border-bottom">
+              <h5 class="fs-16 fw-semibold mb-1">{{ note.title|default('Untitled') }}</h5>
+              <p class="text-gray fs-14 mb-2">{{ note.content|truncate(150) }}</p>
+              <p class="text-gray fs-12 mb-0">{{ date_format(note.created) }}</p>
+            </div>
+            {% endfor %}
+            <a href="{{ url('users:mynotepad') }}" class="btn btn-link text-purple p-0">View All Notes →</a>
+          </div>
+        </div>
+        {% endif %}
+        <!-- End of Recent Notes -->
+      </div>
+      <!-- End of Right Part -->
+    </div>
+  </div>
+</section>
+<!-- End of Main Content -->
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<script>
+  // Drawer modal functionality
+  const drawerTrigger = document.querySelector('.drawerTrigger');
+  const drawerModal = document.querySelector('.drawerModal');
+  
+  if (drawerTrigger && drawerModal) {
+    drawerTrigger.addEventListener('click', function() {
+      drawerModal.classList.remove('translate-y-full');
+    });
+    
+    drawerModal.addEventListener('click', function(e) {
+      if (e.target === drawerModal) {
+        drawerModal.classList.add('translate-y-full');
+      }
+    });
+  }
+
+  // Refer friends popup
+  const referTriggers = document.querySelectorAll('.referPopupTrigger');
+  const referPopup = document.querySelector('.referFriendsPopup');
+  const referClose = document.querySelector('.referPopupClose');
+
+  referTriggers.forEach(elem => {
+    elem.addEventListener('click', function() {
+      if (referPopup) {
+        const modal = new bootstrap.Modal(referPopup);
+        modal.show();
+      }
+    });
+  });
+
+  if (referClose && referPopup) {
+    referClose.addEventListener('click', function() {
+      const modal = bootstrap.Modal.getInstance(referPopup);
+      if (modal) {
+        modal.hide();
+      }
+    });
+  }
+
+  // Refer form submission
+  function refersubmit() {
+    const email = document.getElementById('remail').value;
+    if (!email) {
+      alert('Please enter an email address');
+      return false;
+    }
+
+    $.ajax({
+      url: "{{ url('users:refer') }}",
+      type: "POST",
+      data: {
+        "email": email,
+        "csrfmiddlewaretoken": "{{ csrf_token }}"
+      },
+      success: function(response) {
+        if (response.success === "true" || response.success === true) {
+          Swal.fire('Invited successfully!', 'Invitation sent successfully!', 'success');
+          const modal = bootstrap.Modal.getInstance(referPopup);
+          if (modal) {
+            modal.hide();
+          }
+          document.getElementById('referform').reset();
+        } else {
+          Swal.fire('Invalid!', 'Please Enter the Correct Email!', 'error');
+          const modal = bootstrap.Modal.getInstance(referPopup);
+          if (modal) {
+            modal.hide();
+          }
+        }
+      },
+      error: function(response) {
+        Swal.fire('Invalid!', 'Please Enter the Correct Email!', 'error');
+        const modal = bootstrap.Modal.getInstance(referPopup);
+        if (modal) {
+          modal.hide();
+        }
+      }
+    });
+    return false;
+  }
+</script>
+{% endblock %}
+

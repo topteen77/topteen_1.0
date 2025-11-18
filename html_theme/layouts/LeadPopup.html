@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>LEAD POPUP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="./css/styles.css" rel="stylesheet" />
+    <link href="../assets/css/customCSS.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- OVERLAY -->
+    <div
+      class="lg:bg-black lg:bg-opacity-40 bg-white fixed h-screen inset-0 lg:flex justify-center items-center z-10"
+    >
+      <!-- BODY -->
+      <div
+        class="max-w-[720px] w-full bg-white lg:px-[60px] px-3 rounded-[10px]"
+      >
+        <!-- HEADER -->
+        <div
+          class="flex flex-row justify-start items-center gap-x-3.5 my-[23px]"
+        >
+          <div
+            class="w-[77px] h-[77px] bg-[#3f37c9] bg-opacity-10 flex justify-center items-center rounded-[8px]"
+          >
+            <img class="h-[58px] w-[58px]" src="../assets/images/logo.svg" />
+          </div>
+
+          <div>
+            <p class="text-[23px] mb-[2px] boldFont">Register Now to Apply</p>
+            <p class="text-sm text-[#99989B] font-semibold">JEE Advanced</p>
+          </div>
+        </div>
+        <form>
+          <!-- INPUT FIELDS -->
+          <div
+            class="grid lg:grid-cols-2 grid-cols-1 gap-y-[10px] gap-x-[30px] mb-[22px]"
+          >
+            <div class="relative text-[#494949] text-opacity-80 text-sm">
+              <input
+                class="py-4 pl-[46px] text-sm placeholder:text-sm rounded-[10px] border-2 border-[#3F37C9] w-full"
+                type="text"
+                placeholder="Enter your name"
+              />
+              <span class="absolute left-4 top-[32%]"
+                ><i class="fa fa-user"></i
+              ></span>
+            </div>
+            <div class="relative text-[#494949] text-opacity-80 text-sm">
+              <input
+                class="py-4 pl-[46px] text-sm placeholder:text-sm rounded-[10px] border-2 border-[#3F37C9] w-full"
+                type="text"
+                placeholder="Enter your Contact number"
+              />
+              <span class="absolute left-4 top-[32%]"
+                ><i class="fa fa-phone"></i
+              ></span>
+            </div>
+            <div class="relative text-[#494949] text-opacity-80 text-sm">
+              <input
+                class="py-4 pl-[46px] text-sm placeholder:text-sm rounded-[10px] border-2 border-[#3F37C9] w-full"
+                type="text"
+                placeholder="Enter your email"
+              />
+              <span class="absolute left-4 top-[32%]"
+                ><i class="fa fa-envelope"></i
+              ></span>
+            </div>
+            <div class="relative text-[#494949] text-opacity-80 text-sm">
+              <select
+                class="py-4 pl-[46px] text-sm placeholder:text-sm rounded-[10px] border-2 border-[#3F37C9] w-full"
+                type="text"
+                placeholder="Select your city"
+              >
+                <option hidden>Select your city</option>
+                <option>Delhi</option>
+              </select>
+
+              <span class="absolute left-4 top-[32%]"
+                ><i class="fa fa-location-pin"></i
+              ></span>
+            </div>
+            <div class="relative text-[#494949] text-opacity-80 text-sm">
+              <select
+                class="py-4 pl-[46px] text-sm placeholder:text-sm rounded-[10px] border-2 border-[#3F37C9] w-full"
+                type="text"
+                placeholder="Enter your name"
+              >
+                <option class="word-wrap" hidden>Select course category</option>
+                <option>Btech</option>
+              </select>
+              <span class="absolute left-4 top-[32%]"
+                ><i class="fa fa-graduation-cap"></i
+              ></span>
+            </div>
+          </div>
+
+          <!-- CHECKBOX -->
+          <div
+            class="flex flex-row justify-start items-start gap-x-3 mb-[28px]"
+          >
+            <input
+              type="checkbox"
+              class="text-[#3f37c9] h-[14px] w-[14px] rounded-sm border-[#3f37c9] cursor-pointer"
+              name="terms"
+              id="terms"
+            />
+            <label
+              class="text-[11px] leading-[15px] text-[#BDBDBD] font-semibold cursor-pointer"
+              for="terms"
+            >
+              By Clicking on Sumbit, I allow TOPTEEN to contact me Via Whatsapp
+              and other channels with suitable college options.
+            </label>
+          </div>
+
+          <!-- SUBMIT BUTTON -->
+          <button
+            class="w-[239px] h-[48px] bg-[#3f37c9] text-center align-middle mx-auto block rounded-[10px] text-white text-sm font-bold mb-[53px]"
+          >
+            SUBMIT
+          </button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,191 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}My Colleges | Top Teen{% endblock %}
+{% block description_content %}View your bookmarked colleges.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} bookmark-college-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .bookmark-college-page {
+    padding-top: 80px;
+  }
+  .college-card {
+    position: relative;
+    width: 240px;
+    flex-shrink: 0;
+  }
+  .college-image {
+    width: 240px;
+    height: 240px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 18px;
+    background: #f7f7fa;
+  }
+  .college-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .bookmark-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #ffffff;
+    border-radius: 50%;
+    padding: 3px 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .bookmark-btn.active {
+    background-color: #3f37c9;
+  }
+  .bookmark-btn img {
+    width: 14px;
+    height: 18px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="bookmark-college-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- College Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <h1 class="fs-24 fw-semibold mb-0">Colleges</h1>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+        <i class='bx bx-arrow-left fs-18 text-gray'></i>
+      </button>
+      <h2 class="fs-16 fw-normal text-center mb-0">Colleges</h2>
+    </div>
+
+    <!-- Colleges Content -->
+    {% if colleges %}
+    <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
+      {% for college in colleges %}
+      <div class="college-card">
+        <div class="bookmark-btn {% if college.shortlist.filter(id=request.user.id).exists() %}active{% endif %}" 
+             id="college_{{ college.id }}"
+             onclick="collegeshortlist('{{ college.id }}')">
+          <img src="{{ static('images_new/icons/bookmark.svg') }}" alt="Bookmark" />
+        </div>
+        <figure class="mb-0">
+          {% if college.logo %}
+          <div class="college-image">
+            <img src="{{ college.logo.url }}" alt="{{ college.name }}" />
+          </div>
+          {% endif %}
+          <figcaption>
+            <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}" class="text-decoration-none">
+              <h5 class="fs-14 fw-semibold text-dark mb-1">{{ college.name }}</h5>
+            </a>
+            <div class="d-flex align-items-center gap-1">
+              <span class="fs-13 text-gray">
+                {% if college.country %}{{ college.country }}{% endif %}
+                {% if college.state and college.country %}, {% endif %}
+                {% if college.state %}{{ college.state }}{% endif %}
+              </span>
+              <img src="{{ static('images_new/icons/favourite.svg') }}" class="d-inline-block" style="width: 14px; height: 14px;" alt="Rating" />
+              <span class="fs-13 text-gray">4.4</span>
+            </div>
+          </figcaption>
+        </figure>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+      <i class='bx bx-building fs-64 text-gray mb-3'></i>
+      <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Colleges</h3>
+      <p class="text-gray fs-14 mb-4">You haven't bookmarked any colleges yet.</p>
+      <a href="{{ url('colleges:college') }}" class="btn custom-button purple-button">
+        Browse Colleges
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Sweet Alert Helper
+  const fireAlert = async function (
+    title,
+    icon = "success",
+    showConfirmButton = false,
+    showCloseButton = false,
+    isPrompt = false
+  ) {
+    const canDo = Swal.fire({
+      title,
+      icon: icon,
+      position: "top-end",
+      showCloseButton,
+      showConfirmButton,
+      toast: true,
+      showCancelButton: false,
+      ...(isPrompt ? {} : { timer: 2000 }),
+    });
+
+    if (isPrompt) {
+      return canDo?.isConfirmed;
+    } else {
+      return -1;
+    }
+  };
+
+  // College shortlist/bookmark functionality
+  function collegeshortlist(collegeId) {
+    $.ajax({
+      url: "/api/v1/user/shortlistcollege",
+      type: 'POST',
+      data: {
+        'collegeid': collegeId,
+        'csrfmiddlewaretoken': '{{ csrf_token }}'
+      },
+      success: function (data) {
+        const bookmarkBtn = document.getElementById('college_' + collegeId);
+        if (bookmarkBtn) {
+          bookmarkBtn.classList.toggle('active');
+          if (bookmarkBtn.classList.contains('active')) {
+            fireAlert("College bookmarked", "success");
+          } else {
+            fireAlert("College removed from bookmarks", "success");
+            // Reload page to remove from list
+            setTimeout(function() {
+              window.location.reload();
+            }, 1000);
+          }
+        }
+      },
+      error: function(data) {
+        try {
+          fireAlert(data.responseJSON?.message || "Error updating bookmark", "error");
+        } catch(e) {
+          fireAlert("Internal Server Error", "error");
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}
+

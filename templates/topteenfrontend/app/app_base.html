@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  {%if html_head%}
+  <title>{{html_head.title}} | Top Teen</title>
+  <meta name="description" content="{{html_head.description}}" />
+  {%else%}
+  <title>Top Teen</title>
+  <meta name="description" content="Top Teen Career Building website" />
+  {%endif%}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="{{static(" topteenfrontend/assets/css/styles.css")}}" rel="stylesheet" />
+  <link href="{{static('topteenfrontend/assets/css/custom.css')}}" rel="stylesheet" />
+
+  <link href="{{static('topteenfrontend/assets/css/slick/slick.css')}}" rel="stylesheet" />
+  <link href="{{static('topteenfrontend/assets/css/slick/slick-theme.css')}}" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.1/index.global.min.js"></script>
+  <link rel="shortcut icon" href="{{static('topteenfrontend/assets/images/graduation-hat 1.png')}}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  {%block additionalheader%} {%endblock%}
+</head>
+
+<body
+  class="{% if body_css_class %}{{body_css_class}}{% else %}no-scrollbar h-screen w-screen relative bg-[#ffffff]{% endif %}">
+  <!-- Header -->
+
+  <!-- Desktop Header -->
+  <div class="mx-auto hidden lg:flex justify-between py-[16px] border-b-[2px] border-[#EBEBEE]">
+    <div class="hidden lg:flex justify-between lg:container mx-auto">
+      <ul class="flex gap-[24px]">
+        <li class="flex">
+          <a href="{{url('core:home')}}">
+            <img src="{{static(" topteenfrontend/assets/images/logo.svg")}}" class="w-[38.5px] h-[38.5px]" alt="" />
+          </a>
+          <a href="{{url('core:home')}}">
+            <p class="text-[13.8px] leading-[18px] mt-[14px] ml-[8px] font-bold text-[#494949] tracking-[0.01em]">
+              TOPTEEN
+            </p>
+          </a>
+        </li>
+
+        <li class="flex">
+
+          <i class="fa fa-search mt-[15px] -mr-[32px] text-[#bdbdbd] z-[20]"></i>
+
+          <form action="{{url('core:searchandexploreresult')}}" method="get" autocomplete="off">
+            <div class="relative">
+              <input name="search" type="text" placeholder=" Careers, colleges, courses..."
+                class="searchBox searchinput h-[48px] w-[300px] rounded-[10px] pl-[36px] bg-[#f7f7fa] border-[1.5px] border-solid border-[#dcdcdc] placeholder-[#bdbdbd] z-[10]"
+                id="collegesearch" onfocus="focusFunc()" required oninput="inputFunc()" required {%if searchname%}
+                value="{{searchname}}" {%else%} value="" {%endif%} />
+          </form>
+          <div id="searchresults">
+
+          </div>
+          {% include 'topteenfrontend/includes/recentsearch.html' %}
+
+    </div>
+    </li>
+    </ul>
+
+    <ul class="flex gap-[12px]">
+      {% if request.user.institute_created.all() %}
+      <a href="{{url('institute:institutedashboard',args=[request.user.institute_created.last().slug])}}">
+        <li class="flex">
+          <img src="{{static(" topteenfrontend/assets/images/myPlans.svg")}}" class="w-[22px] h-[22px] mt-[10px]"
+            alt="" />
+          <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]">
+            My Dashboard
+          </p>
+        </li>
+      </a>
+      {% elif request.user.institute_group.all() %}
+      <a href="{{url('institute:institutegroupdashboard')}}">
+        <li class="flex">
+          <img src="{{static(" topteenfrontend/assets/images/myPlans.svg")}}" class="w-[22px] h-[22px] mt-[10px]"
+            alt="" />
+          <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]">
+            My Dashboard
+          </p>
+        </li>
+      </a>
+      {% else %}
+      <a href="{{url('users:userfeeds')}}">
+        <li class="flex">
+          <img src="{{static(" topteenfrontend/assets/images/discover.svg")}}" class="w-[22px] h-[22px] mt-[10px]"
+            alt="" />
+          <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[4px]">
+            Discover fff
+          </p>
+        </li>
+      </a>
+      <a href="{{url('entrance_exams:testpreptenth')}}">
+        <li class="flex">
+          <img src="{{static(" topteenfrontend/assets/images/myPlans.svg")}}" class="w-[22px] h-[22px] mt-[10px]"
+            alt="" />
+          <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]">
+            Test prep
+          </p>
+        </li>
+      </a>
+      <a href="{{url('users:userdashboard')}}">
+        <li class="flex">
+          <img src="{{static(" topteenfrontend/assets/images/myPlans.svg")}}" class="w-[22px] h-[22px] mt-[10px]"
+            alt="" />
+          <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]">
+            My Dashboard
+          </p>
+        </li>
+      </a>
+      {% if request.user.is_superuser %}
+      <a href="{{url('institute:admindashboard')}}">
+        <li class="flex">
+          <img src="{{static(" topteenfrontend/assets/images/myPlans.svg")}}" class="w-[22px] h-[22px] mt-[10px]"
+            alt="" />
+          <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]">
+            Admin
+          </p>
+        </li>
+      </a>
+      {% endif %}
+      {% endif %}
+      {#
+      <li class="flex">
+        <img src="{{static(" topteenfrontend/assets/images/learn.svg")}}" class="w-[22px] h-[22px] mt-[10px]" alt="" />
+        <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[4px] text-[#828282]">
+          Learn
+        </p>
+      </li>
+      #}
+      <li class="flex relative">
+        <div>
+          <button class="popTrigr h-[42px] w-[42px] rounded-full -mr-[16px]">
+            <img src="{{request.user.image.url}}" alt="" class="h-full w-full rounded-full object-cover" />
+          </button>
+        </div>
+        <div class="absolute z-80 popDiv w-[144px] inline-block">
+          <div id="smallPop"
+            class="hidden px-[10px] py-[10px] bg-[#FFFFFF] shadow-lg rounded-[8px] relative flex flex-col gap-[6px]">
+            <button onclick="window.location='{{url('users:logout')}}'" value="3"
+              class='text-black hover:bg-slate-200 text-[16px] font-bold py-1  h-full transition-all duration-[600ms] ease-in-out w-full'>
+              Logout
+            </button>
+            <div class="trianglePop absolute left-[50%] -translate-x-[50%]">
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+  </div>
+  <!-- End of Desktop Header -->
+
+  <!-- No header for the Mobile -->
+
+  <!-- End of Header -->
+
+  {% block main %} {% endblock %}
+
+  <!-- Footer -->
+  <div class="lg:hidden mobile-footer" style="padding-bottom:45px ;">
+
+    <div class="w-full pt-[64px] flex flex-col justify-start gap-y-[18px] items-center mb-[57px] lg:hidden">
+      <div class="flex flex-row justify-start items-center gap-x-[8px] mb-[19px]">
+        <div class="h-[39px] w-[39px]">
+          <img src="{{static('topteenfrontend/assets/images/graduation-hat 1.png')}}" class="h-full w-full" />
+        </div>
+        <div class="text-[14px] leading-[16px] font-bold">TOP TEEN</div>
+      </div>
+      <div class="text-center w-[246px] text-lg font-normal text-[#828282]">
+        Every Student, Career Ready!
+      </div>
+      <br>
+      <br>
+
+
+    </div>
+
+
+    <div class="flex flex-row justify-between items-start mx-[23px] mb-[52px] lg:hidden">
+      <ul>
+        <li class="text-lg font-normal text-[#333333] mb-[22px]">About the company</li>
+        <li class="text-lg font-normal text-[#828282] mb-[16px]"><a href="/">TopTeen</a></li>
+        <li class="text-lg font-normal text-[#828282]"><a href="{{url('core:aboutus')}}">About Us</a></li>
+        <li class="text-lg font-normal text-[#828282]"><a href="{{url('core:contactus')}}">Contact Us</a></li>
+      </ul>
+      <ul>
+        <li class="text-lg font-normal text-[#333333] mb-[22px]">Product</li>
+        <li class="text-lg font-normal text-[#828282] mb-[16px]"><a
+            href="{{url('psychometrictests:psychometrictest')}}">Career Assesment Test</a></li>
+        {%for popular_category in popular_categories[:2]%}
+        <li class="text-lg font-normal text-[#828282] mb-[16px]"><a href="{{popular_category.url()}}">Blogs
+            {{popular_category.name}}</a></li>
+        {% endfor %}
+        <li class="text-lg font-normal text-[#828282]"><a href="{{url('core:allfaq')}}">FAQs</a></li>
+      </ul>
+      <ul>
+        <li class="text-lg font-normal text-[#333333] mb-[22px]">Social</li>
+        <li class="text-lg font-normal text-[#828282] mb-[16px]"><a
+            href="https://www.instagram.com/topteen.careers/">Instagram</a></li>
+        <li class="text-lg font-normal text-[#828282] mb-[16px]"><a
+            href="https://twitter.com/topteencareers">Twitter</a></li>
+        <li class="text-lg font-normal text-[#828282]"><a href="https://www.facebook.com/topteen.in">Facebook</a></li>
+      </ul>
+    </div>
+
+    <div class="h-[1px] w-full border-b-[1px] bg-black bg-opacity-20 mb-[20px] lg:hidden"></div>
+
+    <div class="flex flex-col justify-start items-center pt-3 lg:hidden gap-y-3 mb-[65px]">
+      <p class="text-lg text-[#828282]">© 2023 TopTeen. All rights reserved.</p>
+      <p class="text-lg text-[#828282]"><a href="{{url('core:terms&condition')}}">Terms & Conditions</a> •<a
+          href="{{url('core:privacypolicy')}}">Privacy Policy</a></p>
+    </div>
+
+  </div>
+
+  <!-- Mobile footer -->
+  <footer class="lg:hidden bg-[#f7f7fa] fixed bottom-0 z-30 w-full mobile-footer-nav">
+    <!-- <li
+        class="list-none flex justify-between px-[24px] border-y-[1px] border-y-[#3f37c9] border-y-solid border-opacity-[0.15] pt-[13px] pb-[18.67px] mx-auto bg-[#ffffff]"
+      > -->
+    {% if request.user.institute_created.all() %}
+    <li
+      class="list-none flex justify-center px-[24px] border-y-[1px] border-y-[#3f37c9] border-y-solid border-opacity-[0.15] pt-[13px] pb-[18.67px] mx-auto bg-[#ffffff]">
+      <ul class="pt-[4.5px] text-center">
+        <a href="{{url('institute:institutedashboard',args=[request.user.institute_created.last().slug])}}">
+          <i
+            class="fa-regular fa-circle-user text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('institute:institutedashboard',args=[request.user.institute_created.last().slug]) %}activefooter{% endif %}"></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] group-hover:scale-110 mx-auto">
+            My Dashboard
+          </p>
+        </a>
+      </ul>
+    </li>
+    {% elif request.user.institute_group.all() %}
+    <li
+      class="list-none flex justify-center px-[24px] border-y-[1px] border-y-[#3f37c9] border-y-solid border-opacity-[0.15] pt-[13px] pb-[18.67px] mx-auto bg-[#ffffff]">
+      <ul class="pt-[4.5px] text-center">
+        <a href="{{url('institute:institutegroupdashboard')}}">
+          <i
+            class="fa-regular fa-circle-user text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('institute:institutegroupdashboard') %}activefooter{% endif %}"></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] group-hover:scale-110 mx-auto">
+            My Dashboard
+          </p>
+        </a>
+      </ul>
+    </li>
+    {% else %}
+    <li
+      class="list-none flex justify-between px-[24px] border-y-[1px] border-y-[#3f37c9] border-y-solid border-opacity-[0.15] pt-[13px] pb-[18.67px] mx-auto bg-[#ffffff]">
+      <ul class="pt-[4.5px] group text-center">
+        <a href="{{url('users:userfeeds')}}" <i
+          class="fa fa-bolt text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('users:userfeeds') %}activefooter{% endif %}"></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110">
+            Discover
+          </p>
+        </a>
+      </ul>
+
+      <ul class="pt-[4.5px] group text-center">
+        <a href="{{url('core:searchandexplore')}}">
+
+          <i
+            class="fa fa-magnifying-glass text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('core:searchandexplore') %}activefooter{% endif %}"></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110">
+            Search
+          </p>
+        </a>
+      </ul>
+
+      <ul class="pt-[4.5px] group text-center">
+        <a href="{{url('users:userdashboard')}}">
+          <i
+            class="fa fa-users-rectangle text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('users:userdashboard') %}activefooter{% endif %}"></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110">
+            Dashboard
+          </p>
+        </a>
+      </ul>
+
+      <ul class="pt-[4.5px] group text-center">
+        <a href="{{url('entrance_exams:testpreptenth')}}">
+          <i
+            class="fa fa-book text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110 {% if request.path == url('entrance_exams:testpreptenth') %}activefooter{% endif %}"></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110">
+            Test Prep
+          </p>
+        </a>
+      </ul>
+
+      <ul class="pt-[4.5px] group text-center">
+        <a href="{{url('users:userdashboard')}}">
+          <i
+            class="fa-regular fa-circle-user text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"></i>
+          <p
+            class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] group-hover:scale-110 mx-auto">
+            Profile
+          </p>
+        </a>
+      </ul>
+    </li>
+    {% endif %}
+  </footer>
+  <!-- End of mobile footer -->
+
+  <!-- Desktop footer -->
+  <footer class="hidden lg:block bg-[#fdfcff]  mx-auto py-[60px]">
+    <div class="lg:container mx-auto">
+
+      <div class="flex justify-between">
+        <div class="w-[246px]">
+          <div class="flex gap-[8.2px]">
+            <img src="{{static('topteenfrontend/assets/images/logo.svg')}}" class="w-[38.58px] h-[38.58px]" alt="" />
+            <p class="text-[13.13px] leading-[17.73px] text-[#494949] mt-[12px] font-bold">
+              TOPTEEN
+            </p>
+          </div>
+          <div>
+            <p class="text-[16px] leading-[21.6px] tracking-[0.01em] text-[#828282] mt-[18px]">
+              Every Student, Career Ready!
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-[109px]">
+          <div>
+            <a href="{{url('core:aboutus')}}">
+              <p class="text-[16px] leading-[21.6px] text-[#333333] tracking-[0.01em] font-bold">
+                About the company
+              </p>
+            </a>
+            <a href="/">
+              <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[22px]">
+                TopTeen
+              </p>
+            </a>
+            <a href="{{url('core:aboutus')}}">
+              <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]">
+                About Us
+              </p>
+            </a>
+            <a href="{{url('core:contactus')}}">
+              <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]">
+                Contact Us
+              </p>
+            </a>
+          </div>
+          <div>
+            <a href="#">
+              <p class="text-[16px] leading-[21.6px] text-[#333333] tracking-[0.01em] font-bold">
+                Product
+              </p>
+            </a>
+            <a href="{{url('psychometrictests:psychometrictest')}}">
+              <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[22px]">
+                Career Assesment Test
+              </p>
+            </a>
+            {%for popular_category in popular_categories[:2]%}
+            <a href="{{popular_category.url()}}">
+              <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]">
+                Blogs {{popular_category.name}}
+              </p>
+            </a>
+            {% endfor %}
+            <a href="{{url('core:allfaq')}}">
+              <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]">
+                FAQs
+              </p>
+            </a>
+          </div>
+          <div>
+            <a href="#">
+              <p class="text-[16px] leading-[21.6px] text-[#333333] tracking-[0.01em] font-bold">
+                Socials
+              </p>
+            </a>
+            <a href="https://www.instagram.com/topteen.careers/" target="_blank">
+              <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[22px]">
+                Instagram
+              </p>
+            </a>
+            <a href="https://twitter.com/topteencareers" target="_blank">
+              <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]">
+                Twitter
+              </p>
+            </a>
+            <a href="https://www.facebook.com/topteen.in" target="_blank">
+              <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]">
+                Facebook
+              </p>
+            </a>
+          </div>
+        </div>
+      </div>
+      <hr class="text-[#000000] opacity-[0.8] font-bold mt-[42px]" />
+      <div class="flex justify-between mt-[12px]">
+        <p class="text-[12px] leading-[16.2px] text-[#828282]">
+          © {{seo_year}} TopTeen. All rights reserved.
+        </p>
+        <div class="text-[12px] leading-[16px] text-[#828282] flex">
+          <a href="{{url('core:terms&condition')}}" class="underline-offset-[2px]">Terms and Conditions</a>
+          <p>&nbsp;.</p>
+          <a href="{{url('core:privacypolicy')}}" class="underline-offset-[2px]">&nbsp;Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+
+  </footer>
+  <!-- End of desktop footer -->
+
+  <!-- End of Footer -->
+
+  <!-- SCRIPTS SECTION -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+  <script src="https://kit.fontawesome.com/df31b3ad5b.js" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="{{static('topteenfrontend/assets/js/slick.min.js')}}"></script>
+
+  <script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
+  <script src="{{static('topteenfrontend/assets/js/homePage.js')}}"></script>
+  <script type="text/javascript" src="{{static('topteenfrontend/assets/js/common.js')}}"></script>
+  <script type="text/javascript" src="{{static('topteenfrontend/assets/js/stories.js')}}"></script>
+  <script src="{{static('topteenfrontend/assets/js/secondHome.js')}}"></script>
+  <script type="text/javascript" src="{{static('topteenfrontend/assets/js/search.js')}}">
+  </script>
+  <script type="text/javascript" src="{{static('topteenfrontend/assets/js/userDashboard.js')}}">
+  </script>
+  <script type="text/javascript" src="{{static('topteenfrontend/assets/js/resumeBuilder.js')}}"></script>
+
+  <script>
+    var clgajxsrchlst = "{{url('core:recommandedsearch')}}"
+  </script>
+  <script>
+    let popDiv = document.querySelector(".popDiv");
+    let popTrigr = document.querySelector(".popTrigr");
+    let smallPop = document.getElementById("smallPop")
+    popTrigr.addEventListener("click", function () {
+      smallPop.classList.toggle("hidden");
+    })
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // TRIGGER SWEET ALERT POPUP
+    // SWEET ALERT CODE
+    // ICON =>  'success'/'info'/'error'/'warning'/'question' 
+    const fireAlert = async function (
+      title,
+      icon = "success",
+      showConfirmButton = false,
+      showCloseButton = false,
+      isPrompt = false
+    ) {
+      const canDo = Swal.fire({
+        title,
+        icon: icon,
+        position: "top-end",
+        showCloseButton,
+        showConfirmButton,
+        toast: true,
+        showCancelButton: false,
+        ...(isPrompt ? {} : { timer: 2000 }),
+      });
+
+      if (isPrompt) {
+        return canDo?.isConfirmed;
+      } else {
+        return -1;
+      }
+    };
+  </script>
+  <script>
+    var comppro = document.getElementById("comppro");
+    var myfunc = function () {
+      comppro.classList.add('hidden');
+    }
+  </script>
+  <script type="text/javascript">
+    function shortlist(param) {
+      $.ajax({
+        type: "GET",
+        url: "{{url('careers:shortlist_video')}}",
+        data: { id: param }
+      }).done(function (response) {
+        if (response["success"] === "true") {
+          $('#video_' + param).css({ "background-color": "blue" });
+          Swal.fire('Added!', 'Added to Bookmark!', 'success');
+        } else {
+          $('#video_' + param).css({ "background-color": "white" });
+          Swal.fire('Removed!', 'Removed from Bookmark!', 'error');
+        }
+        console.log(response);
+      });
+    }   
+  </script>
+  <script type="text/javascript">
+    function examshortlist(param) {
+      $.ajax({
+        type: "GET",
+        url: "{{url('entrance_exams:shortlist_exam')}}",
+        data: { id: param }
+      }).done(function (response) {
+        if (response["success"] === "true") {
+          $('#exam_' + param).css({ "background-color": "blue" });
+          Swal.fire('Added!', 'Added to Bookmark!', 'success');
+        } else {
+          $('#exam_' + param).css({ "background-color": "white" });
+          Swal.fire('Removed!', 'Removed to Bookmark!', 'error');
+        }
+        console.log(response);
+      });
+    }   
+  </script>
+  <script type="text/javascript">
+    function collegeshortlist(param) {
+      $.ajax({
+        type: "GET",
+        url: "{{url('colleges:shortlistcollege')}}",
+        data: { id: param }
+      }).done(function (response) {
+        if (response["success"] === "true") {
+          $('#college_' + param).css({ "background-color": "blue" });
+          Swal.fire('Added!', 'Added to Bookmark!', 'success');
+        } else {
+          $('#college_' + param).css({ "background-color": "white" });
+          Swal.fire('Removed!', 'Removed from Bookmark!', 'error');
+        }
+        // $('#ratingmsg').css({"display":"block"});
+        console.log(response);
+      });
+    }   
+  </script>
+  {% include 'topteenfrontend/includes/ajaxjs.html' %}
+
+  {%block additionalfooter%} {%endblock%}
+</body>
+
+</html>

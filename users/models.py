@@ -1,0 +1,368 @@
+import datetime
+import random
+from datetime import datetime, timedelta, timezone
+
+import requests
+from core.models import BaseModel
+from core.utils import get_current_user
+from django.conf import settings
+from django.contrib import auth
+from django.contrib.auth.models import (AbstractBaseUser, AbstractUser,
+                                        BaseUserManager, Group, Permission,
+                                        UserManager)
+from django.core.exceptions import PermissionDenied
+from django.core.mail import EmailMessage
+from django.db import models
+from django.db.models import Q
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.translation import gettext_lazy as _
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
+from core.models import BaseModel,Hobbies,Subject,UserFigureOut
+from ckeditor.fields import RichTextField
+from dateutil import relativedelta
+from django.core.signing import Signer
+from core.models import SoftDeletionQuerySet
+from core import choices
+class PermissionsMixin(models.Model):
+    """
+    A mixin class that adds the fields and methods necessary to support
+    Django's Group and Permission model using the ModelBackend.
+    """
+    is_superuser = models.BooleanField(
+        _('superuser status'),
+        default=False,
+        help_text=_(
+            'Designates that this user has all permissions without'
+            'explicitly assigning them.'
+        ),
+    )
+    groups = models.ManyToManyField(
+        Group,
+        verbose_name=_('groups'),
+        blank=True,
+        help_text=_(
+            'The groups this user belongs to. A user will get all permissions '
+            'granted to each of their groups.'
+        ),
+        related_name="user_groups_set",
+        related_query_name="goognu_user",
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        verbose_name=_('user permissions'),
+        blank=True,
+        help_text=_('Specific permissions for this user.'),
+        related_name="user_permissions_set",
+        related_query_name="goognu_user",
+    )
+
+    class Meta:
+        abstract = True
+
+    def get_group_permissions(self, obj=None):
+        """
+        Returns a list of permission strings that this user has through their
+        groups. This method queries all available auth backends. If an object
+        is passed in, only permissions matching this object are returned.
+        """
+        permissions = set()
+        for backend in auth.get_backends():
+            if hasattr(backend, "get_group_permissions"):
+                permissions.update(backend.get_group_permissions(self, obj))
+        return permissions
+
+    def get_all_permissions(self, obj=None):
+        return _user_get_all_permissions(self, obj)
+
+    def has_perm(self, perm, obj=None):
+        """
+        Returns True if the user has the specified permission. This method
+        queries all available auth backends, but returns immediately if any
+        backend returns True. Thus, a user who has permission from a single
+        auth backend is assumed to have permission in general. If an object is
+        provided, permissions for this specific object are checked.
+        """
+
+        # Active superusers have all permissions.
+        if self.is_active and self.is_superuser:
+            return True
+
+        # Otherwise we need to check the backends.
+        return _user_has_perm(self, perm, obj)
+
+    def has_perms(self, perm_list, obj=None):
+        """
+        Returns True if the user has each of the specified permissions. If
+        object is passed, it checks if the user has all required perms for this
+        object.
+        """
+        for perm in perm_list:
+            if not self.has_perm(perm, obj):
+                return False
+        return True
+
+    def has_module_perms(self, app_label):
+        """
+        Returns True if the user has any permissions in the given app label.
+        Uses pretty much the same logic as has_perm, above.
+        """
+        # Active superusers have all permissions.
+        if self.is_active and self.is_superuser:
+            return True
+
+        return _user_has_module_perms(self, app_label)
+
+
+def _user_get_all_permissions(user, obj):
+    permissions = set()
+    for backend in auth.get_backends():
+        if hasattr(backend, "get_all_permissions"):
+            permissions.update(backend.get_all_permissions(user, obj))
+    return permissions
+
+
+def _user_has_perm(user, perm, obj):
+    """
+    A backend can raise `PermissionDenied` to short-circuit permission checking.
+    """
+    for backend in auth.get_backends():
+        if not hasattr(backend, 'has_perm'):
+            continue
+        try:
+            if backend.has_perm(user, perm, obj):
+                return True
+        except PermissionDenied:
+            return False
+    return False
+
+
+def _user_has_module_perms(user, app_label):
+    """
+    A backend can raise `PermissionDenied` to short-circuit permission checking.
+    """
+    for backend in auth.get_backends():
+        if not hasattr(backend, 'has_module_perms'):
+            continue
+        try:
+            if backend.has_module_perms(user, app_label):
+                return True
+        except PermissionDenied:
+            return False
+    return False
+
+def filter_user_queryset_by_hierarchy(user, queryset,filter_on='assign_to_user__in'):
+
+    if user.is_superuser:
+        return queryset
+    else:
+        all_childrens = user.get_all_child
+        return queryset.filter(**{filter_on:all_childrens})
+
+
+class UserManager(BaseUserManager):
+    def create_user(self, email, name=None, password=None):
+        
+        user = self.model(name=name, email=self.normalize_email(email))
+
+        user.set_password(password)
+        user.save(using=self._db)
+
+        # #assing defult grade value.
+        # for i in range(1,6):
+        #     from colleges.models import UserGrade
+        #     x = UserGrade(user=user,grade=i)
+        #     x.save()
+        return user
+
+    def create_superuser(self, email, name, password):
+        user = self.create_user(
+            email=email, password=password, name=name)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
+    
+    def get_queryset(self):
+        return SoftDeletionQuerySet(self.model).filter(
+            object_status=choices.ObjectStatus.ACTIVE
+        )
+    def complete(self):
+        return super().get_queryset()
+
+
+def user_image_directory(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    return 'upload/users/{0}/{1}'.format(instance.id, filename)
+
+class User(BaseModel,AbstractBaseUser, PermissionsMixin):
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    
+    name = models.CharField('Full Name',max_length=255,null=True,blank=True)
+    email = models.EmailField(max_length=255,unique=True,null=True)
+    mobile = models.CharField(max_length=25,blank=True,null=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    image=models.ImageField(upload_to=user_image_directory,null=True,blank=True,max_length=250)
+    is_completed=models.BooleanField(default=False)
+    referral=models.CharField(max_length=255,null=True,blank=True)
+    user_type = models.SmallIntegerField(choices=choices.UserType.CHOICES, default=choices.UserType.STUDENT)
+    user_status=models.SmallIntegerField(choices=choices.UserStatus.CHOICES,default=choices.UserStatus.UNBLOCK)
+    objects = UserManager()
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name']
+    
+    @property
+    def username(self):
+        return self.email.replace('@','')
+
+    def __str__(self):
+        return "{}".format(self.name)
+        
+    @classmethod
+    def create_user(cls,**kwargs):
+        # password = kwargs.pop('password')
+        password = '12345'
+
+        # static password by manish"
+        
+        user = User.objects.create(**kwargs)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def has_module_perms(self, app_label):
+        return True
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.name:
+            self.name = "Student"
+            self.save()
+        if not self.image:
+            self._grab_avatar()
+
+    def _grab_avatar(self):
+        colors_lst=['00AA55','1BA39C','03A678','00AA00','26A65B','00A566','4183D7','3477DB','007FAA',\
+            '3455DB','0000E0','0000B5','E26A6A','B381B3','E26A6A','BF6EE0','FF00FF','BF55EC','D252B2',\
+            '9370DB','D25299','D25852','D2527F','E73C70','F62459','E000E0','AA8F00','AA8F00','D47500',\
+            'FF4500','E63022','E76E3C','EF4836','FF0000','DC143C']
+        url="https://ui-avatars.com/api/?name={}&background={}&color=FFF&font-size=0.55&bold=True&size=256".format(self.name,random.choice(colors_lst))
+        # image_content = ContentFile(requests.get(url).content)
+        r = requests.get(url,timeout=5)
+
+        img_temp = NamedTemporaryFile(delete=True)
+        img_temp.write(r.content)
+        img_temp.flush()
+
+        self.image.save("user_{}.jpg".format(self.id), File(img_temp), save=True)
+
+    def get_referral_url(self):
+        sign = Signer()
+        enc_id=sign.sign_object(({"refer_enc_id":self.id}))
+        path=reverse('users:referallogin',args=[enc_id])
+        url="{}{}".format("https://topteen.in",path)
+        return url
+    
+    def get_user_status(self):
+        return self.user_status==choices.UserStatus.UNBLOCK
+    
+    def get_user_type(self):
+        return self.user_type==choices.UserType.STUDENT
+    
+    def get_institute_status(self):
+        return self.user_type==choices.InstituteStatus.APPROVED
+
+class UserSearchHistory(BaseModel):
+    user=models.ForeignKey(User,blank=True,null=True,on_delete=models.SET_NULL)
+    search=models.CharField(max_length=255,null=True,blank=True)
+
+class UserProfile(BaseModel):
+    user=models.OneToOneField(User,on_delete=models.CASCADE,related_name="user_profile")
+    birthdate=models.DateField(null=True,blank=True)
+    gender=models.PositiveSmallIntegerField(choices=choices.GenderChoices.CHOICES,default=choices.GenderChoices.MALE)
+    schoolname=models.CharField(max_length=250,null=True,blank=True)
+    grade=models.CharField(max_length=100,null=True,blank=True)
+    hobbies=models.ManyToManyField(Hobbies,related_name='hobbies',blank=True)
+    subject=models.ManyToManyField(Subject,related_name='subject',blank=True)
+    figure_out=models.ManyToManyField(UserFigureOut,related_name='figureout',blank=True)
+
+def user_note_icon_directory(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    return 'upload/usernotes/{0}/{1}'.format(instance.id, filename)
+
+class UserNote(BaseModel):
+    user=models.ForeignKey(User,on_delete=models.CASCADE,related_name="user_notes")
+    title=models.CharField(max_length=250,null=True,blank=True)
+    content=RichTextField(null=True,blank=True)
+
+class UserResume(BaseModel):
+    user=models.OneToOneField(User,null=True,blank=True,on_delete=models.CASCADE,related_name="user_resume")
+    about= models.TextField(null=True,blank=True)
+
+class UserResumeChild(BaseModel):
+    resume = models.ForeignKey(UserResume,null=True,blank=True,on_delete=models.CASCADE)
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.resume.save()
+
+
+class UserResumeSkill(UserResumeChild):
+    title = models.CharField(max_length=250,null=True,blank=True)
+    description = models.TextField(null=True,blank=True)
+    profficiency = models.PositiveSmallIntegerField(choices=choices.UserResumeProficiency.CHOICES,default=choices.UserResumeProficiency.BEGINNER)
+
+class UserResumeCertificate(UserResumeChild):
+    title = models.CharField(max_length=250,null=True,blank=True)
+    description = models.TextField(null=True,blank=True)
+    issue_date=models.DateField(null=True,blank=True)
+
+class UserResumeInternship(UserResumeChild):
+    provider= models.CharField(max_length=250,null=True,blank=True)
+    role = models.CharField(max_length=250,null=True,blank=True)
+    description = models.TextField(null=True,blank=True)
+    start_date=models.DateField(null=True,blank=True)    
+    end_date=models.DateField(null=True,blank=True)    
+
+class UserResumeActivity(UserResumeChild):
+    title = models.CharField(max_length=250,null=True,blank=True)
+    description = models.TextField(null=True,blank=True)
+    issue_date=models.DateField(null=True,blank=True)    
+  
+class UserResumeVolunteerInvolvement(UserResumeChild):
+    title = models.CharField(max_length=250,null=True,blank=True)
+    role= models.CharField(max_length=250,null=True,blank=True)
+    description = models.TextField(null=True,blank=True)
+    start_date=models.DateField(null=True,blank=True)    
+    end_date=models.DateField(null=True,blank=True)  
+
+    def get_time_priode(self):
+        delta = relativedelta.relativedelta(self.end_date, self.start_date)
+        return delta
+    
+class UserFolder(BaseModel):
+    user=models.ForeignKey(User,on_delete=models.CASCADE,related_name="user_folders")
+    title=models.CharField(max_length=250)
+
+def user_folder_upload_file_directory(instance, filename):
+    return 'upload/userfolder/{0}/{1}'.format(instance.id, filename)    
+
+class FolderFile(BaseModel):
+    folder=models.ForeignKey(UserFolder,on_delete=models.CASCADE,related_name="folder_files")
+    title=models.CharField(max_length=250)
+    file = models.FileField(upload_to=user_folder_upload_file_directory)
+
+class UserCalender(BaseModel):
+    user=models.ForeignKey(User,blank=True,null=True,on_delete=models.CASCADE,related_name="user_calender")
+    event_name=models.CharField(max_length=50)
+    start_date=models.DateField()
+    end_date=models.DateField()

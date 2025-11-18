@@ -1,0 +1,287 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Career Interests | Top Teen{% endblock %}
+{% block description_content %}View and manage your career interests. Careers that you have bookmarked.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} career-interests-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .career-interests-page {
+    padding-top: 80px;
+  }
+  .cluster-card {
+    background: #333;
+    border-radius: 10px;
+    min-width: 144px;
+    height: 182px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 8px 24px;
+    position: relative;
+  }
+  @media (min-width: 992px) {
+    .cluster-card {
+      min-width: 248px;
+      height: 236px;
+      flex-direction: column-reverse;
+      padding-top: 24px;
+    }
+  }
+  .career-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 10px;
+    transition: background 0.3s;
+  }
+  .career-item:hover {
+    background: #f7f7fa;
+  }
+  .career-item img {
+    width: 69px;
+    height: 69px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+  .delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #bdbdbd;
+    transition: color 0.3s;
+  }
+  .delete-btn:hover {
+    color: #dc3545;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="career-interests-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- Career Interests Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <h1 class="fs-24 fw-semibold mb-0">Career Interests</h1>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.location='{{ url('users:scrapbook') }}'">
+        <i class='bx bx-arrow-left fs-18 text-gray'></i>
+      </button>
+      <h2 class="fs-16 fw-normal text-center mb-0">Career Interests</h2>
+      <button type="button" class="btn btn-link position-absolute end-0 top-0">
+        <i class='bx bx-search fs-18 text-gray'></i>
+      </button>
+    </div>
+
+    <!-- Career Cluster Cards -->
+    {% if clstrs %}
+    <div class="d-flex gap-3 gap-lg-4 overflow-auto pb-3 mb-4" style="scrollbar-width: none; -ms-overflow-style: none;">
+      <style>
+        .d-flex.gap-3.gap-lg-4.overflow-auto::-webkit-scrollbar {
+          display: none;
+        }
+      </style>
+      {% for clstr in clstrs %}
+      <div class="cluster-card text-white flex-shrink-0">
+        <div class="d-flex flex-column align-items-center">
+          <h6 class="fs-13 fw-semibold text-center mb-2" style="max-height: 72px; overflow: hidden;">
+            {{ clstr.name }}
+          </h6>
+          <div class="badge bg-white bg-opacity-22 text-white px-2 py-1 rounded-pill fs-10">
+            {{ clstr.get_clstr_career_count(career_ids) }} shortlisted
+          </div>
+        </div>
+        <div style="width: 63px; height: 48px;">
+          {% if clstr.image %}
+          <img src="{{ clstr.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ clstr.name }}" />
+          {% else %}
+          <img src="{{ static('images_new/icons/engineering.png') }}" class="w-100 h-100 object-fit-cover" alt="{{ clstr.name }}" />
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Career Interests List -->
+    {% if career_interests %}
+    <div class="d-flex flex-column gap-3 gap-lg-4">
+      {% for career_interest in career_interests %}
+      <div class="career-item">
+        <a href="{{ career_interest.career.url() }}" class="text-decoration-none d-flex align-items-center gap-3 flex-grow-1">
+          <img src="{% if career_interest.career.image and career_interest.career.image.name %}{{ career_interest.career.image.url }}{% else %}{{ static('images/career-icon.png') }}{% endif %}" 
+               alt="{{ career_interest.career.name }}" />
+          <div>
+            <p class="fs-13 fw-semibold text-dark mb-1">{{ career_interest.career.name }}</p>
+            <div class="d-flex align-items-center gap-2 text-gray fs-13">
+              <span>{{ career_interest.career.get_max_salary() }} LPA •</span>
+              <img src="{{ static('images_new/icons/favourite.png') }}" style="width: 12px; height: 12px;" alt="Rating" />
+              <span>4.4</span>
+            </div>
+          </div>
+        </a>
+        <button type="button" 
+                class="delete-btn deleteCareer" 
+                data-id="{{ career_interest.career.slug }}"
+                data-bs-toggle="modal" 
+                data-bs-target="#deleteCareerModal"
+                data-career-name="{{ career_interest.career.name }}">
+          <i class='bx bx-x-circle fs-24'></i>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+      <i class='bx bx-briefcase fs-64 text-gray mb-3'></i>
+      <h3 class="fs-20 fw-semibold text-dark mb-2">No Career Shortlisted</h3>
+      <p class="text-gray fs-14 mb-4">You haven't shortlisted any careers yet. Start exploring careers and add them to your interests.</p>
+      <a href="{{ url('careers:career') }}" class="btn custom-button purple-button">
+        <i class='bx bx-search me-2'></i> Explore Careers
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteCareerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Remove Career Interest</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">Are you sure you want to remove <strong id="careerNameToDelete"></strong> from your career interests?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+        <button type="button" class="btn custom-button purple-button" id="confirmDeleteCareerBtn">Yes, Remove</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Sweet Alert Helper
+  const fireAlert = async function (
+    title,
+    icon = "success",
+    showConfirmButton = false,
+    showCloseButton = false,
+    isPrompt = false
+  ) {
+    const canDo = Swal.fire({
+      title,
+      icon: icon,
+      position: "top-end",
+      showCloseButton,
+      showConfirmButton,
+      toast: true,
+      showCancelButton: false,
+      ...(isPrompt ? {} : { timer: 2000 }),
+    });
+
+    if (isPrompt) {
+      return canDo?.isConfirmed;
+    } else {
+      return -1;
+    }
+  };
+
+  // Delete career interest functionality
+  let careerSlugToDelete = null;
+
+  // Set up delete buttons
+  document.querySelectorAll('.deleteCareer').forEach(btn => {
+    btn.addEventListener('click', function() {
+      careerSlugToDelete = this.dataset.id;
+      const careerName = this.dataset.careerName || 'this career';
+      document.getElementById('careerNameToDelete').textContent = careerName;
+    });
+  });
+
+  // Confirm delete
+  document.getElementById('confirmDeleteCareerBtn')?.addEventListener('click', function() {
+    if (careerSlugToDelete) {
+      deleteCareerInterest(careerSlugToDelete);
+    }
+  });
+
+  function deleteCareerInterest(slug) {
+    const form = document.createElement("form");
+    form.setAttribute("method", "POST");
+    
+    const csrfField = document.createElement("input");
+    csrfField.setAttribute("type", "hidden");
+    csrfField.setAttribute("name", "csrfmiddlewaretoken");
+    csrfField.setAttribute("value", "{{ csrf_token }}");
+    form.appendChild(csrfField);
+    
+    const careerField = document.createElement("input");
+    careerField.setAttribute("type", "hidden");
+    careerField.setAttribute("name", "careerslug");
+    careerField.setAttribute("value", slug);
+    form.appendChild(careerField);
+    
+    const formData = new FormData(form);
+    
+    $.ajax({
+      url: "/api/v1/user/shortlistcareer",
+      type: 'POST',
+      data: formData,
+      success: function (data) {
+        fireAlert("Career removed successfully", "success");
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteCareerModal'));
+        if (modal) {
+          modal.hide();
+        }
+        // Reload page after a short delay
+        setTimeout(function() {
+          window.location.reload();
+        }, 1000);
+      },
+      error: function(data) {
+        try {
+          fireAlert(data.responseJSON.message || "Error removing career", "error");
+        } catch(e) {
+          fireAlert("Internal Server Error", "error");
+        }
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteCareerModal'));
+        if (modal) {
+          modal.hide();
+        }
+      },
+      cache: false,
+      contentType: false,
+      processData: false
+    });
+  }
+</script>
+{% endblock %}
+

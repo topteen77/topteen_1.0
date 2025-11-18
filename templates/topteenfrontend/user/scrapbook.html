@@ -1,0 +1,171 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+ 
+{% block main %}
+<main class="lg:max-w-[1280px] mx-auto lg:pt-[30px] pb-[24px] lg:pb-0 relative h-full">
+    {% if breadcrumb  %}
+    <!-- BreadCrumb -->
+    <section class="px-[20px] lg:px-[100px] gap-[16px] hidden lg:flex">
+        {% for brd in breadcrumb %}
+        {% if not loop.last and loop.first %}
+        <a href="{{brd.url}}" class="">
+            <img src="{{static("topteenfrontend/assets/images/home.svg")}}" class=" my-auto" alt="">
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if not loop.last and not loop.first  %}
+        <a href="{{brd.url}}" class="my-auto">
+            <p class="text-[12px] my-auto">{{brd.title}}</p>
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if loop.last%}
+        <a href="#" class="my-auto">
+            <p class="text-[12px]">{{brd.title}}</p>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </section>
+    <!-- End of Breadcrumb -->
+    {% endif %}
+
+    <!-- ScrapBook Heading -->
+    <section class="pt-[16px] lg:pt-[48px] fixed lg:relative top-[12px] z-30 w-full bg-[#ffffff]">
+
+        <div class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+            <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">My Scrapbook</p>
+            <button type="button" class="absolute bottom-[18px] right-[24px]" onclick="window.location='{{url('users:userdashboard')}}'">
+                <i class="fa-solid fa-xmark text-[#828282] text-[24px] leading-[50px]"></i>
+            </button>
+        </div>
+  
+        <div class="hidden lg:flex justify-between px-[20px] lg:px-[100px] ">
+            <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">My Scrapbook</p>
+        </div>
+
+    </section>
+    <!-- End of ScrapBook Heading -->
+
+    <!-- Content -->
+    <section class="px-[20px] lg:pl-[100px] lg:pr-[95px] pt-[110px] lg:pt-[30px] pb-[100px] lg:pb-0 flex flex-col gap-y-[15px] lg:flex-row lg:flex-wrap lg:gap-x-[30px] lg:gap-y-[24px]">
+
+
+        <a href="{{url('users:mynotepad')}}">
+            <!-- NotePad -->
+            <div class="mx-auto lg:mx-0 w-full max-w-[344px] h-[84px] lg:w-[248px] lg:h-[151px] pt-[20px]  flex lg:flex-col rounded-[10px] overflow-x-hidden bg-[#f7f7fa] relative">
+
+                <img src="{{static('topteenfrontend/assets/images/diary.png')}}" class="absolute top-[50%] -translate-y-[50%] -left-[6px] lg:left-0 lg:translate-y-0 lg:top-[20px] rotate-[31.19deg] lg:rotate-0 lg:relative w-[57px] h-[57px] lg:mx-auto object-cover lg:w-[41px] lg:h-[41px]" alt="">
+                <div class="lg:max-w-[85%] mx-auto lg:mt-[14px]">
+                    <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] lg:text-center">My Notepad</p>
+                    <p class="text-[12px] leading-[16px] regularFont text-[#828282] text-center mt-[5px]">Your notes, reminders and post-its</p>
+                </div>
+                <div class=" absolute right-[18px] top-[50%] -translate-y-[50%] lg:hidden">
+                    <i class="fa-solid fa-angle-right text-[20px] leading-[24px] text-[#bdbdbd]"></i>
+                </div>
+
+            </div>
+            <!-- End of NotePad -->
+        </a>
+
+        <a href="{{url('users:resumebuilderwelcome')}}">
+            <!-- Resume Builder -->
+            <div class="mx-auto lg:mx-0 w-full max-w-[344px] h-[84px] lg:w-[248px] lg:h-[151px] pt-[20px]  flex lg:flex-col rounded-[10px] overflow-x-hidden bg-[#f7f7fa] relative">
+
+                <img src="{{static("topteenfrontend/assets/images/resumeBuilder.png")}}" class="absolute top-[50%] -translate-y-[50%] -left-[6px] lg:left-0 lg:translate-y-0 lg:top-[20px] rotate-[31.19deg] lg:rotate-0 lg:relative w-[57px] h-[57px] lg:mx-auto object-cover lg:w-[41px] lg:h-[41px]" alt="">
+                <div class="lg:max-w-[85%] mx-auto lg:mt-[14px]">
+                    <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] lg:text-center">Resume Builder</p>
+                    <p class="text-[12px] leading-[16px] regularFont text-[#828282] text-center mt-[5px]">Build your resume from scratch</p>
+                </div>
+                <div class=" absolute right-[18px] top-[50%] -translate-y-[50%] lg:hidden">
+                    <i class="fa-solid fa-angle-right text-[20px] leading-[24px] text-[#bdbdbd]"></i>
+                </div>
+
+            </div>
+            <!-- End of Resume Builder -->
+        </a>
+        <a href="{{url('users:careerinterest')}}">
+            <!-- Career Interests -->
+            <div class="mx-auto lg:mx-0 w-full max-w-[344px] h-[84px] lg:w-[248px] lg:h-[151px] pt-[20px]  flex lg:flex-col rounded-[10px] overflow-x-hidden bg-[#f7f7fa] relative">
+
+                <img src="{{static("topteenfrontend/assets/images/careerinsterests.png")}}" class="absolute top-[50%] -translate-y-[50%] -left-[6px] lg:left-0 lg:translate-y-0 lg:top-[20px] rotate-[31.19deg] lg:rotate-0 lg:relative w-[57px] h-[57px] lg:mx-auto object-cover lg:w-[41px] lg:h-[41px]" alt="">
+                <div class="lg:max-w-[85%] mx-auto lg:mt-[14px]">
+                    <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] lg:text-center">Career Interests</p>
+                    <p class="text-[12px] leading-[16px] regularFont text-[#828282] text-center mt-[5px]">Careers that you have bookmarked</p>
+                </div>
+                <div class=" absolute right-[18px] top-[50%] -translate-y-[50%] lg:hidden">
+                    <i class="fa-solid fa-angle-right text-[20px] leading-[24px] text-[#bdbdbd]"></i>
+                </div>
+
+            </div>
+            <!-- End of Career Interests -->
+        </a>
+        <!-- Exams and Tests -->
+        <a href="{{url('users:bookmarkexam')}}">
+            <div class="mx-auto lg:mx-0 w-full max-w-[344px] h-[84px] lg:w-[248px] lg:h-[151px] pt-[20px]  flex lg:flex-col rounded-[10px] overflow-x-hidden bg-[#f7f7fa] relative">
+
+                <img src="{{static("topteenfrontend/assets/images/examsTests.png")}}" class="absolute top-[50%] -translate-y-[50%] -left-[6px] lg:left-0 lg:translate-y-0 lg:top-[20px] rotate-[31.19deg] lg:rotate-0 lg:relative w-[57px] h-[57px] lg:mx-auto object-cover lg:w-[41px] lg:h-[41px]" alt="">
+                <div class="lg:max-w-[85%] mx-auto lg:mt-[14px]">
+                    <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] lg:text-center">Exams & Tests</p>
+                    <p class="text-[12px] leading-[16px] regularFont text-[#828282] text-center mt-[5px]">Schools and tests shortlisted by you</p>
+                </div>
+                <div class=" absolute right-[18px] top-[50%] -translate-y-[50%] lg:hidden">
+                    <i class="fa-solid fa-angle-right text-[20px] leading-[24px] text-[#bdbdbd]"></i>
+                </div>
+
+            </div>
+        </a>
+        <!-- End of Exams and Tests -->
+
+        <!-- My Courses -->
+        <a href="{{url('users:bookmarkvideo')}}">
+            <div class="mx-auto lg:mx-0 w-full max-w-[344px] h-[84px] lg:w-[248px] lg:h-[151px] pt-[20px]  flex lg:flex-col rounded-[10px] overflow-x-hidden bg-[#f7f7fa] relative">
+
+                <img src="{{static("topteenfrontend/assets/images/myCourses.png")}}" class="absolute top-[50%] -translate-y-[50%] -left-[6px] lg:left-0 lg:translate-y-0 lg:top-[20px] rotate-[31.19deg] lg:rotate-0 lg:relative w-[57px] h-[57px] lg:mx-auto object-cover lg:w-[41px] lg:h-[41px]" alt="">
+                <div class="lg:max-w-[85%] mx-auto lg:mt-[14px]">
+                    <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] lg:text-center">My Videos</p>
+                    <p class="text-[12px] leading-[16px] regularFont text-[#828282] text-center mt-[5px]">Videos that you have bookmarked</p>
+                </div>
+                <div class=" absolute right-[18px] top-[50%] -translate-y-[50%] lg:hidden">
+                    <i class="fa-solid fa-angle-right text-[20px] leading-[24px] text-[#bdbdbd]"></i>
+                </div>
+
+            </div>
+        </a>
+        <!-- End of My Courses -->
+        <a href="{{url('users:mycolleges')}}">
+                <!-- My Courses -->
+                <div class="mx-auto lg:mx-0 w-full max-w-[344px] h-[84px] lg:w-[248px] lg:h-[151px] pt-[20px]  flex lg:flex-col rounded-[10px] overflow-x-hidden bg-[#f7f7fa] relative">
+
+                    <img src="{{static("topteenfrontend/assets/images/myCourses.png")}}" class="absolute top-[50%] -translate-y-[50%] -left-[6px] lg:left-0 lg:translate-y-0 lg:top-[20px] rotate-[31.19deg] lg:rotate-0 lg:relative w-[57px] h-[57px] lg:mx-auto object-cover lg:w-[41px] lg:h-[41px]" alt="">
+                    <div class="lg:max-w-[85%] mx-auto lg:mt-[14px]">
+                        <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] lg:text-center">My Colleges</p>
+                        <p class="text-[12px] leading-[16px] regularFont text-[#828282] text-center mt-[5px]">College that you have bookmarked</p>
+                    </div>
+                    <div class=" absolute right-[18px] top-[50%] -translate-y-[50%] lg:hidden">
+                        <i class="fa-solid fa-angle-right text-[20px] leading-[24px] text-[#bdbdbd]"></i>
+                    </div>
+        
+                </div>
+                <!-- End of My Courses -->
+        </a>
+        <!-- My Hobbies -->
+        <a href="{{url('users:myhobbies')}}">
+            <div class="mx-auto lg:mx-0 w-full max-w-[344px] h-[84px] lg:w-[248px] lg:h-[151px] pt-[20px]  flex lg:flex-col rounded-[10px] overflow-x-hidden bg-[#f7f7fa] relative">
+
+                <img src="{{static("topteenfrontend/assets/images/myHobbies.png")}}" class="absolute top-[50%] -translate-y-[50%] -left-[6px] lg:left-0 lg:translate-y-0 lg:top-[20px] rotate-[31.19deg] lg:rotate-0 lg:relative w-[57px] h-[57px] lg:mx-auto object-cover lg:w-[41px] lg:h-[41px]" alt="">
+                <div class="lg:max-w-[85%] mx-auto lg:mt-[14px]">
+                    <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] lg:text-center">My Hobbies</p>
+                    <p class="text-[12px] leading-[16px] regularFont text-[#828282] text-center mt-[5px]">This helps us serve you content </p>
+                </div>
+                <div class=" absolute right-[18px] top-[50%] -translate-y-[50%] lg:hidden">
+                    <i class="fa-solid fa-angle-right text-[20px] leading-[24px] text-[#bdbdbd]"></i>
+                </div>
+
+            </div>
+        </a>
+        <!-- End of My Hobbies -->
+
+    </section>
+    <!-- End of Content -->
+</main>
+
+{% endblock %}

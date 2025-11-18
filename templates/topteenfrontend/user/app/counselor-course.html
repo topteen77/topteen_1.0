@@ -1,0 +1,231 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+
+<style>
+  p {
+    margin: 0px;
+    color: inherit;
+  }
+</style>
+
+<main class="container mt-5 lg:mx-auto lg:mt-10 mb-md-0 mb-10 "> 
+    
+    <!-- Breadcrumb -->
+    <div class="mb-[16px] lg:px-0 px-2 mt-[12px] lg:mt-0">
+      <div
+          class=" text-[12px] mt-[6px]  mb-[10px]  flex items-center space-x-2 scrollbar-hide overflow-x-auto whitespace-nowrap sm:mt-2 lg:-mt-[-150px] xl:mt-0"> <a href="/"><img class="h-3 opacity-50" src="images/home.svg"></a> <span>→</span> <a class="h-5 opacity-50" href="/careers/">Counsellor Dashboard</a> <span>→</span>
+        <p class="text-green-600  font-[galanoGrotesqueBold]">Career Counselling Course</p>
+      </div>
+    </div>
+    
+    <!-- Breadcrumb --> 
+    
+    <!-- Main Grid -->
+    
+    <div class="lg:grid lg:grid-cols-4 gap-8 lg:px-0 lg:mb-[30px]"> 
+      
+      <!-- Left Side -->
+      
+      <div class="lg:col-start-1 lg:col-span-3">
+        <h1
+            class="lg:font-semibold font-bold text-[20px] leading-[27px] tracking-[-0.02em] lg:text-xl mt-md-4 mt-3 mb-md-3 mb-2"> Career Counseling Course </h1>
+        <div class="blg-imag"> <img class="h-auto max-w-full" src="{{ static ('images1/career-counselling-banner.png')}}" alt="image description"> </div>
+        <div class="course-detail mt-5">
+          <div class="cc-tags flex gap-2 items-center overflow-x-auto flex-wrap scroll mb-md-7 mb-4">
+            <div class="tg-gag bg-[#3F37C9] text-xs text-[#ffffff] py-[11px] px-4 font-semibold rounded-[100px]"> Tags </div>
+            <a href="#"
+                class="bg-[#3F37C9] bg-opacity-[0.15] text-xs text-[#3F37C9] py-[11px] px-4 font-semibold rounded-[100px] tracking-[1%]"> Course Detail </a> <a href="#"
+                class="bg-[#3F37C9] bg-opacity-[0.15] text-xs text-[#3F37C9] py-[11px] px-4 font-semibold rounded-[100px] tracking-[1%]"> Course Delivery </a> <a href="#"
+                class="bg-[#3F37C9] bg-opacity-[0.15] text-xs text-[#3F37C9] py-[11px] px-4 font-semibold rounded-[100px] tracking-[1%]"> Skills Covered </a> <a href="#"
+                class="bg-[#3F37C9] bg-opacity-[0.15] text-xs text-[#3F37C9] py-[11px] px-4 font-semibold rounded-[100px] tracking-[1%]"> Assessments </a> <a href="#"
+                class="bg-[#3F37C9] bg-opacity-[0.15] text-xs text-[#3F37C9] py-[11px] px-4 font-semibold rounded-[100px] tracking-[1%]"> Certification </a> </div>
+          <h3
+              class="lg:font-semibold font-bold text-[20px] leading-[27px] tracking-[-0.02em] lg:text mb-2 mt-md-3 mt-2"> Course Details </h3>
+          <p>Part-time jobs for teenagers are highly valuable as they offer opportunities for skill development,
+            responsibility, financial literacy, career exploration, confidence building, time management, networking,
+            and real-world experience. These jobs not only provide financial independence but also equip teenagers with
+            essential skills and experiences that contribute to their personal growth and future success. 
+            Jobs for teens carry significant importance and offer numerous benefits that contribute to their personal
+            growth and development. Here are some benefits of part-time employment for teens:</p>
+          <h3
+              class="lg:font-semibold font-bold text-[20px] leading-[27px] tracking-[-0.02em] lg:text mb-2 mt-md-3 mt-2"> Course Delivery </h3>
+          <p>Part-time jobs for teenagers are highly valuable as they offer opportunities for skill development,
+            responsibility, financial literacy, career exploration, confidence building, time management, networking,
+            and real-world experience. These jobs not only provide financial independence but also equip teenagers with
+            essential skills and experiences that contribute to their personal growth and future success. 
+            Jobs for teens carry significant importance and offer numerous benefits that contribute to their personal
+            growth and development. Here are some benefits of part-time employment for teens:</p>
+          <h3
+              class="lg:font-semibold font-bold text-[20px] leading-[27px] tracking-[-0.02em] lg:text mb-2 mt-md-3 mt-2"> Skills Covered</h3>
+          <p>Part-time jobs for teenagers are highly valuable as they offer opportunities for skill development,
+            responsibility, financial literacy, career exploration, confidence building, time management, networking,
+            and real-world experience. These jobs not only provide financial independence but also equip teenagers with
+            essential skills and experiences that contribute to their personal growth and future success. 
+            Jobs for teens carry significant importance and offer numerous benefits that contribute to their personal
+            growth and development. Here are some benefits of part-time employment for teens:</p>
+        </div>
+      </div>
+      
+      <!-- Left Side -->
+      
+      <div class="hidden lg:block">
+        <div
+            class="w-full max-w-sm  bg-white border border-gray-200 rounded-lg sm:p-6 dark:bg-gray-800 dark:border-gray-700 overflow-hidden mt-10 sticky top-[10px]">
+          <h5 class="mb-3 text-base font-semibold  md:text-xl  bg-[#3F37C9] text-[#ffffff] px-2 py-3 text-center rounde-t"> Book Now </h5>
+          <div class="price-tt flex justify-content-center border-b"> <strike class="me-2">₹2999/-</strike> <span class="text-lg font-semibold tracking-[-0.02em] mb-3 text-[#3F37C9] fs-24 ">₹ 999/-</span> </div>
+          <div class="td-is flex flex-col p-3 ">
+            <div class="lim-list flex items-center mb-2 fs-14"> <img class="me-3" style="width: 16px; height: 14px;" src="{{ static ('images1/am-icon.png') }}" alt="icon" /> <span> Total Assessments - <b>10</b> </span> </div>
+            <div class="lim-list flex  items-center mb-2 fs-14"> <img class="me-3" style="width: 16px; height: 14px;" src="{{ static ('images1/stack-icon.png') }}" alt="icon" /> <span> Number of Chapters - <b>15</b> </span> </div>
+            <div class="lim-list flex  items-center mb-2 fs-14"> <img class="me-3" style="width: 16px; height: 14px;" src="{{ static ('images1/question-icons.png') }}" alt="icon" /> <span> Number of Questions - <b>180</b> </span> </div>
+            <div class="lim-list flex  items-center mb-2 fs-14"> <img class="me-3" style="width: 16px; height: 14px;" src="{{ static ('images1/audit-report-survey-icon.png') }}"
+                  alt="icon" /> <span>Course Test</span> </div>
+            <div class="lim-list flex  items-center mb-2 fs-14"> <img class="me-3" style="width: 10px; height:16px;" src="{{ static ('images1/cell-phone-icon.png')}}" alt="icon" /> <span class="ms-2">Access on Mobile</span> </div>
+          </div>
+          <div class="flex justify-center mt-2 mb-3">
+            <button onclick="window.location='/psychometrictest/createdemopsychomerticttestpaymenteazypay'"
+                class="uppercase px-6 py-[13px] bg-[#4CC9F0] rounded-[10px] text-xs text-white tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center "> <span class="text-[14px]">Start Now</span> </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Grid -->
+    
+    <div class="lg:hidden sm:block fixed bottom-[60px] w-full">
+      <div class="flex justify-center w-full">
+        <button id="drawerButton" 
+            class="text-white  font-medium rounded-[100px] text-sm px-5 py-2.5 mb-2  focus:outline-none bg-[#3F37C9]"
+            type="button" data-drawer-target="drawer-bottom-example"> Book Now </button>
+      </div>
+    </div>
+  </main>
+  <aside
+      class="mt-20 lg:mt-[95px] w-full lg:flex flex-row justify-evenly items-center text-white bg-[#31B0FF] py-[39px] px-[100px] hidden">
+    <p class="text-semibold text-[28px] leading-[38px] tracking-[0.035em] text-[#ffffff]"> Interested in getting latest updates? </p>
+    <button type="button"
+        class="bg-white flex flex-row justify-center items-center rounded-[10px] py-[16px] border-b-[5px] border-[#EAEAEA] px-[36px] gap-[6px] shortlistcareer"
+        data-careerslug="air-traffic-controller"> <span class="text-[#4F4F4F] font-bold text-sm buttontext"> SUBSCRIBE NOW </span> </button>
+  </aside>
+  <section class="footer-nav d-lg-none d-block">
+    <div class="nav-footer">
+      <ul>
+        <li> <a href="#" class="ft-dis-icon"> <span></span>
+          <p>Discover</p>
+          </a> </li>
+        <li> <a href="#" class="ft-search-icon"> <span></span>
+          <p>Search</p>
+          </a> </li>
+        <li> <a href="#" class="ft-dash-icon"> <span></span>
+          <p>My Dashboard</p>
+          </a> </li>
+        <li> <a href="#" class="ft-learn-icon"> <span></span>
+          <p>Learn</p>
+          </a> </li>
+        <li> <a href="#" class="ft-profile-icon"> <span></span>
+          <p>Profile</p>
+          </a> </li>
+      </ul>
+    </div>
+  </section>
+  </div>
+  </section>
+
+  <!-- Mobile Drawer for Counsellor Book Course -->
+  
+  <div id="backdrop" class="backdrop"></div>
+  <div id="bottomDrawer"
+      class="z-80 fixed inset-x-0 bottom-0 bg-white shadow-lg transform translate-y-full transition-transform duration-300"
+      aria-hidden="true">
+    <div class="p-4">
+      <button id="closeButton" type="button"
+          class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 absolute right-[20px]  top-[20px] end-2.5 inline-flex items-center justify-center dark:hover:bg-gray-600 dark:hover:text-white">
+      <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+      </svg>
+      <span class="sr-only">Close menu</span> </button>
+      <div class="td-is flex flex-col p-3 ">
+        <div class="lim-list flex items-center mb-2 fs-14"> <img class="me-3" style="width: 16px; height: 14px;" src="images/am-icon.png" alt="icon" /> <span> Total Assessments - <b>10</b> </span> </div>
+        <div class="lim-list flex  items-center mb-2 fs-14"> <img class="me-3" style="width: 16px; height: 14px;" src="images/stack-icon.png" alt="icon" /> <span> Number of Chapters - <b>15</b> </span> </div>
+        <div class="lim-list flex  items-center mb-2 fs-14"> <img class="me-3" style="width: 16px; height: 14px;" src="images/question-icons.png" alt="icon" /> <span> Number of Questions - <b>180</b> </span> </div>
+        <div class="lim-list flex  items-center mb-2 fs-14"> <img class="me-3" style="width: 16px; height: 14px;" src="images/audit-report-survey-icon.png" alt="icon" /> <span>Course Test</span> </div>
+        <div class="lim-list flex  items-center mb-2 fs-14"> <img class="me-3" style="width: 10px; height:16px;" src="images/cell-phone-icon.png" alt="icon" /> <span class="ms-2">Access on Mobile</span> </div>
+      </div>
+      <div class="flex justify-center mt-2 mb-3">
+        <button  onclick="location.replace('counselor-course-information.html')"
+            class="uppercase px-6 py-[13px] bg-[#4CC9F0] rounded-[10px] text-xs text-white tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center "> <span class="text-[14px]">Start Now</span> </button>
+      </div>
+    </div>
+  </div>
+  </body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://kit.fontawesome.com/df31b3ad5b.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script type="text/javascript" src="https://www.topteen.in//static/topteenfrontend/assets/js/slick.min.js"></script>
+  <script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
+   <script type="text/javascript" src="{{static('topteenfrontend/assets/js/userDashboard.js')}}">
+  </script>
+  <script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/homePage.js"></script>
+  <script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/common.js"></script>
+  <script src="https://www.topteen.in/static/topteenfrontend/assets/js/common.js"></script>
+  <script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/search.js">    </script>
+  <script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/resumeBuilder.js"></script>
+  
+  <!--new js -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+    integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="{{ static ('js/bootstrap.min.js')}}"></script>
+  <!--new js -->
+  
+  <!-- Chart js -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.35.3/apexcharts.min.js"
+    integrity="sha512-yhdujT21BI/kqk9gcupTh4jMwqLhb+gc6Ytgs4cL0BJjXW+Jo9QyllqLbuluI0cBHqV4XsR7US3lemEGjogQ0w=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- Chart js -->
+  
+  <script>
+  
+  
+  
+  
+  
+  
+  /** mobile drawer js **/
+  
+  
+  
+    const drawerButton = document.getElementById('drawerButton');
+    const bottomDrawer = document.getElementById('bottomDrawer');
+    const closeButton = document.getElementById('closeButton');
+    const backdrop = document.getElementById('backdrop');
+  
+    drawerButton.addEventListener('click', () => {
+      bottomDrawer.classList.remove('translate-y-full');
+      bottomDrawer.classList.add('translate-y-0');
+      bottomDrawer.setAttribute('aria-hidden', 'false');
+      backdrop.style.display = 'block'; // Show backdrop
+    });
+  
+    closeButton.addEventListener('click', () => {
+      bottomDrawer.classList.add('translate-y-full');
+      bottomDrawer.classList.remove('translate-y-0');
+      bottomDrawer.setAttribute('aria-hidden', 'true');
+      backdrop.style.display = 'none'; // Hide backdrop
+    });
+  
+    // Optional: Hide drawer when clicking on the backdrop
+    backdrop.addEventListener('click', () => {
+      bottomDrawer.classList.add('translate-y-full');
+      bottomDrawer.classList.remove('translate-y-0');
+      bottomDrawer.setAttribute('aria-hidden', 'true');
+      backdrop.style.display = 'none'; // Hide backdrop
+    });
+  
+  /** mobile drawer js **/
+  
+  </script>
+
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'topteenfrontend/base.html' %} {% block main %}
+
+<section class="lg:mb-[76px] lg:py-[200px] px-4 container mx-auto">
+  <h3
+    class="text-[28px] leading-[37.8px] tracking-[0.035em] text-[#333333] font-semibold mb-6" >
+    Leading Professions
+  </h3>
+  <div class="lg:grid grid-cols-4 gap-5">
+    {%for profession in professions%}
+
+    <div class="relative w-full h-full mb-4 lg-mb-0">
+      <!-- IMAGE SECTION -->
+
+      <div
+        class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
+      >
+        <img
+          src="{{profession.image.url}}"
+          class="h-full w-full object-cover"
+        />
+
+        <div
+          class="absolute inset-0 h-full w-full backgroundGradient z-10"
+        ></div>
+      </div>
+      <!-- CONTENT -->
+      <p
+        class="text-sm font-semibold text-[#333333] tracking-[0.035em] mb-[5px]"
+      >
+        <a href="#">{{profession.name}}</a>
+      </p>
+      <!-- summary -->
+      <div class="inline-block">
+        <p class="text-[12px] text-[#4f4f4f] regularFont profSummarypage">
+          {{profession.summary}}
+        </p>
+      </div>
+      <!-- End of summary -->
+      <div
+        class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+      >
+        <span>{{profession.get_salary_display()}} &#x2022;</span>&nbsp;
+        <img
+          src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+          class="inline-block"
+        /><span> 4.4</span>
+      </div>
+    </div>
+    {%endfor%}
+  </div>
+</section>
+<center>
+  <div class="pagination">
+    <span class="step-links">
+      {% if professions.has_previous() %}
+      <a href="?page=1"> First</a>
+      <a href="?page={{professions.previous_page_number() }}">Previous</a>
+      {%endif%}
+
+      <span class="current" style="color: black">
+        Page{{professions.number}} of {{professions.paginator.num_pages}}
+      </span>
+
+      {% if professions.has_next() %}
+      <a href="?page={{ professions.next_page_number() }}">Next</a>
+      <a href="?page={{ professions.paginator.num_pages }}"
+        >&ensp;Last &raquo;</a
+      >
+
+      {%endif%}
+    </span>
+  </div>
+</center>
+
+{% endblock %} {% block additionalfooter %}
+<script type="text/javascript">
+  const profSummarypage = document.querySelectorAll(".profSummarypage");
+
+  const createHtmlString = function (mode, str, length = 60) {
+    let updatedStr = str;
+    let toggle;
+    if (mode === "EXPAND") {
+      toggle = "COLLAPSE";
+    } else {
+      updatedStr = str.slice(0, length);
+      toggle = "EXPAND";
+    }
+
+    console.log(updatedStr);
+
+    return `
+      <span>${updatedStr}</span>
+      <button class='expandText knowMore' data-toggle=${toggle} >${
+      toggle === "EXPAND" ? "show more" : "show less"
+    }</button>`;
+  };
+
+  profSummarypage.forEach((elem) => {
+    const summaryTextpage = elem.textContent;
+    const updatedTextpage = summaryTextpage?.slice(0, 60);
+    let htmlStr = "";
+    if (summaryTextpage?.length >= 50) {
+      htmlStr = createHtmlString("COLLAPSE", summaryTextpage, 60);
+      elem.innerHTML = htmlStr;
+    } else {
+      elem.textContent = summaryTextpage;
+    }
+
+    elem.addEventListener("click", function (e) {
+      if (!e.target.classList.contains("expandText")) return;
+      const toggle = e.target?.dataset?.toggle;
+      let str = "";
+      if (toggle?.toUpperCase() === "EXPAND") {
+        str = createHtmlString("EXPAND", summaryTextpage);
+      } else {
+        str = createHtmlString("COLLAPSE", summaryTextpage);
+      }
+      elem.innerHTML = str;
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,17 @@
+version: '3.2'
+
+services:
+    migrations:
+      image: developertopteen/demotopteen:topteens_django_prod
+      working_dir: /app
+      #command: python3 manage.py runserver 0.0.0.0:8000
+      volumes:
+        - /app/topteens:/app
+      environment:
+        - "PYTHONUNBUFFERED=1"
+
+
+networks:
+  default:
+    external:
+      name: canam-network

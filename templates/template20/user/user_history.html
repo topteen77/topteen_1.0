@@ -1,0 +1,187 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Payment History | Top Teen{% endblock %}
+{% block description_content %}View your payment and transaction history.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} user-history-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .user-history-page {
+    padding-top: 80px;
+  }
+  .history-card {
+    border: 1px solid #efefee;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: box-shadow 0.3s;
+  }
+  .history-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .status-success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  .status-failed {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  .status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="user-history-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- History Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <h1 class="fs-24 fw-semibold mb-0">Payment History</h1>
+      <div class="d-none d-lg-block">
+        <select id="filterStatus" class="form-select" style="max-width: 200px;">
+          <option value="">All Payments</option>
+          <option value="success">Successful</option>
+          <option value="failed">Failed</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.location='{{ url('users:userdashboard') }}'">
+        <i class='bx bx-arrow-left fs-18 text-gray'></i>
+      </button>
+      <h2 class="fs-16 fw-normal text-center mb-0">Payment History</h2>
+      <select id="filterStatusMobile" class="form-select form-select-sm position-absolute end-0 top-0" style="max-width: 120px;">
+        <option value="">All</option>
+        <option value="success">Success</option>
+        <option value="failed">Failed</option>
+        <option value="pending">Pending</option>
+      </select>
+    </div>
+
+    <!-- History Content -->
+    {% if payments %}
+    <div id="historyList">
+      {% for payment in payments %}
+      <div class="history-card" data-status="{% if payment.is_success == 1 %}success{% elif payment.is_success == 0 %}pending{% else %}failed{% endif %}">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h5 class="fs-18 fw-semibold text-dark mb-1">
+              {% if payment.obj_type == 1 %}Psychometric Test
+              {% elif payment.obj_type == 2 %}SkillLab Course
+              {% else %}Payment{% endif %}
+            </h5>
+            <p class="fs-14 text-gray mb-0">
+              <i class='bx bx-calendar me-1'></i>
+              {{ date_format(payment.created) }}
+            </p>
+          </div>
+          <span class="status-badge {% if payment.is_success == 1 %}status-success{% elif payment.is_success == 0 %}status-pending{% else %}status-failed{% endif %}">
+            {% if payment.is_success == 1 %}Success
+            {% elif payment.is_success == 0 %}Pending
+            {% else %}Failed{% endif %}
+          </span>
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-md-6">
+            <p class="fs-14 text-gray mb-1">Amount</p>
+            <p class="fs-16 fw-semibold text-dark mb-0">₹{{ payment.amount }}</p>
+          </div>
+          {% if payment.gateway_order_id %}
+          <div class="col-md-6">
+            <p class="fs-14 text-gray mb-1">Order ID</p>
+            <p class="fs-14 text-dark mb-0">{{ payment.gateway_order_id }}</p>
+          </div>
+          {% endif %}
+          {% if payment.gateway_payment_id %}
+          <div class="col-md-6">
+            <p class="fs-14 text-gray mb-1">Payment ID</p>
+            <p class="fs-14 text-dark mb-0">{{ payment.gateway_payment_id }}</p>
+          </div>
+          {% endif %}
+          {% if payment.transaction_date %}
+          <div class="col-md-6">
+            <p class="fs-14 text-gray mb-1">Transaction Date</p>
+            <p class="fs-14 text-dark mb-0">{{ date_format(payment.transaction_date) }}</p>
+          </div>
+          {% endif %}
+          {% if payment.payment_mode %}
+          <div class="col-md-6">
+            <p class="fs-14 text-gray mb-1">Payment Mode</p>
+            <p class="fs-14 text-dark mb-0">{{ payment.payment_mode }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+      <i class='bx bx-receipt fs-64 text-gray mb-3'></i>
+      <h3 class="fs-20 fw-semibold text-dark mb-2">No Payment History</h3>
+      <p class="text-gray fs-14 mb-0">You haven't made any payments yet.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<script>
+  // Filter functionality
+  const filterStatus = document.getElementById('filterStatus');
+  const filterStatusMobile = document.getElementById('filterStatusMobile');
+  const historyCards = document.querySelectorAll('.history-card');
+
+  function filterHistory(status) {
+    historyCards.forEach(card => {
+      if (!status || card.dataset.status === status) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    // Show empty state if no cards visible
+    const visibleCards = Array.from(historyCards).filter(card => card.style.display !== 'none');
+    const emptyState = document.querySelector('.text-center.py-5');
+    if (emptyState) {
+      emptyState.style.display = visibleCards.length === 0 ? 'block' : 'none';
+    }
+  }
+
+  if (filterStatus) {
+    filterStatus.addEventListener('change', function() {
+      filterHistory(this.value);
+    });
+  }
+
+  if (filterStatusMobile) {
+    filterStatusMobile.addEventListener('change', function() {
+      filterHistory(this.value);
+    });
+  }
+</script>
+{% endblock %}
+

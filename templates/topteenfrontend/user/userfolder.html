@@ -1,0 +1,151 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main%}
+
+<!-- Delete popUp -->
+<div class="deleteFolderPop fixed hidden">
+    <div class="h-full w-full relative">
+        <div class="deleteFolderContent absolute bg-[#ffffff] rounded-xl py-[26px] px-[20px] inline-block mx-auto">
+            <p class="text-[16px] leading-[21px] mediumFont text-[#828282]">Are you sure you want to delete this?</p>
+            <div class="flex mt-[24px] gap-[30px] justify-end">
+                <button class="noDeleteFolderBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                    No
+                </button>
+                <button class="yesDeleteFolderBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                    Yes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Delete PopUp -->
+
+<main class="lg:pt-[30px] lg:max-w-[1280px] mx-auto bg-[#ffffff] relative h-full pb-[200px] lg:pb-0">
+
+    {% if breadcrumb  %}
+    <!-- BreadCrumb -->
+    <section class="px-[20px] lg:px-[100px] gap-[16px] hidden lg:flex">
+        {% for brd in breadcrumb %}
+        {% if not loop.last and loop.first %}
+        <a href="{{brd.url}}" class="">
+            <img src="{{static("topteenfrontend/assets/images/home.svg")}}" class=" my-auto" alt="">
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if not loop.last and not loop.first  %}
+        <a href="{{brd.url}}" class="my-auto">
+            <p class="text-[12px] my-auto">{{brd.title}}</p>
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if loop.last%}
+        <a href="#" class="my-auto">
+            <p class="text-[12px]">{{brd.title}}</p>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </section>
+    <!-- End of Breadcrumb -->
+    {% endif %}
+
+    <!-- Folders Heading -->
+    <section class="lg:mt-[21px] fixed lg:relative top-[12px] z-30 w-full bg-[#ffffff]">
+        <div class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+            <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">My Folders</p>
+            <button type="button" class="absolute bottom-[18px] left-[24px]" onclick="window.location='{{url('users:scrapbook')}}'">
+                <i class="fa-solid fa-arrow-left text-[#828282] text-[18px] leading-[50px]"></i>
+            </button>
+        </div>
+  
+        <div class="hidden lg:flex px-[20px] lg:px-[100px] ">
+            <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">My Folders</p>
+        </div>
+
+    </section>
+    <!-- End of Folders Heading -->
+
+    <!-- Hobbies Content -->
+    <section class="pt-[110px] lg:pt-[50px] lg:max-w-[1280px] lg:mx-auto px-[20px] lg:pl-[100px] lg:pr-[95px] flex flex-wrap justify-center sm:justify-start gap-x-[30px] gap-y-[15px]">
+        {% for folder in folders %}
+            <div data-id='{{folder.id}}' data-name="{{folder.title}}" class="flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[12px] addedFolder">
+                <div onclick="window.location.href='{{url('users:userfolder',args=[folder.id])}}'" class="flex gap-[16px] lg:gap-[10px] items-center cursor-pointer">
+                    <i class="fa-solid fa-folder-closed text-[36px] text-[#4f4f4f]"></i>
+                    <div>
+                        <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">{{folder.title}}</p>
+                    </div>
+
+                </div>
+
+                <button type="button" class="my-auto deleteFolderBtn" onclick="folderDeleteFunction(this)" data-id='{{folder.id}}'  >
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+        {% endfor %}
+    </section>
+    <!-- End of Hobbies Content -->
+
+</main>
+
+{% endblock %}
+{% block additionalfooter %}
+<script type="text/javascript">
+    // Delete Folder PopUp
+        const folders = document.querySelectorAll(".addedFolder");
+        const deleteFolderPop = document.querySelector(".deleteFolderPop");
+        const noDelFolderBtn = document.querySelector(".noDeleteFolderBtn");
+        const yesDelFolderBtn = document.querySelector(".yesDeleteFolderBtn");
+
+
+        // Delete function for folders
+        function folderDeleteFunction(param){
+
+            const dataId = param.dataset.id;
+
+            deleteFolderPop.classList.remove("hidden");
+
+            noDelFolderBtn.addEventListener("click", function(){
+            deleteFolderPop.classList.add("hidden");
+            })
+        
+            yesDelFolderBtn.addEventListener("click", function(){
+                deleteFolder(dataId)
+                deleteFolderPop.classList.add("hidden");
+            })
+        }
+
+        function deleteFolder(id){
+            var form = document.createElement("form");
+            form.setAttribute("method","POST");
+            var hiddenField = document.createElement("input");
+            hiddenField.setAttribute("type", "hidden");
+            hiddenField.setAttribute("name", 'csrfmiddlewaretoken');
+            hiddenField.setAttribute("value", '{{ csrf_token }}');
+            form.appendChild(hiddenField);
+            var hiddenField = document.createElement("input");
+            hiddenField.setAttribute("type", "text");
+            hiddenField.setAttribute("name","id");
+            hiddenField.setAttribute("value",id);
+
+            form.appendChild(hiddenField);
+            var formData = new FormData(form);
+            $.ajax({
+                url: "{{url('createfolder')}}",
+                type: 'POST',
+                data: formData,
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function(data){
+                    try{
+                    fireAlert(data.responseJSON.message,"error");
+                    }
+                    catch(e){
+                        fireAlert("Internal Server Error","error");
+                    }
+                },
+                cache: false,
+                contentType: false,
+                processData: false
+            });
+        }
+</script>
+{% endblock %}

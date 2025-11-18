@@ -1,0 +1,1003 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+
+<style>
+  p {
+    margin: 0px;
+    color: inherit;
+  }
+</style>
+
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full overflow-y-auto pb-[60px] lg:pb-0">
+
+  <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+    <!-- Left Part Mobile -->
+    <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+      <!-- User -->
+      <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+        <div class="flex gap-[17px]">
+          <div>
+            <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" />
+          </div>
+          <div class="flex flex-col gap-y-[5px]">
+            <div class="pt-[12px]">
+              <p class="text-[15px] leading-[20.25px] font-semibold">
+                {{request.user}}
+              </p>
+            </div>
+            <div class="flex flex-col gap-y-[3px]">
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  Joined {{request.user.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
+                  class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  {% if request.user.user_profile %}
+                  {% if request.user.student_management.last().class_and_section %}
+                  {{request.user.student_management.last().class_and_section}}
+                  {% endif %} • {% if request.user.user_profile.schoolname %}
+                  {{request.user.user_profile.schoolname}}{% endif %}
+                  {% else %} - • - {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-direction="translate-y-full"
+          class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+          <i class="fa fa-gear text-white text-[12.5px]"></i>
+        </button>
+      </div>
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div id="comppro"
+        class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[100px] pt-[18px] relative">
+        <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+          <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+        </div>
+        <div>
+          <div class="flex relative">
+            <div class="absolute -left-[24px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" class="w-[81px] h-[81px]"
+                alt="" />
+            </div>
+            <div class="text-left max-w-[217.5px] ml-[74px]">
+              <div>
+                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+
+    <!-- End of left Part Mobile -->
+
+    <!-- Left part Desktop -->
+
+    <div class="flex  hidden lg:block w-[338px] ">
+      <div class=" border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto h-[902px] sticky-sidebar">
+        <!-- User -->
+        <div class="flex justify-center border-b-[1px] border-solid border-[#dedede] ">
+          <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px]">
+
+            <div class=" flex flex-col justify-center items-center">
+
+              <div class="flex justify-center items-center w-full">
+                <div class="flex gap-[8px]">
+                  <div class="relative">
+                    <!-- <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" /> -->
+                    <img src="{{request.user.image.url}}"
+                      class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" />
+
+
+                  </div>
+                </div>
+              </div>
+
+              <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
+
+            </div>
+
+
+            <div class="flex flex-col gap-y-[8px]">
+
+              <div class="flex gap-[14px]">
+                <img src="{{ static ('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]"
+                  alt="" />
+                <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                  Joined {{request.user.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[14px]">
+                <img src="{{ static ('topteenfrontend/assets/images/userGrade.png')}}" class="w-[18px] h-[14px]"
+                  alt="" />
+                <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                  {% if request.user.user_profile %} {% if request.user.student_management.last().class_and_section
+                  %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if
+                  request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{% else %} -
+                  •
+                  - {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- End of User -->
+
+        <!-- Complete Profile -->
+        <div class="flex justify-center pt-[18px] flex-col">
+          <div class="flex flex-col items-center">
+            <div class="flex gap-[18px]">
+              <div class="w-[45px] h-[44px]"><img
+                  src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" alt="no image" /></div>
+              <div class="text-left max-w-[206px] flex flex-col gap-y-[5px]">
+                <div>
+                  <p class="text-[12px] leading-[16.2px] font-semibold text-[#333333]"> Complete your profile </p>
+                  <p class="text-[10px] leading-[14.5px] font-normal text-[#828282]"> A complete profile helps us cater
+                    the best content to you </p>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-[205px] h-[10px] rounded-[100px] bg-[#4cc9f0] bg-opacity-[0.15]">
+                  <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+                </div>
+                <!-- End of Progress Bar -->
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="w-[295px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[19px] d-none"> <a
+                href="{{ url('users:profiledetails') }}">
+                <div
+                  class="w-full h-[48px] flex gap-[11.56px] justify-center rounded-[10px] bg-[#3f37c9] text-[#ffffff]">
+                  <i class="fa fa-gear my-auto" aria-hidden="true"></i>
+                  <p class="text-[14px] leading-[18.9px] font-bold my-auto text-white"> SETTINGS </p>
+                </div>
+              </a>
+
+
+
+            </div>
+
+
+            <a href="{{ url ('app:quick-link') }}" class="">
+              <button class="uppercase  w-[295px] h-[53px] bg-[#4CC9F0] rounded-[10px] text-xs text-white font-bold tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mt-3 text-[14px] ">
+                <span class="text-[18px]"> <i class="fa-solid fa-shield-heart"></i></span><span>Quick Links</span>
+              </button>
+            </a>
+            <!-- End of settings -->
+
+
+
+
+          </div>
+
+          <!-- career Tree -->
+          <div class="flex flex-col items-center p-3 text-center mt-5">
+
+            <div class="tree-image"><img src="{{ static ('images1/career-tree.png')}}" alt="career tree" /> </div>
+            <p>Engage in activities and grow your career tree</p>
+
+            <a href="{{ url ('app:career-tree') }}" class="w-full">
+              <button
+                class="w-full h-[48px] py-[10px] bg-[#5CCD16] rounded-[10px] text-white flex flex-row justify-center items-center gap-x-[5px] text-sm boldFont uppercase border-b-4 border-[#51B613] mt-2 text-[14px]">
+                <span><i class="fa fa-leaf" aria-hidden="true"></i></span><span>Start tree</span>
+              </button>
+            </a>
+
+
+          </div>
+          <!-- career Tree -->
+
+        </div>
+        <!-- End of Complete Profile -->
+      </div>
+    </div>
+    <!-- End of Left part Desktop -->
+
+    <!-- Right Part -->
+
+    <!-- Quick link graph start -->
+
+    <!-- Right Part -->
+    <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20">
+      <div class="flex flex-row justify-between">
+        <h2 class="title-test-info md:mt-1 mt-0 mb-0">Quick Links </h2>
+        <a href="{{url('app:dashboard')}}" class="text-[#3f37c9]  text-xs">
+          <button
+            class="px-5 py-[9px] text-[12px] leading-[14px] text-[#141414]  border-[0.8px] border-[#E0E0E0] rounded-[39px] hover:bg-gray-50 ">
+            <i class="fa-solid fa-chevron-left"></i> Dashboard </button>
+        </a>
+      </div>
+
+
+
+      <div class="qucik-tab-section rounded-tabs mt-5">
+
+
+        <ul class="flex flex-cols overflow-y-auto -mb-px text-sm font-medium text-center ct-tabs ps-0 border-b-2 pb-4"
+          id="default-tab" data-tabs-toggle="#default-tab-content" role="tablist">
+          <li class="me-3" role="presentation">
+            <button class="custom-tabs-button  py-2 px-3 bg-[#F7F7FA] rounded-[100px] justify-center no-wrap"
+              data-tab-target="#note-tab">
+              <div class="flex items-center">
+                <img class="me-2" src="{{ static ('images1/note-one.png')}}"> My Notes
+              </div>
+            </button>
+          </li>
+
+          <li class="me-3" role="presentation">
+            <button class="custom-tabs-button  py-2 px-3   bg-[#F7F7FA] rounded-[100px] justify-center no-wrap "
+              data-tab-target="#institute-tab">
+              <div class="flex items-center">
+                <img class="me-2" src="{{ static ('images1/shortlist.png')}}">Shortlisted Courses &
+                College/Universities
+              </div>
+            </button>
+          </li>
+
+
+          <li class="me-3" role="presentation">
+            <button class="custom-tabs-button  py-2 px-3   bg-[#F7F7FA] rounded-[100px] justify-center  no-wrap"
+              data-tab-target="#docs-tab">
+              <div class="flex items-center">
+
+                <img class="me-2" src="{{ static ('images1/document-cuib.png')}}">My Documents
+              </div>
+            </button>
+          </li>
+
+
+        </ul>
+        <div id="default-tab-content" class="mt-5">
+          <!--Note Tabs-->
+          <div id="note-tab" class="tab-content text-gray-700">
+            <form>
+              <div class="heder-note">
+                <div class="row">
+                  <div class="col-sm-12 col-md-5  mb-md-0 mb-3 ">
+                    <div id="basic-datatables_filter" class="dataTables_filter">
+                      <div class="search-input ms-0">
+                        <input type="text" class="form-control custom-input" aria-label="Default"
+                          placeholder="Search Title">
+                        <i class="bi bi-search"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-12   offset-md-4  col-md-3 mb-md-0 mb-3  ">
+                    <div class="dataTables_length flex  justify-content-md-end justify-center">
+                      <button type="button" class="w-[144px] h-[53px] bg-[#2e289d] rounded-[100px] relative my-auto"
+                        data-bs-toggle="modal" data-bs-target="#noteModal">
+                        <div
+                          class="w-[144px] flex justify-center items-center gap-[8px] h-[48px] rounded-[100px] bg-[#3f37c9] absolute top-0">
+                          <i class="fa-solid fa-plus text-[#ffffff] boldFont text-[14px] leading-[19px]"
+                            aria-hidden="true"></i>
+                          <p class="text-[#ffffff] text-[14px] leading-[19px] boldFont">New Note</p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-details-note mt-5">
+                  <div class="grid md:grid-cols-2 grid-cols-1 gap-3 ">
+
+                    <!-- Cards -->
+                    <div
+                      class="max-w-sm p-3 border border-gray-200 rounded-lg  dark:bg-gray-800 dark:border-gray-700 bg-[#F9F9F9]">
+                      <div class="flex flex-row"> <a href="#">
+                          <h5 class="mb-2 fs-16 font-bold tracking-tight text-gray-900 dark:text-white me-5">Noteworthy
+                            technology acquisitions 2021</h5>
+                        </a>
+                        <div>
+                          <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown"
+                            class="p-2 px-3 bg-hover-toggle" type="button"> <i
+                              class="fa-solid fa-ellipsis-vertical"></i> </button>
+                          <!-- Dropdown menu -->
+                          <div id="dropdown"
+                            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                            <ul class="py-2 ps-0 text-sm text-gray-700 dark:text-gray-200 mb-0"
+                              aria-labelledby="dropdownDefaultButton">
+                              <li> <a href="#"
+                                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
+                              </li>
+                              <li> <a href="#"
+                                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white text-danger">Delete</a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      <p class="mb-3 font-normal text-gray-700 dark:text-gray-400 fs-14 ">Here are the biggest
+                        enterprise technology acquisitions of 2021 so far, in reverse chronological order.</p>
+                      <div class="flex justify-content-end"> <a href="#" class="text-[#541BCF]"> View More </a> </div>
+                    </div>
+
+                    <!-- Cards -->
+
+                    <!-- Cards -->
+                    <div
+                      class="max-w-sm p-3 border border-gray-200 rounded-lg  dark:bg-gray-800 dark:border-gray-700 bg-[#F9F9F9]">
+                      <div class="flex flex-row"> <a href="#">
+                          <h5 class="mb-2 fs-16 font-bold tracking-tight text-gray-900 dark:text-white me-5">Noteworthy
+                            technology acquisitions 2021</h5>
+                        </a>
+                        <div>
+                          <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown"
+                            class="p-2 px-3 bg-hover-toggle" type="button"> <i
+                              class="fa-solid fa-ellipsis-vertical"></i> </button>
+                          <!-- Dropdown menu -->
+                          <div id="dropdown"
+                            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                            <ul class="py-2 ps-0 text-sm text-gray-700 dark:text-gray-200 mb-0"
+                              aria-labelledby="dropdownDefaultButton">
+                              <li> <a href="#"
+                                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
+                              </li>
+                              <li> <a href="#"
+                                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white text-danger">Delete</a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      <p class="mb-3 font-normal text-gray-700 dark:text-gray-400 fs-14">Here are the biggest enterprise
+                        technology acquisitions of 2021 so far, in reverse chronological order.</p>
+                      <div class="flex justify-content-end"> <a href="#" class="text-[#541BCF]"> View More </a> </div>
+                    </div>
+
+                    <!-- Cards -->
+
+                    <!-- Cards -->
+                    <div
+                      class="max-w-sm p-3 border border-gray-200 rounded-lg  dark:bg-gray-800 dark:border-gray-700 bg-[#F9F9F9]">
+                      <div class="flex flex-row"> <a href="#">
+                          <h5 class="mb-2 fs-16 font-bold tracking-tight text-gray-900 dark:text-white me-5">Noteworthy
+                            technology acquisitions 2021</h5>
+                        </a>
+                        <div>
+                          <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown"
+                            class="p-2 px-3 bg-hover-toggle" type="button"> <i
+                              class="fa-solid fa-ellipsis-vertical"></i> </button>
+                          <!-- Dropdown menu -->
+                          <div id="dropdown"
+                            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                            <ul class="py-2 ps-0 text-sm text-gray-700 dark:text-gray-200 mb-0"
+                              aria-labelledby="dropdownDefaultButton">
+                              <li> <a href="#"
+                                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
+                              </li>
+                              <li> <a href="#"
+                                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white text-danger">Delete</a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      <p class="mb-3 font-normal text-gray-700 dark:text-gray-400 fs-14">Here are the biggest enterprise
+                        technology acquisitions of 2021 so far, in reverse chronological order.</p>
+                      <div class="flex justify-content-end"> <a href="#" class="text-[#541BCF]"> View More </a> </div>
+                    </div>
+
+                    <!-- Cards -->
+
+                    <!-- Cards -->
+                    <div
+                      class="max-w-sm p-3 border border-gray-200 rounded-lg  dark:bg-gray-800 dark:border-gray-700 bg-[#F9F9F9]">
+                      <div class="flex flex-row"> <a href="#">
+                          <h5 class="mb-2 fs-16 font-bold tracking-tight text-gray-900 dark:text-white me-5">Noteworthy
+                            technology acquisitions Noteworthy technology acquisitions 2021</h5>
+                        </a>
+                        <div>
+                          <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown"
+                            class="p-2 px-3 bg-hover-toggle" type="button"> <i
+                              class="fa-solid fa-ellipsis-vertical"></i> </button>
+                          <!-- Dropdown menu -->
+                          <div id="dropdown"
+                            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                            <ul class="py-2 ps-0 text-sm text-gray-700 dark:text-gray-200 mb-0"
+                              aria-labelledby="dropdownDefaultButton">
+                              <li> <a href="#"
+                                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
+                              </li>
+                              <li> <a href="#"
+                                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white text-danger">Delete</a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      <p class="mb-3 font-normal text-gray-700 dark:text-gray-400 fs-14">Here are the biggest enterprise
+                        technology acquisitions of 2021 so far, in reverse chronological order.</p>
+                      <div class="flex justify-content-end"> <a href="#" class="text-[#541BCF]"> View More </a> </div>
+                    </div>
+                    <!-- Cards -->
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <!--Note Tabs-->
+
+
+          <!-- Short list tabs -->
+          <div id="institute-tab" class="hidden tab-content text-gray-700">
+
+
+            <!--Shortlisted Courses -->
+
+            <h3 class="title-test-info mb-4 fs-18">Shortlisted Courses</h3>
+            <div class="grid md:grid-cols-3  gap-3">
+              <div class="relative w-full h-full bg-[#f7f7fa]  rounded-[10px]">
+                <!-- IMAGE SECTION -->
+                <div class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"> <a
+                    class="text-dark" href="/careers/career/accessory-designing-20-detail" tabindex="0"> <img
+                      src="{{ static ('images1/Accessories-2.jpg')}}" class="h-full w-full object-cover">
+                    <div class="absolute inset-0 h-full w-full backgroundGradient z-10"></div>
+                  </a> </div>
+                <!-- CONTENT -->
+                <p class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px] ms-3 mb-3"> <a class="text-dark"
+                    href="/careers/career/accessory-designing-20-detail" tabindex="0">Accessory Designing</a> </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline ms-3 mb-3">
+                  <span>15.0LPA •</span>&nbsp; <img src="{{ static ('images1/favourite%201.png')}}" class="inline-block"><span>
+                    3.4</span> </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]"> <img src="{{ static ('images1/bookmark.png')}}"
+                      class="w-[14px] h-[18px]"> </div>
+                </div>
+              </div>
+              <div class="relative w-full h-full bg-[#f7f7fa]  rounded-[10px]">
+                <!-- IMAGE SECTION -->
+                <div class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"> <a
+                    href="/careers/career/accessory-designing-20-detail" tabindex="0"> <img
+                      src="{{ static ('images1/Accessories-2.jpg')}}" class="h-full w-full object-cover">
+                    <div class="absolute inset-0 h-full w-full backgroundGradient z-10"></div>
+                  </a> </div>
+                <!-- CONTENT -->
+                <p class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px] ms-3"> <a class="text-dark"
+                    href="/careers/career/accessory-designing-20-detail" tabindex="0">Accessory Designing</a> </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline ms-3 mb-3">
+                  <span>15.0LPA •</span>&nbsp; <img src="{{ static ('images1/favourite%201.png')}}" class="inline-block"><span>
+                    3.4</span> </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]"> <img src="{{ static ('images1/bookmark.png')}}"
+                      class="w-[14px] h-[18px]"> </div>
+                </div>
+              </div>
+              <div class="relative w-full h-full bg-[#f7f7fa]  rounded-[10px]">
+                <!-- IMAGE SECTION -->
+                <div class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"> <a
+                    href="/careers/career/accessory-designing-20-detail" tabindex="0"> <img
+                      src="{{ static ('images1/Accessories-2.jpg')}}" class="h-full w-full object-cover">
+                    <div class="absolute inset-0 h-full w-full backgroundGradient z-10"></div>
+                  </a> </div>
+                <!-- CONTENT -->
+                <p class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px] ms-3 "> <a class="text-dark"
+                    href="/careers/career/accessory-designing-20-detail" tabindex="0">Accessory Designing</a> </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline ms-3 mb-3">
+                  <span>15.0LPA •</span>&nbsp; <img src="{{ static ('images1/favourite%201.png')}}" class="inline-block"><span>
+                    3.4</span> </div>
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]"> <img src="{{ static ('images1/bookmark.png')}}"
+                      class="w-[14px] h-[18px]"> </div>
+                </div>
+              </div>
+
+
+            </div>
+
+            <!--Shortlisted Courses End -->
+
+
+
+            <!--Shortlisted Courses -->
+
+            <h3 class="title-test-info mb-4 mt-5 fs-18">Shortlisted College & Universities</h3>
+            <div class="grid md:grid-cols-3  gap-3">
+              <div class="relative w-full h-full bg-[#f7f7fa]  rounded-[10px]">
+                <!-- IMAGE SECTION -->
+                <div class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"> <a
+                    class="text-dark" href="/careers/career/accessory-designing-20-detail" tabindex="0"> <img
+                      src="{{ static ('images1/Accessories-2.jpg')}}" class="h-full w-full object-cover">
+                    <div class="absolute inset-0 h-full w-full backgroundGradient z-10"></div>
+                  </a> </div>
+                <!-- CONTENT -->
+                <p class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px] ms-3 mb-3"> <a class="text-dark"
+                    href="/careers/career/accessory-designing-20-detail" tabindex="0">SRM Institute of Sci......</a>
+                </p>
+
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]"> <img src="{{ static ('images1/bookmark.png')}}"
+                      class="w-[14px] h-[18px]"> </div>
+                </div>
+              </div>
+              <div class="relative w-full h-full bg-[#f7f7fa]  rounded-[10px]">
+                <!-- IMAGE SECTION -->
+                <div class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"> <a
+                    href="/careers/career/accessory-designing-20-detail" tabindex="0"> <img
+                      src="{{ static ('images1/Accessories-2.jpg')}}" class="h-full w-full object-cover">
+                    <div class="absolute inset-0 h-full w-full backgroundGradient z-10"></div>
+                  </a> </div>
+                <!-- CONTENT -->
+                <p class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px] ms-3"> <a class="text-dark"
+                    href="/careers/career/accessory-designing-20-detail" tabindex="0">Amity University</a> </p>
+
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]"> <img src="{{ static ('images1/bookmark.png')}}"
+                      class="w-[14px] h-[18px]"> </div>
+                </div>
+              </div>
+              <div class="relative w-full h-full bg-[#f7f7fa]  rounded-[10px]">
+                <!-- IMAGE SECTION -->
+                <div class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"> <a
+                    href="/careers/career/accessory-designing-20-detail" tabindex="0"> <img
+                      src="{{ static ('images1/Accessories-2.jpg')}}" class="h-full w-full object-cover">
+                    <div class="absolute inset-0 h-full w-full backgroundGradient z-10"></div>
+                  </a> </div>
+                <!-- CONTENT -->
+                <p class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px] ms-3 "> <a class="text-dark"
+                    href="/careers/career/accessory-designing-20-detail" tabindex="0">Birla Institute of Tech....</a>
+                </p>
+
+
+                <!-- BOOKMARK SIGN -->
+
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]"> <img src="{{ static ('images1/bookmark.png')}}'
+                      class="w-[14px] h-[18px]"> </div>
+                </div>
+              </div>
+            </div>
+            <!--Shortlisted Courses End -->
+          </div>
+          <!-- End Short list tabs -->
+
+
+
+          <!--My Document Tabs -->
+          <div id="docs-tab" class="hidden tab-content text-gray-700">
+
+
+            <div class="flex items-center justify-center w-full">
+              <label for="dropzone-file"
+                class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                <div class="flex flex-row items-center justify-center pt-5 pb-6">
+                  <svg class="w-[50px] me-5 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                  </svg>
+                  <div class="flex flex-col">
+                    <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class=" text-[#541BCF]">Click to
+                        upload</span> or drag and drop</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 2 MB Size File)</p>
+                  </div>
+
+
+
+
+                </div>
+
+                <!--Progress Bar remove class d none -->
+
+                <div class="progress w-[300px] mb-4 d-none">
+                  <div class="progress-bar bg-success" role="progressbar" style="width: 25%;" aria-valuenow="25"
+                    aria-valuemin="0" aria-valuemax="100">25%</div>
+                </div>
+
+                <!--Progress Bar remove class d none -->
+
+                <input id="dropzone-file" type="file" class="hidden" />
+              </label>
+            </div>
+
+
+            <!-- Listed Document View -->
+
+
+            <div class="w-full border-top mt-6">
+
+              <h3 class="title-test-info mb-4 mt-5 fs-18">Your Documents</h3>
+
+
+
+              <div class="doc-list-here">
+
+                <div class="grid  grid-cols-2 md:grid-cols-4  gap-3">
+
+
+                  <!--Doc View -->
+                  <div
+                    class="max-w-sm p-3 border border-gray-200 rounded-lg  dark:bg-gray-800 dark:border-gray-700 bg-[#F9F9F9]">
+                    <div class="flex flex-row justify-content-end">
+                      <div class="">
+                        <button id="review-docButton" data-dropdown-toggle="review-doc" class="p-2 px-3 bg-hover-toggle"
+                          type="button"> <i class="fa-solid fa-ellipsis-vertical"></i> </button>
+                        <!-- Dropdown menu -->
+                        <div id="review-doc"
+                          class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                          <ul class="py-2 ps-0 text-sm text-gray-700 dark:text-gray-200 mb-0"
+                            aria-labelledby="mydocDefaultButton">
+                            <li> <a href="#"
+                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View</a>
+                            </li>
+                            <li> <a href="#"
+                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white text-danger">Delete</a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="fill-card flex justify-center">
+                      <i class="fa-solid fa-file-pdf text-danger " style="font-size:65px;"></i>
+                    </div>
+                    <h5 class="files-card__title fs-12">01_project_description 01_project_description</h5>
+                    <div class="files-card__bottom fs-12">
+                      <div class="files-card__size">1 MB</div>
+                      <div class="files-card__date">
+                        <time datetime="2019-07-12">12.07.2019</time>
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <!--Doc View -->
+
+
+
+                  <!--Doc View -->
+                  <div
+                    class="max-w-sm p-3 border border-gray-200 rounded-lg  dark:bg-gray-800 dark:border-gray-700 bg-[#F9F9F9]">
+                    <div class="flex flex-row justify-content-end">
+                      <div class="">
+                        <button id="review-docButton" data-dropdown-toggle="review-doc" class="p-2 px-3 bg-hover-toggle"
+                          type="button"> <i class="fa-solid fa-ellipsis-vertical"></i> </button>
+                        <!-- Dropdown menu -->
+                        <div id="review-doc"
+                          class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                          <ul class="py-2 ps-0 text-sm text-gray-700 dark:text-gray-200 mb-0"
+                            aria-labelledby="mydocDefaultButton">
+                            <li> <a href="#"
+                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View</a>
+                            </li>
+                            <li> <a href="#"
+                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white text-danger">Delete</a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="fill-card flex justify-center">
+
+                      <i class="fa-solid fa-file-image text-primary " style="font-size:65px;"></i>
+                    </div>
+                    <h5 class="files-card__title fs-12">01_project_description 01_project_description</h5>
+                    <div class="files-card__bottom fs-12">
+                      <div class="files-card__size">1 MB</div>
+                      <div class="files-card__date">
+                        <time datetime="2019-07-12">12.07.2019</time>
+                      </div>
+                    </div>
+                  </div>
+                  <!--Doc View -->
+
+
+
+                  <!--Doc View -->
+                  <div
+                    class="max-w-sm p-3 border border-gray-200 rounded-lg  dark:bg-gray-800 dark:border-gray-700 bg-[#F9F9F9]">
+                    <div class="flex flex-row justify-content-end">
+                      <div class="">
+                        <button id="review-docButton" data-dropdown-toggle="review-doc" class="p-2 px-3 bg-hover-toggle"
+                          type="button"> <i class="fa-solid fa-ellipsis-vertical"></i> </button>
+                        <!-- Dropdown menu -->
+                        <div id="review-doc"
+                          class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                          <ul class="py-2 ps-0 text-sm text-gray-700 dark:text-gray-200 mb-0"
+                            aria-labelledby="mydocDefaultButton">
+                            <li> <a href="#"
+                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View</a>
+                            </li>
+                            <li> <a href="#"
+                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white text-danger">Delete</a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="fill-card flex justify-center">
+
+                      <i class="fa-solid fa-file-image text-primary " style="font-size:65px;"></i>
+                    </div>
+                    <h5 class="files-card__title fs-12">01_project_description 01_project_description</h5>
+                    <div class="files-card__bottom fs-12">
+                      <div class="files-card__size">1 MB</div>
+                      <div class="files-card__date">
+                        <time datetime="2019-07-12">12.07.2019</time>
+                      </div>
+                    </div>
+                  </div>
+                  <!--Doc View -->
+
+
+
+                  <!--Doc View -->
+                  <div
+                    class="max-w-sm p-3 border border-gray-200 rounded-lg  dark:bg-gray-800 dark:border-gray-700 bg-[#F9F9F9]">
+                    <div class="flex flex-row justify-content-end">
+                      <div class="">
+                        <button id="review-docButton" data-dropdown-toggle="review-doc" class="p-2 px-3 bg-hover-toggle"
+                          type="button"> <i class="fa-solid fa-ellipsis-vertical"></i> </button>
+                        <!-- Dropdown menu -->
+                        <div id="review-doc"
+                          class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                          <ul class="py-2 ps-0 text-sm text-gray-700 dark:text-gray-200 mb-0"
+                            aria-labelledby="mydocDefaultButton">
+                            <li> <a href="#"
+                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View</a>
+                            </li>
+                            <li> <a href="#"
+                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white text-danger">Delete</a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="fill-card flex justify-center">
+                      <i class="fa-solid fa-file-pdf text-danger " style="font-size:65px;"></i>
+                    </div>
+                    <h5 class="files-card__title fs-12">01_project_description 01_project_description</h5>
+                    <div class="files-card__bottom fs-12">
+                      <div class="files-card__size">1 MB</div>
+                      <div class="files-card__date">
+                        <time datetime="2019-07-12">12.07.2019</time>
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <!--Doc View -->
+
+                  <!--Doc View -->
+                  <div
+                    class="max-w-sm p-3 border border-gray-200 rounded-lg  dark:bg-gray-800 dark:border-gray-700 bg-[#F9F9F9]">
+                    <div class="flex flex-row justify-content-end">
+                      <div class="">
+                        <button id="review-docButton" data-dropdown-toggle="review-doc" class="p-2 px-3 bg-hover-toggle"
+                          type="button"> <i class="fa-solid fa-ellipsis-vertical"></i> </button>
+                        <!-- Dropdown menu -->
+                        <div id="review-doc"
+                          class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                          <ul class="py-2 ps-0 text-sm text-gray-700 dark:text-gray-200 mb-0"
+                            aria-labelledby="mydocDefaultButton">
+                            <li> <a href="#"
+                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">View</a>
+                            </li>
+                            <li> <a href="#"
+                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white text-danger">Delete</a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="fill-card flex justify-center">
+
+                      <i class="fa-solid fa-file-excel text-success " style="font-size:65px;"></i>
+
+                    </div>
+                    <h5 class="files-card__title fs-12">01_project_description 01_project_description</h5>
+                    <div class="files-card__bottom fs-12">
+                      <div class="files-card__size">1 MB</div>
+                      <div class="files-card__date">
+                        <time datetime="2019-07-12">12.07.2019</time>
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <!--Doc View -->
+
+                </div>
+              </div>
+            </div>
+            <!-- Listed Document View -->
+          </div>
+
+          <!--My Document Tabs -->
+        </div>
+      </div>
+      <!-- End of Right Part -->
+      <!-- quick link graph end  -->
+
+      <!-- End of Right Part -->
+    </div>
+</main>
+<section class="footer-nav d-lg-none d-block">
+  <div class="nav-footer">
+    <ul>
+      <li> <a href="#" class="ft-dis-icon"> <span></span>
+          <p>Discover</p>
+        </a> </li>
+      <li> <a href="#" class="ft-search-icon"> <span></span>
+          <p>Search</p>
+        </a> </li>
+      <li> <a href="#" class="ft-dash-icon"> <span></span>
+          <p>My Dashboard</p>
+        </a> </li>
+      <li> <a href="#" class="ft-learn-icon"> <span></span>
+          <p>Learn</p>
+        </a> </li>
+      <li> <a href="#" class="ft-profile-icon"> <span></span>
+          <p>Profile</p>
+        </a> </li>
+    </ul>
+  </div>
+</section>
+</div>
+</section>
+
+<!-- Edit Stream Modal -->
+
+<div class="modal fade custom-modal" id="edit-stream" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Create Follow up</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="row">
+            <div class="col">
+              <input type="text" class="form-control custom-input" placeholder="First name" aria-label="First name">
+            </div>
+            <div class="col">
+              <input type="text" class="form-control custom-input" placeholder="Last name" aria-label="Last name">
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Add Note Modal -->
+
+<!-- Modal -->
+<div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="noteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add Note</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+      <form>
+        <div class="col-md-12 mb-2">
+          <input type="text" class="form-control" id="note_title" placeholder="Enter Title">
+        </div>
+        <div class="col-md-12 mb-2"> 
+          <textarea name="editor1" id="editor1"></textarea>
+        </div>
+      </form>
+      </div>
+      <div class= "flex flex-row justify-content-end py-4 border-top px-4">
+
+        <button data-bs-dismiss="modal"  class="bg-[#F7F7FA] px-[35px] py-[13px] rounded-[10px]  border-b-[6px] border-[#EAEAEA] text-xs text-[#4F4F4F] boldFont  lg:block">
+         Close
+        </button>
+          <button type="button" class="pp-button uppercase ms-3 px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
+         Save
+          </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Add Note Modal -->
+
+
+</body>
+
+<script>
+      
+  const tabs = document.querySelectorAll('[data-tab-target]');
+  const activeClass = 'active-tabs';  
+  // Select first tab by default
+  tabs[0].classList.add(activeClass);
+  document.querySelector('#note-tab').classList.remove('hidden');  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetContent = document.querySelector(tab.dataset.tabTarget);
+      // console.log(targetContent)  
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+      targetContent.classList.remove('hidden');  
+      // Remove active class from all tabs
+      document.querySelectorAll('.active-tabs').forEach(activeTab => activeTab.classList.remove(activeClass));  
+      // Add active class to clicked tab
+      console.log(tab)
+      tab.classList.add(activeClass);
+    });
+  });
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://kit.fontawesome.com/df31b3ad5b.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script type="text/javascript" src="https://www.topteen.in//static/topteenfrontend/assets/js/slick.min.js"></script>
+<script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
+ <script type="text/javascript" src="{{static('topteenfrontend/assets/js/userDashboard.js')}}">
+  </script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/homePage.js"></script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/common.js"></script>
+<script src="https://www.topteen.in/static/topteenfrontend/assets/js/common.js"></script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/search.js">    </script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/resumeBuilder.js"></script>
+
+<!--new js -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+  integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{{ static ('js/bootstrap.min.js') }}"></script>
+<!--new js -->
+
+<!-- Chart js -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.35.3/apexcharts.min.js"
+  integrity="sha512-yhdujT21BI/kqk9gcupTh4jMwqLhb+gc6Ytgs4cL0BJjXW+Jo9QyllqLbuluI0cBHqV4XsR7US3lemEGjogQ0w=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- Chart js -->
+
+
+</script>
+
+<!-- CK Editor-->
+<script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
+<!-- CK Editor-->
+
+<script>
+  CKEDITOR.replace('editor1');
+</script>
+
+
+
+
+{% endblock %}

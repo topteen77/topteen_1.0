@@ -1,0 +1,58 @@
+<ul
+class="absolute top-[110%] inset-x-0 z-50 py-4 bg-white rounded-[10px] divide-y max-h-[500px] overflow-y-auto no-scrollbar givenlist border "
+id="desktopviewsearch"
+>
+        
+      {% for college in colleges['career'][:10] %}
+      <li
+        class="p-4 flex flex-row justify-between items-center cursor-pointer font-semibold"
+      >
+        <a href="{{college.url}}">{{college.name}}</a>
+        
+        <p class="text-[#009d32] text-[18px] font-semibold">
+        Career
+        </p>
+      </li>
+      {% endfor %}      
+
+      {% for college in colleges['college'] %}
+      <li
+        class="p-4 flex flex-row justify-between items-center cursor-pointer font-semibold"
+      >
+        <a href="{{college.url}}">{{college.name}}</a>
+        
+        <p class="text-[#009d32] text-[18px] font-semibold">
+        College
+        </p>
+      </li>
+      {% endfor %}
+
+      
+      {% for college in colleges['entranceexam'][:10] %}
+      <li
+        class="p-4 flex flex-row justify-between items-center cursor-pointer font-semibold"
+      >
+        <a href="{{college.url}}">{{college.name}}</a>
+        
+        <p class="text-[#009d32] text-[18px] font-semibold">
+        Exam
+        </p>
+      </li>
+      {% endfor %}
+      
+      {% for college in colleges['course'][:10] %}
+      <li
+        class="p-4 flex flex-row justify-between items-center cursor-pointer font-semibold"
+      >
+        <a href="{{college.url}}">{{college.name}}</a>
+        
+        <p class="text-[#009d32] text-[18px] font-semibold">
+        Course
+        </p>
+      </li>
+      {% endfor %}
+      
+
+ 
+</ul>
+

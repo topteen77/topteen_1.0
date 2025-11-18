@@ -1,0 +1,137 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+ 
+{% block main %}
+<main class="lg:container lg:mx-auto mx-[17px] pt-[49px]">
+    <section class="mb-[15px]">
+      <h2 class="text-xl text-[#131415] semibold lg:mb-[40px]">
+        Payment details
+      </h2>
+      <div
+        class="lg:max-w-[888px] lg:mx-auto flex lg:flex-row flex-col justify-start items-start lg:gap-x-[46px] border-b border-black border-opacity-[0.25]"
+      >
+        <img
+          src="{{static("topteenfrontend/assets/images/hand.png")}}"
+          height="262"
+          width="149"
+          class="mx-auto lg:mx-0"
+        />
+        <div>
+          <h1 class="text-xl semibold text-[#131415] lg:mb-[30px]">
+            Your Payment is <span class="text-success">Successful</span>
+          </h1>
+          <p class="text-lg text-[#4f4f4f] lg:mb-[20px]">
+            Thank you for your payment, An automated payment receipt will be
+            sent to your<br />
+            registered email.
+          </p>
+
+          <div class="greyGrid">
+            <div
+              class="flex justify-start items-center gap-x-3 bg-[#f7f7fa] p-5 rounded-[10px]"
+            >
+              <div class="w-[45px] h-[56px]">
+                <img
+                  src="{{static("topteenfrontend/assets/images/cubes.png")}}"
+                  class="h-full w-full object-cover object-right"
+                />
+              </div>
+              <div>
+                <p class="text-lg text-[#333333] font-semibold text-right">
+                    {{skilllab_payment.skilllab_course.name}}
+                </p>
+                <p
+                  class="text-xl text-[#333333] font-semibold mb-6 text-right"
+                >
+                  ₹ {{skilllab_payment.amount}}
+                </p>
+                <p class="text-xs text-[#828282]">
+                    
+                </p>
+              </div>
+            </div>
+            <ul class="p-5 bg-[#f7f7fa] rounded-[10px]">
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Detailed Career
+                </p>
+              </li>
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Interest Analysis
+                </p>
+              </li>
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Access to Career
+                </p>
+              </li>
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Library & Colleges
+                </p>
+              </li>
+            </ul>
+          </div>
+          <!-- SUMMARY -->
+          <div class="summaryCard">
+            <h2 class="lg:text-[21px] lg:leadin-[30px] semibold">Summary</h2>
+            <ul class="divide-y lg:mb-[18px]">
+              <li
+                class="flex justify-between items-center text-[#4f4f4f] py-[16px]"
+              >
+                <p class="text-sm font-semibold">Course Amount</p>
+                <p class="text-lg font-bold">₹ {{skilllab_payment.amount}}</p>
+              </li>
+              <li
+                class="flex justify-between items-center text-[#4f4f4f] py-[16px]"
+              >
+                <p class="text-[18px] font-bold boldFont">Total:</p>
+                <p class="text-lg font-bold boldFont">₹ {{skilllab_payment.amount}}</p>
+              </li>
+            </ul>
+
+            <p class="text-xs text-[#4f4f4f] mb-[20px]">
+              Reference site about Lorem Ipsum, giving information on its
+              origins, as well as a<br />
+              random 
+              <a href="#" class="text-[#0000ee] underline"> Terms of use</a>
+            </p>
+            <a href="{{url('skilllab:skilllabcoursedetail',args=[skilllab_payment.skilllab_course.slug])}}"
+              class="uppercase lg:w-[216px] h-[48px] bg-[#4CC9F0] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mx-auto lg:mb-[35px]"
+            >
+              GET STARTED
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+{% endblock %}

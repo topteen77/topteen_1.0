@@ -1,0 +1,423 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+ 
+{% block main %}
+<main class="lg:container lg:mx-auto mx-[17px] pt-[49px]">
+    <section class="mb-[15px]">
+      <h2 class="text-xl text-[#131415] semibold lg:mb-[40px]">
+        Payment details
+      </h2>
+      <div
+        class="lg:max-w-[888px] lg:mx-auto flex lg:flex-row flex-col justify-start items-start lg:gap-x-[46px] border-b border-black border-opacity-[0.25]"
+      >
+        <img
+          src="{{static("topteenfrontend/assets/images/hand.png")}}"
+          height="262"
+          width="149"
+          class="mx-auto lg:mx-0"
+        />
+        <div>
+          <h1 class="text-xl semibold text-[#131415] lg:mb-[30px]">
+            Your Payment is <span class="text-success">Successful</span>
+          </h1>
+          <p class="text-lg text-[#4f4f4f] lg:mb-[20px]">
+            Thank you for your payment, An automated payment receipt will be
+            sent to your<br />
+            registered email.
+          </p>
+
+          <div class="greyGrid">
+            <div
+              class="flex justify-start items-center gap-x-3 bg-[#f7f7fa] p-5 rounded-[10px]"
+            >
+              <div class="w-[45px] h-[56px]">
+                <img
+                  src="{{static("topteenfrontend/assets/images/cubes.png")}}"
+                  class="h-full w-full object-cover object-right"
+                />
+              </div>
+              <div>
+                <p class="text-lg text-[#333333] font-semibold text-right">
+                  {{test_name}}
+                </p>
+                <p
+                  class="text-xl text-[#333333] font-semibold mb-6 text-right"
+                >
+                  ₹ {{test_payment.amount}}
+                </p>
+                <p class="text-xs text-[#828282]">
+                  {% if test_payment.test_type == test_type.advanced_test_type %}Advanced report{% else %}Basic report{% endif %} • 6 month validity
+                </p>
+              </div>
+            </div>
+            <ul class="p-5 bg-[#f7f7fa] rounded-[10px]">
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Detailed Career
+                </p>
+              </li>
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Interest Analysis
+                </p>
+              </li>
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Access to Career
+                </p>
+              </li>
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Library & Colleges
+                </p>
+              </li>
+            </ul>
+          </div>
+          <!-- SUMMARY -->
+          <div class="summaryCard">
+            <h2 class="lg:text-[21px] lg:leadin-[30px] semibold">Summary</h2>
+            <ul class="divide-y lg:mb-[18px]">
+              <li
+                class="flex justify-between items-center text-[#4f4f4f] py-[16px]"
+              >
+                <p class="text-sm font-semibold">{{test_name}} Package</p>
+                <p class="text-lg font-bold">₹ {{test_payment.amount}}</p>
+              </li>
+              <li
+                class="flex justify-between items-center text-[#4f4f4f] py-[16px]"
+              >
+                <p class="text-[18px] font-bold boldFont">Total:</p>
+                <p class="text-lg font-bold boldFont">₹ {{test_payment.amount}}</p>
+              </li>
+            </ul>
+
+            <p class="text-xs text-[#4f4f4f] mb-[20px]">
+              Reference site about Lorem Ipsum, giving information on its
+              origins, as well as a<br />
+              random 
+              <a href="#" class="text-[#0000ee] underline"> Terms of use</a>
+            </p>
+            {% if test_payment.is_success == 1 %}
+            {% if test_payment.test_type == test_type.basic_test_type %}
+            {# Stream Sorter - redirect to psychometric dashboard #}
+            <a href="/psychometric/dashboard/"
+            class="uppercase lg:w-[216px] h-[48px] bg-[#4CC9F0] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mx-auto lg:mb-[16px]"
+            >
+            VIEW DASHBOARD
+            </a>
+            {% elif test_payment.test_type == test_type.advanced_test_type %}
+            {# Career Direction - redirect to tests page #}
+            <a href="/api/web/tests/"
+            class="uppercase lg:w-[216px] h-[48px] bg-[#4CC9F0] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mx-auto lg:mb-[16px]"
+            >
+            VIEW DASHBOARD
+            </a>
+            {% else %}
+            {# Fallback to user dashboard #}
+            <a href="{{url('users:userdashboard')}}"
+            class="uppercase lg:w-[216px] h-[48px] bg-[#4CC9F0] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mx-auto lg:mb-[16px]"
+            >
+            VIEW DASHBOARD
+            </a>
+            {% endif %}
+            {% else %}
+            <button disabled
+            class="uppercase lg:w-[216px] h-[48px] bg-[#cccccc] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#aaaaaa] flex flex-row justify-center gap-x-[11px] items-center mx-auto lg:mb-[16px] cursor-not-allowed"
+            >
+            PROCESSING
+            </button>
+            {% endif %}
+            <p class="text-center text-[#3f37c9] font-semibold text-sm underline lg:mb-[35px]"><a href="{{url('users:userdashboard')}}">I will attempt this later</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+    {#
+    <section>
+      <h2 class="text-xl text-[#131415] semibold lg:mb-[40px]">
+        Upgrade Advanced Package
+      </h2>
+      <div class="lg:max-w-[888px] lg:mx-auto">
+        <!-- BANNER -->
+        <section
+          class="advancedGrid bg-[#f7f7fa] rounded-[10px] lg:mb-[48px]"
+        >
+          <div class="flex justify-start items-center gap-x-3">
+            <div class="w-[49px] h-[59px]">
+              <img
+                src="{{static("topteenfrontend/assets/images/multi-cube.png")}}"
+                class="h-full w-full object-cover object-right"
+              />
+            </div>
+            <div>
+              <p class="text-lg text-[#333333] font-semibold">Advanced</p>
+              <p class="text-xl text-[#333333] font-semibold">₹ 6,900</p>
+              <p class="text-xs text-[#828282]">
+                Career guidance • 1 year <br />validity
+              </p>
+            </div>
+          </div>
+          <ul>
+            <li class="flex flex-row justify-start items-center gap-x-3 mb-2">
+              <img
+                src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                height="16"
+                width="16"
+              />
+              <p class="text-lg text-[#777777] font-semibold">
+                Detailed Career
+              </p>
+            </li>
+            <li class="flex flex-row justify-start items-center gap-x-3 mb-2">
+              <img
+                src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                height="16"
+                width="16"
+              />
+              <p class="text-lg text-[#777777] font-semibold">
+                Interest Analysis
+              </p>
+            </li>
+            <li class="flex flex-row justify-start items-center gap-x-3 mb-2">
+              <img
+                src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                height="16"
+                width="16"
+              />
+              <p class="text-lg text-[#777777] font-semibold">
+                Access to Career
+              </p>
+            </li>
+            <li class="flex flex-row justify-start items-center gap-x-3 mb-2">
+              <img
+                src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                height="16"
+                width="16"
+              />
+              <p class="text-lg text-[#777777] font-semibold">
+                Library & Colleges
+              </p>
+            </li>
+          </ul>
+          <button type="button" onclick="window.location.href='{{url('psychometrictests:psychometrictest')}}'"
+            class="uppercase lg:w-[216px] h-[48px] bg-[#4CC9F0] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mx-auto lg:mb-[35px]"
+          >
+            GET STARTED
+          </button>
+        </section>
+        
+        <!-- Connect -->
+        <section
+          class="py-[20px] flex items-center gap-[12px] lg:gap-[45px] pr-[30px] lg:pr-[90px] bg-[#f7f7fa] rounded-[10px] overflow-hidden mb-4"
+        >
+          <img
+            src="{{static("topteenfrontend/assets/images/counsellor.png")}}"
+            class="w-[111.8px] h-[111.8px] lg:w-[134px] lg:h-[181px] -ml-[32px] lg:-ml-[51px] my-auto"
+            alt=""
+          />
+          <div>
+            <p
+              class="text-[22px] leading-[29.7px] lg:text-[24px] lg:leading-[32.4px] tracking-[3.5%] text-[#4f4f4f] semibold"
+            >
+              Connect with expert counsellors
+            </p>
+            <div class="flex gap-[10px] lg:gap-[7px] mt-[7px] lg:mt-[4px]">
+              <img
+                src="{{static("topteenfrontend/assets/images/greenDot.png")}}"
+                class="w-[15px] h-[15px] lg:w-[19px] lg:h-[19px] object-cover my-auto"
+                alt=""
+              />
+              <p
+                class="text-[16px] leading-[23.2px] regularFont my-auto text-[#4f4f4f]"
+              >
+                124 counsellors online
+              </p>
+            </div>
+            <p
+              class="text-[13px] leading-[18.85px] text-[#828282] mt-[20px] lg:mt-[13px] mb-3"
+            >
+              Our counsellors guide you on all the steps of the way from
+              application to your <br />job interview, connect now!
+            </p>
+
+            <button
+              class="uppercase lg:w-[216px] h-[48px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D] flex flex-row justify-center gap-x-[11px] items-center"
+            >
+              GET STARTED
+            </button>
+          </div>
+        </section>
+      </div>
+    </section>
+    #}
+    <!-- RESOURCES  FOR DESKTOP-->
+    <section class="lg:mb-[60px] mx-auto">
+      <div class="flex flex-row justify-between items-center mb-[22px]">
+        <h2 class="text-xl font-semibold text-[#333333]">Trending Content</h2>
+        <a href="{{url("blog:blogs")}}" class="text-xs text-[#3f37c9] font-semibold">View All</a>
+      </div>
+      
+      <div class="grid lg:grid-cols-4 gap-x-[30px] gap-y-[48px]">
+        {%for blog in blogs[:4] %}
+        <!-- IMAGE CARD -->
+        <div>
+            <a href="{{blog.url()}}">
+          <div class="h-[208px] w-full lg:max-w-[248px] mb-3.5">
+            <img
+              src="{{blog.image.url}}"
+              class="w-full h-full"
+            />
+          </div>
+            </a>
+          <div
+            class="px-[9px] py-[5px] rounded-[100px] bg-[#3F37C9] text-white inline-block mb-3.5 semibold text-xs"
+          >
+            <a href="{{blog.category.url()}}">{{blog.category}}</a>
+          </div>
+          <a href="{{blog.url()}}">
+          <h5
+            class="text-lg semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+          >
+          {{blog.title|truncate(40)}}
+          </h5>
+          <p class="text-xs font-normal text-[#828282]">
+            {{blog.summary|truncate(40)}}
+          </p>
+        </a>
+        </div>
+        <!-- IMAGE CARD -->
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- RESOURCES  FOR DESKTOP-->
+    <section class="lg:mb-[60px] mx-auto">
+      <div class="flex flex-row justify-between items-center mb-[22px]">
+        <h2 class="text-xl font-semibold text-[#333333]">Courses</h2>
+        <a href="{{url('skilllab:skilllabcourselist')}}" class="text-xs text-[#3f37c9] font-semibold">View All</a>
+      </div>
+      <div class="lg:grid grid-cols-4 gap-x-[30px]">
+        {% for skilllab_course in skilllab_courses[:4]%}
+        <!-- CARD -->
+        <div class="lg:max-w-[248px] mb-[20px] lg:mb-0">
+          <div
+            class="lg:h-[214px] h-[76px] w-full relative flex flex-row justify-start items-end py-[16px] px-[20px] bg-black rounded-[10px] overflow-hidden"
+          >
+            <div
+              class="grid grid-cols-4 gap-x-[14px] relative z-10 gap-y-[4px]"
+            >
+              <p
+                class="text-[10px] leading-[13.5px] font-normal text-opacity-[0.77] col-start-2 col-span-3 text-white"
+              >
+              {{skilllab_course.get_category_display()}} &#8226; 
+              </p>
+              <div class="w-[25px] h-[24px]">
+                <img src="{{static("topteenfrontend/assets/images/chat.png")}}" class="h-full w-full" />
+              </div>
+              <h5
+                class="semibold text-[15px] leading-[20px] tracking-[0.035em] col-start-2 col-span-3 text-white"
+              >
+              <a href="{{url('skilllab:skilllabcoursedetail',args=[skilllab_course.slug])}}">{{skilllab_course.name}}</a>
+              </h5>
+              <!-- </div> -->
+            </div>
+
+            <!-- BG IMAGE -->
+            <div class="absolute inset-0">
+              <img
+                src="{{skilllab_course.image.url}}"
+                class="h-full w-full object-cover brightness-50"
+              />
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- NEW CAREER TREE SECTION -->
+    <section
+      class="lg:mx-auto bg-[#4CC9F0] bg-opacity-[0.15] flex flex-row justify-between lg:pl-[60px] lg:pr-0 px-[18px] pt-[24px] rounded-[10px] lg:mb-[76px] mb-[35px] careerTree"
+    >
+      <div class="self-center lg:mb-[45px] mb-[18px] lg:w-auto w-[80%]">
+        <h4
+          class="lg:text-[28px] lg:leading-[38px] text-[22px] leading-[30px] tracking-[0.0135em] text-[#333333] mb-2.5 semibold"
+        >
+          Plant a new career tree today to start your career progress
+        </h4>
+        <p
+          class="font-normal text-[13px] tracking-[0.0145em] text-[#000000] text-opacity-50 lg:mb-[34px]"
+        >
+          Visualise your career progress and always stay on top of your goals.
+          Earn extra experience points and unlock new features lorem ipsum
+        </p>
+        <button
+          class="px-[64px] py-[15px] bg-[#5CCD16] rounded-[10px] text-white lg:flex flex-row justify-start items-center gap-x-[5px] text-sm boldFont uppercase border-b-4 border-[#51B613] hidden"
+        >
+          <span><i class="fa fa-leaf"></i></span><span>Start tree</span>
+        </button>
+      </div>
+      <div
+        class="lg:self-end self-center lg:h-[248px] lg:w-[248px] h-[143px] w-[128px]"
+      >
+        <img
+          src="{{static("topteenfrontend/assets/images/tree.png")}}"
+          class="h-full w-full object-cover object-top-left"
+        />
+      </div>
+    </section>
+  </main>
+{% endblock %}
+{% block additionalfooter %} 
+{% if not test_payment.candidate_test.last().test_link %}
+<script type="text/javascript">
+  var intervalId;
+  $(document).ready(function(){
+    intervalId=setInterval(fetchdata,5000);
+   });
+  function fetchdata(){
+    $.ajax({
+     url: "{{fetch_test_link}}",
+     type: 'GET',
+     success: function(data){
+      // Perform operation on the return value
+      if (data.success){
+        var linkElement = document.getElementById('testlink');
+        linkElement.setAttribute('href',data.testlink);
+        linkElement.setAttribute('target',data.testlink);
+        linkElement.textContent="GET STARTED";
+        clearInterval(intervalId);
+      }
+     }
+    });
+   }
+</script>
+{% endif %}
+{% endblock %}

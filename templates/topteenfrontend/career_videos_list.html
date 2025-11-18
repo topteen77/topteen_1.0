@@ -1,0 +1,385 @@
+{% extends 'topteenfrontend/base.html' %}
+
+{% block main %}
+
+<style>
+  ul#pagination {
+    display: flex;
+    justify-content: start;
+    gap: 23px;
+    margin-top: 12px;
+  }
+
+
+  ul#pagination li {
+    float: left;
+    padding: 1px 4px;
+    display: flex;
+    align-items: center;
+  }
+
+  li.paginate_button.page-item.active, li.paginate_button.page-item:hover{
+    background: rgb(76 201 240);
+    color: #fff;
+    border-radius: 4px;
+  }
+</style>
+
+<main class="w-full lg:max-w-[1280px] mx-auto lg:pt-[46px] relative">
+  <!-- Left and Right -->
+
+  {% if search_videos %}
+
+  <div
+    class="relative mt-[10px] lg:grid lg:grid-cols-4 lg:gap-x-[30px]  w-full lg:container px-[12px] lg:px-0  mx-auto ">
+
+    <!-- Left content -->
+    <div class="relative col-start-1 col-span-3">
+
+      <!--Search for mobile -->
+      <div class=" mx-auto lg:mx-0 lg:hidden">
+        <div class="border-b-[3px] border-[#4074fe] pb-[10px] max-w-[400px] lg:max-w-[248px]">
+          <p class="text-[21px] leading-[20px] text-[#080808] mediumFont">Search</p>
+        </div>
+
+        <div class="flex relative">
+          <form action="{{url('careers:careervideos')}}" method="GET">
+
+            <input type="text" placeholder="Search" name="search" required type="submit" value="{{search_videos}}"
+              class=" mt-[21px] max-h-[37px]  w-[360px] lg:max-w-[248px] border-[#939393] border-solid border-[1px]">
+            <button class="absolute" type="submit"><i
+                class="fa fa-magnifying-glass mt-[28px] -ml-[34px] text-[22px]"></i></button>
+          </form>
+        </div>
+      </div>
+
+      <!-- All articles heading -->
+      <div class="border-b-[3px] border-[#4074fe] mt-[30px] lg:mt-0 pb-[12px] max-w-[400px] lg:max-w-[248px]">
+        <h1 class="text-[24px] leading-[20px] text-[#080808] mediumFont"> {{heading}}</h1>
+      </div>
+      <!-- End of All Articles heading -->
+
+      <!-- All Articles content -->
+      <div id="addvideos"
+        class=" blog-list pt-[21px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-x-[32px] gap-y-[48px] lg:gap-y-[46px] ">
+
+        {% include 'topteenfrontend/includes/career_video_item.html' %}
+
+      </div>
+      <div
+        class="text-center flex justify-between mt-[30px] px-[12px] lg:px-0 lg:max-w-[800px] mx-auto cursor-pointer lg:mb-[36px]">
+        {% if page_obj.has_previous() %}
+        <button
+          class=" my-auto px-[12px] rounded-[8px] py-[12px] leading-[45px] border border-solid border-[#065b32] rounded-[50px] text-[17px]">
+
+          <a
+            href="?page={{page_obj.previous_page_number()}}{% for key,value in request.GET.items() %}{% if key != 'page' %}&{{key}}={{value}}{% endif %}{% endfor %}">Previous
+            Page </a>
+        </button>
+        {% else %}
+        <button id="loadmore" type="button"
+          class=" my-auto px-[12px] py-[12px] rounded-[8px] leading-[45px] border border-solid border-[#000000] border-opacity-50 rounded-[50px] text-[17px] bg-opacity-50 text-opacity-50 text-[#000000] bg-[#FFFFFF]"
+          disabled>
+          Previous Page
+        </button>
+        {% endif %}
+
+        <div class=" my-auto">
+          <p>Page {{page_obj.number}}</p>
+        </div>
+
+
+
+        {% if page_obj.has_next() %}
+        <button id="loadmore"
+          class="  my-auto px-[12px] py-[12px] rounded-[8px] leading-[45px] border border-solid border-[#065b32] rounded-[50px] text-[17px]">
+
+          <a
+            href="?page={{page_obj.next_page_number()}}{% for key,value in request.GET.items() %}{% if key != 'page' %}&{{key}}={{value}}{% endif %}{% endfor %}">Next
+            Page</a>
+        </button>
+        {% else %}
+        <button id="loadmore" type="button"
+          class=" my-auto px-[12px] py-[12px] rounded-[8px] bg-opacity-50 text-opacity-50 leading-[45px] border border-solid border-[#000000] border-opacity-50 rounded-[50px] text-[17px] text-[#000000] bg-[#FFFFFF]"
+          disabled>
+          Next Page
+        </button>
+        {% endif %}
+
+
+
+      </div>
+      <!-- End of All Videos content -->
+    </div>
+
+
+    <!-- End of Left content -->
+
+    <!-- Right Content -->
+    <div class="mt-[36px] lg:mt-0 lg:sticky lg:top-[100px] h-full">
+
+      <!-- Search -->
+      <div class=" mx-auto lg:mx-0 hidden lg:block">
+        <div class="border-b-[3px] border-[#4074fe] pb-[10px] max-w-[400px] lg:max-w-[248px]">
+          <p class="text-[21px] leading-[20px] text-[#080808] mediumFont">Search</p>
+        </div>
+
+        <div class="flex relative">
+          <form action="{{url('careers:careervideos')}}" method="GET">
+
+            <input type="text" placeholder="Search" name="search" id="vsearch" required type="submit"
+              value="{{search_videos}}"
+              class=" mt-[21px] max-h-[37px]  w-[360px] lg:max-w-[248px] border-[#939393] border-solid border-[1px]">
+            <button class="absolute" type="submit"><i
+                class="fa fa-magnifying-glass mt-[28px] -ml-[34px] text-[22px]"></i></button>
+          </form>
+        </div>
+      </div>
+      <!-- End of Search -->
+
+      <div class="flex flex-col w-full  max-w-lg mx-auto md:pl-7 md:w-[20rem] mt-[30px]">
+        <h3 class="text-green-700 regularFont text-[18.72px]">CATEGORIES</h3>
+
+        <ul class="flex flex-col">
+          <li class="mt-[0.6rem] list-none regularFont text-[1rem] cursor-pointer p-[5px] leading-[1.43rem] border-b-2">
+            <a href="{{url('careers:careervideos')}}">All</a>
+          </li>
+          {% for category in categories%}
+          <li class="text-[1rem] p-[5px] list-none regularFont cursor-pointer leading-[1.43rem] border-b-2">
+            <a href="{{url('careers:category',args=[category.slug])}}">{{category.name}} </a>
+          </li>
+          {%endfor%}
+        </ul>
+      </div>
+
+      <!-- End of Latest posts -->
+
+
+    </div>
+    <!-- End of Right Content -->
+
+  </div>
+  <!-- End of Left and Right -->
+
+  {% else %}
+  <div
+    class="relative mt-[10px] lg:grid lg:grid-cols-4 lg:gap-x-[30px]  w-full lg:container px-[12px] lg:px-0  mx-auto ">
+
+    <!-- Left content -->
+    <div class="relative col-start-1 col-span-3 bg-white p-5 rounded">
+      {% include'topteenfrontend/includes/breadcrumb.html'%}
+      <!--Search for mobile -->
+      <div class=" mx-auto lg:mx-0 lg:hidden">
+        <div class="border-b-[3px] border-[#4074fe] pb-[10px] max-w-[400px] lg:max-w-[248px]">
+          <p class="text-[21px] leading-[20px] text-[#080808] mediumFont">Search</p>
+        </div>
+
+        <div class="flex relative">
+          <form action="{{url('careers:careervideos')}}" method="GET">
+
+            <input type="text" placeholder="Search" name="search" id="search" required type="submit"
+              class=" mt-[21px] max-h-[37px]  w-[360px] lg:max-w-[248px] border-[#939393] border-solid border-[1px]">
+            <button class="absolute" type="submit"><i
+                class="fa fa-magnifying-glass mt-[28px] -ml-[34px] text-[22px]"></i></button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- All articles heading -->
+      <div class="border-b-[3px] border-[#4074fe] mt-[30px] lg:mt-0 pb-[12px] max-w-[400px] lg:max-w-[300px]">
+        <h1 class="text-[24px] leading-[20px] text-[#080808] mediumFont">Explore Career Videos</h1>
+      </div>
+      <!-- End of All Articles heading -->
+
+      <!-- All Articles content -->
+      <div id="addvideos"
+        class=" blog-list pt-[21px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-x-[32px] gap-y-[48px] lg:gap-y-[46px] ">
+
+        {% include 'topteenfrontend/includes/career_video_item.html' %}
+
+      </div>
+      <div class="table-footer mt-5">
+        <div class="row">
+
+          <div class="flex flex-row justify-between items-center">
+            <div class="dataTables_info" id="basic-datatables_info" role="status" aria-live="polite">
+              {% if page_obj %}
+              Showing {{ page_obj.start_index() }} to {{ page_obj.end_index() }} of {{page_obj.paginator.count }} videos
+              {% else %}
+              No entries to display.
+              {% endif %}
+            </div>
+            <div class="dataTables_paginate paging_simple_numbers d-flex justify-content-end"
+              id="basic-datatables_paginate">
+              <ul class="pagination my-0" id="pagination">
+                
+              </ul>
+            </div>
+
+
+          </div>
+
+        </div>
+      </div>
+      
+      <!-- End of All Videos content -->
+    </div>
+
+
+    <!-- End of Left content -->
+
+    <!-- Right Content -->
+    <div class="mt-[36px] lg:mt-0 lg:sticky lg:top-[100px] h-full">
+
+      <!-- Search -->
+      <div class=" mx-auto lg:mx-0 hidden lg:block">
+        <div class="border-b-[3px] border-[#4074fe] pb-[10px] max-w-[400px] lg:max-w-[248px]">
+          <p class="text-[21px] leading-[20px] text-[#080808] mediumFont">Search</p>
+        </div>
+
+        <div class="flex relative">
+          <form action="{{url('careers:careervideos')}}" method="GET">
+            <input type="text" placeholder="Search" name="search" id="vsearch" required type="submit"
+              class=" mt-[21px] max-h-[37px] pt-[14px] w-[360px] lg:max-w-[248px] border-[#939393] border-solid border-[1px]">
+            <button class="absolute" type="submit"><i
+                class="fa fa-magnifying-glass mt-[28px] -ml-[34px] text-[22px]"></i></button>
+          </form>
+        </div>
+
+      </div>
+      <!-- End of Search -->
+      <div class="flex flex-col w-full  max-w-lg mx-auto md:pl-7 md:w-[20rem] mt-[30px]">
+        <h3 class="text-green-700 regularFont text-[18.72px]">CATEGORIES</h3>
+
+        <ul class="flex flex-col">
+          <li class="mt-[0.6rem] list-none regularFont text-[1rem] cursor-pointer p-[5px] leading-[1.43rem] border-b-2">
+            <a href="{{url('careers:careervideos')}}">All</a>
+          </li>
+          {% for category in categories%}
+          <li class="text-[1rem] p-[5px] list-none regularFont cursor-pointer leading-[1.43rem] border-b-2">
+            <a href="{{url('careers:category',args=[category.slug])}}">{{category.name}} </a>
+          </li>
+          {%endfor%}
+        </ul>
+      </div>
+
+      <!-- End of Latest posts -->
+
+
+    </div>
+    <!-- End of Right Content -->
+
+  </div>
+  {% endif %}
+
+</main>
+
+<script>
+let totalcount = {{ page_obj.paginator.num_pages }};  // Total number of pages
+let currentPage = {{ page_obj.number }} - 1;  // Current page (0-based for JS)
+
+// Set currentPage to 0 if the view loads initially with no page parameter
+if (isNaN(currentPage) || currentPage < 0) {
+    currentPage = 0;
+}
+
+function getPagination() {
+    // If we can fit all pages in our limit
+    if (totalcount < 9) {
+        return [...Array(totalcount).keys()];
+    }
+
+    // Always include first and last pages
+    const result = Array(9).fill(null);
+    result[0] = 0;  // First page
+    result[8] = totalcount - 1;  // Last page
+
+    // If currentPage is in the first few pages
+    if (currentPage < 4) {
+        for (let i = 1; i <= 6; i++) {
+            result[i] = i;
+        }
+        result[7] = '...';
+    }
+    // If currentPage is in the last few pages
+    else if (currentPage >= totalcount - 5) {
+        result[1] = '...';
+        for (let i = 2; i <= 7; i++) {
+            result[i] = totalcount - 9 + i;
+        }
+    }
+    // Otherwise, currentPage is in the middle
+    else {
+        result[1] = '...';
+        result[7] = '...';
+        for (let i = 2; i <= 6; i++) {
+            result[i] = currentPage - 4 + i;
+        }
+    }
+    return result;
+}
+
+function renderPagination() {
+    const pagination = getPagination();
+    const paginationList = document.getElementById('pagination');
+    paginationList.innerHTML = '';  // Clear existing pagination
+
+    // Add Previous button with SVG icon
+    const prevLi = document.createElement('li');
+    prevLi.className = 'paginate_button page-item';
+    if (currentPage === 0) {
+        prevLi.classList.add('disabled');
+    }
+    const prevA = document.createElement('a');
+    prevA.className = 'page-link';
+    prevA.href = currentPage > 0 ? '?page=' + currentPage : '#';
+    prevA.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;"><path d="m12.707 7.707-1.414-1.414L5.586 12l5.707 5.707 1.414-1.414L8.414 12z"></path><path d="M16.293 6.293 10.586 12l5.707 5.707 1.414-1.414L13.414 12l4.293-4.293z"></path></svg>';
+    prevLi.appendChild(prevA);
+    paginationList.appendChild(prevLi);
+
+    // Render page numbers
+    pagination.forEach(page => {
+        const li = document.createElement('li');
+        li.className = 'paginate_button page-item';
+
+        if (page === '...') {
+            li.classList.add('disabled');
+            li.innerHTML = '<span class="page-link">...</span>';
+        } else {
+            const a = document.createElement('a');
+            a.className = 'page-link';
+            a.href = '?page=' + (page + 1);  // Django pages are 1-based
+            a.textContent = page + 1;  // Display page number (1-based)
+
+            // Highlight current page
+            if (page === currentPage) {
+                li.classList.add('active');
+            }
+
+            li.appendChild(a);
+        }
+        paginationList.appendChild(li);
+    });
+
+    // Add Next button with SVG icon
+    const nextLi = document.createElement('li');
+    nextLi.className = 'paginate_button page-item';
+    if (currentPage === totalcount - 1) {
+        nextLi.classList.add('disabled');
+    }
+    const nextA = document.createElement('a');
+    nextA.className = 'page-link';
+    nextA.href = currentPage < totalcount - 1 ? '?page=' + (currentPage + 2) : '#';
+    nextA.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;"><path d="M10.296 7.71 14.621 12l-4.325 4.29 1.408 1.42L17.461 12l-5.757-5.71z"></path><path d="M6.704 6.29 5.296 7.71 9.621 12l-4.325 4.29 1.408 1.42L12.461 12z"></path></svg>';
+    nextLi.appendChild(nextA);
+    paginationList.appendChild(nextLi);
+}
+
+renderPagination();
+
+
+</script>
+
+
+{% endblock main %}

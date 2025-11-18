@@ -1,0 +1,321 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{{ blog.title }} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+{{ blog.summary if blog.summary else blog.title }}
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Blog Content Section -->
+<section class="single-blog-sectin pt-md-18 pt-14">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <!-- Left Column - Blog Content -->
+      <div class="col-lg-8">
+        <div class="blog-header">
+          {% if blog.category %}
+          <a href="{{ url('blog:category', args=[blog.category.slug]) }}" class="blog-category-badge">{{ blog.category.name }}</a>
+          {% endif %}
+          <h1 class="blog-title">{{ blog.title }}</h1>
+          
+          <div class="blog-meta-info">
+            <div class="blog-meta-item">
+              <i class='bx bx-calendar'></i>
+              <span>Updated: {{ date_format(blog.modified) }}</span>
+            </div>
+            {% if views_count %}
+            <div class="blog-meta-item">
+              <i class='bx bx-show'></i>
+              <span>{{ views_count }} reads</span>
+            </div>
+            {% endif %}
+          </div>
+          
+          {% if blog.author %}
+          <div class="blog-author-info">
+            <div class="blog-author-avatar">
+              {% if blog.author.profile_picture %}
+              <img src="{{ blog.author.profile_picture.url }}" alt="{{ blog.author.name if blog.author.name else blog.author.username }}">
+              {% else %}
+              <div class="avatar-placeholder">{{ (blog.author.name if blog.author.name else blog.author.username)[0].upper() }}</div>
+              {% endif %}
+            </div>
+            <div>
+              <div class="blog-author-name">{{ blog.author.name if blog.author.name else blog.author.username }}</div>
+              {% if blog.author.bio %}
+              <div class="blog-author-title">{{ blog.author.bio }}</div>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        
+        {% if blog.summary %}
+        <div class="blog-summary-box">
+          <h3 class="blog-summary-title">Article Summary</h3>
+          <p class="blog-summary-text">{{ blog.summary }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="blog-share">
+          <div class="blog-share-title">Share this article:</div>
+          <div class="blog-share-icons">
+            <a href="#" class="blog-share-icon" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank'); return false;"><i class="bx bxl-facebook"></i></a>
+            <a href="#" class="blog-share-icon" onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent('{{ blog.title }}'), '_blank'); return false;"><i class="bx bxl-twitter"></i></a>
+            <a href="#" class="blog-share-icon" onclick="window.open('https://www.linkedin.com/shareArticle?url=' + encodeURIComponent(window.location.href) + '&title=' + encodeURIComponent('{{ blog.title }}'), '_blank'); return false;"><i class="bx bxl-linkedin"></i></a>
+            <a href="#" class="blog-share-icon" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('{{ blog.title }} ' + window.location.href), '_blank'); return false;"><i class="bx bxl-whatsapp"></i></a>
+            <a href="#" class="blog-share-icon copy-link" data-url="{{ url('blog:blogdetail', args=[blog.slug]) }}"><i class="bx bx-link"></i></a>
+          </div>
+        </div>
+        
+        {% if blog.image %}
+        <div class="blog-featured-image">
+          <img src="{{ blog.image.url }}" alt="{{ blog.title }}">
+        </div>
+        {% endif %}
+        
+        <div class="blog-content">
+          {{ blog.content|safe }}
+        </div>
+
+        <!-- Tags -->
+        {% if blog.tags.all() %}
+        <div class="blog-tags mt-4 pt-4 border-top">
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="badge bg-primary me-2">TAGS</span>
+            {% for tag in blog.tags.all() %}
+            <a href="{{ url('blog:blogtag', args=[tag.slug]) }}" class="badge bg-light text-primary">{{ tag.name }}</a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Right Column - Sidebar -->
+      <div class="col-lg-4">
+        <div class="blog-sidebar">
+          <!-- Search Bar -->
+          <div class="sidebar-widget mb-4">
+            <h3 class="sidebar-title mb-3">Search</h3>
+            <form action="{{ url('blog:blogs') }}" method="GET">
+              <div class="blog-search">
+                <input type="text" name="search" placeholder="Search for blogs..." value="{{ search_blogs if search_blogs else '' }}" />
+                <button type="submit"><i class='bx bx-search'></i></button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Popular Posts -->
+          {% if latest_blogs %}
+          <div class="sidebar-widget mb-4">
+            <h3 class="sidebar-title mb-3">Latest Posts</h3>
+            <div class="popular-posts">
+              {% for latest_blog in latest_blogs[:5] %}
+              <div class="popular-post mb-3">
+                <div class="row g-2">
+                  <div class="col-4">
+                    <a href="{{ url('blog:blogdetail', args=[latest_blog.slug]) }}">
+                      {% if latest_blog.image %}
+                      <img src="{{ latest_blog.image.url }}" alt="{{ latest_blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;">
+                      {% else %}
+                      <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ latest_blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;">
+                      {% endif %}
+                    </a>
+                  </div>
+                  <div class="col-8">
+                    <h4 class="popular-post-title">
+                      <a href="{{ url('blog:blogdetail', args=[latest_blog.slug]) }}">{{ latest_blog.title|truncate(60) }}</a>
+                    </h4>
+                    {% if latest_blog.author %}
+                    <span class="text-gray fs-12">By: {{ latest_blog.author.name if latest_blog.author.name else latest_blog.author.username }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Categories -->
+          {% if categories %}
+          <div class="sidebar-widget">
+            <h3 class="sidebar-title mb-3">Categories</h3>
+            <ul class="category-list">
+              <li class="category-item">
+                <a href="{{ url('blog:blogs') }}" class="text-decoration-none">All Blogs</a>
+              </li>
+              {% for cat in categories %}
+              <li class="category-item">
+                <a href="{{ url('blog:category', args=[cat.slug]) }}" class="text-decoration-none {% if blog.category and blog.category.slug == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Blog Content Section -->
+
+<!-- Related Articles Section -->
+{% if related_blogs %}
+<section class="related-section py-10 bg-light">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <h2 class="section-heading">You May Also Like</h2>
+        <p class="mb-4">Explore more articles related to {{ blog.category.name if blog.category else 'this topic' }}</p>
+      </div>
+    </div>
+    <div class="row">
+      {% for related_blog in related_blogs %}
+      <div class="col-md-4 mb-4">
+        <div class="blog-card h-100">
+          <div class="blog-image">
+            {% if related_blog.category %}
+            <a href="{{ url('blog:category', args=[related_blog.category.slug]) }}" class="blog-category category-parent">
+              {{ related_blog.category.name }}
+            </a>
+            {% endif %}
+            <a href="{{ url('blog:blogdetail', args=[related_blog.slug]) }}">
+              {% if related_blog.image %}
+              <img src="{{ related_blog.image.url }}" alt="{{ related_blog.title }}">
+              {% else %}
+              <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ related_blog.title }}">
+              {% endif %}
+            </a>
+          </div>
+          <div class="blog-content">
+            <div class="blog-meta mb-3">
+              {% if related_blog.author %}
+              <div class="blog-author">
+                By: <span>{{ related_blog.author.name if related_blog.author.name else related_blog.author.username }}</span>
+              </div>
+              {% endif %}
+              <div class="blog-date">
+                <i class='bx bx-calendar'></i>
+                <span>{{ date_format(related_blog.created) }}</span>
+              </div>
+            </div>
+            <h3 class="blog-title">
+              <a href="{{ url('blog:blogdetail', args=[related_blog.slug]) }}">{{ related_blog.title }}</a>
+            </h3>
+            {% if related_blog.summary %}
+            <p class="blog-excerpt">{{ related_blog.summary|truncate(120) }}</p>
+            {% endif %}
+            <a href="{{ url('blog:blogdetail', args=[related_blog.slug]) }}" class="read-more">Read More <i class="bx bx-right-arrow-alt"></i></a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+<!-- Related Articles Section -->
+
+<!-- Subscribe Section -->
+<section class="py-10 bg-primary text-white">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8 col-md-12 mb-3 mb-lg-0">
+        <h3 class="text-white mb-0">Interested in getting latest updates?</h3>
+      </div>
+      <div class="col-lg-4 col-md-12 text-center text-lg-end">
+        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#subscribeModal">
+          <i class='bx bx-envelope me-2'></i> SUBSCRIBE NOW
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Subscribe Modal -->
+<div class="modal fade" id="subscribeModal" tabindex="-1" aria-labelledby="subscribeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="subscribeModalLabel">Subscribe</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="subscribeForm">
+          <div class="mb-3">
+            <input type="email" id="subemail" name="email" class="form-control" placeholder="Enter email" required>
+          </div>
+          <button type="submit" class="btn custom-button purple-button w-100">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+// Copy Link Functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const copyLinks = document.querySelectorAll('.copy-link');
+  copyLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const url = this.getAttribute('data-url');
+      const fullUrl = window.location.origin + url;
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        alert('Link copied to clipboard!');
+      });
+    });
+  });
+
+  // Subscribe form submission
+  const subscribeForm = document.getElementById('subscribeForm');
+  if (subscribeForm) {
+    subscribeForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const email = document.getElementById('subemail').value;
+      
+      fetch('{{ url("blog:subscribemail") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'email=' + encodeURIComponent(email)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Thank you for subscribing!');
+          const modal = bootstrap.Modal.getInstance(document.getElementById('subscribeModal'));
+          if (modal) modal.hide();
+          subscribeForm.reset();
+        } else {
+          alert('Please enter a valid email address.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      });
+    });
+  }
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,62 @@
+version: '3.2'
+
+services:
+
+    mariadb:
+      image: mariadb:10.2
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: topteens
+        MYSQL_USER: root
+        MYSQL_HOST: localhost
+        MYSQL_PASSWORD: root
+      volumes:
+       - /data/topteens/mariadb:/var/lib/mysql
+
+
+    nginx:
+      image: nginx:1.20.0
+      restart: unless-stopped
+      command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+      ports:
+         - "80:80"
+         - "443:443"
+      volumes:
+         - /data/global/conf/nginx/conf/:/etc/nginx/conf.d
+         - /data/global/certbot/conf:/etc/letsencrypt
+         - /data/global/certbot/www:/var/www/certbot
+         - "/data/topteens/nginx/static:/var/www/html/topteens/static"
+         - "/data/topteens/nginx/media:/var/www/html/topteens/media"
+      environment:
+                - 1=ssssssss1
+
+    certbot:
+      restart: unless-stopped
+      image: certbot/certbot
+      entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+      volumes:
+         - /data/global/certbot/conf:/etc/letsencrypt
+         - /data/global/certbot/www:/var/www/certbot
+
+    elasticsearch:
+      container_name: elasticsearch
+      image: elasticsearch:7.14.2
+      environment:
+        - discovery.type=single-node
+      ports:
+        - "9200:9200"
+      volumes:
+       - /data/topteens/elasticsearch:/usr/share/elasticsearch/data
+
+    redis:
+      image: redis
+      volumes:
+        - redis_volume:/data
+
+volumes:
+  redis_volume:
+
+networks:
+  default:
+    external:
+      name: canam-network

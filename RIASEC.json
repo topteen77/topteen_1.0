@@ -1,0 +1,3314 @@
+[
+    {
+        "category": "RIA",
+        "fullname": "RIA (Realistic, Investigative, Artistic)",
+        "summary": "Being the RIA type means that you are active, strong, well-coordinated, independent, and practical minded, while also having analytical, intellectual and inquisitive skills. You are seen as a creative, imaginative and intuitive person. You enjoy hands-on or manual activities and working with tools, mechanical drawings and machines. You also have interest in academic activities such as research, solving mathematical problems or scientific pursuit. You like working on your own.",
+        "fields": "Engineering, Technology, Natural Sciences, Life Sciences, Health Care, Environmental Studies, Sport Science, Design Studies, Architect Studies, Aviation",
+        "courses": [
+            "Engineering", "Technology", "Natural Sciences", "Life Sciences", "Health Care", "Environmental Studies", "Sport Science", "Design Studies", "Architect Studies", "Aviation"
+        ],
+        "best_colleges": "Massachusetts Institute of Technology (MIT), Stanford University, ETH Zurich",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "RIS",
+        "fullname": "RIS (Realistic, Investigative, Social)",
+        "summary": "Being the RIS type means that you are active, strong, well-coordinated, independent, and practical minded, while also having analytical, intellectual and inquisitive skills. You are seen as a friendly, emotional and responsible person. You enjoy hands-on or manual activities and working with tools, mechanical drawings and machines. You also have interest in academic activities such as research, solving mathematical problems or scientific pursuit. Although you like working on your own and not being supervised by someone else, you have the ability to make friends at and outside work.",
+        "fields": "Engineering, Technology, Natural Sciences, Medical Sciences, Life Sciences, Health Care, Environmental Studies, Sport Science, Design Studies, Architect Studies, Aviation",
+        "courses": [
+            "Engineering", "Technology", "Natural Sciences", "Medical Sciences", "Life Sciences", "Health Care", "Environmental Studies", "Sport Science", "Design Studies", "Architect Studies", "Aviation"
+        ],
+        "best_colleges": "Harvard University, California Institute of Technology (Caltech), University of Oxford",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "RIE",
+        "fullname": "RIE (Realistic, Investigative, Enterprising)",
+        "summary": "Being the RIE type means that you are active, strong, well-coordinated, independent, and practical minded, while also having analytical, intellectual and inquisitive skills. You have extrovert and outgoing personality features and can display skills of assertiveness and verbal persuasion when the situation demands. You have interest in academic activities and scientific pursuits. However, too much technicalities and details may bore you. You have the capacity to work independently as well as in groups.",
+        "fields": "Engineering, Technology, Natural Sciences, Life Sciences, Health Care, Environmental Studies, Entrepreneur, Sport Science, Design Studies, Architect Studies, Aviation",
+        "courses": [
+            "Engineering", "Technology", "Natural Sciences", "Life Sciences", "Health Care", "Environmental Studies", "Entrepreneur", "Sport Science", "Design Studies", "Architect Studies", "Aviation"
+        ],
+        "best_colleges": "Harvard University, California Institute of Technology (Caltech), University of Oxford",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "RIC",
+        "fullname": "RIC (Realistic, Investigative, Conventional)",
+        "summary": "Being the RIC type means that you are active, strong, well-coordinated, independent, and practical minded, while also having analytical, intellectual and inquisitive skills. You are a well-organized, accountable, determined and task oriented person. You like working with data such as facts, figures, and statistics. You like your work to have clearly defined rules and boundaries. You are the one who prefers to \"learn by doing\" in a practical and task-oriented setting.",
+        "fields": "Engineering, Technology, Natural Sciences, Mathematics and Data Science, Life Sciences, Health Care, Environmental Studies, Sport Science, Design Studies, Architect Studies, Aviation",
+        "courses": [
+            "Engineering", "Technology", "Natural Sciences", "Mathematics and Data Science", "Life Sciences", "Health Care", "Environmental Studies", "Sport Science", "Design Studies", "Architect Studies", "Aviation"
+        ],
+        "best_colleges": "Massachusetts Institute of Technology (MIT), Stanford University, ETH Zurich",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "RAS",
+        "fullname": "RAS (Realistic, Artistic, Social)",
+        "summary": "Being the RAS type, you have an active, strong, and stable personality while also being naturally creative, sensitive, and original. People see you as a friendly, sensitive, approachable and outgoing person. Being an artistic person, you have the ability to create new things using words, music, objects or colours. You cannot function effectively in situations that are highly structured and systematic.  You like expressing yourself freely in new and dynamic situations. You like communicating in a frank and direct manner.",
+        "fields": "Life Sciences, Technology, Environmental Studies, Education and Training, Sports Science, Art Studies, Design Studies, Architectural Studies, Construction, Performing Arts, Culinary Arts, Fashion Studies, Language Studies, Cosmetology",
+        "courses": [
+            "Life Sciences", "Technology", "Environmental Studies", "Education and Training", "Sports Science", "Art Studies", "Design Studies", "Architectural Studies", "Construction", "Performing Arts", "Culinary Arts", "Fashion Studies", "Language Studies", "Cosmetology"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HUM": [
+                "Humanities"
+            ],
+            "SCIENCE": [
+                "Science"
+            ]
+        }
+    },
+    {
+        "category": "RAE",
+        "fullname": "RAE (Realistic, Artistic, Enterprising)",
+        "summary": "Being the RAE type, you have an active, strong, and stable personality while also being naturally creative, sensitive and original. You have extrovert and outgoing personality features and can display skills of assertiveness and verbal persuasion when the situation demands. You don't like to function in situations that are highly structured and systematic. At work, you may trust your hunch or gut feeling about a possible solution to a problem instead of conducting a detailed research about the possible causes and consequences. You like communicating in a frank and direct manner.",
+        "fields": "Life Sciences, Technology, Environmental Studies, Sports Science, Art Studies, Design Studies, Architectural Studies, Construction, Entrepreneur, Performing Arts, Culinary Arts, Fashion Studies, Language Studies, Cosmetology",
+        "courses": [
+            "Life Sciences", "Technology", "Environmental Studies", "Sports Science", "Art Studies", "Design Studies", "Architectural Studies", "Construction", "Entrepreneur", "Performing Arts", "Culinary Arts", "Fashion Studies", "Language Studies", "Cosmetology"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HUM": [
+                "Humanities"
+            ],
+            "SCIENCE": [
+                "Science"
+            ]
+        }
+    },
+    {
+        "category": "RAC",
+        "fullname": "RAC (Realistic, Artistic, Conventional)",
+        "summary": "Being the RAC type, you have an active, strong and stable personality while also being naturally creative, sensitive, and original. You are a well-organized, accountable, determined and task oriented person. You value self-expression, usually in the form of crafts, music, or writing. Though you do not seek management, leadership or command, people may consider you to be a good team member.",
+        "fields": "Life Sciences, Technology, Mathematics and Data Science, Environmental Studies, Sports Science, Art Studies, Design Studies, Architectural Studies, Construction, Performing Arts, Culinary Arts, Fashion Studies, Language Studies, Cosmetology",
+        "courses": [
+            "Life Sciences", "Technology", "Environmental Studies", "Sports Science", "Art Studies", "Design Studies", "Architectural Studies", "Construction", "Entrepreneur", "Performing Arts", "Culinary Arts", "Fashion Studies", "Language Studies", "Cosmetology"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HUM": [
+                "Humanities"
+            ],
+            "SCIENCE": [
+                "Science"
+            ]
+        }
+    },
+    {
+        "category": "RAI",
+        "fullname": "RAI (Realistic, Artistic, Investigative)",
+        "summary": "Being the RAI type, you have an active, strong and stable personality while also being naturally creative, sensitive, and original. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. You value self-expression, usually in the form of crafts, music, or writing. In certain situations, you come out as an independent thinker with unconventional ideas. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time.",
+        "fields": "Life Sciences, Technology, Environmental Studies, Sports Science, Art Studies, Design Studies, Engineering Design, Architectural Studies, Construction, Performing Arts, Culinary Arts, Fashion Studies, Language Studies, Cosmetology",
+        "courses": [
+            "Life Sciences", "Technology", "Environmental Studies", "Sports Science", "Art Studies", "Design Studies", "Engineering Design", "Architectural Studies", "Construction", "Performing Arts", "Culinary Arts", "Fashion Studies", "Language Studies", "Cosmetology"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HUM": [
+                "Humanities"
+            ],
+            "SCIENCE": [
+                "Science"
+            ]
+        }
+    },
+    {
+        "category": "RSE",
+        "fullname": "RSE (Realistic, Social, Enterprising)",
+        "summary": "Being the RSE type, you have an active, strong, well-coordinated and stable personality. You are also a friendly, sensitive, conscientious, responsible and outgoing person. You are an optimistic person who shows enthusiasm in initiating conversations. You have a passion for work that uplifts your technical skill and efficiency. You value material things and want to produce tangible results with your work. You also like being in charge and taking up tasks that involve instructing, informing, guiding, helping, training, developing, and providing service to people.",
+        "fields": "Telecom and Communication, Life Sciences, Health care and Medical Science, Social Sciences, Entrepreneur, Sports, Tourism and Hospitality, Humanities,  Journalism, Mass Communication, Language Studies, Life Skills and Wellness Coach",
+        "courses": [
+            "Telecom and Communication", "Life Sciences", "Health care and Medical Science", "Social Sciences", "Entrepreneur", "Sports", "Tourism and Hospitality", "Humanities", "Journalism", "Mass Communication", "Language Studies", "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HWL": [
+                "Humanities With Languages"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "RSC",
+        "fullname": "RSC (Realistic, Social, Conventional)",
+        "summary": "Being the RSC type, you have an active, strong, well-coordinated and stable personality. You are also a friendly, sensitive, conscientious, responsible and outgoing person. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You are sensitive to the feelings of others, and like to be supportive, accommodating and helpful. While you like to solve concrete and structured problems and display a desire to finish your work on time, you do not prefer tasks to be too rule-oriented or follow a very strict routine.",
+        "fields": "Telecom and Communication, Life Sciences, Health care and Medical Science, Social Sciences, Sports, Tourism and Hospitality, Supply chain management, Humanities,  Journalism, Mass Communication, Language Studies, Life Skills and Wellness Coach",
+        "courses": [
+            "Telecom and Communication", "Life Sciences", "Health care and Medical Science", "Social Sciences", "Sports", "Tourism and Hospitality", "Supply chain management", "Humanities", "Journalism", "Mass Communication", "Language Studies", "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HWL": [
+                "Humanities With Languages"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "RSI",
+        "fullname": "RSI (Realistic, Social, Investigative)",
+        "summary": "Being the RSI type, you have an active, strong, and stable personality. You are also a friendly, conscientious, responsible, and outgoing person. You have the capacity of being analytical, intellectual and inquisitive. You are sensitive to the feelings of others, and like to be supportive, accommodating and helpful. You are an independent thinker while approaching, understanding and solving complex problems.",
+        "fields": "Telecom and Communication, Ergonomics, Life Sciences, Health care and Medical Science, Social Sciences, Sports, Tourism and Hospitality, Humanities,  Journalism, Mass Communication, Language Studies, Life Skills and Wellness Coach",
+        "courses": [
+            "Telecom and Communication", "Ergonomics", "Life Sciences", "Health care and Medical Science", "Social Sciences", "Sports", "Tourism and Hospitality", "Humanities", "Journalism", "Mass Communication", "Language Studies", "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HWL": [
+                "Humanities With Languages"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+     {
+        "category": "RSA",
+        "fullname": "RSA (Realistic, Social, Artistic)",
+        "summary": "Being the RSA type, you have an active, strong, well-coordinated and stable personality. You are also a friendly, conscientious, responsible, and outgoing person. You value self-expression, usually in the form of crafts, music, or writing. You converse frankly and directly, and tend to make friends easily. However, you may prefer a personal space for solo creative work. You cannot function effectively in situations that are highly structured and systematic. You like expressing yourself freely in new and dynamic situations.",
+        "fields": "Telecom and Communication, Life Sciences, Health care and Medical Science, Social Sciences, Sports, Tourism and Hospitality, Event Management, Humanities, Journalism, Mass Communication, Language Studies, Life Skills and Wellness Coach",
+        "courses": [
+            "Telecom and Communication", "Life Sciences", "Health care and Medical Science", "Social Sciences", "Sports", "Tourism and Hospitality", "Event Management", "Humanities", "Journalism", "Mass Communication", "Language Studies", "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HWL": [
+                "Humanities With Languages"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "REC",
+        "fullname": "REC (Realistic, Enterprising, Conventional)",
+        "summary": "Being the REC type, you have an active, strong and stable personality. Along with that, you are a self-assured, socially confident, and cheerful person. You are an optimistic person who shows enthusiasm in initiating conversations. You like being organized and task-oriented. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You are assertive and have the skill of verbal persuasion. This means that you can convince people easily. You are popular among your acquaintances and have leadership potential. You communicate in a frank and direct manner.",
+        "fields": "Engineering, Technology, Data Science, Mathematics, Entrepreneur, Administration, Business & Economics, Investment, Project Management, Health Care, Construction and Manufacturing",
+        "courses": [
+            "Engineering", "Technology", "Data Science", "Mathematics", "Entrepreneur", "Administration", "Business & Economics", "Investment", "Project Management", "Health Care", "Construction and Manufacturing"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "REI",
+        "fullname": "REI (Realistic, Enterprising, Investigative)",
+        "summary": "Being the REI type, you have an active, strong and stable personality. Along with that, you are a self-assured, socially confident, and cheerful person. You have the capacity of being analytical, intellectual and inquisitive. You like working with things (tools, gadgets and machines) as well as with people. You are assertive and have the skill of verbal persuasion. This means that you can convince people easily. You are popular among your acquaintances and have leadership potential. You communicate in a frank and direct manner.",
+        "fields": "Engineering, Technology, Natural Sciences, Entrepreneur, Administration, Business & Economics, Investment, Project Management, Health Care, Construction and Manufacturing",
+        "courses": [
+            "Engineering", "Technology", "Natural Sciences", "Entrepreneur", "Administration", "Business & Economics", "Investment", "Project Management", "Health Care", "Construction and Manufacturing"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "REA",
+        "fullname": "REA (Realistic, Enterprising, Artistic)",
+        "summary": "Being the REA type, you have an active, strong and stable personality. Along with that, you are a self-assured, socially confident, and cheerful person. You are an optimistic person who shows enthusiasm in initiating conversations. You value self-expression, usually in the form of crafts, music, or writing. You are assertive and have the skill of verbal persuasion. This means that you can convince people easily. You are popular among your acquaintances and have leadership potential. You communicate in a frank and direct manner.",
+        "fields": "Engineering, Technology, Design studies, Entrepreneur, Administration, Business & Economics, Investment, Project Management, Health Care, Construction and Manufacturing",
+        "courses": [
+            "Engineering", "Technology", "Design studies", "Entrepreneur", "Administration", "Business & Economics", "Investment", "Project Management", "Health Care", "Construction and Manufacturing"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "RES",
+        "fullname": "RES (Realistic, Enterprising, Social)",
+        "summary": "Being the RES type, you have an active, strong and stable personality. Along with that, you are a self-assured, socially confident, and cheerful person. You have extrovert and outgoing personality features and can display skills of assertiveness and verbal persuasion when the situation demands. People see you as a friendly, sensitive, approachable and outgoing person who is ready to help others. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others.",
+        "fields": "Engineering, Technology, Entrepreneur, Education and Training, Administration, Business & Economics, Investment, Project Management, Health Care, Construction and Manufacturing",
+        "courses": [
+            "Engineering", "Technology", "Entrepreneur", "Education and Training", "Administration", "Business & Economics", "Investment", "Project Management", "Health Care", "Construction and Manufacturing"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWOM": [
+                "Commerce Without Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "RCI",
+        "fullname": "RCI (Realistic, Conventional, Investigative)",
+        "summary": "Being the RCI type, you have an active, strong and stable personality. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You believe in following procedures and conforming to the rules and regulations. You may also at times show analytical, intellectual and inquisitive abilities. You have a curious nature. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You like doing calculations, keeping records and handling money. You may not be able to share all ideas and feelings skillfully, but you tend to communicate in a frank and direct manner.",
+        "fields": "Data Science, Engineering, Accounting, Taxation, Banking, Fintech, Auditing, Investment, Law, Administration & Governance, Insurance",
+        "courses": [
+            "Data Science", "Engineering", "Accounting", "Taxation", "Banking", "Fintech", "Auditing", "Investment", "Law", "Administration & Governance", "Insurance"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWOM": [
+                "Commerce Without Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "RCA",
+        "fullname": "RCA (Realistic, Conventional, Artistic)",
+        "summary": "Being the RCA type, you have an active, strong and stable personality. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You believe in following procedures and conforming to the rules and regulations. You are a sensitive and imaginative person who wants to express feelings through creative means. Being systematic, neat, efficient and methodical, you prefer work that involves factual data. You like your work to have clearly defined rules and boundaries, with a set routine that does not change frequently.",
+        "fields": "Data Science, Mathematics, Accounting, Taxation, Banking, Fintech, Auditing, Investment, Law, Administration & Governance, Insurance",
+        "courses": [
+            "Data Science", "Mathematics", "Accounting", "Taxation", "Banking", "Fintech", "Auditing", "Investment", "Law", "Administration & Governance", "Insurance"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWOM": [
+                "Commerce Without Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "RCS",
+        "fullname": "RCS (Realistic, Conventional, Social)",
+        "summary": "Being the RCS type, you have an active, strong and stable personality. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You believe in following procedures and conforming to the rules and regulations. You are sensitive to the feelings of others, and like to be supportive, accommodating and helpful. You prefer to work with tools and machines rather than ideas. At times, you also like exploring scientific and mathematical questions. You may not be able to share all ideas and feelings skillfully, but you tend to communicate in a frank and direct manner.",
+        "fields": "Data Science, Accounting, Taxation, Banking, Fintech, Auditing, Investment, Law, Public Administration, Governance, Insurance",
+        "courses": [
+            "Data Science", "Accounting", "Taxation", "Banking", "Fintech", "Auditing", "Investment", "Law", "Public Administration", "Governance", "Insurance"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWOM": [
+                "Commerce Without Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "RCE",
+        "fullname": "RCE (Realistic, Conventional, Enterprising)",
+        "summary": "Being the RCE type, you have an active, strong and stable personality. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You have extrovert and outgoing personality features and can display skills of assertiveness and verbal persuasion when the situation demands. You like your work to have clearly defined tasks and goals. You value material things and want to produce tangible results with your work.",
+        "fields": "Data Science, Accounting, Taxation, Banking, Fintech, Auditing, Investment, Entrepreneur, Law, Administration & Governance, Insurance",
+        "courses": [
+            "Data Science", "Accounting", "Taxation", "Banking", "Fintech", "Auditing", "Investment", "Entrepreneur", "Law", "Administration & Governance", "Insurance"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWOM": [
+                "Commerce Without Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "IAS",
+        "fullname": "IAS (Investigative, Artistic, Social)",
+        "summary": "Being the IAS type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are a creative, imaginative and intuitive person who value self-expression, in the form of words, music, objects or writing. You like being in the company of others and are seen as a cooperative and approachable person. You cannot function effectively in situations that are highly structured and systematic. You like expressing yourself freely in new and dynamic situations. Working on abstract tasks interests you.",
+        "fields": "Engineering Design, Technology, Natural Sciences, Mathematics and Statistics, Art Studies, Interior Design, Industrial Design, Digital Design, Urban Design, Architectural Studies, Landscape Design, Urban Planning, Green Studies, Performing Arts, Fashion Engineering and Fashion Design",
+        "courses": [
+            "Engineering Design", "Technology", "Natural Sciences", "Mathematics and Statistics", "Art Studies", "Interior Design", "Industrial Design", "Digital Design", "Urban Design", "Architectural Studies", "Landscape Design", "Urban Planning", "Green Studies", "Performing Arts", "Fashion Engineering and Fashion Design"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "IAE",
+        "fullname": "IAE (Investigative, Artistic, Enterprising)",
+        "summary": "Being the IAE type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are a creative, imaginative and intuitive person who value self-expression, in the form of words, music, objects or writing. You like working on your own and do not like to be supervised by someone else. You cannot function effectively in situations that are highly structured and systematic.  You like expressing yourself freely in new and dynamic situations. People see you as a leader when you exhibit your management skills.",
+        "fields": "Engineering Design, Technology, Natural Sciences, Mathematics and Statistics, Entrepreneur, Art Studies, Interior Design, Industrial Design, Digital Design, Urban Design, Architectural Studies, Landscape Design, Urban Planning, Green Studies, Performing Arts, Fashion Engineering and Fashion Design",
+        "courses": [
+            "Engineering Design",
+            "Technology",
+            "Natural Sciences",
+            "Mathematics and Statistics",
+            "Entrepreneur",
+            "Art Studies",
+            "Interior Design",
+            "Industrial Design",
+            "Digital Design",
+            "Urban Design",
+            "Architectural Studies",
+            "Landscape Design",
+            "Urban Planning",
+            "Green Studies",
+            "Performing Arts",
+            "Fashion Engineering and Fashion Design"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "IAC",
+        "fullname": "IAC (Investigative, Artistic, Conventional)",
+        "summary": "Being the IAC type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are a creative, imaginative and intuitive person who value self-expression, in the form of words, music, objects or writing. You also like working with data such as facts, figures, and statistics. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. You may be seen as a good team member but not a leader.",
+        "fields": "Engineering Design, Technology, Mathematics and Data Science, Natural Sciences, Mathematics and Statistics, Art Studies, Interior Design, Industrial Design, Digital Design, Urban Design, Architectural Studies, Landscape Design, Urban Planning, Green Studies, Performing Arts, Fashion Engineering and Fashion Design",
+        "courses": [
+            "Engineering Design",
+            "Technology",
+            "Mathematics and Data Science",
+            "Natural Sciences",
+            "Mathematics and Statistics",
+            "Art Studies",
+            "Interior Design",
+            "Industrial Design",
+            "Digital Design",
+            "Urban Design",
+            "Architectural Studies",
+            "Landscape Design",
+            "Urban Planning",
+            "Green Studies",
+            "Performing Arts",
+            "Fashion Engineering and Fashion Design"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "IAR",
+        "fullname": "IAR (Investigative, Artistic, Realistic)",
+        "summary": "Being the IAR type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are a creative, imaginative and intuitive person who value self-expression, in the form of words, music, objects or writing. You also enjoy working with tools, gadgets and machines. You pay attention to detail and like finishing your work on time. You tend to be restrained in interpersonal relationships and behave formally. You prefer to express your feelings through creative means.",
+        "fields": "Engineering Design, Technology, Natural Sciences, Sports Science, Mathematics and Statistics, Art Studies, Interior Design, Industrial Design, Digital Design, Urban Design, Architectural Studies, Landscape Design, Urban Planning, Green Studies, Performing Arts, Fashion Engineering and Fashion Design",
+        "courses": [
+            "Engineering Design",
+            "Technology",
+            "Natural Sciences",
+            "Sports Science",
+            "Mathematics and Statistics",
+            "Art Studies",
+            "Interior Design",
+            "Industrial Design",
+            "Digital Design",
+            "Urban Design",
+            "Architectural Studies",
+            "Landscape Design",
+            "Urban Planning",
+            "Green Studies",
+            "Performing Arts",
+            "Fashion Engineering and Fashion Design"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "ISE",
+        "fullname": "ISE (Investigative, Social, Enterprising)",
+        "summary": "Being the ISE type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. People see you as a friendly, sensitive, approachable and outgoing person who is ready to help others. You like working on your own and do not like to be supervised by someone else. People see you as a leader when you exhibit your management skills. You are a pleasant and friendly person who likes to build and maintain professional networks and relations. You are a self-assured, socially confident, and cheerful person who prefers taking challenging tasks than pursuing mundane or routine works.",
+        "fields": "Health Care and Medical Science, Natural Sciences, Life Sciences, Journalism and Mass Communication, Marketing and Advertising, Social Sciences, Education, Research & Training, Entrepreneur, Law, Life Skills and Wellness Coach",
+        "courses": [
+            "Health Care and Medical Science",
+            "Natural Sciences",
+            "Life Sciences",
+            "Journalism and Mass Communication",
+            "Marketing and Advertising",
+            "Social Sciences",
+            "Education",
+            "Research & Training",
+            "Entrepreneur",
+            "Law",
+            "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "HWL": [
+                "Humanities With Languages"
+            ]
+        }
+    },
+    {
+        "category": "ISC",
+        "fullname": "ISC (Investigative, Social, Conventional)",
+        "summary": "Being the ISC type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are seen as friendly, emotional and responsible person. You are sensitive to the feelings of others, and like to be supportive, accommodating and helpful. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You may be seen as a good team member but not a leader.",
+        "fields": "Health Care and Medical Science, Natural Sciences, Life Sciences, Data Science, Journalism and Mass Communication, Marketing and Advertising, Social Sciences, Education, Research & Training, Law, Life Skills and Wellness Coach",
+        "courses": [
+            "Health Care and Medical Science",
+            "Natural Sciences",
+            "Life Sciences",
+            "Data Science",
+            "Journalism and Mass Communication",
+            "Marketing and Advertising",
+            "Social Sciences",
+            "Education",
+            "Research & Training",
+            "Law",
+            "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "HWL": [
+                "Humanities With Languages"
+            ]
+        }
+    },
+    {
+        "category": "ISR",
+        "fullname": "ISR (Investigative, Social, Realistic)",
+        "summary": "Being the IAR type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are sensitive to the feelings of others, and like to be supportive, accommodating and helpful. However, you may restrain yourself and behave formally in professional relationships,You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You are active, well-coordinated, independent, and practical minded.",
+        "fields": "Health Care and Medical Science, Natural Sciences, Life Sciences, Journalism and Mass Communication, Marketing and Advertising, Social Sciences, Education, Research & Training, Law, Life Skills and Wellness Coach",
+        "courses": [
+            "Health Care and Medical Science",
+            "Natural Sciences",
+            "Life Sciences",
+            "Journalism and Mass Communication",
+            "Marketing and Advertising",
+            "Social Sciences",
+            "Education",
+            "Research & Training",
+            "Law",
+            "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "HWL": [
+                "Humanities With Languages"
+            ]
+        }
+    },
+    {
+        "category": "ISA",
+        "fullname": "ISA (Investigative, Social, Artistic)",
+        "summary": "Being the ISA type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are seen as a friendly, emotional and responsible person. You converse frankly and directly, and tend to make friends easily. You value self-expression, usually in the form of crafts, music, or writing. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose the track of time. You like having your own identity and standing out in a crowd.",
+        "fields": "Health Care and Medical Science, Natural Sciences, Life Sciences, Journalism and Mass Communication, Marketing and Advertising, Design Arts, Social Sciences, Education, Research & Training, Law, Life Skills and Wellness Coach",
+        "courses": [
+            "Health Care and Medical Science",
+            "Natural Sciences",
+            "Life Sciences",
+            "Journalism and Mass Communication",
+            "Marketing and Advertising",
+            "Design Arts",
+            "Social Sciences",
+            "Education",
+            "Research & Training",
+            "Law",
+            "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "HWL": [
+                "Humanities With Languages"
+            ]
+        }
+    },
+    {
+        "category": "IEC",
+        "fullname": "IEC (Investigative, Enterprising, Conventional)",
+        "summary": "Being the IEC type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are a self-assured, socially confident, and cheerful person who prefers taking challenging tasks than pursuing mundane or routine works. You are a well-organized, responsible and task oriented person. You are good in detailing numerical data, facts and figures. You value material things and want to produce tangible results with your work. You are an independent thinker while approaching, understanding and solving complex problems. You value status, power, money, and like being in social gatherings where you get to know influential people.",
+        "fields": "Engineering, Technology, Natural Sciences, Entrepreneur, Investment, Fintech, Finance, Mathematics and Statistics, Economics, Data Science",
+        "courses": [
+            "Engineering",
+            "Technology",
+            "Natural Sciences",
+            "Entrepreneur",
+            "Investment",
+            "Fintech",
+            "Finance",
+            "Mathematics and Statistics",
+            "Economics",
+            "Data Science"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "IER",
+        "fullname": "IER (Investigative, Enterprising, Realistic)",
+        "summary": "Being the IER type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are a self-assured, socially confident, and cheerful person who prefers taking challenging tasks than pursuing mundane or routine works. You are active, well-coordinated, independent, and practical minded person,You pay attention to detail and like finishing your work on time. At times, you may find yourself totally engrossed on a project or task that you completely lose track of time.",
+        "fields": "Engineering, Technology, Natural Sciences, Entrepreneur, Investment, Fintech, Finance, Mathematics and Statistics, Economics, Data Science",
+        "courses": [
+            "Engineering",
+            "Technology",
+            "Natural Sciences",
+            "Entrepreneur",
+            "Investment",
+            "Fintech",
+            "Finance",
+            "Mathematics and Statistics",
+            "Economics",
+            "Data Science"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "IEA",
+        "fullname": "IEA (Investigative, Enterprising, Artistic)",
+        "summary": "Being the IEA type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are a self-assured, socially confident, and cheerful person who prefers taking challenging tasks than pursuing mundane or routine works. You cannot function effectively in situations that are highly structured and systematic.  You like expressing yourself freely in new and dynamic situations. You value self-expression, usually in the form of crafts, music, or writing. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. You value material things and want to produce tangible results with your work.",
+        "fields": "Engineering, Technology, Natural Sciences, Design Studies, Entrepreneur, Investment, Fintech, Finance, Mathematics and Statistics, Economics, Data Science",
+        "courses": [
+            "Engineering",
+            "Technology",
+            "Natural Sciences",
+            "Design Studies",
+            "Entrepreneur",
+            "Investment",
+            "Fintech",
+            "Finance",
+            "Mathematics and Statistics",
+            "Economics",
+            "Data Science"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "IES",
+        "fullname": "IES (Investigative, Enterprising, Social)",
+        "summary": "Being the IES type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are a self-assured, socially confident, and cheerful person who prefers taking challenging tasks than pursuing mundane or routine works. People see you as a friendly, sensitive, approachable and outgoing person who is ready to help others. You are a frank and extrovert person who likes to build and maintain networks and friendships. You are assertive and have the skill of verbal persuasion. This means that you can convince people easily. You are popular among your acquaintances and have leadership potential. You communicate in a frank and direct manner. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You are seen as a zealous leader in groups.",
+        "fields": "Engineering, Technology, Natural Sciences, Entrepreneur, Investment, Fintech, Education and Training, Finance, Mathematics and Statistics, Economics, Data Science",
+        "courses": [
+            "Engineering",
+            "Technology",
+            "Natural Sciences",
+            "Entrepreneur",
+            "Investment",
+            "Fintech",
+            "Education and Training",
+            "Finance",
+            "Mathematics and Statistics",
+            "Economics",
+            "Data Science"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "ICR",
+        "fullname": "ICR (Investigative, Conventional, Realistic)",
+        "summary": "Being the ICR type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are an organized, responsible, task oriented, and practical person. You believe in following procedures and conforming to the rules and regulations. You prefer to work with machines rather than people. You tend to be restrained in interpersonal relationships and behave formally in professional settings. You are seen as a good team member but not a leader.",
+        "fields": "Data Science, Engineering, Mathematics and Statistics, Banking, Insurance, Audit, Taxation, Economics, Law",
+        "courses": [
+            "Data Science",
+            "Engineering",
+            "Mathematics and Statistics",
+            "Banking",
+            "Insurance",
+            "Audit",
+            "Taxation",
+            "Economics",
+            "Law"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWOM": [
+                "Commerce Without Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "ICA",
+        "fullname": "ICA (Investigative, Conventional, Artistic)",
+        "summary": "Being the ICA type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are an organized, responsible, task oriented, and practical person. You believe in following procedures and conforming to the rules and regulations. You are also seen as a creative and sensitive person. You pay attention to detail and like finishing your work on time. At times, you may find yourself focusing entirely on a project or task while disregarding your own personal concerns and those of others. You express feelings indirectly and would not prefer to hurt anyone.",
+        "fields": "Data Science, Engineering, Mathematics and Statistics, Design Studies, Banking, Insurance, Audit, Taxation, Economics, Law",
+        "courses": [
+            "Data Science",
+            "Engineering",
+            "Mathematics and Statistics",
+            "Design Studies",
+            "Banking",
+            "Insurance",
+            "Audit",
+            "Taxation",
+            "Economics",
+            "Law"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "ICS",
+        "fullname": "ICS (Investigative, Conventional, Social)",
+        "summary": "Being the ICS type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are an organized, responsible, task oriented, and practical person. You believe in following procedures and conforming to the rules and regulations. You like being in the company of others and are seen as a cooperative and approachable person who help others. You are generally sensitive to the feelings of others and have a considerate nature. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You pay attention to detail and like finishing your work on time.",
+        "fields": "Data Science, Engineering, Mathematics and Statistics, Banking, Insurance, Audit, Taxation, Economics, Law, Education and Training",
+        "courses": [
+            "Data Science",
+            "Engineering",
+            "Mathematics and Statistics",
+            "Banking",
+            "Insurance",
+            "Audit",
+            "Taxation",
+            "Economics",
+            "Law",
+            "Education and Training"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "ICE",
+        "fullname": "ICE (Investigative, Conventional, Enterprising)",
+        "summary": "Being the ICE type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You are an organized, responsible, task oriented, and practical person. You believe in following procedures and conforming to the rules and regulations. You like working on your own and do not like to be supervised by someone else. At work, you like being in charge and taking up tasks that involve planning, managing, and organizing the work. You pay attention to detail and like finishing your work on time.",
+        "fields": "Data Science, Engineering, Mathematics and Statistics, Banking, Insurance, Audit, Taxation, Entrepreneur, Economics, Law",
+        "courses": [
+            "Data Science",
+            "Engineering",
+            "Mathematics and Statistics",
+            "Banking",
+            "Insurance",
+            "Audit",
+            "Taxation",
+            "Entrepreneur",
+            "Economics",
+            "Law"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "IRA",
+        "fullname": "IRA (Investigative, Realistic, Artistic)",
+        "summary": "Being the IRA type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You also enjoy hands-on or manual activities and working with tools, mechanical drawings and machines. You are seen as a creative, imaginative and intuitive person. You are an independent thinker who has unconventional ideas and ways of solving problems. You may not be able to share all ideas and feelings skillfully, but you tend to communicate in a frank and direct manner. Sometimes you may express your feelings indirectly and creatively.",
+        "fields": "Engineering, Technology, Natural Sciences, Life Sciences, Health Care, Environmental Studies, Sport Science, Design Studies, Architect Studies, Aviation",
+        "courses": [
+            "Engineering",
+            "Technology",
+            "Natural Sciences",
+            "Life Sciences",
+            "Health Care",
+            "Environmental Studies",
+            "Sport Science",
+            "Design Studies",
+            "Architect Studies",
+            "Aviation"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "IRS",
+        "fullname": "IRS (Investigative, Realistic, Social)",
+        "summary": "Being the IRS type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You also enjoy hands-on or manual activities and working with tools, mechanical drawings and machines. You like being in the company of others and are seen as a cooperative and approachable person. You are generally sensitive to the feelings of others and have a considerate nature. You are an independent thinker who has unconventional ideas and ways of solving problems.",
+        "fields": "Engineering, Technology, Natural Sciences, Medical Sciences, Life Sciences, Health Care, Environmental Studies, Sport Science, Design Studies, Architect Studies, Aviation",
+        "courses": [
+            "Engineering",
+            "Technology",
+            "Natural Sciences",
+            "Medical Sciences",
+            "Life Sciences",
+            "Health Care",
+            "Environmental Studies",
+            "Sport Science",
+            "Design Studies",
+            "Architect Studies",
+            "Aviation"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "IRE",
+        "fullname": "IRE (Investigative, Realistic, Enterprising)",
+        "summary": "Being the IRE type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You also enjoy hands-on or manual activities and working with tools, mechanical drawings and machines. You like being in charge and taking up tasks that involve managing, organizing and leading others. You are an independent thinker who has unconventional ideas and ways of solving problems. You value material things and want to produce tangible results with your work. You are seen as a zealous leader in groups.",
+        "fields": "Engineering, Technology, Natural Sciences, Life Sciences, Health Care, Environmental Studies, Entrepreneur, Sport Science, Design Studies, Architect Studies, Aviation",
+        "courses": [
+            "Engineering",
+            "Technology",
+            "Natural Sciences",
+            "Life Sciences",
+            "Health Care",
+            "Environmental Studies",
+            "Entrepreneur",
+            "Sport Science",
+            "Design Studies",
+            "Architect Studies",
+            "Aviation"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "IRC",
+        "fullname": "IRC (Investigative, Realistic, Conventional)",
+        "summary": "Being the IRC type, you are an analytical, intellectual and inquisitive person. You have a keen interest in academic activities, research experiments, mathematical problems and scientific pursuits. You also enjoy hands-on or manual activities and working with tools, mechanical drawings and machines. You are an organized, responsible, task oriented, and practical person. You are an independent thinker who has unique ideas and ways of solving problems. At times, you may find yourself focusing entirely on a project or task while disregarding your own personal concerns and those of others. You pay attention to detail and like finishing your work on time.",
+        "fields": "Engineering, Technology, Natural Sciences, Mathematics and Data Science, Life Sciences, Health Care, Environmental Studies, Sport Science, Design Studies, Architect Studies, Aviation",
+        "courses": [
+            "Engineering",
+            "Technology",
+            "Natural Sciences",
+            "Mathematics and Data Science",
+            "Life Sciences",
+            "Health Care",
+            "Environmental Studies",
+            "Sport Science",
+            "Design Studies",
+            "Architect Studies",
+            "Aviation"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "ASE",
+        "fullname": "ASE (Artistic, Social, Enterprising)",
+        "summary": "Being the ASE type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. People see you as a friendly, sensitive and outgoing person who is ready to help others. You like having a unique identity and standing out in a group of people. You like getting involved in activities that give you enough freedom to express your ideas. You are popular among your acquaintances. You like working on your own and do not like to be supervised by others. You communicate in a frank and direct manner. Sometimes you may also express your feelings indirectly and creatively. You cannot function effectively in situations that are highly structured and systematic. You like expressing yourself in new and dynamic situations.",
+        "fields": "Fine Arts, Performing Arts, Photography, Fashion Studies, Museology, Applied Arts, Creative Arts, Mental Health Experts, Counselors, Entrepreneur, Wellness Coach, Interior Designers, Cultural Studies, Gender Studies, International Relations, Social Work, Marketing and Advertising, Food and Beverage, Cosmetology, Language Studies",
+        "courses": [
+            "Fine Arts",
+            "Performing Arts",
+            "Photography",
+            "Fashion Studies",
+            "Museology",
+            "Applied Arts",
+            "Creative Arts",
+            "Mental Health Experts",
+            "Counselors",
+            "Entrepreneur",
+            "Wellness Coach",
+            "Interior Designers",
+            "Cultural Studies",
+            "Gender Studies",
+            "International Relations",
+            "Social Work",
+            "Marketing and Advertising",
+            "Food and Beverage",
+            "Cosmetology",
+            "Language Studies"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "ASC",
+        "fullname": "ASC (Artistic, Social, Conventional)",
+        "summary": "Being the ASC type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. People see you as a friendly, sensitive and outgoing person who is ready to help others. You like having a unique identity and standing out in a group of people. You are sensitive to the feelings of others, and like to be supportive, accommodating and helpful. You are a responsible, task-oriented, and practical person.",
+        "fields": "Fine Arts, Performing Arts, Photography, Fashion Studies, Museology, Applied Arts, Creative Arts, Mental Health Experts, Counselors, Wellness Coach, Interior Designers, Cultural Studies, Gender Studies, International Relations, Social Work, Marketing and Advertising, Food and Beverage, Cosmetology, Language Studies",
+        "courses": [
+            "Fine Arts",
+            "Performing Arts",
+            "Photography",
+            "Fashion Studies",
+            "Museology",
+            "Applied Arts",
+            "Creative Arts",
+            "Mental Health Experts",
+            "Counselors",
+            "Wellness Coach",
+            "Interior Designers",
+            "Cultural Studies",
+            "Gender Studies",
+            "International Relations",
+            "Social Work",
+            "Marketing and Advertising",
+            "Food and Beverage",
+            "Cosmetology",
+            "Language Studies"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "ASR",
+        "fullname": "ASR (Artistic, Social, Realistic)",
+        "summary": "Being the ASR type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. People see you as a friendly, sensitive and outgoing person who is ready to help others. You like having a unique identity and standing out in a group of people. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You want to explore the world and accomplish things of your own. You like outdoor, mechanical and physical activities.",
+        "fields": "Fine Arts, Performing Arts, Photography, Fashion Studies, Museology, Applied Arts, Creative Arts, Mental Health Experts, Sports Coach, Fitness and Nutrition, Counselors, Wellness Coach, Interior Designers, Cultural Studies, Gender Studies, International Relations, Social Work, Marketing and Advertising, Food and Beverage, Cosmetology, Language Studies",
+        "courses": [
+            "Fine Arts",
+            "Performing Arts",
+            "Photography",
+            "Fashion Studies",
+            "Museology",
+            "Applied Arts",
+            "Creative Arts",
+            "Mental Health Experts",
+            "Sports Coach",
+            "Fitness and Nutrition",
+            "Counselors",
+            "Wellness Coach",
+            "Interior Designers",
+            "Cultural Studies",
+            "Gender Studies",
+            "International Relations",
+            "Social Work",
+            "Marketing and Advertising",
+            "Food and Beverage",
+            "Cosmetology",
+            "Language Studies"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "ASI",
+        "fullname": "ASI (Artistic, Social, Investigative)",
+        "summary": "Being the ASI type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. People see you as a friendly, sensitive and outgoing person who is ready to help others. You like having a unique identity and standing out in a group of people. You are an independent thinker who has unconventional ideas and ways of solving problems. You prefer to work in unstructured situations where you can use your creativity and imagination freely. You converse frankly and directly. You are a pleasant and friendly person who likes to build and maintain networks and friendships.",
+        "fields": "Fine Arts, Performing Arts, Photography, Fashion Studies, Museology, Applied Arts, Creative Arts, Mental Health Experts, Counselors, Wellness Coach, Interior Designers, Cultural Studies, Gender Studies, International Relations, Social Work, Marketing and Advertising, Food and Beverage, Cosmetology, Language Studies",
+        "courses": [
+            "Fine Arts",
+            "Performing Arts",
+            "Photography",
+            "Fashion Studies",
+            "Museology",
+            "Applied Arts",
+            "Creative Arts",
+            "Mental Health Experts",
+            "Counselors",
+            "Wellness Coach",
+            "Interior Designers",
+            "Cultural Studies",
+            "Gender Studies",
+            "International Relations",
+            "Social Work",
+            "Marketing and Advertising",
+            "Food and Beverage",
+            "Cosmetology",
+            "Language Studies"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "AEC",
+        "fullname": "AEC (Artistic, Enterprising, Conventional)",
+        "summary": "Being the AEC type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are a self-assured, socially confident, and cheerful person. You are assertive and verbally persuasive which means that you can convince people easily. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You value material things and want to produce tangible results with your work. You are an independent thinker while approaching, understanding and solving complex problems. You like getting involved in activities that give you enough freedom to express your ideas and appreciate beauty and variety. You like being in a position of power and responsibility.",
+        "fields": "Entrepreneur, Management, Design Studies, Fashion Studies, Graphic Designers, Product Manufacturing, Jewel Business, Design Management, E-commerce, Data and Statistics",
+        "courses": [
+            "Entrepreneur",
+            "Management",
+            "Design Studies",
+            "Fashion Studies",
+            "Graphic Designers",
+            "Product Manufacturing",
+            "Jewel Business",
+            "Design Management",
+            "E-commerce",
+            "Data and Statistics"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWOM": [
+                "Commerce Without Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "AER",
+        "fullname": "AER (Artistic, Enterprising, Realistic)",
+        "summary": "Being the AER type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are a self-assured, socially confident, and cheerful person. You are assertive and verbally persuasive which means that you can convince people easily. You want to explore the world and accomplish things of your own. You like outdoor, mechanical and physical activities. You prefer to work alone and independently rather than in teams or with others. However, you like being in charge and want to manage, lead and persuade others. You enjoy money, power and status. You cannot function effectively in situations that are highly structured and systematic. You like expressing yourself freely in new and dynamic situations.",
+        "fields": "Entrepreneur, Management, Design Studies, Fashion Studies, Graphic Designers, Product Manufacturing, Jewel Business, Design Management, E-commerce",
+        "courses": [
+            "Entrepreneur",
+            "Management",
+            "Design Studies",
+            "Fashion Studies",
+            "Graphic Designers",
+            "Product Manufacturing",
+            "Jewel Business",
+            "Design Management",
+            "E-commerce"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWOM": [
+                "Commerce Without Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "AEI",
+        "fullname": "AEI (Artistic, Enterprising, Investigative)",
+        "summary": "Being the AEI type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are a self-assured, socially confident, and cheerful person. You are assertive and verbally persuasive which means that you can convince people easily. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. You like having your own identity and standing out in a crowd. People see you as a leader when you exhibit your management skills. You value material things and want to produce tangible results with your work. You value status, power, money, and like being in social networks where you get to know influential people.",
+        "fields": "Entrepreneur, Management, Design Studies, Fashion Studies, Graphic Designers, Product Manufacturing, Jewel Business, Design Management, E-commerce",
+        "courses": [
+            "Entrepreneur",
+            "Management",
+            "Design Studies",
+            "Fashion Studies",
+            "Graphic Designers",
+            "Product Manufacturing",
+            "Jewel Business",
+            "Design Management",
+            "E-commerce"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "PCB": [
+                "Physics Chemistry Biology"
+            ]
+        }
+    },
+    {
+        "category": "AES",
+        "fullname": "AES (Artistic, Enterprising, Social)",
+        "summary": "Being the AES type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are a self-assured, socially confident, and cheerful person. You are assertive and verbally persuasive which means that you can convince people easily. You are a pleasant and friendly person who likes to build and maintain networks and friendships. You pull people together and generate positive energy around them. You are full of energy and enthusiasm and can stay focused on work that interests you. You prefer to work in unstructured situations where you can use your creativity and imagination freely. You like working on your own and do not like to be supervised by someone else.",
+        "fields": "Entrepreneur, Management, Design Studies, Fashion Studies, Graphic Designers, Product Manufacturing, Jewel Business, Design Management, E-commerce, Education and Training",
+        "courses": [
+            "Entrepreneur",
+            "Management",
+            "Design Studies",
+            "Fashion Studies",
+            "Graphic Designers",
+            "Product Manufacturing",
+            "Jewel Business",
+            "Design Management",
+            "E-commerce",
+            "Education and Training"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWOM": [
+                "Commerce Without Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "ACI",
+        "fullname": "ACI (Artistic, Conventional, Investigative)",
+        "summary": "Being the ACI type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are an organized, responsible, task oriented, and practical person. You like your work to have some rules and boundaries. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. In social relationships, you want to be accepted and approved by others, but tend to avoid close relationships. You like the safety of belonging to a group but do not seek leadership. At times you feel that you lack ability to convince others.",
+        "fields": "Performing Arts, Language Studies, Applied Arts, Fine Arts, Creative Arts, Data Analysis, Banking, Finance and Administration, Accounting and Taxation",
+        "courses": [
+            "Performing Arts",
+            "Language Studies",
+            "Applied Arts",
+            "Fine Arts",
+            "Creative Arts",
+            "Data Analysis",
+            "Banking",
+            "Finance and Administration",
+            "Accounting and Taxation"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HWL": [
+                "Humanities With Languages"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "ACR",
+        "fullname": "ACR (Artistic, Conventional, Realistic)",
+        "summary": "Being the ACR type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are an organized, responsible, task oriented, and practical person. You like your work to some rules and boundaries. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You are an independent, practical minded, dynamic and conservative person. You feel somewhat less adept in forming and maintaining relationships. You prefer to work alone and generally don't like group assignments. You like to \"learn by doing\" in a practical and task-oriented setting.",
+        "fields": "Performing Arts, Language Studies, Applied Arts, Fine Arts, Sports, Fitness and Nutrition, Creative Arts, Data Analysis, Banking, Finance and Administration, Accounting and Taxation",
+        "courses": [
+            "Performing Arts",
+            "Language Studies",
+            "Applied Arts",
+            "Fine Arts",
+            "Sports",
+            "Fitness and Nutrition",
+            "Creative Arts",
+            "Data Analysis",
+            "Banking",
+            "Finance and Administration",
+            "Accounting and Taxation"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HWL": [
+                "Humanities With Languages"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "ACS",
+        "fullname": "ACS (Artistic, Conventional, Social)",
+        "summary": "Being the ACS type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are an organized, responsible, task oriented, and practical person. You like your work to have defined rules and boundaries. You like being in the company of others and are seen as a cooperative, kind and approachable person. You like working in unstructured situations. However, you do not mind having some rules laid down for your work. In social relationships, you want to be accepted and approved by others, but tend to avoid close relationships. You like the safety of belonging to a group, but do not seek leadership roles.",
+        "fields": "Performing Arts, Language Studies, Teacher, Applied Arts, Fine Arts, Creative Arts, Data Analysis, Banking, Finance and Administration, Accounting and Taxation",
+        "courses": [
+            "Performing Arts",
+            "Language Studies",
+            "Teacher",
+            "Applied Arts",
+            "Fine Arts",
+            "Creative Arts",
+            "Data Analysis",
+            "Banking",
+            "Finance and Administration",
+            "Accounting and Taxation"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HWL": [
+                "Humanities With Languages"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "ACE",
+        "fullname": "ACE (Artistic, Conventional, Enterprising)",
+        "summary": "Being the ACE type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are an organized, responsible, task oriented, and practical person. You like your work to have defined rules and boundaries. You tend to engage yourself in work that requires organising, administrating, managing, and coordinating the tasks. You prefer to be away from jobs that require you to engage in technical, scientific and theoretical analysis. You are an optimistic person who shows interest in initiating conversations. You may not be able to share all ideas and feelings skillfully, but you tend to communicate in a frank and direct manner. You value material things and want to produce tangible results with your work.",
+        "fields": "Performing Arts, Language Studies, Applied Arts, Fine Arts, Creative Arts, Data Analysis, Banking, Finance and Administration, Accounting and Taxation, Entrepreneur",
+        "courses": [
+            "Performing Arts",
+            "Language Studies",
+            "Applied Arts",
+            "Fine Arts",
+            "Creative Arts",
+            "Data Analysis",
+            "Banking",
+            "Finance and Administration",
+            "Accounting and Taxation",
+            "Entrepreneur"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HWL": [
+                "Humanities With Languages"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "ARI",
+        "fullname": "ARI (Artistic, Realistic, Investigative)",
+        "summary": "Being the ARI type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You are an independent thinker while approaching, understanding and solving complex problems. You may also at times show analytical, intellectual and inquisitive abilities. You have a curious nature. You want to explore the world and accomplish things of your own. At times, you may find yourself focusing entirely on a project or task while disregarding your own personal concerns and those of others. In social situations, you might feel that your \"people skills\" are inadequate. You tend to avoid close relationships.",
+        "fields": "Life Sciences, Technology, Environmental Studies, Sports Science, Art Studies, Design Studies, Engineering Design, Architectural Studies, Construction, Performing Arts, Culinary Arts, Fashion Studies, Language Studies, Cosmetology",
+        "courses": [
+            "Life Sciences",
+            "Technology",
+            "Environmental Studies",
+            "Sports Science",
+            "Art Studies",
+            "Design Studies",
+            "Engineering Design",
+            "Architectural Studies",
+            "Construction",
+            "Performing Arts",
+            "Culinary Arts",
+            "Fashion Studies",
+            "Language Studies",
+            "Cosmetology"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "SCIENCE": [
+                "Science"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+        "category": "ARS",
+        "fullname": "ARS (Artistic, Realistic, Social)",
+        "summary": "Being the ARS type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. People see you as a friendly, sensitive, approachable and outgoing person who is ready to help others. You like solving concrete instead of abstract problems. You cannot function effectively in situations that are highly structured and systematic. You like expressing yourself freely in new and dynamic situations.",
+        "fields": "Life Sciences, Technology, Environmental Studies, Education and Training, Sports Science, Art Studies, Design Studies, Architectural Studies, Construction, Performing Arts, Culinary Arts, Fashion Studies, Language Studies, Cosmetology",
+        "courses": [
+            "Life Sciences",
+            "Technology",
+            "Environmental Studies",
+            "Education and Training",
+            "Sports Science",
+            "Art Studies",
+            "Design Studies",
+            "Architectural Studies",
+            "Construction",
+            "Performing Arts",
+            "Culinary Arts",
+            "Fashion Studies",
+            "Language Studies",
+            "Cosmetology"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "SCIENCE": [
+                "Science"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+    
+        "category": "ARE",
+        "fullname": "ARE (Artistic, Realistic, Enterprising)",
+        "summary": "Being the ARE type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You learn things by doing them rather than reading about them. You are an optimistic person who shows interest in initiating conversations. You value material things and want to produce tangible results with your work. You like having your own identity and standing out in a crowd. You have extrovert and outgoing personality features and can display skills of assertiveness and verbal persuasion when the situation demands. You may not be able to share all ideas and feelings skillfully, but you tend to communicate in a frank and direct manner. Sometimes you may express your feelings indirectly and creatively.",
+        "fields": "Life Sciences, Technology, Environmental Studies, Sports Science, Art Studies, Design Studies, Architectural Studies, Construction, Entrepreneur, Performing Arts, Culinary Arts, Fashion Studies, Language Studies, Cosmetology",
+        "courses": [
+            "Life Sciences",
+            "Technology",
+            "Environmental Studies",
+            "Sports Science",
+            "Art Studies",
+            "Design Studies",
+            "Architectural Studies",
+            "Construction",
+            "Entrepreneur",
+            "Performing Arts",
+            "Culinary Arts",
+            "Fashion Studies",
+            "Language Studies",
+            "Cosmetology"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "SCIENCE": [
+                "Science"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+        "category": "ARC",
+        "fullname": "ARC (Artistic, Realistic, Conventional)",
+        "summary": "Being the ARC type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You prefer to be occupied in your work rather than getting involved with people. You tend to be restrained in interpersonal relationships and like to behave formally in professional settings. You are seen as a good team member but not a leader.",
+        "fields": "Life Sciences, Technology, Mathematics and Data Science, Environmental Studies, Sports Science, Art Studies, Design Studies, Architectural Studies, Construction, Performing Arts, Culinary Arts, Fashion Studies, Language Studies, Cosmetology",
+        "courses": [
+            "Life Sciences",
+            "Technology",
+            "Mathematics and Data Science",
+            "Environmental Studies",
+            "Sports Science",
+            "Art Studies",
+            "Design Studies",
+            "Architectural Studies",
+            "Construction",
+            "Performing Arts",
+            "Culinary Arts",
+            "Fashion Studies",
+            "Language Studies",
+            "Cosmetology"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "SCIENCE": [
+                "Science"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+        "category": "AIS",
+        "fullname": "AIS (Artistic, Investigative, Social)",
+        "summary": "Being the AIS type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are an analytical, intellectual and inquisitive person. Your curiosity and love for learning make you engrossed in whatever you do, such that you might even lose track of time. You also like being in the company of others and are seen as a cooperative, kind and approachable person. You like to work on abstract and challenging problems and tend to avoid working in situations where others impose too many rules on you. You are generally sensitive to the feelings of others and have a considerate nature.",
+        "fields": "Engineering Design, Technology, Natural Sciences, Mathematics and Statistics, Art Studies, Interior Design, Industrial Design, Digital Design, Urban Design, Architectural Studies, Landscape Design, Urban Planning, Green Studies, Performing Arts, Fashion Engineering and Fashion Design",
+        "courses": [
+            "Engineering Design",
+            "Technology",
+            "Natural Sciences",
+            "Mathematics and Statistics",
+            "Art Studies",
+            "Interior Design",
+            "Industrial Design",
+            "Digital Design",
+            "Urban Design",
+            "Architectural Studies",
+            "Landscape Design",
+            "Urban Planning",
+            "Green Studies",
+            "Performing Arts",
+            "Fashion Engineering",
+            "Fashion Design"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "AIE",
+        "fullname": "AIE (Artistic, Investigative, Enterprising)",
+        "summary": "Being the AIE type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are an analytical, intellectual and inquisitive person. Your curiosity and love for learning make you engrossed in whatever you do, such that you might even lose track of time. You are a self-assured, socially confident, and cheerful person. You are assertive and have the skill of verbal persuasion. This means that you can convince people easily. You are an independent thinker who has unconventional ideas and ways of solving problems. You prefer loosely structured environments without strict rules and regulations. This strengthens your curious and passionate nature to explore and research about things around you.",
+        "fields": "Engineering Design, Technology, Natural Sciences, Mathematics and Statistics, Entrepreneur, Art Studies, Interior Design, Industrial Design, Digital Design, Urban Design, Architectural Studies, Landscape Design, Urban Planning, Green Studies, Performing Arts, Fashion Engineering and Fashion Design",
+        "courses": [
+            "Engineering Design",
+            "Technology",
+            "Natural Sciences",
+            "Mathematics and Statistics",
+            "Entrepreneur",
+            "Art Studies",
+            "Interior Design",
+            "Industrial Design",
+            "Digital Design",
+            "Urban Design",
+            "Architectural Studies",
+            "Landscape Design",
+            "Urban Planning",
+            "Green Studies",
+            "Performing Arts",
+            "Fashion Engineering",
+            "Fashion Design"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "AIC",
+        "fullname": "AIC (Artistic, Investigative, Conventional)",
+        "summary": "Being the AIC type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are an analytical, intellectual and inquisitive person. Your curiosity and love for learning make you engrossed in whatever you do, such that you might even lose track of time. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You are an independent thinker who has own unique ways of solving problems. At times, you may find yourself focusing entirely on a project or task while disregarding your personal concerns and those of others. You feel inadequate in \"people skills\". You enjoy being introspective and exploring the world around you.",
+        "fields": "Engineering Design, Technology, Mathematics and Data Science, Natural Sciences, Mathematics and Statistics, Art Studies, Interior Design, Industrial Design, Digital Design, Urban Design, Architectural Studies, Landscape Design, Urban Planning, Green Studies, Performing Arts, Fashion Engineering and Fashion Design",
+        "courses": [
+            "Engineering Design",
+            "Technology",
+            "Mathematics and Data Science",
+            "Natural Sciences",
+            "Mathematics and Statistics",
+            "Art Studies",
+            "Interior Design",
+            "Industrial Design",
+            "Digital Design",
+            "Urban Design",
+            "Architectural Studies",
+            "Landscape Design",
+            "Urban Planning",
+            "Green Studies",
+            "Performing Arts",
+            "Fashion Engineering",
+            "Fashion Design"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "AIR",
+        "fullname": "AIR (Artistic, Investigative, Realistic)",
+        "summary": "Being the AIR type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You are an analytical, intellectual and inquisitive person. Your curiosity and love for learning make you engrossed in whatever you do, such that you might even lose track of time. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You want to explore the world and accomplish things of your own. You prefer loosely structured environments without strict rules and regulations. This strengthens your curious and passionate nature to explore and research about things around you.",
+        "fields": "Engineering Design, Technology, Natural Sciences, Sports Science, Mathematics and Statistics, Art Studies, Interior Design, Industrial Design, Digital Design, Urban Design, Architectural Studies, Landscape Design, Urban Planning, Green Studies, Performing Arts, Fashion Engineering and Fashion Design",
+        "courses": [
+            "Engineering Design",
+            "Technology",
+            "Natural Sciences",
+            "Sports Science",
+            "Mathematics and Statistics",
+            "Art Studies",
+            "Interior Design",
+            "Industrial Design",
+            "Digital Design",
+            "Urban Design",
+            "Architectural Studies",
+            "Landscape Design",
+            "Urban Planning",
+            "Green Studies",
+            "Performing Arts",
+            "Fashion Engineering",
+            "Fashion Design"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "SEC",
+        "fullname": "SEC (Social, Enterprising, Conventional)",
+        "summary": "Being the SEC type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You have an inherent inclination towards helping others and are generally seen as a supportive and understanding individual. You are interested in social causes and are often engaged in various social activities. You possess practical organizational skills and have a keen sense for managing tasks efficiently. You enjoy interacting with people and thrive in environments where you can make a positive impact. You are often seen as dependable and reliable, demonstrating a strong sense of responsibility in both personal and professional settings.",
+        "fields": "Social Sciences, Anthropology, Political Science, Psychology, Life skills and Wellness Coach, Entrepreneur, Social Leadership, Development Leaders, International Relations, Financial Planner, Trade and Investment, Share Broker, Journalism, Mass Communication, Law",
+        "courses": [
+            "Social Sciences",
+            "Anthropology",
+            "Political Science",
+            "Psychology",
+            "Life skills and Wellness Coach",
+            "Entrepreneur",
+            "Social Leadership",
+            "Development Leaders",
+            "International Relations",
+            "Financial Planner",
+            "Trade and Investment",
+            "Share Broker",
+            "Journalism",
+            "Mass Communication",
+            "Law"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HUM": [
+                "Humanities"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "SER",
+        "fullname": "SER (Social, Enterprising, Realistic)",
+        "summary": "Being the SER type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You have an inherent inclination towards helping others and are generally seen as a supportive and understanding individual. You are interested in social causes and are often engaged in various social activities. You are enthusiastic, confident, and have good leadership qualities. You are seen as a person who enjoys taking charge and leading initiatives. You are motivated by achieving tangible results and prefer working in practical, hands-on environments. You thrive in situations where you can make a visible impact and are often recognized for your efforts in achieving set goals.",
+        "fields": "Social Sciences, Anthropology, Political Science, Psychology, Life skills and Wellness Coach, Sports and Fitness Coach, Entrepreneur, Social Leadership, Development Leaders, International Relations, Financial Planner, Trade and Investment, Share Broker, Journalism, Mass Communication, Law",
+        "courses": [
+            "Social Sciences",
+            "Anthropology",
+            "Political Science",
+            "Psychology",
+            "Life skills and Wellness Coach",
+            "Sports and Fitness Coach",
+            "Entrepreneur",
+            "Social Leadership",
+            "Development Leaders",
+            "International Relations",
+            "Financial Planner",
+            "Trade and Investment",
+            "Share Broker",
+            "Journalism",
+            "Mass Communication",
+            "Law"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HUM": [
+                "Humanities"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "SEI",
+        "fullname": "SEI (Social, Enterprising, Investigative)",
+        "summary": "Being the SEI type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You have an inherent inclination towards helping others and are generally seen as a supportive and understanding individual. You are interested in social causes and are often engaged in various social activities. You have strong analytical skills and enjoy exploring new concepts and ideas. You are proactive in identifying and solving problems, and your innovative thinking allows you to approach challenges in unique ways. You thrive in dynamic and evolving environments where you can apply your creativity and analytical abilities to make a meaningful impact.",
+        "fields": "Social Sciences, Anthropology, Political Science, Psychology, Life skills and Wellness Coach, Entrepreneur, Social Leadership, Development Leaders, International Relations, Financial Planner, Trade and Investment, Share Broker, Journalism, Mass Communication, Law",
+        "courses": [
+            "Social Sciences",
+            "Anthropology",
+            "Political Science",
+            "Psychology",
+            "Life skills and Wellness Coach",
+            "Entrepreneur",
+            "Social Leadership",
+            "Development Leaders",
+            "International Relations",
+            "Financial Planner",
+            "Trade and Investment",
+            "Share Broker",
+            "Journalism",
+            "Mass Communication",
+            "Law"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HUM": [
+                "Humanities"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "SEA",
+        "fullname": "SEA (Social, Enterprising, Artistic)",
+        "summary": "Being the SEA type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You have an inherent inclination towards helping others and are generally seen as a supportive and understanding individual. You are interested in social causes and are often engaged in various social activities. You are enthusiastic and have a strong sense of creativity and artistic ability. You enjoy working in environments that allow you to express your creativity and make a positive impact on the community. Your ability to combine creativity with practical skills enables you to excel in roles that require both artistic vision and effective communication.",
+        "fields": "Social Sciences, Anthropology, Political Science, Psychology, Life skills and Wellness Coach, Entrepreneur, Art and Design Expert, Social Leadership, Development Leaders, International Relations, Financial Planner, Trade and Investment, Share Broker, Journalism, Mass Communication, Law",
+        "courses": [
+            "Social Sciences",
+            "Anthropology",
+            "Political Science",
+            "Psychology",
+            "Life skills and Wellness Coach",
+            "Entrepreneur",
+            "Art and Design Expert",
+            "Social Leadership",
+            "Development Leaders",
+            "International Relations",
+            "Financial Planner",
+            "Trade and Investment",
+            "Share Broker",
+            "Journalism",
+            "Mass Communication",
+            "Law"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HUM": [
+                "Humanities"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "SCR",
+        "fullname": "SCR (Social, Conventional, Realistic)",
+        "summary": "Being the SCR type, you are a creative, imaginative, and intuitive person. You value self-expression in a variety of forms, including objects, colours, crafts, music, or writing. You have a practical approach to problem-solving and prefer working in structured environments with clearly defined tasks. You are detail-oriented and have a strong focus on accuracy and efficiency. You are often seen as dependable and responsible, with a talent for organizing and managing resources effectively. Your practical skills, combined with your ability to work well in structured settings, make you an asset in roles that require precision and adherence to established procedures.",
+        "fields": "Banking, Audit, Taxation, Mathematics, Statistics, Insurance, Financial Analyst, Commerce, Accounting, Law, Economics, Public Relations, Education and Training, Language Studies, Health Expert",
+        "courses": [
+            "Banking",
+            "Audit",
+            "Taxation",
+            "Mathematics",
+            "Statistics",
+            "Insurance",
+            "Financial Analyst",
+            "Commerce",
+            "Accounting",
+            "Law",
+            "Economics",
+            "Public Relations",
+            "Education and Training",
+            "Language Studies",
+            "Health Expert"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "SCI",
+        "fullname": "SCI (Social, Conventional, Investigative)",
+        "summary": "Being the SCI type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You believe in following procedures and conforming to the rules and regulations. You are an independent thinker who has unconventional ideas and ways of solving problems. Sometimes, complex mathematical and scientific problems interest you.",
+        "fields": "Banking, Audit, Taxation, Mathematics, Data Science, Statistics, Insurance, Financial Analyst, Commerce, Accounting, Law, Economics, Public Relations, Education and Training, Language Studies",
+        "courses": [
+            "Banking",
+            "Audit",
+            "Taxation",
+            "Mathematics",
+            "Data Science",
+            "Statistics",
+            "Insurance",
+            "Financial Analyst",
+            "Commerce",
+            "Accounting",
+            "Law",
+            "Economics",
+            "Public Relations",
+            "Education and Training",
+            "Language Studies"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "HWL": [
+                "Humanities With Languages"
+            ]
+        }
+    },
+    {
+        "category": "SCA",
+        "fullname": "SCA (Social, Conventional, Artistic)",
+        "summary": "Being the SCA type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You are a sensitive and imaginative person who wants to express feelings through creative means. You value self-expression, usually in the form of crafts, music, or writing.",
+        "fields": "Banking, Audit, Taxation, Mathematics, Statistics, Insurance, Financial Analyst, Commerce, Accounting, Law, Economics, Public Relations, Education and Training, Language Studies",
+        "courses": [
+            "Banking",
+            "Audit",
+            "Taxation",
+            "Mathematics",
+            "Statistics",
+            "Insurance",
+            "Financial Analyst",
+            "Commerce",
+            "Accounting",
+            "Law",
+            "Economics",
+            "Public Relations",
+            "Education and Training",
+            "Language Studies"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "HWL": [
+                "Humanities With Languages"
+            ]
+        }
+    },
+    {
+        "category": "SCE",
+        "fullname": "SCE (Social, Conventional, Enterprising)",
+        "summary": "Being the SCE type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You tend to engage yourself in work that requires organising, administrating, managing, and coordinating the tasks.",
+        "fields": "Banking, Audit, Taxation, Mathematics, Statistics, Insurance, Financial Analyst, Commerce, Entrepreneur, Accounting, Law, Economics, Public Relations, Education and Training, Language Studies",
+        "courses": [
+            "Banking",
+            "Audit",
+            "Taxation",
+            "Mathematics",
+            "Statistics",
+            "Insurance",
+            "Financial Analyst",
+            "Commerce",
+            "Entrepreneur",
+            "Accounting",
+            "Law",
+            "Economics",
+            "Public Relations",
+            "Education and Training",
+            "Language Studies"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "HWL": [
+                "Humanities With Languages"
+            ]
+        }
+    },
+    {
+        "category": "SRI",
+        "fullname": "SRI (Social, Realistic, Investigative)",
+        "summary": "Being the SRI type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You have a strong, well-coordinated and stable personality. You want to explore the world and accomplish things of your own. You like outdoor, mechanical and physical activities. You also display the characteristics of being analytical, intellectual and inquisitive.",
+        "fields": "Telecom and Communication, Ergonomics, Life Sciences, Health care and Medical Science, Social Sciences, Sports, Tourism and Hospitality, Humanities, Journalism, Mass Communication, Language Studies, Life Skills and Wellness Coach, Education and Training",
+        "courses": [
+            "Telecom and Communication",
+            "Ergonomics",
+            "Life Sciences",
+            "Health care and Medical Science",
+            "Social Sciences",
+            "Sports",
+            "Tourism and Hospitality",
+            "Humanities",
+            "Journalism",
+            "Mass Communication",
+            "Language Studies",
+            "Life Skills and Wellness Coach",
+            "Education and Training"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+        "category": "SRA",
+        "fullname": "SRA (Social, Realistic, Artistic)",
+        "summary": "Being the SRA type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You have a strong, well-coordinated and stable personality. You want to explore the world and accomplish things of your own. You like outdoor, mechanical and physical activities. You value self-expression, usually in the form of crafts, music, or writing.",
+        "fields": "Telecom and Communication, Life Sciences, Health care and Medical Science, Social Sciences, Sports, Tourism and Hospitality, Event Management, Humanities, Journalism, Mass Communication, Language Studies, Life Skills and Wellness Coach, Education and Training",
+        "courses": [
+            "Telecom and Communication",
+            "Life Sciences",
+            "Health care and Medical Science",
+            "Social Sciences",
+            "Sports",
+            "Tourism and Hospitality",
+            "Event Management",
+            "Humanities",
+            "Journalism",
+            "Mass Communication",
+            "Language Studies",
+            "Life Skills and Wellness Coach",
+            "Education and Training"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+        "category": "SRE",
+        "fullname": "SRE (Social, Realistic, Enterprising)",
+        "summary": "Being the SRE type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You have a strong, well-coordinated and stable personality. You want to explore the world and accomplish things of your own. You like outdoor, mechanical and physical activities. You are an optimistic person who shows enthusiasm in initiating conversations.",
+        "fields": "Telecom and Communication, Life Sciences, Health care and Medical Science, Social Sciences, Entrepreneur, Sports, Tourism and Hospitality, Humanities, Education and Training, Journalism, Mass Communication, Language Studies, Life Skills and Wellness Coach",
+        "courses": [
+            "Telecom and Communication",
+            "Life Sciences",
+            "Health care and Medical Science",
+            "Social Sciences",
+            "Entrepreneur",
+            "Sports",
+            "Tourism and Hospitality",
+            "Humanities",
+            "Education and Training",
+            "Journalism",
+            "Mass Communication",
+            "Language Studies",
+            "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+        "category": "SRC",
+        "fullname": "SRC (Social, Realistic, Conventional)",
+        "summary": "Being the SRC type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You have a strong, well-coordinated and stable personality. You want to explore the world and accomplish things of your own. You like outdoor, mechanical and physical activities. You are seen as a responsible and determined person.",
+        "fields": "Telecom and Communication, Life Sciences, Health care and Medical Science, Social Sciences, Sports, Tourism and Hospitality, Supply chain management, Humanities, Journalism, Mass Communication, Language Studies, Life Skills and Wellness Coach",
+        "courses": [
+            "Telecom and Communication",
+            "Life Sciences",
+            "Health care and Medical Science",
+            "Social Sciences",
+            "Sports",
+            "Tourism and Hospitality",
+            "Supply chain management",
+            "Humanities",
+            "Journalism",
+            "Mass Communication",
+            "Language Studies",
+            "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+        "category": "SIA",
+        "fullname": "SIA (Social, Investigative, Artistic)",
+        "summary": "Being the SIA type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. You are an independent thinker while approaching, understanding and solving complex problems. You also like to express yourself in creative pursuits.",
+        "fields": "Health Care and Medical Science, Natural Sciences, Life Sciences, Journalism and Mass Communication, Marketing and Advertising, Design Arts, Social Sciences, Education, Research & Training, Law, Life Skills and Wellness Coach",
+        "courses": [
+            "Health Care and Medical Science",
+            "Natural Sciences",
+            "Life Sciences",
+            "Journalism and Mass Communication",
+            "Marketing and Advertising",
+            "Design Arts",
+            "Social Sciences",
+            "Education",
+            "Research & Training",
+            "Law",
+            "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+        "category": "SIR",
+        "fullname": "SIR (Social, Investigative, Realistic)",
+        "summary": "Being the SIR type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. You want to explore the world and accomplish things of your own. You like outdoor, mechanical and physical activities.",
+        "fields": "Health Care and Medical Science, Natural Sciences, Life Sciences, Journalism and Mass Communication, Marketing and Advertising, Social Sciences, Education, Research & Training, Law, Life Skills and Wellness Coach",
+        "courses": [
+            "Health Care and Medical Science",
+            "Natural Sciences",
+            "Life Sciences",
+            "Journalism and Mass Communication",
+            "Marketing and Advertising",
+            "Social Sciences",
+            "Education",
+            "Research & Training",
+            "Law",
+            "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+        "category": "SIC",
+        "fullname": "SIC (Social, Investigative, Conventional)",
+        "summary": "Being the SIC type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner. You prefer loosely structured environments without too strict rules or regulations.",
+        "fields": "Health Care and Medical Science, Natural Sciences, Life Sciences, Data Science, Journalism and Mass Communication, Marketing and Advertising, Social Sciences, Education, Research & Training, Law, Life Skills and Wellness Coach",
+        "courses": [
+            "Health Care and Medical Science",
+            "Natural Sciences",
+            "Life Sciences",
+            "Data Science",
+            "Journalism and Mass Communication",
+            "Marketing and Advertising",
+            "Social Sciences",
+            "Education",
+            "Research & Training",
+            "Law",
+            "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+        "category": "SIE",
+        "fullname": "SIE (Social, Investigative, Enterprising)",
+        "summary": "Being the SIE type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. You are popular among your acquaintances and known for your leadership potential. You communicate in a frank and direct manner.",
+        "fields": "Health Care and Medical Science, Natural Sciences, Life Sciences, Journalism and Mass Communication, Marketing and Advertising, Social Sciences, Education, Research & Training, Entrepreneur, Law, Life Skills and Wellness Coach",
+        "courses": [
+            "Health Care and Medical Science",
+            "Natural Sciences",
+            "Life Sciences",
+            "Journalism and Mass Communication",
+            "Marketing and Advertising",
+            "Social Sciences",
+            "Education",
+            "Research & Training",
+            "Entrepreneur",
+            "Law",
+            "Life Skills and Wellness Coach"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "PCB": [
+                "Physics Chemistry Biology"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+    "category": "SAE",
+    "fullname": "SAE (Social, Artistic, Enterprising)",
+    "summary": "Being the SAE type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You value self-expression, usually in the form of crafts, music, or writing. You are a sensitive and imaginative person who wants to express feelings through creative means. You have extrovert and outgoing personality features and can display skills of assertiveness and verbal persuasion when the situation demands. You are a self-assured, socially confident, and cheerful person who prefers taking challenging tasks than pursuing mundane or routine works.",
+    "fields": "Fine Arts, Performing Arts, Photography, Fashion Studies, Museology, Applied Arts, Creative Arts, Mental Health Experts, Counselors, Entrepreneur, Wellness Coach, Interior Designers, Cultural Studies, Gender Studies, International Relations, Social Work, Marketing and Advertising, Food and Beverage, Cosmetology, Language Studies",
+    "courses": [
+        "Fine Arts",
+        "Performing Arts",
+        "Photography",
+        "Fashion Studies",
+        "Museology",
+        "Applied Arts",
+        "Creative Arts",
+        "Mental Health Experts",
+        "Counselors",
+        "Entrepreneur",
+        "Wellness Coach",
+        "Interior Designers",
+        "Cultural Studies",
+        "Gender Studies",
+        "International Relations",
+        "Social Work",
+        "Marketing and Advertising",
+        "Food and Beverage",
+        "Cosmetology",
+        "Language Studies"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "HUM": [
+            "Humanities"
+        ],
+        "HWL": [
+            "Humanities With Languages"
+        ]
+    }
+},
+{
+    "category": "SAC",
+    "fullname": "SAC (Social, Artistic, Conventional)",
+    "summary": "Being the SAC type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You value self-expression, usually in the form of crafts, music, or writing. You are a sensitive and imaginative person who wants to express feelings through creative means. You are an organized and determined person who is task-oriented and likes to handle things in a practical manner.",
+    "fields": "Fine Arts, Performing Arts, Photography, Fashion Studies, Museology, Applied Arts, Creative Arts, Mental Health Experts, Counselors, Wellness Coach, Interior Designers, Cultural Studies, Gender Studies, International Relations, Social Work, Marketing and Advertising, Food and Beverage, Cosmetology, Language Studies",
+    "courses": [
+        "Fine Arts",
+        "Performing Arts",
+        "Photography",
+        "Fashion Studies",
+        "Museology",
+        "Applied Arts",
+        "Creative Arts",
+        "Mental Health Experts",
+        "Counselors",
+        "Wellness Coach",
+        "Interior Designers",
+        "Cultural Studies",
+        "Gender Studies",
+        "International Relations",
+        "Social Work",
+        "Marketing and Advertising",
+        "Food and Beverage",
+        "Cosmetology",
+        "Language Studies"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "HUM": [
+            "Humanities"
+        ],
+        "HWL": [
+            "Humanities With Languages"
+        ]
+    }
+},
+{
+    "category": "SAR",
+    "fullname": "SAR (Social, Artistic, Realistic)",
+    "summary": "Being the SAR type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You value self-expression, usually in the form of crafts, music, or writing. You are a sensitive and imaginative person who wants to express feelings through creative means. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You learn things by doing them rather than reading about them. You want to explore the world and accomplish things of your own.",
+    "fields": "Fine Arts, Performing Arts, Photography, Fashion Studies, Museology, Applied Arts, Creative Arts, Mental Health Experts, Sports Coach, Fitness and Nutrition, Counselors, Wellness Coach, Interior Designers, Cultural Studies, Gender Studies, International Relations, Social Work, Marketing and Advertising, Food and Beverage, Cosmetology, Language Studies",
+    "courses": [
+        "Fine Arts",
+        "Performing Arts",
+        "Photography",
+        "Fashion Studies",
+        "Museology",
+        "Applied Arts",
+        "Creative Arts",
+        "Mental Health Experts",
+        "Sports Coach",
+        "Fitness and Nutrition",
+        "Counselors",
+        "Wellness Coach",
+        "Interior Designers",
+        "Cultural Studies",
+        "Gender Studies",
+        "International Relations",
+        "Social Work",
+        "Marketing and Advertising",
+        "Food and Beverage",
+        "Cosmetology",
+        "Language Studies"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "HUM": [
+            "Humanities"
+        ],
+        "HWL": [
+            "Humanities With Languages"
+        ]
+    }
+},
+{
+    "category": "SAI",
+    "fullname": "SAI (Social, Artistic, Investigative)",
+    "summary": "Being the SAI type, you are a friendly, sensitive, approachable and outgoing person who is ready to help others. You are empathetic and willing to solve problems of others. You pull people together and generate positive energy around them. You value self-expression, usually in the form of crafts, music, or writing. You are a sensitive and imaginative person who wants to express feelings through creative means. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. You have the capacity of being analytical, intellectual and inquisitive.",
+    "fields": "Fine Arts, Performing Arts, Photography, Fashion Studies, Museology, Applied Arts, Creative Arts, Mental Health Experts, Counselors, Wellness Coach, Interior Designers, Cultural Studies, Gender Studies, International Relations, Social Work, Marketing and Advertising, Food and Beverage, Cosmetology, Language Studies",
+    "courses": [
+        "Fine Arts",
+        "Performing Arts",
+        "Photography",
+        "Fashion Studies",
+        "Museology",
+        "Applied Arts",
+        "Creative Arts",
+        "Mental Health Experts",
+        "Counselors",
+        "Wellness Coach",
+        "Interior Designers",
+        "Cultural Studies",
+        "Gender Studies",
+        "International Relations",
+        "Social Work",
+        "Marketing and Advertising",
+        "Food and Beverage",
+        "Cosmetology",
+        "Language Studies"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "HUM": [
+            "Humanities"
+        ],
+        "HWL": [
+            "Humanities With Languages"
+        ]
+    }
+},
+{
+    "category": "ECR",
+    "fullname": "ECR (Enterprising, Conventional, Realistic)",
+    "summary": "Being a ECR type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You are an organized and determined person who is task-oriented and like to handle things in a practical manner. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You learn things by doing them rather than reading about them. You want to explore the world and accomplish things of your own.",
+    "fields": "Entrepreneur, Project Management, Business Administration, Insurance, Investment, Trading, Economics, Mathematics, Statistics, Logistics, Construction and Manufacturing",
+    "courses": [
+        "Entrepreneur",
+        "Project Management",
+        "Business Administration",
+        "Insurance",
+        "Investment",
+        "Trading",
+        "Economics",
+        "Mathematics",
+        "Statistics",
+        "Logistics",
+        "Construction and Manufacturing"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "CWOM": [
+            "Commerce Without Mathematics"
+        ]
+    }
+},
+{
+    "category": "ECI",
+    "fullname": "ECI (Enterprising, Conventional, Investigative)",
+    "summary": "Being a ECI type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You are an organized and determined person who is task-oriented and like to handle things in a practical manner. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. You have the capacity of being analytical, intellectual and inquisitive. You are an independent thinker while approaching, understanding and solving complex problems.",
+    "fields": "Entrepreneur, Project Management, Business Administration, Insurance, Investment, Trading, Economics, Mathematics, Engineering, Technology, Statistics, Logistics, Construction and Manufacturing",
+    "courses": [
+        "Entrepreneur",
+        "Project Management",
+        "Business Administration",
+        "Insurance",
+        "Investment",
+        "Trading",
+        "Economics",
+        "Mathematics",
+        "Engineering",
+        "Technology",
+        "Statistics",
+        "Logistics",
+        "Construction and Manufacturing"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ]
+    }
+},
+{
+    "category": "ECA",
+    "fullname": "ECA (Enterprising, Conventional, Artistic)",
+    "summary": "Being a ECA type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You are an organized and determined person who is task-oriented and like to handle things in a practical manner. You have a creative, sensitive, and original thinking process. You like having your own identity and standing out in a crowd. You also tend to be status-conscious and place value on monetary rewards and comforts. Your creativity lets you enjoy abstract and innovative work at times.",
+    "fields": "Entrepreneur, Project Management, Business Administration, Insurance, Investment, Trading, Economics, Mathematics, Statistics, Logistics, Construction and Manufacturing, Architectural Designer",
+    "courses": [
+        "Entrepreneur",
+        "Project Management",
+        "Business Administration",
+        "Insurance",
+        "Investment",
+        "Trading",
+        "Economics",
+        "Mathematics",
+        "Statistics",
+        "Logistics",
+        "Construction and Manufacturing",
+        "Architectural Designer"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ]
+    }
+},
+{
+    "category": "ECS",
+    "fullname": "ECS (Enterprising, Conventional, Social)",
+    "summary": "Being a ECS type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You are an organized and determined person who is task-oriented and like to handle things in a practical manner. People see you as a friendly, sensitive, approachable and outgoing person who is ready to help others. Being systematic, neat, efficient and methodical, you like work that involves factual data.",
+    "fields": "Entrepreneur, Project Management, Business Administration, Insurance, Investment, Trading, Economics, Mathematics, Statistics, Training and Education, Logistics, Construction and Manufacturing",
+    "courses": [
+        "Entrepreneur",
+        "Project Management",
+        "Business Administration",
+        "Insurance",
+        "Investment",
+        "Trading",
+        "Economics",
+        "Mathematics",
+        "Statistics",
+        "Training and Education",
+        "Logistics",
+        "Construction and Manufacturing"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ]
+    }
+},
+{
+    "category": "ERI",
+    "fullname": "ERI (Enterprising, Realistic, Investigative)",
+    "summary": "Being a ERI type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You have an active, strong, well-coordinated and stable personality. You learn things by doing them rather than reading about them. You are an independent thinker while approaching, understanding and solving complex problems. You want to explore the world and accomplish things of your own. You like being in a position of power and responsibility. Being 'important' is crucial to you, and you tend to admire and cherish prestige, power, wealth, and material assets.",
+    "fields": "Engineering, Technology, Natural Sciences, Entrepreneur, Administration, Business & Economics, Investment, Project Management, Health Care, Construction and Manufacturing",
+    "courses": [
+        "Engineering",
+        "Technology",
+        "Natural Sciences",
+        "Entrepreneur",
+        "Administration",
+        "Business & Economics",
+        "Investment",
+        "Project Management",
+        "Health Care",
+        "Construction and Manufacturing"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "SCIENCE": [
+            "Science"
+        ],
+        "CWOM": [
+            "Commerce Without Mathematics"
+        ]
+    }
+},
+{
+    "category": "ERA",
+    "fullname": "ERA (Enterprising, Realistic, Artistic)",
+    "summary": "Being a ERA type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You have an active, strong, well-coordinated and stable personality. You learn things by doing them rather than reading about them. You want to explore the world and accomplish things of your own. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You like to create new things using words, music, objects or colours. Your creativity lets you enjoy abstract and innovative work at times.",
+    "fields": "Engineering, Technology, Design studies, Entrepreneur, Administration, Business & Economics, Investment, Project Management, Health Care, Construction and Manufacturing",
+    "courses": [
+        "Engineering",
+        "Technology",
+        "Design studies",
+        "Entrepreneur",
+        "Administration",
+        "Business & Economics",
+        "Investment",
+        "Project Management",
+        "Health Care",
+        "Construction and Manufacturing"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ],
+        "CWOM": [
+            "Commerce Without Mathematics"
+        ]
+    }
+},
+{
+    "category": "ERS",
+    "fullname": "ERS (Enterprising, Realistic, Social)",
+    "summary": "Being a ERS type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You have an active, strong, well-coordinated and stable personality. You learn things by doing them rather than reading about them. You want to explore the world and accomplish things of your own. You are a pleasant and friendly person who likes to build and maintain networks and friendships. You are generally sensitive to the feelings of others and have a considerate nature. You are assertive and have the skill of verbal persuasion. This means that you can convince people easily. People see you as a leader.",
+    "fields": "Engineering, Technology, Entrepreneur, Education and Training, Administration, Business & Economics, Investment, Project Management, Health Care, Construction and Manufacturing",
+    "courses": [
+        "Engineering",
+        "Technology",
+        "Entrepreneur",
+        "Education and Training",
+        "Administration",
+        "Business & Economics",
+        "Investment",
+        "Project Management",
+        "Health Care",
+        "Construction and Manufacturing"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ],
+        "CWOM": [
+            "Commerce Without Mathematics"
+        ]
+    }
+},
+{
+    "category": "ERC",
+    "fullname": "ERC (Enterprising, Realistic, Conventional)",
+    "summary": "Being a ERC type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You have an active, strong, well-coordinated and stable personality. You learn things by doing them rather than reading about them. You want to explore the world and accomplish things of your own. You are a well-organized, accountable, determined and task-oriented person.",
+    "fields": "Engineering, Technology, Data Science, Mathematics, Entrepreneur, Administration, Business & Economics, Investment, Project Management, Health Care, Construction and Manufacturing",
+    "courses": [
+        "Engineering",
+        "Technology",
+        "Data Science",
+        "Mathematics",
+        "Entrepreneur",
+        "Administration",
+        "Business & Economics",
+        "Investment",
+        "Project Management",
+        "Health Care",
+        "Construction and Manufacturing"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ],
+        "CWM": [
+            "Commerce With Mathematics"
+        ]
+    }
+},
+{
+    "category": "EIA",
+    "fullname": "EIA (Enterprising, Investigative, Artistic)",
+    "summary": "Being a EIA type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. You have a creative, sensitive, and original thinking process. You may not be able to share all ideas and feelings skillfully, but you tend to communicate in a frank and direct manner. Sometimes you may express your feelings indirectly and creatively.",
+    "fields": "Engineering, Technology, Natural Sciences, Design Studies, Entrepreneur, Investment, Fintech, Finance, Mathematics and Statistics, Economics, Data Science",
+    "courses": [
+        "Engineering",
+        "Technology",
+        "Natural Sciences",
+        "Design Studies",
+        "Entrepreneur",
+        "Investment",
+        "Fintech",
+        "Finance",
+        "Mathematics and Statistics",
+        "Economics",
+        "Data Science"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ],
+        "CWM": [
+            "Commerce With Mathematics"
+        ]
+    }
+},
+{
+    "category": "EIS",
+    "fullname": "EIS (Enterprising, Investigative, Social)",
+    "summary": "Being a EIS type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time,People see you as a friendly, sensitive, approachable and outgoing person who is ready to help others.",
+    "fields": "Engineering, Technology, Natural Sciences, Entrepreneur, Investment, Fintech, Education and Training, Finance, Mathematics and Statistics, Economics, Data Science",
+    "courses": [
+        "Engineering",
+        "Technology",
+        "Natural Sciences",
+        "Entrepreneur",
+        "Investment",
+        "Fintech",
+        "Education and Training",
+        "Finance",
+        "Mathematics and Statistics",
+        "Economics",
+        "Data Science"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ],
+        "CWM": [
+            "Commerce With Mathematics"
+        ]
+    }
+},
+{
+    "category": "EIC",
+    "fullname": "EIC (Enterprising, Investigative, Conventional)",
+    "summary": "Being a EIC type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time,You are an organized and determined person who is task-oriented and likes to handle things in a practical manner.",
+    "fields": "Engineering, Technology, Natural Sciences, Entrepreneur, Investment, Fintech, Finance, Mathematics and Statistics, Economics, Data Science",
+    "courses": [
+        "Engineering",
+        "Technology",
+        "Natural Sciences",
+        "Entrepreneur",
+        "Investment",
+        "Fintech",
+        "Finance",
+        "Mathematics and Statistics",
+        "Economics",
+        "Data Science"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ],
+        "CWM": [
+            "Commerce With Mathematics"
+        ]
+    }
+},
+{
+    "category": "EIR",
+    "fullname": "EIR (Enterprising, Investigative, Realistic)",
+    "summary": "Being a EIR type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You learn things by doing them rather than reading about them. You want to explore the world and accomplish things of your own.",
+    "fields": "Engineering, Technology, Natural Sciences, Entrepreneur, Investment, Fintech, Finance, Mathematics and Statistics, Economics, Data Science",
+    "courses": [
+        "Engineering",
+        "Technology",
+        "Natural Sciences",
+        "Entrepreneur",
+        "Investment",
+        "Fintech",
+        "Finance",
+        "Mathematics and Statistics",
+        "Economics",
+        "Data Science"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ],
+        "CWM": [
+            "Commerce With Mathematics"
+        ]
+    }
+},
+{
+    "category": "EAS",
+    "fullname": "EAS (Enterprising, Artistic, Social)",
+    "summary": "Being a EAS type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You are a sensitive and imaginative person who wants to express feelings through creative means. You like having your own identity and standing out in a crowd. You are a pleasant and friendly person who likes to build and maintain networks and friendships. You are assertive and have the skill of verbal persuasion, and can convince people easily. People see you as a leader.",
+    "fields": "Entrepreneur, Management, Design Studies, Fashion Studies, Graphic Designers, Product Manufacturing, Jewel Business, Design Management, E-commerce, Education and Training",
+    "courses": [
+        "Entrepreneur",
+        "Management",
+        "Design Studies",
+        "Fashion Studies",
+        "Graphic Designers",
+        "Product Manufacturing",
+        "Jewel Business",
+        "Design Management",
+        "E-commerce",
+        "Education and Training"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWOM": [
+            "Commerce Without Mathematics"
+        ],
+        "HUM": [
+            "Humanities"
+        ]
+    }
+},
+{
+    "category": "EAC",
+    "fullname": "EAC (Enterprising, Artistic, Conventional)",
+    "summary": "Being a EAC type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You are a sensitive and imaginative person who wants to express feelings through creative means. You like having your own identity and standing out in a crowd. You are a well-organized, accountable, determined and task oriented person.",
+    "fields": "Entrepreneur, Management, Design Studies, Fashion Studies, Graphic Designers, Product Manufacturing, Jewel Business, Design Management, E-commerce, Data and Statistics",
+    "courses": [
+        "Entrepreneur",
+        "Management",
+        "Design Studies",
+        "Fashion Studies",
+        "Graphic Designers",
+        "Product Manufacturing",
+        "Jewel Business",
+        "Design Management",
+        "E-commerce",
+        "Data and Statistics"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWOM": [
+            "Commerce Without Mathematics"
+        ],
+        "HUM": [
+            "Humanities"
+        ]
+    }
+},
+{
+    "category": "EAR",
+    "fullname": "EAR (Enterprising, Artistic, Realistic)",
+    "summary": "Being a EAR type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You are a sensitive and imaginative person who wants to express feelings through creative means. You like having your own identity and standing out in a crowd. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You learn things by doing them rather than reading about them. You want to explore the world and accomplish things of your own.",
+    "fields": "Entrepreneur, Management, Design Studies, Fashion Studies, Graphic Designers, Product Manufacturing, Jewel Business, Design Management, E-commerce",
+    "courses": [
+        "Entrepreneur",
+        "Management",
+        "Design Studies",
+        "Fashion Studies",
+        "Graphic Designers",
+        "Product Manufacturing",
+        "Jewel Business",
+        "Design Management",
+        "E-commerce"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWOM": [
+            "Commerce Without Mathematics"
+        ],
+        "HUM": [
+            "Humanities"
+        ]
+    }
+},
+{
+    "category": "EAI",
+    "fullname": "EAI (Enterprising, Artistic, Investigative)",
+    "summary": "Being a EAI type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. You are a sensitive and imaginative person who wants to express feelings through creative means. You like having your own identity and standing out in a crowd. You have the capacity of being analytical, intellectual and inquisitive. You are an independent thinker while approaching, understanding and solving complex problems. You like being in a position of power and responsibility. You like being involved in activities that give you freedom to express your ideas and appreciate beauty and variety. Being curious and insightful, you sometimes enjoy academic work.",
+    "fields": "Entrepreneur, Management, Design Studies, Fashion Studies, Graphic Designers, Product Manufacturing, Jewel Business, Design Management, E-commerce",
+    "courses": [
+        "Entrepreneur",
+        "Management",
+        "Design Studies",
+        "Fashion Studies",
+        "Graphic Designers",
+        "Product Manufacturing",
+        "Jewel Business",
+        "Design Management",
+        "E-commerce"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWOM": [
+            "Commerce Without Mathematics"
+        ],
+        "HUM": [
+            "Humanities"
+        ]
+    }
+},
+{
+    "category": "ESC",
+    "fullname": "ESC (Enterprising, Social, Conventional)",
+    "summary": "Being a ESC type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. People see you as a friendly, sensitive, approachable and outgoing person who is ready to help others. You also like being in charge and taking up tasks that involve instructing, informing, guiding, helping, training, developing, and providing service to people. You are an organized, responsible, task oriented, and practical person. You are assertive and have the skill of verbal persuasion. You can convince others easily. People generally see you as a leader.",
+    "fields": "Social Sciences, Anthropology, Political Science, Psychology, Life skills and Wellness Coach, Entrepreneur, Social Leadership, Development Leaders, International Relations, Financial Planner, Trade and Investment, Share Broker, Journalism, Mass Communication, Law",
+    "courses": [
+        "Social Sciences",
+        "Anthropology",
+        "Political Science",
+        "Psychology",
+        "Life skills and Wellness Coach",
+        "Entrepreneur",
+        "Social Leadership",
+        "Development Leaders",
+        "International Relations",
+        "Financial Planner",
+        "Trade and Investment",
+        "Share Broker",
+        "Journalism",
+        "Mass Communication",
+        "Law"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "HUM": [
+            "Humanities"
+        ],
+        "CWOM": [
+            "Commerce Without Mathematics"
+        ]
+    }
+},
+{
+    "category": "ESR",
+    "fullname": "ESR (Enterprising, Social, Realistic)",
+    "summary": "Being a ESR type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. People see you as a friendly, sensitive, approachable and outgoing person who is ready to help others. You also like being in charge and taking up tasks that involve instructing, informing, guiding, helping, training, developing, and providing service to people,You have an active, strong, well-coordinated and stable personality. You enjoy hands-on manual and physical activities and often like being outdoors and working with plants and animals. You are assertive and have the skill of verbal persuasion. You can convince others easily. People generally see you as a leader.",
+    "fields": "Social Sciences, Anthropology, Political Science, Psychology, Life skills and Wellness Coach, Sports and Fitness Coach, Entrepreneur, Social Leadership, Development Leaders, International Relations, Financial Planner, Trade and Investment, Share Broker, Journalism, Mass Communication, Law",
+    "courses": [
+        "Social Sciences",
+        "Anthropology",
+        "Political Science",
+        "Psychology",
+        "Life skills and Wellness Coach",
+        "Sports and Fitness Coach",
+        "Entrepreneur",
+        "Social Leadership",
+        "Development Leaders",
+        "International Relations",
+        "Financial Planner",
+        "Trade and Investment",
+        "Share Broker",
+        "Journalism",
+        "Mass Communication",
+        "Law"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "HUM": [
+            "Humanities"
+        ],
+        "CWOM": [
+            "Commerce Without Mathematics"
+        ]
+    }
+},
+
+{
+    "category": "ESI",
+    "fullname": "ESI (Enterprising, Social, Investigative)",
+    "summary": "Being a ESI type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. People see you as a friendly, sensitive, approachable and outgoing person who is ready to help others. You also like being in charge and taking up tasks that involve instructing, informing, guiding, helping, training, developing, and providing service to people,You have the capacity of being analytical, intellectual and inquisitive. You are an independent thinker while approaching, understanding and solving complex problems. You are popular among your acquaintances and have leadership potential. You communicate in a frank and direct manner.",
+    "fields": "Social Sciences, Anthropology, Political Science, Psychology, Life skills and Wellness Coach, Entrepreneur, Social Leadership, Development Leaders, International Relations, Financial Planner, Trade and Investment, Share Broker, Journalism, Mass Communication, Law",
+    "courses": [
+        "Social Sciences",
+        "Anthropology",
+        "Political Science",
+        "Psychology",
+        "Life skills and Wellness Coach",
+        "Entrepreneur",
+        "Social Leadership",
+        "Development Leaders",
+        "International Relations",
+        "Financial Planner",
+        "Trade and Investment",
+        "Share Broker",
+        "Journalism",
+        "Mass Communication",
+        "Law"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "HUM": [
+            "Humanities"
+        ],
+        "CWM": [
+            "Commerce With Mathematics"
+        ]
+    }
+},
+{
+    "category": "ESA",
+    "fullname": "ESA (Enterprising, Social, Artistic)",
+    "summary": "Being a ESA type, you are a self-assured, socially confident, cheerful and optimistic person who prefers taking challenging tasks than pursuing mundane or routine works. People who know you describe you as a daring and spontaneous person. At work, you like being in charge and taking up tasks that involve managing, organizing and leading others. People see you as a friendly, sensitive, approachable and outgoing person who is ready to help others. You also like being in charge and taking up tasks that involve instructing, informing, guiding, helping, training, developing, and providing service to people,You cannot function effectively in situations that are highly structured and systematic. You like expressing yourself freely in new and dynamic situations. You are a sensitive and imaginative person who wants to express feelings through creative means.",
+    "fields": "Social Sciences, Anthropology, Political Science, Psychology, Life skills and Wellness Coach, Entrepreneur, Art and Design Expert, Social Leadership, Development Leaders, International Relations, Financial Planner, Trade and Investment, Share Broker, Journalism, Mass Communication, Law",
+    "courses": [
+        "Social Sciences",
+        "Anthropology",
+        "Political Science",
+        "Psychology",
+        "Life skills and Wellness Coach",
+        "Entrepreneur",
+        "Art and Design Expert",
+        "Social Leadership",
+        "Development Leaders",
+        "International Relations",
+        "Financial Planner",
+        "Trade and Investment",
+        "Share Broker",
+        "Journalism",
+        "Mass Communication",
+        "Law"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "HUM": [
+            "Humanities"
+        ],
+        "CWM": [
+            "Commerce With Mathematics"
+        ]
+    }
+},
+{
+    "category": "CRI",
+    "fullname": "CRI (Conventional, Realistic, Investigative)",
+    "summary": "Being a CRI type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You have an active, strong, well-coordinated and stable personality. You prefer to be occupied in your work rather than getting involved with people. You learn things by doing them rather than reading about them. You also display the characteristics of being analytical, intellectual and inquisitive. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time.",
+    "fields": "Data Science, Engineering, Accounting, Taxation, Banking, Fintech, Auditing, Investment, Law, Administration & Governance, Insurance",
+    "courses": [
+        "Data Science",
+        "Engineering",
+        "Accounting",
+        "Taxation",
+        "Banking",
+        "Fintech",
+        "Auditing",
+        "Investment",
+        "Law",
+        "Administration & Governance",
+        "Insurance"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ]
+    }
+},
+{
+    "category": "CRA",
+    "fullname": "CRA (Conventional, Realistic, Artistic)",
+    "summary": "Being a CRA type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You have an active, strong, well-coordinated and stable personality. You prefer to be occupied in your work rather than getting involved with people. You learn things by doing them rather than reading about them. Novelty excites you, and you like working where you are given freedom to express yourself.",
+    "fields": "Data Science, Mathematics, Accounting, Taxation, Banking, Fintech, Auditing, Investment, Law, Administration & Governance, Insurance",
+    "courses": [
+        "Data Science",
+        "Mathematics",
+        "Accounting",
+        "Taxation",
+        "Banking",
+        "Fintech",
+        "Auditing",
+        "Investment",
+        "Law",
+        "Administration & Governance",
+        "Insurance"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ]
+    }
+},
+{
+    "category": "CRS",
+    "fullname": "CRS (Conventional, Realistic, Social)",
+    "summary": "Being a CRS type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You have an active, strong, well-coordinated and stable personality. You prefer to be occupied in your work rather than getting involved with people. You learn things by doing them rather than reading about them. You are generally sensitive to the feelings of others and have a considerate nature. You may like to engage in mentoring or training others.",
+    "fields": "Data Science, Accounting, Taxation, Banking, Fintech, Auditing, Investment, Law, Public Administration, Governance, Insurance",
+    "courses": [
+        "Data Science",
+        "Accounting",
+        "Taxation",
+        "Banking",
+        "Fintech",
+        "Auditing",
+        "Investment",
+        "Law",
+        "Public Administration",
+        "Governance",
+        "Insurance"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ]
+    }
+},
+{
+    "category": "CRE",
+    "fullname": "CRE (Conventional, Realistic, Enterprising)",
+    "summary": "Being a CRE type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You have an active, strong, well-coordinated and stable personality. You prefer to be occupied in your work rather than getting involved with people. You learn things by doing them rather than reading about them. You value material things and want to produce tangible results with your work.",
+    "fields": "Data Science, Accounting, Taxation, Banking, Fintech, Auditing, Investment, Entrepreneur, Law, Administration & Governance, Insurance",
+    "courses": [
+        "Data Science",
+        "Accounting",
+        "Taxation",
+        "Banking",
+        "Fintech",
+        "Auditing",
+        "Investment",
+        "Entrepreneur",
+        "Law",
+        "Administration & Governance",
+        "Insurance"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ]
+    }
+},
+{
+    "category": "CIA",
+    "fullname": "CIA (Conventional, Investigative, Artistic)",
+    "summary": "Being a CIA type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. You enjoy solving mathematical problems and pursuing detailed research. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. Novelty excites you, and you like working where you are given freedom to express yourself.",
+    "fields": "Data Science, Engineering, Mathematics and Statistics, Design Studies, Banking, Insurance, Audit, Taxation, Economics, Law",
+    "courses": [
+        "Data Science",
+        "Engineering",
+        "Mathematics and Statistics",
+        "Design Studies",
+        "Banking",
+        "Insurance",
+        "Audit",
+        "Taxation",
+        "Economics",
+        "Law"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ]
+    }
+},
+{
+    "category": "CIS",
+    "fullname": "CIS (Conventional, Investigative, Social)",
+    "summary": "Being a CIS type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. You enjoy solving mathematical problems and pursuing detailed research. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. You are generally sensitive to the feelings of others and have a considerate nature.",
+    "fields": "Data Science, Engineering, Mathematics and Statistics, Banking, Insurance, Audit, Taxation, Economics, Law, Education and Training",
+    "courses": [
+        "Data Science",
+        "Engineering",
+        "Mathematics and Statistics",
+        "Banking",
+        "Insurance",
+        "Audit",
+        "Taxation",
+        "Economics",
+        "Law",
+        "Education and Training"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ]
+    }
+},
+{
+    "category": "CIE",
+    "fullname": "CIE (Conventional, Investigative, Enterprising)",
+    "summary": "Being a CIE type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. You enjoy solving mathematical problems and pursuing detailed research. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. You value status, power, and money. You would like to take challenging tasks at work rather than just doing mundane or routine chores.",
+    "fields": "Data Science, Engineering, Mathematics and Statistics, Banking, Insurance, Audit, Taxation, Entrepreneur, Economics, Law",
+    "courses": [
+        "Data Science",
+        "Engineering",
+        "Mathematics and Statistics",
+        "Banking",
+        "Insurance",
+        "Audit",
+        "Taxation",
+        "Entrepreneur",
+        "Economics",
+        "Law"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ]
+    }
+},
+{
+    "category": "CIR",
+    "fullname": "CIR (Conventional, Investigative, Realistic)",
+    "summary": "Being a CIR type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. You enjoy solving mathematical problems and pursuing detailed research. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. You prefer to be occupied in your work rather than getting involved with people. You tend to be restrained in interpersonal relationships and like to behave formally in professional settings.",
+    "fields": "Data Science, Engineering, Mathematics and Statistics, Banking, Insurance, Audit, Taxation, Economics, Law",
+    "courses": [
+        "Data Science",
+        "Engineering",
+        "Mathematics and Statistics",
+        "Banking",
+        "Insurance",
+        "Audit",
+        "Taxation",
+        "Economics",
+        "Law"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "PCM": [
+            "Physics Chemistry Mathematics"
+        ]
+    }
+},
+{
+    "category": "CAS",
+    "fullname": "CAS (Conventional, Artistic, Social)",
+    "summary": "Being a CAS type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a sensitive and imaginative person who also has an interest in creative pursuits like music, objects, writing, craft or colour. You feel restricted in sharing your ideas and feelings openly. When unable to express yourself fully in front of others, you tend to use indirect and creative ways for expression. People see you as a friendly, sensitive, approachable and outgoing person who is ready to help others.",
+    "fields": "Performing Arts, Language Studies, Teacher, Applied Arts, Fine Arts, Creative Arts, Data Analysis, Banking, Finance and Administration, Accounting and Taxation",
+    "courses": [
+        "Performing Arts",
+        "Language Studies",
+        "Teacher",
+        "Applied Arts",
+        "Fine Arts",
+        "Creative Arts",
+        "Data Analysis",
+        "Banking",
+        "Finance and Administration",
+        "Accounting and Taxation"
+    ],
+    "best_colleges": "",
+    "streams": {
+        "CWM": [
+            "Commerce With Mathematics"
+        ],
+        "HUM": [
+            "Humanities"
+        ]
+    }
+},
+{
+        "category": "CAE",
+        "fullname": "CAE (Conventional, Artistic, Enterprising)",
+        "summary": "Being a CAE type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a sensitive and imaginative person who also has an interest in creative pursuits like music, objects, writing, craft or colour. You feel restricted in sharing your ideas and feelings openly. When unable to express yourself fully in front of others, you tend to use indirect and creative ways for expression. You are a self-assured, confident, and passionate person who would like to take challenging tasks at work rather than just doing mundane or routine chores.",
+        "fields": "Performing Arts, Language Studies, Applied Arts, Fine Arts, Creative Arts, Data Analysis, Banking, Finance and Administration, Accounting and Taxation, Entrepreneur",
+        "courses": [
+            "Performing Arts",
+            "Language Studies",
+            "Applied Arts",
+            "Fine Arts",
+            "Creative Arts",
+            "Data Analysis",
+            "Banking",
+            "Finance and Administration",
+            "Accounting and Taxation",
+            "Entrepreneur"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "HUM": [
+                "Humanities"
+            ]
+        }
+    },
+    {
+        "category": "CAR",
+        "fullname": "CAR (Conventional, Artistic, Realistic)",
+        "summary": "Being a CAR type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a sensitive and imaginative person who also has an interest in creative pursuits like music, objects, writing, craft or colour. You feel restricted in sharing your ideas and feelings openly. When unable to express yourself fully in front of others, you tend to use indirect and creative ways for expression. You have an active, strong, well-coordinated and stable personality. You prefer to be occupied in your work rather than getting involved with people.",
+        "fields": "Performing Arts, Language Studies, Applied Arts, Fine Arts, Sports, Fitness and Nutrition, Creative Arts, Data Analysis, Banking, Finance and Administration, Accounting and Taxation",
+        "courses": [
+            "Performing Arts",
+            "Language Studies",
+            "Applied Arts",
+            "Fine Arts",
+            "Sports, Fitness and Nutrition",
+            "Creative Arts",
+            "Data Analysis",
+            "Banking",
+            "Finance and Administration",
+            "Accounting and Taxation"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HWL": [
+                "Humanities With Languages"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "CAI",
+        "fullname": "CAI (Conventional, Artistic, Investigative)",
+        "summary": "Being a CAI type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a sensitive and imaginative person who also has an interest in creative pursuits like music, objects, writing, craft or colour. You feel restricted in sharing your ideas and feelings openly. When unable to express yourself fully in front of others, you tend to use indirect and creative ways for expression. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time. You have the capacity of being analytical, intellectual and inquisitive.",
+        "fields": "Performing Arts, Language Studies, Applied Arts, Fine Arts, Creative Arts, Data Analysis, Banking, Finance and Administration, Accounting and Taxation",
+        "courses": [
+            "Performing Arts",
+            "Language Studies",
+            "Applied Arts",
+            "Fine Arts",
+            "Creative Arts",
+            "Data Analysis",
+            "Banking",
+            "Finance and Administration",
+            "Accounting and Taxation"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "HWL": [
+                "Humanities With Languages"
+            ],
+            "CWM": [
+                "Commerce With Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "CSE",
+        "fullname": "CSE (Conventional, Social, Enterprising)",
+        "summary": "Being a CSE type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a pleasant and friendly person who likes to build and maintain networks and friendships. You are generally sensitive to the feelings of others and have a considerate nature. You value status, power, money, and like being in social gatherings where you get to know influential people.",
+        "fields": "Banking, Audit, Taxation, Mathematics, Statistics, Insurance, Financial Analyst, Commerce, Entrepreneur, Accounting, Law, Economics, Public Relations, Education and Training, Language Studies",
+        "courses": [
+            "Banking",
+            "Audit",
+            "Taxation",
+            "Mathematics",
+            "Statistics",
+            "Insurance",
+            "Financial Analyst",
+            "Commerce",
+            "Entrepreneur",
+            "Accounting",
+            "Law",
+            "Economics",
+            "Public Relations",
+            "Education and Training",
+            "Language Studies"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "HWL": [
+                "Humanities With Languages"
+            ]
+        }
+    },
+    {
+        "category": "CSR",
+        "fullname": "CSR (Conventional, Social, Realistic)",
+        "summary": "Being a CSR type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a pleasant and friendly person who likes to build and maintain networks and friendships. You are generally sensitive to the feelings of others and have a considerate nature. You enjoy engaging in physical activity and often like being outdoors and working with plants and animals. You learn things by doing them rather than reading about them. You want to explore the world and accomplish things of your own.",
+        "fields": "Banking, Audit, Taxation, Mathematics, Statistics, Insurance, Financial Analyst, Commerce, Accounting, Law, Economics, Public Relations, Education and Training, Language Studies, Health Expert",
+        "courses": [
+            "Banking",
+            "Audit",
+            "Taxation",
+            "Mathematics",
+            "Statistics",
+            "Insurance",
+            "Financial Analyst",
+            "Commerce",
+            "Accounting",
+            "Law",
+            "Economics",
+            "Public Relations",
+            "Education and Training",
+            "Language Studies",
+            "Health Expert"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "HWL": [
+                "Humanities With Languages"
+            ]
+        }
+    },
+    {
+        "category": "CSI",
+        "fullname": "CSI (Conventional, Social, Investigative)",
+        "summary": "Being a CSI type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a pleasant and friendly person who likes to build and maintain networks and friendships. You are generally sensitive to the feelings of others and have a considerate nature. You have the capacity of being analytical, intellectual and inquisitive. Your curiosity and insightful nature let you enjoy academic work at times.",
+        "fields": "Banking, Audit, Taxation, Mathematics, Data Science, Statistics, Insurance, Financial Analyst, Commerce, Accounting, Law, Economics, Public Relations, Education and Training, Language Studies",
+        "courses": [
+            "Banking",
+            "Audit",
+            "Taxation",
+            "Mathematics",
+            "Data Science",
+            "Statistics",
+            "Insurance",
+            "Financial Analyst",
+            "Commerce",
+            "Accounting",
+            "Law",
+            "Economics",
+            "Public Relations",
+            "Education and Training",
+            "Language Studies"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "HWL": [
+                "Humanities With Languages"
+            ]
+        }
+    },
+    {
+        "category": "CSA",
+        "fullname": "CSA (Conventional, Social, Artistic)",
+        "summary": "Being a CSA type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a pleasant and friendly person who likes to build and maintain networks and friendships. You are generally sensitive to the feelings of others and have a considerate nature. You value self-expression, usually in the form of crafts, music, or writing. You are a sensitive and imaginative person who wants to express feelings through creative means.",
+        "fields": "Banking, Audit, Taxation, Mathematics, Statistics, Insurance, Financial Analyst, Commerce, Accounting, Law, Economics, Public Relations, Education and Training, Language Studies",
+        "courses": [
+            "Banking",
+            "Audit",
+            "Taxation",
+            "Mathematics",
+            "Statistics",
+            "Insurance",
+            "Financial Analyst",
+            "Commerce",
+            "Accounting",
+            "Law",
+            "Economics",
+            "Public Relations",
+            "Education and Training",
+            "Language Studies"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "HWL": [
+                "Humanities With Languages"
+            ]
+        }
+    },
+    {
+        "category": "CER",
+        "fullname": "CER (Conventional, Enterprising, Realistic)",
+        "summary": "Being a CER type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a self-assured, socially confident, and assertive person who prefers taking challenging tasks than pursuing mundane or routine works. You value status, power and money & want to produce tangible results with your work. You have an active, strong, well-coordinated and stable personality. You enjoy hands-on or manual activities and working with tools, mechanical drawings and machines,You learn things by doing them rather than reading about them.",
+        "fields": "Entrepreneur, Project Management, Business Administration, Insurance, Investment, Trading, Economics, Mathematics, Statistics, Logistics, Construction and Manufacturing",
+        "courses": [
+            "Entrepreneur",
+            "Project Management",
+            "Business Administration",
+            "Insurance",
+            "Investment",
+            "Trading",
+            "Economics",
+            "Mathematics",
+            "Statistics",
+            "Logistics",
+            "Construction and Manufacturing"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "CEI",
+        "fullname": "CEI (Conventional, Enterprising, Investigative)",
+        "summary": "Being a CEI type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a self-assured, socially confident, and assertive person who prefers taking challenging tasks than pursuing mundane or routine works. You value status, power, money and want to produce tangible results with your work. You also display the characteristics of being analytical, intellectual and inquisitive. Complex problems interest you due to your curious nature. Your curiosity and love for learning make you become engrossed in whatever you do, such that you might even lose track of time.",
+        "fields": "Entrepreneur, Project Management, Business Administration, Insurance, Investment, Trading, Economics, Mathematics, Engineering, Technology, Statistics, Logistics, Construction and Manufacturing",
+        "courses": [
+            "Entrepreneur",
+            "Project Management",
+            "Business Administration",
+            "Insurance",
+            "Investment",
+            "Trading",
+            "Economics",
+            "Mathematics",
+            "Engineering",
+            "Technology",
+            "Statistics",
+            "Logistics",
+            "Construction and Manufacturing"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "CEA",
+        "fullname": "CEA (Conventional, Enterprising, Artistic)",
+        "summary": "Being a CEA type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a self-assured, socially confident, and assertive person who prefers taking challenging tasks than pursuing mundane or routine works. You value status, power, money and want to produce tangible results with your work. Novelty excites you, and you like working where you are given freedom to express yourself.",
+        "fields": "Entrepreneur, Project Management, Business Administration, Insurance, Investment, Trading, Economics, Mathematics, Statistics, Logistics, Construction and Manufacturing, Architectural Designer",
+        "courses": [
+            "Entrepreneur",
+            "Project Management",
+            "Business Administration",
+            "Insurance",
+            "Investment",
+            "Trading",
+            "Economics",
+            "Mathematics",
+            "Statistics",
+            "Logistics",
+            "Construction and Manufacturing",
+            "Architectural Designer"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    },
+    {
+        "category": "CES",
+        "fullname": "CES (Conventional, Enterprising, Social)",
+        "summary": "Being a CES type, you are an organized, responsible, task oriented, and practical person. You like your work to have clearly defined rules and boundaries. You believe in following procedures and conforming to the rules and regulations. Being systematic, neat, efficient and methodical, you prefer work that involves facts, figures and data records. You are a self-assured, socially confident, and assertive person who prefers taking challenging tasks than pursuing mundane or routine works. You value status, power, money and want to produce tangible results with your work. You converse frankly and directly, and tend to make friends easily. You are a pleasant and friendly person who likes to build and maintain networks and friendships.",
+        "fields": "Entrepreneur, Project Management, Business Administration, Insurance, Investment, Trading, Economics, Mathematics, Statistics, Training and Education, Logistics, Construction and Manufacturing",
+        "courses": [
+            "Entrepreneur",
+            "Project Management",
+            "Business Administration",
+            "Insurance",
+            "Investment",
+            "Trading",
+            "Economics",
+            "Mathematics",
+            "Statistics",
+            "Training and Education",
+            "Logistics",
+            "Construction and Manufacturing"
+        ],
+        "best_colleges": "",
+        "streams": {
+            "CWM": [
+                "Commerce With Mathematics"
+            ],
+            "PCM": [
+                "Physics Chemistry Mathematics"
+            ]
+        }
+    }
+]

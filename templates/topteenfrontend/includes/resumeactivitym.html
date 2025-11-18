@@ -1,0 +1,11 @@
+{% for a in resumeactivity %}
+<div class="addedData flex justify-between w-full py-[12px] selectedSkillMobile">
+    <div class="flex flex-col gap-[5px]">
+        <p class="text-[15px] leading-[20.25px] semibold text-[#4f4f4f]">{{a.title}}</p>
+        <p class=" text-[#828282] regularFont text-[13px] leading-[17.55px]">{% if a.issue_date %}{{a.issue_date.strftime("%b,  %Y")}}{% endif %}</p>
+    </div>
+
+    <button type="button" class="dataDelete" onclick="addedDeleteHandler(this)" data-id="{{a.id}}" data-title="{{a.title}}" data-url="{{url('resumeactivity')}}" data-mdivid="activitym" data-ddivid="activityd"><i
+            class="fa-solid fa-circle-xmark text-[#bdbdbd] my-auto"></i></button>
+</div>
+{% endfor %}

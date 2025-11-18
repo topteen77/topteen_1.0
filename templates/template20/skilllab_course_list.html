@@ -1,0 +1,164 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Skill Lab Courses | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Explore our comprehensive collection of skill lab courses designed to enhance your career readiness. Learn practical skills and gain hands-on experience in various fields.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Skill Development
+        </span>
+        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+          Skill Lab Courses
+        </h1>
+        <p class="text-gray fs-16">Explore our comprehensive collection of skill lab courses designed to enhance your career readiness. Learn practical skills and gain hands-on experience in various fields.</p>
+      </div>
+
+      <div class="col-lg-4 col-md-12">
+        <div class="right-banner d-md-flex justify-content-end">
+          <img class="img-fluid" src="{{ static('images_new/short-courses/skilllab-banner.svg') }}" alt="Skill Lab Courses Banner" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Hero Section -->
+
+<!-- Course List Section -->
+<section class="pb-10">
+  <div class="container">
+    {% if skilllab %}
+    <div class="row">
+      {% for skill in skilllab %}
+      <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+        <div class="course-card h-100">
+          <div class="course-image mb-3">
+            <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}">
+              {% if skill.video_url %}
+              <div class="video-wrapper position-relative" style="padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px;">
+                <iframe src="{{ skill.video_url }}" frameborder="0" allowfullscreen class="position-absolute top-0 left-0 w-100 h-100" style="border-radius: 10px;"></iframe>
+              </div>
+              {% elif skill.image %}
+              <img src="{{ skill.image.url if skill.image.name else skill.image }}" alt="{{ skill.name }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
+              {% else %}
+              <img src="{{ static('images_new/short-courses/course-placeholder.png') }}" alt="{{ skill.name }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
+              {% endif %}
+            </a>
+          </div>
+          
+          {% if skill.category %}
+          <div class="mb-2">
+            <span class="badge bg-primary">{{ skill.get_category_display() if skill.get_category_display else skill.category }}</span>
+          </div>
+          {% endif %}
+          
+          <h5 class="course-name mb-2">
+            <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}" class="text-decoration-none">{{ skill.name }}</a>
+          </h5>
+          
+          {% if skill.description %}
+          <p class="course-description text-gray fs-14 mb-3" style="min-height: 60px;">
+            {{ skill.description|striptags|truncate(100) }}
+          </p>
+          {% endif %}
+          
+          <div class="d-flex justify-content-between align-items-center">
+            {% if skill.amount and skill.amount > 0 %}
+            <div class="course-price">
+              <span class="fw-bold text-primary">
+                <i class='bx bx-rupee'></i>{{ currency_format(skill.amount) }}
+              </span>
+            </div>
+            {% else %}
+            <div class="course-price">
+              <span class="badge bg-success">Free</span>
+            </div>
+            {% endif %}
+            <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}" class="btn btn-sm btn-outline-primary">
+              View Details <i class='bx bx-right-arrow-alt'></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if skilllab.paginator.num_pages > 1 %}
+    <div class="row mt-4">
+      <div class="col-12">
+        <nav aria-label="Course pagination">
+          <ul class="pagination justify-content-center">
+            {% if skilllab.has_previous() %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ skilllab.previous_page_number() }}" aria-label="Previous">
+                <i class='bx bx-chevron-left'></i>
+              </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+              <a class="page-link" href="#" aria-label="Previous">
+                <i class='bx bx-chevron-left'></i>
+              </a>
+            </li>
+            {% endif %}
+
+            {% for page_num in skilllab.paginator.page_range %}
+              {% if page_num == skilllab.number %}
+                <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
+              {% elif page_num > (skilllab.number - 3) and page_num < (skilllab.number + 3) %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if skilllab.has_next() %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ skilllab.next_page_number() }}" aria-label="Next">
+                <i class='bx bx-chevron-right'></i>
+              </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+              <a class="page-link" href="#" aria-label="Next">
+                <i class='bx bx-chevron-right'></i>
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="no-results text-center py-5">
+      <img src="{{ static('images_new/icons/no-results.svg') }}" alt="No results" class="mb-3" style="max-width: 200px;">
+      <h4 class="mb-2">No courses found</h4>
+      <p class="text-gray">Check back later for new courses.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+<!-- Course List Section -->
+
+{% endblock %}
+

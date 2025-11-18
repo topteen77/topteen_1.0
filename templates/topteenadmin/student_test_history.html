@@ -1,0 +1,285 @@
+{% extends 'topteenadmin/base.html' %}
+{% block main %}
+<!--begin::Post-->
+<div class="post d-flex flex-column-fluid" id="kt_post">
+	<!--begin::Container-->
+	<div id="kt_content_container" class="container-xxl">
+		{% if error %}
+			<div class="alert alert-danger">{{ error }}</div>
+			<div class="card-toolbar mt-6">
+				<div class="d-flex justify-content-end">
+					<a href="{{ url('topteenadminmanaged:studentlist') }}" class="btn btn-light">
+						<span class="svg-icon svg-icon-2">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<path d="M9.60002 11L7.60002 13L9.60002 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M7.60002 13L15.6 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						</span>
+						Back to Students
+					</a>
+				</div>
+			</div>
+		{% else %}
+		<!--begin::Card-->
+		<div class="card">
+			<!--begin::Card header-->
+			<div class="card-header border-0 pt-6">
+				<div class="card-title">
+					<h2 class="fw-bolder">{{ student.name or "N/A" }} - Test History</h2>
+				</div>
+				<!--begin::Card toolbar-->
+				<div class="card-toolbar">
+					<!--begin::Toolbar-->
+					<div class="d-flex justify-content-end" data-kt-subscription-table-toolbar="base">
+						<!--begin::Add subscription-->
+						{% if student %}
+						<a href="{{ url_('topteenadminmanaged:exportclass12results', student.id) }}" class="btn btn-primary me-3">
+							<!--begin::Svg Icon | path: icons/duotune/arrows/arr075.svg-->
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M19 9H15V3H9V9H5L12 16L19 9Z" fill="currentColor"/>
+									<path d="M5 18H19V20H5V18Z" fill="currentColor"/>
+								</svg>
+							</span>
+							<!--end::Svg Icon-->
+							Export Class 12 Results
+						</a>
+						<button type="button" class="btn btn-secondary me-3" disabled title="Class 10 export coming soon">
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M19 9H15V3H9V9H5L12 16L19 9Z" fill="currentColor"/>
+									<path d="M5 18H19V20H5V18Z" fill="currentColor"/>
+								</svg>
+							</span>
+							Export Class 10 Results
+						</button>
+						{% endif %}
+						<a href="{{ url('topteenadminmanaged:studentlist') }}" class="btn btn-light">
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M9.60002 11L7.60002 13L9.60002 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+									<path d="M7.60002 13L15.6 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							</span>
+							Back to Students
+						</a>
+						<!--end::Add subscription-->
+					</div>
+					<!--end::Toolbar-->
+				</div>
+				<!--end::Card toolbar-->
+			</div>
+			<!--end::Card header-->
+			
+			<!--begin::Card body-->
+			<div class="card-body pt-0">
+				<!--begin::Student Info-->
+				<div class="card mb-6">
+					<div class="card-body">
+						<div class="d-flex align-items-center">
+							<div class="symbol symbol-60px me-5">
+								<div class="symbol-label fs-2 fw-bold text-primary">
+									{% if student.name %}
+										{{ student.name[0:1]|upper }}
+									{% else %}
+										{{ student.email[0:1]|upper }}
+									{% endif %}
+								</div>
+							</div>
+							<div class="flex-grow-1">
+								<div class="text-gray-800 fw-bolder fs-3 mb-1">{{ student.name or "N/A" }}</div>
+								<div class="text-muted fs-6">@{{ student.username }}</div>
+								<div class="text-muted fs-6">{{ student.email }}</div>
+								<div class="text-muted fs-7 mt-2">Joined: {{ student.created.strftime("%b %d, %Y") }}</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--end::Student Info-->
+				
+				<!--begin::Statistics-->
+				<div class="row mb-6">
+					<div class="col-lg-3 col-md-6 mb-4">
+						<div class="card card-flush h-100">
+							<div class="card-body d-flex align-items-center">
+								<div class="symbol symbol-45px me-4">
+									<span class="symbol-label bg-light-primary">
+										<span class="svg-icon svg-icon-2x svg-icon-primary">
+											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+												<path d="M14 2H6C4.89 2 4 2.89 4 4V20C4 21.11 4.89 22 6 22H18C19.11 22 20 21.11 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z" fill="currentColor"/>
+											</svg>
+										</span>
+									</span>
+								</div>
+								<div class="d-flex flex-column flex-grow-1">
+									<span class="text-gray-600 fw-bold fs-6 mb-1">Total Tests</span>
+									<span class="text-gray-800 fw-bolder fs-2">{{ total_tests }}</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-3 col-md-6 mb-4">
+						<div class="card card-flush h-100">
+							<div class="card-body d-flex align-items-center">
+								<div class="symbol symbol-45px me-4">
+									<span class="symbol-label bg-light-success">
+										<span class="svg-icon svg-icon-2x svg-icon-success">
+											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+												<path d="M10 18C9.7 17.8 9.5 17.6 9.5 17.1V7.1C9.5 6.6 9.7 6.4 10 6.2L16 3.1C16.3 2.9 16.7 2.9 17 3.1L23 6.2C23.3 6.4 23.5 6.6 23.5 7.1V17.1C23.5 17.6 23.3 17.8 23 18L17 21.1C16.7 21.3 16.3 21.3 16 21.1L10 18Z" fill="currentColor"/>
+											</svg>
+										</span>
+									</span>
+								</div>
+								<div class="d-flex flex-column flex-grow-1">
+									<span class="text-gray-600 fw-bold fs-6 mb-1">Completed</span>
+									<span class="text-gray-800 fw-bolder fs-2">{{ completed_tests }}</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-3 col-md-6 mb-4">
+						<div class="card card-flush h-100">
+							<div class="card-body d-flex align-items-center">
+								<div class="symbol symbol-45px me-4">
+									<span class="symbol-label bg-light-warning">
+										<span class="svg-icon svg-icon-2x svg-icon-warning">
+											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+												<path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM12 20C7.6 20 4 16.4 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20ZM11 7V13H13V7H11ZM11 15V17H13V15H11Z" fill="currentColor"/>
+											</svg>
+										</span>
+									</span>
+								</div>
+								<div class="d-flex flex-column flex-grow-1">
+									<span class="text-gray-600 fw-bold fs-6 mb-1">In Progress</span>
+									<span class="text-gray-800 fw-bolder fs-2">{{ pending_tests }}</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-3 col-md-6 mb-4">
+						<div class="card card-flush h-100">
+							<div class="card-body d-flex align-items-center">
+								<div class="symbol symbol-45px me-4">
+									<span class="symbol-label bg-light-secondary">
+										<span class="svg-icon svg-icon-2x svg-icon-secondary">
+											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+												<path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM12 20C7.6 20 4 16.4 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20ZM11 7V13H13V7H11ZM11 15V17H13V15H11Z" fill="currentColor"/>
+											</svg>
+										</span>
+									</span>
+								</div>
+								<div class="d-flex flex-column flex-grow-1">
+									<span class="text-gray-600 fw-bold fs-6 mb-1">Not Started</span>
+									<span class="text-gray-800 fw-bolder fs-2">{{ not_started_tests }}</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--end::Statistics-->
+				
+				<!--begin::Test Details Table-->
+				<div class="card">
+					<div class="card-header">
+						<h3 class="card-title fw-bolder">Test Details</h3>
+					</div>
+					<div class="card-body pt-0">
+						<div class="table-responsive">
+							<table class="table align-middle table-row-dashed fs-6 gy-5">
+								<thead>
+									<tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0">
+										<th class="min-w-200px">Test Name</th>
+										<th class="min-w-100px">Status</th>
+										<th class="min-w-100px">Score</th>
+										<th class="min-w-100px">Grade</th>
+										<th class="min-w-150px">Start Time</th>
+										<th class="min-w-150px">End Time</th>
+										<th class="min-w-100px">Duration</th>
+										<th class="min-w-80px">Attempts</th>
+									</tr>
+								</thead>
+								<tbody class="text-gray-600 fw-bold">
+									{% if test_data %}
+										{% for data in test_data %}
+										<tr>
+											<td>
+												<div class="text-gray-800 fw-bolder">{{ data.test.title }}</div>
+												<div class="text-muted fs-7">{% if data.test.description %}{{ data.test.description[:50] }}{% else %}-{% endif %}</div>
+											</td>
+											<td>
+												{% if data.not_started %}
+													<span class="badge badge-secondary">Not Started</span>
+												{% elif data.is_completed %}
+													<span class="badge badge-success">Completed</span>
+												{% else %}
+													<span class="badge badge-warning">In Progress</span>
+												{% endif %}
+											</td>
+											<td>
+												{% if data.score is not None %}
+													<span class="text-gray-800 fw-bolder">{{ data.score }}</span>
+												{% else %}
+													<span class="text-muted">-</span>
+												{% endif %}
+											</td>
+											<td>
+												{% if data.grade %}
+													<span class="badge badge-info">{{ data.grade }}</span>
+												{% else %}
+													<span class="text-muted">-</span>
+												{% endif %}
+											</td>
+											<td>
+													{% if data.start_time %}
+														<span class="text-gray-600">{{ data.start_time.strftime("%b %d, %Y %H:%M") }}</span>
+													{% else %}
+														<span class="text-muted">-</span>
+													{% endif %}
+												</td>
+												<td>
+													{% if data.end_time %}
+														<span class="text-gray-600">{{ data.end_time.strftime("%b %d, %Y %H:%M") }}</span>
+													{% else %}
+														<span class="text-muted">-</span>
+													{% endif %}
+												</td>
+												<td>
+													{% if data.time_taken %}
+														<span class="text-gray-600">{{ data.time_taken|round(0) }}s</span>
+												{% else %}
+													<span class="text-muted">-</span>
+												{% endif %}
+											</td>
+											<td>
+												{% if data.attempt_count > 0 %}
+													<span class="badge badge-light">{{ data.attempt_count }}</span>
+												{% else %}
+													<span class="text-muted">-</span>
+												{% endif %}
+											</td>
+										</tr>
+										{% endfor %}
+									{% else %}
+										<tr>
+											<td colspan="8" class="text-center py-10">
+												<div class="text-gray-500">No test data available</div>
+											</td>
+										</tr>
+									{% endif %}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+				<!--end::Test Details Table-->
+			</div>
+			<!--end::Card body-->
+		</div>
+		<!--end::Card-->
+		{% endif %}
+	</div>
+	<!--end::Container-->
+</div>
+<!--end::Post-->
+{% endblock %}
+

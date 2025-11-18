@@ -1,0 +1,195 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Saved Media | Top Teen{% endblock %}
+{% block description_content %}View and organize your saved videos, articles, and courses.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} save-media-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .save-media-page {
+    padding-top: 80px;
+  }
+  .tab-button {
+    padding: 11px 16px;
+    border-radius: 100px;
+    background: #f8f8f8;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    white-space: nowrap;
+  }
+  .tab-button.active {
+    background: #3f37c9;
+    color: white;
+    border-color: #3f37c9;
+  }
+  .tab-button.active p {
+    color: white;
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: flex;
+  }
+  .media-card {
+    min-width: 326px;
+    flex-shrink: 0;
+  }
+  @media (min-width: 992px) {
+    .media-card {
+      min-width: 248px;
+    }
+  }
+  .media-thumbnail {
+    width: 100%;
+    height: 146px;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  @media (min-width: 992px) {
+    .media-thumbnail {
+      height: 208px;
+    }
+  }
+  .category-badge {
+    padding: 6px 9px;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 600;
+    display: inline-block;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="save-media-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- Media Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <h1 class="fs-24 fw-semibold mb-0">Saved Media</h1>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+        <i class='bx bx-arrow-left fs-18 text-gray'></i>
+      </button>
+      <h2 class="fs-16 fw-normal text-center mb-0">Saved Media</h2>
+    </div>
+
+    <!-- Tab Buttons -->
+    <div class="d-flex gap-3 gap-lg-4 overflow-auto pb-3 mb-4" style="scrollbar-width: none; -ms-overflow-style: none;">
+      <style>
+        .d-flex.gap-3.gap-lg-4.overflow-auto::-webkit-scrollbar {
+          display: none;
+        }
+      </style>
+      <button class="tab-button active" data-tab-target="#videos">
+        <div class="d-flex align-items-center gap-2">
+          <img src="{{ static('images_new/icons/videos.png') }}" style="width: 24px; height: 24px;" alt="Videos" />
+          <p class="fs-12 fw-semibold mb-0">Videos</p>
+        </div>
+      </button>
+      <button class="tab-button" data-tab-target="#articles">
+        <div class="d-flex align-items-center gap-2">
+          <img src="{{ static('images_new/icons/newsPaper.png') }}" style="width: 24px; height: 24px;" alt="Articles" />
+          <p class="fs-12 fw-semibold mb-0">Articles</p>
+        </div>
+      </button>
+      <button class="tab-button" data-tab-target="#courses">
+        <div class="d-flex align-items-center gap-2">
+          <img src="{{ static('images_new/icons/celebrate.png') }}" style="width: 24px; height: 24px;" alt="Courses" />
+          <p class="fs-12 fw-semibold mb-0">Courses</p>
+        </div>
+      </button>
+    </div>
+
+    <!-- Videos Tab -->
+    <div id="videos" class="tab-content active d-flex gap-3 gap-lg-4 overflow-auto pb-3" style="scrollbar-width: none; -ms-overflow-style: none;">
+      <style>
+        #videos::-webkit-scrollbar {
+          display: none;
+        }
+      </style>
+      <!-- Video cards will be dynamically loaded here -->
+      <div class="text-center py-5 w-100">
+        <i class='bx bx-video fs-64 text-gray mb-3'></i>
+        <h3 class="fs-20 fw-semibold text-dark mb-2">No Videos Saved</h3>
+        <p class="text-gray fs-14">You haven't saved any videos yet.</p>
+      </div>
+    </div>
+
+    <!-- Articles Tab -->
+    <div id="articles" class="tab-content d-flex gap-3 gap-lg-4 overflow-auto pb-3" style="scrollbar-width: none; -ms-overflow-style: none;">
+      <style>
+        #articles::-webkit-scrollbar {
+          display: none;
+        }
+      </style>
+      <!-- Article cards will be dynamically loaded here -->
+      <div class="text-center py-5 w-100">
+        <i class='bx bx-news fs-64 text-gray mb-3'></i>
+        <h3 class="fs-20 fw-semibold text-dark mb-2">No Articles Saved</h3>
+        <p class="text-gray fs-14">You haven't saved any articles yet.</p>
+      </div>
+    </div>
+
+    <!-- Courses Tab -->
+    <div id="courses" class="tab-content d-flex gap-3 gap-lg-4 overflow-auto pb-3" style="scrollbar-width: none; -ms-overflow-style: none;">
+      <style>
+        #courses::-webkit-scrollbar {
+          display: none;
+        }
+      </style>
+      <!-- Course cards will be dynamically loaded here -->
+      <div class="text-center py-5 w-100">
+        <i class='bx bx-book-open fs-64 text-gray mb-3'></i>
+        <h3 class="fs-20 fw-semibold text-dark mb-2">No Courses Saved</h3>
+        <p class="text-gray fs-14">You haven't saved any courses yet.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<script>
+  // Tab switching functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll("[data-tab-target]");
+    const tabContents = document.querySelectorAll(".tab-content");
+    
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        const target = document.querySelector(tab.dataset.tabTarget);
+        
+        // Hide all tab contents
+        tabContents.forEach(tabContent => {
+          tabContent.classList.remove("active");
+        });
+        
+        // Remove active class from all tabs
+        tabs.forEach(t => {
+          t.classList.remove("active");
+        });
+        
+        // Show selected tab content
+        tab.classList.add("active");
+        if (target) {
+          target.classList.add("active");
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
+

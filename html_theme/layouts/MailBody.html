@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mail Body</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      @font-face {
+        font-family: "galanoGrotesqueRegular";
+        src: url("../assets/fonts/GalanoGrotesqueRegular.otf")
+          format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "galanoGrotesqueBold";
+        src: url("../assets/fonts/GalanoGrotesqueBold.otf") format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "galanoGrotesqueSemiBold";
+        src: url("../assets/fonts/GalanoGrotesqueSemiBold.otf")
+          format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "galanoGrotesqueMedium";
+        src: url("../assets/fonts/GalanoGrotesqueMedium.otf") format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      :root {
+        --galanoGrotesqueRegular: galanoGrotesqueRegular;
+        --galanoGrotesqueBold: galanoGrotesqueBold;
+        --galanoGrotesqueSemiBold: galanoGrotesqueSemiBold;
+        --galanoGrotesqueMedium: galanoGrotesqueMedium;
+      }
+
+      body {
+        font-family: var(--galanoGrotesqueRegular);
+      }
+
+      /* .boldFont {
+        font-family: var(--galanoGrotesqueBold);
+      }
+
+      .semiBold {
+        font-family: var(--galanoGrotesqueSemiBold);
+      } */
+      /* .topContainer {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: flex-start;
+        margin-bottom: 74px;
+      } */
+      /* .paraContainer {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        row-gap: 36px;
+        margin-bottom: 49px;
+      } */
+      /* .topContainer img {
+        margin-right: 30px;
+      } */
+      /* .text-danger {
+        color: #c20000;
+      } */
+
+      /* .mainFont {
+        font-size: 20px;
+        line-height: 28px;
+        color: #4f4f4f;
+      } */
+
+      /* .subFont {
+        font-size: 18px;
+        line-height: 33px;
+      } */
+
+      /* .semiFont {
+        font-size: 16px;
+        line-height: 20px;
+      } */
+
+      /* .smFont {
+        font-size: 12px;
+        line-height: 19px;
+      } */
+      /* .largeFont {
+        font-size: 24px;
+        line-height: 32px;
+      } */
+      /* .bottomContainer {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 111px;
+      } */
+      /* .planCard {
+        display: grid;
+        grid-template-columns: 37px 403px;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 27px;
+      } */
+      /* .planCard > img {
+        margin-right: 27px;
+      } */
+
+      /* .packageBlock {
+        padding: 17px 33px;
+        background-color: #f7f7fa;
+        border: 1px solid #2e289d;
+      } */
+
+      /* .black {
+        color: #131415;
+      } */
+
+      /* .border {
+        border: 1px solid black;
+      } */
+
+      /* .packageDetail1 {
+        margin: 0px 24px;
+        border: 1px solid #dedede;
+        padding: 12px;
+      } */
+
+      /* .alignBetween {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 0px 24px 0px;
+      } */
+
+      /* .borderB {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+      } */
+
+      /* .textMute {
+        color: #828282;
+      } */
+
+      /* .textSemiMute {
+        color: #4f4f4f;
+      } */
+
+      /* .container {
+        max-width: 1082px;
+        margin: auto;
+        border-bottom: 1px solid black;
+        padding: 60px 0px;
+      } */
+
+      /* .listItem {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 14px;
+      } */
+
+      /* .listItem > img {
+        margin-right: 12px;
+      } */
+
+      /* .listItem > span {
+        font-size: 16px;
+        line-height: 19px;
+        color: #777777;
+      } */
+
+      /* .packageDetail2 {
+        padding: 30px 33px;
+        margin: 0px 20px;
+        border: 1px solid #dedede;
+      } */
+      /* .heading {
+        margin-bottom: 18px;
+      } */
+
+      /* .lockText {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        margin: 34px 0px 23px 0px;
+      } */
+
+      /* .lockText i {
+        margin-right: 11px;
+      } */
+
+      /* .lockText > p {
+        font-style: italic;
+        font-weight: 700;
+      } */
+
+      /* .footerContainer {
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        align-items: center;
+        padding-top: 57px;
+      } */
+
+      /* .tollFreeContent {
+        font-size: 16px;
+        line-height: 20px;
+        font-weight: 700;
+        color: #141414;
+        margin-bottom: 30px;
+      } */
+
+      /* .tollFreeLink {
+        font-size: 14px;
+        line-height: 33px;
+        color: #31b0ff;
+        text-decoration: underline;
+      } */
+
+      /* .tollFreeLogo {
+        font-size: 18px;
+        line-height: 33px;
+        margin-bottom: 18px;
+        color: #131415;
+        font-family: var(--galanoGrotesqueBold);
+      } */
+
+      /* .logo {
+        margin-bottom: 75px;
+      } */
+
+      @media only screen and (max-width: 1024px) {
+        .bottomContainer {
+          display: grid !important;
+          grid-template-columns: 100% !important;
+          gap: 20px !important;
+        }
+
+        .planCard {
+          display: grid !important;
+          grid-template-columns: 100% !important;
+          justify-content: flex-start !important;
+          align-items: flex-start !important;
+          gap: 27px !important;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.25) !important;
+        }
+        .planCard > img {
+          margin-right: 27px !important;
+        }
+
+        .topContainer {
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: flex-start !important;
+          align-items: flex-start !important;
+          margin-bottom: 74px !important;
+        }
+
+        .topContainer img {
+          margin: 0px auto !important;
+        }
+
+        .container {
+          margin: 0px 17px !important;
+        }
+
+        .lockText {
+          justify-content: center !important;
+        }
+        .boldFont {
+          font-size: 28px !important;
+        }
+
+        .logo {
+          margin: 0px auto !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          margin-bottom: 12px !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main
+      style="
+        max-width: 1082px;
+        margin: auto;
+        border-bottom: 1px solid black;
+        padding: 60px 0px;
+      "
+      class="container"
+    >
+      <div class="logo" style="margin-bottom: 75px">
+        <img src="../assets/images/logoWithText.png" width="180" height="63" />
+      </div>
+      <div
+        class="topContainer"
+        style="
+          display: flex;
+          flex-direction: row;
+          justify-content: flex-start;
+          align-items: flex-start;
+          margin-bottom: 74px;
+        "
+      >
+        <img
+          src="../assets/images/hand.png"
+          width="192"
+          height="339"
+          style="margin-right: 30px"
+        />
+        <div>
+          <div>
+            <div
+              class="paraContainer"
+              style="
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+                row-gap: 36px;
+                margin-bottom: 49px;
+              "
+            >
+              <img src="../assets/images/checked.png" width="24" height="24" />
+              <h1 class="boldFont">
+                Payment
+                <span class="text-danger" style="color: #c20000"
+                  >Successful</span
+                >
+              </h1>
+            </div>
+
+            <div>
+              Dear Applicant,<br />
+              <p>
+                The payment for the Psychometric test has been received
+                successfully.
+              </p>
+              <br />
+              <p>
+                The link for the test has been generated. <br /><a href=""
+                  >You can start the test now</a
+                >
+              </p>
+              <br />
+              All the best! TOPTEEN Team
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="bottomContainer"
+        style="display: grid; grid-template-columns: 1fr 1fr; gap: 111px"
+      >
+        <div
+          class="planCard"
+          style="
+            display: grid;
+            grid-template-columns: 37px 403px;
+            justify-content: flex-start;
+            align-items: flex-start;
+            gap: 27px;
+          "
+        >
+          <img
+            src="../assets/images/credit-card.png"
+            width="32"
+            height="35"
+            style="margin-right: 27px"
+          />
+          <div>
+            <p
+              class="subFont semiBold heading"
+              style="font-size: 18px; line-height: 33px; margin-bottom: 18px"
+            >
+              Payment Summary
+            </p>
+            <p
+              class="packageBlock"
+              style="
+                padding: 17px 33px;
+                background-color: #f7f7fa;
+                border: 1px solid #2e289d;
+              "
+            >
+              Basic Package
+            </p>
+            <div
+              class="border packageDetail1"
+              style="
+                margin: 0px 24px;
+                border: 1px solid #dedede;
+                padding: 12px;
+                border: 1px solid black;
+              "
+            >
+              <div
+                class="alignBetween borderB"
+                style="
+                  display: flex;
+                  flex-direction: row;
+                  justify-content: space-between;
+                  align-items: center;
+                  padding: 18px 0px 24px 0px;
+                  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+                "
+              >
+                <p
+                  class="subFont textMute"
+                  style="font-size: 18px; line-height: 33px; color: #828282"
+                >
+                  Total
+                </p>
+                <p class="largeFont" style="font-size: 24px; line-height: 32px">
+                  ₹ 4,900
+                </p>
+              </div>
+              <div
+                class="alignBetween"
+                style="
+                  display: flex;
+                  flex-direction: row;
+                  justify-content: space-between;
+                  align-items: center;
+                  padding: 18px 0px 24px 0px;
+                "
+              >
+                <div>
+                  <p
+                    class="semiFont black semiBold"
+                    style="font-size: 16px; line-height: 20px; color: #131415"
+                  >
+                    1 Dec 2022
+                  </p>
+                  <p class="smFont" style="font-size: 12px; line-height: 19px">
+                    06:34 AM
+                  </p>
+                </div>
+                <div>
+                  <p
+                    class="subFont textSemiMute"
+                    style="font-size: 18px; line-height: 33px; color: #4f4f4f"
+                  >
+                    1 Dec 2022
+                  </p>
+                  <p class="smFont" style="font-size: 12px; line-height: 19px">
+                    0522266RBC45
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="planCard"
+          style="
+            display: grid;
+            grid-template-columns: 37px 403px;
+            justify-content: flex-start;
+            align-items: flex-start;
+            gap: 27px;
+          "
+        >
+          <img src="../assets/images/cubes.png" width="32" height="35" />
+          <div>
+            <p
+              class="subFont semiBold heading"
+              style="font-size: 18px; line-height: 33px; margin-bottom: 18px"
+            >
+              Basic Package Include
+            </p>
+            <p
+              class="packageBlock"
+              style="
+                padding: 17px 33px;
+                background-color: #f7f7fa;
+                border: 1px solid #2e289d;
+              "
+            >
+              Advanced report • 6 month validity
+            </p>
+            <div
+              class="packageDetail2"
+              style="
+                padding: 30px 33px;
+                margin: 0px 20px;
+                border: 1px solid #dedede;
+              "
+            >
+              <p
+                class="listItem"
+                style="
+                  display: flex;
+                  flex-direction: row;
+                  justify-content: flex-start;
+                  align-items: center;
+                  margin-bottom: 14px;
+                "
+              >
+                <img
+                  src="../assets/images/checked.png"
+                  height="16"
+                  width="16"
+                  style="margin-right: 12px"
+                />
+                <span style="font-size: 16px; line-height: 19px; color: #777777"
+                  >Detailed Career</span
+                >
+              </p>
+              <p
+                class="listItem"
+                style="
+                  display: flex;
+                  flex-direction: row;
+                  justify-content: flex-start;
+                  align-items: center;
+                  margin-bottom: 14px;
+                "
+              >
+                <img
+                  src="../assets/images/checked.png"
+                  height="16"
+                  width="16"
+                  style="margin-right: 12px"
+                />
+                <span style="font-size: 16px; line-height: 19px; color: #777777"
+                  >Interest Analysis</span
+                >
+              </p>
+              <p
+                class="listItem"
+                style="
+                  display: flex;
+                  flex-direction: row;
+                  justify-content: flex-start;
+                  align-items: center;
+                  margin-bottom: 14px;
+                "
+              >
+                <img
+                  src="../assets/images/checked.png"
+                  height="16"
+                  width="16"
+                  style="margin-right: 12px"
+                />
+                <span style="font-size: 16px; line-height: 19px; color: #777777"
+                  >Access to Career</span
+                >
+              </p>
+              <p
+                class="listItem"
+                style="
+                  display: flex;
+                  flex-direction: row;
+                  justify-content: flex-start;
+                  align-items: center;
+                  margin-bottom: 14px;
+                "
+              >
+                <img
+                  src="../assets/images/checked.png"
+                  height="16"
+                  width="16"
+                  style="margin-right: 12px"
+                />
+                <span style="font-size: 16px; line-height: 19px; color: #777777"
+                  >Library & Colleges</span
+                >
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="lockText"
+        style="
+          display: flex;
+          flex-direction: row;
+          justify-content: flex-start;
+          align-items: center;
+          margin: 34px 0px 23px 0px;
+        "
+      >
+        <i class="fa fa-lock" style="margin-right: 11px"></i>
+        <p style="font-style: italic; font-weight: 700">
+          Secure payments with TopTeen
+        </p>
+      </div>
+    </main>
+    <footer
+      class="footerContainer"
+      style="
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        align-items: center;
+        padding-top: 57px;
+      "
+    >
+      <p
+        class="tollFreeLogo"
+        style="
+          font-size: 18px;
+          line-height: 33px;
+          margin-bottom: 18px;
+          color: #131415;
+          font-family: var(--galanoGrotesqueBold);
+        "
+      >
+        TOPTEEN
+      </p>
+      <a
+        href="#"
+        class="tollFreeLink"
+        style="
+          font-size: 14px;
+          line-height: 33px;
+          color: #31b0ff;
+          text-decoration: underline;
+        "
+        >support@topteen/careers.com</a
+      >
+      <p
+        class="tollFreeContent"
+        style="
+          font-size: 16px;
+          line-height: 20px;
+          font-weight: 700;
+          color: #141414;
+          margin-bottom: 30px;
+        "
+      >
+        Toll Free: 0000 000 000
+      </p>
+    </footer>
+  </body>
+</html>

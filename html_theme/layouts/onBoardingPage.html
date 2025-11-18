@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carousel demo</title>
+    <link href="../assets/css/customCSS.css" rel="stylesheet" />
+    <link href="../layouts/css/styles.css" rel="stylesheet" />
+    <!-- links for slick carousel -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    />
+    <link
+      href="http://kenwheeler.github.io/slick/slick/slick.css"
+      rel="stylesheet"
+    />
+    <link
+      href="http://kenwheeler.github.io/slick/slick/slick-theme.css"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body class="no-scrollbar overflow-hidden">
+    <div class="newPages">
+      <!-- 1 Choose motive pages -->
+
+      <div class="motive ">
+          <div class="w-[100vw] h-full" data-index="1">
+            <!-- header -->
+            <header
+              class="flex justify-between w-full items-center mt-[27px] lg:mt-[35px]"
+            >
+              <img
+                class="h-[15px] w-[15px] ml-[20px] lg:ml-[100px] cursor-pointer"
+                src="../assets/images/arrow.left.png"
+              />
+              <div
+                class="justify-center space-x-1 items-center mr-[0px] lg:mr-[0px] flex"
+              >
+                <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              </div>
+              <!-- <h2 class='text-[#494949] font-bold lg:hidden flex'>LOG IN</h2> -->
+              <p class="text-white">1</p>
+            </header>
+            <!-- second line -->
+            
+            <div
+              class="relative flex justify-center items-center font-semibold text-[24px] leading-[32.4px] mt-[37px] lg:mt-[45px]"
+            >
+              <p>What are you here for?</p>
+            </div>
+  
+            <!-- third line -->
+            <div
+              class="flex justify-center items-center font-normal text-center text-[16px] leading-[21.6px] mt-[14px]"
+            >
+              <p class="w-[344px] h-[44px] text-[#494949]">
+                This will help the app prepare a guided path for you to take
+              </p>
+            </div>
+  
+            <!-- fourth div -->
+            <div
+              class="w-full flex justify-center items-center mt-[36px] cursor-pointer"
+            >
+              <label
+                class=" relative w-[344px] h-[75px] bg-[#F7F7FA] rounded-xl flex items-center streamTab"
+              >
+                <div class="relative w-[344px] h-[75px] bg-[#F7F7FA] rounded-xl flex items-center">
+                  <img class="ml-[20px] relative" src="../assets/images/books 1.png" />
+                  <div class="flex-col ml-[15px] relative">
+                    <p class="text-[16px] font-semibold">
+                      I need to figure out my stream
+                    </p>
+                    <p class="text-[12px] font-normal text-[#828282]">
+                      Let’s get to know you better
+                    </p>
+                  </div>
+                </div>
+              <input type="checkbox" class="sr-only">
+  
+              </label>
+            </div>
+  
+            <!-- fifth div -->
+            <div
+              class="w-full flex justify-center items-center mt-[15px] cursor-pointer streamTab"
+            >
+          
+              <label
+                class="w-[344px] h-[75px] bg-[#F7F7FA]  rounded-xl flex items-center  planCareerTab"
+              >
+              <input type="checkbox" class="sr-only">
+                <img class="ml-[20px]" src="../assets/images/portfolio 1.png" />
+                <div class="flex-col ml-[15px]">
+                  <p class="text-[16px] font-semibold">
+                    I need to plan my career
+                  </p>
+                  <p class="text-[12px] font-normal text-[#828282]">
+                    Let’s get you up and running
+                  </p>
+                </div>
+              </label>
+            </div>
+  
+            <!-- sixth div -->
+  
+            <div
+              class="w-full justify-center items-center mt-[15px] hidden lg:flex cursor-pointer"
+            >
+              <div
+                class="w-[344px] h-[75px] bg-[#F7F7FA] rounded-xl flex items-center optionsTab"
+              >
+                <img class="ml-[20px]" src="../assets/images/binoculars 2.png" />
+                <div class="flex-col ml-[15px]">
+                  <p class="text-[16px] font-semibold">
+                    I want to explore my options
+                  </p>
+                  <p class="text-[12px] font-normal text-[#828282]">
+                    Let’s look at what TopTeen can offer
+                  </p>
+                </div>
+              </div>
+            </div>
+  
+             <!-- button -->
+           <div
+           class=" z-50 mt-[60px] w-full flex justify-center lg:mt-[70px] "
+         >
+           <button
+             class="w-[344px] h-[48px] bg-[#3F37C9] rounded-xl text-white font-bold slideOnButton" id="firstButton"
+           >
+             CONTINUE
+           </button>
+         </div>
+            
+          </div> 
+
+
+      </div>
+
+      <div class="basicDetails">
+        <!-- 2 basic details pages -->
+        <div class="w-[100vw] h-full" data-index="2">
+          <!-- header -->
+          <header
+            class="flex justify-between items-center mt-[27px] lg:mt-[35px]"
+          >
+            <img
+              class="h-[15px] w-[15px] ml-[20px] lg:ml-[100px] cursor-pointer slideOnArrow"
+              src="../assets/images/arrow.left.png"
+            />
+            <div
+              class="justify-center space-x-1 items-center mr-[0px] lg:mr-[120px] flex"
+            >
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div
+                class="bg-white h-[13px] w-[13px] rounded-full opacity-20"
+              ></div>
+              <div
+                class="bg-white h-[13px] w-[13px] rounded-full opacity-20"
+              ></div>
+              <div
+                class="bg-white h-[13px] w-[13px] rounded-full opacity-20"
+              ></div>
+            </div>
+            <!-- <h2 class='text-[#494949] font-bold lg:hidden flex'>LOG IN</h2> -->
+            <p class="text-white">1</p>
+          </header>
+          <!-- second line -->
+          <div
+            class="flex justify-center items-center font-semibold text-[24px] mt-[37px] lg:mt-[30px]"
+          >
+            <p>Tell us more about yourself</p>
+          </div>
+          <!-- third line -->
+          <div
+            class="flex justify-center items-center font-normal text-center text-[16px] mt-[10px]"
+          >
+            <p class="w-[344px] h-[44px] text-[#494949]">
+              Lets’s get the essentials out of the way
+            </p>
+          </div>
+
+          <!--form starts-->
+          <!-- full name line -->
+          <div
+            class="w-full flex justify-center items-center mt-[10px] lg:mt-[5px]"
+          >
+            <div class="relative w-[344px] h-[48px]">
+              <img
+                class="absolute left-[15px] top-[15px]"
+                src="../assets/images/signature.png"
+              />
+              <input
+                class="w-[344px] h-[48px] bg-[#F7F7FA] pl-12 rounded-xl text-gray-600 font-bold border-[1.5px] border-[#DCDCDC]"
+                placeholder="Full name"
+              />
+            </div>
+          </div>
+
+          <!-- Birthday and Gender -->
+          <div
+            class="w-full flex justify-center items-center space-x-4 mt-[15px] lg:mt-[10px]"
+          >
+            <div class="relative w-[164px] h-[48px]">
+              <!-- <img
+                class="absolute left-[15px] top-[15px]"
+                src="../assets/images/calender1.png"
+              /> -->
+              <input type="date"
+                class="w-[164px] h-[48px] bg-[#F7F7FA] pl-4 rounded-xl text-gray-600 font-bold border-[1.5px] border-[#DCDCDC]"
+                placeholder="Birthday "
+              />
+            </div>
+
+            <div class="relative w-[164px] h-[48px]">
+              <!-- <img
+                class="absolute left-[15px] top-[15px]"
+                src="../assets/images/person.fill.png"
+              /> -->
+              <select class="w-[164px] h-[48px] bg-[#F7F7FA] pl-10 rounded-xl text-gray-600 font-bold border-[1.5px] border-[#DCDCDC]"  placeholder="Gender ">
+                <option value="Gender" class="text-gray-600 font-bold" disabled selected>Gender</option>
+                <option value="male" class="text-gray-600 font-bold">Male</option>
+                <option value="female" class="text-gray-600 font-bold">Female</option>
+                <option value="transgender" class="text-gray-600 font-bold">Transgender</option>
+              </select>
+              <!-- <input
+                class="w-[164px] h-[48px] bg-[#F7F7FA] pl-10 rounded-xl text-gray-600 font-bold border-[1.5px] border-[#DCDCDC]"
+           
+              /> -->
+            </div>
+          </div>
+
+          <!-- phone number line -->
+          <div
+            class="w-full flex justify-center items-center mt-[15px] lg:mt-[10px]"
+          >
+            <div class="relative w-[344px] h-[48px]">
+              <img
+                class="absolute left-[15px] top-[15px]"
+                src="../assets/images/phone.fill.png"
+              />
+              <input
+                class="w-[344px] h-[48px] bg-[#F7F7FA] pl-12 rounded-xl text-gray-600 font-bold border-[1.5px] border-[#DCDCDC]"
+                placeholder="Phone number"
+              />
+            </div>
+          </div>
+
+          <!-- email address line -->
+          <div
+            class="w-full flex justify-center items-center mt-[15px] lg:mt-[10px]"
+          >
+            <div class="relative w-[344px] h-[48px]">
+              <img
+                class="absolute left-[15px] top-[15px]"
+                src="../assets/images/envelope.png"
+              />
+              <input
+                class="w-[344px] h-[48px] bg-[#F7F7FA] pl-12 rounded-xl text-gray-600 font-bold border-[1.5px] border-[#DCDCDC]"
+                placeholder="Email address"
+              />
+            </div>
+          </div>
+
+          <!-- school name  line -->
+          <div
+            class="w-full flex justify-center relative items-center mt-[15px] lg:mt-[10px]"
+          >
+            <div class="relative w-[344px] h-[48px]">
+              <img
+                class="absolute top-[15px] left-[15px]"
+                src="../assets/images/person.2.crop.square.stack.fill.png"
+              />
+              <input
+                class="w-[344px] h-[48px] bg-[#F7F7FA] pl-12 rounded-xl text-gray-600 font-bold border-[1.5px] border-[#DCDCDC]"
+                placeholder="School name"
+              />
+            </div>
+          </div>
+
+          <!-- Grade   line -->
+          <div
+            class="w-full flex justify-center relative items-center mt-[15px] lg:mt-[10px]"
+          >
+            <div class="relative w-[344px] h-[48px]">
+              <img
+                class="absolute left-[15px] top-[15px]"
+                src="../assets/images/bookmark.square.png"
+              />
+              <input
+                class="w-[344px] h-[48px] bg-[#F7F7FA] pl-12 rounded-xl text-gray-600 font-bold border-[1.5px] border-[#DCDCDC]"
+                placeholder="Grade"
+              />
+            </div>
+          </div>
+
+          <!-- button -->
+          <div
+            class="w-full flex justify-center items-center mt-[75px] lg:mt-[40px]"
+          >
+            <button
+              class="w-[344px] h-[48px] bg-[#3F37C9] rounded-xl text-white font-bold slideOnButton" id="secondButton"
+            >
+              CONTINUE
+            </button>
+          </div>
+
+      
+        </div>
+      </div>
+
+      <div class="photo ">
+        <!-- 3 Signup photo pages -->
+        <div class="w-[100vw] h-full" data-index="3">
+          <!-- header -->
+          <header
+            class="flex justify-between items-center mt-[27px] lg:mt-[35px]"
+          >
+            <img
+              class="h-[15px] w-[15px] ml-[20px] lg:ml-[100px] cursor-pointer slideOnArrow"
+              src="../assets/images/arrow.left.png"
+            />
+            <div
+              class="justify-center space-x-1 items-center ml-[30px] lg:ml-[0px] mr-[0px] lg:mr-[120px] flex"
+            >
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div
+                class="bg-white h-[13px] w-[13px] rounded-full opacity-30"
+              ></div>
+              <div
+                class="bg-white h-[13px] w-[13px] rounded-full opacity-30"
+              ></div>
+            </div>
+            <!-- <h2 class='text-[#494949] font-bold lg:hidden flex'>LOG IN</h2> -->
+            <p
+              class="text-[#3F37C9] flex sm:hidden text-[16px] leading-[21.6px] font-semibold pr-[20px]"
+            >
+              SKIP
+            </p>
+            <p class="text-white hidden lg:flex">1</p>
+          </header>
+          <!-- second line -->
+          <div
+            class="flex justify-center items-center font-semibold text-[24px] leading-[32.4px] mt-[37px] lg:mt-[30px]"
+          >
+            <p>Show us how you look</p>
+          </div>
+          <!-- third line -->
+          <div
+            class="flex justify-center items-center font-normal text-center text-[16px] mt-[14px]"
+          >
+            <p class="w-[344px] h-[44px] text-[#494949]">
+              Join a community of 10k+ students and discover your true passion.
+            </p>
+          </div>
+
+          <!-- center portion -->
+          <div class="flex justify-center items-center w-full h-full mt-[88px] lg:mt-[50px]">
+            <div
+              class="h-[230px] w-[230px] bg-[#F7F7FA] rounded-full flex justify-center items-center"
+            >
+              <img src="../assets/images/person.fill (1).png" />
+            </div>
+          </div>
+
+          <!-- button -->
+          <div
+            class="w-full flex justify-center items-center mt-[100px] lg:mt-[95px]"
+          >
+            <button
+              class="w-[344px] h-[48px] bg-[#3F37C9] rounded-xl text-white font-bold slideOnButton" id="thirdButton"
+            >
+              CONTINUE
+            </button>
+          </div>
+
+
+        </div>
+      </div>
+
+      <div class="subjects">
+        <!-- 4 sign up subjects -->
+        <div class="w-[100vw] h-full" data-index="4">
+          <!-- header -->
+          <header
+            class="flex justify-between items-center mt-[27px] lg:mt-[35px]"
+          >
+            <img
+              class="h-[15px] w-[15px] ml-[20px] lg:ml-[100px] cursor-pointer slideOnArrow"
+              src="../assets/images/arrow.left.png"
+            />
+            <div
+              class="justify-center space-x-1 items-center mr-[0px] lg:mr-[120px] flex"
+            >
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div
+                class="bg-white h-[13px] w-[13px] rounded-full opacity-30"
+              ></div>
+            </div>
+            <!-- <h2 class='text-[#494949] font-bold lg:hidden flex'>LOG IN</h2> -->
+            <!-- <p class='text-[#3F37C9] flex lg:hidden text-[16px] font-semibold pr-[20px]'>SKIP</p> -->
+            <p class="text-white">1</p>
+          </header>
+          <!-- second line -->
+          <div
+            class="flex justify-center items-center font-semibold text-[24px] mt-[37px] lg:mt-[20px]"
+          >
+            <p>What do you enjoy learning?</p>
+          </div>
+          <!-- third line -->
+          <div
+            class="flex justify-center items-center font-normal text-center text-[16px] mt-[14px]"
+          >
+            <p class="w-[344px] h-[44px] text-[#494949]">
+              Drag right for subjects you like and left for subjects you dont
+            </p>
+          </div>
+
+        <!-- Subject Content -->
+        <section class="subContent mt-[25px] lg:mt-[50px] px-[20px] flex flex-wrap justify-center sm:justify-start gap-x-[30px] gap-y-[15px]">
+
+          <div class="subDiv flex gap-[15px] rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+              <img src="../assets/images/music-player.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+              <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Music</p>
+          </div>
+
+          <div class="subDiv flex  gap-[15px] rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+              <img src="../assets/images/artist.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+              <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Arts and crafts</p>
+          </div>
+
+          <div class="subDiv flex  gap-[15px] rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+              <img src="../assets/images/gamepad.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+              <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Mathematics</p>
+          </div>
+
+          <div class="subDiv flex  gap-[15px] rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+              <img src="../assets/images/music-player.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+              <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Physics</p>
+          </div>
+
+          
+          <div class="subDiv flex  gap-[15px] rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+              <img src="../assets/images/football.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+              <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Sports</p>
+          </div>
+
+
+        </section>
+      <!-- End of Subject Content -->
+
+          <!-- button -->
+          <div
+            class="w-full flex justify-center items-center mt-[61px] lg:mt-[30px]"
+          >
+            <button
+              class="w-[344px] h-[48px] bg-[#3F37C9] rounded-xl text-white font-bold slideOnButton" id="fourthButton"
+            >
+              CONTINUE
+            </button>
+          </div>
+
+
+        </div>
+        
+      </div>
+
+      <div class="hobbies">
+        <!-- 5 sign up hobbies -->
+        <div class="w-[100vw]" data-index="5">
+          <!-- header -->
+          <header
+            class="flex justify-between items-center mt-[27px] lg:mt-[35px]"
+          >
+            <img
+              class="h-[15px] w-[15px] ml-[20px] lg:ml-[100px] cursor-pointer slideOnArrow"
+              src="../assets/images/arrow.left.png"
+            />
+            <div
+              class="justify-center space-x-1 items-center ml-[30px] lg:ml-[0px] mr-[0px] lg:mr-[120px] flex"
+            >
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+              <div class="bg-white h-[13px] w-[13px] rounded-full"></div>
+            </div>
+            <!-- <h2 class='text-[#494949] font-bold lg:hidden flex'>LOG IN</h2> -->
+            <p
+              class="text-[#3F37C9] flex sm:hidden text-[16px] font-semibold pr-[20px]"
+            >
+              SKIP
+            </p>
+            <p class="text-white hidden lg:flex">1</p>
+          </header>
+          <!-- second line -->
+          <div
+            class="flex justify-center items-center font-semibold text-[24px] mt-[37px] lg:mt-[30px]"
+          >
+            <p>What are your hobbies?</p>
+          </div>
+          <!-- third line -->
+          <div
+            class="flex justify-center items-center font-normal text-center text-[16px] mt-[14px]"
+          >
+            <p class="w-[344px] h-[44px] text-[#494949]">
+              Swipe right for subjects you like and left for subjects you dont
+            </p>
+          </div>
+
+          <!-- center portion -->
+          <div class="flex justify-center items-center mt-[60px] lg:mt-0">
+            <div class="flex justify-center items-center w-[1005px] h-[285px]">
+              <!-- left icon -->
+              <div
+                class="w-[30px] h-[30px] bg-[#F8F8F8] hidden lg:flex justify-center items-center rounded-full cursor-pointer"
+              >
+                <i class="fa-solid fa-angle-left"></i>
+              </div>
+
+              <!-- grid part -->
+              <div
+                class=" w-full flex justify-center items-center mt-7"
+              >
+                <div
+                  class="w-full h-full lg:w-[804px] lg:h-[285px] justify-center items-center grid grid-cols-1 lg:grid-cols-3 gap-1"
+                >
+                  <div
+                    class="w-[344px] lg:w-[248px] h-[50px] lg:h-[60px] bg-[#F7F7FA] rounded-[10px] flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/artist.png" />
+                      <p class="font-semibold ml-[15px]">Arts and crafts</p>
+                    </div>
+                  </div>
+                  <div
+                    class="w-[344px] lg:w-[248px] h-[50px] lg:h-[60px] mt-2 lg:mt-0 bg-[#F7F7FA] rounded-[10px] flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/music-player.png" />
+                      <p class="font-semibold ml-[15px]">Listening to music</p>
+                    </div>
+                  </div>
+                  <div
+                    class="w-[344px] lg:w-[248px] h-[50px] lg:h-[60px] mt-2 lg:mt-0 bg-[#F7F7FA] rounded-[10px] flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/gamepad.png" />
+                      <p class="font-semibold ml-[15px]">Playing video games</p>
+                    </div>
+                  </div>
+                  <div
+                    class="w-[344px] lg:w-[248px] h-[50px] lg:h-[60px] mt-2 lg:mt-0 bg-[#F7F7FA] rounded-[10px] flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/artist.png" />
+                      <p class="font-semibold ml-[15px]">Arts and crafts</p>
+                    </div>
+                  </div>
+                  <div
+                    class="w-[344px] lg:w-[248px] h-[50px] lg:h-[60px] mt-2 lg:mt-0 bg-[#F7F7FA] rounded-[10px] flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/artist.png" />
+                      <p class="font-semibold ml-[15px]">Arts and crafts</p>
+                    </div>
+                  </div>
+                  <div
+                    class="w-[344px] lg:w-[248px] h-[50px] lg:h-[60px] mt-2 lg:mt-0 bg-[#F7F7FA] rounded-[10px] flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/music-player.png" />
+                      <p class="font-semibold ml-[15px]">Listening to music</p>
+                    </div>
+                  </div>
+                  <div
+                    class="w-[248px] h-[60px] bg-[#F7F7FA] rounded-[10px] hidden lg:flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/artist.png" />
+                      <p class="font-semibold ml-[15px]">Arts and crafts</p>
+                    </div>
+                  </div>
+                  <div
+                    class="w-[248px] h-[60px] bg-[#F7F7FA] rounded-[10px] hidden lg:flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/gamepad.png" />
+                      <p class="font-semibold ml-[15px]">Playing video games</p>
+                    </div>
+                  </div>
+                  <div
+                    class="w-[248px] h-[60px] bg-[#F7F7FA] rounded-[10px] hidden lg:flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/artist.png" />
+                      <p class="font-semibold ml-[15px]">Arts and crafts</p>
+                    </div>
+                  </div>
+                  <div
+                    class="w-[248px] h-[60px] bg-[#F7F7FA] rounded-[10px] hidden lg:flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/gamepad.png" />
+                      <p class="font-semibold ml-[15px]">Playing video games</p>
+                    </div>
+                  </div>
+                  <div
+                    class="w-[248px] h-[60px] bg-[#F7F7FA] rounded-[10px] hidden lg:flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/football-ball.png" />
+                      <p class="font-semibold ml-[15px]">Playing sports</p>
+                    </div>
+                  </div>
+                  <div
+                    class="w-[248px] h-[60px] bg-[#F7F7FA] rounded-[10px] hidden lg:flex justify-start items-center mx-auto hobbiesTab"
+                  >
+                    <div class="flex justify-center items-center ml-[18px]">
+                      <img src="../assets/images/artist.png" />
+                      <p class="font-semibold ml-[15px]">Arts and crafts</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- right icon -->
+              <div
+                class="w-[30px] h-[30px] bg-[#F8F8F8] hidden lg:flex justify-center items-center rounded-full cursor-pointer"
+              >
+                <i class="fa-solid fa-angle-right"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- button -->
+          <div
+            class="w-full flex justify-center items-center mt-[95px] lg:mt-[80px]"
+          >
+            <button
+              class="w-[344px] h-[48px] bg-[#3F37C9] rounded-xl text-white font-bold" id="fifthButton"
+            >
+              FINISH
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div
+          class=" inset-x-0 z-10 h-[50px] flex flex-col bg-[#F9F9F9] lg:hidden justify-center items-center border-t-[1px] border-gray-500 mt-[50px] "
+        >
+          <div class="flex justify-center items-center space-x-[3px]">
+            <p>topteen.com</p>
+            <img src="../assets/images/trust.png" />
+          </div>
+          <div
+            class="bg-[#4B4B4B] h-[5px] w-[139px] rounded-full mt-[5px] mb-[8px]"
+          ></div>
+    </div>
+    <!-- End of footer -->
+
+
+  </body>
+  <!-- scripts for slick carousel -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script
+    type="text/javascript"
+    src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"
+  ></script>
+
+  <script type="text/javascript" src="../assets/js/onBoardingPage.js"></script>
+</html>

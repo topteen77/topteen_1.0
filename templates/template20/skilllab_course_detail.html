@@ -1,0 +1,319 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{{ skilllab.name }} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+{{ skilllab.description|striptags|truncate(160) if skilllab.description else skilllab.name }}
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="course-detail-hero pt-md-18 pt-14 pb-8">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8">
+        <!-- Video/Image Section -->
+        <div class="course-media mb-4">
+          {% if skilllab.video_url %}
+          <div class="video-wrapper position-relative" style="padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px;">
+            <iframe src="{{ skilllab.video_url }}" frameborder="0" allowfullscreen 
+              class="position-absolute top-0 left-0 w-100 h-100" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              style="border-radius: 10px;"></iframe>
+          </div>
+          {% elif skilllab.image %}
+          <img src="{{ skilllab.image.url }}" alt="{{ skilllab.name }}" class="img-fluid w-100 rounded" style="max-height: 500px; object-fit: cover;">
+          {% else %}
+          <img src="{{ static('images_new/short-courses/course-placeholder.png') }}" alt="{{ skilllab.name }}" class="img-fluid w-100 rounded" style="max-height: 500px; object-fit: cover;">
+          {% endif %}
+        </div>
+
+        <!-- Course Title and Description -->
+        <div class="course-header mb-4">
+          <h1 class="course-title mb-3">{{ skilllab.name }}</h1>
+          
+          {% if skilllab.description %}
+          <div class="course-description">
+            {{ skilllab.description|safe }}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Payment CTA (if course is paid and user hasn't paid) -->
+        {% if not skilllab.is_user_vissible(request) %}
+        <div class="payment-cta bg-primary text-white p-4 rounded mb-4">
+          <div class="row align-items-center">
+            <div class="col-md-8 mb-3 mb-md-0">
+              <h4 class="text-white mb-2">Complete the payment to unlock exciting content</h4>
+              <p class="text-white-50 mb-0">Get full access to all course chapters and activities</p>
+            </div>
+            <div class="col-md-4 text-center text-md-end">
+              <a href="{{ url('skilllab:createskilllabcoursepayment', args=[skilllab.slug]) }}" class="btn btn-light btn-lg">
+                Pay {{ skilllab.get_display_price() if skilllab.get_display_price else currency_format(skilllab.amount) }} Now
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Course Chapters Section -->
+        {% if skilllab.is_user_vissible(request) and skilllab.skilllabcoursechapter.all() %}
+        <section class="chapters-section mb-5">
+          <h3 class="section-title mb-4">Course Chapters</h3>
+          <div class="chapters-list">
+            {% for chapter in skilllab.skilllabcoursechapter.all() %}
+            <div class="chapter-item mb-3 p-3 border rounded">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                  <h5 class="mb-1">
+                    <a href="{{ url('skilllab:skilllabcoursechapterdetail', args=[chapter.slug]) }}" class="text-decoration-none">
+                      {{ chapter.chapter_name }}
+                    </a>
+                  </h5>
+                  {% if chapter.content %}
+                  <p class="text-gray fs-14 mb-0">{{ chapter.content|striptags|truncate(100) }}</p>
+                  {% endif %}
+                </div>
+                <div class="ms-3">
+                  <a href="{{ url('skilllab:skilllabcoursechapterdetail', args=[chapter.slug]) }}" class="btn btn-sm btn-outline-primary">
+                    View <i class='bx bx-right-arrow-alt'></i>
+                  </a>
+                </div>
+              </div>
+              
+              <!-- Chapter Activities -->
+              {% if chapter.skilllabcourseactivity.all() %}
+              <div class="activities-list mt-3 pt-3 border-top">
+                <h6 class="fs-14 fw-semibold mb-2">Activities:</h6>
+                <div class="row g-2">
+                  {% for activity in chapter.skilllabcourseactivity.all() %}
+                  <div class="col-md-6">
+                    <a href="{{ url('skilllab:skilllabcourseactivityworksheetdetail', args=[activity.slug]) }}" class="text-decoration-none">
+                      <div class="activity-item p-2 bg-light rounded">
+                        <div class="d-flex align-items-center">
+                          <i class='bx bx-file me-2 text-primary'></i>
+                          <span class="fs-14">{{ activity.name }}</span>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% elif not skilllab.is_user_vissible(request) %}
+        <div class="locked-content bg-light p-4 rounded text-center mb-5">
+          <i class='bx bx-lock fs-48 text-gray mb-3'></i>
+          <h4 class="mb-2">Content Locked</h4>
+          <p class="text-gray mb-3">Complete the payment to access all course chapters and activities.</p>
+          <a href="{{ url('skilllab:createskilllabcoursepayment', args=[skilllab.slug]) }}" class="btn btn-primary">
+            Unlock Course
+          </a>
+        </div>
+        {% endif %}
+
+        <!-- Related Courses -->
+        {% if activecourses %}
+        <section class="related-courses-section mb-5">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="section-title mb-0">Related Courses</h3>
+              <a href="{{ url('skilllabcourse:skilllabcourselist') }}" class="text-primary text-decoration-none">View All</a>
+          </div>
+          <div class="row">
+            {% for course in activecourses[:3] %}
+            <div class="col-md-4 col-sm-6 mb-4">
+              <div class="course-card h-100">
+                <div class="course-image mb-3">
+                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[course.slug]) }}">
+                    {% if course.video_url %}
+                    <div class="video-wrapper position-relative" style="padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px;">
+                      <iframe src="{{ course.video_url }}" frameborder="0" allowfullscreen class="position-absolute top-0 left-0 w-100 h-100" style="border-radius: 10px;"></iframe>
+                    </div>
+                    {% elif course.image %}
+                    <img src="{{ course.image.url }}" alt="{{ course.name }}" class="img-fluid w-100 rounded" style="height: 180px; object-fit: cover;">
+                    {% else %}
+                    <img src="{{ static('images_new/short-courses/course-placeholder.png') }}" alt="{{ course.name }}" class="img-fluid w-100 rounded" style="height: 180px; object-fit: cover;">
+                    {% endif %}
+                  </a>
+                </div>
+                {% if course.category %}
+                <div class="mb-2">
+                  <span class="badge bg-primary">{{ course.get_category_display() if course.get_category_display else course.category }}</span>
+                </div>
+                {% endif %}
+                <h5 class="course-name mb-2">
+                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[course.slug]) }}" class="text-decoration-none">{{ course.name }}</a>
+                </h5>
+                {% if course.description %}
+                <p class="course-description text-gray fs-14 mb-3">{{ course.description|striptags|truncate(80) }}</p>
+                {% endif %}
+                <div class="d-flex justify-content-between align-items-center">
+                  {% if course.amount and course.amount > 0 %}
+                  <span class="fw-bold text-primary">
+                    <i class='bx bx-rupee'></i>{{ currency_format(course.amount) }}
+                  </span>
+                  {% else %}
+                  <span class="badge bg-success">Free</span>
+                  {% endif %}
+                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[course.slug]) }}" class="btn btn-sm btn-outline-primary">
+                    View <i class='bx bx-right-arrow-alt'></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="col-lg-4">
+        <div class="course-sidebar">
+          <!-- Course Info Card -->
+          <div class="sidebar-card mb-4">
+            <h4 class="sidebar-title mb-3">Course Information</h4>
+            
+            {% if skilllab.category %}
+            <div class="info-item mb-3">
+              <div class="d-flex align-items-center mb-1">
+                <i class='bx bx-category me-2 text-primary'></i>
+                <span class="fw-semibold">Category:</span>
+              </div>
+              <span class="badge bg-primary">{{ skilllab.get_category_display() if skilllab.get_category_display else skilllab.category }}</span>
+            </div>
+            {% endif %}
+
+            {% if skilllab.amount %}
+            <div class="info-item mb-3">
+              <div class="d-flex align-items-center mb-1">
+                <i class='bx bx-rupee me-2 text-primary'></i>
+                <span class="fw-semibold">Price:</span>
+              </div>
+              <div class="price-display">
+                {% if skilllab.amount > 0 %}
+                <span class="fs-24 fw-bold text-primary">
+                  <i class='bx bx-rupee'></i>{{ currency_format(skilllab.amount) }}
+                </span>
+                {% else %}
+                <span class="badge bg-success fs-16">Free</span>
+                {% endif %}
+              </div>
+            </div>
+            {% endif %}
+
+            {% if skilllab.skilllabcoursechapter.all() %}
+            <div class="info-item mb-3">
+              <div class="d-flex align-items-center mb-1">
+                <i class='bx bx-book me-2 text-primary'></i>
+                <span class="fw-semibold">Chapters:</span>
+              </div>
+              <span class="fs-16">{{ skilllab.skilllabcoursechapter.all()|length }} Chapters</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Enrollment Card -->
+          {% if skilllab.is_paid %}
+          <div class="sidebar-card mb-4">
+            {% if skilllab.is_user_vissible(request) %}
+            <div class="enrolled-badge bg-success text-white p-3 rounded text-center mb-3">
+              <i class='bx bx-check-circle fs-32 mb-2'></i>
+              <h5 class="text-white mb-0">You're Enrolled!</h5>
+              <p class="text-white-50 mb-0 fs-14">Access all course content</p>
+            </div>
+            {% else %}
+            <div class="enrollment-card">
+              <h4 class="sidebar-title mb-3">Enroll Now</h4>
+              <div class="price-container mb-3">
+                <span class="fs-28 fw-bold text-primary">
+                  <i class='bx bx-rupee'></i>{{ currency_format(skilllab.amount) }}
+                </span>
+              </div>
+              <a href="{{ url('skilllab:createskilllabcoursepayment', args=[skilllab.slug]) }}" class="btn btn-primary w-100 btn-lg mb-3">
+                <i class='bx bx-lock-open me-2'></i>Enroll Now
+              </a>
+              <ul class="enrollment-features list-unstyled">
+                <li class="mb-2">
+                  <i class='bx bx-check text-success me-2'></i>
+                  <span>Full course access</span>
+                </li>
+                <li class="mb-2">
+                  <i class='bx bx-check text-success me-2'></i>
+                  <span>All chapters unlocked</span>
+                </li>
+                <li class="mb-2">
+                  <i class='bx bx-check text-success me-2'></i>
+                  <span>Activities & worksheets</span>
+                </li>
+                <li class="mb-0">
+                  <i class='bx bx-check text-success me-2'></i>
+                  <span>Lifetime access</span>
+                </li>
+              </ul>
+            </div>
+            {% endif %}
+          </div>
+          {% else %}
+          <div class="sidebar-card mb-4">
+            <div class="free-badge bg-info text-white p-3 rounded text-center">
+              <i class='bx bx-gift fs-32 mb-2'></i>
+              <h5 class="text-white mb-0">Free Course</h5>
+              <p class="text-white-50 mb-0 fs-14">Access all content for free</p>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Share Section -->
+          <div class="sidebar-card">
+            <h4 class="sidebar-title mb-3">Share Course</h4>
+            <div class="blog-share-icons">
+              <a href="#" class="blog-share-icon" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank'); return false;"><i class="bx bxl-facebook"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent('{{ skilllab.name }}'), '_blank'); return false;"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://www.linkedin.com/shareArticle?url=' + encodeURIComponent(window.location.href) + '&title=' + encodeURIComponent('{{ skilllab.name }}'), '_blank'); return false;"><i class="bx bxl-linkedin"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('{{ skilllab.name }} ' + window.location.href), '_blank'); return false;"><i class="bx bxl-whatsapp"></i></a>
+              <a href="#" class="blog-share-icon copy-link" data-url="{{ url('skilllab:skilllabcoursedetail', args=[skilllab.slug]) }}"><i class="bx bx-link"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+// Copy Link Functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const copyLinks = document.querySelectorAll('.copy-link');
+  copyLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const url = this.getAttribute('data-url');
+      const fullUrl = window.location.origin + url;
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        alert('Link copied to clipboard!');
+      });
+    });
+  });
+});
+</script>
+{% endblock %}
+

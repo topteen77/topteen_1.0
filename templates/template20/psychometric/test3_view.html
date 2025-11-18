@@ -1,0 +1,350 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Comprehensive Aptitude Assessment | Top Teen{% endblock %}
+{% block description_content %}Select a sub-test to begin your comprehensive aptitude assessment.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} test-view-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .test-view-page {
+    padding-top: 80px;
+  }
+  .subtest-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    text-align: center;
+  }
+  .subtest-button {
+    border: 2px solid #e5e5e5;
+    border-bottom: 6px solid #e5e5e5;
+    background: #eaeaee;
+    padding: 20px 10px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    color: #000 !important;
+    border-radius: 5px !important;
+    box-shadow: none !important;
+    text-decoration: none;
+    transition: all 0.3s;
+    min-height: 120px;
+  }
+  .subtest-button:hover {
+    border: 2px solid #3f37c9;
+    border-bottom: 6px solid #3f37c9;
+    background: rgba(63, 55, 201, 0.1);
+    color: #3f37c9 !important;
+  }
+  .subtest-button.completed {
+    background: #e4ece7;
+    border: 2px solid #008032;
+    border-bottom: 6px solid #008032;
+    color: #008032;
+  }
+  .subtest-button.completed::before {
+    content: "Completed";
+    position: absolute;
+    font-size: 11px;
+    right: 5px;
+    top: 5px;
+    background: #008032;
+    border-radius: 4px;
+    color: #fff;
+    padding: 2px 8px;
+    font-weight: 500;
+  }
+  .subtest-button img {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 10px;
+  }
+  .subtest-button.completed:hover {
+    border: 2px solid #008032;
+    border-bottom: 6px solid #008032;
+    background: #e4ece7;
+    color: #008032 !important;
+  }
+  .subtest-grid form:last-child {
+    grid-column: 2 / span 1;
+  }
+  @media (max-width: 576px) {
+    .subtest-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .subtest-button img {
+      width: 30px;
+      height: 30px;
+      margin-top: 7px;
+    }
+    .subtest-button.completed::before {
+      font-size: 9px;
+      right: 2px;
+      top: 3px;
+      padding: 1px 6px;
+    }
+    .subtest-grid form:last-child {
+      grid-column: 1 / span 2;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="test-view-page pb-5">
+  <div class="container">
+    <div class="row">
+      <!-- Left Sidebar (Desktop) -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
+          <div class="profile-header text-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="profile-img rounded-circle mb-3" style="width: 104px; height: 104px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 104px; height: 104px;">
+              <i class='bx bx-user fs-48 text-gray'></i>
+            </div>
+            {% endif %}
+            <h5 class="profile-name">{{ request.user.name|default(request.user.username) }}</h5>
+            <div class="profile-meta text-gray fs-14">
+              <p class="mb-1">
+                <i class='bx bx-calendar me-1'></i>
+                Joined {{ date_format(request.user.created) }}
+              </p>
+              {% if request.user.user_profile %}
+              <p class="mb-0">
+                <i class='bx bx-book me-1'></i>
+                {% if request.user.student_management.last().class_and_section %}{{ request.user.student_management.last().class_and_section }}{% endif %}
+                {% if request.user.user_profile.schoolname %} • {{ request.user.user_profile.schoolname }}{% endif %}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="profile-progress mt-4">
+            <h6 class="fs-14 fw-semibold">Complete your profile</h6>
+            <p class="text-gray fs-12">A complete profile helps us cater the best content to you</p>
+            <div class="progress mt-2">
+              <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+            </div>
+            <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">Settings</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="col-lg-8">
+        <!-- Mobile Header -->
+        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex align-items-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px;">
+              <i class='bx bx-user fs-24 text-gray'></i>
+            </div>
+            {% endif %}
+            <div>
+              <h5 class="mb-0">{{ request.user.name|default(request.user.username) }}</h5>
+              <p class="text-gray fs-12 mb-0">Joined {{ date_format(request.user.created) }}</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
+            <i class='bx bx-cog'></i>
+          </button>
+        </div>
+
+        <h2 class="fs-24 fw-semibold mb-4">Comprehensive Aptitude Assessment</h2>
+        
+        <div class="alert alert-info d-flex align-items-center mb-4">
+          <i class='bx bx-info-circle me-2 fs-20'></i>
+          <div class="fs-14">Complete all 7 sub-tests to finish the comprehensive aptitude assessment. Each sub-test takes approximately 10 minutes.</div>
+        </div>
+
+        <div class="subtest-grid mb-4">
+          <!-- Numerical -->
+          {% if test_completion and test_completion.numerical_complete %}
+          <form action="{{ url('app:test3-numerical') }}" method="GET">
+            <button type="button" class="subtest-button completed">
+              <img src="{{ static('images/logicial-t-icon.png') }}" alt="Numerical">
+              Numerical
+            </button>
+          </form>
+          {% else %}
+          <form action="{{ url('app:test3-numerical') }}" method="GET">
+            <button type="submit" class="subtest-button">
+              <img src="{{ static('images/logicial-t-icon.png') }}" alt="Numerical">
+              Numerical
+            </button>
+          </form>
+          {% endif %}
+
+          <!-- Verbal -->
+          {% if test_completion and test_completion.verbal_complete %}
+          <form action="{{ url('app:test3-verbal') }}" method="GET">
+            <button type="button" class="subtest-button completed">
+              <img src="{{ static('images/verbal-t-icon.png') }}" alt="Verbal">
+              Verbal
+            </button>
+          </form>
+          {% else %}
+          <form action="{{ url('app:test3-verbal') }}" method="GET">
+            <button type="submit" class="subtest-button">
+              <img src="{{ static('images/verbal-t-icon.png') }}" alt="Verbal">
+              Verbal
+            </button>
+          </form>
+          {% endif %}
+
+          <!-- Logical -->
+          {% if test_completion and test_completion.logical_complete %}
+          <form action="{{ url('app:test3-logical') }}" method="GET">
+            <button type="button" class="subtest-button completed">
+              <img src="{{ static('images/numerical-t-icon.png') }}" alt="Logical">
+              Logical
+            </button>
+          </form>
+          {% else %}
+          <form action="{{ url('app:test3-logical') }}" method="GET">
+            <button type="submit" class="subtest-button">
+              <img src="{{ static('images/numerical-t-icon.png') }}" alt="Logical">
+              Logical
+            </button>
+          </form>
+          {% endif %}
+
+          <!-- Critical (Emotional) -->
+          {% if test_completion and test_completion.emotional_complete %}
+          <form action="{{ url('app:test3-emotional') }}" method="GET">
+            <button type="button" class="subtest-button completed">
+              <img src="{{ static('images/spelling-t-icon.png') }}" alt="Critical">
+              Critical
+            </button>
+          </form>
+          {% else %}
+          <form action="{{ url('app:test3-emotional') }}" method="GET">
+            <button type="submit" class="subtest-button">
+              <img src="{{ static('images/spelling-t-icon.png') }}" alt="Critical">
+              Critical
+            </button>
+          </form>
+          {% endif %}
+
+          <!-- Mechanical -->
+          {% if test_completion and test_completion.machanical_complete %}
+          <form action="{{ url('app:test3-machanical') }}" method="GET">
+            <button type="button" class="subtest-button completed">
+              <img src="{{ static('images/mechanical-t-icon.png') }}" alt="Mechanical">
+              Mechanical
+            </button>
+          </form>
+          {% else %}
+          <form action="{{ url('app:test3-machanical') }}" method="GET">
+            <button type="submit" class="subtest-button">
+              <img src="{{ static('images/mechanical-t-icon.png') }}" alt="Mechanical">
+              Mechanical
+            </button>
+          </form>
+          {% endif %}
+
+          <!-- Language -->
+          {% if test_completion and test_completion.language_complete %}
+          <form action="{{ url('app:test3-language') }}" method="GET">
+            <button type="button" class="subtest-button completed">
+              <img src="{{ static('images/language-t-icon.png') }}" alt="Language">
+              Language
+            </button>
+          </form>
+          {% else %}
+          <form action="{{ url('app:test3-language') }}" method="GET">
+            <button type="submit" class="subtest-button">
+              <img src="{{ static('images/language-t-icon.png') }}" alt="Language">
+              Language
+            </button>
+          </form>
+          {% endif %}
+
+          <!-- Spatial -->
+          {% if test_completion and test_completion.spatial_complete %}
+          <form action="{{ url('app:test3-spatial') }}" method="GET">
+            <button type="button" class="subtest-button completed">
+              <img src="{{ static('images/test-t-icon.png') }}" alt="Spatial">
+              Spatial
+            </button>
+          </form>
+          {% else %}
+          <form action="{{ url('app:test3-spatial') }}" method="GET">
+            <button type="submit" class="subtest-button">
+              <img src="{{ static('images/test-t-icon.png') }}" alt="Spatial">
+              Spatial
+            </button>
+          </form>
+          {% endif %}
+        </div>
+
+        <!-- Submit Button -->
+        <div class="d-flex justify-content-center mt-4">
+          <form id="testForm" action="{{ url('app:app_submit') }}" method="GET">
+            {% if all_subtests_complete %}
+            <button type="submit" class="btn custom-button purple-button">
+              <i class='bx bx-check me-2'></i> Submit Assessment
+            </button>
+            {% else %}
+            <button type="button" class="btn custom-button purple-button" disabled style="opacity: 0.5; cursor: not-allowed;">
+              <i class='bx bx-lock me-2'></i> Complete All Tests to Submit
+            </button>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Mobile Drawer -->
+<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-lg-none" data-direction="translate-y-full">
+  <div class="drawerContent bg-white w-100 rounded-t-lg absolute bottom-0">
+    <div class="p-4 d-flex flex-column gap-3">
+      <a href="{{ url('users:logout') }}" class="d-flex justify-content-between align-items-center text-decoration-none text-danger">
+        <div>
+          <h6 class="mb-0">Sign Out</h6>
+          <p class="text-danger fs-12 mb-0">Log out from your account</p>
+        </div>
+        <i class='bx bx-chevron-right'></i>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Drawer functionality for mobile
+    const drawerTrigger = document.querySelector('.drawerTrigger');
+    const drawerModal = document.querySelector('.drawerModal');
+    
+    if (drawerTrigger && drawerModal) {
+      drawerTrigger.addEventListener('click', function() {
+        drawerModal.classList.toggle('translate-y-full');
+        drawerModal.classList.toggle('translate-y-0');
+      });
+
+      drawerModal.addEventListener('click', function(event) {
+        if (event.target === drawerModal) {
+          drawerModal.classList.add('translate-y-full');
+          drawerModal.classList.remove('translate-y-0');
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
+

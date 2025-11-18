@@ -1,0 +1,207 @@
+{% extends 'topteenfrontend/base.html' %} {% block main %}
+<!-- MAIN CONTENT -->
+<main>
+  <!-- BREADCRUMB -->
+  <div class="bg-white container lg:mx-auto mx-[17px]">
+    {% if breadcrumb %}
+    <div
+      class="hidden lg:flex pt-[24px] text-[12px] mt-[6px] mb-[10px] items-center space-x-2 scrollbar-hide overflow-x-auto whitespace-nowrap sm:mt-2 lg:-mt-[-150px] xl:mt-0"
+    >
+      {% for brdcrm in breadcrumb %} {% if loop.first %}
+      <a href="{{brdcrm.url}}"
+        ><img
+          class="h-3 opacity-50"
+          src="{{static('topteenfrontend/assets/images/home.svg')}}"
+      /></a>
+      <span>&rarr;</span>
+      {% endif %} {% if not loop.first and not loop.last %}
+      <a class="h-5 opacity-50" href="{{brdcrm.url}}">{{brdcrm.title}}</a>
+      <span>&rarr;</span>
+      {% endif %} {% if loop.last %}
+      <p class="text-green-600 font-[galanoGrotesqueBold]">{{brdcrm.title}}</p>
+      {% endif %} {% endfor %}
+    </div>
+    {%endif%}
+  </div>
+
+  <section
+    class="lg:max-w-[1082px] lg:mx-auto lg:pt-[21px] sticky left-0 lg:relative top-[0px] z-30 w-full bg-[#ffffff]"
+  >
+
+  <div class="headingSection inline-block relative w-full lg:hidden">
+
+    <!-- first Header -->
+    <div
+    class="firstHeader w-full py-[24px] border-b-[2px] border-solid border-[#ebebee]  relative px-[20px] lg:px-[100px]"
+  >
+    <p
+      class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center"
+    >
+      Career Interests
+    </p>
+    <button
+      onclick="window.location='{{url('core:home')}}'"
+      class="absolute bottom-[18px]"
+    >
+      <i
+        class="fa-solid fa-arrow-left text-[#828282] text-[18px] leading-[50px]"
+      ></i>
+    </button>
+    <button class="searchBarTrigger absolute bottom-[18px] right-[24px]">
+      <i
+        class="fa-solid fa-search text-[#828282] text-[18px] leading-[50px]"
+      ></i>
+    </button>
+  </div>
+
+  <!-- Mobile Search Bar -->
+  <div class="searchBarHeader hidden w-full py-[24px] flex justify-center gap-[12px] px-[12px] border-b-[2px] border-solid border-[#ebebee]">
+
+    <button class="searchBarCloseBtn">
+      <i
+        class="fa-solid fa-xmark text-[#828282] text-[18px] leading-[50px]"
+      ></i>
+    </button>
+
+    <form method="GET" class="flex grow gap-[4px] relative max-w-[400px]">
+      
+        <input type="text" name="careersearch" {% if request.GET.get("careersearch")%} value="{{request.GET.get("careersearch")}}" {% endif %} class=" w-full rounded-[4px] pl-[12px] pr-[40px]" placeholder="Enter Career">
+
+        <button type="submit" class="absolute right-[12px] top-[50%] -translate-y-[50%]">
+          <i
+            class="fa-solid fa-search text-[#828282] text-[18px] leading-[50px]"
+          ></i>
+        </button>
+      
+    </form>
+
+  </div>
+  <!-- End of Mobile SearchBar -->
+  </div>
+
+
+<!-- Desktop Heading and Search -->
+    <div class="hidden lg:flex justify-between pb-[35px] ">
+      <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">
+        Career Interests
+      </p>
+
+      <form method="GET" class="grow max-w-[270px] inline-block">
+      <div class="flex w-full  gap-[4px] relative my-auto  ">
+     
+          <input type="text" name="careersearch" {% if request.GET.get("careersearch")%} value="{{request.GET.get("careersearch")}}" {% endif %} class=" w-full rounded-[4px] pl-[12px] pr-[40px]" placeholder="Enter Career">
+    
+          <button type="submit" class="absolute right-[12px] top-[50%] -translate-y-[50%]">
+            <i
+              class="fa-solid fa-search text-[#828282] text-[18px] leading-[50px]"
+            ></i>
+          </button>
+      </div>
+    </form>
+    </div>
+  </section>
+  <!-- CAREER CARDS SECTION -->
+
+  {% if clusters %}
+  <div
+    class="bg-[#F7F7FA] lg:py-[39px] pb-[20px] pt-[60px] lg:pt-[20px] border"
+  >
+    <!-- CAREER CARDS FOR DESKTOP-->
+    <!-- NAVIGATION ARROWS -->
+
+    <section class="relative mx-auto max-w-[1176px]">
+      <!-- NAVIGATION ARROWS -->
+      <ul class="navArrows">
+        <li
+          class="absolute nextArr rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[50%] -translate-y-[50%] right-[0px] flex flex-row justify-center items-center z-1 nextArrow"
+        >
+          <i class="fa fa-angle-right"></i>
+        </li>
+        <li
+          class="absolute prevArr rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[50%] -translate-y-[50%] left-[0px] flex justify-center items-center z-1 prevArrow"
+        >
+          <i class="fa fa-angle-left"></i>
+        </li>
+      </ul>
+
+      <div class="carouselContainer w-full">
+        <!-- SLICK CAROUSEL -->
+        <div class="careerTracksCarousel mx-[38.5px] carousel customCarousel">
+          {% for clstr in clusters %}
+          <a
+            href="{{url('careers:careerlibrary',args=[clstr.slug,clstr.id])}}"
+            class="max-w-[144px] h-[182px] lg:max-w-[248px] lg:h-[236px] bg-[#333333] rounded-[10px]"
+          >
+            <div
+              class=" mx-auto w-[144px] h-[182px] lg:w-[248px] lg:h-[236px] flex flex-col items-center lg:pt-[24px] pt-[9px] bg-[#333333] rounded-[10px] shrink-0"
+            >
+              <div class="flex flex-col px-[8px]">
+                <h6
+                  class="h-[72px] text-[13px] leading-[18px] lg:text-[18px] lg:leading-[24.3px] tracking-[0.035em] semibold mb-[6px] text-white text-center"
+                >
+                  {{clstr}}
+                </h6>
+                <div class="flex justify-center">
+                  <div
+                    class="text-center px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px] inline-block mx-auto text-white semibold mb-[25px]"
+                  >
+                    {{clstr.get_careers().count()}} Careers
+                  </div>
+                </div>
+              </div>
+
+              <div class="h-[48px] w-[63px] lg:w-[72px] lg:h-[72px] mx-auto">
+                <img class="h-[48px] w-[63px] lg:w-[72px] lg:h-[72px]
+                object-cover object-top" src="{% if clstr.image
+                %}{{clstr.image.url}} {% else
+                %}{{static("topteenfrontend/assets/images/engineering.png")}}{%
+                endif %}" />
+              </div>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </div>
+  {% endif %}
+
+  <!-- LIBRARY -->
+  <section class="bg-white lg:py-[44px] py-[28px] mx-[17px]">
+    <ul
+      class="container lg:mx-auto lg:px-0 grid lg:grid-cols-3 grid-cols-1 lg:gap-x-[30px]"
+    >
+      <!-- CARD -->
+      {% for career in careers %}
+      <li class="flex flex-row justify-start items-center mb-4 gap-x-[13px]">
+        <div class="h-[69px] w-[69px] lg:h-[115px] lg:w-[115px] shrink-0">
+          <img
+            src="{% if career.image and career.image.name %}{{career.image.url}}{% else %}{{static('images/career-icon.png')}}{% endif %}"
+            class="h-full w-full rounded-[10px] object-cover"
+          />
+        </div>
+        <div class="lg:text-lg text-[13px] leading-[17.55px]">
+          <a
+            class="text-[#333333] font-semibold mb-[3px]"
+            href="{{url('careers:careerdetail',args=[career.slug,career.id])}}"
+          >
+            {{career}}
+          </a>
+          <p
+            class="text-[#828282] font-normal flex flex-row justify-start gap-x-[3px] items-baseline"
+          >
+            <span>{{career.get_max_salary()}} &#x2022;</span>
+            <img
+              src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+              class="inline-block"
+            />
+            <span> {{career.get_average_rating()}}</span>
+          </p>
+        </div>
+      </li>
+      <!-- CARD -->
+      {% endfor %}
+    </ul>
+  </section>
+</main>
+{% endblock %}

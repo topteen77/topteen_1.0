@@ -1,0 +1,224 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}My Hobbies | Top Teen{% endblock %}
+{% block description_content %}View and manage your hobbies. This helps us serve you personalized content.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} my-hobbies-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .my-hobbies-page {
+    padding-top: 80px;
+  }
+  .hobby-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 18px;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.3s;
+  }
+  .hobby-card:hover {
+    transform: translateY(-3px);
+  }
+  .hobby-card img {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+  }
+  .delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #bdbdbd;
+    transition: color 0.3s;
+  }
+  .delete-btn:hover {
+    color: #dc3545;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="my-hobbies-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- Hobbies Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <h1 class="fs-24 fw-semibold mb-0">My Hobbies</h1>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+        <i class='bx bx-arrow-left fs-18 text-gray'></i>
+      </button>
+      <h2 class="fs-16 fw-normal text-center mb-0">My Hobbies</h2>
+    </div>
+
+    <!-- Hobbies Content -->
+    {% if request.user.user_profile and request.user.user_profile.hobbies.all() %}
+    <div class="row g-3 g-lg-4">
+      {% for h in request.user.user_profile.hobbies.all() %}
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="hobby-card">
+          {% if h.image %}
+          <img src="{{ h.image.url }}" alt="{{ h.name }}" class="me-3">
+          {% endif %}
+          <p class="fs-16 fw-semibold text-dark mb-0 flex-grow-1">{{ h.name }}</p>
+          <button type="button" class="delete-btn deletehobbie" data-id="{{ h.id }}" data-bs-toggle="modal" data-bs-target="#deleteHobbyModal" data-hobby-name="{{ h.name }}">
+            <i class='bx bx-x-circle fs-24'></i>
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+      <i class='bx bx-heart fs-64 text-gray mb-3'></i>
+      <h3 class="fs-20 fw-semibold text-dark mb-2">No Hobbies Selected</h3>
+      <p class="text-gray fs-14 mb-4">You haven't selected any hobbies yet. Add hobbies to help us personalize your content.</p>
+      <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button">
+        <i class='bx bx-plus me-2'></i> Add Hobbies
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteHobbyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Hobby</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">Are you sure you want to remove <strong id="hobbyNameToDelete"></strong> from your hobbies?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+        <button type="button" class="btn custom-button purple-button" id="confirmDeleteBtn">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Sweet Alert Helper
+  const fireAlert = async function (
+    title,
+    icon = "success",
+    showConfirmButton = false,
+    showCloseButton = false,
+    isPrompt = false
+  ) {
+    const canDo = Swal.fire({
+      title,
+      icon: icon,
+      position: "top-end",
+      showCloseButton,
+      showConfirmButton,
+      toast: true,
+      showCancelButton: false,
+      ...(isPrompt ? {} : { timer: 2000 }),
+    });
+
+    if (isPrompt) {
+      return canDo?.isConfirmed;
+    } else {
+      return -1;
+    }
+  };
+
+  // Delete hobby functionality
+  let hobbyIdToDelete = null;
+
+  // Set up delete buttons
+  document.querySelectorAll('.deletehobbie').forEach(btn => {
+    btn.addEventListener('click', function() {
+      hobbyIdToDelete = this.dataset.id;
+      const hobbyName = this.dataset.hobbyName || 'this hobby';
+      document.getElementById('hobbyNameToDelete').textContent = hobbyName;
+    });
+  });
+
+  // Confirm delete
+  document.getElementById('confirmDeleteBtn')?.addEventListener('click', function() {
+    if (hobbyIdToDelete) {
+      deleteHobby(hobbyIdToDelete);
+    }
+  });
+
+  function deleteHobby(id) {
+    const form = document.createElement("form");
+    form.setAttribute("method", "POST");
+    
+    const csrfField = document.createElement("input");
+    csrfField.setAttribute("type", "hidden");
+    csrfField.setAttribute("name", "csrfmiddlewaretoken");
+    csrfField.setAttribute("value", "{{ csrf_token }}");
+    form.appendChild(csrfField);
+    
+    const hobbyField = document.createElement("input");
+    hobbyField.setAttribute("type", "hidden");
+    hobbyField.setAttribute("name", "hobbie_id");
+    hobbyField.setAttribute("value", id);
+    form.appendChild(hobbyField);
+    
+    const formData = new FormData(form);
+    
+    $.ajax({
+      url: "/api/v1/user/remove-hobbie",
+      type: 'POST',
+      data: formData,
+      success: function (data) {
+        fireAlert("Hobby removed successfully", "success");
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteHobbyModal'));
+        if (modal) {
+          modal.hide();
+        }
+        // Reload page after a short delay
+        setTimeout(function() {
+          window.location.reload();
+        }, 1000);
+      },
+      error: function(data) {
+        try {
+          fireAlert(data.responseJSON.message || "Error removing hobby", "error");
+        } catch(e) {
+          fireAlert("Internal Server Error", "error");
+        }
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteHobbyModal'));
+        if (modal) {
+          modal.hide();
+        }
+      },
+      cache: false,
+      contentType: false,
+      processData: false
+    });
+  }
+</script>
+{% endblock %}
+

@@ -1,0 +1,172 @@
+{% extends 'topteenfrontend/app/user_base.html' %}
+
+{% block main %}
+
+
+<div class="col-lg-8 col-md-12 mt-md-0 mt-5 order-md-2 order-1">
+  <h2 class="title-test-info mb-0">Holland Code Career Quiz </h2>
+  <p>Accurate, Free Test to Find Your Ideal Career </p>
+  <form id="multiStepForm" method="post" action="{{ url('app:app_submit') }}">
+    <div class="tsp-title w-100" id="error-message" style="display: none; color: red;">
+      Please select an option for all questions before submitting.
+    </div>
+
+    <input type="hidden" name="test_paper" value="{{ test_paper }}">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    {%- for question in questions %}
+    <div class="question {% if loop.first %}active{% endif %}" id="question{{ loop.index }}">
+      <div class="question-box">
+        <div class="question-label"> Q{{ loop.index }}: {{ question.question_text }}</div>
+
+        <div class="radio-buttons">
+          <label class="custom-radio" for="radio-{{ loop.index }}-1">
+            <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-1" value="1">
+            <span class="radio-btn"><i class="las la-check"></i> Not at all like me </span>
+          </label>
+          <label class="custom-radio" for="radio-{{ loop.index }}-2">
+            <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-2" value="2">
+            <span class="radio-btn"><i class="las la-check"></i> A little like me </span>
+          </label>
+          <label class="custom-radio" for="radio-{{ loop.index }}-3">
+            <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-3" value="3">
+            <span class="radio-btn"><i class="las la-check"></i> Somewhat like me </span>
+          </label>
+          <label class="custom-radio" for="radio-{{ loop.index }}-4">
+            <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-4" value="4">
+            <span class="radio-btn"><i class="las la-check"></i> A lot like me </span>
+          </label>
+          <label class="custom-radio" for="radio-{{ loop.index }}-5">
+            <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-5" value="5">
+            <span class="radio-btn"><i class="las la-check"></i> Exactly like me </span>
+          </label>
+        </div>
+      </div>
+
+
+      <div class="assestment-button d-flex justify-content-center my-5">
+        {% if not loop.first %}
+        <button type="button" class="btn blue-button ms-3 prev-button px-md-6 fw-600 me-1">Back</button>
+        {% endif %}
+        {% if not loop.last %}
+        <button type="button" class="btn purple-button next-button px-md-6 fw-600 ms-1">Continue</button>
+        {%- else %}
+        <button type="submit" onclick="return validateForm()"
+          class="btn btn-success submit-button btn-sumb px-md-6 fw-600">Submit</button>
+        {% endif %}
+      </div>
+    </div>
+    {%- endfor %}
+
+  </form>
+</div>
+
+
+<script>
+  $(document).ready(function () {
+    let currentQuestion = 1;
+    const totalQuestions = $('.question').length;
+    console.log("totalQuestions", totalQuestions)
+
+    function getSelectedRadioValues() {
+      const selectedValues = [];
+      $('.question').each(function () {
+        const activeQuestion = $(this);
+        const selectedRadio = activeQuestion.find('input[type="radio"]:checked');
+        selectedValues.push(selectedRadio.val());
+      });
+      console.log("selectedValues", selectedValues)
+      return selectedValues;
+    }
+
+    let startTime, timerInterval;
+
+    function startTimer() {
+      startTime = Date.now();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      const elapsedTime = Date.now() - startTime;
+      const hours = Math.floor(elapsedTime / (1000 * 60 * 60));
+      const minutes = Math.floor((elapsedTime % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+
+      $('#totalTime').text(
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      );
+    }
+    function showQuestion(number) {
+      $('.question').removeClass('active');
+      $('#question' + number).addClass('active');
+      $('#questionProgress').text(' ' + number + ' / ' + totalQuestions);
+      $('.next-button').toggle(number < totalQuestions);
+      $('.prev-button').toggle(number > 1);
+      $('.submit-button').toggle(number === totalQuestions);
+    }
+
+    $('.next-button').on('click', function () {
+      var radioChecked = $('input[name="question_' + currentQuestion + '"]:checked').length > 0;
+      console.log("radioChecked", radioChecked)
+
+      if (radioChecked) {
+        if (currentQuestion < totalQuestions) {
+          currentQuestion++;
+          showQuestion(currentQuestion);
+
+        }
+      } else {
+        document.getElementById('error-message').style.display = 'block';
+        setTimeout(function () {
+          document.getElementById('error-message').style.display = 'none';
+        }, 4000);
+      }
+    });
+
+    $('.prev-button').on('click', function () {
+      if (currentQuestion > 1) {
+        currentQuestion--;
+        showQuestion(currentQuestion);
+      }
+    });
+
+    showQuestion(currentQuestion);
+    startTimer();
+
+  });
+
+</script>
+
+<script>
+  function validateForm() {
+    var questionGroups = document.querySelectorAll('.question-container');
+    var unanswered = false;
+
+    questionGroups.forEach(function (group) {
+      var isChecked = false;
+      group.querySelectorAll('input[type="radio"]').forEach(function (radio) {
+        if (radio.checked) {
+          isChecked = true;
+        }
+      });
+
+      console.log('Question group:', group.id, 'isChecked:', isChecked);
+
+      if (!isChecked) {
+        unanswered = true;
+        group.classList.add('unchecked');
+      } else {
+        group.classList.remove('unchecked');
+      }
+    });
+
+    if (unanswered) {
+      alert("Please select an option for all questions before submitting.");
+      return false;
+    }
+
+    return true;
+  }
+</script>
+
+
+{% endblock %}

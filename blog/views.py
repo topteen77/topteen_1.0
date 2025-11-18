@@ -1,0 +1,175 @@
+from cgitb import text
+from venv import create
+from django.shortcuts import render
+from django.urls import reverse_lazy
+from core.utils import build_breadcrumb
+from django.shortcuts import get_object_or_404
+from core.utils import  build_html_head
+from .models import BlogCategory,Blog,BlogTag,SubscriptionEmail
+from django.views.generic import TemplateView
+from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
+from django.db.models import Q
+from django.http import HttpResponse,JsonResponse
+from django.template.loader import render_to_string
+from rest_framework.views import APIView
+# Create your views here.
+class Blogs(TemplateView):
+    template_name = "template20/blogs.html"
+    PAGE_SIZE=5
+    def html_head(self):
+        name='Blog List'
+        return build_html_head(title=name, description=name)
+
+    def get_context(self,request, *args, **kwargs):
+        ctx={}
+        search_blogs=request.GET.get('search')
+        if  search_blogs :
+            ctx["search_blogs"] = search_blogs
+            ctx["heading"] = "Searched Articles"
+        else:
+            ctx['search_blogs']=""
+            ctx["heading"] ="All Articles"
+            
+        if search_blogs:
+            blogs=Blog.get_published_objects().filter( Q(title__icontains=search_blogs) | Q(content__icontains=search_blogs)).order_by('-modified') 
+        else:
+            blogs=Blog.get_published_objects().order_by('-modified') 
+
+        popular_blogs=Blog.get_published_objects().all().order_by('-views_count')[:6]
+        ctx['latest_blogs']=Blog.get_published_objects().order_by('-created')[:3]
+        ctx['categories']=BlogCategory.objects.all()
+        ctx['breadcrumb']='Blog'
+        ctx['html_head'] = self.html_head()
+        ctx["popular_blogs"] = popular_blogs
+        ctx['site_url']= "https://topteen.in"
+        ctx['remaining_count']=max(0,blogs.count() - self.PAGE_SIZE)
+        ctx['blogs']=blogs
+        paginated_blogs =Paginator(blogs,self.PAGE_SIZE)
+        page_number = request.GET.get('page')
+        try:
+            user_page_obj = paginated_blogs.get_page(page_number)
+        except PageNotAnInteger:
+            user_page_obj = paginated_blogs.get_page(1)
+        except EmptyPage:
+            user_page_obj = paginated_blogs.get_page(paginated_blogs.num_pages)
+        
+        ctx['page_obj']=user_page_obj
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        if request.GET.get("pagination_ajax",None) and request.GET.get("pagination_ajax") == "Yes":
+            ctx=self.get_context(request, *args, **kwargs)
+            data={}
+            data['html'] = render_to_string("topteenfrontend/includes/blog_item.html",ctx)
+            data['page_number']=ctx['page_obj'].number
+            data['remaining']= ctx['blogs'].count() - ctx['page_obj'].number*self.PAGE_SIZE
+            data['next_page']= ctx['page_obj'].next_page_number()  if ctx['page_obj'].has_next() else 0
+            return JsonResponse(data)
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+class BlogDetail(TemplateView):
+    template_name = "template20/blog_detail.html"
+
+    def html_head(self,blog):
+        titleb=blog.title
+        descriptionb=blog.summary
+        return build_html_head(title=titleb, description=descriptionb)
+    
+    def get_context(self, request,blog_slug, *args, **kwargs):  
+        ctx={}
+        search_blogs =request.GET.get('search')
+
+        if search_blogs:
+            ctx["search_blogs"] = search_blogs
+        else:
+            ctx['search_blogs']=""
+
+        blogs=Blog.get_published_objects()
+        blog=get_object_or_404(blogs,slug=blog_slug)
+        latest_blogs=Blog.get_published_objects().exclude(id=blog.id).order_by('-created')
+        blog.views_count += 1
+        blog.save()
+        if blog.category:
+            category = get_object_or_404(BlogCategory,slug=blog.category.slug)
+            ctx['related_blogs'] = Blog.get_published_objects().filter(category=category).exclude(id=blog.id)[:4]
+        else:
+            ctx['related_blogs'] = Blog.get_published_objects().exclude(id=blog.id)[:4]
+        from django.urls import reverse
+        ctx['categories']=BlogCategory.objects.all()
+        ctx['blog']=blog    
+        ctx['views_count']=blog.views_count
+        ctx['html_head'] = self.html_head(blog)
+        bread_crumb =self._breadcrumb(blog)
+        ctx['breadcrumb']= bread_crumb[1]
+        ctx['latest_blogs']= latest_blogs[:5]
+        return ctx
+    
+    def _breadcrumb(self,blog):
+        url=reverse_lazy('blog:blogs')
+        lst=[{'title':'Blogs','text':'Blogs','url':url},{'title':blog.title,'text':blog.title,'url':''}]
+        return build_breadcrumb(lst)
+
+    def get(self, request,blog_slug, *args, **kwargs):     
+        return render(request, self.template_name, self.get_context(request,blog_slug,args, kwargs))
+
+def category_filter(request,category_slug, *args, **kwargs):
+    page_size=5
+    category = get_object_or_404(BlogCategory,slug=category_slug)
+    blog = Blog.get_published_objects().filter(category=category).order_by('-modified')
+    categories = BlogCategory.objects.all()
+    pages= Paginator(blog,page_size)
+    page_numbers = request.GET.get('page')
+    latest_blogs=Blog.get_published_objects().order_by('-created')[:3]
+    page_objs = pages.get_page(page_numbers)
+    remaining_count = blog.count()-page_size
+    remaining_count = remaining_count if remaining_count > 0 else None
+    
+    from django.urls import reverse
+    ctx={'blogs':blog,'categories':categories,'page_obj':page_objs,'latest_blogs':latest_blogs,'site_url':"https://topteen.in","category": category,'remaining_count':remaining_count,"html_head":build_html_head(title=f"Blogs - {category.name}",description=f"Explore blogs in {category.name} category"),'breadcrumb': {'text': category.name, 'url': reverse('blog:category', args=[category.slug])},'heading': f"Blogs in {category.name}"}
+
+    if request.GET.get("pagination_ajax",None) and request.GET.get("pagination_ajax") == "Yes":
+            data={}
+            data['html'] = render_to_string("topteenfrontend/includes/blog_item.html",ctx)
+            data['page_number']=ctx['page_obj'].number
+            data['remaining']=blog.count() - page_objs.number*page_size
+            data['next_page']= ctx['page_obj'].next_page_number()  if ctx['page_obj'].has_next() else 0
+            return JsonResponse(data)
+    return render(request,"template20/blogs.html",ctx)
+
+def blogtag_filter(request,tagslug, *args, **kwargs):
+    page_size=5
+    blogtag=get_object_or_404(BlogTag,slug=tagslug)
+    blogs = Blog.get_published_objects().filter(tags=blogtag).order_by('-modified')
+    latest_blogs =Blog.get_published_objects().order_by('-created')[:3]
+    categories = BlogCategory.objects.all()
+    page_numbers = request.GET.get('page')
+    pages= Paginator(blogs,page_size)
+    page_objs = pages.get_page(page_numbers)
+    remaining_count = blogs.count()-page_size
+    remaining_count = remaining_count if remaining_count > 0 else None
+    from django.urls import reverse
+    ctx={'blogs':blogs, 'page_obj':page_objs,'latest_blogs':latest_blogs,'categories':categories,'site_url':"https://topteen.in",'blogtag':blogtag ,'remaining_count':remaining_count,'html_head':build_html_head(title=f"Blogs - {blogtag.name}",description=f"Explore blogs tagged with {blogtag.name}"),'breadcrumb': {'text': blogtag.name, 'url': reverse('blog:blogtag', args=[blogtag.slug])},'heading': f"Blogs tagged with {blogtag.name}"}
+
+    if request.GET.get("pagination_ajax",None) and request.GET.get("pagination_ajax") == "Yes":
+            data={}
+            data['html'] = render_to_string("topteenfrontend/includes/blog_item.html",ctx)
+            data['page_number']=ctx['page_obj'].number
+            data['remaining']= blogs.count() - page_objs.number*page_size
+            data['next_page']= ctx['page_obj'].next_page_number()  if ctx['page_obj'].has_next() else 0
+            return JsonResponse(data)
+    return render(request,"template20/blogs.html",ctx)
+
+
+class SubscribeView(APIView):
+
+    def post(self, request):   
+        import re
+        evalid = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email=request.POST.get("email")
+        em=re.match(evalid,email)
+        if em:
+            sub_email=SubscriptionEmail(email=email)
+            sub_email.save()
+            return JsonResponse({'success': "true"})
+        else:
+            return JsonResponse({'success': "false"})

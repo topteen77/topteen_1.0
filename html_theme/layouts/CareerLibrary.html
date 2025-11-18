@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Career Library</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="./css/styles.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    />
+    <link
+      href="../node_modules/slick-carousel/slick/slick.css"
+      rel="stylesheet"
+    />
+
+    <link
+      href="../node_modules/slick-carousel/slick/slick-theme.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/customCSS.css" />
+  </head>
+  <body>
+    <!-- HEADER PORTION -->
+    <header
+      class="relative w-full lg:sticky lg:top-0 bg-[#FFFFFF] border-2 border-[#EBEBEE] z-20"
+      id="headerPanel"
+    >
+      <div
+        class="flex flex-row justify-between items-baseline inset-x-0 lg:mx-auto lg:container lg:px-0 px-[23px] py-[17px]"
+      >
+        <div
+          class="flex lg:hidden flex-row justify-start items-center gap-x-[18px]"
+        >
+          <button id="trigger"><i class="fa fa-bars"></i></button>
+          <div class="h-[39px] w-[39px]">
+            <img
+              src="../assets/images/graduation-hat 1.png"
+              class="h-full w-full"
+            />
+          </div>
+        </div>
+        <div class="lg:block hidden">
+          <span
+            ><img
+              src="../assets/images/graduation-hat 1.png"
+              class="h-10 inline-block" /></span
+          >&nbsp;
+          <span
+            class="text-[#494949] font-bold text-[13.13px] leading-[17.73px]"
+          >
+            TOPTEEN</span
+          >
+        </div>
+        <nav class="lg:block hidden">
+          <ul
+            class="flex flex-row justify-evenly gap-3 tracking-wide font-semibold text-[#4F4F4F] allTabs"
+            data-active="activeBtn"
+            data-tabs-toggle="#careerPanel"
+          >
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link group relative cursor-pointer tab"
+              id="careerTab"
+              data-tabs-target="#career"
+              role="tab"
+            >
+              <span class="text-sm">Browse Careers</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform group-hover:-rotate-180"
+                ></i>
+              </span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer tab"
+              data-tabs-target="#analysis"
+              role="tab"
+            >
+              <span class="text-sm">Self-Analysis</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform hover:-rotate-180"
+                ></i
+              ></span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer tab"
+              data-tabs-target="#resources"
+              role="tab"
+            >
+              <span class="text-sm">Resources</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform hover:-rotate-180"
+                ></i
+              ></span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer"
+            >
+              <span class="text-sm">Pricing</span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer"
+            >
+              <span class="text-sm">Company</span>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="flex flex-row gap-5 items-center">
+          <a
+            href="#"
+            class="text-[#3F37C9] text-sm font-semibold lg:inline-block hidden"
+            >LOG IN</a
+          >
+
+          <button
+            class="bg-[#3F37C9] text-xs text-white font-bold border-b-[6px] border-[#2E289D] rounded-lg lg:px-2 lg:py-3 px-[9px] pt-[12px] pb-[9px]"
+          >
+            GET STARTED
+          </button>
+        </div>
+      </div>
+      <div
+        class="absolute top-[100%] inset-x-0 bg-white hidden border-b-[2px] border-[#EBEBEE] z-50"
+        id="careerPanel"
+      >
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-4 gap-x-[30px] container"
+          id="career"
+        >
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/books 1.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+        </div>
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-4 gap-x-[30px] container"
+          id="analysis"
+        >
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career skills</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/books 1.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+        </div>
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-6 gap-x-3 container"
+          id="resources"
+        >
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] w-full py-[20px] pl-2.5 bg-[#3f37c9] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Courses & Content
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                1.3k Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] w-full py-[20px] pl-2.5 bg-[#3CBAE1] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">Videos</h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                1.3k Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] w-full py-[20px] pl-2.5 bg-[#EF5DA8] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                How to's & Tutorials
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] w-full py-[20px] pl-2.5 bg-[#F2994A] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Exams & Tests
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] w-full py-[20px] pl-2.5 bg-[#27AE60] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Colleges & Schools
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] w-full py-[20px] pl-2.5 bg-[#2F80ED] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">Guides</h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                12 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main>
+      <!-- CAREER CARDS SECTION -->
+      <div class="bg-[#F7F7FA] lg:py-[39px] py-[20px]">
+        <!-- CAREER CARDS FOR DESKTOP-->
+        <section class="relative mx-auto lg:block hidden max-w-[1176px]">
+          <!-- NAVIGATION ARROWS -->
+          <ul class="navArrows">
+            <li
+              class="absolute nextArr rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] right-[0px] flex flex-row justify-center items-center z-1 nextArrow"
+            >
+              <i class="fa fa-angle-right"></i>
+            </li>
+            <li
+              class="absolute prevArr rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] left-[0px] flex justify-center items-center z-1 prevArrow"
+            >
+              <i class="fa fa-angle-left"></i>
+            </li>
+          </ul>
+
+          <div class="carouselContainer w-full">
+            <!-- SLICK CAROUSEL -->
+            <div
+              class="careerTracksCarousel mx-[38.5px] carousel customCarousel"
+            >
+              <div class="max-w-[248px]">
+                <div
+                  class="w-full h-full bg-[#333333] flex flex-col items-center justify-start pt-6 rounded-[10px]"
+                >
+                  <div class="h-[88px] w-[88px] mb-[23px]">
+                    <img
+                      src="../assets/images/engineering.png"
+                      class="h-full w-full"
+                    />
+                  </div>
+
+                  <p
+                    class="text-[18px] leading-[24.3px] semibold text-white tracking-[0.035em] mb-[4px]"
+                  >
+                    Engineering
+                  </p>
+
+                  <div
+                    class="py-[6px] px-[14px] semibold text-[10px] leading-[14px] tracking-[0.035em] text-white bg-white bg-opacity-[0.22] rounded-[100px] mb-[19px]"
+                  >
+                    180 Careers
+                  </div>
+                </div>
+              </div>
+              <div class="max-w-[248px]">
+                <div
+                  class="w-full h-full bg-[#333333] flex flex-col items-center justify-start pt-6 rounded-[10px]"
+                >
+                  <div class="h-[88px] w-[88px] mb-[23px]">
+                    <img
+                      src="../assets/images/portrait.png"
+                      class="h-full w-full"
+                    />
+                  </div>
+
+                  <p
+                    class="text-[18px] leading-[24.3px] semibold text-white tracking-[0.035em] mb-[4px]"
+                  >
+                    Arts & Design
+                  </p>
+
+                  <div
+                    class="py-[6px] px-[14px] semibold text-[10px] leading-[14px] tracking-[0.035em] text-white bg-white bg-opacity-[0.22] rounded-[100px] mb-[19px]"
+                  >
+                    180 Careers
+                  </div>
+                </div>
+              </div>
+              <div class="max-w-[248px]">
+                <div
+                  class="w-full h-full bg-[#333333] flex flex-col items-center justify-start pt-6 rounded-[10px]"
+                >
+                  <div class="h-[88px] w-[88px] mb-[23px]">
+                    <img
+                      src="../assets/images/solar-system.png"
+                      class="h-full w-full"
+                    />
+                  </div>
+
+                  <p
+                    class="text-[18px] leading-[24.3px] semibold text-white tracking-[0.035em] mb-[4px]"
+                  >
+                    Astronomy
+                  </p>
+
+                  <div
+                    class="py-[6px] px-[14px] semibold text-[10px] leading-[14px] tracking-[0.035em] text-white bg-white bg-opacity-[0.22] rounded-[100px] mb-[19px]"
+                  >
+                    180 Careers
+                  </div>
+                </div>
+              </div>
+              <div class="max-w-[248px]">
+                <div
+                  class="w-full h-full bg-[#333333] flex flex-col items-center justify-start pt-6 rounded-[10px]"
+                >
+                  <div class="h-[88px] w-[88px] mb-[23px]">
+                    <img
+                      src="../assets/images/engineering.png"
+                      class="h-full w-full"
+                    />
+                  </div>
+
+                  <p
+                    class="text-[18px] leading-[24.3px] semibold text-white tracking-[0.035em] mb-[4px]"
+                  >
+                    Engineering
+                  </p>
+
+                  <div
+                    class="py-[6px] px-[14px] semibold text-[10px] leading-[14px] tracking-[0.035em] text-white bg-white bg-opacity-[0.22] rounded-[100px] mb-[19px]"
+                  >
+                    180 Careers
+                  </div>
+                </div>
+              </div>
+              <div class="max-w-[248px]">
+                <div
+                  class="w-full h-full bg-[#333333] flex flex-col items-center justify-start pt-6 rounded-[10px]"
+                >
+                  <div class="h-[88px] w-[88px] mb-[23px]">
+                    <img
+                      src="../assets/images/engineering.png"
+                      class="h-full w-full"
+                    />
+                  </div>
+
+                  <p
+                    class="text-[18px] leading-[24.3px] semibold text-white tracking-[0.035em] mb-[4px]"
+                  >
+                    Engineering
+                  </p>
+
+                  <div
+                    class="py-[6px] px-[14px] semibold text-[10px] leading-[14px] tracking-[0.035em] text-white bg-white bg-opacity-[0.22] rounded-[100px] mb-[19px]"
+                  >
+                    180 Careers
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CAREER CARDS FOR MOBILE -->
+        <section class="block lg:hidden mt-[19px] mx-[17px]">
+          <div
+            class="flex flex-row justify-start items-center gap-x-3 overflow-x-auto pb-2"
+          >
+            <div
+              class="w-[125px] h-[125px] flex flex-col items-center justify-start pt-[9px] bg-[#333333] rounded-[10px] shrink-0"
+            >
+              <h6
+                class="text-[13px] leading-[18px] tracking-[0.035em] semibold mb-[6px] text-white"
+              >
+                Engineering
+              </h6>
+              <div
+                class="px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px] text-white semibold mb-[25px]"
+              >
+                122 Careers
+              </div>
+
+              <div class="h-[48px] w-[63px]">
+                <img
+                  class="h-full w-full object-cover object-top"
+                  src="../assets/images/engineering.png"
+                />
+              </div>
+            </div>
+            <!-- TABS -->
+            <div
+              class="w-[125px] h-[125px] flex flex-col items-center justify-start pt-[9px] bg-[#333333] rounded-[10px] shrink-0"
+            >
+              <h6
+                class="text-[13px] leading-[18px] tracking-[0.035em] semibold mb-[6px] text-white"
+              >
+                Astronomy
+              </h6>
+              <div
+                class="px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px] text-white semibold mb-[25px]"
+              >
+                122 Careers
+              </div>
+
+              <div class="h-[48px] w-[63px]">
+                <img
+                  class="h-full w-full object-cover object-top"
+                  src="../assets/images/solar-system.png"
+                />
+              </div>
+            </div>
+
+            <!-- TABS -->
+            <div
+              class="w-[125px] h-[125px] flex flex-col items-center justify-start pt-[9px] bg-[#333333] rounded-[10px] shrink-0"
+            >
+              <h6
+                class="text-[13px] leading-[18px] tracking-[0.035em] semibold mb-[6px] text-white"
+              >
+                Arts & Design
+              </h6>
+              <div
+                class="px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px] text-white semibold mb-[25px]"
+              >
+                122 Careers
+              </div>
+
+              <div class="h-[48px] w-[63px]">
+                <img
+                  class="h-full w-full object-cover object-top"
+                  src="../assets/images/portrait.png"
+                />
+              </div>
+            </div>
+            <!-- TABS -->
+            <div
+              class="w-[125px] h-[125px] flex flex-col items-center justify-start pt-[9px] bg-[#333333] rounded-[10px] shrink-0"
+            >
+              <h6
+                class="text-[13px] leading-[18px] tracking-[0.035em] semibold mb-[6px] text-white"
+              >
+                Arts & Design
+              </h6>
+              <div
+                class="px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px] text-white semibold mb-[25px]"
+              >
+                122 Careers
+              </div>
+
+              <div class="h-[48px] w-[63px]">
+                <img
+                  class="h-full w-full object-cover object-top"
+                  src="../assets/images/portrait.png"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- LIBRARY -->
+      <section class="bg-white lg:py-[44px] py-[28px] mx-[17px]">
+        <ul
+          class="container lg:mx-auto lg:px-4 grid lg:grid-cols-3 grid-cols-1 lg:gap-x-[30px]"
+        >
+          <!-- CARD -->
+
+          <li
+            class="flex flex-row justify-start items-center mb-4 gap-x-[13px]"
+          >
+            <div class="h-[69px] w-[69px] lg:h-[115px] lg:w-[115px] shrink-0">
+              <img
+                src="../assets/images/first.png"
+                class="h-full w-full rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="lg:text-lg text-[13px] leading-[17.55px]">
+              <a class="text-[#333333] font-semibold mb-[3px]" href="#">
+                Biomedical engineer A LENGTHY ONE CAREER testing for more
+              </a>
+              <p
+                class="text-[#828282] font-normal flex flex-row justify-start gap-x-[3px] items-baseline"
+              >
+                <span>18 LPA &#x2022;</span>
+                <img
+                  src="../assets/images/favourite 1.png"
+                  class="inline-block"
+                />
+                <span> 4.4</span>
+              </p>
+            </div>
+          </li>
+          <!-- CARD -->
+
+          <li
+            class="flex flex-row justify-start items-center mb-4 gap-x-[13px]"
+          >
+            <div class="h-[69px] w-[69px] lg:h-[115px] lg:w-[115px] shrink-0">
+              <img
+                src="../assets/images/first.png"
+                class="h-full w-full rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="lg:text-lg text-[13px] leading-[17.55px]">
+              <a class="text-[#333333] font-semibold mb-[3px]" href="#">
+                Biomedical engineer
+              </a>
+              <p
+                class="text-[#828282] font-normal flex flex-row justify-start gap-x-[3px] items-baseline"
+              >
+                <span>18 LPA &#x2022;</span>
+                <img
+                  src="../assets/images/favourite 1.png"
+                  class="inline-block"
+                />
+                <span> 4.4</span>
+              </p>
+            </div>
+          </li>
+          <!-- CARD -->
+
+          <li
+            class="flex flex-row justify-start items-center mb-4 gap-x-[13px]"
+          >
+            <div class="h-[69px] w-[69px] lg:h-[115px] lg:w-[115px] shrink-0">
+              <img
+                src="../assets/images/first.png"
+                class="h-full w-full rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="lg:text-lg text-[13px] leading-[17.55px]">
+              <a class="text-[#333333] font-semibold mb-[3px]" href="#">
+                Biomedical engineer A LENGTHY ONE CAREER testing for more
+              </a>
+              <p
+                class="text-[#828282] font-normal flex flex-row justify-start gap-x-[3px] items-baseline"
+              >
+                <span>18 LPA &#x2022;</span>
+                <img
+                  src="../assets/images/favourite 1.png"
+                  class="inline-block"
+                />
+                <span> 4.4</span>
+              </p>
+            </div>
+          </li>
+          <!-- CARD -->
+
+          <li
+            class="flex flex-row justify-start items-center mb-4 gap-x-[13px]"
+          >
+            <div class="h-[69px] w-[69px] lg:h-[115px] lg:w-[115px] shrink-0">
+              <img
+                src="../assets/images/first.png"
+                class="h-full w-full rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="lg:text-lg text-[13px] leading-[17.55px]">
+              <a class="text-[#333333] font-semibold mb-[3px]" href="#">
+                Biomedical engineer
+              </a>
+              <p
+                class="text-[#828282] font-normal flex flex-row justify-start gap-x-[3px] items-baseline"
+              >
+                <span>18 LPA &#x2022;</span>
+                <img
+                  src="../assets/images/favourite 1.png"
+                  class="inline-block"
+                />
+                <span> 4.4</span>
+              </p>
+            </div>
+          </li>
+          <!-- CARD -->
+
+          <li
+            class="flex flex-row justify-start items-center mb-4 gap-x-[13px]"
+          >
+            <div class="h-[69px] w-[69px] lg:h-[115px] lg:w-[115px] shrink-0">
+              <img
+                src="../assets/images/first.png"
+                class="h-full w-full rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="lg:text-lg text-[13px] leading-[17.55px]">
+              <a class="text-[#333333] font-semibold mb-[3px]" href="#">
+                Biomedical engineer A LENGTHY ONE CAREER testing for more
+              </a>
+              <p
+                class="text-[#828282] font-normal flex flex-row justify-start gap-x-[3px] items-baseline"
+              >
+                <span>18 LPA &#x2022;</span>
+                <img
+                  src="../assets/images/favourite 1.png"
+                  class="inline-block"
+                />
+                <span> 4.4</span>
+              </p>
+            </div>
+          </li>
+          <!-- CARD -->
+
+          <li
+            class="flex flex-row justify-start items-center mb-4 gap-x-[13px]"
+          >
+            <div class="h-[69px] w-[69px] lg:h-[115px] lg:w-[115px] shrink-0">
+              <img
+                src="../assets/images/first.png"
+                class="h-full w-full rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="lg:text-lg text-[13px] leading-[17.55px]">
+              <a class="text-[#333333] font-semibold mb-[3px]" href="#">
+                Biomedical engineer
+              </a>
+              <p
+                class="text-[#828282] font-normal flex flex-row justify-start gap-x-[3px] items-baseline"
+              >
+                <span>18 LPA &#x2022;</span>
+                <img
+                  src="../assets/images/favourite 1.png"
+                  class="inline-block"
+                />
+                <span> 4.4</span>
+              </p>
+            </div>
+          </li>
+          <!-- CARD -->
+
+          <li
+            class="flex flex-row justify-start items-center mb-4 gap-x-[13px]"
+          >
+            <div class="h-[69px] w-[69px] lg:h-[115px] lg:w-[115px] shrink-0">
+              <img
+                src="../assets/images/first.png"
+                class="h-full w-full rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="lg:text-lg text-[13px] leading-[17.55px]">
+              <a class="text-[#333333] font-semibold mb-[3px]" href="#">
+                Biomedical engineer A LENGTHY ONE CAREER testing for more
+              </a>
+              <p
+                class="text-[#828282] font-normal flex flex-row justify-start gap-x-[3px] items-baseline"
+              >
+                <span>18 LPA &#x2022;</span>
+                <img
+                  src="../assets/images/favourite 1.png"
+                  class="inline-block"
+                />
+                <span> 4.4</span>
+              </p>
+            </div>
+          </li>
+          <!-- CARD -->
+
+          <li
+            class="flex flex-row justify-start items-center mb-4 gap-x-[13px]"
+          >
+            <div class="h-[69px] w-[69px] lg:h-[115px] lg:w-[115px] shrink-0">
+              <img
+                src="../assets/images/first.png"
+                class="h-full w-full rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="lg:text-lg text-[13px] leading-[17.55px]">
+              <a class="text-[#333333] font-semibold mb-[3px]" href="#">
+                Biomedical engineer
+              </a>
+              <p
+                class="text-[#828282] font-normal flex flex-row justify-start gap-x-[3px] items-baseline"
+              >
+                <span>18 LPA &#x2022;</span>
+                <img
+                  src="../assets/images/favourite 1.png"
+                  class="inline-block"
+                />
+                <span> 4.4</span>
+              </p>
+            </div>
+          </li>
+          <!-- CARD -->
+
+          <li
+            class="flex flex-row justify-start items-center mb-4 gap-x-[13px]"
+          >
+            <div class="h-[69px] w-[69px] lg:h-[115px] lg:w-[115px] shrink-0">
+              <img
+                src="../assets/images/first.png"
+                class="h-full w-full rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="lg:text-lg text-[13px] leading-[17.55px]">
+              <a class="text-[#333333] font-semibold mb-[3px]" href="#">
+                Biomedical engineer A LENGTHY ONE CAREER testing for more
+              </a>
+              <p
+                class="text-[#828282] font-normal flex flex-row justify-start gap-x-[3px] items-baseline"
+              >
+                <span>18 LPA &#x2022;</span>
+                <img
+                  src="../assets/images/favourite 1.png"
+                  class="inline-block"
+                />
+                <span> 4.4</span>
+              </p>
+            </div>
+          </li>
+          <!-- CARD -->
+
+          <li
+            class="flex flex-row justify-start items-center mb-4 gap-x-[13px]"
+          >
+            <div class="h-[69px] w-[69px] lg:h-[115px] lg:w-[115px] shrink-0">
+              <img
+                src="../assets/images/first.png"
+                class="h-full w-full rounded-[10px] object-cover"
+              />
+            </div>
+            <div class="lg:text-lg text-[13px] leading-[17.55px]">
+              <a class="text-[#333333] font-semibold mb-[3px]" href="#">
+                Biomedical engineer
+              </a>
+              <p
+                class="text-[#828282] font-normal flex flex-row justify-start gap-x-[3px] items-baseline"
+              >
+                <span>18 LPA &#x2022;</span>
+                <img
+                  src="../assets/images/favourite 1.png"
+                  class="inline-block"
+                />
+                <span> 4.4</span>
+              </p>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </main>
+    <script src="../node_modules/flowbite/dist/flowbite.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="../node_modules/slick-carousel/slick/slick.min.js"></script>
+    <script src="../assets/js/common.js"></script>
+    <script src="../assets/js/homePage.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1709 @@
+{% extends "base1.html" %}
+
+{% block main-content %}
+{% load static %}
+
+<style>
+    p {
+        margin-bottom: 0px;
+        color: #000;
+    }
+
+    body {
+        font-family: 'Galano Grotesque';
+        /*  height: 200vh;*/
+        position: relative;
+    }
+
+    p {
+        font-family: 'Galano Grotesque';
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: 'Galano Grotesque';
+    }
+
+    .alert-warning {
+        transition: opacity 0.5s ease-out;
+    }
+
+    /** new css**/
+    .hero-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .question-box h4 {
+        font-size: 21px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .pt-y-box {
+        border: 1px solid #d2d1d1;
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+
+    .navbar.navbar-expand-lg.bg-body-tertiary.py-0 {
+        display: none;
+    }
+
+    .footer-section {
+        display: none !important;
+    }
+
+
+    .h-tag {
+        background: #d9d4ff;
+        font-size: 12px;
+        padding: 0 9px;
+        width: 165px;
+        text-align: center;
+        border-radius: 25px;
+        margin-bottom: 10px;
+    }
+
+    .hear-tbox h3 {
+        font-size: 23px;
+        font-weight: 600;
+    }
+
+    .pty-content p {
+        font-size: 14px;
+        line-height: 21px;
+        color: #3c3f46;
+    }
+
+    .custom-start {
+        width: 124px;
+        padding: 4px 4px !important;
+    }
+
+    .t-info-icon {
+        color: #3c3f46;
+        font-size: 13px;
+    }
+
+    .custom-view {
+        background: #cdcedd;
+        color: #161515;
+        border-bottom: 6px solid#babbcc;
+        width: auto;
+        border-radius: 10px;
+        width: 124px;
+        padding: 4px 4px !important;
+        font-family: 'Galano Grotesque';
+        text-align: center;
+    }
+
+    .custom-view:hover {
+        background: #c1c2d3;
+        color: #1a1818;
+        border-bottom: 6px solid#acadbe;
+
+    }
+
+
+    /** intro and test page css **/
+    .introduction {
+        margin: 32px 0;
+        border: 1px solid #cecece;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
+
+    .inst-data h3 {
+        font-size: 32px;
+        font-weight: 600;
+        position: relative;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #dbd9d9;
+        margin-bottom: 23px;
+    }
+
+    .inst-data h3::before {
+        content: "";
+        background: #3f37c9;
+        width: 75px;
+        height: 2px;
+        position: absolute;
+        bottom: 0;
+    }
+
+    .inst-data p {
+        line-height: 21px;
+        margin-bottom: 17px;
+        color: #222121;
+        font-weight: 400;
+    }
+
+
+    .inst-data ul {
+        list-style: lower-alpha;
+        padding-left: 21px;
+    }
+
+    /* Added styles for question display */
+    .question {
+        display: none;
+    }
+
+    .question.active {
+        display: block;
+    }
+
+    .radio-buttons li {
+        list-style: upper-alpha;
+        /* Remove default marker */
+        position: relative;
+        padding-left: 10px;
+        /* Leave space for custom marker */
+    }
+
+    .radio-buttons li::before {
+        content: "";
+        position: absolute;
+        left: -28px;
+        top: 13px;
+        width: 31px;
+        height: 31px;
+        background-color: #dbdbdb;
+        border-radius: 50%;
+        z-index: -1;
+    }
+
+    .submit-button {
+        width: 184px;
+    }
+
+    .custom-alert {
+        background: #efeff7;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 10px;
+        color: #282626;
+    }
+
+    .custom-alert .fa-circle-info {
+        color: #04a9dd;
+    }
+
+    .question-box h3 {
+        font-size: 21px;
+        margin-bottom: 19px;
+    }
+
+    @media screen and (max-width: 768px) {
+        .inst-data h3 {
+            font-size: 24px;
+        }
+
+        .inst-data p {
+            font-size: 14px;
+        }
+
+        .question-box h3 {
+            font-size: 18px;
+        }
+
+        .question-box .radio-buttons .custom-radio {
+            font-size: 13px;
+        }
+
+        .timer-header {
+            font-size: 11px;
+            line-height: 13px;
+        }
+
+        .gray-btn {
+            padding: 6px 29px !important;
+        }
+
+        .question-container {
+            padding: 9px !important;
+        }
+
+        .custom-alert {
+            padding: 8px;
+        }
+
+        .question-box h4 {
+            font-size: 16px;
+        }
+
+        .question-box ul {
+            padding-left: 21px !important;
+        }
+
+        .test-wise-class-2 .question-box .radio-btn {
+            font-size: 12px;
+            line-height: 16px;
+        }
+
+
+        .test-wise-class-3 .question-box .radio-btn {
+            font-size: 14px;
+            line-height: 17px;
+        }
+
+
+    }
+
+
+
+    .introduction table tr td,
+    .introduction table tr th {
+        border: 1px solid #737373;
+        padding: 5px 9px;
+    }
+
+
+    .instruction-content {
+        height: 450px;
+        overflow-y: scroll;
+    }
+
+    .introduction ol {
+        font-weight: 400;
+    }
+
+    .gray-btn {
+        background: #e4e4e4;
+        color: #212529;
+        padding: 6px 0;
+        border-radius: 9px;
+        border-bottom: 5px solid #8698a8;
+    }
+
+    .question-container {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+
+    .question-box {
+        padding: 15px;
+        border-left: 4px solid #6e48aa;
+        background-color: #f9f7ff;
+        border-radius: 8px;
+    }
+
+    .question-header {
+        margin-bottom: 20px;
+    }
+
+    .progress {
+        height: 16px;
+        border-radius: 5px;
+        background-color: #e9ecef;
+        position: relative;
+    }
+
+    .progress-bar {
+        background: linear-gradient(to right, #6a11cb, #2575fc);
+        height: 16px;
+        border-radius: 20px;
+        transition: width 0.5s ease-in-out;
+        position: relative;
+    }
+
+    .progress-percentage {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+        text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    }
+
+
+
+    .timer-header {
+        position: sticky;
+        top: 0px;
+        z-index: 22;
+    }
+
+    /** question 2 ***/
+
+    .test-wise-class-2 .radio-buttons ul {
+        margin-bottom: 0px;
+    }
+
+    .test-wise-class-2 .radio-buttons li {
+        height: 102px;
+    }
+
+    .test-wise-class-2 .radio-buttons li:first-child {
+        margin-top: 20px;
+    }
+
+
+    .test-wise-class-2 label.custom-radio {
+        padding-left: 107px;
+        position: relative;
+    }
+
+    .test-wise-class-2 .radio-buttons li:last-child {
+        height: 66px;
+    }
+
+    .test-wise-class-2 label.custom-radio img {
+        position: absolute;
+        left: 0px;
+        width: 84px;
+        top: -28px;
+    }
+
+
+    /** question 2 ***/
+
+
+    /** question 3 ***/
+
+    .test-wise-class-3 .radio-buttons ul {
+        margin-bottom: 0px;
+    }
+
+    .test-wise-class-3 .radio-buttons li {
+        height: 68px;
+    }
+
+    .test-wise-class-3 .radio-buttons li:first-child {
+        margin-top: 20px;
+    }
+
+
+    .test-wise-class-3 label.custom-radio {
+        padding-left: 81px;
+        position: relative;
+    }
+
+    .test-wise-class-3 .radio-buttons li:last-child {
+        height: 66px;
+    }
+
+    .test-wise-class-3 label.custom-radio img {
+        position: absolute;
+        left: 0px;
+        width: 56px;
+        top: -7px;
+    }
+
+    .question-box ul {
+        padding-left: 49px;
+    }
+
+    /** question 3 ***/
+
+    /* Back button styling */
+    .back {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f1f1;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        margin-bottom: 10px;
+    }
+
+    .back i {
+        color: #3f37c9;
+        font-size: 18px;
+    }
+
+    .back:hover {
+        background: #e6e6e6;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    @media (max-width: 768px) {
+        .back {
+            width: 36px;
+            height: 36px;
+        }
+
+        .back i {
+            font-size: 16px;
+        }
+    }
+
+    /* Existing styles... */
+
+    /* Modal styling */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.show {
+        display: flex;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 8px;
+        max-width: 400px;
+        width: 90%;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #3f37c9;
+    }
+
+    .modal-message {
+        margin-bottom: 20px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .modal-btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .modal-btn-cancel {
+        background-color: #e4e4e4;
+        color: #333;
+        border: none;
+    }
+
+    .modal-btn-exit {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+    }
+
+    .modal-btn:hover {
+        opacity: 0.9;
+    }
+</style>
+
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
+    <!-- Introduction sections for different tests -->
+
+    <div class="pt-3">
+        <button id="BackBtn" class="back"> <i class="fas fa-arrow-left"></i> </button>
+    </div>
+
+    {% if test_id == 1 %}
+        <section id="introduction-test-{{ test_id }}" class="introduction" style="display: none;">
+            <div class="row">
+                <div class="col-md-4 d-flex align-items-center bg-light">
+                    <div class="inimg  d-md-block d-none">
+                        <img src="{% static 'images/giant-checklist.png' %}" alt="Giant Checklist" class="w-full h-auto">
+                    </div>
+                </div>
+                <div class="col-md-8 inst-data py-4 px-5 bg-white">
+                    <h3>Introduction</h3>
+
+                    <div class="instruction-content">
+
+                        <h4 class="fw-bold fs-21 mb-4"> Personality Questionnaire (HEXACO) </h4>
+                        <h5 style="color:#4f48d2; font-weight: 600;">Purpose</h5>
+
+                        <p>This questionnaire helps you understand key dimensions of your personality. There are no right or
+                            wrong
+                            answers—only statements that describe how you usually think, feel, or act.
+                        </p>
+                        <h5 style="color:#4f48d2; font-weight: 600;">How to respond</h5>
+
+                        <ol style="list-style:numeric; padding-left:18px;">
+                            <li><strong>Read each statement carefully. </strong> Think about how well it describes you in
+                                general, not
+                                just today.
+                            </li>
+                            <li>
+                                <strong> Select one response number </strong> for every item, using the 5-point scale below:
+
+                                <table style="border: 1px solid #f6f6f6; margin-bottom:10px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Response</th>
+                                            <th>Meaning</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>Highly Disagree</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>Disagree</td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>Neither Disagree nor Agree</td>
+                                        </tr>
+                                        <tr>
+                                            <td>4</td>
+                                            <td>Agree</td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>5</td>
+                                            <td>Strongly Agree</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </li>
+
+                            <li> <strong> Mark only one number per statement.</strong> Do not leave any items blank. </li>
+
+                            <li> <strong>Answer honestly and spontaneously.</strong> Your first reaction is usually the most
+                                accurate.
+                            </li>
+
+
+                            <li> <strong>Work at a steady pace.</strong> The 60 items typically take about 15-20 minutes to
+                                complete.
+                            </li>
+
+
+                            <li> <strong>Maintain confidentiality.</strong> Your responses are used solely for assessment
+                                and will be
+                                kept private. </li>
+
+                            <li> <strong>Proceed in order.</strong> Do not return to change answers once you have moved on.
+                            </li>
+
+                        </ol>
+
+
+                        <p>When you are ready, click "Begin" to start the test.</p>
+
+                    </div>
+
+                    <div class="bg-white pt-3">
+
+                        <button id="startBtn" class="btn purple-button px-md-6 fw-600 ms-1">Begin</button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    {% elif test_id == 2 %}
+        <section id="introduction-test-{{ test_id }}" class="introduction" style="display: none;">
+            <div class="row">
+                <div class="col-md-4 d-flex align-items-center bg-light">
+                    <div class="inimg d-md-block d-none">
+                        <img src="{% static 'images/giant-checklist.png' %}" alt="Giant Checklist" class="w-full h-auto">
+                    </div>
+                </div>
+                <div class="col-md-8 inst-data py-4 px-5 bg-white">
+                    <h3>Introduction</h3>
+
+                    <div class="instruction-content">
+
+                        <h4 class="fw-bold fs-21 mb-4"> Extrinsic & Intrinsic Motivation Model </h4>
+                        <h5 style="color:#4f48d2; font-weight: 600;">Purpose</h5>
+
+                        <p>This test explores <strong> what truly drives you </strong>—inner satisfaction (intrinsic
+                            motivation) or external rewards and recognition (extrinsic motivation). Understanding your
+                            dominant drivers can help you choose study paths and careers that keep you energized.
+                        </p>
+                        <h5 style="color:#4f48d2; font-weight: 600;">How to respond</h5>
+
+                        <ol style="list-style:numeric; padding-left:18px;">
+                            <li><strong> Read each of the 13 items carefully. </strong>Each item presents four options
+                                labelled a – d. </li>
+                            <li>
+                                <strong>Select the single option that best reflects your genuine preference or
+                                    excitement.</strong>
+                                <ul>
+                                    <li>Think of what you naturally enjoy or value, not what you feel you should choose.
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <li><strong> Mark only one letter per question and do not leave any item blank. </strong></li>
+
+                            <li><strong>Answer spontaneously and honestly. </strong> Your first instinct usually captures
+                                your true motivation.</li>
+
+                            <li><strong>Work steadily—about 5-6 minutes </strong> is enough for most people.</li>
+
+                            <li><strong>Keep your answers confidential.</strong> Results are used solely for personal
+                                guidance.</li>
+                        </ol>
+
+
+                        <p>When you are ready, click "Begin" to start the test.</p>
+
+                    </div>
+
+                    <div class="bg-white pt-3">
+
+                        <button id="startBtn" class="btn purple-button px-md-6 fw-600 ms-1">Begin</button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    {% elif test_id == 3 %}
+        <section id="introduction-test-{{ test_id }}" class="introduction" style="display: none;">
+            <div class="row">
+                <div class="col-md-4 d-flex align-items-center bg-light">
+                    <div class="inimg d-md-block d-none">
+                        <img src="{% static 'images/giant-checklist.png' %}" alt="Giant Checklist" class="w-full h-auto">
+                    </div>
+                </div>
+                <div class="col-md-8 inst-data py-4 px-5 bg-white">
+                    <h3>Introduction</h3>
+
+                    <div class="instruction-content">
+
+                        <h4 class="fw-bold fs-21 mb-4"> Interest Inventory (RIASEC Model) </h4>
+                        <h5 style="color:#4f48d2; font-weight: 600;">Purpose</h5>
+
+                        <p>This inventory identifies the types of activities you naturally enjoy, helping you explore career
+                            fields aligned with your interests across the six RIASEC domains (Realistic, Investigative,
+                            Artistic, Social, Enterprising, Conventional).
+                        </p>
+                        <h5 style="color:#4f48d2; font-weight: 600;">How to respond</h5>
+
+                        <ol style="list-style:numeric; padding-left:18px;">
+                            <li><strong>Read each of the 30 statements carefully. </strong> Think about how much you would
+                                genuinely enjoy or prefer the activity described—not whether you can do it, but whether you
+                                like the idea of doing it. </li>
+
+                            <li> <strong>Choose one response number </strong> for every statement, using the 5-point scale
+                                below:</li>
+
+                            <table style="border: 1px solid #f6f6f6; margin-bottom:10px;">
+                                <thead>
+                                    <tr>
+                                        <th>Response</th>
+                                        <th>Meaning</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Highly Disagree — "I would really dislike doing this."</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Disagree — "I would probably not enjoy this."</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>Neither Disagree nor Agree — "I'm neutral or unsure."</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>Agree — "I would probably enjoy this."</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>5</td>
+                                        <td>Strongly Agree — "I would really enjoy doing this."</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            </li>
+
+
+                            <li>
+                                <strong> Mark only one number per statement </strong> and do not leave any items blank.
+                            </li>
+
+                            <li>
+                                <strong> Answer quickly and honestly. </strong>Your first impression usually reflects your
+                                true interest.
+                            </li>
+
+                            <li>
+                                <strong> Work straight through. </strong> The inventory typically takes <strong> 9-10
+                                    minutes </strong> to finish.
+                            </li>
+
+                            <li>
+                                <strong> Do not overthink skills or experience. </strong> Focus on interest, not ability.
+                            </li>
+
+
+                            <li>
+                                <strong> Keep your responses private. </strong> They will be used solely for guidance and
+                                will remain confidential.
+                            </li>
+
+                        </ol>
+
+
+                        <p>When you are ready, click "Begin" to start the test.</p>
+
+                    </div>
+
+                    <div class="bg-white pt-3">
+
+                        <button id="startBtn" class="btn purple-button px-md-6 fw-600 ms-1">Begin</button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    
+    {% else %}
+    <!-- Default introduction -->
+    <section class="introduction">
+        <!-- Default introduction content -->
+    </section>
+    {% endif %}
+
+    <section>
+        <div class="take-test-page" style="display: none;">
+            <div class="container">
+                <!-- Timer display should be at the top of the container -->
+
+                <div class="row">
+
+                    <div class="col-md-12 mx-auto">
+
+                        <h1 id="test-title" class="mt-4 fw-bold fs-21" style="color:rgb(63, 55, 201);">Loading
+                            Test...{{test_id}}</h1>
+                        <div id="test-description" class="test-description d-none"></div>
+
+
+                        <!--Timer -->
+
+                        <div class="flex justify-content-between  timer-header bg-white py-2 px-md-3 px-md-2 my-4">
+
+                            <div id="test-total-questions" class="test-duration "></div>
+
+                            <div id="test-duration" class="test-duration "></div>
+
+                            <div id="timer-container" class="timer-container ">
+                                <div id="timer-display" class="timer-display" style="color:rgb(63, 55, 201);">
+                                    <i class="las la-clock"></i> Time Remaining: 00:00
+                                </div>
+                            </div>
+                        </div>
+                        <!--Timer -->
+
+                        <div class="test-wise-class-{{test_id}}">
+                            <div id="test-questions" class="test-questions ">
+                                <!-- Questions will be loaded dynamically -->
+                            </div>
+
+                        </div>
+                        <div id="test-actions" class="mt-4">
+                            <button id="submit-test" class="btn btn-primary">Submit Test</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- Exit confirmation modal -->
+    <div id="exitConfirmationModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-title">Exit Test</div>
+            <div class="modal-message">
+                Are you sure you want to leave this test? Your progress will not be saved.
+            </div>
+            <div class="modal-actions">
+                <button id="modalCancelBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+                <button id="modalExitBtn" class="modal-btn modal-btn-exit">Exit Test</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Add this right after the exit confirmation modal -->
+    <div id="submitConfirmationModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-title">Submit Test</div>
+            <div class="modal-message">
+                Are you ready to submit your test? You can review your question by using the cancel button.
+            </div>
+            <div class="modal-actions">
+                <button id="modalReviewBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+                <button id="modalSubmitBtn" class="modal-btn modal-btn-exit">Submit Test</button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const testId = "{{ test_id }}";
+
+        const testTitle = document.getElementById('test-title');
+        const testDescription = document.getElementById('test-description');
+        const testQuestions = document.getElementById('test-questions');
+        const testActions = document.getElementById('test-actions');
+        const submitBtn = document.getElementById('submit-test');
+
+        const testSection = document.querySelector('.take-test-page');
+        const startBtn = document.getElementById('startBtn');
+        const testDuration = document.getElementById('test-duration');
+        const Totalquestions = document.getElementById('test-total-questions');
+        const timerDisplay = document.getElementById('timer-display');
+        const timerContainer = document.getElementById('timer-container');
+        const backBtn = document.getElementById('BackBtn');
+
+        // Modal elements
+        const exitModal = document.getElementById('exitConfirmationModal');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalExitBtn = document.getElementById('modalExitBtn');
+
+        // Function to show exit confirmation modal
+        function showExitConfirmationModal() {
+            exitModal.classList.add('show');
+        }
+
+        // Function to hide exit confirmation modal
+        function hideExitConfirmationModal() {
+            exitModal.classList.remove('show');
+        }
+
+        // Modal cancel button event
+        if (modalCancelBtn) {
+            modalCancelBtn.addEventListener('click', function () {
+                hideExitConfirmationModal();
+            });
+        }
+
+        // Modal exit button event
+        if (modalExitBtn) {
+            modalExitBtn.addEventListener('click', function () {
+                // Stop the timer if it's running
+                stopTimer();
+                // Navigate back to tests page
+                window.location.href = '/api/web/tests/';
+            });
+        }
+
+        // Add click event to back button to return to tests page
+        if (backBtn) {
+            backBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                // Check if there are any unsaved changes
+                const isTestStarted = testSection && testSection.style.display === 'block';
+
+                if (isTestStarted) {
+                    // If the test has started, show the modal instead of using confirm()
+                    showExitConfirmationModal();
+                } else {
+                    // Just go back without confirmation if test not started
+                    window.location.href = '/api/web/tests/';
+                }
+            });
+        }
+
+
+
+        // submit modal 
+        // Submit modal elements
+        const submitModal = document.getElementById('submitConfirmationModal');
+        const modalReviewBtn = document.getElementById('modalReviewBtn');
+        const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+
+        // Function to show submit confirmation modal
+        function showSubmitConfirmationModal() {
+            submitModal.classList.add('show');
+        }
+
+        // Function to hide submit confirmation modal
+        function hideSubmitConfirmationModal() {
+            submitModal.classList.remove('show');
+        }
+
+        // Submit modal button events
+        if (modalReviewBtn) {
+            modalReviewBtn.addEventListener('click', function () {
+                hideSubmitConfirmationModal();
+            });
+        }
+
+        if (modalSubmitBtn) {
+            modalSubmitBtn.addEventListener('click', function () {
+                hideSubmitConfirmationModal();
+                submitTest();
+            });
+        }
+        // Rest of your JavaScript code remains the same...
+
+        const instructionSection = document.getElementById(`introduction-test-${testId}`);
+        if (instructionSection) {
+            instructionSection.style.display = 'block';
+        } else {
+            // Fallback to a default introduction if specific one not found
+            const defaultIntro = document.getElementById('introduction-test-1');
+            if (defaultIntro) {
+                defaultIntro.style.display = 'block';
+            }
+        }
+
+        // Initially hide the timer until we know if there's a time limit
+        if (timerContainer) {
+            timerContainer.style.display = 'none';
+        }
+
+        // Show loading state
+        testTitle.textContent = "Loading Test...";
+        testDescription.textContent = "";
+        testQuestions.innerHTML = "<p class='text-center'>Loading test...</p>";
+        testActions.classList.add('hidden');
+
+        // Get test ID from Django context
+
+        let currentQuestionIndex = 0;
+        let questions = [];
+        let timerInterval = null;
+        let testData = null;
+
+        if (!testId) {
+            testTitle.textContent = "Test not found.";
+            testDescription.textContent = "";
+            testQuestions.innerHTML = "<p>No test ID specified in the URL.</p>";
+            testActions.classList.add('hidden');
+            return;
+        }
+
+        // Function to format time (convert seconds to MM:SS)
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Function to start the timer
+        function startTimer(minutes) {
+            // Show the timer container
+            if (timerContainer) {
+                timerContainer.style.display = 'block';
+            }
+
+            // Convert minutes to seconds
+            let timeRemaining = minutes * 60;
+
+            // Update timer display immediately
+            if (timerDisplay) {
+                timerDisplay.innerHTML = `<i class="las la-clock"></i> Time Remaining: ${formatTime(timeRemaining)}`;
+            }
+
+            // Clear any existing interval
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
+            timerInterval = setInterval(function () {
+                timeRemaining--;
+
+                // Update the display
+                if (timerDisplay) {
+                    timerDisplay.innerHTML = `<i class="las la-clock"></i> Time Remaining: ${formatTime(timeRemaining)}`;
+
+                    // Add warning class when less than 20% of time remains
+                    if (timeRemaining <= minutes * 60 * 0.2) {
+                        timerDisplay.classList.add('timer-warning');
+                    }
+
+                    // Add danger class when less than 10% of time remains
+                    if (timeRemaining <= minutes * 60 * 0.1) {
+                        timerDisplay.classList.add('timer-danger');
+                    }
+                }
+
+                // Time's up!
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    showNotification("Time's up! Submitting your test...", "warning");
+
+                    // Save the current answer
+                    saveCurrentAnswer();
+
+                    // Submit the test after a short delay to allow the user to see the notification
+                    setTimeout(function () {
+                        submitTest();
+                    }, 2000);
+                }
+            }, 1000);
+        }
+
+        // Function to stop the timer
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // Helper: Show notification
+        function showNotification(msg, type) {
+            alert(msg);
+        }
+
+        // Helper: Fix image path (dummy, replace with your logic if needed)
+        function fixImagePath(path) { return path; }
+
+        // Helper: Wrap images (dummy, replace with your logic if needed)
+        function wrapImagesInContainers() { }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // Function to render a single question
+        function renderQuestion(questionIndex) {
+            if (!questions || questions.length === 0) {
+                testQuestions.innerHTML = "<p>No questions were found for this test.</p>";
+                return;
+            }
+
+            if (questionIndex < 0 || questionIndex >= questions.length) {
+                return;
+            }
+
+            if (Totalquestions) {
+                Totalquestions.innerHTML = ` Total No. of questions: ${questions.length}`;
+            }
+
+            // Update the current question index
+            currentQuestionIndex = questionIndex;
+            const question = questions[questionIndex];
+
+            // Calculate percentage
+            const percentage = Math.round(((questionIndex + 1) / questions.length) * 100);
+
+            let qHtml = `
+<div class="question-container">
+    <div class="question-header">
+        <div class="progress mb-3">
+            <div class="progress-bar" role="progressbar" style="width: ${percentage}%" 
+                aria-valuenow="${questionIndex + 1}" aria-valuemin="0" aria-valuemax="${questions.length}">
+                <span class="progress-percentage">${percentage}%</span>
+            </div>
+        </div>
+    </div>
+
+        <div class="custom-alert d-flex align-items-center">
+            <i aria-hidden="true" class="fa-solid fa-circle-info me-2"></i>
+            <div style="line-height: 15px;font-size: 13px;">Select the most effective option from the choices provided
+            based on the given statement</div>
+        </div>
+
+        <!-- Add this error message div -->
+        <div id="question-error-${question.id}" class="alert alert-warning mb-3" style="display: none;">
+            Please select an answer before proceeding to the next question.
+        </div>
+
+        <div class="questions" data-question-id="${question.id}">
+            <div class="question-box">
+            <h4>Q${questionIndex + 1} : ${question.text}</h4>
+    `;
+
+            // Show question image if available
+            // if (question.image_url) {
+            //     qHtml += `<div><img src="${fixImagePath(question.image_url)}" alt="Question Image" class="question-image" style="max-width:200px;max-height:200px;margin-bottom:10px;"></div>`;
+            // }
+            if (question.image_url) {
+                qHtml += `
+                    <div class="question-image-container">
+                        <img src="${fixImagePath(question.image_url)}" 
+                            alt="Question Image" 
+                            class="question-image img-fluid rounded">
+                    </div>`;
+            }
+
+            qHtml += `<ul class="radio-buttons">`;
+            const answers = question.answers || [];
+            answers.forEach(answer => {
+                // Check if this answer was previously selected
+                const isChecked = question.selectedAnswerId && question.selectedAnswerId == answer.id;
+
+                qHtml += `
+            <li>
+                <label class="custom-radio">
+                    <input type="radio" 
+                        name="question-${question.id}" 
+                        value="${answer.id}" 
+                        data-score="${answer.score || 0}" 
+                        data-answer-text="${answer.text}" 
+                        data-category="${answer.category || ''}" 
+                        ${isChecked ? 'checked' : ''}
+                        required>
+                        <span class="radio-btn"><i class="las la-check"></i> ${answer.text} </span>
+        `;
+
+                // Show answer image if available
+                if (answer.image_url) {
+                    qHtml += `<img src="${fixImagePath(answer.image_url)}" alt="Answer Image" class="answer-image" style="max-width:150px;max-height:150px;margin-left:10px;">`;
+                }
+
+                qHtml += `
+                </label>
+            </li>
+        `;
+            });
+
+            qHtml += `</ul> </div>            </div>`;
+
+            // Add navigation buttons
+            qHtml += `
+        <div class="navigation-buttons mt-4 d-flex justify-content-between">
+            ${questionIndex > 0 ?
+                    `<button id="prev-question" class="btn blue-button prev-button px-md-6 fw-600 me-1">Previous</button>` :
+                    `<button disabled class="gray-btn px-md-6 fw-600 ms-1 disabled-buttons">Previous</button>`}
+            
+            ${questionIndex < questions.length - 1 ?
+                    `<button id="next-question" class="btn purple-button next-button px-md-6 fw-600 ms-1">Next</button>` :
+                    `<button id="finish-test" class="btn btn-success submit-button btn-sumb px-md-6 fw-600">Finish Test</button>`}
+        </div>
+    `;
+
+            testQuestions.innerHTML = qHtml;
+
+            // In the renderQuestion function, update the navigation button event handlers:
+
+            if (questionIndex > 0) {
+                document.getElementById('prev-question').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    saveCurrentAnswer(); // Don't validate for previous button
+                    renderQuestion(questionIndex - 1);
+                });
+            }
+
+            if (questionIndex < questions.length - 1) {
+                document.getElementById('next-question').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (!saveCurrentAnswer()) {
+                        // Error message will be shown by saveCurrentAnswer()
+                        return;
+                    }
+                    renderQuestion(questionIndex + 1);
+                });
+            } else {
+                document.getElementById('finish-test').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (!saveCurrentAnswer()) {
+                        // Error message will be shown by saveCurrentAnswer()
+                        return;
+                    }
+                    showSubmitConfirmationModal();
+                });
+            }
+
+            // Hide submit button when using navigation
+            if (testActions) {
+                testActions.classList.add('hidden');
+            } else {
+                console.warn('Element with ID "test-actions" not found in the DOM');
+            }
+        }
+
+        // Function to save the current answer
+        function saveCurrentAnswer() {
+            // Hide any existing error message first and clear any existing timeout
+            const question = questions[currentQuestionIndex];
+            const errorDiv = document.getElementById(`question-error-${question.id}`);
+
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+                // Clear any existing timeout for this question
+                if (errorDiv.timeoutId) {
+                    clearTimeout(errorDiv.timeoutId);
+                }
+            }
+
+            if (currentQuestionIndex >= 0 && currentQuestionIndex < questions.length) {
+                const question = questions[currentQuestionIndex];
+                const selected = document.querySelector(`input[name="question-${question.id}"]:checked`);
+
+                console.log("Saving answer for question", question.id, "Selected:", selected);
+
+                if (selected) {
+                    // Store the selected answer ID for this question
+                    question.selectedAnswerId = selected.value;
+                    question.selectedAnswerText = selected.dataset.answerText;
+                    question.selectedAnswerScore = selected.dataset.score;
+                    question.selectedAnswerCategory = selected.dataset.category;
+                    return true;
+                } else {
+                    // Show the error message if no answer is selected
+                    if (errorDiv) {
+                        errorDiv.style.display = 'block';
+                        // Set timeout to hide the message after 15 seconds
+                        errorDiv.timeoutId = setTimeout(() => {
+                            errorDiv.style.opacity = '1'; // Start from fully visible
+                            // Fade out effect
+                            let opacity = 1;
+                            const fadeEffect = setInterval(() => {
+                                if (opacity <= 0) {
+                                    clearInterval(fadeEffect);
+                                    errorDiv.style.display = 'none';
+                                } else {
+                                    opacity -= 0.05;
+                                    errorDiv.style.opacity = opacity;
+                                }
+                            }, 50);
+                        }, 8000); // 15 seconds
+                    }
+                    return false;
+                }
+            }
+            return true; // Not a valid question index, don't block navigation
+        }
+        // Function to submit the test
+        function submitTest() {
+            // Stop the timer when submitting
+            stopTimer();
+            const sessionId = window.currentTestSessionId;
+            const submittedAnswers = {};
+            let unanswered = [];
+            // Add category score tracking
+            const categoryScores = {};
+
+            questions.forEach((question, idx) => {
+                const key = `Question_${question.order}`;
+
+                if (question.selectedAnswerId) {
+                    const answerText = question.selectedAnswerText;
+                    const score = parseFloat(question.selectedAnswerScore) || 0;
+                    const category = question.selectedAnswerCategory;
+
+                    // Track scores by category
+                    if (category) {
+                        if (!categoryScores[category]) {
+                            categoryScores[category] = {
+                                total: 0,
+                                count: 0
+                            };
+                        }
+                        categoryScores[category].total += score;
+                        categoryScores[category].count += 1;
+                    }
+
+                    submittedAnswers[key] = {
+                        text: answerText,
+                        category: category,
+                        score: score
+                    };
+                } else {
+                    unanswered.push(idx + 1);
+                }
+            });
+
+            if (unanswered.length > 0) {
+                showNotification(`Please answer question(s) ${unanswered.join(', ')} before submitting.`, 'warning');
+                // Navigate to the first unanswered question
+                renderQuestion(unanswered[0] - 1);
+                return;
+            }
+
+            try {
+                submitBtn.disabled = true;
+                const finishButton = document.getElementById('finish-test');
+                if (finishButton) {
+                    finishButton.disabled = true;
+                    finishButton.textContent = 'Submitting...';
+                }
+
+                // Calculate category score summaries
+                const categoryResults = {};
+                for (const [category, data] of Object.entries(categoryScores)) {
+                    categoryResults[category] = {
+                        total: data.total,
+                        average: data.total / data.count,
+                        count: data.count
+                    };
+                }
+
+                // Save responses with category scores
+                fetch(`/api/responses/${sessionId}/save_responses/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({
+                        submitted_answers: submittedAnswers,
+                        category_scores: categoryResults
+                    })
+                })
+                    .then(() => {
+                        console.log("sessionId", sessionId);
+
+                        return fetch(`/api/sessions/${sessionId}/submit/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken
+                            }
+                        });
+                    })
+                    .then(resultRes => resultRes.json())
+                    // .then(result => {
+                    //     console.log("Submit result:", result);
+                    //     console.log("Category scores:", categoryResults);
+                    //     // window.location.href = `/api/web/test_results/${result.id}/`;
+                    //     window.location.href = `/api/web/tests/`;
+                    .then(result => {
+                        console.log("Submit result:", result);
+                        console.log("Category scores:", categoryResults);
+
+                        // Get testId BEFORE using it
+                        const testId = getCurrentTestId();
+                        console.log("test_id", testId)
+
+                        if (testId) {
+                            // Store completion status in localStorage
+                            localStorage.setItem(`test_${testId}_completed`, 'true');
+                            localStorage.setItem(`test_${testId}_result_id`, result.id);
+
+                            // Optional: Store completion timestamp
+                            localStorage.setItem(`test_${testId}_completed_at`, new Date().toISOString());
+                        }
+
+                        window.location.href = `/api/web/tests/`;
+                    })
+                    .catch(error => {
+                        console.error("Error submitting test:", error);
+                        showNotification('Error submitting test. Please try again.', 'error');
+                        if (finishButton) {
+                            finishButton.disabled = false;
+                            finishButton.textContent = 'Finish Test';
+                        }
+                    });
+            } catch (err) {
+                showNotification('Error submitting test. Please try again.', 'error');
+                const finishButton = document.getElementById('finish-test');
+                if (finishButton) {
+                    finishButton.disabled = false;
+                    finishButton.textContent = 'Finish Test';
+                }
+            }
+        }
+
+        // Helper function to get current test ID
+        function getCurrentTestId() {
+            try {
+                // Method 1: Get from URL
+                const pathParts = window.location.pathname.split('/');
+
+                // For URLs like /api/web/take_test/123/
+                let testIdIndex = pathParts.indexOf('take_test');
+                if (testIdIndex > -1 && testIdIndex + 1 < pathParts.length) {
+                    const testId = pathParts[testIdIndex + 1];
+                    if (testId && testId !== '') {
+                        return testId;
+                    }
+                }
+
+                // For URLs like /api/web/test/123/sections/
+                testIdIndex = pathParts.indexOf('test');
+                if (testIdIndex > -1 && testIdIndex + 1 < pathParts.length) {
+                    const testId = pathParts[testIdIndex + 1];
+                    if (testId && testId !== '' && testId !== 'sections') {
+                        return testId;
+                    }
+                }
+
+                // Method 2: Get from sessionStorage if you store it there
+                const storedTestId = sessionStorage.getItem('currentTestId');
+                if (storedTestId) {
+                    return storedTestId;
+                }
+
+                // Method 3: Get from a data attribute on the page
+                const testElement = document.querySelector('[data-test-id]');
+                if (testElement) {
+                    return testElement.dataset.testId;
+                }
+
+                // Method 4: Get from a hidden input
+                const hiddenInput = document.querySelector('input[name="test_id"]');
+                if (hiddenInput) {
+                    return hiddenInput.value;
+                }
+
+                console.warn('Could not determine test ID from URL or page elements');
+                return null;
+
+            } catch (error) {
+                console.error('Error getting test ID:', error);
+                return null;
+            }
+        }
+
+        // Function to load test data
+        function loadTestData() {
+            return new Promise((resolve, reject) => {
+                // 1. Start a new session for this test
+                fetch(`/api/tests/${testId}/start/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    }
+                })
+                    .then(async res => {
+                        if (res.status === 403) {
+                            // User already completed the test
+                            const data = await res.json();
+                            showNotification(data.detail || "You have already completed this test. Retake is not allowed.", "error");
+                            testTitle.textContent = "Test already completed";
+                            testDescription.textContent = "";
+                            testDuration.textContent = "";
+                            testQuestions.innerHTML = "<p>You have already completed this test. Retake is not allowed.</p>";
+                            reject(new Error(data.detail || "Test already completed"));
+                        }
+                        if (!res.ok) {
+                            reject(new Error("Failed to start test session"));
+                        }
+                        return res.json();
+                    })
+                    .then(session => {
+                        // Store session ID globally
+                        window.currentTestSessionId = session.id;
+
+                        // 2. Fetch test details (including questions)
+                        return fetch(`/api/tests/${session.test.id}/`)
+                            .then(res => {
+                                if (!res.ok) throw new Error("Failed to load test details");
+                                return res.json();
+                            })
+                            .then(testDetails => {
+                                return { session, questions: testDetails.questions || [], test: testDetails };
+                            });
+                    })
+                    .then(async data => {
+                        const session = data.session;
+                        questions = data.questions;
+                        const test = data.test;
+
+                        testTitle.textContent = test.title;
+                        testDescription.textContent = test.description || "";
+
+                        // Display test duration info
+                        if (test.time_limit) {
+                            testDuration.textContent = `Time Limit: ${test.time_limit} minutes`;
+                        } else {
+                            testDuration.textContent = "No time limit";
+                            // Hide timer if no time limit
+                            if (timerContainer) {
+                                timerContainer.style.display = 'none';
+                            }
+                        }
+
+                        if (questions.length === 0) {
+                            testQuestions.innerHTML = "<p>No questions were found for this test.</p>";
+                            testActions.classList.add('hidden');
+                            reject(new Error("No questions found"));
+                            return;
+                        }
+
+                        // ✅ Fetch answers for each question
+                        const headers = {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken,
+                            'Accept': 'application/json'
+                        };
+                        const fetchConfig = {
+                            headers,
+                            credentials: 'same-origin'
+                        };
+
+                        // Show loading message while fetching answers
+                        testQuestions.innerHTML = "<p class='text-center'>Loading questions...</p>";
+
+                        // Fetch answers for all questions
+                        const fetchPromises = questions.map(async (question) => {
+                            const answersUrl = `/api/answers/?question=${question.id}`;
+                            console.log('[DEBUG] Fetching answers for question', question.id);
+
+                            try {
+                                const answersRes = await fetch(answersUrl, fetchConfig);
+                                if (answersRes.ok) {
+                                    const answersData = await answersRes.json();
+                                    question.answers = answersData.results || answersData;
+                                    console.log(`[DEBUG] Answers for question ${question.id}:`, question.answers);
+                                } else {
+                                    console.error(`[ERROR] Failed to fetch answers for question ${question.id}`);
+                                    const errorText = await answersRes.text();
+                                    console.error('[ERROR] Response text:', errorText);
+                                    question.answers = []; // fallback to empty
+                                }
+                            } catch (error) {
+                                console.error(`[ERROR] Exception fetching answers for question ${question.id}:`, error);
+                                question.answers = []; // fallback to empty
+                            }
+                            return question;
+                        });
+
+                        // Wait for all answers to be fetched
+                        await Promise.all(fetchPromises);
+
+                        // Store test data
+                        testData = {
+                            session,
+                            questions,
+                            test
+                        };
+
+                        resolve(testData);
+                    })
+                    .catch(error => {
+                        testTitle.textContent = "Error";
+                        testDescription.textContent = "";
+                        testQuestions.innerHTML = `<p>There was an error starting the test: ${error.message || 'Unknown error'}</p>`;
+                        testActions.classList.add('hidden');
+                        reject(error);
+                    });
+            });
+        }
+
+        // Add event listeners to all "Begin" buttons
+        const startButtons = document.querySelectorAll('#startBtn');
+        startButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                // Hide all introduction sections
+                const allIntros = document.querySelectorAll('.introduction');
+                allIntros.forEach(intro => {
+                    intro.style.display = 'none';
+                });
+
+                // Show the test section
+                testSection.style.display = 'block';
+
+                // Start the test
+                startTest();
+            });
+        });
+
+        // Function to start the test
+        function startTest() {
+            // Hide introduction, show test
+            if (instructionSection) {
+                instructionSection.style.display = 'none';
+            }
+            testSection.style.display = 'block';
+
+            // If test data is already loaded, render the first question
+            if (testData) {
+                // Start timer if there's a time limit
+                if (testData.test.time_limit) {
+                    startTimer(testData.test.time_limit);
+                }
+
+                // Render the first question
+                currentQuestionIndex = 0;
+                renderQuestion(currentQuestionIndex);
+
+                // Add event listener for the submit button (as a fallback)
+                submitBtn.onclick = function () {
+                    if (saveCurrentAnswer()) {
+                        showSubmitConfirmationModal();
+                    } else {
+                        showNotification("Please select an answer before submitting.", "warning");
+                    }
+                };
+            } else {
+                // Load test data first, then start the test
+                loadTestData()
+                    .then(data => {
+                        // Start timer if there's a time limit
+                        if (data.test.time_limit) {
+                            startTimer(data.test.time_limit);
+                        }
+
+                        // Render the first question
+                        currentQuestionIndex = 0;
+                        renderQuestion(currentQuestionIndex);
+
+                        // Add event listener for the submit button (as a fallback)
+                        submitBtn.onclick = function () {
+                            if (confirm('Are you sure you want to submit your test? You cannot change your answers after submission.')) {
+                                submitTest();
+                            }
+                        };
+                    })
+                    .catch(error => {
+                        console.error("Error loading test data:", error);
+                        showNotification("Error loading test data. Please try again.", "error");
+                    });
+            }
+        }
+
+        // Preload test data when the page loads
+        loadTestData()
+            .then(() => {
+                console.log("Test data preloaded successfully");
+            })
+            .catch(error => {
+                console.error("Error preloading test data:", error);
+            });
+
+        // Add event listener to the "Begin" button
+        if (startBtn) {
+            startBtn.addEventListener('click', function () {
+                startTest();
+            });
+        }
+    });
+</script>
+
+
+{% endblock %}

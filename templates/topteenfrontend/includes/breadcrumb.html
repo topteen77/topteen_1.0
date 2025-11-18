@@ -1,0 +1,13 @@
+
+{% if breadcrumb %}
+<div class=" text-[12px] mt-[6px]  mb-[10px]  flex items-center space-x-2 scrollbar-hide overflow-x-auto whitespace-nowrap sm:mt-2 lg:-mt-[-150px] xl:mt-0">
+    <a href="/"><img class='h-3 opacity-50' src="{{static('topteenfrontend/assets/images/home.svg')}}"></a>
+    <span>&rarr;</span>
+    <a class='h-5 opacity-50' href="{{breadcrumb.url}}">{{breadcrumb.text}}</a>
+    {%if breadcrumb.title%}
+    <span>&rarr;</span>
+    
+    <p class='text-green-600  font-[galanoGrotesqueBold]'>{{breadcrumb.title}}</p>
+    {%endif%}
+</div>
+{%endif%}

@@ -1,0 +1,74 @@
+version: '3.2'
+
+services:
+    django:
+      build: ..
+      stdin_open: true
+      tty: true
+      ports:
+        - "8000:8000"
+        - "5678:5678"
+      working_dir: /app
+      command: python3 manage.py runserver 0.0.0.0:8000
+      volumes:
+        - ..:/app
+      environment:
+        - "PYTHONUNBUFFERED=1"
+      expose:
+        - "8000"
+      depends_on:
+        - mariadb
+      
+    mariadb:
+      image: mariadb:10.2
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: feetap
+        MYSQL_USER: myusername
+        MYSQL_HOST: localhost
+        MYSQL_PASSWORD: mypassword
+      volumes:
+       - ./data/mariadb:/var/lib/mysql
+
+    topteens_celery:
+      build: ..
+      stdin_open: true
+      tty: true     
+      working_dir: /app
+      command: celery -A topteens worker -l info 
+      volumes:
+        - ..:/app
+      environment:
+        - "PYTHONUNBUFFERED=1"
+    
+    celery_beat:
+      build: ..
+      stdin_open: true
+      tty: true
+      working_dir: /app
+      command: celery -A topteens beat -l info 
+      volumes:
+        - ..:/app
+      environment:
+        - "PYTHONUNBUFFERED=1"
+      expose:
+        - "8000"
+      depends_on:
+        - mariadb
+
+    rabbitmq:
+      image: rabbitmq:3.9-management
+      ports:
+        - "5672:5672"
+        - "15672:15672"
+
+    elasticsearch:
+      container_name: elasticsearch
+      image: elasticsearch:7.14.2
+      environment:
+        - discovery.type=single-node
+      ports:
+        - "9200:9200"
+      volumes:
+       - ./data/elasticsearch:/usr/share/elasticsearch/data/
+

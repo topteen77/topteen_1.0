@@ -1,0 +1,12 @@
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <div{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+            {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Important: {% endif %}
+            <div class=" badge-light-success">
+            {{ message }}
+            </div>
+        </div>
+        {% endfor %}
+    </ul>
+{% endif %}

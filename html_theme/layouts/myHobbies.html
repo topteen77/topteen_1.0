@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/customCSS.css">
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    />
+    <title>My Hobbies</title>
+</head>
+<body>
+
+        <!-- Header -->
+
+        <div
+        class="mx-auto hidden lg:flex justify-between py-[16px] lg:max-w-[1280px] border-b-[2px] border-[#EBEBEE]"
+      >
+        <div class="hidden lg:flex justify-between lg:container mx-auto">
+          <ul class="flex gap-[24px]">
+            <li class="flex">
+              <img
+                src="../assets/images/logo.svg"
+                class="w-[38.5px] h-[38.5px]"
+                alt=""
+              />
+              <p
+                class="text-[13.8px] leading-[18px] mt-[14px] ml-[8px] font-bold text-[#494949] tracking-[0.01em]"
+              >
+                TOPTEEN
+              </p>
+            </li>
+  
+            <li class="flex">
+              <i
+                class="fa fa-search mt-[15px] -mr-[32px] text-[#bdbdbd] z-[20]"
+              ></i>
+              <input
+                type="text]"
+                placeholder=" Careers, colleges, courses..."
+                class="h-[48px] w-[300px] rounded-[10px] pl-[36px] bg-[#f7f7fa] border-[1.5px] border-solid border-[#dcdcdc] placeholder-[#bdbdbd] z-[10]"
+              />
+            </li>
+          </ul>
+  
+          <ul class="flex gap-[12px]">
+            <li class="flex">
+              <img
+                src="../assets/images/discover.svg"
+                class="w-[22px] h-[22px] mt-[10px]"
+                alt=""
+              />
+              <p
+                class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[4px]"
+              >
+                Discover
+              </p>
+            </li>
+            <li class="flex">
+              <img
+                src="../assets/images/myPlans.svg"
+                class="w-[22px] h-[22px] mt-[10px]"
+                alt=""
+              />
+              <p
+                class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]"
+              >
+                My Plans
+              </p>
+            </li>
+            <li class="flex">
+              <img
+                src="../assets/images/learn.svg"
+                class="w-[22px] h-[22px] mt-[10px]"
+                alt=""
+              />
+              <p
+                class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[4px] text-[#828282]"
+              >
+                Learn
+              </p>
+            </li>
+            <li class="flex relative z-0">
+            <img src="../assets/images/user.svg" alt="" />
+              <div
+                class="popTrigr -ml-[16px] w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px]"
+              >
+                <div
+                  class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
+                >
+                  <img
+                    src="../assets/images/xp.svg"
+                    class="w-[20px] h-[20px]"
+                    alt=""
+                  />
+                  <p
+                    class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
+                  >
+                    1280 XP
+                  </p>
+                </div>
+              </div>
+  
+              <div  class="absolute z-10 popDiv">
+  
+                <div id="smallPop" class="hidden px-[6px] py-[4px] bg-[#ffffff] shadow-lg rounded-[8px] relative">
+                  <button value="1" class='text-black hover:bg-slate-200 text-[12px] font-bold py-1  h-full transition-all duration-[600ms] ease-in-out w-full'>
+                    <a href="#">View profile</a> 
+                  </button>
+                  <button value="2" class='text-black hover:bg-slate-200 text-[12px] font-bold py-1  h-full transition-all duration-[600ms] ease-in-out w-full'>
+                    <a href="#">Logout</a> 
+                  </button>
+                  <div class="trianglePop absolute left-[50%] -translate-x-[50%]">
+            
+                  </div>
+                </div>
+  
+              </div>
+              
+            </li>
+          </ul>
+        </div>
+      </div>
+      <!-- End of Desktop Header -->
+  
+      <!-- No header for the Mobile -->
+  
+      <!-- End of Header -->
+  
+
+    <main class="lg:pt-[60px] lg:max-w-[1280px] mx-auto">
+
+        <!-- Hobbies Heading -->
+        <section>
+            <div class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+                <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">My Hobbies</p>
+                <button class="absolute bottom-[18px] left-[24px]">
+                    <i class="fa-solid fa-arrow-left text-[#828282] text-[18px] leading-[50px]"></i>
+                </button>
+            </div>
+      
+            <div class="hidden lg:flex px-[20px] lg:px-[100px] ">
+                <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">My Hobbies</p>
+            </div>
+    
+        </section>
+        <!-- End of Hobbies Heading -->
+
+        <!-- Hobbies Content -->
+        <section class="pt-[25px] lg:pt-[50px] lg:max-w-[1280px] lg:mx-auto px-[20px] lg:pl-[100px] lg:pr-[95px] flex flex-wrap justify-center sm:justify-start gap-x-[30px] gap-y-[15px]">
+
+            <div class="flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+                <img src="../assets/images/music-player.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+                <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Listening to music</p>
+                <button class="my-auto">
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+
+            <div class="flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+                <img src="../assets/images/artist.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+                <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Arts and crafts</p>
+                <button class="my-auto">
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+
+            <div class="flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+                <img src="../assets/images/gamepad.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+                <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Video Games</p>
+                <button class="my-auto">
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+
+            <div class="flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+                <img src="../assets/images/music-player.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+                <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Music</p>
+                <button class="my-auto">
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+
+            
+            <div class="flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+                <img src="../assets/images/football.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+                <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Playing Sports</p>
+                <button class="my-auto">
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+
+            
+            <div class="flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+                <img src="../assets/images/shopping.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+                <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Shopping</p>
+                <button class="my-auto">
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+
+            <div class="hidden lg:flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+                <img src="../assets/images/gamepad.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+                <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Video Games</p>
+                <button class="my-auto">
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+
+            <div class="hidden lg:flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+                <img src="../assets/images/music-player.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+                <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Music</p>
+                <button class="my-auto">
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+
+            
+            <div class="hidden lg:flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+                <img src="../assets/images/football.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+                <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Playing Sports</p>
+                <button class="my-auto">
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+
+            
+            <div class="hidden lg:flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px]">
+                <img src="../assets/images/gamepad.png" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+                <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">Video Games</p>
+                <button class="my-auto">
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+
+
+        </section>
+        <!-- End of Hobbies Content -->
+    </main>
+    
+</body>
+</html>

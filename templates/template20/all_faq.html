@@ -1,0 +1,434 @@
+{% extends 'template20/base.html' %}
+{% block title_content %}FAQs{% endblock %}
+{% block description_content %}Frequently Asked Questions about TopTeen career guidance platform. Get answers to common queries.{% endblock %}
+{% block content %}
+{% include 'template20/includes/messages.html' %}
+<main class="py-test-page">
+
+    <section class="hero-section-inner pt-md-18 pt-14 pb-5 faq-hero-section">
+      <div class="container">
+        <div class="row">
+
+          {% include 'template20/includes/breadcrumb.html' %}
+          <div class="col-lg-6 col-md-12">
+            <span class="highlighter">
+              <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="iocn" /> Frequently Asked Questions 
+            </span>
+            <h1 class="heading-title mt-md-9 mb-md-8 mt-8 mb-3">
+              Got Questions? We've Got Answers!
+            </h1>
+            <p class="text-gray fs-16">Explore our FAQ section for quick and reliable answers to common queries. Whether you're a student or a parent, find the guidance you need to make informed decisions about education and career choices. </p>
+          </div>
+
+
+          <div class="col-lg-4 col-md-12 offset-md-2">
+            <div class="right-banner d-md-flex d-none justify-content-end">
+              <img class="img-fluid" src="{{ static('images_new/faqs-img.svg') }}" alt="Psychometric Test" />
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+    </section>
+    <!-- Hero Section -->
+
+
+
+
+
+
+
+
+    <!-- FAQ Section -->
+
+ 
+    <section class="faqs-section pb-10">
+      <div class="container">
+   
+        <div class="row">
+          <div class="col-md-12 mx-auto custom-faq">
+  
+            <ul class="nav nav-pills mb-3 d-flex justify-content-center my-3 gap-2" id="pills-tab" role="tablist">
+              <li class="nav-item" role="student">
+                <button class="nav-link active" id="pills-student-tab" data-bs-toggle="pill"
+                  data-bs-target="#pills-student" type="button" role="tab" aria-controls="pills-student"
+                  aria-selected="true">For Students</button>
+              </li>
+              <li class="nav-item" role="parents">
+                <button class="nav-link" id="pills-parents-tab" data-bs-toggle="pill" data-bs-target="#pills-parents"
+                  type="button" role="tab" aria-controls="pills-parents" aria-selected="false">For Parents</button>
+              </li>
+  
+            </ul>
+            <div class="tab-content" id="pills-tabContent">
+              <div class="tab-pane fade show active" id="pills-student" role="tabpanel"
+                aria-labelledby="pills-student-tab">
+  
+                <div class="accordion" id="accordionStudent">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        When should I start career counselling?
+                      </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        The earlier, the better! Ideally, career counselling
+                        should start in Class 9 or 10 to help you
+                        choose the right stream. For Class 11-12 students, it
+                        helps in making informed career decisions,
+                        selecting college courses, and planning for entrance
+                        exams.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        What if I don’t know what career I want to pursue?
+                      </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        That’s completely normal! Career counselling helps you
+                        explore different fields, understand your
+                        strengths and interests, and narrow down options
+                        through scientific assessments and expert advice.
+                      </div>
+                    </div>
+                  </div>
+  
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        What is the Stream Selector Test, and how does it
+                        help?
+                      </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        The Stream Selector Test analyzes your interests,
+                        aptitude, and personality to recommend the most
+                        suitable stream (Science, Commerce, or Humanities) for
+                        you.
+                      </div>
+                    </div>
+                  </div>
+  
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                        I have multiple interests. How do I choose one career
+                        path?
+                      </button>
+                    </h2>
+                    <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        Many students have diverse interests. Career guidance
+                        can help you identify careers that combine
+                        your strengths and passions. A counsellor can also
+                        help you explore multi-disciplinary fields.
+                      </div>
+                    </div>
+                  </div>
+  
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                        Can I change my stream later if I realize it’s not the
+                        right fit?
+                      </button>
+                    </h2>
+                    <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        Yes, but changing streams later can be difficult.
+                        That’s why it’s best to make an informed
+                        decision early with the help of career tests and
+                        counselling.
+                      </div>
+                    </div>
+                  </div>
+
+
+
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsesix" aria-expanded="false" aria-controls="collapsesix">
+                        How do I know if a career is right for me?
+                      </button>
+                    </h2>
+                    <div id="collapsesix" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        A career should match your interests, skills, values, and long-term goals. Career assessments and counselling provide clarity by evaluating these factors.
+                      </div>
+                    </div>
+                  </div>
+                   <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseseven" aria-expanded="false" aria-controls="collapseseven">
+                        Is it okay to pursue a non-traditional career like music, gaming, or photography?
+                      </button>
+                    </h2>
+                    <div id="collapseseven" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        Yes! Non-traditional careers are growing rapidly. If you are passionate, have the right skills, and plan your journey wisely, you can succeed. Our counsellors can guide you on career opportunities in these fields.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseeight" aria-expanded="false" aria-controls="collapseeight">
+                        Do career assessments guarantee a perfect career choice?
+                      </button>
+                    </h2>
+                    <div id="collapseeight" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        Career assessments provide valuable insights and suggest the best-fit options. However, success depends on your efforts, skill development, and adaptability.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsenine" aria-expanded="false" aria-controls="collapsenine">
+                        What if my parents and I disagree on my career choice?
+                      </button>
+                    </h2>
+                    <div id="collapsenine" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        This is common. A career counsellor can help you and your parents understand the prospects, risks, and growth potential of different career paths, making decision-making easier.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseten" aria-expanded="false" aria-controls="collapseten">
+                        How can I choose the right career after Class 12?
+                      </button>
+                    </h2>
+                    <div id="collapseten" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        Your career should align with your interests, strengths, and future job prospects. Our career counselling sessions help you explore different fields and create a personalized career roadmap.
+                      </div>
+                    </div>
+                  </div>
+                </div>  
+              </div>
+              <div class="tab-pane fade" id="pills-parents" role="tabpanel" aria-labelledby="pills-parents-tab">
+  
+                <div class="accordion" id="accordionParents">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepOne" aria-expanded="true" aria-controls="collapsepOne">
+                        What role do parents play in their child's career
+                        decision-making?
+                      </button>
+                    </h2>
+                    <div id="collapsepOne" class="accordion-collapse collapse show" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        Parents are a child's first mentors and play a crucial
+                        role in guiding career decisions,
+                        especially when children are too young to decide
+                        independently. While parental involvement is
+                        important, it’s essential to encourage children to
+                        explore their own interests. We recommend
+                        parents accompany their child to counselling sessions
+                        for a broader understanding of career
+                        options.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepTwo" aria-expanded="false" aria-controls="collapsepTwo">
+                        Can parents be present during testing?
+                      </button>
+                    </h2>
+                    <div id="collapsepTwo" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        Parents are not required during testing but are
+                        encouraged to attend counselling sessions,
+                        especially for students in grades 9-10. For students
+                        18 and above, parental presence is optional
+                      </div>
+                    </div>
+                  </div>
+  
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepThree" aria-expanded="false" aria-controls="collapsepThree">
+                        Are parents involved in the counselling process?
+                      </button>
+                    </h2>
+                    <div id="collapsepThree" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        Yes, parents have a significant influence on career
+                        choices. We encourage their participation in
+                        counselling sessions to provide insights and support
+                        their child’s decision-making.
+                      </div>
+                    </div>
+                  </div>
+  
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepFour" aria-expanded="false" aria-controls="collapsepFour">
+                        My child has already taken an aptitude test. Can we
+                        just do a counselling session?
+                      </button>
+                    </h2>
+                    <div id="collapsepFour" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        Yes, you can book a counselling session if the test
+                        was taken within the last six months. If it
+                        was conducted earlier, we recommend retesting for
+                        updated insights.
+                      </div>
+                    </div>
+                  </div>
+  
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepFive" aria-expanded="false" aria-controls="collapsepFive">
+                        My child is interested in multiple subjects and is
+                        struggling to choose. What should we do?
+                      </button>
+                    </h2>
+                    <div id="collapsepFive" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        It’s common for students to have diverse interests. We
+                        suggest taking our <strong> Stream Selector
+                          Test </strong> to assess aptitude, interests, and
+                        strengths. A counselling session can further
+                        clarify options and help make an informed decision.
+                      </div>
+                    </div>
+                  </div>
+
+
+                  
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepsix" aria-expanded="false" aria-controls="collapsepsix">
+                        How can I best support my child’s career development?
+                      </button>
+                    </h2>
+                    <div id="collapsepsix" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        Parents play a key role in shaping their child’s career choices. Encouraging open discussions, supporting exploration, and guiding them towards expert advice can be helpful. Check out our blog for tips on how to positively influence your child’s career journey.
+                      </div>
+                    </div>
+                  </div>
+
+
+                      
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepseven" aria-expanded="false" aria-controls="collapsepseven">
+                        Who are the career experts guiding my child?
+                      </button>
+                    </h2>
+                    <div id="collapsepseven" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        Our team consists of top career counsellors, psychologists, and experts from premier institutions in India and abroad, with 15+ years of experience in career guidance.
+                      </div>
+                    </div>
+                  </div>
+
+
+
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepeight" aria-expanded="false" aria-controls="collapsepeight">
+                        My child scored 65% in Class X. I’m unsure about the right stream. What should we do?
+                      </button>
+                    </h2>
+                    <div id="collapsepeight" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                      Academic scores alone don’t define future success. It’s important to assess your child's interests and aptitude. Our <b>  Stream Selector Test </b> and counselling sessions can help identify the best-fit stream based on strengths and preferences.
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepnine" aria-expanded="false" aria-controls="collapsepnine">
+                        How effective is TopTeen’s career guidance?
+                      </button>
+                    </h2>
+                    <div id="collapsepnine" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        TopTeen offers a blend of scientific assessments and expert counselling to provide personalized career guidance. Our approach combines AI-driven analysis with professional insights to help students identify their best-fit career paths and create a clear action plan.
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepten" aria-expanded="false" aria-controls="collapsepten">
+                        What are the benefits of early career planning?
+                      </button>
+                    </h2>
+                    <div id="collapsepten" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                      
+                        <ul>
+                           <li>	Allows time for in-depth research and preparation.</li> 
+                           <li>	Helps plan for necessary skills or entrance exams in advance.</li> 
+                           <li>	Encourages exploration and informed decision-making.</li> 
+
+                           <li>	Builds focus and ambition through goal-setting.</li> 
+                           <li>	Reduces stress and increases confidence in career choices.</li> 
+
+                        </ul>
+
+                      </div>
+                    </div>
+                  </div>
+
+
+
+
+
+  
+                </div>
+  
+              </div>
+  
+            </div>
+  
+       
+  
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- FAQ Section -->
+
+  
+</main>
+{% endblock %}

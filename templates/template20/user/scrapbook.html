@@ -1,0 +1,244 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}My Scrapbook | Top Teen{% endblock %}
+{% block description_content %}Access your saved content including notes, resume, bookmarks, and more.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} scrapbook-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .scrapbook-page {
+    padding-top: 80px;
+  }
+  .scrapbook-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 151px;
+    transition: transform 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .scrapbook-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  .scrapbook-card-icon {
+    width: 41px;
+    height: 41px;
+    margin: 0 auto 14px;
+  }
+  .scrapbook-card-mobile {
+    min-height: 84px;
+    padding: 20px;
+  }
+  .scrapbook-card-mobile .icon-mobile {
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%) rotate(31.19deg);
+    width: 57px;
+    height: 57px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="scrapbook-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- Scrapbook Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <h1 class="fs-24 fw-semibold mb-0">My Scrapbook</h1>
+      <div class="d-none d-lg-block">
+        <button type="button" class="btn custom-button purple-button addFolderPopBtn">
+          <i class='bx bx-plus me-2'></i> New Folder
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <h2 class="fs-16 fw-normal text-center mb-0">My Scrapbook</h2>
+      <button type="button" class="btn btn-link position-absolute end-0 top-0" onclick="window.location='{{ url('users:userdashboard') }}'">
+        <i class='bx bx-x fs-24 text-gray'></i>
+      </button>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="row g-3 g-lg-4">
+      <!-- My Notepad -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url('users:mynotepad') }}" class="text-decoration-none">
+          <div class="scrapbook-card scrapbook-card-mobile d-lg-block d-flex align-items-center position-relative">
+            <img src="{{ static('images_new/icons/diary.png') }}" class="scrapbook-card-icon icon-mobile d-lg-block d-none" alt="Notepad" />
+            <div class="flex-grow-1 text-center text-lg-center">
+              <h3 class="fs-16 fw-semibold text-dark mb-2">My Notepad</h3>
+              <p class="fs-12 text-gray mb-0">Your notes, reminders and post-its</p>
+            </div>
+            <div class="d-lg-none position-absolute end-0 top-50 translate-middle-y me-3">
+              <i class='bx bx-right-arrow-alt fs-20 text-gray'></i>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Resume Builder -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url('users:resumebuilderwelcome') }}" class="text-decoration-none">
+          <div class="scrapbook-card scrapbook-card-mobile d-lg-block d-flex align-items-center position-relative">
+            <img src="{{ static('images_new/icons/resumeBuilder.png') }}" class="scrapbook-card-icon icon-mobile d-lg-block d-none" alt="Resume Builder" />
+            <div class="flex-grow-1 text-center text-lg-center">
+              <h3 class="fs-16 fw-semibold text-dark mb-2">Resume Builder</h3>
+              <p class="fs-12 text-gray mb-0">Build your resume from scratch</p>
+            </div>
+            <div class="d-lg-none position-absolute end-0 top-50 translate-middle-y me-3">
+              <i class='bx bx-right-arrow-alt fs-20 text-gray'></i>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Career Interests -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url('users:careerinterest') }}" class="text-decoration-none">
+          <div class="scrapbook-card scrapbook-card-mobile d-lg-block d-flex align-items-center position-relative">
+            <img src="{{ static('images_new/icons/careerinsterests.png') }}" class="scrapbook-card-icon icon-mobile d-lg-block d-none" alt="Career Interests" />
+            <div class="flex-grow-1 text-center text-lg-center">
+              <h3 class="fs-16 fw-semibold text-dark mb-2">Career Interests</h3>
+              <p class="fs-12 text-gray mb-0">Careers that you have bookmarked</p>
+            </div>
+            <div class="d-lg-none position-absolute end-0 top-50 translate-middle-y me-3">
+              <i class='bx bx-right-arrow-alt fs-20 text-gray'></i>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Exams & Tests -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url('users:bookmarkexam') }}" class="text-decoration-none">
+          <div class="scrapbook-card scrapbook-card-mobile d-lg-block d-flex align-items-center position-relative">
+            <img src="{{ static('images_new/icons/examsTests.png') }}" class="scrapbook-card-icon icon-mobile d-lg-block d-none" alt="Exams & Tests" />
+            <div class="flex-grow-1 text-center text-lg-center">
+              <h3 class="fs-16 fw-semibold text-dark mb-2">Exams & Tests</h3>
+              <p class="fs-12 text-gray mb-0">Schools and tests shortlisted by you</p>
+            </div>
+            <div class="d-lg-none position-absolute end-0 top-50 translate-middle-y me-3">
+              <i class='bx bx-right-arrow-alt fs-20 text-gray'></i>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- My Videos -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url('users:bookmarkvideo') }}" class="text-decoration-none">
+          <div class="scrapbook-card scrapbook-card-mobile d-lg-block d-flex align-items-center position-relative">
+            <img src="{{ static('images_new/icons/myCourses.png') }}" class="scrapbook-card-icon icon-mobile d-lg-block d-none" alt="My Videos" />
+            <div class="flex-grow-1 text-center text-lg-center">
+              <h3 class="fs-16 fw-semibold text-dark mb-2">My Videos</h3>
+              <p class="fs-12 text-gray mb-0">Videos that you have bookmarked</p>
+            </div>
+            <div class="d-lg-none position-absolute end-0 top-50 translate-middle-y me-3">
+              <i class='bx bx-right-arrow-alt fs-20 text-gray'></i>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- My Colleges -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url('users:mycolleges') }}" class="text-decoration-none">
+          <div class="scrapbook-card scrapbook-card-mobile d-lg-block d-flex align-items-center position-relative">
+            <img src="{{ static('images_new/icons/myCourses.png') }}" class="scrapbook-card-icon icon-mobile d-lg-block d-none" alt="My Colleges" />
+            <div class="flex-grow-1 text-center text-lg-center">
+              <h3 class="fs-16 fw-semibold text-dark mb-2">My Colleges</h3>
+              <p class="fs-12 text-gray mb-0">College that you have bookmarked</p>
+            </div>
+            <div class="d-lg-none position-absolute end-0 top-50 translate-middle-y me-3">
+              <i class='bx bx-right-arrow-alt fs-20 text-gray'></i>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- My Hobbies -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url('users:myhobbies') }}" class="text-decoration-none">
+          <div class="scrapbook-card scrapbook-card-mobile d-lg-block d-flex align-items-center position-relative">
+            <img src="{{ static('images_new/icons/myHobbies.png') }}" class="scrapbook-card-icon icon-mobile d-lg-block d-none" alt="My Hobbies" />
+            <div class="flex-grow-1 text-center text-lg-center">
+              <h3 class="fs-16 fw-semibold text-dark mb-2">My Hobbies</h3>
+              <p class="fs-12 text-gray mb-0">This helps us serve you content</p>
+            </div>
+            <div class="d-lg-none position-absolute end-0 top-50 translate-middle-y me-3">
+              <i class='bx bx-right-arrow-alt fs-20 text-gray'></i>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Add Folder Modal -->
+<div class="modal fade" id="addFolderModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create New Folder</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addFolderForm">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="folderName" class="form-label">Folder Name</label>
+            <input type="text" class="form-control custom-input" id="folderName" name="folder_name" placeholder="Enter folder name" required>
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button">Create Folder</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<script>
+  // Add folder functionality
+  document.querySelectorAll('.addFolderPopBtn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const modal = new bootstrap.Modal(document.getElementById('addFolderModal'));
+      modal.show();
+    });
+  });
+
+  // Handle folder creation form
+  document.getElementById('addFolderForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const folderName = document.getElementById('folderName').value;
+    
+    // TODO: Implement AJAX call to create folder
+    // For now, just show an alert
+    alert('Folder creation functionality to be implemented');
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('addFolderModal'));
+    if (modal) {
+      modal.hide();
+    }
+  });
+</script>
+{% endblock %}
+

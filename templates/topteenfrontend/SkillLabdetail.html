@@ -1,0 +1,698 @@
+{% extends 'topteenfrontend/base.html' %} 
+{%block additionalheader%}
+{#
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+#}
+{%endblock%}
+{% block main %}
+    <!-- MAIN CONTENT -->
+    <div class="bg-white border">
+    <main class="container mt-0 lg:mx-auto lg:mt-10 mb-0 mx-auto ">
+      {% include'topteenfrontend/includes/breadcrumb.html'%}
+      
+      <!-- STICKY DIV -->
+      <div
+        class="lg:hidden grid grid-cols-3 grid-rows-1 sticky top-0 inset-x-0 border py-[21px] px-[32px] z-30 bg-white stickyDiv hidden"
+      >
+        <div></div>
+        <p
+          class="text-center text-[#0F0F0F] text-lg font-normal tracking-[0.035em]"
+        >
+          {{skilllab.name}}
+        </p>
+        <div class="text-right text-[16px] text-[#828282]">
+          <i class="fa fa-search"></i>
+        </div>
+      </div>
+      <!-- //////////////////// -->
+      <div></div>
+      <div class="lg:grid lg:grid-cols-4 gap-8 lg:px-0 lg:mb-[92px] block">
+        <!-- LEFT PART -->
+        <div class="lg:col-start-1 lg:col-span-3">
+          <!-- VIDEO PART -->
+          <section
+            class="w-full lg:h-[315px] mb-[35px] lg:mb-6 h-[374px] relative lg:static videoPlayer"
+          >{% if skilllab.video_url %}
+            <iframe
+              src="{{skilllab.video_url}}"
+              title="YouTube video player"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              class="w-full h-full  lg:rounded-[4px] border"
+            ></iframe>
+            {% else %}
+            <img class="w-full h-full object-cover" src="{{skilllab.image.url}}" >
+            {% endif %}
+            <div class="videoBgGradient lg:hidden"></div>
+          </section>
+          <div
+          class=" py-[19px] px-[22px] lg:hidden"
+        >
+            <h1 class="mb-3 text-[20px] leading-[27px] font-bold">
+              {{skilllab.name}}
+            </h1>
+            
+            <div
+              class="parentIntro text-normal text-[13px] leading-[18.9px] tracking-[-0.015em] text-opacity-80 intro parentContainer ckeditorStyles"
+              data-limit="60">
+                {{skilllab.description|safe}}
+            </div>
+            
+          </div>
+
+          {% if not skilllab.is_user_vissible(request) %}
+          <!-- Payment Button -->
+          <div class="flex flex-col justify-center items-center lg:flex-row gap-[16px] mx-[17px] lg:mx-0 bg-[#3f37c9] py-[16px] lg:py-[30px] rounded-[10px] px-[12px] lg:px-[24px] mb-[20px] lg:mb-[30px] lg:hidden">
+
+            <p class="text-[22px] leading-[30px] text-[#ffffff] semibold text-center">Complete the payment to unlock exciting content</p>
+
+            <button type="button" onclick="window.location='{{url('skilllab:createskilllabcoursepayment',args=[skilllab.slug])}}'"  class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px]">
+              <div class="bg-[#ffffff] h-[48px] w-full absolute top-0 rounded-[10px] flex items-center justify-center">
+                <p class="text-[16px] text-[#4f4f4f] boldFont text-center">Pay {{skilllab.get_display_price()}} Now</p>
+              </div>
+            </button>
+            {#
+            <button type="button"  data-course-slug="{{skilllab.slug}}" class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px] checkoutcourse">
+              <div class="bg-[#ffffff] h-[48px] w-full absolute top-0 rounded-[10px] flex items-center justify-center">
+                <p class="text-[16px] text-[#4f4f4f] boldFont text-center">Pay {{skilllab.get_display_price()}} Now</p>
+              </div>
+            </button>
+          #}
+
+          </div>
+          <!-- End of payment Button -->
+          {% endif %}
+
+          <!-- INTRODUCTION -->
+          <section class="mb-[60px] hidden lg:block">
+            <h1
+              class="text-xl tracking-[0.01em] text-[#000000] font-semibold mb-3.5"
+            >
+              {{skilllab.name}}
+            </h1>
+            
+            <div
+              class="parentIntro text-[16px] font-normal leading-[26px] tracking-[-0.015em] text-[#4F4F4F] parentContainer ckeditorStyles">
+              {{skilllab.description|safe}}
+            </div>
+            
+          </section>
+
+          {% if not skilllab.is_user_vissible(request) %}
+          <!-- Payment Button -->
+          <div class="lg:flex flex-col justify-center items-center lg:flex-row gap-[16px] mx-[17px] lg:mx-0 bg-[#3f37c9] py-[16px] lg:py-[30px] rounded-[10px] px-[12px] lg:px-[24px] mb-[20px] lg:mb-[30px] hidden">
+
+            <p class="text-[22px] leading-[30px] text-[#ffffff] semibold text-center">Complete the payment to unlock exciting content</p>
+          {#
+            <button type="button" data-course-slug="{{skilllab.slug}}" class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px] checkoutcourse">
+              <div class="bg-[#ffffff] h-[48px] w-full absolute top-0 rounded-[10px] flex items-center justify-center">
+                <p class="text-[16px] text-[#4f4f4f] boldFont text-center">Pay {{skilllab.get_display_price()}} Now</p>
+              </div>
+            </button>
+          #}
+
+            <button type="button" onclick="window.location='{{url('skilllab:createskilllabcoursepayment',args=[skilllab.slug])}}'"  class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px]">
+              <div class="bg-[#ffffff] h-[48px] w-full absolute top-0 rounded-[10px] flex items-center justify-center">
+                <p class="text-[16px] text-[#4f4f4f] boldFont text-center">Pay {{skilllab.get_display_price()}} Now</p>
+              </div>
+            </button>
+          </div>
+          <!-- End of payment Button -->
+          {% endif %}
+          {#
+          <!-- RECOMMENDED COURSES FOR MOBILE -->
+          <section class="block lg:hidden mb-[35px]">
+            <h5
+              class="font-semibold lg:mx-0 text-[15px] leading-[20.25px] tracking-[0.035em] lg:text-xl lg:tracking-[0.01em] mb-2 mx-[17px]"
+            >
+              Recommended Courses
+            </h5>
+            {% if skilllab.is_user_vissible(request)  %}
+            <!-- IMAGE BLOCK -->
+            <div
+              class="flex flex-row justify-start items-center gap-x-3 pt-3 overflow-x-auto pb-2 px-3 mx-[6px]"
+            >
+              <!-- VIDEO -->
+              <div class="w-[157px] shrink-0">
+                <div class="h-[138px] w-full relative z-0 mb-3">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 1
+                  </div>
+
+                  <div class="absolute top-1.5 right-1.5 z-10">
+                    <div class="bg-white rounded-full px-[5px] py-[3px]">
+                      <img
+                        src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                        class="w-[12px] h-[16px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-[15px] leading-[20px] font-semibold tracking-[0.035em] text-[#333333] mb-[3px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+              <!-- VIDEO -->
+              <div class="w-[157px] shrink-0">
+                <div class="h-[138px] w-full relative z-0 mb-3">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 2
+                  </div>
+
+                  <div class="absolute top-1.5 right-1.5 z-10">
+                    <div class="bg-white rounded-full px-[5px] py-[3px]">
+                      <img
+                        src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                        class="w-[12px] h-[16px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-[15px] leading-[20px] font-semibold tracking-[0.035em] text-[#333333] mb-[3px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+              <!-- VIDEO -->
+              <div class="w-[157px] shrink-0">
+                <div class="h-[138px] w-full relative z-0 mb-3">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 3
+                  </div>
+
+                  <div class="absolute top-1.5 right-1.5 z-10">
+                    <div class="bg-white rounded-full px-[5px] py-[3px]">
+                      <img
+                        src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                        class="w-[12px] h-[16px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-[15px] leading-[20px] font-semibold tracking-[0.035em] text-[#333333] mb-[3px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </section>
+          #}
+          {#
+          <!-- RECOMMENDED COURSES for desktop -->
+          <section class="mb-[60px] lg:block hidden">
+            <!-- HEADING -->
+            <div
+              class="mb-6 flex flex-row justify-between items-center lg:mx-0 mx-3.5"
+            >
+              <h5
+                class="font-semibold lg:mx-0 text-[15px] leading-[20.25px] tracking-[0.035em] lg:text-xl lg:tracking-[0.01em]"
+              >
+                Recommended Courses
+              </h5>
+              <a href="#" class="text-[#3f37c9] font-semibold text-xs"
+                >View All</a
+              >
+            </div>
+            {% if skilllab.is_user_vissible(request)  %}
+            <!-- IMAGE BLOCK -->
+            <div class="grid grid-cols-3 gap-[30px] rounded-[10px]">
+              <!-- VIDEO -->
+              <div>
+                <div class="h-[214px] w-full relative z-0 mb-[18px]">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover lg:rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 1
+                  </div>
+
+                  <div class="absolute top-3 right-3 z-10">
+                    <div class="bg-white rounded-full px-[8px] py-[6px]">
+                      <img
+                        src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                        class="w-[14px] h-[18px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-sm font-semibold tracking-[0.035em] text-[#333333] mb-[4px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+              <!-- VIDEO -->
+              <div>
+                <div class="h-[214px] w-full relative z-0 mb-[18px]">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover lg:rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 2
+                  </div>
+
+                  <div class="absolute top-3 right-3 z-10">
+                    <div class="bg-white rounded-full px-[8px] py-[6px]">
+                      <img
+                        src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                        class="w-[14px] h-[18px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-sm font-semibold tracking-[0.035em] text-[#333333] mb-[4px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+              <!-- VIDEO -->
+              <div>
+                <div class="h-[214px] w-full relative z-0 mb-[18px]">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover lg:rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 3
+                  </div>
+
+                  <div class="absolute top-3 right-3 z-10">
+                    <div class="bg-white rounded-full px-[8px] py-[6px]">
+                      <img
+                        src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                        class="w-[14px] h-[18px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-sm font-semibold tracking-[0.035em] text-[#333333] mb-[4px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </section>
+          #}
+
+          <!-- BLUE BANNER FOR MOBILE -->
+
+          <section
+            class="pt-6 pb-[27px] pr-[13px] pl-0 flex flex-row justify-start gap-x-[7px] items-center blue-banner mx-[17px] rounded-[10px] mb-[35px] lg:hidden"
+          >
+            <div class="h-[112px] w-[86px] shrink-0">
+              <img
+                src="{{static('topteenfrontend/assets/images/box.png')}}"
+                class="h-full w-full object-cover object-right"
+              />
+            </div>
+            <div>
+              <h5
+                class="text-[22px] leading-[29px] font-bold text-white mb-2.5"
+              >
+                Level up by learning new skills
+              </h5>
+              <p
+                class="text-[13px] leading-[19px] text-white text-opacity-90 font-normal"
+              >
+                Answer a few quick questions to get better suited course
+                recommendations
+              </p>
+            </div>
+          </section>
+
+          <!-- BLUE BANNER FOR DEKTOP -->
+          <section
+            class="w-full py-[26px] pl-[45px] pr-[33px] lg:flex flex-row justify-between items-center blue-banner rounded-[10px] gap-x-[69px] mb-[60px] hidden"
+          >
+            <div class="h-[224px] w-[224px] shrink-0">
+              <img src="{{static('topteenfrontend/assets/images/box.png')}}" class="h-full w-full" />
+            </div>
+            <div class="grow-0">
+              <h5
+                class="text-[28px] leading-[38px] font-semibold tracking-[0.035em] text-white mb-[8px]"
+              >
+                Level up by learning new skills on the go
+              </h5>
+              <p
+                class="text-[16px] leading-[27px] font-semibold text-white text-opacity-80 mb-6"
+              >
+                Answer a few questions for us to learn more about your interests
+                and get better course recommendations
+              </p>
+              <button onclick="window.location='{{url('core:contactus')}}'"
+                class="uppercase px-[64px] pt-4 pb-[13px] text-sm font-bold text-[#4F4F4F] bg-white rounded-[10px] border-b-[6px] border-[#EAEAEA] lg:block"
+              >
+                CONTINUE
+              </button>
+            </div>
+          </section>
+
+          <!-- ACTIVE COURSES FOR MOBILE -->
+          <section class="block lg:hidden mx-[17px] mb-[35px]">
+            <h5
+              class="font-semibold lg:mx-0 text-[15px] leading-[20.25px] tracking-[0.035em] lg:text-xl lg:tracking-[0.01em] mb-4"
+            >
+              Active Courses
+            </h5>
+            <!-- IMAGE BLOCK -->
+            {% if skilllab.is_user_vissible(request)  %}
+            <div class="flex flex-col gap-y-2.5">
+              {% for ac in activecourses %}
+              <div
+                class="flex flex-row justify-start items-end border w-full h-[76px] gap-2 relative p-3.5"
+              >
+                <div class="text-white z-10 mb-1">
+                  <img
+                    src="{{static('topteenfrontend/assets/images/tractor.png')}}"
+                    height="28px"
+                    width="35px"
+                  />
+                </div>
+                <div class="text-white z-10">
+                  <p class="text-[10px] font-normal leading-[13.5px] mb-1">
+                    {{ac.name}} &#x2022; 18 hours
+                  </p>
+                  <p
+                    class="font-semibold text-[15px] leading-[20.25px] tracking-[0.035em]"
+                  >
+                  <a href="{{url('skilllab:skilllabcoursedetail',args=[ac.slug])}}">{{ac.description|truncate(30)|safe}}</a>
+                  </p>
+                </div>
+                <div class="absolute inset-0 z-1 brightness-50">
+                  <img
+                    src="{{ac.image.url}}"
+                    class="w-full h-full rounded-lg object-cover"
+                  />
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </section>
+
+          <!-- ACTIVE COURSES FOR DESKTOP -->
+          <section class="mb-[125px] lg:block hidden">
+            <!-- HEADING -->
+            <div
+              class="mb-6 flex flex-row justify-between items-center lg:mx-0 mx-3.5"
+            >
+              <h5
+                class="font-semibold lg:mx-0 text-[15px] leading-[20.25px] tracking-[0.035em] lg:text-xl lg:tracking-[0.01em]"
+              >
+                Active Courses
+              </h5>
+              <a href="{{url('skilllab:skilllabcourselist')}}" class="text-[#3f37c9] font-semibold text-xs"
+                >View All</a
+              >
+            </div>
+            {% if skilllab.is_user_vissible(request)  %}
+            <!-- CONTENT -->
+            <div class="grid grid-cols-3 gap-[30px]">
+              {% for ac in activecourses %}
+              <div>
+                <!-- IMAGE -->
+                <div
+                  class="flex flex-row justify-start items-end w-full h-[214px] gap-2 relative p-3.5 mb-[19px]"
+                >
+                  <div class="text-white z-10 mb-1">
+                    <img
+                      src="{{static('topteenfrontend/assets/images/tractor.png')}}"
+                      height="28px"
+                      width="35px"
+                    />
+                  </div>
+                  <div class="text-white z-10">
+                    <p class="text-[10px] font-normal leading-[14px] mb-1">
+                      {{ac.name}} &#x2022; 18 hours
+                    </p>
+                    <p class="font-semibold text-sm tracking-[0.035em]">
+                      <a href="{{url('skilllab:skilllabcoursedetail',args=[ac.slug])}}">{{ac.description|truncate(30)|safe}}</a>
+                    </p>
+                  </div>
+                  <div class="absolute inset-0 z-1 brightness-50">
+                    <img
+                      src="{{ac.image.url}}"
+                      class="w-full h-full rounded-lg"
+                    />
+                  </div>
+                </div>
+
+              </div>
+              {% endfor %}
+
+            </div>
+            {% endif %}
+          </section>
+
+          <!-- LIST SEEN ONLY IN MOBILE VIEW -->
+          <div class="block lg:hidden mx-[17px] mb-[34px]">
+            <div class="flex flex-row justify-between items-center mb-[17px]">
+              <h3
+                class="text-[15px] leading-[20px] tracking-[0.035em] font-semibold text-[#0F0F0F]"
+              >
+                Skill Lab Course Chapter
+              </h3>
+              <a href="{{url('skilllab:skilllabcourselist')}}">
+              <p
+                class="text-[#541BCF] text-[13px] leading-[18px] font-semibold"
+              >
+                View All
+              </p>
+              </a>
+            </div>
+            {% if skilllab.is_user_vissible(request)  %}
+            <ul class="flex flex-col justify-start items-start gap-y-3.5">
+              <!-- ALTERNATE -->
+              {% for sklc in skilllab.skilllabcoursechapter.all() %}
+              <a class="w-full" href="{{url('skilllab:skilllabcoursechapterdetail',args=[sklc.slug])}}">
+              <li
+              class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+            >
+              <div class="w-[24px] h-[26px]">
+                <img src="{{static('topteenfrontend/assets/images/list.png')}}" class="h-full w-full" />
+              </div>
+              <div>
+                <h4
+                  class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                >
+                {{sklc.chapter_name}}
+                </h4>
+                <div class="text-[10px] leading-[14px] font-normal text-[#3F37C9] font-bold">{{sklc.content|safe|truncate(50)}}</span>
+              </div>
+            </li>
+              </a>
+            {% endfor %}
+
+              
+            </ul>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- RIGHT PART -->
+        <div class="hidden lg:block">
+          <h3
+            class="text-lg font-semibold tracking-[-0.02em] text-[#333333] mb-3.5"
+          >
+          Skill Lab Course Chapter
+          </h3>
+          {% if skilllab.is_user_vissible(request)  %}
+          <ul class="flex flex-col justify-start items-start gap-y-3.5">
+
+            <!-- ALTERNATE -->
+              {% for sklc in skilllab.skilllabcoursechapter.all() %}
+              <a class="w-full" href="{{url('skilllab:skilllabcoursechapterdetail',args=[sklc.slug])}}">
+              <li
+              class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+            >
+              <div class="w-[24px] h-[26px] shrink-0">
+                <img src="{{static('topteenfrontend/assets/images/list.png')}}" class="h-full w-full" />
+              </div>
+              <div>
+                <h4
+                  class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                >
+                {{sklc.chapter_name}}
+                </h4>
+                
+                  <div class="text-[10px] leading-[14px] font-normal text-[#3F37C9] font-bold workactive">{{sklc.content|safe|truncate(50)}}</div>
+              </div>
+            </li>
+            </a>
+            {% endfor %}
+
+          </ul>
+          {% endif %}
+
+          <ul class="flex flex-col justify-start items-start gap-y-3.5">
+            {% if not skilllab.is_user_vissible(request) %}
+          <!-- Payment Button -->
+          <div class="lg:flex flex-col justify-center items-center gap-[16px] mx-[17px] lg:mx-0 bg-[#3f37c9] py-[16px] lg:py-[30px] rounded-[10px] px-[12px] lg:px-[24px] mb-[20px] lg:mb-[30px] hidden">
+
+            <p class="text-[22px] leading-[30px] text-[#ffffff] semibold text-center">Complete the payment to unlock exciting content</p>
+            {#
+            <button type="button" data-course-slug="{{skilllab.slug}}" class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px] checkoutcourse">
+              <div class="bg-[#ffffff] h-[48px] w-full absolute top-0 rounded-[10px] flex items-center justify-center">
+                <p class="text-[16px] text-[#4f4f4f] boldFont text-center">Pay {{skilllab.get_display_price()}} Now</p>
+              </div>
+            </button>
+          #}
+            <button type="button" onclick="window.location='{{url('skilllab:createskilllabcoursepayment',args=[skilllab.slug])}}'" class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px]">
+              <div class="bg-[#ffffff] h-[48px] w-full absolute top-0 rounded-[10px] flex items-center justify-center">
+                <p class="text-[16px] text-[#4f4f4f] boldFont text-center">Pay {{skilllab.get_display_price()}} Now</p>
+              </div>
+            </button>
+
+          </div>
+          <!-- End of payment Button -->
+          {% endif %}
+          </ul>
+        </div>
+
+        
+
+      </div>
+    </main>
+  </div>
+  {%endblock%}
+  {% block additionalfooter %}
+  {#
+  <script src="{{static('topteenfrontend/assets/js/skilllabcoursepayment.js')}}"></script>
+  <script type="text/javascript">
+    var create_skillabcourse_payment = "{{url('createskilllabcoursepayment')}}"
+    var update_skillabcourse_payment = "{{url('updateskilllabcoursepayment')}}"
+  </script>
+#}
+  {% endblock %}
+

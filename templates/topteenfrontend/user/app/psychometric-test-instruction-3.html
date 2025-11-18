@@ -1,0 +1,596 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+
+
+<style>
+  h4 {
+      border-bottom: 2px solid #000;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    ol {
+      margin-left: 20px;
+    }
+    .section {
+      margin-top: 20px;
+    }
+    .section ol {
+      margin-left: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+      color: #000;
+      font-weight: bold;
+    }
+    td {
+      background-color: #fff;
+      color: #333;
+    }
+    caption {
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 1.2em;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    tr:hover {
+      background-color: #e2e2e2;
+    }
+
+    p{margin-bottom: 0px;}
+
+
+  @media screen and (max-width: 768px) {
+ol, ul {
+  padding-left: 0px !important;
+}
+
+.list-none {
+padding-bottom: 0px;
+    padding-left: 0px;
+}
+
+.title-test-info {
+	font-size: 20px;
+}
+
+
+
+  }
+
+</style>
+
+<body>
+  
+<div data-direction="translate-y-full"
+class=" h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto translate-y-full transition-all duration-500">
+
+<div class="inline-block bg-[#ffffff] w-full rounded-t-[10px] absolute bottom-0 drawerContent">
+
+  <div class="pl-[24px] pr-[30px] w-full py-[32px] flex flex-col gap-[20px]">   
+
+    <a href="{{url('users:logout')}}" class="inline-block w-full">
+      <div class="flex justify-between w-full">
+        <div>
+          <p class="text-[16px] leading-[21.6px] semibold text-[#f20a18]">Sign Out</p>
+          <p class="text-[12px] leading-[16px] regularFont text-opacity-60 text-[#f20a18]">You
+            answered - Indoors</p>
+        </div>
+        <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
+      </div>
+    </a>
+
+  </div>
+
+</div>
+
+</div>
+<!--End of Edit Profile PopUp -->
+
+<!-- Refer friends PopUp -->
+<div
+class="hidden top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen flex flex-row justify-center items-center referFriendsPopup ">
+<div class="lg:max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center">
+  <div
+    class="bg-[#ffffff] rounded-[10px] relative referDivs w-full md:max-w-[395px] lg:w-[395px] pb-[24px] pt-[48px] modalContent">
+    <button class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] referPopupClose">
+      <i class="fa fa-xmark"></i>
+    </button>
+
+    <p class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold ">
+      Refer/Invite friends
+    </p>
+    <form onsubmit="return false" id="referform">
+      <div class="w-full flex justify-center mt-[22px] ">
+        <input type="text" id="remail" name="email" placeholder="Enter email"
+          class="mx-auto w-[80%] h-[53px] rounded-[10px]">
+      </div>
+      <div class="mx-auto w-[80%] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+        <button type="submit" onclick="refersubmit()"
+          class="w-full h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]">
+          Submit
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+<!-- End of Refer Friends Popup -->
+
+<!-- Main Content -->
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
+
+<div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+  <!-- Left Part Mobile -->
+  <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+    <!-- User -->
+    <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+      <div class="flex gap-[17px]">
+        <div>
+          <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" />
+        </div>
+        <div class="flex flex-col gap-y-[5px]">
+          <div class="pt-[12px]">
+            <p class="text-[15px] leading-[20.25px] font-semibold">
+              {{request.user}}
+            </p>
+          </div>
+          <div class="flex flex-col gap-y-[3px]">
+            <div class="flex gap-[4px]">
+              <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+              <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                Joined {{request.user.created.strftime("%B, %Y")}}
+              </p>
+            </div>
+            <div class="flex gap-[4px]">
+              <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
+                class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+              <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                {% if request.user.user_profile %} 
+                {% if request.user.student_management.last().class_and_section %}
+                {{request.user.student_management.last().class_and_section}}
+                {% endif %} • {% if request.user.user_profile.schoolname %}
+                {{request.user.user_profile.schoolname}}{% endif %}
+                {% else %} - • - {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" data-direction="translate-y-full"
+        class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+        <i class="fa fa-gear text-white text-[12.5px]"></i>
+      </button>
+    </div>
+    <!-- End of User -->
+
+    <!-- Complete Profile -->
+    <div id="comppro"
+      class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[100px] pt-[18px] relative">
+      <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+        <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+      </div>
+      <div>
+        <div class="flex relative">
+          <div class="absolute -left-[24px]">
+            <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" class="w-[81px] h-[81px]"
+              alt="" />
+          </div>
+          <div class="text-left max-w-[217.5px] ml-[74px]">
+            <div>
+              <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                Complete your profile
+              </p>
+              <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                A complete profile helps us cater the best content to you
+              </p>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+              <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+            </div>
+            <!-- End of Progress Bar -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End of Complete Profile -->
+  </div>
+
+  <!-- End of left Part Mobile -->
+
+  <!-- Left part Desktop -->
+  <div class=" hidden lg:block w-[338px] h-[442px] border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto sticky top-[20px]">
+    <!-- User -->
+    <div class="flex justify-center border-b-[1px] border-solid border-[#dedede]">
+      <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px]">
+
+        <div class=" flex flex-col justify-center items-center">
+
+          <div class="flex justify-center items-center w-full">
+            <div class="flex gap-[8px]">
+              <div class="relative">
+                <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" />
+                <!-- <img src="{{static('topteenfrontend/assets/images/test_Img.png')}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" /> -->
+
+                <!-- XP  -->
+                <!-- <div
+                        class="w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px] absolute bottom-1 left-20"
+                      >
+                        <div
+                          class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
+                        >
+                          <img
+                            src="{{static("topteenfrontend/assets/images/xp.svg")}}"
+                            class="w-[20px] h-[20px]"
+                            alt=""
+                          />
+                          <p
+                            class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
+                          >
+                            1280 XP
+                          </p>
+                        </div>
+                      </div> -->
+                <!-- End of XP -->
+              </div>
+            </div>
+          </div>
+
+          <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
+
+        </div>
+
+
+        <div class="flex flex-col gap-y-[8px]">
+
+          <div class="flex gap-[14px]">
+            <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]" alt="" />
+            <p class="text-[16px] leading-[21.6px] text-[#828282]">
+              Joined {{request.user.created.strftime("%B, %Y")}}
+            </p>
+          </div>
+          <div class="flex gap-[14px]">
+            <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}" class="w-[18px] h-[14px]" alt="" />
+            <p class="text-[16px] leading-[21.6px] text-[#828282]">
+              {% if request.user.user_profile %} {% if request.user.student_management.last().class_and_section
+              %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if
+              request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{% else %} - •
+              - {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- End of User -->
+
+    <!-- Complete Profile -->
+    <div class="flex justify-center pt-[18px]">
+      <div>
+        <div class="flex gap-[18px]">
+          <div class="w-[45px] h-[44px]">
+            <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" alt="no image" />
+          </div>
+          <div class="text-left max-w-[206px] flex flex-col gap-y-[5px]">
+            <div>
+              <p class="text-[12px] leading-[16.2px] font-semibold text-[#333333]">
+                Complete your profile
+              </p>
+              <p class="text-[10px] leading-[14.5px] font-normal text-[#828282]">
+                A complete profile helps us cater the best content to you
+              </p>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-[205px] h-[10px] rounded-[100px] bg-[#4cc9f0] bg-opacity-[0.15]">
+              <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+            </div>
+            <!-- End of Progress Bar -->
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="w-[295px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[19px] d-none">
+          <a href="">
+            <div class="w-full h-[48px] flex gap-[11.56px] justify-center rounded-[10px] bg-[#3f37c9] text-[#ffffff]">
+              <i class="fa fa-gear my-auto"></i>
+
+              <p class="text-[14px] leading-[18.9px] font-bold my-auto text-[#ffffff]">
+                SETTINGS
+              </p>
+
+            </div>
+          </a>
+        </div>
+        <!-- End of settings -->
+      </div>
+    </div>
+    <!-- End of Complete Profile -->
+  </div>
+        <div class="col-lg-8 col-md-12 mt-md-0 mt-5">
+          <h2 class="title-test-info mb-0">Psychometric Test </h2>
+          <div class="test-info-box  mt-5">
+            <div class="row">
+              
+              <div class="col-md-12">
+                <div class="ts-i-dets px-0 align-items-start text-start py-md-5">
+
+
+                  <div class="d-flex flex-row items-center">
+                    <div class="img-test-i py-md-5"> <img class="img-fluid" src="{{ static ('images/info-tree.svg' )}}"
+                      alt="" /> </div>                   
+                        <div class="ms-2">
+                        <h5>Test Instructions!</h5>
+                        <h4>Part 3 - Aptitude Assessment</h4>
+                  </div>
+                  </div>
+                  
+                  <p style=" color: rgb(78, 73, 73);">
+                    Welcome to the Aptitude Assessment Test! This comprehensive test evaluates your abilities in
+                    various areas, including numerical, spatial, logical, mechanical, language and spellings, verbal,
+                    and critical  reasoning. The results will help you understand your strengths and identify
+                    potential career paths that match your skills. Please read the following instructions carefully
+                    before you begin.
+                  </p>
+          
+                  <div class="section">
+                    <h4>General Instructions</h4>
+                    <ol style="list-style: num;" class="ms-0" >
+                      <li> Ensure you are in a quiet and comfortable environment where you can focus without interruptions.</li>
+                      <li>Each section has a time limit. Manage your time wisely and try to answer as many questions as possible within the given
+                        time.</li>
+                        <li>The time allotted for this specific test is 70 minutes (10 minutes for each and every section). </li>
+                          <li>Make sure to read each question and all the answer choices thoroughly before selecting your answer.</li>
+                      <li> Make sure to read each question and all the answer choices thoroughly before selecting your answer.</li>
+                      <li> Choose the answer that
+                        you believe is correct based on your knowledge and understanding. There are no penalties for
+                        wrong answers, so it’s better to attempt all questions.</li>
+                      <li> You may use scratch paper for calculations or note-taking. Make sure to have a calculator if permitted for
+                        certain sections.</li>
+                      <li> Pay attention to specific instructions given for each section. Different sections may have different types of
+                        questions and answer formats.</li>
+                        <li> For logical section if the images appears too small, students can zoom in by pressing ctrl + or they can click on the image to get popped up.</li>
+                        <li> Stay Focused. Try to avoid distractions while taking the test.</li>
+                          <li> Be Honest. The accuracy of your results depends on your honest responses.</li>
+                    </ol>
+                  </div>
+          
+                  <div class="section">
+                    <h4>Section-Specific Instructions</h4>
+                    <ol style="list-style: num;" class="ms-0">
+                      <li><span style="font-weight: bold; color: black;">Numerical Reasoning:</span>
+                        <ul style="margin-left: 20px;">
+                          <li>You will encounter problems involving arithmetic, algebra, geometry, and data
+                            interpretation.</li>
+                          <li>Use logical reasoning and calculation skills to find the correct answers.</li>
+                        </ul>
+                      </li>
+                      <li><span style="font-weight: bold; color: black;">Spatial Reasoning:</span>
+                        <ul style="margin-left: 20px;">
+                          <li>You will be given tasks that involve visualizing and manipulating objects.</li>
+                          <li>Identify patterns, shapes, and their relationships in two and three dimensions.</li>
+                        </ul>
+                      </li>
+                      <li><span style="font-weight: bold; color: black;">Logical Reasoning:</span>
+                        <ul style="margin-left: 20px;">
+                          <li>You will face questions that test your ability to recognize patterns, sequences, and
+                            logical relationships.</li>
+                          <li>Use your reasoning skills to solve puzzles and problems.</li>
+                        </ul>
+                      </li>
+                      <li><span style="font-weight: bold; color: black;">Mechanical Reasoning:</span>
+                        <ul style="margin-left: 20px;">
+                          <li>You will be asked about principles of mechanics, such as force, motion, and energy.</li>
+                          <li>Apply basic physics concepts to solve the problems.</li>
+                        </ul>
+                      </li>
+                      <li><span style="font-weight: bold; color: black;">Language Usage and Spelling:</span>
+                        <ul style="margin-left: 20px;">
+                          <li>You will be tested on your understanding of language, grammar, and spelling.</li>
+                          <li>Choose the correct spellings and grammatical structures.</li>
+                        </ul>
+                      </li>
+                      <li><span style="font-weight: bold; color: black;">Verbal Reasoning:</span>
+                        <ul style="margin-left: 20px;">
+                          <li>You will be given passages to read, followed by questions about the content, structure,
+                            and meaning.</li>
+                          <li>Answer the questions based on the information provided in the passages.</li>
+                        </ul>
+                      </li>
+                      <li><span style="font-weight: bold; color: black;">Critical Reasoning:</span>
+                        <ul style="margin-left: 20px;">
+				<li>You will encounter scenarios that assess your ability to think clearly and critically with decision-making ability.
+                          </li>
+                          <li>Choose responses that reflect objectivity, analytical thinking, problem-solving and basic reasoning abilities.</li>
+                        </ul>
+                      </li>
+                    </ol>
+                  </div>
+          
+                  <p style="font-weight: bold; color: rgb(77, 72, 72);">By understanding your aptitudes, you can make informed decisions about your education and future
+                    career. Good luck, and do your best!</p>
+
+
+                    <div class="col-md-12">  <div class="ft-purple-btn justify-content-end mb-5 mt-5">
+                      <form action="{{ url ('app:test3_view') }}" method="GET">
+                        <button type="submit" class="btn purple-button">Start</button>
+                      </form>                   
+                    </div></div>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  </section>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+    integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="{{ static ('js/bootstrap.min.js')}}"></script>
+    <script src="{{ static ('js/main.js')}}"></script>
+    <script src="{{ static ('js/jquery.sticky.js')}}"></script>
+    <body>
+</body>
+
+<script>
+
+
+  $(document).ready(function () {
+    var owl = $('.explore-theme');
+    owl.owlCarousel({
+      loop: true,
+      margin: 10,
+      responsiveClass: true,
+      nav: false,
+      dots: false,
+
+      responsive: {
+        0: {
+          items: 1.5,
+        },
+        400: {
+          items: 1.5,
+        },
+        600: {
+          items: 1.5,
+        },
+        1000: {
+          items: 2.5,
+        },
+        1920: {
+          items: 2.5
+        }
+      }
+    });
+
+    // Custom Button
+    $('.customNextBtn').click(function () {
+      owl.trigger('next.owl.carousel');
+    });
+    $('.customPreviousBtn').click(function () {
+      owl.trigger('prev.owl.carousel');
+    });
+
+  });
+
+
+
+  $('.partner-logo').owlCarousel({
+    loop: true,
+    margin: 40,
+    responsiveClass: true,
+    dots: false,
+    autoplay: true,
+    slideTransition: 'linear',
+    autoplayTimeout: 6000,
+    autoplaySpeed: 6000,
+    autoplayHoverPause: true,
+    responsive: {
+      0: {
+        items: 2,
+      },
+      400: {
+        items: 3,
+      },
+      600: {
+        items: 5,
+      },
+      1000: {
+        items: 5,
+      },
+      1920: {
+        items: 5
+      }
+    }
+  });
+
+
+
+  $(document).ready(function () {
+    var owl = $('.top-courses');
+    owl.owlCarousel({
+      loop: true,
+      margin: 10,
+      responsiveClass: true,
+      nav: false,
+      dots: false,
+      responsive: {
+        0: {
+          items: 1.5,
+        },
+        400: {
+          items: 1.5,
+        },
+        600: {
+          items: 3,
+        },
+        1000: {
+          items: 4.5,
+        },
+        1920: {
+          items: 4.5
+        }
+      }
+    });
+
+    // Custom Button
+    $('.customNextBtn').click(function () {
+      owl.trigger('next.owl.carousel');
+    });
+    $('.customPreviousBtn').click(function () {
+      owl.trigger('prev.owl.carousel');
+    });
+
+  });
+
+
+
+  jQuery(document).ready(function ($) {
+    "use strict";
+    //  TESTIMONIALS CAROUSEL HOOK
+    $('#customers-testimonials').owlCarousel({
+      loop: true,
+      center: true,
+      items: 3,
+      margin: 0,
+      autoplay: true,
+      dots: false,
+      autoplayTimeout: 8500,
+      smartSpeed: 450,
+
+      responsive: {
+        0: {
+          items: 1
+        },
+        768: {
+          items: 1.5
+        },
+        1170: {
+          items: 1.5
+        }
+      }
+    });
+  });
+
+</script>
+
+{% endblock %}

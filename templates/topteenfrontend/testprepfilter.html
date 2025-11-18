@@ -1,0 +1,784 @@
+  {% extends 'topteenfrontend/loggedin-base.html' %}
+{%block additionalheader%}
+<style>
+.pageBtn{
+  height: 35px;
+  width: 35px;
+  border-radius: 3px;
+  border: 1px solid #dadada;
+  font-size: 14px;
+  color: #898A8D;
+  background-color: #FFFFFF;
+}
+.pageBtn.active{
+background-color: #3f37c9;
+color: #FFFFFF;
+}
+
+.hideModal{
+  display: none;
+}
+
+</style>
+{%endblock%}
+
+{% block main %}
+<!-- main content -->
+<main
+class="lg:grid w-full lg:grid-cols-4  gap-x-[30px] container mt-8 px-3 mx-auto"
+>
+    
+<!-- LEFT DIV -->
+<div class="lg:block hidden">
+  {% include'topteenfrontend/includes/breadcrumb.html'%}
+  
+  <div
+    class="bg-white divide-y divide-[#DEDEDE] rounded-[10px] border border-[#DEDEDE]">
+    <form method="GET"  class="divide-y divide-[#DEDEDE]">
+    <!-- search DIV -->
+    <div class="p-3">
+     <div class="relative mb-[10px]">
+        <input
+        type="text" oninput="inputFunc()" placeholder="Search Exams" autocomplete="off" name="search" {%if searchname%} value="{{searchname}}" {%else%} value=""{%endif%}
+        class="pl-[48px] py-2.5 pr-[42px] bg-[#F7F7FA] w-full rounded-[10px] placeholder:text-[#BDBDBD] text-sm placeholder:text-sm border border-[#DEDEDE]"
+        />
+        <button class="absolute left-5 top-2.5 text-[#BDBDBD]">
+          <i class="fa fa-search"></i>
+        </button>
+      </div>
+<!-- End of SearchBox -->
+    </div>
+      
+    <!-- FILTER DIV -->
+    <div class="p-3">
+      <div
+        class="flex flex-row justify-start items-center gap-x-[5px] mb-3 px-[5px]"
+      >
+        <div class="h-[24px] w-[24px]">
+          <img
+            src="{{static('topteenfrontend/assets/images/classroom.png')}}"
+            class="h-full w-full object-cover"
+          />
+        </div>
+        <p class="text-sm font-semibold text-[#333333]">Class Type</p>
+      </div>
+
+        <!-- CHECKBOXES -->
+        <div class="space-y-[8px] px-2.5">
+          <!-- FILTER -->
+          {% for tag,count,selected in facets_filter.category %}
+          
+          <div
+            class="flex flex-row justify-start gap-x-[8px] items-center"
+          >
+            <input
+              type="checkbox"
+              class="h-3.5 w-3.5 border border-[#3F37C9] rounded-[2px]"
+              id="{{tag}}"
+              name="category"
+              value="{{tag}}" onchange="this.form.submit()" {% if selected %} checked {% endif %}
+            />
+            <label
+              class="text-sm text-[#494949] text-opacity-80"
+              for="{{tag}}"
+              >{{tag}}</label
+            >
+          </div>
+
+          {%endfor%}
+
+        </div>
+    </div>
+
+    <!-- FILTER DIV -->
+    <div class="p-3">
+      <div
+        class="flex flex-row justify-start items-center gap-x-[5px] mb-3 px-[5px]"
+      >
+        <div class="h-[24px] w-[24px]">
+          <img
+            src="{{static('topteenfrontend/assets/images/online-test.png')}}"
+            class="h-full w-full"
+          />
+        </div>
+        <p class="text-sm font-semibold text-[#333333]">Tags</p>
+      </div>
+
+
+        <!-- CHECKBOXES -->
+        <div class="space-y-[8px] px-2.5 max-h-[242px] overflow-y-auto">
+          <!-- FILTER -->
+          {% for tag,count,selected in facets_filter.examtags_slug %}
+          <div
+            class="flex flex-row justify-start gap-x-[8px] items-center"
+          >
+            <input
+              type="checkbox"
+              class="h-3.5 w-3.5 border border-[#3F37C9] rounded-[2px]"
+              id="{{tag}}"
+              name="tags"
+              value="{{tag}}" onchange="this.form.submit()" {% if selected %} checked {% endif %}
+              
+            />
+            <label
+              class="text-sm text-[#494949] text-opacity-80"
+              for="{{tag}}"
+              >{{tag}}</label
+            >
+          </div>
+          {%endfor%}
+
+
+        </div>
+    </div>
+
+    <!-- FILTER DIV -->
+    <div class="p-3">
+      <div
+        class="flex flex-row justify-start items-center gap-x-[5px] mb-3 px-[5px]"
+      >
+        <div class="h-[24px] w-[24px]">
+          <img
+            src="{{static('topteenfrontend/assets/images/to-do-list.png')}}"
+            class="h-full w-full"
+          />
+        </div>
+        <p class="text-sm font-semibold text-[#333333]">Streams</p>
+      </div>
+
+      
+        
+        <!-- CHECKBOXES -->
+        <div class="space-y-[8px] px-2.5 max-h-[242px] overflow-y-auto">
+          
+          <!-- FILTER -->
+          {% for tag,count,selected in facets_filter.stream_slug %}
+          
+          <div
+            class="flex flex-row justify-start gap-x-[8px] items-center itemcount"
+          >  
+            <input
+              id="{{tag}}"
+              type="checkbox"
+              name="stream"
+              value="{{tag}}" onchange="this.form.submit()" {% if selected %} checked {% endif %}
+                      
+              class="h-3.5 w-3.5 border border-[#3F37C9] rounded-[2px]"
+            />
+            <label
+              class="text-sm text-[#494949] text-opacity-80"
+              for="{{tag}}"
+              >{{tag}}</label
+            >
+          </div>
+          {%endfor%}
+          
+
+        </div>
+     
+    </div>
+  </form>
+</div>
+  
+</div>
+
+<!-- MIDDLE DIV -->
+
+<div class="lg:col-start-2 lg:col-span-2 lg:mb-0 mb-3.5">
+  <button
+    class="drawerTrigger bg-white px-3.5 py-3 rounded-[10px] border border-[#DADADA] text-sm text-[#131415] mb-2 lg:hidden block"
+  >
+    FILTERS
+  </button>
+  {%if exams%}
+  <p class="text-[10px] leading-[11px] text-[#0F0F0F] mb-[22px] examscount">
+    Showing  {{exams|length}} of {{exam_count}} items.
+  </p>
+  <div class="hidden countex">
+    {{exams|length}}
+  </div>
+  <!-- CARD LIST -->
+  <div class="space-y-[13px] mb-[57px]">
+    <!-- CARD -->
+    {%for exam in exams%}
+    <div
+      class="bg-white rounded-[12px] shadow-[0_7px_32px_rgba(0,0,0,0.07)] px-3.5 py-3 relative"
+      >
+
+      <!-- IMAE BLOCK -->
+      <div
+        class="flex flex-row justify-start items-center gap-x-[7px] mb-3 lg:mb-0"
+        >
+        <div class="w-[63px] h-[57px]">
+          <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}">
+                    
+          <img src="{{exam.logo_url}}" class="h-full w-full" />
+        </div>
+        <div>
+          
+          <h5
+            class="text-sm font-semibold semibold text-[#131415] mb-[5px] "
+          >
+            {{exam.name}}
+          </h5>
+        </a>
+          {%for str in exam.stream[:1]%}
+          <p
+            class="text-[10px] leading-[11px] mediumFont text-opacity-[0.25] text-black"
+          >
+            {{str.name}}
+          </p>
+          {%endfor%}
+      
+        </div>
+      </div>
+      <!-- BOTTOM BLOCK -->
+
+      <div
+        class="flex lg:flex-row flex-col-reverse lg:justify-between lg:gap-x-[30px] lg:-translate-y-4 gap-y-0"
+      >
+      
+        <div
+          class="lg:w-[70%] w-full flex flex-row justify-between lg:pt-[34px]"
+        >
+          <!-- ///////////// -->
+          <div class="flex flex-col">
+            <!-- <p
+              class="text-[10px] leading-[11px] mediumFont text-opacity-[0.25] text-black mb-[3px]"
+            >
+              Application Form Date
+            </p>
+            <p class="text-xs mediumFont text-[#131415]">4 June, 2022</p> -->
+          </div>
+
+          <!-- ///////////// -->
+          <div class="flex flex-col">
+            <!-- <p
+              class="text-[10px] leading-[11px] mediumFont text-opacity-[0.25] text-black mb-[3px]"
+            >
+              Exam Date
+            </p>
+            <p class="text-xs mediumFont text-[#131415]">4 July, 2022</p> -->
+          </div>
+          <!-- ///////////// -->
+          <div class="flex flex-col">
+            <!-- <p
+              class="text-[10px] leading-[11px] mediumFont text-opacity-[0.25] text-black mb-[3px]"
+            >
+              Result Date
+            </p>
+            <p class="text-xs mediumFont text-[#131415]">
+              12 August, 2022
+            </p> -->
+          </div>
+        </div>
+
+        <!-- BTNS -->
+        <div class="inline-block -mb-[20px] mt-[16px] lg:mt-0 lg:mb-0 ">
+        <div
+          class="flex flex-row lg:flex-col lg:gap-y-[9px] justify-between lg:w-[106px] w-full lg:mb-0 mb-2"
+        >
+        {#
+          <button
+            class="w-[106px] h-[30px] text-center align-middle lg:mx-auto text-[11px] leading-[15px] mediumFont text-white bg-[#3F37C9] rounded-[39px] modalTrigger"
+            data-dynamic="{{exam.name}}"
+            >
+            Apply Now&nbsp; &rightarrow;
+          </button>
+          #}
+          <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}">
+                    
+          
+          <button
+            class="w-[106px] h-[30px] text-center align-middle lg:mx-auto text-[11px] leading-[15px] mediumFont text-[#141414] bg-[#FFFFFF] rounded-[39px] border border-[#E0E0E0]"
+          >
+            View Details&nbsp; &rightarrow;
+          </button>
+          </a>
+        </div>
+      </div>
+    </div>
+
+
+      <!-- BOOKMARK -->
+
+      <!-- <div class="absolute top-3 right-3">
+        <div
+          class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]"
+        >
+          <img
+            src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+            class="w-[12px] h-[16px]"
+          />
+        </div>
+      </div> -->
+    </div>
+
+    
+    {%if loop.index==6%}
+
+   <!-- BLUE BANNER -->
+    <div
+      class="lg:py-[18px] lg:pl-[22px] lg:pr-[40px] p-3 blue-banner justify-between items-center flex flex-row rounded-[10px] mb-7"
+    >
+      <div class="lg:h-[141px] lg:w-[93px] h-[112px] w-[112px] shrink-0">
+        <img
+          src="{{static('topteenfrontend/assets/images/box.png')}}"
+          class="h-full w-full object-cover"
+        />
+      </div>
+      <div class="max-w-[318px] text-white font-semibold">
+        <h6 class="lg:text-[28px] lg:leading-[38px] text-xl">
+          Level up by learning
+        </h6>
+        <p class="text-lg text-white text-opacity-80 mb-2">
+          Answer a few questions for us to learn more about your interests
+          and get better course recommendations
+        </p>
+        <button  onclick="window.location='{{url('core:contactus')}}'"
+          class="pt-[13px] pb-[19px] px-[24px] lg:px-[87px] uppercase text-xs font-bold tracking-[0.01em] text-[#4F4F4F] bg-white border-b-[6px] border-[#EAEAEA] rounded-[10px]"
+        >
+          CONTINUE
+        </button>
+      </div>
+    </div>
+    {%endif%}
+   
+    {%endfor%} 
+  </div>
+  {%else%}
+  <br>
+  <p class="text-center text-[36px] leading-[11px] text-[#0F0F0F] mb-[35px]">No Result found</p>
+  
+  {%endif%}
+  {%if exams%}
+          <!-- PAGINATION -->
+          <div
+          class="flex flex-row justify-center items-center gap-x-[9px] mb-[58px]"
+        >
+          {% if exams.has_previous() %}
+          <button onclick="window.location='{{url('entrance_exams:testprepfilter')}}?page={{exams.previous_page_number()}}{% for key,value in request.GET.items() %}{% if key != 'page' %}&{{key}}={{value}}{% endif %}{% endfor %}'"
+            class="h-[35px] w-[35px] rounded-[3px] border border-[#DADADA] text-center align-middle text-sm text-[#898A8D] bg-white"
+          >
+            &lt;&lt;
+          </button>
+          <button onclick="window.location='{{url('entrance_exams:testprepfilter')}}?page={{exams.number-1}}{% for key,value in request.GET.items() %}{% if key != 'page' %}&{{key}}={{value}}{% endif %}{% endfor %}'"
+            class="h-[35px] w-[35px] rounded-[3px] border border-[#DADADA] text-center align-middle text-sm text-[#898A8D] bg-white"
+          >
+            {{exams.number-1}}
+          </button>
+          {% endif %}
+          <button
+            class="h-[35px] w-[35px] rounded-[3px] border border-[#DADADA] text-center align-middle text-sm text-[#898A8D] bg-white"
+          >
+            {{exams.number}}
+          </button>
+          {% if exams.has_next() %}
+          <button onclick="window.location='{{url('entrance_exams:testprepfilter')}}?page={{exams.number+1}}{% for key,value in request.GET.items() %}{% if key != 'page' %}&{{key}}={{value}}{% endif %}{% endfor %}'"
+            class="h-[35px] w-[35px] rounded-[3px] border border-[#DADADA] text-center align-middle text-sm text-[#898A8D] bg-white"
+          >
+            {{exams.number+1}}
+          </button>
+          <button onclick="window.location='{{url('entrance_exams:testprepfilter')}}?page={{exams.next_page_number()}}{% for key,value in request.GET.items() %}{% if key != 'page' %}&{{key}}={{value}}{% endif %}{% endfor %}'"
+            class="h-[35px] w-[35px] rounded-[3px] border border-[#DADADA] text-center align-middle text-sm text-[#898A8D] bg-white"
+          >
+            &gt;&gt;
+          </button>
+          
+          {% endif %}
+        </div>
+  {%endif%}
+</div>
+
+
+<!-- RIGHT DIV -->
+<div>
+  <div
+    class="bg-white px-[9px] py-[3px] min-h-[377px] border border-[#DEDEDE] rounded-[10px] mb-[36px]"
+  >
+    <h4 class="text-[20px] leading-[26px] font-semibold mb-4">
+      Related Exams
+    </h4>
+    <ul class="space-y-3.5">
+      <!-- CARD -->
+      {%for exam in related_exam[:4]%}
+      <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="">
+      <li
+        class="px-3 py-3.5 flex flex-row justify-start items-center gap-x-[8px] rounded-[10px] border border-[#F3F3F3]"
+      >   
+                
+        <div class="w-[33px] h-[39px] shrink-0">
+          <img src="{{exam.logo_url}}" class="h-full w-full object-cover " />
+        </div>
+        <div>
+          <h6 class="text-sm font-semibold text-[#333333]">
+            {{exam}}
+          </h6>
+          <!-- <p
+            class="text-[11px] leading-[15px] font-medium text-[#828282]"
+          >
+            28 June, 2023
+          </p> -->
+        </div>
+        
+      </li>
+    </a>
+      {%endfor%}
+    
+    </ul>
+  </div>
+  <!-- STREAMS -->
+  <div class="lg:mb-[30px] mb-[40px]">
+    <h4 class="font-semibold text-lg mb-3.5">Streams</h4>
+    <!-- CONTENT -->
+    <div class="flex flex-row flex-wrap gap-x-[8px] gap-y-[8px]">
+      {%for stream in streams%}
+      <div
+        class="bg-[#3F37C9] bg-opacity-[0.15] text-xs text-[#3F37C9] lg:py-[11px] lg:px-4 py-[11px] px-[9px] font-semibold rounded-[100px] tracking-[1%]"
+      ><a href="{{url('entrance_exams:testprepfilter')}}?stream={{stream}}"> {{stream}}</a>
+       
+      </div>
+      {%endfor%}
+      
+    </div>
+  </div>
+
+  <!-- Exams and Tests -->
+  <div class="mb-10">
+    <h4 class="font-semibold text-lg mb-2">Exams and Tests</h4>
+    <!-- Content -->
+    <div class="flex flex-col gap-3.5">
+      {%for exam in related_exam[:3]%}
+      <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="">
+      
+      <div
+        class="border border-[#F3F3F3] rounded-[10px] flex flex-row gap-x-2.5 py-3.5 pr-[20px] pl-[17px] items-center bg-gradient-to-b from-gray-100 to-transparent"
+      >
+        <div class="h-[39px] w-[35px] shrink-0">
+          <img
+            src="{{exam.logo_url}}"
+          class="object-cover"
+            />
+        </div>
+        <div>
+          <p class="font-semibold text-sm">{{exam.name}}</p>
+          <!-- <p class="text-[#828282] text-xs font-normal">28 June, 2021</p> -->
+        </div>
+      </div>
+      </a>
+      {%endfor%}
+      
+    </div>
+  </div>
+</div>
+
+
+</main>
+
+ <!-- PAGINATION -->
+ 
+   <!-- DRAWER CODE -->
+   <div
+   class="h-screen drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 grid grid-cols-3 overflow-y-auto -translate-x-full transition-all duration-500"
+ >
+   <div class="bg-white drawerContent col-start-1 col-span-2">
+     <div
+       class="bg-white divide-y divide-[#DEDEDE] rounded-[10px] border border-[#DEDEDE] px-2 py-[16px]"
+     >
+       <button class="ml-auto block drawerCloser">
+         <i class="fa fa-xmark"></i>
+       </button>
+       <div class="flex flex-row justify-between items-center mb-2 py-2">
+         <h6 class="text-[#131415] font-semibold text-lg">FILTERS</h6>
+
+         <button class="text-[#3F37C9] font-semibold text-xs clearFilter">
+           CLEAR ALL
+         </button>
+       </div>
+       <form method="get">
+       <!-- search DIV -->
+       <div class="p-3">
+        <div class="relative mb-[10px]">
+         <input
+         type="text" onfocus="focusFunc()" oninput="inputFunc()" placeholder="Search Exams" autocomplete="off" name="search" {%if searchname%} value="{{searchname}}" {%else%} value=""{%endif%}
+         class="pl-[48px] py-2.5 pr-[42px] bg-[#F7F7FA] w-full rounded-[10px] placeholder:text-[#BDBDBD] text-sm placeholder:text-sm border border-[#DEDEDE]"
+         />
+         <button class="absolute left-5 top-2.5 text-[#BDBDBD]">
+           <i class="fa fa-search"></i>
+         </button>
+       </div>
+       <!-- End of SearchBox -->
+     </div>
+       <!-- FILTER DIV -->
+       <div class="p-3">
+         <div
+           class="flex flex-row justify-start items-center gap-x-[5px] mb-3 px-[5px]"
+         >
+           <div class="h-[24px] w-[24px]">
+             <img
+               src="{{static('topteenfrontend/assets/images/classroom.png')}}"
+               class="h-full w-full"
+             />
+           </div>
+           <p class="text-sm font-semibold text-[#333333]">Class Type</p>
+         </div>
+
+         <div>
+           <!-- CHECKBOXES -->
+           <div class="space-y-[8px] px-2.5">
+             <!-- FILTER -->
+             {% for tag,count,selected in facets_filter.category %}
+          
+             <div
+               class="flex flex-row justify-start gap-x-[8px] items-center"
+             >
+               <input
+                 type="checkbox"
+                 class="h-3.5 w-3.5 border border-[#3F37C9] rounded-[2px]"
+                 id="{{tag}}"
+                 name="category"
+                 value="{{tag}}" onchange="this.form.submit()" {% if selected %} checked {% endif %}
+               />
+               <label
+                 class="text-sm text-[#494949] text-opacity-80"
+                 for="{{tag}}"
+                 >{{tag}}</label
+               >
+             </div>
+   
+             {%endfor%}
+             
+           </div>
+         
+        </div>
+      </form> 
+      </div>
+
+       <!-- FILTER DIV -->
+       <div class="p-3">
+         <div
+           class="flex flex-row justify-start items-center gap-x-[5px] mb-3 px-[5px]"
+         >
+           <div class="h-[24px] w-[24px]">
+             <img
+               src="{{static('topteenfrontend/assets/images/online-test.png')}}"
+               class="h-full w-full"
+             />
+           </div>
+           <p class="text-sm font-semibold text-[#333333]">Tags</p>
+         </div>
+
+         <form>
+           
+
+           <!-- CHECKBOXES -->
+           <div class="space-y-[8px] px-2.5 max-h-[242px] overflow-y-auto">
+             <!-- FILTER -->
+             {% for tag,count,selected in facets_filter.examtags_slug %}
+             <div
+               class="flex flex-row justify-start gap-x-[8px] items-center"
+             >
+               <input
+                 type="checkbox"
+                 class="h-3.5 w-3.5 border border-[#3F37C9] rounded-[2px]"
+                 id="{{tag}}"
+                 name="tags"
+                 value="{{tag}}" onchange="this.form.submit()" {% if selected %} checked {% endif %}
+                 
+               />
+               <label
+                 class="text-sm text-[#494949] text-opacity-80"
+                 for="{{tag}}"
+                 >{{tag}}</label
+               >
+             </div>
+             {%endfor%}
+           </div>
+         </form>
+       </div>
+
+       <!-- FILTER DIV -->
+       <div class="p-3">
+         <div
+           class="flex flex-row justify-start items-center gap-x-[5px] mb-3 px-[5px]"
+         >
+           <div class="h-[24px] w-[24px]">
+             <img
+               src="{{static('topteenfrontend/assets/images/to-do-list.png')}}"
+               class="h-full w-full"
+             />
+           </div>
+           <p class="text-sm font-semibold text-[#333333]">Streams</p>
+         </div>
+
+         <form>
+           
+           <!-- CHECKBOXES -->
+           <div class="space-y-[8px] px-2.5 max-h-[242px] overflow-y-auto">
+             <!-- FILTER -->
+             {% for tag,count,selected in facets_filter.stream_slug %}
+             <div
+               class="flex flex-row justify-start gap-x-[8px] items-center"
+             >
+               <input
+                 type="checkbox"
+                 class="h-3.5 w-3.5 border border-[#3F37C9] rounded-[2px]"
+                 id="{{tag}}"
+                 name="stream"
+                 value="{{tag}}" onchange="this.form.submit()" {% if selected %} checked {% endif %}
+                 
+               />
+               <label
+                 class="text-sm text-[#494949] text-opacity-80"
+                 for="{{tag}}"
+                 >{{tag}}</label
+               >
+             </div>
+             {%endfor%}
+
+           </div>
+         </form>
+       </div>
+
+
+     </div>
+   </div>
+ </div>
+ <!-- DRWER CODE ENDS -->
+
+ <!-- MODAL CODE -->
+ <!-- OVERLAY -->
+  <div
+   class="lg:bg-black lg:bg-opacity-40 bg-white fixed h-screen inset-0 lg:flex justify-center items-center z-10 modal hideModal"
+ > 
+   <!-- BODY -->
+   <div
+     class="max-w-[720px] w-full bg-white lg:px-[60px] px-3 rounded-[10px] modalContent"
+   >
+     <button class="ml-auto block text-[#131415] text-lg modalCloser mt-2">
+       <i class="fa fa-xmark"></i>
+     </button>
+     <!-- HEADER -->
+     <div
+       class="flex flex-row justify-start items-center gap-x-[14px] my-[23px]"
+     >
+       <div
+         class="w-[77px] h-[77px] bg-[#3f37c9] bg-opacity-10 flex justify-center items-center rounded-[8px]"
+       >
+         <img class="h-[58px] w-[58px]" src="{{static('topteenfrontend/assets/images/graduation-hat 1.png')}}"/>
+       </div>
+
+       <div>
+         <p class="text-[23px] mb-[2px] boldFont ">Register Now to Apply</p>
+         <p class="text-sm text-[#99989B] font-semibold dynamicText">JEE Advanced</p>
+       </div>
+     </div>
+     <form>
+       <!-- INPUT FIELDS -->
+       <div
+         class="grid lg:grid-cols-2 grid-cols-1 gap-y-[10px] gap-x-[30px] mb-[22px]"
+       >
+         <div class="relative text-[#494949] text-opacity-80 text-sm">
+           <input
+             class="py-[16px] pl-[46px] text-sm placeholder:text-sm rounded-[10px] border-2 border-[#3F37C9] w-full"
+             type="text"
+             placeholder="Enter your name"
+           />
+           <span class="absolute left-4 top-[32%]"
+             ><i class="fa fa-user"></i
+           ></span>
+         </div>
+         <div class="relative text-[#494949] text-opacity-80 text-sm">
+           <input
+             class="py-[16px] pl-[46px] text-sm placeholder:text-sm rounded-[10px] border-2 border-[#3F37C9] w-full"
+             type="text"
+             placeholder="Enter your Contact number"
+           />
+           <span class="absolute left-4 top-[32%]"
+             ><i class="fa fa-phone"></i
+           ></span>
+         </div>
+         <div class="relative text-[#494949] text-opacity-80 text-sm">
+           <input
+             class="py-[16px] pl-[46px] text-sm placeholder:text-sm rounded-[10px] border-2 border-[#3F37C9] w-full"
+             type="text"
+             placeholder="Enter your email"
+           />
+           <span class="absolute left-4 top-[32%]"
+             ><i class="fa fa-envelope"></i
+           ></span>
+         </div>
+         <div class="relative text-[#494949] text-opacity-80 text-sm">
+           <select
+             class="py-[16px] pl-[46px] text-sm placeholder:text-sm rounded-[10px] border-2 border-[#3F37C9] w-full"
+             type="text"
+             placeholder="Select your city"
+           >
+             <option hidden>Select your city</option>
+             <option>Delhi</option>
+           </select>
+
+           <span class="absolute left-4 top-[32%]"
+             ><i class="fa fa-location-pin"></i
+           ></span>
+         </div>
+         <div class="relative text-[#494949] text-opacity-80 text-sm">
+           <select
+             class="py-[16px] pl-[46px] text-sm placeholder:text-sm rounded-[10px] border-2 border-[#3F37C9] w-full"
+             type="text"
+             placeholder="Enter your name"
+           >
+             <option class="word-wrap" hidden>Select course category</option>
+             <option>Btech</option>
+           </select>
+           <span class="absolute left-4 top-[32%]"
+             ><i class="fa fa-graduation-cap"></i
+           ></span>
+         </div>
+       </div>
+
+       <!-- CHECKBOX -->
+       <div
+         class="flex flex-row justify-start items-start gap-x-3 mb-[28px]"
+       >
+         <input
+           type="checkbox"
+           class="text-[#3f37c9] h-[14px] w-[14px] rounded-sm border-[#3f37c9] cursor-pointer"
+           name="terms"
+           id="terms"
+         />
+         <label
+           class="text-[11px] leading-[15px] text-[#BDBDBD] font-semibold cursor-pointer"
+           for="terms"
+         >
+           By Clicking on Sumbit, I allow TOPTEEN to contact me Via Whatsapp
+           and other channels with suitable college options.
+         </label>
+       </div>
+
+       <!-- SUBMIT BUTTON -->
+       <button
+         class="w-[239px] h-[48px] bg-[#3f37c9] text-center align-middle mx-auto block rounded-[10px] text-white text-sm font-bold mb-[53px]"
+       >
+         SUBMIT
+       </button>
+     </form>
+   </div>
+ </div> 
+ <!-- MODAL ENDS -->
+
+{%endblock%}
+{%block additionalfooter%}
+<script>
+const excount=document.querySelector(".examscount")
+const realcount=document.querySelector(".countex").innerHTML
+const testcount=function(){
+  const str=window.location.search
+  if (str!=="" && !str?.includes('page')){
+    
+    excount.innerHTML=`Total ${realcount} items`
+  }
+}
+testcount()
+</script>
+{%endblock%}

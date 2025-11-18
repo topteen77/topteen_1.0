@@ -1,0 +1,129 @@
+<header class="header tt-header" id="header">
+  <nav class="navbar container px-5">
+    <div class="navbar-inner">
+      <a href="{{ url('core:home') }}" class="brand">
+        <img class="img-fluid" src="{{ static('images_new/logos/logo.svg') }}" alt="Logo" />
+      </a>
+
+      <div class="d-md-none d-block d-flex justify-content-end align-items-center">
+        <div class="menu-item search-icon">
+          <a href="#" class="menu-link search-toggle">
+            <i class='bx bx-search fs-20'></i>
+          </a>
+        </div>
+        <div class="burger" id="burger">
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="navbar-block" id="menu">
+      <ul class="menu">
+        <li class="menu-item single-link">
+          <a href="{{ url('core:aboutus') }}" class="menu-link">About Us</a>
+        </li>
+        
+        <li class="menu-item dropdown">
+          <span class="dropdown-toggle menu-link">
+            Discover <i class='bx bx-chevron-down fs-20 d-none'></i>
+          </span>
+          <div class="dropdown-content tabs-auto-fit">
+            <a href="{{ url('careers:defaultcareerlibrary') }}" target="_blank">Career Library</a>
+            <a href="{{ url('skilllabcourse:skilllabcourselist') }}" target="_blank">Top Courses</a>
+          </div>
+        </li>
+        
+        <li class="menu-item dropdown">
+          <span class="dropdown-toggle menu-link">
+            Resources <i class='bx bx-chevron-down fs-20 d-md-none d-block'></i>
+          </span>
+          <div class="dropdown-content tabs-auto-fit blogs-menu">
+            <a href="{{ url('blog:blogs') }}" target="_blank">Blogs for Students</a>
+            <a href="#" target="_blank">Blogs for Parents</a>
+            <a href="{{ url('careers:careervideos') }}" target="_blank">Videos</a>
+          </div>
+        </li>
+        
+        <li class="menu-item dropdown">
+          <span class="dropdown-toggle menu-link">
+            Explore Colleges <i class='bx bx-chevron-down fs-20 d-md-none d-block'></i>
+          </span>
+          <div class="dropdown-content tabs-auto-fit country-menu">
+            <a href="{{ url('colleges:college') }}?country=India" target="_blank">India</a>
+            <a href="{{ url('colleges:college') }}?country=Australia" target="_blank">Australia</a>
+            <a href="{{ url('colleges:college') }}?country=Canada" target="_blank">Canada</a>
+            <a href="{{ url('colleges:college') }}?country=USA" target="_blank">USA</a>
+            <a href="{{ url('colleges:college') }}?country=UK" target="_blank">UK</a>
+            <a href="{{ url('colleges:college') }}?country=New Zealand" target="_blank">New Zealand</a>
+          </div>
+        </li>
+        
+        <li class="menu-item dropdown">
+          <span class="dropdown-toggle menu-link">
+            TestPrep <i class='bx bx-chevron-down fs-20 d-md-none d-block'></i>
+          </span>
+          <div class="dropdown-content tabs-auto-fit exam-menu">
+            <a href="{{ url('entrance_exams:testpreptenth') }}" target="_blank">Entrance Test</a>
+            <a href="{{ url('entrance_exams:testpreptenth') }}?exam_type=IELTS" target="_blank">IELTS</a>
+            <a href="{{ url('entrance_exams:testpreptenth') }}?exam_type=PTE" target="_blank">PTE</a>
+            <a href="{{ url('entrance_exams:testpreptenth') }}?exam_type=TOEFL" target="_blank">TOEFL</a>
+          </div>
+        </li>
+        
+        <li class="menu-item search-icon d-md-flex d-none">
+          <a href="#" class="menu-link search-toggle" aria-label="Open search" role="button">
+            <i class='bx bx-search fs-20'></i>
+          </a>
+        </li>
+        
+        {% if user.is_authenticated %}
+        <li class="menu-item dropdown">
+          <span class="dropdown-toggle menu-link float-end">
+            <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />
+          </span>
+          <div class="dropdown-content login-content">
+            <h6>Dashboard</h6>
+            <p class="text-gray fs-14">Welcome, {{ user.first_name|default(user.username) }}</p>
+            <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
+              <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
+              <a href="{{ url('users:logout') }}" class="btn custom-button blue-button d-flex align-items-center">Logout</a>
+            </div>
+          </div>
+        </li>
+        {% else %}
+        <li class="menu-item dropdown">
+          <span class="dropdown-toggle menu-link float-end">
+            <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />
+          </span>
+          <div class="dropdown-content login-content">
+            <h6>Dashboard</h6>
+            <p class="text-gray fs-14">Login and Sign Up to access your dashboard</p>
+            <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
+              <button onclick="location.replace('{{ url('users:login') }}')" type="button" class="btn custom-button purple-button me-3">Sign In</button>
+              <button onclick="location.replace('{{ url('users:login') }}')" type="button" class="btn custom-button blue-button d-flex align-items-center">Sign Up</button>
+            </div>
+          </div>
+        </li>
+        {% endif %}
+        
+        <li class="translate-container">
+          <div id="google_translate_element"></div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="search-container">
+    <div class="search-input-wrapper">
+      <input type="text" class="search-input custom-input" placeholder="Search careers..." id="search-input">
+      <button class="search-btn"><i class='bx bx-search'></i></button>
+      <button class="search-close"><i class='bx bx-x'></i></button>
+    </div>
+    <div class="search-results">
+      <!-- Search results will appear here -->
+    </div>
+  </div>
+</header>
+

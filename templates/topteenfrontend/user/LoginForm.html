@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta name="robots" content="noindex">    
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {%if html_head%}
+  <title>{{html_head.title}} | Top Teen</title>
+  <meta name="description" content="{{html_head.description}}">
+  {%else%}
+    <title>{%block title%} | Top Teen {%endblock%} </title>
+    <meta name="description" content="Top Teen Career Building website">
+  {%endif%}
+  <link rel="stylesheet" href="{{static('topteenfrontend/assets/css/custom.css')}}" />
+  <link rel="stylesheet" href="{{static('topteenfrontend/assets/css/styles.css')}}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  <link rel="shortcut icon" href="{{static('topteenfrontend/assets/images/graduation-hat 1.png')}}" />
+
+  <title>Login Page</title>
+  
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SLK3YZB0SG"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-SLK3YZB0SG');
+</script>
+
+</head>
+
+<body>
+
+
+  <main>
+    <div class="max-w-[1280px] my-auto mx-auto">
+      <!-- Logo -->
+      <div class="hidden lg:flex gap-[8.2px] mt-[48px] justify-center w-[102px] mx-auto">
+        <img src="{{static('topteenfrontend/assets/images/graduation-hat 1.png')}}" class="w-[38.58px] h-[38.58px]"
+          alt="" />
+        <p class="text-[13.13px] leading-[15.76px] tracking-[1%] boldFont my-auto text-[#494949]">
+          TOPTEEN
+        </p>
+      </div>
+      <!-- End of Logo -->
+
+      <!-- Back button -->
+      <div onclick="history.back()" class="hidden cursor-pointer lg:block -mt-[36px] ml-[100px]">
+        <i class="fa fa-arrow-left text-[#828282] w-[28px] h-[28px]"></i>
+      </div>
+      <!-- End of Back Button -->
+
+      <!-- Login Part -->
+      <div
+        class="mt-[27px] md:mt-[42px] lg:mt-[80px] mx-auto w-full h-full lg:w-[400px] lg:h-[541px] rounded-[10px] lg:border-[1px] lg:border-[#dedede] relative pt-[22px]">
+        <div onclick="history.back()" class="absolute left-[23px] lg:hidden">
+          <i class="fa fa-arrow-left text-[#828282] w-[28px] h-[28px]"></i>
+        </div>
+
+        <p class="text-[16px] leading-[21.6px] tracking-[1%] boldFont text-[#4f4f4f] text-center">Enter your details</p>
+        <p id="errorMsg" class="text-[12px] leading-[21.6px] tracking-[1%] text-center" style="color: red"></p>
+
+        <div class="w-[344px] h-[48px] rounded-[10px] mx-auto mt-[40px] lg:mt-[5px]">
+        
+        <p id="errorMsgSinguplogin" class="text-[12px] leading-[21.6px] tracking-[1%] text-center" style="color: red"></p>
+        <div class="w-[344px] h-[48px] rounded-[10px] mx-auto mt-[40px] lg:mt-[5px]">
+          <input type="email" placeholder="Enter your email" id="mobileEmail"
+            class="mx-auto w-[344px] h-[48px] rounded-[10px] border-[1.5px] border-[#dcdcdc] bg-[#f8f8f8]" />
+        </div>
+
+        <div class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+          <!-- DATA-TARGET CAN BE #confirmPasswordDiv or #signUpDiv -->
+          <button onclick="return loginsingup()"
+            class="w-[344px] h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%] modalTrigger"
+            data-hiddenclass="hideModal">
+            CONTINUE
+          </button>
+        </div>
+
+        <div class="mx-auto flex mt-[27px] justify-center">
+          <hr class="w-[151px] h-[2px] bg-[#e4e4e4] my-auto" />
+          <span
+            class="w-[42px] text-center text-[12px] leading-[16.2px] tracking-[1%] boldFont text-[#494949] text-opacity-[0.63]">OR</span>
+          <hr class="w-[151px] h-[2px] bg-[#e4e4e4] my-auto" />
+        </div>
+
+        <div class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#1662c3] mt-[12px]">
+          <button type="button" onclick="window.location='{{url('social:begin',args=['facebook'])}}'"
+            class="w-[344px] h-[48px] rounded-[10px] bg-[#1877f2] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%] flex justify-center gap-[12.5px]">
+            <img src="{{static('topteenfrontend/assets/images/Facebook Logo.png')}}" class="my-auto" />
+            <p class="my-auto">CONTINUE WITH FACEBOOK</p>
+          </button>
+        </div>
+
+        <div class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#e8e8e8] mt-[12px]">
+          <button type="button" onclick="window.location='{{url('social:begin',args=['google-oauth2'])}}'"
+            class="w-[344px] h-[48px] rounded-[10px] bg-[#f8f8f8] boldFont text-[14px] leading-[18.9px] text-[#454545] tracking-[1%] flex justify-center gap-[12.5px]">
+            <img src="{{static('topteenfrontend/assets/images/logo googleg 48dp.png')}}" class="my-auto" />
+            <p class="my-auto">CONTINUE WITH GOOGLE</p>
+          </button>
+        </div>
+        {#
+        <div class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#1b1b1b] mt-[12px]">
+          <button
+            class="w-[344px] h-[48px] rounded-[10px] bg-[#454545] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%] flex justify-center gap-[12.5px]">
+            <img src="{{static('topteenfrontend/assets/images/Apple Logo.png')}}" class="my-auto" />
+            <p class="my-auto">CONTINUE WITH APPLE</p>
+          </button>
+        </div>
+      #}
+        <div class="hidden lg:block">
+          <p
+            class="text-[16px] leading-[23.2px] tracking-[1%] regularFont text-center w-[344px] mx-auto mt-[27px] text-[#414141] text-opacity-60">
+            By signing up for TopTeen, you agree to the
+            <span class="text-opacity-100 text-blue-600 boldFont"><a href="{{url('core:terms&condition')}}" target="_blank">Terms and Conditions</a></span>
+            and
+            <span class="text-opacity-100 text-blue-600 boldFont"><a href="{{url('core:privacypolicy')}}" target="_blank">Privacy Policy</a></span>
+          </p>
+        </div>
+      </div>
+      <!-- End of Login Part -->
+    </div>
+
+    <!-- Footer Text -->
+    <div class="regularFont text-[#828282] text-center mt-[35px] hidden lg:block">
+      <p class="text-[12px] leading-[16.2px] tracking-[1%] regularFont">
+        © {{seo_year}} TopTeen. All rights reserved.
+      </p>
+    </div>
+
+    <div class="absolute bottom-0 w-full lg:hidden">
+      <div>
+        <div class="w-[344px] sm:w-[450px] mx-auto">
+          <p
+            class="text-[16px] leading-[23.2px] tracking-[1%] regularFont text-center w-[344px] mx-auto mt-[27px] text-[#414141] text-opacity-60">
+            By signing up for TopTeen, you agree to the
+            <span class="text-opacity-100 text-blue-600 boldFont"><a href="{{url('core:terms&condition')}}" target="_blank">Terms and Conditions</a></span>
+            and
+            <span class="text-opacity-100 text-blue-600 boldFont"><a href="{{url('core:privacypolicy')}}" target="_blank">Privacy Policy</a></span>
+          </p>
+        </div>
+        
+      </div>
+    </div>
+  </main>
+  {% include 'topteenfrontend/user/signupotp.html' %}
+  {% include 'topteenfrontend/user/signuppassword.html' %}
+  {% include 'topteenfrontend/user/loginpassword.html' %}
+  {% include 'topteenfrontend/user/forgotpasswordform.html' %}
+  {% include 'topteenfrontend/user/forgotpasswordotp.html' %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="{{static('topteenfrontend/assets/js/generalModal.js')}}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // TRIGGER SWEET ALERT POPUP
+    // SWEET ALERT CODE
+    // ICON =>  'success'/'info'/'error'/'warning'/'question'
+    const fireAlert = async function (
+      title,
+      icon = "success",
+      showConfirmButton = false,
+      showCloseButton = false,
+      isPrompt = false
+    ) {
+      const canDo = Swal.fire({
+        title,
+        icon: icon,
+        position: "top-end",
+        showCloseButton,
+        showConfirmButton,
+        toast: true,
+        showCancelButton: false,
+        ...(isPrompt ? {} : { timer: 2000 }),
+      });
+
+      if (isPrompt) {
+        return canDo?.isConfirmed;
+      } else {
+        return -1;
+      }
+    };
+  </script>
+  {% include 'topteenfrontend/includes/ajaxjs.html' %}
+  <script type="text/javascript">
+    var usersloginsignup = "{{url('users:loginsingup')}}";
+    var userssignupotpverify =  "{{url('users:signupotpverify')}}";
+    var usersloginsignuppwd = "{{url('users:signuppwd')}}";
+    var usersloginpwd = "{{url('users:loginpwd')}}";
+    var usersforgotpassword = "{{url('users:forgotpassword')}}";
+    var usersforgotpasswordotp = "{{url('users:forgotpasswordotp')}}";
+    var usersresendotp = "{{url('users:resendotp')}}"
+  </script>
+  <script type="text/javascript" src="{{static('topteenfrontend/assets/js/loginsignup.js')}}"></script>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // For email input - submit form on Enter
+      const emailInput = document.getElementById('mobileEmail');
+      if (emailInput) {
+          emailInput.addEventListener('keypress', function(e) {
+              if (e.key === 'Enter') {
+                  e.preventDefault();
+                  loginsingup();
+              }
+          });
+      }
+  });
+  </script>
+  
+  <!-- Check if user is already logged in and redirect to appropriate dashboard -->
+  {% if request.user.is_authenticated %}
+  <script>
+    // Fetch the correct dashboard URL for this user
+    fetch("{{ url('users:getdashboardurl') }}", {
+      method: 'GET',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.redirect_url) {
+        window.location.href = data.redirect_url;
+      }
+    })
+    .catch(error => {
+      // Fallback to default if API fails
+      window.location.href = "{{ url('app:test_buttons') }}";
+    });
+  </script>
+  {% endif %}
+</body>
+</html>

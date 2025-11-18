@@ -1,0 +1,739 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+
+    <!-- Add User Data PopUp -->
+    <div class="addDataPop fixed hidden">
+        <div class="h-full w-full relative">
+            
+            <!-- About PopUp Content -->
+            <div data-tab-content id="aboutPopUp" class="hidden addDataContent w-full max-w-[440px]  absolute bg-[#ffffff] rounded-xl inline-block mx-auto">
+                <div class="relative h-full w-full inline-block pb-[22px]">
+
+                    <button class="dataCloseBtn absolute right-[15px] top-[10px]">
+                        <i class="fa fa-xmark boldFont text-[16px] text-[#4f4f4f]"></i>
+                    </button>
+
+                    <div class="lg:pb-[25px] lg:border-b-[2px] lg:border-b-[#efefee] py-[26px] px-[20px]">
+                        <div class="lg:flex lg:justify-center lg:gap-[10px]">
+                            <img src="{{static('topteenfrontend//assets/images/man.png')}}" class="hidden lg:block w-[24px] h-[24px] object-cover my-auto" alt="">
+                            <p class="text-[24px] leading-[32.4px] semibold text-[#333333] my-auto">Add About Myself</p>
+                        </div>
+                        <!-- <p class="text-[12px] leading-[16.2px] regularFont text-[#828282] mt-[7px] lg:text-center">Amet minim mollit non deserunt ullamco</p> -->
+                    </div>
+
+
+                    <form class="pt-[22px] px-[23px] lg:px-[48px] flex flex-col gap-[10px] " id="aboutform">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" required>
+                        <!-- Error text -->
+                        <p class="errorText text-left errortag" id="abouterrortag"></p>
+                        <textarea name="about" id="aboutid" placeholder="Description" class="mx-auto w-full h-[95px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px] "></textarea>
+
+                        <button id="aboutformsubmit" type="button" class="dataDoneBtn  mx-auto w-full h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+                            <div class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+                                <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">DONE</p>
+                            </div>
+                        </button>
+                    </form>
+                </div>
+                
+
+            </div>
+            <!-- End of About PopUp Content -->
+
+            <!-- Skills PopUp Content -->
+            <div data-tab-content id="skillsPopUp" class="hidden addDataContent w-full max-w-[440px]  absolute bg-[#ffffff] rounded-xl inline-block mx-auto">
+                <div class="relative h-full w-full inline-block pb-[22px]">
+
+                    <button class="dataCloseBtn absolute right-[15px] top-[10px]">
+                        <i class="fa fa-xmark boldFont text-[16px] text-[#4f4f4f]"></i>
+                    </button>
+
+                    <div class="lg:pb-[25px] lg:border-b-[2px] lg:border-b-[#efefee] py-[26px] px-[20px]">
+                        <div class="lg:flex lg:justify-center lg:gap-[10px]">
+                            <img src="{{static('topteenfrontend//assets/images/skills.png')}}" class="hidden lg:block w-[24px] h-[24px] object-cover my-auto" alt="">
+                            <p class="text-[24px] leading-[32.4px] semibold text-[#333333] my-auto">Add Skill</p>
+                        </div>
+                        <!-- <p class="text-[12px] leading-[16.2px] regularFont text-[#828282] mt-[7px] lg:text-center">Amet minim mollit non deserunt ullamco</p> -->
+                    </div>
+
+
+                    <form class="pt-[22px] px-[23px] lg:px-[48px] flex flex-col gap-[10px] " id="skillform">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" required>
+                        <!-- Error Text -->
+                        <!-- End of Error text -->
+                        <p class="errorText text-left errortag" id="skilltitleerrortag"></p>
+                        <input name="skilltitle" id="skilltitleid" type="text" class="mx-auto w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]" placeholder="Skill Title">
+                        <p class="errorText text-left errortag" id="skilldescerrortag"></p>
+                        <textarea name="skilldesc" id="skilldescid" placeholder="Skill Description" class="mx-auto w-full h-[95px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px] "></textarea>
+                        <p class="errorText text-left errortag" id="skillprofficiencyerrortag"></p>
+                        <select name="skillprofficiency" id="skillprofficiencyid" class="mx-auto w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]">
+                            <option value="" selected disabled class="text-[#828282]">Select Profficiency</option>
+                            <option value="10">Beginner</option>
+                            <option value="20">Intermediate</option>
+                            <option value="30">Expert</option>
+                        </select>
+                        
+                        <button type="button" id="skillformsubmit" class="dataDoneBtn  w-full h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+                            <div class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+                                <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">DONE</p>
+                            </div>
+                        </button>
+                    </form>
+
+                </div>
+                
+
+            </div>
+            <!-- End of Skills PopUp Content -->
+
+            <!-- Certifications PopUp Content -->
+            <div data-tab-content id="certificationsPopUp" class="hidden addDataContent w-full max-w-[440px]  absolute bg-[#ffffff] rounded-xl inline-block mx-auto">
+                <div class="relative h-full w-full inline-block pb-[22px]">
+
+                    <button class="dataCloseBtn absolute right-[15px] top-[10px]">
+                        <i class="fa fa-xmark boldFont text-[16px] text-[#4f4f4f]"></i>
+                    </button>
+
+                    <div class="lg:pb-[25px] lg:border-b-[2px] lg:border-b-[#efefee] py-[26px] px-[20px]">
+                        <div class="lg:flex lg:justify-center lg:gap-[10px]">
+                            <img src="{{static('topteenfrontend//assets/images/certificationUser.png')}}" class="hidden lg:block w-[24px] h-[24px] object-cover my-auto" alt="">
+                            <p class="text-[24px] leading-[32.4px] semibold text-[#333333] my-auto">Add Certification</p>
+                        </div>
+                        <!-- <p class="text-[12px] leading-[16.2px] regularFont text-[#828282] mt-[7px] lg:text-center">Amet minim mollit non deserunt ullamco</p> -->
+                    </div>
+
+
+                    <form class="pt-[22px] px-[23px] lg:px-[48px] flex flex-col gap-[10px]" id="certificateform">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" required>
+                        <!-- Error Text -->
+                        <p class="errorText text-left errortag" id="certificatetitleerrortag"></p>
+                        <input name="certificatetitle" id="certificatetitleid" type="text" class="mx-auto w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]" placeholder="Certification Title">
+                        <p class="errorText text-left errortag" id="certificatedescriptionerrortag"></p>
+                        <textarea name="certificatedescription" id="certificatedescriptionid" placeholder="Certification Description" class="mx-auto w-full h-[95px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px] "></textarea>
+                        <p class="errorText text-left errortag" id="issuedateerrortag"></p>
+                        <input name="issuedate" id="issuedateid" type="date" placeholder="Date of Completion" class="mx-auto dateInput w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px] ">
+                        
+                        <button type="button" id="certificateformsubmit" class="dataDoneBtn mx-auto  w-full h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+                            <div class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+                                <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">DONE</p>
+                            </div>
+                        </button>
+                    </form>
+                </div>
+                
+
+            </div>
+            <!-- End of Certifications PopUp Content -->
+
+            <!-- Internship PopUp Content -->
+            <div data-tab-content id="internshipsPopUp" class="hidden addDataContent w-full max-w-[440px]  absolute bg-[#ffffff] rounded-xl inline-block mx-auto">
+                <div class="relative h-full w-full inline-block pb-[22px]">
+
+                    <button class="dataCloseBtn absolute right-[15px] top-[10px]">
+                        <i class="fa fa-xmark boldFont text-[16px] text-[#4f4f4f]"></i>
+                    </button>
+
+                    <div class="lg:pb-[25px] lg:border-b-[2px] lg:border-b-[#efefee] py-[26px] px-[20px]">
+                        <div class="lg:flex lg:justify-center lg:gap-[10px]">
+                            <img src="{{static('topteenfrontend//assets/images/internshipsUser.png')}}" class="hidden lg:block w-[24px] h-[24px] object-cover my-auto" alt="">
+                            <p class="text-[24px] leading-[32.4px] semibold text-[#333333] my-auto">Add an Internship</p>
+                        </div>
+                        <!-- <p class="text-[12px] leading-[16.2px] regularFont text-[#828282] mt-[7px] lg:text-center">Amet minim mollit non deserunt ullamco</p> -->
+                    </div>
+
+
+                    <form class="pt-[22px] px-[23px] lg:px-[48px] flex flex-col gap-[10px] " id="internshipform">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" required>
+                        <!-- Error Text -->
+                        <p class="errorText text-left errortag" id="providererrortag"></p>
+                        <input name="provider" type="text" class="mx-auto w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]" placeholder="Company">
+                        <p class="errorText text-left errortag" id="roleerrortag"></p>
+                        <input name="role" type="text" class="mx-auto w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]" placeholder="Role">
+                        <p class="errorText text-left errortag" id="internshipdescriptionerrortag"></p>
+                        <textarea name="internshipdescription" id="description" placeholder="Description" class="mx-auto w-full h-[95px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px] "></textarea>
+                        
+                        
+                        
+                        <div class="flex gap-[12px] justify-between w-full ">
+                            <div class="inline-block">
+                                <p class="errorText text-left errortag" id="end_dateerrortag"></p>
+                                <input type="date" name="start_date" placeholder="Start" class="dateInput w-full max-w-[160px] h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] ">
+                            </div>
+
+                            <div class="inline-block">
+                                <p class="errorText text-left errortag" id="start_dateerrortag"></p>
+                                <input type="date" name="end_date" placeholder="End" class="dateInput w-full max-w-[160px] h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] ">   
+                            </div>  
+                        </div>
+                        
+                        <button type="button" id="internshipformsubmit" class="mx-auto dataDoneBtn w-full  h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+                            <div class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+                                <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">DONE</p>
+                            </div>
+                        </button>
+
+                    </form>
+                </div>
+                
+
+            </div>
+            <!-- End of Internship PopUp Content -->
+
+            <!-- Extracurricular popUp Content -->
+            <div data-tab-content id="extraCurricularsPopUp" class="hidden addDataContent w-full max-w-[440px]  absolute bg-[#ffffff] rounded-xl inline-block mx-auto">
+                <div class="relative h-full w-full inline-block pb-[22px]">
+
+                    <button class="dataCloseBtn absolute right-[15px] top-[10px]">
+                        <i class="fa fa-xmark boldFont text-[16px] text-[#4f4f4f]"></i>
+                    </button>
+
+                    <div class="lg:pb-[25px] lg:border-b-[2px] lg:border-b-[#efefee] py-[26px] px-[20px]">
+                        <div class="lg:flex lg:justify-center lg:gap-[10px]">
+                            <img src="{{static('topteenfrontend//assets/images/extraCurricular.png')}}" class="hidden lg:block w-[24px] h-[24px] object-cover my-auto" alt="">
+                            <p class="text-[24px] leading-[32.4px] semibold text-[#333333] my-auto">Add an Activity</p>
+                        </div>
+                        <!-- <p class="text-[12px] leading-[16.2px] regularFont text-[#828282] mt-[7px] lg:text-center">Amet minim mollit non deserunt ullamco</p> -->
+                    </div>
+
+
+                    <form class="pt-[22px] px-[23px] lg:px-[48px] flex flex-col gap-[10px] " id="activityform">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" required>
+                        <!-- Error Text -->
+                        <p class="errorText text-left errortag" id="activityerrortag"></p>
+                        <input type="text" name="activity" class="mx-auto w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]" placeholder="Activity">
+                        <p class="errorText text-left errortag" id="activity_descriptionerrortag"></p>
+                        <textarea name="activity_description" id="" placeholder="Description" class="mx-auto w-full h-[95px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px] "></textarea>
+                        <p class="errorText text-left errortag" id="particiopation_dateerrortag"></p>
+                        <input name="particiopation_date" type="date" class="mx-auto dateInput w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]" placeholder="Participation Date">
+                        
+                        <button type="button" id="activityformsubmit" class="mx-auto dataDoneBtn w-full h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+                            <div class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+                                <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">DONE</p>
+                            </div>
+                        </button>
+
+                    </form>
+                </div>
+                
+
+            </div>
+            <!-- End of ExtraCurricular PopUp Content -->
+
+            <!-- Volunteer PopUp Content -->
+            <div data-tab-content id="volunteerPopUp"  class="hidden addDataContent w-full max-w-[440px]  absolute bg-[#ffffff] rounded-xl inline-block mx-auto">
+                <div class="relative h-full w-full inline-block pb-[22px]">
+
+                    <button class="dataCloseBtn absolute right-[15px] top-[10px]">
+                        <i class="fa fa-xmark boldFont text-[16px] text-[#4f4f4f]"></i>
+                    </button>
+
+                    <div class="lg:pb-[25px] lg:border-b-[2px] lg:border-b-[#efefee] py-[26px] px-[20px]">
+                        <div class="lg:flex lg:justify-center lg:gap-[10px]">
+                            <img src="{{static('topteenfrontend//assets/images/volunteering.png')}}" class="hidden lg:block w-[24px] h-[24px] object-cover my-auto" alt="">
+                            <p class="text-[24px] leading-[32.4px] semibold text-[#333333] my-auto">Add Volunteer Involvement</p>
+                        </div>
+                        <!-- <p class="text-[12px] leading-[16.2px] regularFont text-[#828282] mt-[7px] lg:text-center">Amet minim mollit non deserunt ullamco</p> -->
+                    </div>
+
+
+                    <form class="pt-[22px] px-[23px] lg:px-[48px] flex flex-col gap-[10px]" id="volunteerform">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" required>
+                        <!-- Error Text -->
+                        <p class="errorText text-left errortag" id="volunteertitleerrortag"></p>
+                        <input name="volunteertitle" type="text" class="mx-auto w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]" placeholder="Title">
+                        <p class="errorText text-left errortag" id="volunteerroleerrortag"></p>
+                        <input name="volunteerrole" type="text" class="mx-auto w-full h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px]" placeholder="Role">
+                        <p class="errorText text-left errortag" id="volunteerdescriptionerrortag"></p>
+                        
+                        <textarea name="volunteerdescription" id="" placeholder="Description" class="mx-auto w-full h-[95px] rounded-[10px] border-[1.5px] border-[#3f37c9] pl-[20px] "></textarea>
+                        
+                        <div class="flex gap-[12px] justify-between w-full mx-auto">
+                            <div class="inline-block">
+                                <p class="errorText text-left errortag" id="volunteer_start_dateerrortag"></p>
+                                <input type="date" name="volunteer_start_date" placeholder="Start" class="dateInput w-full max-w-[160px] h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] ">
+                            </div>
+
+                            <div class="inline-block">
+                                <p class="errorText text-left errortag" id="volunteer_end_dateerrortag"></p> 
+                                <input type="date" name="volunteer_end_date" placeholder="End" class="dateInput w-full max-w-[160px] h-[48px] rounded-[10px] border-[1.5px] border-[#3f37c9] ">  
+                            </div>
+   
+                        </div>
+                        
+                        <button type="button" id="volunteerformsubmit" class="mx-auto dataDoneBtn w-full h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+                            <div class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+                                <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">DONE</p>
+                            </div>
+                        </button>
+
+                    </form>
+                </div>
+                
+
+            </div>
+            <!-- End of Volunteer PopUp Content -->
+
+
+        </div>
+    </div>
+    <!-- End of User Data PopUp -->
+
+    <!-- Delete Data PopUp -->
+    <div class="deletePop fixed hidden">
+        <div class="h-full w-full relative">
+            <div class="deleteContent  absolute bg-[#ffffff] rounded-xl py-[26px] px-[20px] inline-block mx-auto">
+                <p class="deleteQuestn text-[16px] leading-[21px] mediumFont text-[#828282]">Are you sure you want to delete this?</p>
+                <div class="flex mt-[24px] gap-[30px] justify-end">
+                    <button type="button" class="noDeleteBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                        No
+                    </button>
+                    <button type="button" class="yesDeleteBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                        Yes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End of DeleteData PopUp -->
+
+    <main class="lg:max-w-[1082px] w-full mx-auto lg:pt-[60px]">
+
+        <!-- Headers -->
+        <section class="fixed top-0 w-full bg-[#ffffff] lg:relative">
+
+            <!-- Mobile Header -->
+            <div
+                class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+                <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">Resume Builder</p>
+                <a href="{{request.META.HTTP_REFERER}}">
+                <button class="absolute bottom-[18px] left-[24px]">
+                    <i class="fa-solid fa-arrow-left text-[#828282] text-[24px] leading-[50px]"></i>
+                </button>
+                </a>
+                <!-- End of Mobile Header -->
+
+                <!-- Header imported from base for Desktop -->
+
+            </div>
+
+        </section>
+        <!-- End of Headers -->
+
+        <!-- Profile Info  -->
+        <section class="hidden lg:block">
+
+            <p class="text-[24px] leading-[32.4px] semibold text-[#0f0f0f]">Resume Builder</p>
+
+            <div class="pt-[22px] flex justify-between">
+
+                <div class="flex gap-[25px]">
+                    <div class="w-[104px] h-[104px] object-cover rounded-full">
+                        <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] object-cover rounded-full"
+                            alt="">
+                    </div>
+                    <div class="my-auto">
+                        <p class="text-[24px] leading-[32.4px] semibold text-[#333333]">{{request.user.name}}</p>
+                        <p class="text-[14px] leading-[18.9px] regularFont text-[#828282]">{% if request.user.user_profile %} {{request.user.user_profile.grade }} {% else %}  - • - {% endif %} </p>
+                        <p class="text-[14px] leading-[18.9px] regularFont text-[#828282] mt-[4px]">{% if request.user.user_profile %} {{request.user.user_profile.schoolname}}{% else %}{% endif %}</p>
+                    </div>
+                </div>
+
+                <a href="{{url('users:resumepdf')}}" download class="w-[248px] h-[53px] relative bg-[#2e289d] rounded-full my-auto">
+                    <div
+                        class="flex justify-center items-center gap-[7px] w-[248px] h-[48px] absolute top-0 bg-[#3f37c9] rounded-full">
+                        <i class="fa-solid fa-file-export text-[#ffffff] text-[18px]"></i>
+                        <p class="text-[14px] leading-[18.9px] text-[#ffffff] boldFont my-auto">Export Resume</p>
+                    </div>
+                </a>
+
+            </div>
+
+        </section>
+        <!-- End of Profile Section -->
+
+
+        <section class="lg:flex lg:gap-[30px] lg:pt-[20px] pt-[72px] pb-[180px] lg:pb-[60px]">
+
+            <!-- User Data -->
+            <section
+                class="flex flex-col gap-[10px] lg:gap-0 lg:inline-block lg:border-[2px] lg:border-[#efefee] lg:rounded-[10px]">
+
+                <!-- About -->
+                <div class="inline-block pt-[25px] lg:py-[40px] lg:border-b-[2px] lg:border-b-[#efefee]">
+
+                    <div
+                        class="px-[20px] flex flex-col items-center lg:flex-row lg:justify-between lg:items-start gap-[15px] w-full lg:w-[802px]">
+
+                        <div class="w-full max-w-[356px] lg:min-w-[380px] pl-[20px] lg:pl-0 flex gap-[14px] lg:gap-[21px] justify-start">
+                            <img src="{{static('topteenfrontend//assets/images/man.png')}}"
+                                class="w-[36px] h-[36px] lg:w-[47px] lg:h-[47px] object-cover" alt="">
+                            <div class="flex flex-col gap-[32px]">
+                                <div class="flex flex-col gap-[5px]">
+                                    <p
+                                        class="text-[15px] leading-[20.25px] lg:text-[20px] lg:leading-[27px] semibold text-[#4f4f4f]">
+                                        About Yourself</p>
+                                    {% if resume.about %}  
+                                    <div id="aboutd">
+                                        {% include 'topteenfrontend/includes/resumeaboutd.html'  %}
+                                    </div>
+                                    {% else %}
+                                    <p
+                                        class="text-[10px] leading-[13.5px] lg:text-[16px] lg:leading-[21.6px] text-[#828282] regularFont">
+                                        Describe yourself in a few words
+                                    </p>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <div id="aboutm">
+                            {% include 'topteenfrontend/includes/resumeaboutm.html'  %}
+                        </div>
+
+
+
+                        <!-- Add About Button -->
+                        <button data-tab-target="#aboutPopUp"
+                            class=" w-full max-w-[356px] lg:w-[247px] h-[48px] rounded-[10px] border-[1px] border-dashed border-[#3f37c9] text-[#3f37c9] regularFont bg-[#3f37c9] bg-opacity-[0.15] ">
+                            {% if resume.about %}Edit{% else %} + Add about{% endif %}
+                        </button>
+                        <!-- End of Add About Button -->
+
+                    </div>
+
+
+                </div>
+                <!-- End of About -->
+
+                <!-- Skills -->
+                <div class="inline-block pt-[25px] lg:py-[40px] lg:border-b-[2px] lg:border-b-[#efefee]">
+
+                    <div
+                        class="px-[20px] flex flex-col items-center lg:flex-row lg:justify-between lg:items-start gap-[15px] w-full lg:w-[802px]">
+
+                        <div class="w-full max-w-[356px] lg:max-w-[470px] flex gap-[14px] lg:gap-[21px] justify-start">
+                            <img src="{{static('topteenfrontend//assets/images/skills.png')}}"
+                                class="w-[36px] h-[36px] lg:w-[47px] lg:h-[47px] object-cover" alt="">
+                            <div class="flex flex-col gap-[32px]">
+                                <div class="flex flex-col gap-[5px]">
+                                    <p id="skillcount"
+                                        class="text-[15px] leading-[20.25px] lg:text-[20px] lg:leading-[27px] semibold text-[#4f4f4f]">
+                                        Skills ({{resumeskill.count()}})</p>
+                                    <p
+                                        class="text-[10px] leading-[13.5px] lg:text-[16px] lg:leading-[21.6px] text-[#828282] regularFont">
+                                        Add any relevant skills and your profficiency levels</p>
+                                </div>
+
+                                <!-- Added Skills Desktop -->
+                                <div
+                                    class="hidden lg:block lg:min-w-[394px] lg:max-w-[400px] pl-[20px] pr-[14px] bg-[#f7f7fa] rounded-[10px]" id="skilld">
+                                    {% include "topteenfrontend/includes/resumeskilld.html" %}
+                                </div>
+                                <!-- End of Added Skills Desktop -->
+                            </div>
+
+                        </div>
+
+                        <!-- Added Skills Mobile -->
+                        <div class="lg:hidden w-full max-w-[356px]" id="skillm">
+                            {% include "topteenfrontend/includes/resumeskilld.html" %}
+                        </div>
+                        <!-- End of Added Skills Mobile -->
+
+                        <!-- Add Skill Button -->
+                        <button data-tab-target="#skillsPopUp"
+                            class=" w-full max-w-[356px] lg:w-[247px] h-[48px] rounded-[10px] border-[1px] border-dashed border-[#3f37c9] text-[#3f37c9] regularFont bg-[#3f37c9] bg-opacity-[0.15] ">
+                            + Add a skill
+                        </button>
+                        <!-- End of Add Skill Button -->
+                    </div>
+
+
+                </div>
+                <!-- End of Skills -->
+
+                <!-- Certifications -->
+                <div class="inline-block pt-[25px] lg:py-[40px] lg:border-b-[2px] lg:border-b-[#efefee]">
+                    <div
+                        class="px-[20px] flex flex-col items-center lg:items-start lg:flex-row lg:justify-between gap-[15px] w-full lg:w-[802px]">
+
+                        <div class="w-full max-w-[356px] lg:max-w-[470px] flex gap-[14px] lg:gap-[21px] justify-start">
+                            <img src="{{static('topteenfrontend//assets/images/certificationUser.png')}}"
+                                class="w-[36px] h-[36px] lg:w-[47px] lg:h-[47px] object-cover" alt="">
+                            <div class="flex flex-col gap-[32px]">
+                                <div class="flex flex-col gap-[5px]">
+                                    <p id="certificatecount"
+                                        class="text-[15px] leading-[20.25px] lg:text-[20px] lg:leading-[27px] semibold text-[#4f4f4f]">
+                                        Certifications ({{resumecertificate.count()}})</p>
+                                    <p
+                                        class="text-[10px] leading-[13.5px] lg:text-[16px] lg:leading-[21.6px] text-[#828282] regularFont">
+                                        Add any relevant Certifications</p>
+                                </div>
+
+                                <!-- Added Certifications Desktop -->
+                                <div
+                                    class="hidden lg:block lg:min-w-[394px] lg:max-w-[400px] pl-[20px] pr-[14px] bg-[#f7f7fa] rounded-[10px]" id="certificated">
+                                    {% include "topteenfrontend/includes/resumecertificated.html" %}
+                                </div>
+                                <!-- End of Added Certifications Desktop -->
+                            </div>
+                        </div>
+
+
+                        <!-- Added Certifications Mobile -->
+                        <div class="lg:hidden w-full max-w-[356px]" id="certificatem">
+                            {% include "topteenfrontend/includes/resumecertificatem.html" %}
+                        </div>
+                        <!-- End of Added Certifications Mobile -->
+
+                        <!-- Add Certification Button -->
+                        <button data-tab-target="#certificationsPopUp"
+                            class=" w-full max-w-[356px] lg:w-[247px] h-[48px] rounded-[10px] border-[1px] border-dashed border-[#3f37c9] text-[#3f37c9] regularFont bg-[#3f37c9] bg-opacity-[0.15] ">
+                            + Add a certificate
+                        </button>
+                        <!-- End of Add Certification Button -->
+                    </div>
+
+                </div>
+                <!-- End of Certifications -->
+
+                <!-- Internships -->
+                <div class="inline-block pt-[25px] lg:py-[40px] lg:border-b-[2px] lg:border-b-[#efefee]">
+                    <div
+                        class="px-[20px] flex flex-col items-center lg:items-start lg:flex-row lg:justify-between gap-[15px] w-full lg:w-[802px]">
+
+                        <div class="w-full max-w-[356px] lg:max-w-[470px] flex gap-[14px] lg:gap-[21px] justify-start">
+                            <img src="{{static('topteenfrontend//assets/images/internshipsUser.png')}}"
+                                class="w-[36px] h-[36px] lg:w-[47px] lg:h-[47px] object-cover" alt="">
+                            <div class="flex flex-col gap-[32px]">
+                                <div class="flex flex-col gap-[5px]">
+                                    <p id="internshipcount"
+                                        class="text-[15px] leading-[20.25px] lg:text-[20px] lg:leading-[27px] semibold text-[#4f4f4f]">
+                                        Internships ({{resumeinternship.count()}})</p>
+                                    <p
+                                        class="text-[10px] leading-[13.5px] lg:text-[16px] lg:leading-[21.6px] text-[#828282] regularFont">
+                                        Add any relevant Internships</p>
+                                </div>
+
+                                <!-- Added Internships Desktop -->
+                                <div
+                                    class="hidden lg:block lg:min-w-[394px] lg:max-w-[400px] pl-[20px] pr-[14px] bg-[#f7f7fa] rounded-[10px]" id="internshipd">
+
+                                    {% include "topteenfrontend/includes/resumeinternshipd.html" %}
+
+                                </div>
+                                <!-- End of Added Internships Desktop -->
+                            </div>
+                        </div>
+
+
+                        <!-- Added Internships Mobile -->
+                        <div class="lg:hidden w-full max-w-[356px]" id="internshipm">
+                            {% include "topteenfrontend/includes/resumeinternshipm.html" %}
+                        </div>
+                        <!-- End of Added Internships Mobile -->
+
+                        <!-- Add Internships Button -->
+                        <button data-tab-target="#internshipsPopUp"
+                            class=" w-full max-w-[356px] lg:w-[247px] h-[48px] rounded-[10px] border-[1px] border-dashed border-[#3f37c9] text-[#3f37c9] regularFont bg-[#3f37c9] bg-opacity-[0.15] ">
+                            + Add an internship
+                        </button>
+                        <!-- End of Add Internships Button -->
+                    </div>
+
+                </div>
+                <!-- End of Internships -->
+
+                <!-- ExtraCurricular Activities -->
+                <div class="inline-block pt-[25px] lg:py-[40px] lg:border-b-[2px] lg:border-b-[#efefee]">
+                    <div
+                        class="px-[20px] flex flex-col items-center lg:items-start lg:flex-row lg:justify-between gap-[15px] w-full lg:w-[802px]">
+
+                        <div class="w-full max-w-[356px] lg:max-w-[470px] flex gap-[14px] lg:gap-[21px] justify-start">
+                            <img src="{{static('topteenfrontend//assets/images/extraCurricular.png')}}"
+                                class="w-[36px] h-[36px] lg:w-[47px] lg:h-[47px] object-cover" alt="">
+                            <div class="flex flex-col gap-[32px]">
+                                <div class="flex flex-col gap-[5px]">
+                                    <p id="activitycount"
+                                        class="text-[15px] leading-[20.25px] lg:text-[20px] lg:leading-[27px] semibold text-[#4f4f4f]">
+                                        Extracurricular Activities ({{resumeactivity.count()}})</p>
+                                    <p
+                                        class="text-[10px] leading-[13.5px] lg:text-[16px] lg:leading-[21.6px] text-[#828282] regularFont">
+                                        Add any relevant Extracurricular Activities</p>
+                                </div>
+
+                                <!-- Added Extracurriculars Desktop -->
+                                <div
+                                    class="hidden lg:block lg:min-w-[394px] lg:max-w-[400px] pl-[20px] pr-[14px] bg-[#f7f7fa] rounded-[10px]" id="activityd">
+                                    {% include "topteenfrontend/includes/resumeactivityd.html" %}
+                                </div>
+                                <!-- End of Added Extracurriculars  Desktop -->
+                            </div>
+                        </div>
+
+
+                        <!-- Added Extracurriculars  Mobile -->
+                        <div class="lg:hidden w-full max-w-[356px]" id="activitym">
+                            {% include "topteenfrontend/includes/resumeactivitym.html" %}
+                        </div>
+                        <!-- End of Added Extracurriculars  Mobile -->
+
+                        <!-- Add Extracurriculars  Button -->
+                        <button data-tab-target="#extraCurricularsPopUp"
+                            class="w-full max-w-[356px] lg:w-[247px] h-[48px] rounded-[10px] border-[1px] border-dashed border-[#3f37c9] text-[#3f37c9] regularFont bg-[#3f37c9] bg-opacity-[0.15] ">
+                            + Add activities
+                        </button>
+                        <!-- End of Add Extracurriculars Button -->
+                    </div>
+
+                </div>
+                <!-- End of ExtraCurricular Activities -->
+
+                <!-- Volunteering Activities -->
+                <div class="inline-block pt-[25px] lg:py-[40px]">
+                    <div
+                        class="px-[20px] flex flex-col items-center lg:items-start lg:flex-row lg:justify-between gap-[15px] w-full lg:w-[802px]">
+
+                        <div class="w-full max-w-[356px] lg:max-w-[470px] flex gap-[14px] lg:gap-[21px] justify-start">
+                            <img src="{{static('topteenfrontend//assets/images/volunteering.png')}}"
+                                class="w-[36px] h-[36px] lg:w-[47px] lg:h-[47px] object-cover" alt="">
+                            <div class="flex flex-col gap-[32px]">
+                                <div class="flex flex-col gap-[5px]">
+                                    <p id="volunteercount"
+                                        class="text-[15px] leading-[20.25px] lg:text-[20px] lg:leading-[27px] semibold text-[#4f4f4f]">
+                                        Volunteering ({{resumevolunteer.count()}})</p>
+                                    <p
+                                        class="text-[10px] leading-[13.5px] lg:text-[16px] lg:leading-[21.6px] text-[#828282] regularFont">
+                                        Add any relevant Volunteering Activities</p>
+                                </div>
+
+                                <!-- Added Volunteering Desktop -->
+                                <div
+                                    class="hidden lg:block lg:min-w-[394px] lg:max-w-[400px] pl-[20px] pr-[14px] bg-[#f7f7fa] rounded-[10px]" id="volunteerd">
+                                    {% include "topteenfrontend/includes/resumevolunteerd.html" %}
+                                </div>
+                                <!-- End of Added Volunteering Desktop -->
+                            </div>
+                        </div>
+
+
+                        <!-- Added Volunteering Mobile -->
+                        <div class="lg:hidden w-full max-w-[356px]" id="volunteerm">
+                            {% include "topteenfrontend/includes/resumevolunteerm.html" %}
+                        </div>
+                        <!-- End of Added Volunteering Mobile -->
+
+                        <!-- Add Volunteering Button -->
+                        <button data-tab-target="#volunteerPopUp"
+                            class=" w-full max-w-[356px] lg:w-[247px] h-[48px] rounded-[10px] border-[1px] border-dashed border-[#3f37c9] text-[#3f37c9] regularFont bg-[#3f37c9] bg-opacity-[0.15] ">
+                            + Add volunteering
+                        </button>
+                        <!-- End of Add Volunteering  Button -->
+                    </div>
+
+                </div>
+                <!-- End of Volunteering Activities -->
+
+                <!-- Mobile Export Button -->
+                <div class="lg:hidden w-full h-[138px] fixed bottom-[60px] flex justify-center items-center exportBg">
+                    <a href="{{url('users:resumepdf')}}" download class="w-[144px] h-[53px] rounded-full bg-[#2e289d] relative">
+                        <div class="w-[144px] h-[48px] rounded-full bg-[#3f37c9] absolute top-0 flex justify-center items-center gap-[7px]">
+                            <i class="fa-solid fa-file-export text-[#ffffff] my-auto"></i>
+                            <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff] my-auto">Export</p>
+                        </div>
+                    </a>
+                </div>
+                <!-- End of Mobile Export Button -->
+
+            </section>
+            <!-- End of User Data -->
+
+            <!-- Resume tips -->
+
+            <section class="lg:block hidden">
+                <div
+                    class="inline-block w-[247px] pt-[13px] pl-[20px] pr-[24px] pb-[24px] rounded-[10px] bg-[#f7f7fa] ">
+                    <p class="text-[16px] leading-[21.6px] text-[#0f0f0f] semibold">Resume Tips</p>
+                    <hr class="w-full h-[1px] bg-[#efefee] mt-[8px]">
+
+                    <div class="pt-[13px] flex flex-col gap-[20px]">
+                        <p class="text-[12px] leading-[16.2px] semibold text-[#828282]">Add your desired job title so
+                            your resume gets filtered out faster between large amounts of applicants</p>
+                        <p class="text-[12px] leading-[16.2px] semibold text-[#828282]">Here are a few things you can
+                            keep in mind while filling out your resume:</p>
+                    </div>
+
+                    <div class="flex flex-col gap-[12px] pt-[14px]">
+
+                        <div class="flex gap-[12px]">
+                            <div
+                                class="shrink-0 w-[18px] h-[18px] rounded-full bg-[#3f37c9] flex justify-center items-center">
+                                <p class="text-[#ffffff] text-[10px] leading-[13.5px] boldFont ">1</p>
+                            </div>
+                            <p class="text-[12px] leading-[16.2px] regularFont ">Include a summary and objective</p>
+                        </div>
+
+                        <div class="flex gap-[12px]">
+                            <div
+                                class="shrink-0 w-[18px] h-[18px] rounded-full bg-[#3f37c9] flex justify-center items-center">
+                                <p class="text-[#ffffff] text-[10px] leading-[13.5px] boldFont ">2</p>
+                            </div>
+                            <p class="text-[12px] leading-[16.2px] regularFont ">Explain your achievements and awards
+                            </p>
+                        </div>
+
+                        <div class="flex gap-[12px]">
+                            <div
+                                class="shrink-0 w-[18px] h-[18px] rounded-full bg-[#3f37c9] flex justify-center items-center">
+                                <p class="text-[#ffffff] text-[10px] leading-[13.5px] boldFont ">3</p>
+                            </div>
+                            <p class="text-[12px] leading-[16.2px] regularFont ">Use a business format</p>
+                        </div>
+
+                        <div class="flex gap-[12px]">
+                            <div
+                                class="shrink-0 w-[18px] h-[18px] rounded-full bg-[#3f37c9] flex justify-center items-center">
+                                <p class="text-[#ffffff] text-[10px] leading-[13.5px] boldFont ">4</p>
+                            </div>
+                            <p class="text-[12px] leading-[16.2px] regularFont ">Include keywords</p>
+                        </div>
+
+
+
+                    </div>
+
+
+                </div>
+            </section>
+
+            <!-- End of Resume tips -->
+
+        </section>
+
+
+
+
+
+
+
+
+
+
+
+    </main>
+
+
+{% endblock %}
+{% block additionalfooter %} 
+<script type="text/javascript">
+    var resumeabout="{{url('resumeabout')}}"
+    var resumeskill="{{url('resumeskill')}}"
+    var resumecertificate="{{url('resumecertificate')}}"
+    var resumeinternship="{{url('resumeinternship')}}"
+    var resumeactivity="{{url('resumeactivity')}}"
+    var resumevolunteer="{{url('resumevolunteer')}}"
+    var csrf = '{{ csrf_token }}'
+</script>
+
+{% endblock %}

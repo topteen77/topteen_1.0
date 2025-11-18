@@ -1,0 +1,741 @@
+{% extends "base1.html" %}
+
+{% block main-content %}
+
+<section class="hero-gradient py-8 mb-3">
+  <div class="container mx-auto ">
+    <div class="row">
+      <div class="col-md-12 text-center text-white heading">
+        <h2>Available Tests</h2>
+        <p class="text-white">Browse our collection of assessments and find the ones that interest you. Discover your
+          potential with scientifically validated tests.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tests Cards Section -->
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full lg:pb-0">
+
+<nav aria-label="breadcrumb pt-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'post_matric:home' %}">Home</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Tests</li>
+  </ol>
+</nav>
+
+
+  <section class="test-filters py-4 d-none">
+    <div class="container mx-auto">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="search-box">
+            <input type="text" id="test-search" placeholder="Search tests..." class="form-control">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="category-filter">
+            <select id="category-filter" class="form-control">
+              <option value="">All Categories</option>
+              <!-- Categories will be loaded here dynamically -->
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <div class="row pt-3 pb-8" id="tests-container">
+
+
+
+    <!-- Tests will be loaded here dynamically -->
+    <div class="loading">Loading tests...</div>
+  </div>
+</main>
+
+<!-- Test Card Template -->
+<template id="test-card-template">
+  <div class="col-md-6 mb-4">
+    <div class="pt-y-box">
+      <div class="hear-tbox">
+        <div class="d-flex justify-content-between">
+          <div class="h-tag category-badge"></div>
+          <div class="test-status"></div>
+        </div>
+        <h3 class="test-title"></h3>
+      </div>
+      
+      <!-- Content area that toggles between summary and full description -->
+      <div class="pty-content mt-3 pb-2">
+        <!-- Normal view (truncated description) -->
+        <div class="normal-view">
+          <p class="test-description"></p>
+          <button class="read-more-btn">Read More</button>
+        </div>
+        
+        <!-- Expanded view (full description with scrollbar) -->
+        <div class="expanded-view">
+          <div class="expanded-header">
+            <h6 class="expanded-title">Full Description</h6>
+            <button class="close-btn">&times;</button>
+          </div>
+          <div class="scrollable-description"></div>
+        </div>
+      </div>
+      
+      <div class="d-icon-py d-flex justify-content-between align-items-center mt-3">
+        <div class="t-info-icon d-flex align-items-center">
+          <div class="icon-div">
+            <i class="fa fa-question-circle-o me-1" aria-hidden="true"></i>
+          </div>
+          <span class="questions-count"></span>
+        </div>
+        <div class="t-info-icon d-flex align-items-center">
+          <div class="icon-div">
+            <i class="fa fa-clock-o me-1" aria-hidden="true"></i>
+          </div>
+          <span class="time-limit"></span>
+        </div>
+      </div>
+      <div class="pty-footer-b mt-2 border-top pt-3">
+        <div class="pty-footer d-flex justify-content-between align-items-center">
+          <div> <a href="" class="custom-start btn purple-button next-button px-md-6 fw-600 ms-1 take-test-btn">Start
+              Test</a></div>
+
+          <div> <a href="" class="custom-view details-btn d-none mt-1">View Result</a> </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+    // Parse the JSON data from Django context
+    window.testStatus = JSON.parse('{{ test_status|escapejs }}');
+</script>
+
+<script>
+  // Your existing JavaScript with updated in-card description functionality
+  const testsContainer = document.getElementById('tests-container');
+  const categoryFilter = document.getElementById('category-filter');
+  const searchBox = document.getElementById('test-search');
+
+  // Helper to create test card from template
+  // function createTestCard(test) {
+  //   const template = document.getElementById('test-card-template');
+  //   const card = template.content.cloneNode(true);
+  //   const cardBox = card.querySelector('.pt-y-box');
+
+  //   // Set basic test information
+  //   card.querySelector('.category-badge').textContent = test.category_name || 'Uncategorized';
+  //   card.querySelector('.test-title').textContent = test.title;
+
+  //   // Set description with truncation
+  //   const descriptionElement = card.querySelector('.test-description');
+  //   const readMoreBtn = card.querySelector('.read-more-btn');
+  //   const normalView = card.querySelector('.normal-view');
+  //   const expandedView = card.querySelector('.expanded-view');
+  //   const scrollableDescription = card.querySelector('.scrollable-description');
+  //   const closeBtn = card.querySelector('.close-btn');
+
+  //   // Initially hide the expanded view
+  //   expandedView.style.display = 'none';
+
+  //   // Set descriptions
+  //   descriptionElement.textContent = test.description;
+  //   scrollableDescription.textContent = test.description;
+    
+  //   // Store the full text for search functionality
+  //   descriptionElement.setAttribute('data-full-text', test.description);
+
+  //   // Add click event to read more button
+  //   readMoreBtn.addEventListener('click', function(e) {
+  //     e.preventDefault();
+  //     e.stopPropagation();
+      
+  //     // Show expanded view, hide normal view
+  //     normalView.style.display = 'none';
+  //     expandedView.style.display = 'block';
+      
+  //     // Focus the expanded view (for screen readers)
+  //     expandedView.setAttribute('tabindex', '-1');
+  //     expandedView.focus();
+  //   });
+
+  //   // Add click event to close button
+  //   closeBtn.addEventListener('click', function(e) {
+  //     e.preventDefault();
+  //     e.stopPropagation();
+      
+  //     // Hide expanded view, show normal view
+  //     expandedView.style.display = 'none';
+  //     normalView.style.display = 'block';
+  //   });
+
+  //   // Get status and button elements
+  //   const statusElement = card.querySelector('.test-status');
+  //   const startButton = card.querySelector('.take-test-btn');
+  //   const viewButton = card.querySelector('.details-btn');
+
+  //   // Check if test is completed
+  //   const isCompleted = localStorage.getItem(`test_${test.id}_completed`) === 'true';
+  //   const resultId = localStorage.getItem(`test_${test.id}_result_id`);
+
+  //   if (isCompleted) {
+  //     // Update status to show completed with better styling
+  //     statusElement.innerHTML = '<span class="badge badge-success">Completed</span>';
+
+  //     // Update button to show "View Results"
+  //     viewButton.classList.remove('d-none');
+  //     viewButton.classList.add('btn-success');
+
+  //     startButton.classList.remove('purple-button');
+  //     startButton.classList.add('d-none');
+  //     viewButton.style.backgroundColor = '#28a745';
+  //     viewButton.style.borderColor = '#28a745';
+  //     viewButton.style.color = 'white';
+
+  //     viewButton.href = `/api/web/results/?test_id=${test.id}`;
+  //     // Update href to point to results page
+  //     // if (resultId) {
+  //     //   viewButton.href = `/api/web/results/?test_id=${test.id}`;
+  //     // }
+  //   } else {
+  //     // Default state for uncompleted tests
+  //     statusElement.innerHTML = '<span class="badge badge-secondarys">Not Started</span>';
+
+  //     // Keep original button styling
+  //     startButton.textContent = 'Start Test';
+  //   }
+
+  //   if (test.id === 4) {  // For Aptitude Test with Sections
+  //     // Handle sections count
+  //     const questionsCount = card.querySelector('.questions-count');
+
+  //     // Fetch sections count
+  //     fetch(`/api/sections/?test=${test.id}&page_size=100`)
+  //       .then(res => res.json())
+  //       .then(data => {
+  //         console.log("Sections data for Aptitude test:", data);
+  //         const sectionsCount = data.results ? data.results.length : 0;
+  //         questionsCount.textContent = `${sectionsCount} sections`;
+  //       })
+  //       .catch(error => {
+  //         console.error('Error fetching sections:', error);
+  //         questionsCount.textContent = '0 sections';
+  //       });
+
+  //     // Set href only if not completed
+  //     if (!isCompleted) {
+  //       startButton.href = `/api/web/test/${test.id}/sections/`;
+  //     }
+  //   } else {
+  //     // For all other tests
+  //     card.querySelector('.questions-count').textContent = `${test.questions_count} questions`;
+
+  //     // Set href only if not completed
+  //     if (!isCompleted) {
+  //       startButton.href = `/api/web/take_test/${test.id}/`;
+  //     }
+  //   }
+
+  //   card.querySelector('.time-limit').textContent = `${test.time_limit} minutes`;
+
+  //   return card;
+  // }
+
+  function createTestCard(test, testStatus) {
+    const template = document.getElementById('test-card-template');
+    const card = template.content.cloneNode(true);
+    const cardBox = card.querySelector('.pt-y-box');
+
+    // Set basic test information
+    card.querySelector('.category-badge').textContent = test.category_name || 'Uncategorized';
+    card.querySelector('.test-title').textContent = test.title;
+
+    // Set description with truncation
+    const descriptionElement = card.querySelector('.test-description');
+    const readMoreBtn = card.querySelector('.read-more-btn');
+    const normalView = card.querySelector('.normal-view');
+    const expandedView = card.querySelector('.expanded-view');
+    const scrollableDescription = card.querySelector('.scrollable-description');
+    const closeBtn = card.querySelector('.close-btn');
+
+    // Initially hide the expanded view
+    expandedView.style.display = 'none';
+
+    // Set descriptions
+    descriptionElement.textContent = test.description;
+    scrollableDescription.textContent = test.description;
+    
+    // Store the full text for search functionality
+    descriptionElement.setAttribute('data-full-text', test.description);
+
+    // Add click event to read more button
+    readMoreBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        normalView.style.display = 'none';
+        expandedView.style.display = 'block';
+        expandedView.setAttribute('tabindex', '-1');
+        expandedView.focus();
+    });
+
+    // Add click event to close button
+    closeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        expandedView.style.display = 'none';
+        normalView.style.display = 'block';
+    });
+
+    // Get status and button elements
+    const statusElement = card.querySelector('.test-status');
+    const startButton = card.querySelector('.take-test-btn');
+    const viewButton = card.querySelector('.details-btn');
+
+    // Get test status from the database info with default values
+    const testInfo = testStatus[test.id] || { completed: false };
+    const isCompleted = testInfo.completed || false;
+
+    if (isCompleted) {
+        // Update status to show completed with better styling
+        statusElement.innerHTML = '<span class="badge badge-success">Completed</span>';
+        viewButton.classList.remove('d-none');
+        viewButton.classList.add('btn-success');
+        startButton.classList.remove('purple-button');
+        startButton.classList.add('d-none');
+        viewButton.style.backgroundColor = '#28a745';
+        viewButton.style.borderColor = '#28a745';
+        viewButton.style.color = 'white';
+        viewButton.href = `/api/web/results/?test_id=${test.id}`;
+    } else {
+        // Default state for uncompleted tests
+        statusElement.innerHTML = '<span class="badge badge-secondarys">Not Started</span>';
+        startButton.textContent = 'Start Test';
+    }
+
+    if (test.id === 4) {  // For Aptitude Test with Sections
+        const questionsCount = card.querySelector('.questions-count');
+        
+        if (testInfo.sections_status) {
+            // Get completed sections count from database status
+            const completedSections = testInfo.completed_sections || 0;
+            const totalSections = testInfo.total_sections || 0;
+            questionsCount.textContent = `${completedSections}/${totalSections} sections completed`;
+        } else {
+            // Fallback to API call if status not available
+            fetch(`/api/sections/?test=${test.id}&page_size=100`)
+                .then(res => res.json())
+                .then(data => {
+                    const sectionsCount = data.results ? data.results.length : 0;
+                    questionsCount.textContent = `${sectionsCount} sections`;
+                })
+                .catch(error => {
+                    console.error('Error fetching sections:', error);
+                    questionsCount.textContent = '0 sections';
+                });
+        }
+
+        // Set href only if not completed
+        if (!isCompleted) {
+            startButton.href = `/api/web/test/${test.id}/sections/`;
+        }
+    } else {
+        // For all other tests
+        card.querySelector('.questions-count').textContent = `${test.questions_count} questions`;
+        
+        // Set href only if not completed
+        if (!isCompleted) {
+            startButton.href = `/api/web/take_test/${test.id}/`;
+        }
+    }
+
+    card.querySelector('.time-limit').textContent = `${test.time_limit} minutes`;
+    return card;
+}
+
+  // Show loading state
+  function showLoading() {
+    testsContainer.innerHTML = '<div class="loading">Loading tests...</div>';
+  }
+
+  // Show error state
+  function showError() {
+    testsContainer.innerHTML = '<div class="error">Error loading tests. Please try again later.</div>';
+  }
+
+  // Render tests
+  function renderTests(tests, categoryMap) {
+    testsContainer.innerHTML = '';
+    if (!tests.length) {
+      testsContainer.innerHTML = '<div class="no-tests">No tests found.</div>';
+      return;
+    }
+    // Get test status from the context
+    const testStatus = window.testStatus || {}; // This should be populated from Django context
+    console.log("All Test Status:", testStatus);
+    tests.forEach(test => {
+      test.category_name = categoryMap[test.category] || 'Uncategorized';
+      testsContainer.appendChild(createTestCard(test, testStatus));
+    });
+  }
+
+  // Render categories in filter
+  function renderCategories(categories, selectedId) {
+    categoryFilter.innerHTML = '<option value="">All Categories</option>';
+    categories.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat.id;
+      option.textContent = cat.name;
+      if (selectedId && selectedId == cat.id) option.selected = true;
+      categoryFilter.appendChild(option);
+    });
+  }
+
+  // Fetch and render everything
+  function loadTestsAndCategories() {
+    showLoading();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryId = urlParams.get('category') || '';
+
+    // Fetch tests (optionally filtered)
+    const testsUrl = categoryId
+      ? `/api/tests/?category=${categoryId}`
+      : "/api/tests/";
+
+    const testsPromise = fetch(testsUrl).then(res => {
+      if (!res.ok) throw new Error("Failed to fetch tests");
+      return res.json();
+    });
+
+    const categoriesPromise = fetch("/api/categories/").then(res => {
+      if (!res.ok) throw new Error("Failed to fetch categories");
+      return res.json();
+    });
+
+    Promise.all([testsPromise, categoriesPromise])
+      .then(([testsData, categoriesData]) => {
+        const tests = testsData.results || [];
+        const categories = categoriesData.results || [];
+        renderCategories(categories, categoryId);
+
+        // Create category map
+        const categoryMap = {};
+        categories.forEach(cat => {
+          categoryMap[cat.id] = cat.name;
+        });
+
+        renderTests(tests, categoryMap);
+      })
+      .catch(error => {
+        console.error('Error loading tests or categories:', error);
+        showError();
+      });
+  }
+
+  // Handle search input
+  searchBox.addEventListener('input', function () {
+    const query = this.value.toLowerCase();
+    const cards = testsContainer.querySelectorAll('.pt-y-box');
+    cards.forEach(card => {
+      const title = card.querySelector('.test-title').textContent.toLowerCase();
+      const description = card.querySelector('.test-description').getAttribute('data-full-text').toLowerCase();
+      card.parentElement.style.display = (title.includes(query) || description.includes(query)) ? '' : 'none';
+    });
+  });
+
+  // Handle category filter change
+  categoryFilter.addEventListener('change', function () {
+    const selectedCategory = this.value;
+    if (selectedCategory) {
+      window.location.href = `tests.html?category=${selectedCategory}`;
+    } else {
+      window.location.href = 'tests.html';
+    }
+  });
+
+  // Initial load
+  loadTestsAndCategories();
+</script>
+
+<!-- CSS Styles -->
+<style>
+  /* Description truncation and expanded view styles */
+  .pty-content {
+    min-height: 75px;
+    position: relative;
+    transition: min-height 0.3s;
+  }
+
+  .test-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 5px;
+  }
+
+  .read-more-btn {
+    background: none;
+    border: none;
+    color: #3f37c9;
+    padding: 0;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+  .read-more-btn:hover {
+    color: #2e289d;
+  }
+
+  /* Expanded view styles */
+  .expanded-view {
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .expanded-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .expanded-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #3f37c9;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: #777;
+    padding: 0;
+  }
+
+  .close-btn:hover {
+    color: #333;
+  }
+
+  .scrollable-description {
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 5px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Scrollbar styling */
+  .scrollable-description::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .scrollable-description::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  .scrollable-description::-webkit-scrollbar-thumb {
+    background: #3f37c9;
+    border-radius: 10px;
+  }
+
+  .scrollable-description::-webkit-scrollbar-thumb:hover {
+    background: #2e289d;
+  }
+
+  /* Badge styles */
+  .hear-tbox .test-status .badge-secondarys,
+  .hear-tbox .badge.badge-success {
+    padding: 7px 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-success {
+    background-color: #28a745 !important;
+    color: white !important;
+  }
+
+  .badge-secondarys {
+    background-color: #d7d7d7 !important;
+    color: black !important;
+  }
+
+  .btn-success {
+    background-color: #28a745 !important;
+    border-color: #207d35 !important;
+    color: white !important;
+  }
+
+  /* Hero Section Gradient */
+  .hero-gradient {
+background: linear-gradient(135deg, #3F37C9 0%, #534a9a 100%);
+}
+  /* Test Card Styling */
+  .pt-y-box {
+    border: 1px solid #d2d1d1;
+    padding: 18px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    height: 100%;
+    background: #fff;
+    position: relative;
+  }
+
+  .pt-y-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .h-tag {
+    background: #d9d4ff;
+    font-size: 12px;
+    padding: 0 9px;
+    width: 138px;
+    text-align: center;
+    border-radius: 25px;
+    margin-bottom: 10px;
+  }
+
+  .hear-tbox h3 {
+    font-size: 23px;
+    font-weight: 600;
+    margin-top: 17px;
+  }
+
+  .pty-content p {
+    font-size: 14px;
+    line-height: 21px;
+    color: #3c3f46;
+  }
+
+  .t-info-icon {
+    color: #3c3f46;
+    font-size: 13px;
+  }
+
+  .custom-start {
+    width: 124px;
+    padding: 6px 18px !important;
+    background: #3f37c9;
+    color: white;
+    border-bottom: 6px solid #2e289d;
+    border-radius: 10px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .custom-start:hover {
+    background: #352fb3;
+    color: white;
+  }
+
+  .custom-view {
+    background: #cdcedd;
+    color: #161515;
+    border-bottom: 6px solid#babbcc;
+    width: auto;
+    border-radius: 10px;
+    width: 124px;
+    padding: 4px 4px !important;
+    font-family: 'Galano Grotesque', sans-serif;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .custom-view:hover {
+    background: #c1c2d3;
+    color: #1a1818;
+    border-bottom: 6px solid#acadbe;
+  }
+
+  /* Search and Filter Styling */
+  .test-filters {
+    padding: 20px 0;
+  }
+
+  .search-box input {
+    border-radius: 8px;
+    padding: 10px 15px;
+    border: 1px solid #d2d1d1;
+  }
+
+  .category-filter select {
+    border-radius: 8px;
+    padding: 10px 15px;
+    border: 1px solid #d2d1d1;
+    width: 100%;
+  }
+
+  /* Loading and Error States */
+  .loading,
+  .error,
+  .no-tests {
+    text-align: center;
+    padding: 30px;
+    width: 100%;
+    color: #666;
+  }
+
+  .error {
+    color: #e74c3c;
+  }
+
+  .heading h2 {
+    font-size: 37px;
+    font-weight: 600;
+  }
+
+  .icon-div .fa-question-circle-o {
+	color: #0d9b0d;
+}
+
+.icon-div .fa-clock-o {
+	color: #d21821;
+}
+
+  /* Mobile responsiveness adjustments */
+  @media (max-width: 767.98px) {
+    .scrollable-description {
+      max-height: 120px;
+    }
+  }
+</style>
+{% endblock %}

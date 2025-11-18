@@ -1,0 +1,409 @@
+{% extends 'topteenfrontend/app/app_base.html' %}
+
+{% block main %}
+
+
+
+<!-- Edit Profile PopUp -->
+<div data-direction="translate-y-full"
+  class=" h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto translate-y-full transition-all duration-500">
+
+  <div class="inline-block bg-[#ffffff] w-full rounded-t-[10px] absolute bottom-0 drawerContent">
+
+    <div class="pl-[24px] pr-[30px] w-full py-[32px] flex flex-col gap-[20px]">
+
+      <a href="" class="inline-block w-full">
+        <div class="flex justify-between w-full">
+          <div>
+            <p class="text-[16px] leading-[21.6px] semibold">Edit Profile</p>
+            <p class="text-[12px] leading-[16px] regularFont text-[#828282]">You answered - Indoors</p>
+          </div>
+          <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
+        </div>
+      </a>
+
+      <a href="" class="inline-block w-full">
+        <div class="flex justify-between w-full">
+          <div>
+            <p class="text-[16px] leading-[21.6px] semibold">Manage payment history</p>
+            <p class="text-[12px] leading-[16px] regularFont text-[#828282]">You answered - Indoors</p>
+          </div>
+          <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
+        </div>
+      </a>
+
+      <a href="" class="inline-block w-full">
+        <div class="flex justify-between w-full">
+          <div>
+            <p class="text-[16px] leading-[21.6px] semibold text-[#f20a18]">Sign Out</p>
+            <p class="text-[12px] leading-[16px] regularFont text-opacity-60 text-[#f20a18]">You
+              answered - Indoors</p>
+          </div>
+          <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+<!--End of Edit Profile PopUp -->
+
+<!-- Refer friends PopUp -->
+<div
+  class="hidden top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen flex flex-row justify-center items-center referFriendsPopup ">
+  <div class="lg:max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center">
+    <div
+      class="bg-[#ffffff] rounded-[10px] relative referDivs w-full md:max-w-[395px] lg:w-[395px] pb-[24px] pt-[48px] modalContent">
+      <button class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] referPopupClose">
+        <i class="fa fa-xmark"></i>
+      </button>
+
+      <p class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold ">
+        Refer/Invite friends
+      </p>
+      <form onsubmit="return false" id="referform">
+        <div class="w-full flex justify-center mt-[22px] ">
+          <input type="text" id="remail" name="email" placeholder="Enter email"
+            class="mx-auto w-[80%] h-[53px] rounded-[10px]">
+        </div>
+        <div class="mx-auto w-[80%] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+          <button type="submit" onclick="refersubmit()"
+            class="w-full h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- End of Refer Friends Popup -->
+
+<!-- Main Content -->
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full overflow-y-auto pb-[60px] lg:pb-0">
+
+  <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+    <!-- Left Part Mobile -->
+    <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+      <!-- User -->
+      <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+        <div class="flex gap-[17px]">
+          <div>
+            <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" />
+          </div>
+          <div class="flex flex-col gap-y-[5px]">
+            <div class="pt-[12px]">
+              <p class="text-[15px] leading-[20.25px] font-semibold">
+                {{request.user.name}}
+              </p>
+            </div>
+            <div class="flex flex-col gap-y-[3px]">
+              <div class="flex gap-[4px]">
+                <img src="{{static(" topteenfrontend/assets/images/clock.fill.png")}}"
+                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  Joined {{request.user.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[4px]">
+                <img src="{{static(" topteenfrontend/assets/images/userGrade.png")}}"
+                  class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  {% if request.user.user_profile %}
+                  {% if request.user.student_management.last().class_and_section %}
+                  {{request.user.student_management.last().class_and_section}}
+                  {% endif %}
+                  {% if request.user.user_profile.schoolname %}
+                  {{request.user.user_profile.schoolname}}
+                  {% endif %}
+                  {% else %}
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-direction="translate-y-full"
+          class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+          <i class="fa fa-gear text-white text-[12.5px]"></i>
+        </button>
+      </div>
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div id="comppro"
+        class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[100px] pt-[18px] relative">
+        <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+          <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+        </div>
+        <div>
+          <div class="flex relative">
+            <div class="absolute -left-[24px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" class="w-[81px] h-[81px]"
+                alt="" />
+            </div>
+            <div class="text-left max-w-[217.5px] ml-[74px]">
+              <div>
+                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+
+    <!-- End of left Part Mobile -->
+
+    <!-- Left part Desktop -->
+    <div class=" hidden lg:block w-[338px] h-[382px] border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto">
+      <!-- User -->
+      <div class="flex justify-center border-b-[1px] border-solid border-[#dedede]">
+        <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px]">
+
+          <div class=" flex flex-col justify-center items-center">
+
+            <div class="flex justify-center items-center w-full">
+              <div class="flex gap-[8px]">
+                <div class="relative">
+                  <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="" />
+
+                  <!-- XP  -->
+                  <!-- <div
+                          class="w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px] absolute bottom-1 left-20"
+                        >
+                          <div
+                            class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
+                          >
+                            <img
+                              src="{{static("topteenfrontend/assets/images/xp.svg")}}"
+                              class="w-[20px] h-[20px]"
+                              alt=""
+                            />
+                            <p
+                              class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
+                            >
+                              1280 XP
+                            </p>
+                          </div>
+                        </div> -->
+                  <!-- End of XP -->
+                </div>
+              </div>
+            </div>
+
+            <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
+
+          </div>
+
+
+          <div class="flex flex-col gap-y-[8px]">
+
+            <div class="flex gap-[14px]">
+              <img src="{{static(" topteenfrontend/assets/images/clock.fill.png")}}" class="w-[18px] h-[18px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                Joined {{request.user.created.strftime("%B, %Y")}}
+              </p>
+            </div>
+            <div class="flex gap-[14px]">
+              <img src="{{static(" topteenfrontend/assets/images/userGrade.png")}}" class="w-[18px] h-[14px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                {% if request.user.user_profile %}
+                {% if request.user.student_management.last().class_and_section %}
+                {{request.user.student_management.last().class_and_section}}
+                {% endif %}
+                {% if request.user.user_profile.schoolname %}
+                {{request.user.user_profile.schoolname}}
+                {% endif %}
+                {% else %}
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div class="flex justify-center pt-[18px]">
+        <div>
+          <div class="flex gap-[18px]">
+            <div class="w-[45px] h-[44px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" alt="" />
+            </div>
+            <div class="text-left max-w-[206px] flex flex-col gap-y-[5px]">
+              <div>
+                <p class="text-[12px] leading-[16.2px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[10px] leading-[14.5px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[205px] h-[10px] rounded-[100px] bg-[#4cc9f0] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div class="w-[295px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[19px] d-none">
+            <!-- <a href="{{url(" users:profiledetails")}}"> -->
+            <a href="">
+              <div class="w-full h-[48px] flex gap-[11.56px] justify-center rounded-[10px] bg-[#3f37c9] text-[#ffffff]">
+                <i class="fa fa-gear my-auto"></i>
+
+                <p class="text-[14px] leading-[18.9px] font-bold my-auto">
+                  SETTINGS
+                </p>
+
+              </div>
+            </a>
+          </div>
+          <!-- End of settings -->
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+    <!-- End of Left part Desktop -->
+
+    <!-- Right Part -->
+    <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20">
+      <!-- Statistics -->
+      <div class="mx-auto max-w-[640px] lg:max-w-full mt-[24px] lg:mt-0">
+        <p class="text-[15px] lg:text-[24px] leading-[20.25px] lg:leading-[32.4px] semibold">
+          psychometric <span class="text-[10px] lg:text-[16px] regularFont">Test</span>
+        </p>
+
+        <div
+          class="flex flex-wrap justify-center sm:justify-start gap-[10px] lg:gap-[30px] pt-[14px] lg:pt-[16px] mx-auto">
+          <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px]  py-[15px] bg-[#f7f7fa] rounded-[10px]">
+            <div>
+              <img src="{{static(" topteenfrontend/assets/images/trophy.png")}}" class="w-[30px] h-[30px]" alt="" />
+            </div>
+            <div>
+              <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                12
+              </p>
+              <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                Trophies Unlocked
+              </p>
+            </div>
+          </div>
+
+          <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px] py-[15px] bg-[#f7f7fa] rounded-[10px]">
+            <div>
+              <img src="{{static(" topteenfrontend/assets/images/badge.png")}}" class="w-[30px] h-[30px]" alt="" />
+            </div>
+            <div>
+              <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                1200
+              </p>
+              <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                Total Points
+              </p>
+            </div>
+          </div>
+
+          <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px]  py-[15px] bg-[#f7f7fa] rounded-[10px]">
+            <div>
+              <img src="{{static(" topteenfrontend/assets/images/fire.png")}}" class="w-[30px] h-[30px]" alt="" />
+            </div>
+            <div>
+              <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                5 days
+              </p>
+              <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                Streak
+              </p>
+            </div>
+          </div>
+
+          <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px]  py-[15px] bg-[#f7f7fa] rounded-[10px]">
+            <div>
+              <img src="{{static(" topteenfrontend/assets/images/medal.png")}}" class="w-[30px] h-[30px]" alt="" />
+            </div>
+            <div>
+              <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                Rookie
+              </p>
+              <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                Current Level
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Statistics -->
+
+      <!-- Quick Links Mobile -->
+      <div class="lg:hidden max-w-[640px] mx-auto mt-[35px] mb-10">
+        <p class="text-[15px] leading-[20.25px] font-semibold">
+          Quick Links</p>
+
+
+
+
+
+
+
+
+        <!-- End of refer/invite -->
+      </div>
+    </div>
+    <!-- End of Quick links Mobile -->
+
+    <!-- Quick Links Desktop -->
+    <div class="hidden lg:block lg:pt-[50px]">
+      <p class="text-[15px] leading-[20.25px] lg:text-[24px] lg:leading-[32.4px] mb-[16px] font-semibold">
+        Quick Links
+      </p>
+
+      <div class="w-[712px] border-[1px] border-solid border-[#dedede] rounded-[10px]">
+        <!-- Psychometric Test Reports -->
+        
+
+
+      </div>
+      <!-- End of Quick Links desktop -->
+    </div>
+    <!-- End of Right Part -->
+  </div>
+</main>
+<!-- End of Main Content -->
+
+<!-- 
+
+<script>
+
+  let referTrigger = document.querySelectorAll(".referPopupTrigger");
+  const referPopup = document.querySelector(".referFriendsPopup")
+  const referClose = document.querySelector(".referPopupClose")
+
+  referTrigger.forEach(elem => {
+    elem.addEventListener("click", function () {
+      referPopup.classList.remove("hidden");
+    })
+  })
+
+  referClose.addEventListener("click", function () {
+    referPopup.classList.add("hidden");
+  })
+
+</script> -->
+

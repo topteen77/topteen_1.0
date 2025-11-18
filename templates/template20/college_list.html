@@ -1,0 +1,271 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+College Finder | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Find the perfect college for your career goals. Explore colleges by country, state, and city. Discover top institutions offering courses in your field of interest.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> College Finder
+        </span>
+        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+          Find Your Perfect College
+        </h1>
+        <p class="text-gray fs-16">Explore colleges by location, courses, and specializations. Find the institution that best matches your career aspirations and educational goals.</p>
+      </div>
+
+      <div class="col-lg-4 col-md-12">
+        <div class="right-banner d-md-flex justify-content-end">
+          <img class="img-fluid" src="{{ static('images_new/general/college-banner.svg') }}" alt="College Finder Banner" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Hero Section -->
+
+<!-- College Search and Filter Section -->
+<section class="pb-10">
+  <div class="container">
+    <div class="row">
+      <!-- Filters Sidebar -->
+      <div class="col-lg-3 col-md-12 mb-4">
+        <div class="filter-sidebar">
+          <h3 class="filter-title mb-4">Filters</h3>
+          
+          <form method="GET" id="collegeFilterForm">
+            <!-- State Filter -->
+            {% if facets_filter and facets_filter.facets.state %}
+            <div class="filter-group mb-4">
+              <h5 class="filter-group-title">State</h5>
+              <div class="filter-options">
+                {% for tag, count, selected in facets_filter.facets.state %}
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" name="state" value="{{ tag }}" id="state_{{ loop.index }}" 
+                    {% if selected %}checked{% endif %} onchange="this.form.submit()">
+                  <label class="form-check-label" for="state_{{ loop.index }}">
+                    {{ tag|title }} ({{ count }})
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- City Filter -->
+            {% if facets_filter and facets_filter.facets.city %}
+            <div class="filter-group mb-4">
+              <h5 class="filter-group-title">City</h5>
+              <div class="filter-options">
+                {% for tag, count, selected in facets_filter.facets.city %}
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" name="city" value="{{ tag }}" id="city_{{ loop.index }}" 
+                    {% if selected %}checked{% endif %} onchange="this.form.submit()">
+                  <label class="form-check-label" for="city_{{ loop.index }}">
+                    {{ tag|title }} ({{ count }})
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Country Filter -->
+            {% if facets_filter and facets_filter.facets.country %}
+            <div class="filter-group mb-4">
+              <h5 class="filter-group-title">Country</h5>
+              <div class="filter-options">
+                {% for tag, count, selected in facets_filter.facets.country %}
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" name="country" value="{{ tag }}" id="country_{{ loop.index }}" 
+                    {% if selected %}checked{% endif %} onchange="this.form.submit()">
+                  <label class="form-check-label" for="country_{{ loop.index }}">
+                    {{ tag|title }} ({{ count }})
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Preserve page number in URL -->
+            {% if request.GET.page %}
+            <input type="hidden" name="page" value="{{ request.GET.page }}">
+            {% endif %}
+          </form>
+
+          <!-- Reset Filters -->
+          {% if query_list %}
+          <div class="mt-4">
+            <a href="{{ url('colleges:college') }}" class="btn btn-outline-primary btn-sm w-100">Reset Filters</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <!-- End Filters Sidebar -->
+
+      <!-- College List -->
+      <div class="col-lg-9 col-md-12">
+        <!-- Active Filters -->
+        {% if query_list %}
+        <div class="active-filters mb-4">
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="fw-semibold">Active Filters:</span>
+            {% for ql in query_list %}
+            <span class="badge bg-primary">{{ ql }}</span>
+            {% endfor %}
+            <a href="{{ url('colleges:college') }}" class="badge bg-danger text-decoration-none">Clear All</a>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Results Header -->
+        <div class="results-header mb-4">
+          <h3 class="section-title mb-0">Results</h3>
+          {% if colleges %}
+          <p class="text-gray mb-0">Found {{ colleges.paginator.count }} colleges</p>
+          {% endif %}
+        </div>
+
+        <!-- College Grid -->
+        {% if colleges %}
+        <div class="row">
+          {% for college in colleges %}
+          <div class="col-md-4 col-sm-6 mb-4">
+            <div class="college-card h-100">
+              <div class="college-image">
+                <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}">
+                  {% if college.logo %}
+                  <img src="{{ college.logo }}" alt="{{ college.name }}" class="img-fluid w-100" style="height: 200px; object-fit: cover; border-radius: 10px;">
+                  {% else %}
+                  <img src="{{ static('images_new/general/college-placeholder.png') }}" alt="{{ college.name }}" class="img-fluid w-100" style="height: 200px; object-fit: cover; border-radius: 10px;">
+                  {% endif %}
+                </a>
+              </div>
+              <div class="college-content mt-3">
+                <h4 class="college-name mb-2">
+                  <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}" class="text-decoration-none">{{ college.name }}</a>
+                </h4>
+                <div class="college-location d-flex align-items-center mb-2">
+                  <i class='bx bx-map-pin me-2 text-gray'></i>
+                  <span class="text-gray fs-14">
+                    {% if college.country %}{{ college.country.name }}{% endif %}{% if college.state and college.country %}, {% endif %}{% if college.state %}{{ college.state.name }}{% endif %}
+                  </span>
+                </div>
+                {% if college.rating %}
+                <div class="college-rating d-flex align-items-center">
+                  <img src="{{ static('images_new/icons/star-icon.svg') }}" alt="rating" class="me-1" style="width: 14px; height: 14px;">
+                  <span class="text-gray fs-14">{{ college.rating|round(1) }}</span>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-results text-center py-5">
+          <img src="{{ static('images_new/icons/no-results.svg') }}" alt="No results" class="mb-3" style="max-width: 200px;">
+          <h4 class="mb-2">No colleges found</h4>
+          <p class="text-gray">Try adjusting your filters or search criteria.</p>
+          <a href="{{ url('colleges:college') }}" class="btn custom-button purple-button mt-3">View All Colleges</a>
+        </div>
+        {% endif %}
+
+        <!-- Pagination -->
+        {% if colleges and colleges.paginator.num_pages > 1 %}
+        <div class="row mt-4">
+          <div class="col-12">
+            <nav aria-label="College pagination">
+              <ul class="pagination justify-content-center">
+                {% if colleges.has_previous() %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ colleges.previous_page_number() }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}" aria-label="Previous">
+                    <i class='bx bx-chevron-left'></i>
+                  </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Previous">
+                    <i class='bx bx-chevron-left'></i>
+                  </a>
+                </li>
+                {% endif %}
+
+                {% for page_num in colleges.paginator.page_range %}
+                  {% if page_num == colleges.number %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
+                  {% elif page_num > (colleges.number - 3) and page_num < (colleges.number + 3) %}
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{ page_num }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}">{{ page_num }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+
+                {% if colleges.has_next() %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ colleges.next_page_number() }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}" aria-label="Next">
+                    <i class='bx bx-chevron-right'></i>
+                  </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Next">
+                    <i class='bx bx-chevron-right'></i>
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      <!-- End College List -->
+    </div>
+  </div>
+</section>
+<!-- College Search and Filter Section -->
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+// Auto-submit form when filters change
+document.addEventListener('DOMContentLoaded', function() {
+  const filterForm = document.getElementById('collegeFilterForm');
+  if (filterForm) {
+    const checkboxes = filterForm.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        // Remove page parameter when filter changes
+        const pageInput = filterForm.querySelector('input[name="page"]');
+        if (pageInput) {
+          pageInput.remove();
+        }
+        filterForm.submit();
+      });
+    });
+  }
+});
+</script>
+{% endblock %}
+

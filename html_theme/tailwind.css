@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  /* ADDITIONAL CODE */
+  .flex-row-between {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .flex-row-start {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+  }
+
+  .flex-row-center {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .flex-col-between {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .flex-col-start {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+  }
+
+  .flex-col-center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .card-image {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+  /* ///////////////////////// */
+  .landingPageDesktopGradient {
+    background: linear-gradient(
+      90deg,
+      #f7f7ff,
+      rgba(63, 55, 201, 0.1),
+      rgba(239, 93, 168, 0.1),
+      rgba(60, 186, 225, 0.1)
+    ) !important;
+  }
+
+  .landingPageMobileGradient {
+    background: linear-gradient(
+      90deg,
+      rgba(239, 93, 186, 0.1) 17.27%,
+      rgba(60, 186, 225, 0.1) 99.87%
+    );
+  }
+}

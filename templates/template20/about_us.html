@@ -1,0 +1,773 @@
+{% extends 'template20/base.html' %}
+{% block title_content %}About Us{% endblock %}
+{% block description_content %}About Us page for TopTeen career guidance platform.{% endblock %}
+{% block content %}
+{% include 'template20/includes/messages.html' %}
+<main class="py-test-page">
+
+    <section class="hero-section-inner pt-md-18 pt-14 pb-5">
+      <div class="container">
+        <div class="row">
+
+
+          {% include 'template20/includes/breadcrumb.html' %}
+
+
+          <div class="col-lg-6 col-md-12">
+
+            <span class="highlighter">
+              <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="iocn" /> Shaping Future Careers
+            </span>
+            <h1 class="heading-title mt-md-9 mb-md-8 mt-8 mb-3">
+              About TopTeen!
+              <p> Empowering Future Careers! </p>
+            </h1>
+            <p class="text-gray fs-16">Welcome to TopTeen, an Ed-Tech platform by Canam Consultants Ltd, dedicated to
+              transforming careers in India. We provide valuable opportunities for students, professionals, and career
+              counselors, shaping the future of career guidance.</p>
+
+            <div class="hero-button d-flex flex-row mt-md-8 mt-5">
+              <button onclick=\"location.replace('{{ url('users:loginsingup') }}')\" type="button"
+                class=" btn  custom-button purple-button  me-3">Plan Your Career</button>
+
+            </div>
+          </div>
+
+
+          <div class="col-lg-6 col-md-12">
+
+            <div class="right-banner d-md-flex d-none justify-content-end">
+              <img class="img-fluid" src="{{ static('images_new/general/about-banner.svg') }}" alt="About Banner" />
+            </div>
+
+          </div>
+
+
+        </div>
+      </div>
+    </section>
+    <!-- Hero Section -->
+
+
+    <!-- Section three grid -->
+
+    <section class="empowering-size py-md-6">
+      <div class="container">
+        <div class="row">
+          <div class="about-grid grid grid-3">
+            <div class="grid-p-box">
+              <div class="emp-tp d-flex align-items-center ">
+                <div class="emp-icon me-3"><img src="{{ static('images_new/icons/emp-icon-1.svg') }}" alt="Icon" /> </div>
+                <h5 class="text-purple fs-20 fw-500 mb-0">Empowering Choices, Enabling Futures</h5>
+              </div>
+              <div class="emp-descp mt-3">
+                <p class="text-gray fs-16">Choosing a career is a crucial milestone. At TopTeen, we combine AI and human
+                  interaction to reduce biases in career selection, helping students, parents, educators, and counselors
+                  make informed decisions for successful outcomes.</p>
+              </div>
+            </div>
+            <div class="grid-p-box">
+              <div class="emp-tp d-flex align-items-center ">
+                <div class="emp-icon me-3"><img src="{{ static('images_new/icons/emp-icon-2.svg') }}" alt="Icon" /> </div>
+                <h5 class="text-purple fs-20 fw-500 mb-0">Harnessing Canam's Legacy</h5>
+              </div>
+              <div class="emp-descp mt-3">
+                <p class="text-gray fs-16">With 25+ years of experience, Canam Consultants is a trusted name in higher
+                  education and study abroad consultancy. Our expertise now powers TopTeen, setting new standards in the
+                  Ed-tech industry.</p>
+              </div>
+            </div>
+            <div class="grid-p-box">
+              <div class="emp-tp d-flex align-items-center ">
+                <div class="emp-icon me-3"><img src="{{ static('images_new/icons/emp-icon-3.svg') }}" alt="Icon" /> </div>
+                <h5 class="text-purple fs-20 fw-500 mb-0">A Symphony of Comprehensive Services</h5>
+              </div>
+              <div class="emp-descp mt-3">
+                <p class="text-gray fs-16 mb-0">We offer a complete range of services, from academic counseling to visa
+                  assistance, scholarships, and accommodations. Our goal is to empower over a million students in India
+                  to confidently navigate their educational journey.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
+
+
+    <!-- Section three grid -->
+
+
+
+    <!-- find direction-->
+
+    <section class="find-direction py-10">
+
+      <div class="container">
+        <div class="row">
+          <div class="col-md-5">
+            <div class="find-c-img">
+
+              <img class="img-fluid" src="{{ static('images_new/general/visinory-goal.svg') }}" alt="Visionary Goals" />
+
+            </div>
+
+          </div>
+
+          <div class="offset-md-1 col-md-6  d-flex flex-column justify-content-center align-items-start mt-md-0 mt-5">
+
+            <span class="highlighter text-gray fw-400 ">
+              <img class="position-relative top--10" src="{{ static('images_new/general/find-direction.svg') }}" alt="iocn" /> Our Vision
+            </span>
+            <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Visionary Goals for a Brighter Tomorrow</h3>
+            <p class="text-gray">We aim to build India’s most efficient and reliable career guidance platform that helps
+              students:</p>
+            <div class="top-list-style">
+              <ul>
+                <li>Make data-driven career decisions.</li>
+                <li>Bridge the gap between academic aspirations and real-world opportunities.</li>
+                <li>Receive structured mentorship and AI-powered career insights.</li>
+                <li>Gain future-ready skills for a competitive job market.</li>
+              </ul>
+
+            </div>
+
+
+            <button type="button" class="btn custom-button purple-button mt-md-3 me-3">Take The Test
+              Now!</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- find direction-->
+
+    <!-- Gateway Higher Eduction -->
+
+    <section class="gateway">
+      <div class="container">
+        <div class="cta-purple px-5 py-md-10 py-5  ">
+          <div class="row">
+
+            <div
+              class="col-md-7 d-flex justify-content-center align-items-start flex-column order-md-1 order-2 mt-md-0 mt-5">
+              <span class="highlighter text-gray fw-400 ">
+                <img class="position-relative top--10" src="{{ static('images_new/icons/entrance-exam.svg') }}" alt="iocn" /> AI-Powered Career
+                Success
+              </span>
+              <h3 class="title-two mt-3 fs-38 fs-sm-28 fw-700  text-white">The Platform: AI-Powered Career Guidance
+              </h3>
+
+              <p class="text-white fs-18">Our technology-driven career platform helps students:</p>
+              <ul class="text-white fw-400 ps-3">
+                <li>Assess their strengths & interests through advanced psychometric tests.</li>
+                <li>Receive personalized career recommendations based on AI-driven predictive analytics.</li>
+                <li>Access expert counselling & mentorship via one-on-one virtual sessions.</li>
+                <li>Plan their career journey with data-driven insights & research-backed tools.</li>
+                <li>Prepare for higher education & jobs through skill-building programs, internships, and admissions
+                  support.</li>
+
+              </ul>
+
+
+
+
+            </div>
+            <div class="col-md-5 d-flex justify-content-center align-items-center order-md-2 order-1">
+              <div class="cta-image">
+                <img class="img-fluid" src="{{ static('images_new/careers/career-ai.svg') }}" alt="gateway" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Gateway Higher Eduction -->
+
+
+    <!-- what we offer  -->
+
+    <section class="blog-section py-10">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
+            <span class="highlighter text-gray fw-400 ">
+              <img class="position-relative top--10" src="{{ static('images_new/icons/faq-icon.svg') }}" alt="iocn"> Empowering Your Career,
+              Guiding Your Future.
+              Questions
+            </span>
+            <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">What we offer</h3>
+            <!--        <p class="text-gray">AI-powered career guidance with personalized assessments, expert counseling, and skill-building programs. Gain real-world experience through internships and industry exposure.</p>-->
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12 custom-faq ">
+
+            <ul class="nav nav-pills mb-3 d-flex justify-content-center my-3 gap-2" id="pills-tab-gu" role="tablist">
+
+              <li class="nav-item" role="student">
+                <button class="nav-link active" id="pills-student-gu-tab" data-bs-toggle="pill"
+                  data-bs-target="#pills-student-gu" type="button" role="tab" aria-controls="pills-student-gu"
+                  aria-selected="true">For Students</button>
+              </li>
+
+              <li class="nav-item" role="parents">
+                <button class="nav-link" id="pills-parents-gu-tab" data-bs-toggle="pill"
+                  data-bs-target="#pills-parents-gu" type="button" role="tab" aria-controls="pills-gu-parents"
+                  aria-selected="false">For Parents</button>
+              </li>
+
+
+              <li class="nav-item" role="parents">
+                <button class="nav-link" id="pills-school-gu-tab" data-bs-toggle="pill"
+                  data-bs-target="#pills-school-gu" type="button" role="tab" aria-controls="pills-school-gu"
+                  aria-selected="false">For Schools & Counsellors</button>
+              </li>
+            </ul>
+
+
+            <div class="tab-content" id="pills-tabContent-gu">
+
+              <!-- Student Data -->
+              <div class="tab-pane fade show active" id="pills-student-gu" role="tabpanel"
+                aria-labelledby="pills-student-gu-tab">
+                <div class="row">
+                  <div class="col-md-8">
+                    <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Personalized Career Guidance &
+                      Development</h3>
+                    <p class="text-gray">Personalized career guidance using AI-driven insights, skill development, and
+                      real-world experience to help students make informed career choices and succeed in a competitive
+                      workforce.</p>
+                  </div>
+                  <div class=" col-md-4 d-flex justify-content-end">
+                    <div class="guj-img">
+                      <img src="{{ static('images_new/careers/career-track-wins.svg') }}" alt="Career Tracks" />
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="col-md-12 about-test-carousels mt-3 py-5">
+                  <div class="owl-carousel owl-theme who-student">
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>AI-Powered Career Matching </h5>
+                        <p>Our platform analyzes students' strengths, interests, and aptitudes to recommend best-fit
+                          career options using data-driven insights and predictive analytics.</p>
+                      </div>
+                    </div>
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Comprehensive Psychometric Testing </h5>
+                        <p>A scientifically validated RIASEC personality assessment that helps students identify their
+                          ideal career path based on their personality type, skills, and aspirations.</p>
+                      </div>
+                    </div>
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Skill Development & Upskilling </h5>
+                        <p>Personalized digital learning modules designed to enhance students' competencies and equip
+                          them with job-relevant skills for a competitive workforce.</p>
+                      </div>
+
+                    </div>
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Virtual Internships & Gap Year Solutions </h5>
+                        <p>Hands-on internship opportunities and real-world exposure to help students gain industry
+                          experience before making long-term career decisions.</p>
+                      </div>
+                    </div>
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>College & University Admissions Support </h5>
+                        <p>End-to-end admission assistance for top colleges and universities, including:</p>
+                        <ul>
+                          <li>Course & University Selection based on academic abilities and career goals.</li>
+                          <li>Application & Documentation Assistance for seamless admission processing.</li>
+                          <li>Scholarship & Financial Aid Guidance to support education funding.</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Gamified Career Exploration </h5>
+                        <p>An interactive and engaging approach to career planning through quizzes, challenges, and
+                          goal-setting tools, making the career search process exciting and effective.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-12 d-flex justify-content-center">
+                  <div class="btn-wrap">
+                    <button class="prev-btn"><i class='bx bx-chevron-left' style='color:#808080'></i></button>
+                    <button class="next-btn"><i class='bx bx-chevron-right' style='color:#808080'></i></button>
+                  </div>
+                </div>
+
+
+              </div>
+
+              <!-- Student Data -->
+
+              <!-- Parent Data  -->
+              <div class="tab-pane fade" id="pills-parents-gu" role="tabpanel" aria-labelledby="pills-parents-gu-tab">
+                <div class="row">
+                  <div class="col-md-8">
+                    <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Engaging in Their Child’s Career Journey
+                    </h3>
+                    <p class="text-gray">Engaging in Their Child’s Career Journey" equips parents with tools to support
+                      their child’s career path.</p>
+                  </div>
+                  <div class=" col-md-4 d-flex justify-content-end">
+                    <div class="guj-img">
+                      <img src="{{ static('images_new/careers/career-track-wins.svg') }}" alt="Career Tracks" />
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="col-md-12 about-test-carousels mt-3 py-5">
+                  <div class="owl-carousel owl-theme who-parent">
+
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Parental Involvement & Insights </h5>
+                        <p>Career decisions in India are often family-driven. Our platform empowers parents with:</p>
+                        <ul>
+                          <li>Personalized dashboards to track their child's progress.</li>
+                          <li>Career exploration resources to understand industry trends.</li>
+                          <li>Guidance on skill-building to ensure their child is future-ready.</li>
+                        </ul>
+                      </div>
+                    </div>
+
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Financial Planning & Scholarship Assistance </h5>
+                        <p>We help parents navigate the cost of higher education through:</p>
+                        <ul>
+                          <li>Scholarship opportunities & eligibility matching.</li>
+                          <li>Loan assistance for education financing.</li>
+                          <li>Budget planning for higher studies.</li>
+                        </ul>
+                      </div>
+                    </div>
+
+
+
+
+                  </div>
+                </div>
+
+
+
+              </div>
+              <!-- Parent Data  -->
+
+              <div class="tab-pane fade" id="pills-school-gu" role="tabpanel" aria-labelledby="pills-school-gu-tab">
+
+
+                <div class="row">
+                  <div class="col-md-8">
+                    <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Advanced Career Guidance Tools</h3>
+                    <p class="text-gray">Advanced Career Guidance Tools" provides cutting-edge resources to enhance
+                      career support.
+                      It equips professionals with innovative strategies to guide students toward informed and
+                      successful career choices.</p>
+                  </div>
+                  <div class=" col-md-4 d-flex justify-content-end">
+                    <div class="guj-img">
+                      <img src="{{ static('images_new/careers/career-track-wins.svg') }}" alt="Career Tracks" />
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="col-md-12 about-test-carousels mt-3 py-5">
+                  <div class="owl-carousel owl-theme who-student">
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Certified Career Counsellor Training Programs </h5>
+                        <p>A structured, certified training program to upskill teachers, educators, and aspiring career
+                          counsellors with scientific career guidance methodologies.</p>
+                      </div>
+                    </div>
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>School & Counsellor Dashboards </h5>
+                        <p>Interactive tools that allow schools to:</p>
+                        <ul>
+                          <li>Manage and track students' career assessments & reports.</li>
+                          <li>Generate personalized career guidance plans for each student.</li>
+                          <li>Provide structured mentorship & skill-building programs.</li>
+                        </ul>
+                      </div>
+                    </div>
+
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Psychometric Testing & Career Discovery </h5>
+                        <p>Our platform provides scientifically-backed career assessments to help students:</p>
+
+                        <ul>
+                          <li>Understand their strengths & career inclinations.</li>
+                          <li>Match their personality to careers using AI-driven algorithms.</li>
+                          <li>Shortlist their ideal career pathways based on real-time industry insights.</li>
+                        </ul>
+
+                      </div>
+                    </div>
+
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Career Library & Research Hub </h5>
+                        <p>A rich database of career insights, industry trends, blogs, expert interviews, and
+                          career-related videos to help counsellors and educators stay ahead of evolving job markets.
+                        </p>
+                      </div>
+
+                    </div>
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Workshops & Training for Schools </h5>
+                        <p>We offer customized career counselling workshops for schools and colleges to:</p>
+                        <ul>
+                          <li>Train teachers & career counsellors on modern career guidance techniques.</li>
+                          <li>Educate students on career planning, goal setting, and job market trends.</li>
+                          <li>Facilitate interactive sessions with industry experts to provide career exposure.</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+                <div class="col-md-12 d-flex justify-content-center">
+                  <div class="btn-wrap">
+                    <button class="prev-btn"><i class='bx bx-chevron-left' style='color:#808080'></i></button>
+                    <button class="next-btn"><i class='bx bx-chevron-right' style='color:#808080'></i></button>
+                  </div>
+                </div>
+
+
+
+              </div>
+
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- what we offer  -->
+
+    <!-- Why TopTeen-->
+    <section class="why-tteen py-8">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-md-4 order-md-2 order-1">
+
+            <div class="cta-image">
+              <img class="img-fluid" src="{{ static('images_new/general/whytopteen.svg') }}" alt="gateway">
+            </div>
+
+
+          </div>
+
+          <div
+            class="col-md-8 d-flex flex-column justify-content-center align-items-start mt-md-0 mt-5 order-md-1 order-2">
+
+
+
+            <span class="highlighter text-gray fw-400 ">
+              <img class="position-relative top--10" src="{{ static('images_new/icons/d-future-icon.svg') }}" alt="iocn"> Design Your Future
+              <div></div>
+            </span>
+
+            <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Why TopTeen?</h3>
+            <div class="top-list-style">
+              <ul>
+                <li>India needs 1.5M career counselors, but only 5% of students get proper guidance.</li>
+                <li>We bridge the employability gap with future-ready career solutions.</li>
+                <li>AI-powered, multilingual, and accessible across urban & rural India.</li>
+                <li>Personalized, bias-free guidance through AI insights & expert mentorship.</li>
+              </ul>
+
+            </div>
+
+          </div>
+
+
+
+
+
+
+        </div>
+      </div>
+    </section>
+    <!-- Why TopTeen-->
+
+
+
+
+    <!-- FAQ Section -->
+
+    <section class="blog-section pb-10 pt-8">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
+            <span class="highlighter text-gray fw-400 ">
+              <img class="position-relative top--10" src="{{ static('images_new/icons/faq-icon.svg') }}" alt="iocn"> Frequently Asked
+              Questions
+            </span>
+            <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Got
+              Questions? We've Got Answers!</h3>
+            <p class="text-gray">Explore our FAQ section for quick and
+              reliable answers to common queries. Whether you're
+              a student or a parent, find the guidance you need to make
+              informed decisions about education and career
+              choices.</p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-10 mx-auto custom-faq">
+
+            <ul class="nav nav-pills mb-3 d-flex justify-content-center my-3 gap-2" id="pills-tab" role="tablist">
+              <li class="nav-item" role="student">
+                <button class="nav-link active" id="pills-student-tab" data-bs-toggle="pill"
+                  data-bs-target="#pills-student" type="button" role="tab" aria-controls="pills-student"
+                  aria-selected="true">For Students</button>
+              </li>
+              <li class="nav-item" role="parents">
+                <button class="nav-link" id="pills-parents-tab" data-bs-toggle="pill" data-bs-target="#pills-parents"
+                  type="button" role="tab" aria-controls="pills-parents" aria-selected="false">For Parents</button>
+              </li>
+
+
+
+            </ul>
+            <div class="tab-content" id="pills-tabContent">
+              <div class="tab-pane fade show active" id="pills-student" role="tabpanel"
+                aria-labelledby="pills-student-tab">
+
+                <div class="accordion" id="accordionStudent">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        When should I start career counselling?
+                      </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        The earlier, the better! Ideally, career counselling
+                        should start in Class 9 or 10 to help you
+                        choose the right stream. For Class 11-12 students, it
+                        helps in making informed career decisions,
+                        selecting college courses, and planning for entrance
+                        exams.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        What if I don’t know what career I want to pursue?
+                      </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        That’s completely normal! Career counselling helps you
+                        explore different fields, understand your
+                        strengths and interests, and narrow down options
+                        through scientific assessments and expert advice.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        What is the Stream Selector Test, and how does it
+                        help?
+                      </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        The Stream Selector Test analyzes your interests,
+                        aptitude, and personality to recommend the most
+                        suitable stream (Science, Commerce, or Humanities) for
+                        you.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                        I have multiple interests. How do I choose one career
+                        path?
+                      </button>
+                    </h2>
+                    <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        Many students have diverse interests. Career guidance
+                        can help you identify careers that combine
+                        your strengths and passions. A counsellor can also
+                        help you explore multi-disciplinary fields.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                        Can I change my stream later if I realize it’s not the
+                        right fit?
+                      </button>
+                    </h2>
+                    <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                      <div class="accordion-body">
+                        Yes, but changing streams later can be difficult.
+                        That’s why it’s best to make an informed
+                        decision early with the help of career tests and
+                        counselling.
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+              <div class="tab-pane fade" id="pills-parents" role="tabpanel" aria-labelledby="pills-parents-tab">
+
+                <div class="accordion" id="accordionParents">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepOne" aria-expanded="true" aria-controls="collapsepOne">
+                        What role do parents play in their child's career
+                        decision-making?
+                      </button>
+                    </h2>
+                    <div id="collapsepOne" class="accordion-collapse collapse show" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        Parents are a child's first mentors and play a crucial
+                        role in guiding career decisions,
+                        especially when children are too young to decide
+                        independently. While parental involvement is
+                        important, it’s essential to encourage children to
+                        explore their own interests. We recommend
+                        parents accompany their child to counselling sessions
+                        for a broader understanding of career
+                        options.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepTwo" aria-expanded="false" aria-controls="collapsepTwo">
+                        Can parents be present during testing?
+                      </button>
+                    </h2>
+                    <div id="collapsepTwo" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        Parents are not required during testing but are
+                        encouraged to attend counselling sessions,
+                        especially for students in grades 9-10. For students
+                        18 and above, parental presence is optional
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepThree" aria-expanded="false" aria-controls="collapsepThree">
+                        Are parents involved in the counselling process?
+                      </button>
+                    </h2>
+                    <div id="collapsepThree" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        Yes, parents have a significant influence on career
+                        choices. We encourage their participation in
+                        counselling sessions to provide insights and support
+                        their child’s decision-making.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepFour" aria-expanded="false" aria-controls="collapsepFour">
+                        My child has already taken an aptitude test. Can we
+                        just do a counselling session?
+                      </button>
+                    </h2>
+                    <div id="collapsepFour" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        Yes, you can book a counselling session if the test
+                        was taken within the last six months. If it
+                        was conducted earlier, we recommend retesting for
+                        updated insights.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsepFive" aria-expanded="false" aria-controls="collapsepFive">
+                        My child is interested in multiple subjects and is
+                        struggling to choose. What should we do?
+                      </button>
+                    </h2>
+                    <div id="collapsepFive" class="accordion-collapse collapse" data-bs-parent="#accordionParents">
+                      <div class="accordion-body">
+                        It’s common for students to have diverse interests. We
+                        suggest taking our <strong> Stream Selector
+                          Test </strong> to assess aptitude, interests, and
+                        strengths. A counselling session can further
+                        clarify options and help make an informed decision.
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="text-center pt-5">
+              <a class="text-purple text-decoration-underline fs-17" href="#" target="_blank">View All <i
+                  class="bx bx-chevrons-right"></i></a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- FAQ Section -->
+
+  
+</main>
+{% endblock %}

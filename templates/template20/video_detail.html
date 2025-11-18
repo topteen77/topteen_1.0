@@ -1,0 +1,289 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{{ video.name }} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+{{ video.description|striptags|truncate(160) if video.description else video.name }}
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Video
+        </span>
+        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+          {{ video.name }}
+        </h1>
+        <div class="video-meta mb-3">
+          <span class="text-gray fs-14">
+            <i class='bx bx-calendar'></i> {{ date_format(video.created) }}
+          </span>
+          {% if video.category.all() %}
+          <span class="text-gray fs-14 ms-3">
+            <i class='bx bx-category'></i>
+            {% for cat in video.category.all() %}
+              <a href="{{ url('careers:category', args=[cat.slug]) }}" class="text-decoration-none">{{ cat.name }}</a>{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Hero Section -->
+
+<!-- Video Content Section -->
+<section class="pb-10">
+  <div class="container">
+    <div class="row">
+      <!-- Main Content -->
+      <div class="col-lg-9 col-md-12">
+        <!-- Video Player -->
+        <div class="video-player-wrapper mb-4">
+          {% set video_url = video.get_video_or_url() %}
+          {% set is_video_file = video.upload_video or (video_url and ('.mp4' in video_url.lower() or '.webm' in video_url.lower() or '.ogg' in video_url.lower() or '.mov' in video_url.lower())) %}
+          {% if is_video_file %}
+            <div class="ratio ratio-16x9">
+              <video controls class="w-100" style="max-height: 500px; background: #000;">
+                <source src="{{ video_url }}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          {% else %}
+            <div class="ratio ratio-16x9">
+              <iframe id="videoPlayerFrame" src="{{ video_url }}" allowfullscreen frameborder="0" style="width: 100%; height: 100%;"></iframe>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Video Description -->
+        {% if video.description %}
+        <div class="video-description mb-4">
+          <h3 class="section-title mb-3">About This Video</h3>
+          <div class="blogDetail">
+            {{ video.description|safe }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Share and Bookmark -->
+        <div class="video-actions d-flex flex-wrap gap-3 mb-4 pb-4 border-bottom">
+          <div class="blog-share">
+            <div class="blog-share-title">Share:</div>
+            <div class="blog-share-icons">
+              <a href="#" class="blog-share-icon" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank'); return false;"><i class="bx bxl-facebook"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent('{{ video.name }}'), '_blank'); return false;"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://www.linkedin.com/shareArticle?url=' + encodeURIComponent(window.location.href) + '&title=' + encodeURIComponent('{{ video.name }}'), '_blank'); return false;"><i class="bx bxl-linkedin"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('{{ video.name }} ' + window.location.href), '_blank'); return false;"><i class="bx bxl-whatsapp"></i></a>
+              <a href="#" class="blog-share-icon copy-link" data-url="{{ url('careers:videodetail', args=[video.slug]) }}"><i class="bx bx-link"></i></a>
+            </div>
+          </div>
+          {% if request.user.is_authenticated %}
+          <div class="video-bookmark">
+            <button type="button" class="btn custom-button purple-button" onclick="shortlistVideo('{{ video.id }}')" id="shortlist_{{ video.id }}">
+              <i class='bx {% if video.shortlist.filter(id=request.user.id).exists() %}bxs{% else %}bx{% endif %}-bookmark'></i>
+              <span>{% if video.shortlist.filter(id=request.user.id).exists() %}Bookmarked{% else %}Bookmark{% endif %}</span>
+            </button>
+          </div>
+          {% else %}
+          <div class="video-bookmark">
+            <a href="{{ url('users:loginsingup') }}" class="btn custom-button purple-button">
+              <i class='bx bx-bookmark'></i>
+              <span>Bookmark</span>
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-3 col-md-12">
+        <div class="video-sidebar">
+          <!-- Search Form -->
+          <div class="sidebar-widget mb-4">
+            <h4 class="widget-title mb-3">Search</h4>
+            <form action="{{ url('careers:careervideos') }}" method="GET">
+              <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Search videos...">
+                <button type="submit" class="btn custom-button purple-button">
+                  <i class='bx bx-search'></i>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Categories -->
+          <div class="sidebar-widget">
+            <h4 class="widget-title mb-3">Categories</h4>
+            <ul class="category-list">
+              <li class="category-item">
+                <a href="{{ url('careers:careervideos') }}" class="text-decoration-none">All Videos</a>
+              </li>
+              {% for cat in categories %}
+              <li class="category-item">
+                <a href="{{ url('careers:category', args=[cat.slug]) }}" class="text-decoration-none">{{ cat.name }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Related Videos Section -->
+{% if related_videos %}
+<section class="py-10 bg-light">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h3 class="section-title mb-4">Related Videos</h3>
+        <p class="text-gray mb-4">Explore more videos that might interest you</p>
+      </div>
+    </div>
+    <div class="row">
+      {% for related_video in related_videos %}
+      <div class="col-md-4 col-sm-6 mb-4">
+        <div class="blog-card">
+          <div class="blog-image">
+            <div class="cat-header">
+              {% if related_video.category.all() %}
+                <a href="{{ url('careers:category', args=[related_video.category.first().slug]) }}" class="blog-category category-parent">
+                  {{ related_video.category.first().name }}
+                </a>
+              {% else %}
+                <span class="blog-category category-parent">Video</span>
+              {% endif %}
+            </div>
+            <a href="{{ url('careers:videodetail', args=[related_video.slug]) }}">
+              {% if related_video.video_image %}
+                <img src="{{ related_video.video_image.url }}" alt="{{ related_video.name }}">
+              {% elif related_video.upload_video %}
+                <video class="w-100" style="max-height: 200px;">
+                  <source src="{{ related_video.upload_video.url }}" type="video/mp4">
+                </video>
+              {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                  <i class='bx bx-play-circle fs-48 text-gray'></i>
+                </div>
+              {% endif %}
+            </a>
+          </div>
+          <div class="blog-content">
+            <h3 class="blog-title mt-0">
+              <a href="{{ url('careers:videodetail', args=[related_video.slug]) }}">{{ related_video.name }}</a>
+            </h3>
+            <div class="video-meta mb-2">
+              <span class="text-gray fs-14">
+                <i class='bx bx-calendar'></i> {{ date_format(related_video.created) }}
+              </span>
+            </div>
+            {% if related_video.description %}
+            <p class="blog-excerpt">{{ related_video.description|striptags|truncate(120) }}</p>
+            {% endif %}
+            <a href="{{ url('careers:videodetail', args=[related_video.slug]) }}" class="read-more">Watch Video <i class="bx bx-right-arrow-alt"></i></a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+// Convert YouTube URLs to embed format
+document.addEventListener('DOMContentLoaded', function() {
+  const videoFrame = document.getElementById('videoPlayerFrame');
+  if (videoFrame) {
+    let videoUrl = videoFrame.src;
+    if (videoUrl.includes('youtube.com/watch')) {
+      const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+      if (videoId) {
+        videoFrame.src = `https://www.youtube.com/embed/${videoId}`;
+      }
+    } else if (videoUrl.includes('youtu.be/')) {
+      const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+      if (videoId) {
+        videoFrame.src = `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+  }
+});
+
+// Shortlist Video Function
+function shortlistVideo(videoId) {
+  {% if request.user.is_authenticated %}
+  fetch('{{ url("careers:shortlist_video") }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({
+      video_id: videoId
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const btn = document.getElementById('shortlist_' + videoId);
+      if (btn) {
+        const icon = btn.querySelector('i');
+        const span = btn.querySelector('span');
+        if (data.shortlisted) {
+          icon.classList.remove('bx-bookmark');
+          icon.classList.add('bxs-bookmark');
+          if (span) span.textContent = 'Bookmarked';
+        } else {
+          icon.classList.remove('bxs-bookmark');
+          icon.classList.add('bx-bookmark');
+          if (span) span.textContent = 'Bookmark';
+        }
+      }
+    }
+  })
+  .catch(error => console.error('Error:', error));
+  {% else %}
+  window.location.href = '{{ url("users:loginsingup") }}';
+  {% endif %}
+}
+
+// Copy Link Functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const copyLinks = document.querySelectorAll('.copy-link');
+  copyLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const url = this.getAttribute('data-url');
+      const fullUrl = window.location.origin + url;
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        // Show toast or notification
+        alert('Link copied to clipboard!');
+      });
+    });
+  });
+});
+</script>
+{% endblock %}
+

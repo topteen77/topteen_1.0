@@ -1,0 +1,53 @@
+{% extends 'topteenfrontend/base.html' %}
+
+{% block main %}
+
+<main class="w-full lg:max-w-[1280px] mx-auto lg:pt-[51px]">
+<section class="py-10 mx-auto relative z-10  px-[17px] py-[17px]  overflow-hidden mb-[17px] ">
+  <div class="max-w-[1082px] mx-auto h-full flex lg:flex-col lg:justify-center lg:items-center flex-col-reverse">
+    <div class="lg:max-w-[525px] self-center">
+      <h1 class="boldFont lg:leading-[1.35em] lg:text-[32px] text-[#333333] mb-[9px] boldFont text-center lg:text-left text-[24px] leading-[32px]" style="font-size: 40px;color: red;padding-top: 20px;margin-left: 25px;">
+          
+        </h1>
+        <img src="{{ static ('images/error.png') }}" alt="error image">
+      <p class="font-medium text-[16px] leading-[1.68em] text-[#0F0F0F] text-opacity-70 mb-[34px] lg:text-left text-center" style="font-size: 20px;">
+        Oops! It seems you are lost as this page doesn't exist
+      </p>
+      <p class="font-medium text-[16px] leading-[1.68em] text-[#0F0F0F] text-opacity-70 mb-[34px] lg:text-left text-center" style="font-size: 30px;margin-left: 40px;">You can visit our other pages</p>
+      <div class="flex lg:flex-row lg:justify-center lg:gap-x-[29px] flex-col gap-y-[25px] mx-auto mb-6">
+        <a href="/">
+            <button class="uppercase w-full px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
+              Home
+            </button>
+          </a>
+        
+                
+          {% if request.user.user_type == 1 %}
+
+        <a href="/psychometric/home">
+          <button class="uppercase w-full px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
+            Stream Sorter
+          </button>
+        </a>
+
+        <a href="/api/web/home">
+          <button class="uppercase w-full px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
+            Career Direction
+          </button>
+        </a>
+
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+  
+  </main>
+
+
+{% endblock main %}
+
+{% block additionalfooter %}
+
+
+{% endblock %}

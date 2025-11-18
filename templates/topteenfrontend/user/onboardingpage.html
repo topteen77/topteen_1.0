@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {%if html_head%}
+    <title>{{html_head.title}} | Top Teen</title>
+    <meta name="description" content="{{html_head.description}}">
+  {%else%}
+    <title>{%block title%} | Top Teen {%endblock%} </title>
+    <meta name="description" content="Top Teen Career Building website">
+  {%endif%}
+  <link rel="stylesheet" href="{{static('topteenfrontend/assets/css/custom.css')}}" />
+  <link rel="stylesheet" href="{{static('topteenfrontend/assets/css/styles.css')}}" />
+  <link rel="shortcut icon" href="{{static('topteenfrontend/assets/images/graduation-hat 1.png')}}" />
+  <!-- links for slick carousel -->
+  <link href="{{static('topteenfrontend/assets/css/slick/slick.css')}}" rel="stylesheet" />
+  <link href="{{static('topteenfrontend/assets/css/slick/slick-theme.css')}}" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+
+
+</head>
+
+<body class="overflow-x-hidden">
+
+<form class="relative w-[100vw] h-full" method="POST" enctype="multipart/form-data" onsubmit="return validatehobbiesform();">
+
+  <div class="backArrow absolute left-[20px] lg:left-[100px] top-[36px] inline-block">
+    <img class="h-[15px] w-[15px]"
+    src="{{static('topteenfrontend/assets/images/arrow.left.png')}}" />
+  </div>
+
+  
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+  <div class="newPages">
+
+    <!-- 1 Choose motive pages -->
+
+
+    <div class="motive page">
+      <div class="w-[100vw] h-full" data-index="1">
+        <!-- header -->
+
+
+        <!-- second line -->
+        <div class="flex justify-center items-center font-semibold text-[24px] leading-[32.4px] mt-[100px]">
+          <p>What are you here for?</p>
+        </div>
+        <!-- third line -->
+        <div class="flex justify-center items-center font-normal text-center text-[16px] leading-[21.6px] mt-[14px]">
+          <p class="w-[344px] h-[44px] text-[#494949]">
+            This will help the app prepare a guided path for you to take
+          </p>
+        </div>
+
+        {% for fg in figureouts %}
+        <!-- fourth div -->
+        <div class="w-full flex justify-center items-center mt-[36px] cursor-pointer">
+          <label class="w-[344px] h-[75px] bg-[#F7F7FA] rounded-xl flex items-center streamTab activeOnbTab">
+            <input type="checkbox" name="userfigureout"  value="{{fg.id}}" class="sr-only">
+            <img class="ml-[20px] w-[36px] h-[36px] object-cover" src="{{fg.image.url}}" />
+            <div class="flex-col ml-[15px]">
+              <p class="text-[16px] font-semibold">
+                {{fg.name}}
+              </p>
+              <p class="text-[12px] font-normal text-[#828282]">
+                {% if fg.description %}{{fg.description}}{% endif %}
+              </p>
+            </div>
+          </label>
+        </div>
+        {% endfor %}
+        <!-- button -->
+        <div class=" z-50 mt-[60px] w-full flex justify-center lg:mt-[70px] ">
+          <button type="button" data-form-name="firstform" class="w-[344px] h-[48px] bg-[#3F37C9] rounded-xl text-white font-bold slideOnButton"
+            id="firstButton">
+            CONTINUE
+          </button>
+        </div>
+
+      </div>
+
+
+    </div>
+
+
+    <div class="basicDetails page">
+      <!-- 2 basic details pages -->
+      <div class="w-[100vw] h-full" data-index="2">
+        <!-- header -->
+
+        <!-- second line -->
+        <div class="flex justify-center items-center font-semibold text-[24px] mt-[100px]">
+          <p>Tell us more about yourself</p>
+        </div>
+        <!-- third line -->
+        <div class="flex justify-center items-center font-normal text-center text-[16px] mt-[10px]">
+          <p class="w-[344px] h-[44px] text-[#494949]">
+            Lets’s get the essentials out of the way
+          </p>
+        </div>
+
+        <!--form starts -->
+        <!-- full name line -->
+        <div class="w-full flex justify-center">
+          <div class='inline-block relative mt-[10px]'>
+            <img class='absolute left-[14px] top-[50%] -translate-y-[50%]'
+              src="{{static('topteenfrontend/assets/images/signature.png')}}" />
+            <input name="username" type="text" value="{{request.user.name}}"
+              class='w-[344px] h-[48px] bg-[#F7F7FA] pl-12 rounded-xl text-gray-600  font-bold border-[1.5px] border-[#DCDCDC]'
+              placeholder='Full name' />
+
+          </div>
+        </div>
+
+        <!-- Birthday and Gender -->
+        <div class='w-full flex justify-center relative items-center space-x-4 mt-[10px] lg:mt-[10px] '>
+          <div class="relative">
+            <img class='absolute left-[14px] top-[50%] -translate-y-[50%]'
+              src="{{static('topteenfrontend/assets/images/calender1.png')}}" />
+            <input name="userbirthdaydate" type="text" onfocus="(this.type = 'date')" {% if request.user.user_profile %} value="{{request.user.user_profile.birthdate}}" {% endif %}
+              class='w-[164px] h-[48px] bg-[#F7F7FA] pl-10 rounded-xl text-gray-600  font-bold border-[1.5px] border-[#DCDCDC]'
+              placeholder='Birthday ' />
+
+          </div>
+
+          <div class="relative">
+            <img class='absolute left-[14px] top-[50%] -translate-y-[50%]'
+              src="{{static('topteenfrontend/assets/images/person.fill.png')}}" />
+            <select name="gender" id="gender"
+              class="w-[164px] h-[48px] bg-[#F7F7FA] pl-10 rounded-xl text-gray-600 font-bold border-[1.5px] border-[#DCDCDC]"
+              placeholder="Gender ">
+              <option value="" class="text-gray-600 font-bold" >Gender</option>
+              <option value="20"  {% if request.user.user_profile and request.user.user_profile.gender == 20 %} selected {% endif %} class="text-gray-600 font-bold">Male</option>
+              <option value="30" {% if request.user.user_profile and request.user.user_profile.gender == 30 %} selected {% endif %} class="text-gray-600 font-bold">Female</option>
+              <option value="10" {% if request.user.user_profile and request.user.user_profile.gender == 10 %} selected {% endif %} class="text-gray-600 font-bold">Transgender</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- phone number line -->
+        <div class="w-full flex justify-center">
+          <div class='inline-block relative mt-[10px]'>
+            <img class='absolute left-[14px] top-[50%] -translate-y-[50%]'
+              src="{{static('topteenfrontend/assets/images/phone.fill.png')}}" />
+            <input name="userphone" type="text" pattern="[6789][0-9]{9}"  {% if request.user.mobile %} value="{{request.user.mobile}}" {% endif %}
+              class='w-[344px] h-[48px] bg-[#F7F7FA] pl-12 rounded-xl text-gray-600 font-bold border-[1.5px] border-[#DCDCDC]'
+              placeholder='Enter 10 digit number' />
+          </div>
+        </div>
+
+        <!-- school name  line -->
+        <div class="w-full flex justify-center">
+          <div class='inline-block relative mt-[10px]'>
+            <img class='absolute left-[14px] top-[50%] -translate-y-[50%] '
+              src="{{static('topteenfrontend/assets/images/person.2.crop.square.stack.fill.png')}}" />
+            <input name="userschool" type="text" {% if request.user.user_profile %}value="{{request.user.user_profile.schoolname}}"{% endif %}
+              class='w-[344px] h-[48px] bg-[#F7F7FA] pl-12 rounded-xl text-gray-600  font-bold border-[1.5px] border-[#DCDCDC]'
+              placeholder='School name' />
+          </div>
+        </div>
+        <!-- Grade   line -->
+        <div class="w-full flex justify-center">
+          <div class='inline-block relative mt-[10px]'>
+            <img class='absolute left-[14px] top-[50%] -translate-y-[50%]'
+              src="{{static('topteenfrontend/assets/images/bookmark.square.png')}}" />
+            <input name="usergrade" type="text" {% if request.user.user_profile %}value="{{request.user.user_profile.grade}}"{% endif %}
+              class='w-[344px] h-[48px] bg-[#F7F7FA] pl-12 rounded-xl text-gray-600  font-bold border-[1.5px] border-[#DCDCDC]'
+              placeholder='Grade' />
+          </div>
+        </div>
+
+
+        <!-- button -->
+        <div class='w-full flex justify-center items-center mt-[30px] lg:mt-[50px] '>
+          <button type="button" data-form-name="secondform"
+            class='w-[344px] h-[48px] bg-[#3F37C9] rounded-xl text-white font-bold  slideOnButton'>CONTINUE</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="photo page">
+      <!-- 3 Signup photo pages -->
+      <div class="w-[100vw] h-full" data-index="3">
+        <!-- header -->
+
+        <!-- second line -->
+        <div class="flex justify-center items-center font-semibold text-[24px] leading-[32.4px] mt-[100px]">
+          <p>Show us how you look</p>
+        </div>
+        <!-- third line -->
+        <div class="flex justify-center items-center font-normal text-center text-[16px] mt-[14px]">
+          <p class="w-[344px] h-[44px] text-[#494949]">
+            Join a community of 10k+ students and discover your true passion.
+          </p>
+        </div>
+
+        <!-- center portion -->
+        <div class="flex justify-center items-center w-full h-full mt-[88px] lg:mt-[50px]">
+
+          <button type="button" class="imgBtn h-[230px] w-[230px] bg-[#F7F7FA] rounded-full flex justify-center items-center">
+            <img src="{{request.user.image.url}}" class="w-full h-full rounded-full object-cover"  />
+          </button>
+          <input type="file" name="image" class="sr-only imgIp">
+        </div>
+
+        <!-- button -->
+        <div class="w-full flex justify-center items-center mt-[100px] lg:mt-[95px]">
+          <button type="button" class="w-[344px] h-[48px] bg-[#3F37C9] rounded-xl text-white font-bold slideOnButton">
+            CONTINUE
+          </button>
+        </div>
+
+
+      </div>
+    </div>
+
+
+    <div class="subjects page">
+      <!-- 4 sign up subjects -->
+      <div class="w-[100vw] h-full" data-index="4">
+        <!-- header -->
+
+        <!-- second line -->
+        <div class="flex justify-center items-center font-semibold text-[24px] mt-[100px]">
+          <p>What do you enjoy learning?</p>
+        </div>
+        <!-- third line -->
+        <div class="flex justify-center items-center font-normal text-center text-[16px] mt-[14px]">
+          <p class="w-[344px] h-[44px] text-[#494949]">
+            Drag right for subjects you like and left for subjects you dont
+          </p>
+        </div>
+
+
+        <!-- Subject Content -->
+        <section
+          class="subContent w-full h-full lg:w-[804px] mt-[60px]  justify-center items-center grid grid-cols-1 lg:grid-cols-3 gap-1">
+          {% for sb in subjects %}
+          <label
+          class="activeOnbTab mx-auto w-[344px] lg:w-[248px] h-[50px] lg:h-[60px] bg-[#F7F7FA] rounded-[10px] flex justify-start items-center mx-auto hobbiesTab">
+          <input type="checkbox" class="sr-only" name="usersubject" value="{{sb.id}}" id="">
+          <div class="flex justify-center items-center ml-[18px]">
+            <img src="{{sb.image.url}}" class=" w-[36px] h-[36px] object-cover" />
+            <p class="font-semibold ml-[15px]">{{sb.name}}</p>
+          </div>
+        </label>
+          {% endfor %}
+        </section>
+        <!-- End of Subject Content -->
+
+        <!-- button -->
+        <div class="w-full flex justify-center items-center mt-[20px] mb-[45px] lg:mb-0 lg:mt-[30px]">
+          <button type="button" data-form-name="thirdform" class="w-[344px] h-[48px] bg-[#3F37C9] rounded-xl text-white font-bold slideOnButton"
+            id="fourthButton">
+            CONTINUE
+          </button>
+        </div>
+
+
+      </div>
+
+    </div>
+
+    <div class="hobbies page">
+      <!-- 5 sign up hobbies -->
+      <div class="w-[100vw]" data-index="5">
+        <!-- header -->
+
+        <!-- second line -->
+        <div class="flex justify-center items-center font-semibold text-[24px] mt-[100px]">
+          <p>What are your hobbies?</p>
+        </div>
+        <!-- third line -->
+        <div class="flex justify-center items-center font-normal text-center text-[16px] mt-[14px]">
+          <p class="w-[344px] h-[44px] text-[#494949]">
+            Swipe right for subjects you like and left for subjects you dont
+          </p>
+        </div>
+
+        <!-- center portion -->
+        <div class="flex justify-center items-center mt-[60px] lg:mt-0">
+          <div class="flex justify-center items-center w-[1005px]">
+
+            <!-- grid part -->
+            <div class=" w-full flex justify-center items-center mt-7">
+              <div
+                class="w-full h-full lg:w-[804px] justify-center items-center grid grid-cols-1 lg:grid-cols-3 gap-1">
+                {% for hb in hobbies %}
+                <label
+                  class="activeOnbTab mx-auto w-[344px] lg:w-[248px] h-[50px] lg:h-[60px] bg-[#F7F7FA] rounded-[10px] flex justify-start items-center mx-auto hobbiesTab">
+                  <input type="checkbox" class="sr-only" name="hobbies" value="{{hb.id}}" id="">
+                  <div class="flex justify-center items-center ml-[18px]">
+                    <img src="{{hb.image.url}}" class="w-[36px] h-[36px] object-cover" />
+                    <p class="font-semibold ml-[15px]">{{hb.name}}</p>
+                  </div>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- button -->
+        <div class="w-full flex justify-center items-center mt-[20px] mb-[45px] lg:mb-0 lg:mt-[30px]">
+          <button type="submit"  class="w-[344px] h-[48px] bg-[#3F37C9] rounded-xl text-white font-bold"
+            id="fifthButton">
+            FINISH
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</form>
+
+  <!-- Footer -->
+
+  <!-- End of footer -->
+
+
+</body>
+
+
+<script>
+  const backBtn = document.querySelector(".backArrow");
+  backBtn.addEventListener("click", function(){
+    console.log("clicked")
+    window.location.href="{{url('users:userfeeds')}}";
+  })
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // TRIGGER SWEET ALERT POPUP
+  // SWEET ALERT CODE
+  // ICON =>  'success'/'info'/'error'/'warning'/'question'
+  const fireAlert = async function (
+    title,
+    icon = "success",
+    showConfirmButton = false,
+    showCloseButton = false,
+    isPrompt = false
+  ) {
+    const canDo = Swal.fire({
+      title,
+      icon: icon,
+      position: "top-end",
+      showCloseButton,
+      showConfirmButton,
+      toast: true,
+      showCancelButton: false,
+      ...(isPrompt ? {} : { timer: 2000 }),
+    });
+
+    if (isPrompt) {
+      return canDo?.isConfirmed;
+    } else {
+      return -1;
+    }
+  };
+</script>
+
+<!-- scripts for slick carousel -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript" src="{{static('topteenfrontend/assets/js/slick.min.js')}}"></script>
+
+<script type="text/javascript" src="{{static('topteenfrontend/assets/js/onBoardingPage.js')}}">
+</script>
+
+</html>

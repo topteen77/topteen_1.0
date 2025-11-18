@@ -1,0 +1,329 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+
+{% block main %}
+
+{#-------------------------------------------new Dashbord------------------------------------------------#}
+
+<main class="lg:w-[1082px] w-full mx-auto ">
+    <div class=" lg:flex gap-[20px] justify-between">
+        <!-- left section -->
+
+        <div class="newdashboardLeft mx-auto">
+            <div class="flex items-center mt-[39px] items-center gap-2">
+                <h3>{{group_institute.group_name}}</h3>
+            </div>
+
+            <div class="flex items-center pt-2 gap-1">
+                <i class="fa-solid fa-clock w-[16.16px] h-[16.16px] text-[#828282]"></i>
+                <p class="text-[16px] text-[#828282] regularFont">Joined {% if
+                    group_institute.institute_group_admin.created
+                    %}{{group_institute.institute_group_admin.created.strftime('%B-%Y')}}{% endif %}</p>
+            </div>
+            {#
+            <div class="flex items-center pb-2 gap-1">
+                <i class="fa-solid fa-address-card w-[16.16px] h-[16.16px] text-[#828282]"></i>
+                <p class="text-[16px] text-[#828282] regularFont">11th Grade {% if
+                    group_institute.institute_group_admin.address %}•
+                    {{group_institute.institute_group_admin.address}}{% endif %}</p>
+            </div>
+            <hr />
+            <div class="flex gap-3 items-center py-3">
+                <img src="{{static('topteenfrontend/assets/images/verified-account 2.png')}}" alt="Verified Account"
+                    class="w-[45px] h-[44px]">
+                <div>
+                    <p class="text-[12px] mediumFont text-[#333333]">Complete Your Profile</p>
+                    <p class="text-[10px] text-[#828282]">A complete profile helps us cater the best content to you</p>
+                    <img src="{{static('topteenfrontend/assets/images/Rectangle 6591.png')}}" alt="progress"
+                        class="my-2">
+                </div>
+            </div>
+
+            <button data-tab-target="#addstudent" class="btn3">
+                <!-- <img src="/static/topteenfrontend/assets/images/Group 25590.png" alt="setting" class="h-[53px] w-[295px]"> -->
+                <i class="fa-solid fa-bolt"></i> Add Multiple Students
+            </button>
+            <button data-tab-target="#addonestudent" class="btn">
+                <i class="fas fa-user-plus"></i> Add single Student
+            </button>
+            <!-- <button class="btn2">
+            <i class="fa-solid fa-file-csv"></i> CSV Upload
+        </button>       -->
+            <button data-tab-target="#addcsvstudent" class="btn2">
+                <i class="fa-solid fa-file-csv"></i> CSV Upload
+            </button>
+            <hr>
+            <div class="flex items-center pb-2 gap-1">
+                {% if messages %}
+                <ul class="messages text-[16px] text-[#828282] regularFont">
+                    {% for message in messages %}
+                    <li{% if message.tags=="success" %} style="color: green;" {% else %} style="color: red;" {% endif
+                        %}>{% if message.tags != "success" %}{% if not error_list %}{{ message }}{% endif %}{% endif %}
+                        </li>
+                        {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            #}
+        </div>
+        <!-- right section  -->
+        <div class="mt-[60px] mx-3 lg:mx-auto newdashboardRight ">
+            <h3 class="text-[24px] boldFont text-[#333333]">Dashboard</h3>
+            <!--cards-->
+            <div class="flex flex-wrap justify-evenly lg:justify-between gap-3 mt-[20px] mb-[25px]">
+
+                <div class="flex gap-[15px] h-fit w-[148px] rounded-[10px] bg-[#F7F7FA] py-3 px-2">
+                    <!-- {{static('topteenfrontend//assets/images/skills.png')}} -->
+                    <img src="{{static('topteenfrontend//assets/images/graduated 1.png')}}" alt="Total Student"
+                        class="w-[35px] h-[35px]">
+                    <div>
+                        <p class="boldFont text-[18px] boldFont">{{group_stu_count}}</p>
+                        <p class="text-[10px] text-[#828282]">Total Students</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-[15px] h-fit w-[148px] rounded-[10px] bg-[#F7F7FA] py-3 px-2">
+                    <img src="{{static('topteenfrontend/assets/images/badge.png')}}" alt="Active Student"
+                        class="w-[35px] h-[35px]">
+                    <div>
+                        <p class="boldFont text-[18px] boldFont">{{group_active_stu_count}}</p>
+                        <p class="text-[10px] text-[#828282]">Active Students</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-[15px] h-fit w-[148px] rounded-[10px] bg-[#F7F7FA] py-3 px-2">
+                    <img src="{{static('topteenfrontend/assets/images/fire.png')}}" alt="Completed"
+                        class="w-[35px] h-[35px]">
+                    <div>
+                        <p class="boldFont text-[18px] boldFont">{{group_assesment_count|length}}</p>
+                        <p class="text-[10px] text-[#828282]">Assessment Completed</p>
+                    </div>
+                </div>
+
+
+
+            </div>
+
+            <!--table-->
+            <div class="newdashboardtable custominsgroupdashboardtable">
+                <table>
+
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th>S. no.</th>
+                            <th>Institute Name</th>
+                            <th>Total Students</th>
+                            {#
+                            <th>Email</th>
+                            <th>Contact</th>
+                            <th>Created</th>
+                            <th>Last Login</th>
+                            <th>Activated</th>
+                            <th>Assessment</th>
+                            <th colspan="3">Action</th>
+                            <th>Block</th>
+                            #}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group_institute in group_institute.institute.all() %}
+
+                        <tr>
+                            <td>{{loop.index}}</td>
+                            <td><a
+                                    href="{{url('institute:institutedashboard',args=[group_institute.slug])}}">{{group_institute.name}}</a>
+                            </td>
+                            <td>{{group_institute.student_management.all().count()}}</td>
+                            {#
+                            <td>{{ts.student.email}}</td>
+                            <td>{% if ts.student.mobile %}{{ts.student.mobile}}{% endif %}</td>
+                            <td>{% if ts.student.created %}{{ts.student.created.strftime("%d/%m/%Y")}}{% endif %}</td>
+                            <td>{% if ts.student.last_login %}{{ts.student.last_login.strftime("%m/%d/%Y, %H:%M")}}{%
+                                endif %}</td>
+                            <td>{% if ts.student.is_active %}Yes{% else %}No{% endif %}</td>
+                            <!-- <td >Yes</td> -->
+                            <td>
+                                {% if central_test_candidate.filter(user=ts.student).last() %}
+                                {% with result=central_test_candidate.filter(user=ts.student).last() %}
+                                <a target="_blank" href="{{result.get_test_report_or_test_link()}}">
+                                    <button>
+                                        {% if result.students_test_is_success() %}
+                                        <!-- <i class="fa-solid fa-file-export" style="color: #ebee2b;"></i> -->
+                                        <p style="color: #2ad214;" title="psychometric result">Yes</p>
+                                        {% else %}
+                                        <!-- <i class="fa-regular fa-share-from-square" style="color: green;"></i> -->
+                                        <p style="color: #e70808;" title="psychometric link">No</p>
+                                        {% endif %}
+                                    </button>
+                                </a>
+                                {% endwith %}
+                                {% else %}
+                                <button>
+                                    <i class="fa-solid fa-spinner fa-spin"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if central_test_candidate.filter(user=ts.student).last() %}
+                                {% with result=central_test_candidate.filter(user=ts.student).last() %}
+                                {% if not result.students_test_is_success() %}
+                                <button data-tab-target="#deletestudent"
+                                    onclick="$('#student_id').val({{ts.student.id}})" title="Delete">
+                                    <i class="fa-solid fa-trash" style="color:red;"></i>
+                                </button>
+                                {% endif %}
+                                {% endwith %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button data-tab-target="#updateonestudent" onclick="student('{{ts.student.id}}')"
+                                    title="Update">
+                                    <i class="fa-solid fa-user-pen" style="color: #2ad214;"></i>
+                                </button>
+                            </td>
+
+                            <td>
+                                <button data-tab-target="#changestupassword"
+                                    onclick="$('#password_id').val({{ts.student.id}})" title="Change Password">
+                                    <i class="fa-solid fa-key" style="color: #1f5120;"></i>
+                                </button>
+                            </td>
+                            <!-- <td>
+                        <a href="{{url('institute:institutestudentblock',args=[ts.student.id])}}">
+                            <i class="fa-sharp fa-solid fa-ban" {% if ts.student.user_status==1 %} style="color: red;" title="Click to unblock" {% else %} style="color: #08e761;" title="Click to block" {% endif %}></i>
+                        </a>
+                    </td> -->
+                            <td>
+                                <button
+                                    onclick="window.location='{{url('institute:institutestudentblock',args=[ts.student.id])}}'"
+                                    title="{% if ts.student.user_status == 1 %}Click to unblock{% else %}Click to block{% endif %}">
+                                    <i class="fa-sharp fa-solid fa-ban"
+                                        style="color: {% if ts.student.user_status == 1 %}red{% else %}#08e761{% endif %};"></i>
+                                    <!-- <i class="fa-sharp fa-solid fa-ban" style="color: {% if ts.student.user_status == 1 %}red{% else %}#08e761{% endif %};" title="{% if ts.student.user_status == 1 %}Click to unblock{% else %}Click to block{% endif %}"></i> -->
+                                </button>
+                            </td>
+                            #}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {#
+            <div class="w-full flex flex-row justify-center items-center gap-[10px] mt-5 ">
+                {% if total_students.has_previous() %}
+                <a href="?page={{total_students.previous_page_number()}}">
+                    <button id="parentfaq"
+                        class="uppercase px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em]">
+                        <i class="fa fa-angle-left"></a></i>
+                </button>
+                </a>
+                {% endif %}
+                <a href="?page={{total_students.number}}">
+                    <button id="parentfaq"
+                        class="uppercase px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em]">
+                        {{total_students.number}}
+                    </button>
+                </a>
+                {% if total_students.has_next() %}
+                <a href="?page={{total_students.next_page_number()}}">
+                    <button id="parentfaq"
+                        class="uppercase px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em]">
+                        <i class="fa fa-angle-right"></i>
+                    </button>
+                </a>
+                {% endif %}
+            </div>
+            <div class="flex justify-end">
+                <a href="{{ request.path }}?{% if request.GET %}{{ request.GET|urlencode }}&{% endif %}download=Yes"
+                    style="color: blue; text-decoration: underline; font-weight: 800;">
+                    Download CSV
+                </a>
+            </div>
+            #}
+
+
+        </div>
+    </div>
+
+</main>
+
+
+
+{% if messages %}
+<div
+    class="w-full top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen flex flex-row justify-center items-center modalPopup modal hidden">
+    <div class="max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center">
+        <div id="otpPopUp"
+            class="bg-[#ffffff] rounded-[10px] relative w-full md:max-w-[395px] lg:w-[395px] pb-[24px] pt-[55px] lg:pt-[69px] modalContent">
+            <button class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] modalCloser"
+                onclick="$('.modalPopup').addClass('hidden')">
+                <i class="fa fa-xmark"></i>
+            </button>
+
+            <p class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold mt-2">
+                Invalid Emails
+            </p>
+            {% for error_email in error_list %}
+            <p class="text-[15px] leading-[32.4px] -tracking-[2%] text-center mt-2">
+                {{error_email}}
+            </p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+{%block additionalfooter%}
+<script>
+    function checkfilesize(input) {
+        const file = input.files[0];
+        if (file) {
+            const fileSizeMB = file.size / (1024 * 1024);
+            const maxSizeMB = 2;
+            if (fileSizeMB > maxSizeMB) {
+                alert('File size exceeds the maximum limit of 2MB. Please choose a smaller file.');
+                input.value = '';
+            }
+        }
+    }
+</script>
+
+<script type="text/javascript">
+    function student(param) {
+        $.ajax({
+            type: "POST",
+            url: "{{url('institute:studentdata')}}",
+            data: { id: param }
+        }).done(function (response) {
+            if (response["success"] === "true") {
+                $('#user_id').val(param);
+                $('#upd_name').val(response['name']);
+                //   $('#upd_email').attr('placeholder',response['email']);
+                $('#upd_email').val(response['email']);
+                $('#upd_mobile').val(response['mobile']);
+                $('#upd_cas').val(response['class_id']);
+                $('#upd_cas').text(response['class']);
+                console.log(response['class_id']);
+                //   Swal.fire ('Added!', 'Added to Bookmark!', 'success');
+            } else {
+                //   Swal.fire ('Removed!', 'Removed from Bookmark!', 'error');
+                console.log("something went wrong");
+            }
+            console.log(response);
+        });
+    }   
+</script>
+
+{% if messages %}
+<script>
+    {% for message in messages %}
+    {% if message.tags != "success" %}
+    {% if error_list %}
+    $(".modalPopup").removeClass('hidden');
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+</script>
+{% endif %}
+
+{%endblock%}

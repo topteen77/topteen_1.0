@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Video Player with Captions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+@import url(https://fonts.googleapis.com/css?family=Roboto:500);
+video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 142.22222vh;
+  height: 80%;
+  max-width: 80%;
+  max-height: 45vw;
+  transform: translate(-50%, -50%); }
+  video::cue {
+color: #fff;
+  font-family: 'Roboto', sans-serif;
+  font-size: 17px;
+  line-height: 23px;
+  background: rgba(0,0,0,.80);
+  text-shadow: none;
+    transition: all 1s ease-out; }
+    video::cue i {
+      font-style: italic; }
+  video::cue(v) {
+    position: top;
+    color: #c00; }
+  video::cue(c) {
+    color: blue;
+    opacity: 0.4;
+    transform: rotate(45deg); }
+  </style>
+</head>
+<body>
+    <video id="myVideo" preload="metadata" controls  controlsList="nodownload">
+      <source src="https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/courseintroduction/courseintroductiontopteen.mp4" type="video/mp4">
+      <source src=".webm" type="video/webm">
+      <track label="English subtitles" kind="subtitles" srclang="en"
+            src="https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/courseintroduction/courseintroductiontopteen.vtt">
+    </video>
+</body>
+</html>

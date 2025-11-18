@@ -1,0 +1,159 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{{ cluster_name }} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Explore careers in {{ cluster_name }}. Discover diverse career paths organized by industry clusters to find the perfect fit for your interests and skills.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Exploration
+        </span>
+        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+          {{ cluster_name }}
+        </h1>
+        <p class="text-gray fs-16">Explore careers organized by industry clusters. Discover diverse career paths to find the perfect fit for your interests and skills.</p>
+      </div>
+
+      <div class="col-lg-4 col-md-12">
+        <div class="right-banner d-md-flex  justify-content-end ">
+          <img class="img-fluid" src="{{ static('images_new/careers/career-track.svg') }}" alt="Career Library Banner" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Hero Section -->
+
+<!-- Career Clusters Section -->
+{% if clusters %}
+<section class="pb-5 bg-light">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h3 class="section-title mb-4">Career Categories</h3>
+      </div>
+    </div>
+    <div class="row">
+      {% for cluster in clusters %}
+      <div class="col-md-4 col-sm-6 mb-4">
+        <a href="{{ url('careers:careerlibrary', args=[cluster.slug, cluster.id]) }}" class="text-decoration-none">
+          <div class="career-category-card">
+            {% if cluster.image and cluster.image.name %}
+            <img src="{{ cluster.image.url }}" alt="{{ cluster.name }}" class="career-category-image">
+            {% else %}
+            <img src="{{ static('images_new/careers/career-icon.png') }}" alt="{{ cluster.name }}" class="career-category-image">
+            {% endif %}
+            <div class="career-category-overlay">
+              <h3 class="career-category-title">{{ cluster.name }}</h3>
+              <p class="career-category-description">{{ cluster.get_careers().count() }} careers available in this category</p>
+              <span class="btn btn-sm btn-light career-category-button">Explore Careers</span>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Career List Section -->
+{% if careers %}
+<section class="pb-10">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="section-title mb-0">Careers in {{ cluster_name }}</h3>
+          <form method="GET" class="d-flex gap-2">
+            <input type="text" name="careersearch" class="form-control" placeholder="Search careers..." value="{{ request.GET.careersearch if request.GET.careersearch else '' }}" style="max-width: 300px;">
+            <button type="submit" class="btn custom-button purple-button">
+              <i class='bx bx-search'></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      {% for career in careers %}
+      <div class="col-md-4 col-sm-6 mb-4">
+        <div class="blog-card">
+          <div class="blog-image">
+            <div class="cat-header">
+              {% if career.career_cluster.exists() %}
+                <a href="{{ url('careers:careerlibrary', args=[career.career_cluster.first().slug, career.career_cluster.first().id]) }}" class="blog-category category-parent">
+                  {{ career.career_cluster.first().name }}
+                </a>
+              {% else %}
+                <span class="blog-category category-parent">Career</span>
+              {% endif %}
+            </div>
+            <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">
+              {% if career.image and career.image.name %}
+                <img src="{{ career.image.url }}" alt="{{ career.name }}">
+              {% else %}
+                <img src="{{ static('images/career-icon.png') }}" alt="{{ career.name }}">
+              {% endif %}
+            </a>
+          </div>
+          <div class="blog-content">
+            <h3 class="blog-title mt-0">
+              <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">{{ career.name }}</a>
+            </h3>
+            {% if career.get_max_salary() %}
+            <div class="salary-range">
+              <i class='bx bx-rupee'></i>
+              <span>{{ career.get_max_salary() }}</span>
+            </div>
+            {% endif %}
+            {% if career.summary %}
+            <p class="blog-excerpt">{{ career.summary|truncate(120) }}</p>
+            {% endif %}
+            <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% else %}
+<!-- No Careers Found -->
+<section class="pb-10">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class="text-center py-16">
+          <svg class="mx-auto h-20 w-20 text-gray-400 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">No careers found</h3>
+          <p class="text-gray-500 mb-8 text-lg">Try adjusting your search criteria or browse other career categories.</p>
+          <a href="{{ url('careers:career') }}" class="btn custom-button purple-button">View All Careers</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+

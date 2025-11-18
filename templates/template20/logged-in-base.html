@@ -1,0 +1,13 @@
+{% extends 'template20/base.html' %}
+
+{% block bodyclass %}{{ block.super }} logged-in{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .logged-in .header {
+    /* Add any logged-in specific header styles if needed */
+  }
+</style>
+{% endblock %}
+

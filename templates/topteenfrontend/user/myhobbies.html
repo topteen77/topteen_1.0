@@ -1,0 +1,155 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+ 
+{% block main %}
+<!-- Delete popUp -->
+<div class="deletePop fixed hidden">
+    <div class="h-full w-full relative">
+        <div class="deleteContent absolute bg-[#ffffff] rounded-xl py-[26px] px-[20px] inline-block mx-auto">
+            <p class="text-[16px] leading-[21px] mediumFont text-[#828282]">Are you sure you want to delete this?</p>
+            <div class="flex mt-[24px] gap-[30px] justify-end">
+                <button class="noDeleteBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                    No
+                </button>
+                <button class="yesDeleteBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                    Yes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Delete PopUp -->
+<main class="lg:pt-[30px] lg:max-w-[1280px] mx-auto bg-[#ffffff] relative h-full pb-[200px] lg:pb-0">
+
+    {% if breadcrumb  %}
+    <!-- BreadCrumb -->
+    <section class="px-[20px] lg:px-[100px] gap-[16px] hidden lg:flex">
+        {% for brd in breadcrumb %}
+        {% if not loop.last and loop.first %}
+        <a href="{{brd.url}}" class="">
+            <img src="{{static("topteenfrontend/assets/images/home.svg")}}" class=" my-auto" alt="">
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if not loop.last and not loop.first  %}
+        <a href="{{brd.url}}" class="my-auto">
+            <p class="text-[12px] my-auto">{{brd.title}}</p>
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if loop.last%}
+        <a href="#" class="my-auto">
+            <p class="text-[12px]">{{brd.title}}</p>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </section>
+    <!-- End of Breadcrumb -->
+    {% endif %}
+    <!-- Hobbies Heading -->
+    <section class="lg:mt-[21px] fixed lg:relative top-[12px] z-30 w-full bg-[#ffffff]">
+        <div class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+            <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">My Hobbies</p>
+            <a href="{{request.META.HTTP_REFERER}}">
+                <button type="button" class="absolute bottom-[18px] left-[24px]">
+                    <i class="fa-solid fa-arrow-left text-[#828282] text-[18px] leading-[50px]"></i>
+                </button>
+            </a>
+
+        </div>
+  
+        <div class="hidden lg:flex px-[20px] lg:px-[100px] ">
+            <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">My Hobbies</p>
+        </div>
+
+    </section>
+    <!-- End of Hobbies Heading -->
+
+    <!-- Hobbies Content -->
+    <section class="pt-[110px] lg:pt-[50px] lg:max-w-[1280px] lg:mx-auto px-[20px] lg:pl-[100px] lg:pr-[95px] flex flex-wrap justify-center sm:justify-start gap-x-[30px] gap-y-[15px]">
+        {% if request.user.user_profile %}
+        {% for h in request.user.user_profile.hobbies.all() %}
+        <div class="flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[22px] lg:pr-[12px] shortlistedCareer">
+            <img src="{{h.image.url}}" class="w-[36px] h-[36px] object-cover my-auto" alt="">
+            <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">{{h.name}}</p>
+            <button type="button" class="my-auto deletehobbie" data-id='{{h.id}}'>
+                <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+            </button>
+        </div>
+        {% endfor %}
+        {% if request.user.user_profile.hobbies.all().count() == 0 %}
+        <h1 class="boldFont">No Hobbies Selected</h1>
+        {% endif %}
+        {% endif %}
+    </section>
+    <!-- End of Hobbies Content -->
+</main>
+{% endblock %}
+{% block additionalfooter %} 
+<script type="text/javascript">
+    const deletePopUp = document.querySelector(".deletePop");
+    const shortListedCareer = document.querySelectorAll(".shortlistedCareer");
+    const nonDelete = document.querySelector(".noDeleteBtn");
+    const yessDelete = document.querySelector(".yesDeleteBtn")
+
+
+
+    shortListedCareer.forEach(elem => {
+        const deleteBtn = elem.querySelector(".deletehobbie");
+        deleteBtn.addEventListener("click", function(){
+            console.log(this.dataset.id)
+            const careerId = this.dataset.id;
+            deletePopUp.classList.remove("hidden");
+            deleteFunction(careerId);
+            console.log(elem)
+        })
+    })
+
+
+
+    function deleteFunction(name){
+        nonDelete.addEventListener("click", function(){
+            deletePopUp.classList.add("hidden")
+        })
+        yessDelete.addEventListener("click", function(){
+            deletehobbies(name);
+        })
+    }
+</script>
+<script type="text/javascript">
+    function deletehobbies(id){
+        var form = document.createElement("form");
+        form.setAttribute("method","POST");
+        var hiddenField = document.createElement("input");
+        hiddenField.setAttribute("type", "hidden");
+        hiddenField.setAttribute("name", 'csrfmiddlewaretoken');
+        hiddenField.setAttribute("value", '{{ csrf_token }}');
+        form.appendChild(hiddenField);
+        var hiddenField = document.createElement("input");
+        hiddenField.setAttribute("type", "text");
+        hiddenField.setAttribute("name","hobbie_id");
+        hiddenField.setAttribute("value",id);
+
+        form.appendChild(hiddenField);
+        var formData = new FormData(form);
+        $.ajax({
+            url: "{{url('deletehobbie')}}",
+            type: 'POST',
+            data: formData,
+            success: function (data) {
+                window.location.reload()
+            },
+            error: function(data){
+                try{
+                   fireAlert(data.responseJSON.message,"error");
+                }
+                catch(e){
+                    fireAlert("Internal Server Error","error");
+                }
+              },
+            cache: false,
+            contentType: false,
+            processData: false
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,101 @@
+<!-- Footer Section -->
+<footer class="footer-area">
+  <div class="footer-cta border-bottom-t pb-md-8 pb-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-9 mx-auto mt-md-6 text-center">
+          <h2 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 text-center fs-sm-28">
+            Your Future Starts Here – Take the
+            <span class="text-purple">First Step Today!</span>
+          </h2>
+          <p class="text-gray text-center py-3 fw-400 fs-19">
+            Discover endless opportunities, set your goals, and achieve success with confidence. Let's build your perfect career together!
+          </p>
+          <a href="{{ url('users:loginsingup') }}" class="btn custom-button purple-button d-flex align-items-center mx-auto">
+            Get Started
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-main border-bottom-t pt-md-8 pb-md-4 pt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 col-md-3 col-sm-12">
+          <div class="footer-logo">
+            <img class="img-fluid mb-4" src="{{ static('images_new/logos/footer-logo.svg') }}" alt="Footer Logo" />
+            <h5 class="text-gray fs-20 fw-600">
+              Empowering Every Student for <span class="text-purple">Career Success!</span>
+            </h5>
+          </div>
+          <div class="social-icon mt-md-7">
+            <ul>
+              <li>
+                <a class="facebook-icon me-md-2" href="https://www.facebook.com/topteen.in" target="_blank"></a>
+              </li>
+              <li>
+                <a class="twitter-icon me-md-2" href="https://www.instagram.com/topteen.careers/" target="_blank"></a>
+              </li>
+              <li>
+                <a class="insta-icon me-md-2" href="https://www.instagram.com/topteen.careers/" target="_blank"></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-2 col-sm-12 offset-md-1 mt-md-0 mt-5">
+          <ul class="list-group tp-footer-text">
+            <li class="ft-title">About Topteen</li>
+            <li><a href="{{ url('core:aboutus') }}">About Us</a></li>
+            <li><a href="{{ url('core:contactus') }}">Contact Us</a></li>
+            <li><a href="{{ url('core:privacypolicy') }}">Privacy Policy</a></li>
+            <li><a href="{{ url('core:terms&condition') }}">Terms and Conditions</a></li>
+            <li><a href="#">Sitemap</a></li>
+            <li><a href="{{ url('blog:blogs') }}">Blogs</a></li>
+            <li><a href="{{ url('core:allfaq') }}">FAQs</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-6 col-md-3 col-sm-12 ps-md-8 mt-md-0 mt-5">
+          <ul class="list-group tp-footer-text">
+            <li class="ft-title">Resources</li>
+            <li><a href="{{ url('psychometrictests:psychometrictest') }}">Career Assessment Test</a></li>
+            <li><a href="{{ url('careers:careervideos') }}">Videos</a></li>
+            <li><a href="{{ url('careers:career') }}">Careers</a></li>
+            <li><a href="{{ url('colleges:college') }}">Study Destinations</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-12 col-md-3 col-sm-12 mt-md-0 mt-5">
+          <ul class="list-group tp-footer-text">
+            <li class="ft-title">Trending Career Paths</li>
+            <li><a href="{{ url('careers:career') }}?category=Engineering">Engineering & Technology</a></li>
+            <li><a href="{{ url('careers:career') }}?category=Medicine">Medicine & Health Sciences</a></li>
+            <li><a href="{{ url('careers:career') }}?category=Management">Management & Business Studies</a></li>
+            <li><a href="{{ url('careers:career') }}?category=Law">Law & Public Safety</a></li>
+            <li><a href="{{ url('careers:career') }}?category=Data Science">Data Science and Artificial Intelligence</a></li>
+            <li><a href="{{ url('careers:career') }}?category=Design">Design & Creative Arts</a></li>
+            <li><a href="{{ url('careers:career') }}?category=IT">Computer Applications & IT</a></li>
+            <li><a href="{{ url('careers:career') }}?category=Arts">Arts and Humanities</a></li>
+            <li><a href="{{ url('careers:career') }}?category=Finance">Finance & Accounting</a></li>
+            <li><a href="{{ url('careers:career') }}?category=Hospitality">Hospitality and Tourism</a></li>
+            <li><a href="{{ url('careers:career') }}?category=Journalism">Journalism and Mass Communication</a></li>
+            <li><a href="{{ url('careers:career') }}?category=Architecture">Architecture</a></li>
+            <li><a href="{{ url('careers:career') }}?category=Education">Education and Teaching</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="copyright">
+    <div class="container">
+      <div class="row">
+        <p class="text-center text-gray fs-14 mb-0">© {{ now.year }} TopTeen. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+<!-- Footer Section -->
+

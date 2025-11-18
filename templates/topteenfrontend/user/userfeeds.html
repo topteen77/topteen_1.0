@@ -1,0 +1,1458 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+
+{% block main %}
+
+<!-- stories -->
+<div class="fixed w-full h-full storyPop ">
+
+  <div class="relative w-full storyPopContent h-full bg-[#333333] my-auto">
+
+    <!-- Maths -->
+    {% if story_subject and is_story %}
+    {% for sbj in story_subject %}
+    {% if sbj.is_story %}
+    <!-- Content -->
+    <div class="storyContent {{sbj.slug}} absolute w-full z-80 top-0">
+      <div class="relative ">
+
+        <div class="flex justify-between items-center px-[25px] pt-[30px] relative">
+          <div class="flex items-center gap-[11px]">
+            <div class="w-[30px] h-[31px] rounded-full bg-[#ffffff] flex justify-center items-center shrink-0">
+              <img src="{{static("topteenfrontend/assets/images/unsplash11.svg")}}"
+                class="w-[27px] h-[10px] object-cover" alt="">
+            </div>
+
+            <a class="flex gap-[8px]">
+              <p class="text-[14px] leading-[18.9px] nunitoBold text-[#ffffff]">{{sbj.name}}</p>
+            </a>
+          </div>
+
+          <button class="storyCloseBtn">
+            <i class="fa-solid fa-xmark text-white my-auto"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+    <!-- End of Content -->
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+    <!-- Slide Images Slick -->
+    <div id="" class="relative z-10 h-full w-full storySlides lg:mx-auto">
+
+    </div>
+    <!-- End of Slide Images Slick -->
+
+    <!-- Slide Image Before Slick -->
+    <div class="hidden slideImgParent">
+      {% if story_subject and is_story %}
+      {% for sbj in story_subject %}
+      {% if sbj.is_story %}
+      {% for sry in sbj.get_story()%}
+      <!-- slide -->
+      <div class="storyContent {{sbj.slug}} w-full h-full indSlide">
+        <img src="{{sry.file.url}}" class="h-full w-full object-cover"
+          alt="">
+      </div>
+      <!-- End of Slide -->
+      {% endfor %}
+      {% endif %}
+      {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Read More Mobile -->
+    <div class="storyContent maths w-full flex justify-between lg:justify-end readMoreMobile my-auto pt-[15px] lg:pt-0   bottom-0 relative z-20">
+
+      <a class="flex flex-col gap-[7px] lg:hidden">
+        <i class="fa-solid fa-chevron-up text-[#ffffff] text-center"></i>
+        <p class="text-[14px] leading-[18.9px] text-[#ffffff] semibold ">See More</p>
+      </a>
+
+      <button class="flex flex-col gap-[7px] items-center ">
+        <i class="fa-solid fa-ellipsis text-white text-center"></i>
+        <p class="text-[14px] leading-[18.9px] text-[#ffffff] semibold">Options</p>
+      </button>
+
+    </div>
+    <!-- End of Read More Mobile -->
+
+
+    <!-- End of Maths -->
+
+    <!-- Read More Mobile -->
+    <div class="storyContent astronomy w-full flex justify-between lg:justify-end readMoreMobile my-auto pt-[15px] lg:pt-0   bottom-0 relative z-20">
+
+      <a class="flex flex-col gap-[7px] lg:hidden">
+        <i class="fa-solid fa-chevron-up text-[#ffffff] text-center"></i>
+        <p class="text-[14px] leading-[18.9px] text-[#ffffff] semibold ">See More</p>
+      </a>
+
+      <button class="flex flex-col gap-[7px] items-center ">
+        <i class="fa-solid fa-ellipsis text-white text-center"></i>
+        <p class="text-[14px] leading-[18.9px] text-[#ffffff] semibold">Options</p>
+      </button>
+
+    </div>
+    <!-- End of Read More Mobile -->
+
+    <!-- Slick Buttons -->
+
+    <button id="" class="storyPrevBtn z-50">
+      <i class="fa-solid fa-angle-left"></i>
+    </button>
+    <button class="storyNextBtn z-50">
+      <i class="fa-solid fa-angle-right  "></i>
+    </button>
+
+    <!--End of Slick Buttons -->
+
+  </div>
+
+</div>
+<!-- End of stories -->
+
+<!-- Add Folder PopUp -->
+<div class="addFolderPop fixed hidden">
+  <div class="h-full w-full relative">
+
+    <div class="addFolderContent w-full max-w-[440px]  absolute bg-[#ffffff] rounded-xl inline-block mx-auto">
+      <div class="relative h-full w-full inline-block pb-[22px]">
+
+          <button class="addFolderCloseBtn absolute right-[15px] top-[10px]">
+              <i class="fa fa-xmark boldFont text-[16px] text-[#4f4f4f]"></i>
+          </button>
+
+          <div class="lg:pb-[25px] lg:border-b-[2px] lg:border-b-[#efefee] py-[26px] px-[20px]">
+              <div class="lg:flex lg:justify-center lg:gap-[10px]">
+                  <p class="text-[24px] leading-[32.4px] semibold text-[#333333] my-auto">Add a new folder</p>
+              </div>
+          </div>
+
+
+          <form class="pt-[22px] px-[23px] lg:px-[48px] flex flex-col gap-[10px] items-center " id="folderform">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" required>
+            <!-- Error text -->
+            <p class="errorText text-left errortag" id="folderformerrortag"></p>
+            <input type="text" name="foldername" class="w-full h-full rounded-[10px] border-[1.5px] border-[#3f37c9] " placeholder="Enter the folder name">
+
+              <button type="button" id="folderformsubmit" class="folderSaveBtn w-full max-w-[347px] h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+                  <div class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+                      <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">Save</p>
+                  </div>
+              </button>
+          </form>
+      </div>
+      
+
+  </div>
+  </div>
+
+</div>
+<!-- End of Add Folder PopUp -->
+
+
+<!-- Desktop Main -->
+<main class="lg:flex lg:pt-[40px] px-[16px] lg:px-0 pt-[33px] lg:gap-[32px] lg:max-w-[1082px] mx-auto min-h-[100vh]">
+
+  <!-- Left Div -->
+  <div class="hidden lg:inline-block  min-w-[246px] text-center">
+
+    <!-- Profile -->
+    <div class=" mx-auto text-center px-[21px] py-[18px] border-[1px] boorder-[#dedede] rounded-t-[10px]">
+      <img src="{{request.user.image.url}}" class="w-[79px] h-[79px] mx-auto object-cover rounded-full" alt="">
+      <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
+      <p class="text-[12px] leading-[16.2px] -tracking-[1.5%] mt-[5px] text-[#494949] opacity-[0.8]">{% if
+        request.user.user_profile %} {% if request.user.student_management.last().class_and_section %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{%
+        else %} - • - {% endif %}
+      </p>
+
+      <!-- <div class="h-[43px] w-[89px] rounded-[120px] bg-[#40b2d6] mx-auto">
+        <div class=" flex h-[40px] w-[89px] mt-[10px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px] mx-auto">
+          <img src="{{static("topteenfrontend/assets/images/xp.svg")}}" class="w-[20px] h-[20px]" alt="">
+          <p class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]">1280 XP</p>
+        </div>
+      </div> -->
+
+    </div>
+    <!-- End of Profile -->
+
+    <!-- checkList -->
+    <div class="px-[21px] py-[16px] border-[1px] boorder-[#dedede]">
+      <div class="flex">
+        <i class="fa-solid fa-list-check text-[12px] my-auto"></i>
+        <p class="text-[12px] leading-[16px] semibold ml-[9.45px]">My Checklist</p>
+      </div>
+
+      <div class="flex flex-col mt-[16px]">
+
+        <div class="flex justify-between">
+          <div class="flex">
+            <input type="radio" class="w-[19px] h-[19px] mt-[1px]">
+            <p class="text-[10px] leading-[14px] text-[#494949] opacity-[0.8] mt-[4px] ml-[9px]">Complete profile</p>
+          </div>
+          <div class="flex bg-[#f8f8f8] rounded-[100px] py-[5px] pl-[7px] gap-[4px] w-[50px]">
+            <img src="{{static("topteenfrontend/assets/images/star.svg")}}" class="w-[9px] h-[9px] mt-[1px]" alt="">
+            <p class="text-[10px] leading-[14px] text-[#828282] font-semibold">200</p>
+          </div>
+        </div>
+
+        <div class="flex justify-between">
+          <div class="flex">
+            <input type="radio" class="w-[19px] h-[19px] mt-[1px]">
+            <p class="text-[10px] leading-[14px] text-[#494949] opacity-[0.8] mt-[4px] ml-[9px]">Take psychometric
+              test</p>
+          </div>
+          <div class="flex bg-[#f8f8f8] rounded-[100px] py-[5px] pl-[7px] gap-[4px] w-[50px]">
+            <img src="{{static("topteenfrontend/assets/images/star.svg")}}" class="w-[9px] h-[9px] mt-[1px]" alt="">
+            <p class="text-[10px] leading-[14px] text-[#828282] font-semibold">300</p>
+          </div>
+        </div>
+
+      </div>
+
+
+    </div>
+    <!-- End of CheckList -->
+
+    <!-- Scrapbook -->
+    <div class="inline-block px-[22px] py-[16px] border-[1px] boorder-[#dedede] rounded-b-[10px]">
+      <div class="flex">
+        <img src="{{static("topteenfrontend/assets/images/scrapBook.svg")}}" class="w-[11.2px] h-[14.9px]" alt="">
+        <p class="text-[12px] leading-[16.2px] ml-[12px] font-semibold text-[#333333]">My Scrapbook</p>
+      </div>
+      <div class="flex flex-wrap mt-[14px] gap-[6px]" id="addfolder">
+          {% include 'topteenfrontend/includes/foldername.html'  %}      
+      </div>
+      <div class="flex flex-wrap mt-[14px] gap-[6px] ">   
+        <button 
+        class="addFolderPopBtn bg-[#ffffff] bg-opacity-[0.09] rounded-[100px] py-[5px] px-[8px] inline-block -tracking-[0.015em] border-[#4f4f4f] border-dashed border-[1px] mt-[3.5px]">
+        <p class="text-[10px] leading-[14px] text-[#4f4f4f]">+ Add Folder</p>
+      </button>   
+      
+      <button type="button" onclick="window.location='{{url('users:userfolders')}}'"
+      class="viewAllFolders bg-[#ffffff] bg-opacity-[0.09] rounded-[100px] py-[5px] px-[8px] inline-block -tracking-[0.015em] border-[#4f4f4f] border-dashed border-[1px] mt-[3.5px]">
+      <p class="text-[10px] leading-[14px] text-[#4f4f4f]">View All</p>
+      </button>   
+    </div>
+    </div>
+    <!-- End of Scrapbook -->
+
+
+  </div>
+  <!-- End of Left Div -->
+
+  <!-- Right Div -->
+  <div>
+    {% if story_subject and is_story %}
+    <!-- Story -->
+    <div class="">
+      <p class="text-[15px] leading-[20.25px] semibold text-[#333333] lg:hidden">Career Highlights</p>
+      <p class="hidden lg:block text-[24px] leading-[32.4px] semibold text-[#333333] tracking-[0.01em]">Story Updates
+      </p>
+      <div class=" storySec overflow-x-scroll no-scrollbar">
+        {% for sbj in story_subject %}
+        {% if sbj.is_story %}
+        <button class="inline-block storyTrigger" onclick="storyFunc(event, '{{sbj.slug}}')">
+          <div  class=" lg:min-w-[155px] lg:h-[127px] rounded-[8px] relative">
+            <img src="{{sbj.get_first_story.file.url}}"
+              class="hidden lg:block absolute z-0 w-[155px] h-[127px] rounded-[8px] object-cover brightness-75" alt="">
+            <div class="storyBlockChild">
+              <div class="storyBlockCircle">
+                <img src="{{sbj.image.url}}" class="storyBlockCircleImg" alt="">
+              </div>
+              <p
+                class="text-[12px] leading-[16.2px] font-semibold  lg:text-[#ffffff] lg:my-auto mt-[9px] text-center lg:text-left ">
+                {{sbj.name}}</p>
+            </div>
+          </div>
+        </button>
+        {% endif %}
+        {% endfor %}  
+      </div>
+    </div>
+    <!-- End of Story -->
+    {% endif %}
+
+    <!-- Career Choices -->
+    <div>
+      <div class="flex justify-between items-center mt-[30px]">
+        <p class="lg:hidden text-[15px] leading-[20.25px] semibold text-[#333333]">Career Picks</p>
+        <p
+          class="hidden lg:block text-[16px] leading-[21.6px] lg:text-[24px] lg:leading-[32.4px] semibold text-[#333333]">
+          Top Career Choices</p>
+        <p class="text-[12px] leading-[16px] text-[#3f37c9] semibold my-auto"><a href="{{url("careers:career")}}">View
+            All</a></p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="lg:max-w-[804px] flex gap-[12px] pt-[16px] overflow-x-scroll no-scrollbar">
+        {% for tag in tags %}
+        <button onclick="openCareer(event, '{{tag.slug}}')"
+          class="{% if loop.first %} activeTab {% endif %} careerTab px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[3px] bg-[#F8F8F8] items-center group border-[2px] border-transparent shrink-0 tab ">
+          <div class="h-[24px] w-[24px]">
+            <img src="{{tag.icon.url}}" class="h-full w-full" />
+          </div>
+          <p class="text-[#4F4F4F] text-xs semibold">{{tag.name}}</p>
+        </button>
+        {% endfor %}
+      </div>
+      <!-- End of Tabs -->
+
+      <!--  -->
+
+      <!--  -->
+
+      <!-- Career List -->
+      <div class="relative">
+        {% for tag in tags %}
+        <div id="{{tag.slug}}" class="{% if not loop.first %}hidden {% endif %} careerContent scrollableDiv relative">
+          <div class="lg:flex gap-[12px] absolute top-0 right-0 hidden">
+            <button class="leftScrolling">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button class="rightScrolling">
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+          <div
+            class="scroll-smooth scrollingTarget lg:max-w-[804px] flex gap-[12px] lg:gap-[30px] pt-[40px] overflow-x-scroll no-scrollbar">
+            {% for career in tag.career_set.all()[:8] %}
+            <div class="flex flex-col">
+              <div class="w-[157px] h-[192px] lg:w-[248px] lg:h-[214px] rounded-[10px] relative">
+                <a href="{{career.url()}}">
+                  <img src="{% if career.image and career.image.name %}{{career.image.url}}{% else %}{{static('images/career-icon.png')}}{% endif %}"
+                    class="absolute z-0 w-[157px] h-[192px] lg:w-[248px] lg:h-[214px] rounded-[10px] object-cover" alt="">
+                  <div
+                    class="absolute z-10 top-[6px] right-[4px] lg:top-[10px] lg:right-[10px] w-[27px] h-[27px] bg-[#ffffff] rounded-full">
+                    <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.5px]"></i>
+                  </div>
+                </a>
+              </div>
+              <p
+                class="text-[15px] leading-[20.25px] lg:text-[14px] lg:leading-[19px] semibold text-[#333333] mt-[10px] lg:mt-[18px]">
+                <a href="{{career.url()}}">{{career}}</a>
+              </p>
+              <p class="flex mt-[4px]">
+                <span class="text-[13px] leading-[18px] text-[#828282]">{{career.get_max_salary()}}</span>
+                <img src="{{static("topteenfrontend/assets/images/star.svg")}}" class="w-[14px] h-[14px] ml-[8px]" alt="">
+                <span class="text-[13px] leading-[18px] text-[#828282] ml-[4px]">4.4</span>
+              </p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <!-- End of Career List -->
+    </div>
+    <!-- End of Career Choices -->
+
+    <!-- Blue Banner -->
+    <div
+      class="w-full lg:max-w-[804px] overflow-hidden flex flex-row justify-between lg:gap-[50px] lg:pl-[50px] lg:mx-auto blue-banner py-[16px] lg:pb-0 lg:pt-[24px] rounded-[10px] mt-[35px] lg:mt-[64px] mb-[35px] lg:mb-[76px]">
+      <div class="h-full w-[384px] self-end lg:block hidden -mb-[14px] ">
+        <img src="{{static("topteenfrontend/assets/images/blue_banner_image.png")}}"
+          class="h-full w-full object-cover" />
+      </div>
+      <div class="w-[82px] h-[112px]  lg:hidden block self-center">
+        <img src="{{static("topteenfrontend/assets/images/cardboard.png")}}" class="h-full w-full object-cover" />
+      </div>
+      <div class="lg:w-[432px] w-[250px] mx-auto">
+        <h3
+          class="hidden lg:block max-w-[340px] text-[24px] leading-[32.4px] tracking-[3.5%] mediumFont mb-[23px] text-white">
+          Confused about which career track suits you best?
+        </h3>
+        <h3
+          class="lg:hidden w-[250px] text-[22px] leading-[30px] tracking-[3.5%] font-bold mb-[10px]  text-white">
+          Confused about which career suits you best?
+        </h3>
+        <p class="lg:hidden  text-[13px] leading-[19px] mb-[16px] lg:mb-[34px] text-white">
+          Take a quick psychometric quiz and understand your inclinations better.
+        </p>
+        <button onclick="window.location.href='{{url('psychometrictests:psychometrictest')}}'"
+          class="px-[35px] py-[13px] text-[10px] lg:text-[16px] rounded-[10px] bg-white border-b-[6px] border-[#EAEAEA] text-[#4F4F4F] boldFont ">
+          TAKE PSYCHOMETRIC TEST
+        </button>
+      </div>
+    </div>
+    <!-- End of Blue Banner -->
+
+    <!-- Trending Videos -->
+    <div class="mb-[35px] lg:mb-[60px]">
+
+      <div class="flex justify-between items-center mt-[30px] mb-[16px] lg:mb-[22px]">
+        <p class="lg:hidden text-[15px] leading-[20.25px] semibold text-[#333333]">Trending Videos</p>
+        <p
+          class="hidden lg:block text-[16px] leading-[21.6px] lg:text-[24px] lg:leading-[32.4px] semibold text-[#333333]">
+          Trending Videos</p>
+        <p class="text-[12px] leading-[16px] text-[#3f37c9] semibold my-auto"><a
+            href="{{url('careers:careervideos')}}">View All</a></p>
+      </div>
+
+      <div class="scrollableDiv relative">
+        <div class="lg:flex gap-[12px] absolute lg:-top-[12px] right-0 hidden">
+          <button class="leftScrolling">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <button class="rightScrolling">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="lg:max-w-[804px] scrollingTarget lg:pt-[40px] flex gap-[15px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+          {% for video in videos[:4] %}
+          <div class="">
+            <div class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] no-scrollbar  rounded-[10px] relative">
+              {% if video.upload_video %}
+              <video controls muted>
+                <source src="{{video.get_video_or_url()}}" autoplay="false"
+                  class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] overflow-hidden no-scrollbar rounded-[10px] object-cover"
+                  type="video/mp4">
+              </video>
+              {% else %}
+              {#
+              <iframe src="{{video.get_video_or_url()}}" title="YouTube video player" frameborder="0"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+                class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover" muted></iframe>
+                #}
+                <div class="absolute inset-0 flex justify-center items-center" {% if video.video_image %}style="background-image: url('{{video.video_image.url}}'); background-repeat: no-repeat; background-size: cover;"{% endif %}>
+                  <button id="openPopupBtn" onclick="openPopup('{{video.get_video_or_url()}}')" class="w-[68px]">
+                    <!-- <i class="fa-brands fa-youtube z-10 evPlayBtn2"></i>
+                    -->
+                    <img src="{{static('topteenfrontend/assets/images/youtube.svg')}}" alt="">
+                  </button>
+              </div>
+              <div id="videoPopup" class="popup hidden">
+                <span class="close absolute right-2 text-gray-700 text-3xl cursor-pointer text-sm top-[-54px] left-[600px] text-white " onclick="closePopup()" id="closePopupBtn">&times;</span>
+                <iframe id="popupVideo" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" width="560" height="315" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div id="videoPopupOverlay" class="popup-overlay hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 49; display: none;"></div>
+              {% endif %}
+              
+              <div
+                id="video_{{video.id}}"
+                class="absolute z-10 top-[6px] right-[4px] lg:top-[10px] lg:right-[10px] w-[27px] h-[27px] bg-[#ffffff] rounded-full"
+                onclick="shortlist('{{video.id}}')"
+                {% if video.shortlist.filter(id=request.user.id).exists() %}
+                style="background-color: blue;"
+                {% endif %}
+                >
+                <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.5px]"></i>
+              </div>
+
+              <div class="lg:hidden -bottom-[12px] px-[9px] py-[6px] rounded-[100px] absolute z-10 bg-[#ef5da8]">
+                <p class="text-[10px] leading-[13.5px] text-[#ffffff] text-center semibold">Studying Abroad</p>
+              </div>
+
+            </div>
+
+            <div class="hidden lg:inline-block mt-[18px] px-[9px] py-[6px] rounded-[100px] bg-[#ef5da8]"
+              style="background-color: #{{ video.category.first().color}};">
+              <span class="text-[10px]  text-[#ffffff] semibold flex justify-center items-center">{{
+                video.category.first().name}}</span>
+            </div>
+
+            <a href="{{url('careers:videodetail',args=[video.slug])}}">
+              <p
+                class="max-w-[326px] lg:max-w-[248px] text-[15px] leading-[20.25px] lg:text-[16px] lg:leading-[19.1px] semibold text-[#333333] mt-[14px]">
+                {{video.name}}</p>
+            </a>
+            <p class="mt-[4px] text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#828282]">
+              {{video.description|truncate(40)|safe}}
+            </p>
+
+          </div>
+          {% endfor %}
+        </div>
+
+    </div>
+    </div>
+    <!-- End of Trending Videos -->
+
+    <!-- Career Tracks -->
+    <section class="mb-[35px] lg:mb-[60px]">
+      <div class="flex justify-between items-center mb-[16px]">
+        <span
+          class="text-[15px] leading-[20px] lg:text-[24px] lg:leading-[32.4px]  semibold tracking-[0.035em] text-[#0F0F0F]">
+          Explore Career Tracks
+        </span>
+        <p onclick="window.location='{{url("careers:defaultcareerlibrary")}}'"
+          class="lg:hidden text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#541BCF] semibold">
+          View More
+        </p>
+        <a href="{{url("careers:defaultcareerlibrary")}}">
+          <p
+            class="hidden lg:block text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#541BCF] semibold">
+            View All
+          </p>
+        </a>
+      </div>
+
+      <div class="scrollableDiv relative">
+
+        <div class="lg:flex gap-[12px] absolute lg:top-0 right-0 hidden">
+          <button class="leftScrolling">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <button class="rightScrolling">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div
+          class="lg:max-w-[804px] scrollingTarget lg:pt-[40px] inline-block overflow-y-hidden flex justify-start gap-[12px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+          {% for clstr in clusters %}
+          <a href="{{url('careers:careerlibrary',args=[clstr.slug,clstr.id])}}"
+            class="w-[144px] h-[182px] lg:w-[248px] lg:h-[236px] bg-[#333333] rounded-[10px] ">
+
+            <div
+              class="w-[144px] h-[182px] lg:w-[248px] lg:h-[232px] flex flex-col  items-center  lg:pt-[24px] pt-[9px] bg-[#333333] rounded-[10px] shrink-0">
+              <div class="h-[48px] w-[63px] lg:w-[72px] lg:h-[72px] mx-auto">
+                <img class="h-[48px] w-[63px] lg:w-[72px] lg:h-[72px] object-cover object-top"
+                  src="{% if clstr.image %}{{clstr.image.url}} {% else %}{{static("topteenfrontend/assets/images/engineering.png")}}{% endif %}" />
+              </div>
+              
+              <div class=" flex flex-col px-[8px] pt-6">
+                <h6
+                  class="h-[48px] text-[13px] leading-[18px] lg:text-[18px] lg:leading-[24.3px] tracking-[0.035em] semibold text-white text-center">
+                  {{clstr}}
+                </h6>
+                <div class="flex justify-center">
+                  <div
+                    class="text-center px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px] inline-block mx-auto  text-white semibold">
+                    {{clstr.get_careers().count()}} Careers
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- <div class="h-[48px] w-[63px] lg:w-[72px] lg:h-[72px] mx-auto">
+                <img class="h-[48px] w-[63px] lg:w-[72px] lg:h-[72px] object-cover object-top"
+                  src="{% if clstr.image %}{{clstr.image.url}} {% else %}{{static("topteenfrontend/assets/images/engineering.png")}}{% endif %}" />
+              </div> -->
+            </div>
+
+          </a>
+          {% endfor %}
+        </div>
+    </div>
+    </section>
+    <!-- End of Career Tracks -->
+
+      <!-- EXPLORE COLLEGES -->
+      <section
+        class="lg:mb-[76px] mb-[35px] relative tabContainer mx-[17px] lg:mx-auto lg:max-w-[1176px] overflow-hidden"
+      >
+        <div
+          class="flex flex-row justify-between items-center mb-[16px] lg:mb-6 mx-auto lg:max-w-[1065px]"
+        >
+          <span
+            class="text-[15px] leading-[20px] lg:text-[28px] lg:leading-[37.8px] semibold text-[#0F0F0F] lg:text-[#333333]"
+          >
+            College Recommendations
+          </span>
+          <a href="{{url('colleges:college')}}">
+            <div
+              class="text-[13px] leading-[18px] text-[#541BCF] semibold lg:hidden"
+            >
+              View More
+            </div>
+          </a>
+        </div>
+        <!-- COUNTRY TABS -->
+        <div
+          class="flex flex-row justify-between items-center gap-2.5 mb-6 lg:mx-auto max-w-[1065px]"
+        >
+          <div
+            class="flex flex-row flex-wrap lg:gap-[18px] gap-3 lg:w-full collegeTabList tabList overflow-x-scroll no-scrollbar"
+            data-tabs-toggle="#collegesPanel"
+          >
+          {%for country in countries%}
+            <button
+              class="border-2 border-[#E0E0E0] text-[#4F4F4F] flex flex-row justify-center gap-2.5 py-2.5 px-4 semibold text-xs items-center tracking-[0.01em] rounded-[100px] hover:border-2 hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-5 hover:text-[#3F37C9] collegeTab {# tab #}"
+              role="tab"
+              {#
+              data-tabs-target="#{{country.short_name}}"
+              #}
+              {% if country.short_name == 'IND' %}
+              onclick="window.open('https://kaunsacollege.com/search-university', '_blank')"
+              {% elif country.short_name == 'CA' %}
+              onclick="window.open('https://www.canamgroup.com/study-in-canada', '_blank')"
+              {% elif country.short_name == 'USA' %}
+              onclick="window.open('https://www.canamgroup.com/study-in-usa', '_blank')"
+              {% elif country.short_name == 'UK' %}
+              onclick="window.open('https://www.canamgroup.com/study-in-uk', '_blank')"
+              {% elif country.short_name == 'NZ' %}
+              onclick="window.open('https://www.canamgroup.com/study-in-newzealand', '_blank')"
+              {% elif country.short_name == 'AU' %}
+              onclick="window.open('https://www.canamgroup.com/study-in-australia', '_blank')"
+              {% endif %}
+            >
+            {% if country.flag %}
+              <span class="inline-block h-[40px] w-[70px] overflow-hidden rounded-lg">
+                <img
+                  src="{{country.flag.url}}"
+                  alt="india-flag"
+                  class="h-full w-full object-cover"
+                />
+              </span>
+              {%endif%}
+              <p class="text-[#4F4F4F] text-lg semibold group-hover:text-[#3F37C9]">{{country.short_name}}</p>
+            </button>
+          {%endfor%}  
+        
+          </div>
+          <!-- <a href="{{url('colleges:college')}}">
+            <button
+              class="rounded-[50%] border px-2.5 h-75 text-[#333333] border-[#E0E0E0] lg:block hidden"
+            >
+              <i class="fa fa-angle-right"></i>
+            </button>
+          </a> -->
+        </div>
+
+        <!-- CAROUSEL FOR DESKTOP -->
+
+        <!-- NAVIGATION ARROWS -->
+        {#
+        <ul class="hidden lg:block navArrows">
+          <li
+            class="absolute nextCollege rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] right-[0px] flex flex-row justify-center items-center z-1 nextArrow"
+          >
+            <i class="fa fa-angle-right"></i>
+          </li>
+          <li
+            class="absolute prevCollege rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] left-[0px] flex justify-center items-center z-1 prevArrow"
+          >
+            <i class="fa fa-angle-left"></i>
+          </li>
+        </ul>
+
+        <!-- CAROUSEL SECTION -->
+        <div class="lg:max-w-[804px] carouselContainer tabPanelsList" id="collegesPanel">
+          <!-- TAB CONTENT -->
+          {%for country in countries%}
+          <div
+            class="lg:mx-[38.5px] mx-[-6px] collegesCarousel carousel hidden collegeTabPanel customCarousel tabPanel"
+            id="{{country.short_name}}"
+          >
+          {%for college in country.college_set.all()[:8]%}
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                {%if college.logo%}
+                <div
+                  class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="{{college.logo.url}}"
+                    alt="{{college.name}}"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+                {%endif%}
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  <a href="{{url('colleges:collegedetail',args=[college.slug])}}">{{college.name}}</a>
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>{% if college.country %}{{college.country}}{% endif %}{% if college.state and college.country %},{% endif %} {% if college.state %}{{college.state}}{% endif %}</span>&nbsp;
+                  <img
+                    src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]" id="college_{{college.id}}"
+                  onclick="collegeshortlist('{{college.id}}')"
+                  {% if college.shortlist.filter(id=request.user.id).exists() %}
+                  style="background-color: blue;"
+                  {% endif %}
+                  >
+                    <img
+                      src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+
+          {%endfor%}
+          </div>
+        {%endfor%}  
+        </div>
+        #}
+      </section> 
+
+    <!-- Green Banner -->
+    <section
+      class="lg:max-w-[804px] lg:mx-auto bg-[#4CC9F0] bg-opacity-[0.15] flex justify-between lg:pl-[48px] pl-[18px] pt-[24px] lg:pt-[32px] rounded-[10px] lg:mb-[76px] mb-[35px]">
+      <div class="lg:max-w-[494px] max-w-[203px] self-center lg:mb-[45px] mb-[18px]">
+        <h4
+          class="lg:hidden lg:text-[28px] lg:leading-[38px] text-[22px] leading-[30px] tracking-[0.0135em] text-[#333333] mb-[10px] semibold">
+          Plant a new career tree to get started
+        </h4>
+        <h4
+          class="hidden lg:block lg:text-[28px] lg:leading-[38px] text-[22px] leading-[30px] tracking-[0.0135em] text-[#333333] mb-[10px] semibold">
+          Plant a new career tree today to start your career progress
+        </h4>
+        <p
+          class="lg:hidden regularFont text-[13px] leading-[18.85px] tracking-[0.0145em] text-[#000000] text-opacity-50">
+          Visualise your career progress and always stay on top of your goals
+        </p>
+
+        <p
+          class="hidden lg:block regularFont text-[13px] leading-[18.85px] tracking-[0.0145em] text-[#000000] text-opacity-50 lg:mb-[34px]">
+          Visualise your career progress and always stay on top of your goals. Earn extra experience points and unlock
+          new features.
+        </p>
+
+        <button
+          class="pl-[32px] py-[15px] w-[239px] bg-[#5CCD16] rounded-[10px] text-white lg:flex justify-start gap-x-[40px] text-sm boldFont uppercase border-b-4 border-[#51B613] hidden ">
+          <span><i class="fa fa-leaf"></i></span><span>Start tree</span>
+        </button>
+      </div>
+      <div class="lg:self-end self-center lg:h-[248px] lg:w-[248px] h-[143px] w-[128px]">
+        <img src="{{static("topteenfrontend/assets/images/tree.png")}}"
+          class="lg:h-[248px] lg:w-[248px] h-[143px] w-[128px] object-cover " />
+      </div>
+    </section>
+    <!-- End of Green Banner -->
+
+    <!-- Important Exams -->
+    <section class="mb-[35px] lg:mb-[60px] w-full">
+      <div class="flex justify-between items-center mb-[16px] w-full">
+        <span
+          class="text-[15px] leading-[20.25px] lg:text-[24px] lg:leading-[32.4px]  semibold tracking-[0.035em] text-[#0F0F0F]">
+          Important Exams
+        </span>
+          <p onclick="window.location='{{url('entrance_exams:testprepfilter')}}'" class="lg:hidden text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#541BCF] semibold">
+            View More
+          </p>
+
+          <a href="{{url('entrance_exams:testprepfilter')}}">
+            <p
+              class="hidden lg:block text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#541BCF] semibold">
+              View All
+            </p>
+          </a>
+      </div>
+
+      <!-- Buttons -->
+      <div
+        class="flex gap-[12px] lg:w-full mb-[20px] lg:mb-[40px] lg:max-w-[804px] overflow-x-scroll no-scrollbar collegeTabList tabList">
+
+        <!-- India -->
+        <button onclick="openExams(event, 'indiaExams')"
+          class="examsTab border-2 border-[#E0E0E0] text-[#4F4F4F] flex justify-center gap-[10px] py-[10px] px-[16px] semibold text-xs items-center tracking-[0.01em] rounded-[100px] tab activeTab">
+          <span class="inline-block h-[24px] w-[24px]">
+            <img src="{{static("topteenfrontend/assets/flags/india.png")}}" alt="india-flag"
+              class="w-[24px] h-[24px]" />
+          </span>
+          <span>India</span>
+        </button>
+        {#
+        <!-- Abroad -->
+        <button onclick="openExams(event, 'abroadExams')"
+          class="examsTab border-2 border-[#E0E0E0] text-[#4F4F4F] flex justify-center gap-[10px] py-[10px] px-[16px] semibold text-xs items-center tracking-[0.01em] rounded-[100px] tab">
+          <span class="inline-block h-[24px] w-[24px]">
+            <img src="{{static("topteenfrontend/assets/images/globe.png")}}" alt="globe" class="w-[24px] h-[24px]" />
+          </span>
+          <span>Abroad</span>
+        </button>
+        #}
+
+      </div>
+
+      <!-- Exam List -->
+      <div id="indiaExams" class="examContent relative scrollableDiv">
+        <div class="lg:flex gap-[12px] absolute lg:-top-[36px] right-0 hidden">
+          <button class="leftScrolling">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <button class="rightScrolling">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+        <div class="lg:max-w-[804px] scrollingTarget flex gap-[25px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+          {% for exam in exams[:5] %}
+          <div
+            class="shrink-0 w-[272px] lg:w-[248px] px-[14px] pt-3 pb-[16px] lg:pb-[18px] rounded-[12px] shadow-lg relative">
+            <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}">
+              <div class="flex justify-start gap-x-[10px] items-center mb-[9px] lg:mb-[16px]">
+
+                <img src="{{exam.logo_url}}" class="w-[47px] h-[53px] lg:w-[62px] lg:h-[57px] my-auto object-cover" />
+
+                <div>
+                  <h3
+                    class="semibold text-[#131415] mb-[4.5px] text-[14px] leading-[16.2px] max-w-[120px] max-h-[18px] overflow-hidden">
+                    {{exam.name}}
+                  </h3>
+                  <p
+                    class="text-[10px] leading-[11px] font-normal text-black text-opacity-[0.25] max-w-[120px] max-h-[18px] overflow-hidden">
+                    {{exam.stream[0].name}}
+                  </p>
+                </div>
+              </div>
+            </a>
+
+            <!-- DIVIDER -->
+            <div class="h-[0.8px] w-full bg-black bg-opacity-10 mb-[8.5px]"></div>
+            <!-- BOTTOM PART -->
+            <div class="flex justify-between items-center mb-[14px]">
+              {#
+              <div class=" font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Fees
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">&#8377; 800</p>
+              </div>
+
+              <div class="text-xs font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Prep Time
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">8 Months</p>
+              </div>
+
+              <div class="text-xs font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Next Exam Date
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">4 July, 2023</p>
+              </div>
+              #}
+            </div>
+
+            <div class="flex justify-center gap-[15px] lg:gap-[11px] items-center">
+              <button onclick="window.location='{{url('entrance_exams:testprepdetail',args=[exam.slug])}}'"
+                class="px-5 py-[9px] text-[10px] leading-[14px] text-[#141414] font-normal border-[0.8px] border-[#E0E0E0] rounded-[39px]">
+                View Details
+              </button>
+              
+            </div>
+
+            <!-- <div class="absolute top-3 right-3">
+              <div class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]">
+                <img src="{{static("topteenfrontend/assets/images/bookmark.png")}}" class="w-[12px] h-[16px]" />
+              </div>
+            </div> -->
+          </div>
+          {% endfor %}
+
+        </div>
+
+      </div>
+
+      <div id="abroadExams" class="examContent hidden">
+
+        <div class="lg:max-w-[804px] flex gap-[25px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+
+          <div
+            class="min-w-[272.3px] lg:min-w-[248px] px-[14px] pt-3 pb-[16px] lg:pb-[18px] rounded-[12px] shadow-lg relative">
+            <div class="flex justify-start gap-x-[10px] items-center mb-[9px] lg:mb-[16px]">
+
+              <img src="{{static("topteenfrontend/assets/images/BITS_LARGE.png")}}"
+                class="w-[47px] h-[53px] lg:w-[62px] lg:h-[57px] my-auto object-cover" />
+
+              <div>
+                <h3
+                  class="semibold text-[#131415] mb-[4.5px] text-[14px] leading-[16.2px] max-w-[120px] max-h-[18px] overflow-hidden">
+                  Abroad
+                </h3>
+                <p
+                  class="text-[10px] leading-[11px] font-normal text-black text-opacity-[0.25] max-w-[120px] max-h-[18px] overflow-hidden">
+                  Engineering
+                </p>
+              </div>
+            </div>
+
+            <!-- DIVIDER -->
+            <div class="h-[0.8px] w-full bg-black bg-opacity-10 mb-[8.5px]"></div>
+            <!-- BOTTOM PART -->
+            <div class="flex justify-between items-center mb-[14px]">
+              {#
+              <div class=" font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Fees
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">&#8377; 800</p>
+              </div>
+
+              <div class="text-xs font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Prep Time
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">8 Months</p>
+              </div>
+
+              <div class="text-xs font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Next Exam Date
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">4 July, 2023</p>
+              </div>
+              #}
+            </div>
+
+            <div class="flex justify-center gap-[15px] lg:gap-[11px] items-center">
+              <button
+                class="px-5 py-[9px] text-[10px] leading-[14px] text-[#141414] font-normal border-[0.8px] border-[#E0E0E0] rounded-[39px]">
+                View Details
+              </button>
+
+              <button
+                class="px-5 py-[9px] text-[11px] leading-[15px] text-white font-normal rounded-[39px] bg-[#3F37C9]">
+                Register &nbsp; &rarr;
+              </button>
+            </div>
+
+            <div class="absolute top-3 right-3">
+              <div class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]">
+                <img src="{{static("topteenfrontend/assets/images/bookmark.png")}}" class="w-[12px] h-[16px]" />
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="min-w-[272.3px] lg:min-w-[248px] px-[14px] pt-3 pb-[16px] lg:pb-[18px] rounded-[12px] shadow-lg relative">
+            <div class="flex justify-start gap-x-[10px] items-center mb-[9px] lg:mb-[16px]">
+
+              <img src="{{static("topteenfrontend/assets/images/BITS_LARGE.png")}}"
+                class="w-[47px] h-[53px] lg:w-[62px] lg:h-[57px] my-auto object-cover" />
+
+              <div>
+                <h3
+                  class="semibold text-[#131415] mb-[4.5px] text-[14px] leading-[16.2px] max-w-[120px] max-h-[18px] overflow-hidden">
+                  BITSAT
+                </h3>
+                <p
+                  class="text-[10px] leading-[11px] font-normal text-black text-opacity-[0.25] max-w-[120px] max-h-[18px] overflow-hidden">
+                  Engineering
+                </p>
+              </div>
+            </div>
+
+            <!-- DIVIDER -->
+            <div class="h-[0.8px] w-full bg-black bg-opacity-10 mb-[8.5px]"></div>
+            <!-- BOTTOM PART -->
+            <div class="flex justify-between items-center mb-[14px]">
+              {#
+              <div class=" font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Fees
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">&#8377; 800</p>
+              </div>
+
+              <div class="text-xs font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Prep Time
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">8 Months</p>
+              </div>
+
+              <div class="text-xs font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Next Exam Date
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">4 July, 2023</p>
+              </div>
+              #}
+            </div>
+
+            <div class="flex justify-center gap-[15px] lg:gap-[11px] items-center">
+              <button
+                class="px-5 py-[9px] text-[10px] leading-[14px] text-[#141414] font-normal border-[0.8px] border-[#E0E0E0] rounded-[39px]">
+                View Details
+              </button>
+
+              <button
+                class="px-5 py-[9px] text-[11px] leading-[15px] text-white font-normal rounded-[39px] bg-[#3F37C9]">
+                Register &nbsp; &rarr;
+              </button>
+            </div>
+
+            <div class="absolute top-3 right-3">
+              <div class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]">
+                <img src="{{static("topteenfrontend/assets/images/bookmark.png")}}" class="w-[12px] h-[16px]" />
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="min-w-[272.3px] lg:min-w-[248px] px-[14px] pt-3 pb-[16px] lg:pb-[18px] rounded-[12px] shadow-lg relative">
+            <div class="flex justify-start gap-x-[10px] items-center mb-[9px] lg:mb-[16px]">
+
+              <img src="{{static("topteenfrontend/assets/images/BITS_LARGE.png")}}"
+                class="w-[47px] h-[53px] lg:w-[62px] lg:h-[57px] my-auto object-cover" />
+
+              <div>
+                <h3
+                  class="semibold text-[#131415] mb-[4.5px] text-[14px] leading-[16.2px] max-w-[120px] max-h-[18px] overflow-hidden">
+                  BITSAT
+                </h3>
+                <p
+                  class="text-[10px] leading-[11px] font-normal text-black text-opacity-[0.25] max-w-[120px] max-h-[18px] overflow-hidden">
+                  Engineering
+                </p>
+              </div>
+            </div>
+
+            <!-- DIVIDER -->
+            <div class="h-[0.8px] w-full bg-black bg-opacity-10 mb-[8.5px]"></div>
+            <!-- BOTTOM PART -->
+            <div class="flex justify-between items-center mb-[14px]">
+              {#
+              <div class=" font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Fees
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">&#8377; 800</p>
+              </div>
+
+              <div class="text-xs font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Prep Time
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">8 Months</p>
+              </div>
+
+              <div class="text-xs font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Next Exam Date
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">4 July, 2023</p>
+              </div>
+              #}
+            </div>
+
+            <div class="flex justify-center gap-[15px] lg:gap-[11px] items-center">
+              <button
+                class="px-5 py-[9px] text-[10px] leading-[14px] text-[#141414] font-normal border-[0.8px] border-[#E0E0E0] rounded-[39px]">
+                View Details
+              </button>
+
+              <button
+                class="px-5 py-[9px] text-[11px] leading-[15px] text-white font-normal rounded-[39px] bg-[#3F37C9]">
+                Register &nbsp; &rarr;
+              </button>
+            </div>
+
+            <div class="absolute top-3 right-3">
+              <div class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]">
+                <img src="{{static("topteenfrontend/assets/images/bookmark.png")}}" class="w-[12px] h-[16px]" />
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="min-w-[272.3px] lg:min-w-[248px] px-[14px] pt-3 pb-[16px] lg:pb-[18px] rounded-[12px] shadow-lg relative">
+            <div class="flex justify-start gap-x-[10px] items-center mb-[9px] lg:mb-[16px]">
+
+              <img src="{{static("topteenfrontend/assets/images/BITS_LARGE.png")}}"
+                class="w-[47px] h-[53px] lg:w-[62px] lg:h-[57px] my-auto object-cover" />
+
+              <div>
+                <h3
+                  class="semibold text-[#131415] mb-[4.5px] text-[14px] leading-[16.2px] max-w-[120px] max-h-[18px] overflow-hidden">
+                  BITSAT
+                </h3>
+                <p
+                  class="text-[10px] leading-[11px] font-normal text-black text-opacity-[0.25] max-w-[120px] max-h-[18px] overflow-hidden">
+                  Engineering
+                </p>
+              </div>
+            </div>
+
+            <!-- DIVIDER -->
+            <div class="h-[0.8px] w-full bg-black bg-opacity-10 mb-[8.5px]"></div>
+            <!-- BOTTOM PART -->
+            <div class="flex justify-between items-center mb-[14px]">
+              {#
+              <div class=" font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Fees
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">&#8377; 800</p>
+              </div>
+
+              <div class="text-xs font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Prep Time
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">8 Months</p>
+              </div>
+
+              <div class="text-xs font-normal text-[#131415]">
+                <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                  Next Exam Date
+                </h6>
+                <p class="regularFont text-[12px] leading-[16.2px]">4 July, 2023</p>
+              </div>
+              #}
+            </div>
+
+            <div class="flex justify-center gap-[15px] lg:gap-[11px] items-center">
+              <button
+                class="px-5 py-[9px] text-[10px] leading-[14px] text-[#141414] font-normal border-[0.8px] border-[#E0E0E0] rounded-[39px]">
+                View Details
+              </button>
+
+              <button
+                class="px-5 py-[9px] text-[11px] leading-[15px] text-white font-normal rounded-[39px] bg-[#3F37C9]">
+                Register &nbsp; &rarr;
+              </button>
+            </div>
+
+            <div class="absolute top-3 right-3">
+              <div class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]">
+                <img src="{{static("topteenfrontend/assets/images/bookmark.png")}}" class="w-[12px] h-[16px]" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+    <!-- End of Important Exams -->
+
+    <!-- Connect -->
+    <section
+      class="inline-block mb-[35px] lg:mb-[60px] flex gap-[12px] lg:gap-[45px] pr-[30px] lg:pr-[90px] py-[18px] bg-[#f7f7fa] rounded-[10px] overflow-hidden">
+      <img src="{{static("topteenfrontend/assets/images/counsellor.png")}}"
+        class="w-[111.8px] h-[111.8px] lg:w-[184px] lg:h-[181px] my-auto counsellorImg" alt="">
+      <div class="my-auto">
+        <p
+          class="text-[22px] leading-[29.7px] lg:text-[24px] lg:leading-[32.4px] tracking-[3.5%] text-[#4f4f4f] semibold">
+          Connect with expert counsellors</p>
+        <div class="flex gap-[10px] lg:gap-[7px] mt-[7px] lg:mt-[4px]">
+          <img src="{{static("topteenfrontend/assets/images/greenDot.png")}}"
+            class="w-[15px] h-[15px] lg:w-[19px] lg:h-[19px] object-cover my-auto" alt="">
+          <p class="text-[16px] leading-[23.2px] regularFont my-auto text-[#4f4f4f]">124 counsellors online</p>
+        </div>
+        <p class="text-[13px] leading-[18.85px] text-[#828282] mt-[20px] lg:mt-[13px]">Our counsellors guide you on
+          all the steps of the way from application to your job interview, connect now!</p>
+          <!-- <button>Connect Now</button> -->
+            <button onclick="Calendly.initPopupWidget({url:'https://calendly.com/counsellortopteen/topteen-counselling-1?hide_event_type_details=1&hide_gdpr_banner=1'});return false;"
+            class="pl-[32px] py-[15px] w-[239px] bg-[#5CCD16] rounded-[10px] text-white lg:flex justify-start gap-x-[40px] text-sm boldFont uppercase border-b-4 border-[#51B613] hidden">
+            <span><i class="fa fa-leaf"></i></span><span>Connect Now</span>
+            </button>
+      </div>
+    </section>
+    <!-- End of Connect -->
+
+    <!-- Trending Content -->
+    <div class="mb-[35px] lg:mb-[60px]">
+      <div class="flex justify-between items-center mb-[16px]">
+        <span
+          class="text-[15px] leading-[20px] lg:text-[24px] lg:leading-[32.4px]  semibold tracking-[0.035em] text-[#0F0F0F]">
+          Trending Content
+        </span>
+        <a href="{{url("blog:blogs")}}">
+          <p
+            class="hidden lg:block text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#541BCF] semibold">
+            View All
+          </p>
+        </a>
+      </div>
+
+      <div class="relative scrollableDiv">
+        <div class="lg:flex gap-[12px] absolute lg:top-0 right-0 hidden">
+          <button class="leftScrolling">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <button class="rightScrolling">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+   
+      <div class="max-h-[280px] scrollingTarget lg:pt-[40px] flex flex-col flex-wrap gap-y-[19px] gap-x-[14px] overflow-x-scroll pb-2 no-scrollbar">
+        {%for blog in blogs[:9] %}
+        <div class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0">
+          <a href="{{blog.url()}}">
+            <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+              <img src="{{blog.image.url}}" class="h-[69px] w-[69px] object-cover" />
+            </div>
+          </a>
+          <div>
+            <p class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]">
+              {{blog.title|truncate(60)}}
+            </p>
+            <div
+              class="bg-[#3F37C9] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+              style="background-color: #{{blog.category.color}};">
+              <a href="{{blog.category.url()}}">{{blog.category}}</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+
+      </div>
+
+    </div>
+    <!-- End of Trending Content -->
+
+    <!-- Courses -->
+    <div class="pb-[110px] lg:pb-0">
+
+      <div class="flex justify-between items-center mb-[16px]">
+        <span
+          class="text-[15px] leading-[20px] lg:text-[24px] lg:leading-[32.4px]  semibold tracking-[0.035em] text-[#0F0F0F]">
+          Courses
+        </span>
+
+        <p
+          class="hidden lg:block text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#541BCF] semibold">
+          <a href="{{url('skilllab:skilllabcourselist')}}">View All</a>
+        </p>
+      </div>
+
+      <div class="scrollableDiv relative">
+
+        <div class="lg:flex gap-[12px] absolute  lg:-top-[30px]  right-0 hidden">
+          <button class="leftScrolling">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <button class="rightScrolling">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="lg:max-w-[804px] scrollingTarget flex flex-col items-center lg:pt-[40px] lg:flex-row gap-[10px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+          {%for skilllab_course in skilllab_courses[:3]%}
+          <div
+            class="flex items-center lg:items-end w-[356px] h-[76px] lg:w-[248px] lg:h-[214px] relative rounded-[10px]">
+            <img src="{{skilllab_course.image.url}}"
+              class="brightness-50 absolute z-0 w-[356px] h-[76px] lg:w-[248px] lg:h-[214px] rounded-[10px] object-cover"
+              alt="">
+            <div class="feedCourse lg:pb-[15px] flex items-center relative gap-[19px] lg:gap-[13px] z-10">
+              <img src="{{static("topteenfrontend/assets/images/chat.png")}}" class="w-[25px] h-[24px] object-cover"
+                alt="">
+              <div class=" inline-block">
+                <div class="flex max-w-[250px] lg:max-w-[174px] overflow-hidden text-opacity-75">
+                  <p class="text-[10px] leading-[13.5px] regularFont text-[#ffffff]">
+                    {{skilllab_course.get_category_display()}}</p>
+                  <p class="text-white -mt-[6px]">&nbsp;•&nbsp;&nbsp;</p>
+                  <p class="text-[10px] leading-[13.5px] text-[#ffffff]"></p>
+                </div>
+                <!-- {{skilllab_course.name}} -->
+                <p
+                  class="text-[15px] leading-[20.25px] tracking-[3.5%] semibold text-white max-w-[250px] lg:max-w-[174px] overflow-hidden">
+                  <a href="{{url('skilllab:skilllabcoursedetail',args=[skilllab_course.slug])}}">{{skilllab_course.name}}</a>
+                </p>
+              </div>
+            </div>
+          </div>
+          {%endfor%}
+        </div>
+    </div>
+
+    </div>
+    <!-- End of Courses -->
+
+
+
+  </div>
+  <!-- End of Right Div -->
+
+</main>
+<!-- End of Desktop Main -->
+<!--POPUP PROFILE COMPLETE-->
+<!-- OTP -->
+<div
+  class=" top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen flex flex-row justify-center items-center modalPopup modal {% if request.user.is_completed %}hideModal{% endif %} ">
+  <div class="lg:max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center">
+    <div id="otpPopUp"
+      class="bg-[#ffffff] rounded-[10px] relative w-full md:max-w-[395px] lg:w-[395px] pb-[24px] pt-[55px] lg:pt-[69px] modalContent">
+      <button class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] modalCloser">
+        <i class="fa fa-xmark"></i>
+      </button>
+
+      <div class="w-[68px] h-[68px] mx-auto">
+        <img src="{{request.user.image.url}}" class="w-[68px] h-[68px] object-cover rounded-full" alt="" />
+      </div>
+
+      <p class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold mt-[22px]">
+        Please complete your profile
+      </p>
+      <div class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+        <button onclick="window.location='{{url('users:profiledetails')}}'"
+          class="w-[344px] lg:w-full h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]">
+          Go to complete profile page
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End of OTP -->
+<!--END POPUP-->
+{% endblock %}
+{%block additionalfooter%}
+<link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+<script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+
+<script type="text/javascript">
+  const modal = document.querySelector(".modal");
+  const modalCloser = document.querySelector(".modalCloser");
+
+  modalCloser?.addEventListener("click", function () {
+    closeModal();
+  });
+  const closeModal = function () {
+    if (modal) {
+      modal?.classList?.add("hideModal");
+    }
+  };
+</script>
+<script type="text/javascript">
+  function shortlist(param){
+    $.ajax({
+      type:"GET",
+      url:"{{url('careers:shortlist_video')}}",
+      data:{id:param}
+    }).done(function(response){
+      if(response["success"]==="true"){
+        $('#video_'+param).css({"background-color":"blue"});
+        Swal.fire ('Added!', 'Added to Bookmark!', 'success');
+      }else{
+        $('#video_'+param).css({"background-color":"white"});
+        Swal.fire ('Removed!', 'Removed from Bookmark!', 'error');
+      }
+    console.log(response);
+  });
+  }   
+</script>
+<script type="text/javascript">
+  
+  $('#folderformsubmit').on('click',function(e){
+    e.preventDefault();    
+    var formData = new FormData(document.getElementById("folderform"));
+
+    var foldername = formData.get("foldername").trim();
+
+    if ( foldername ) {
+    $.ajax({
+        url: "{{url('createfolder')}}",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+            $("#addfolder").html(data.html);
+            document.getElementById("folderform").reset();
+            randomBgColor();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            fireAlert(jqXHR.responseJSON.message,"error");
+        },
+        error: function(xhr, status, error) {
+            console.log(xhr);
+            if (xhr == 'undefined' || xhr == undefined) {
+                fireAlert(error,"error");
+            } else {
+                fireAlert(jqXHR.responseJSON.message,"error");
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+    }); 
+    } else {
+        document.getElementById("folderformerrortag").textContent = "This field is required"; 
+        fireAlert('All Fields are required',"error");
+    }   
+});
+
+// Scrolling Function
+const scrollableDiv = document.querySelectorAll(".scrollableDiv");
+scrollableDiv.forEach((elem) => {
+  const leftScroll = elem.querySelector(".leftScrolling");
+  const rightScroll = elem.querySelector(".rightScrolling")
+  const scrollingTarget = elem.querySelector(".scrollingTarget")
+
+  leftScroll.addEventListener("click", function(){
+    scrollingTarget.scrollLeft += -135;
+  })
+
+  rightScroll.addEventListener("click", function(){
+    scrollingTarget.scrollLeft += 135;
+  })
+})
+</script>
+<script>
+  function openPopup(param) {
+      const videoPopup = document.getElementById("videoPopup");
+      const popupVideo = document.getElementById("popupVideo");
+
+      // Simulate an AJAX request to fetch the video URL
+      // const videoUrl = "https://topteenc.s3.ap-northeast-1.amazonaws.com/Science%2C+Technology%2C+Engineering+and+Math/17-2061.00.mp4";
+      const videoUrl = param;
+
+      // Set the iframe content with the fetched video URL
+      popupVideo.src = videoUrl;
+
+      // Show the popup
+      videoPopup.style.display = "block";
+      document.getElementById("videoPopupOverlay").style.display = "block";
+      $('body').css('overflow', 'hidden');
+  }
+
+  function closePopup() {
+      const videoPopup = document.getElementById("videoPopup");
+      const popupVideo = document.getElementById("popupVideo");
+
+      // Clear the iframe src to stop the video
+      popupVideo.src = "";
+
+      // Hide the popup
+      videoPopup.style.display = "none";
+      document.getElementById("videoPopupOverlay").style.display = "none";
+      $('body').css('overflow', 'auto');
+  }
+</script>
+<script>
+  function mobileopenPopup(param) {
+      const videoPopup = document.getElementById("mobilevideoPopup");
+      const popupVideo = document.getElementById("mobilepopupVideo");
+
+      // Simulate an AJAX request to fetch the video URL
+      // const videoUrl = "https://topteenc.s3.ap-northeast-1.amazonaws.com/Science%2C+Technology%2C+Engineering+and+Math/17-2061.00.mp4";
+      const videoUrl = param;
+
+      // Set the iframe content with the fetched video URL
+      popupVideo.src = videoUrl;
+
+      // Show the popup
+      videoPopup.style.display = "block";
+      
+      document.getElementById("mobilevideoPopupOverlay").style.display = "block";
+      $('body').css('overflow', 'hidden');
+  }
+
+  function mobileclosePopup() {
+      const videoPopup = document.getElementById("mobilevideoPopup");
+      const popupVideo = document.getElementById("mobilepopupVideo");
+
+      // Clear the iframe src to stop the video
+      popupVideo.src = "";
+
+      // Hide the popup
+      videoPopup.style.display = "none";
+      
+      document.getElementById("mobilevideoPopupOverlay").style.display = "none";
+      $('body').css('overflow', 'auto');
+  }
+</script>
+{%endblock%}

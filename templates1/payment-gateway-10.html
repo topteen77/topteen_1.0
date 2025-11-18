@@ -1,0 +1,1732 @@
+{% extends "base.html" %} <!-- Assuming you have a base template -->
+{% load static %}
+{% block title %}Test Assessment Platform{% endblock %}
+
+{% block main %}
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+
+
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        color: #333;
+        background-color: #fafafa;
+    }
+
+    @media (min-width: 768px) {
+        .md\:p-8 {
+            padding: 2rem !important;
+        }
+    }
+
+    .line-clamp-4 {
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 5px;
+    }
+
+    .hero-gradient {
+        background: linear-gradient(135deg, #4CC9F0 0%, #3F37C9 100%);
+    }
+
+    .section-heading {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-heading::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 46%;
+        width: 60px;
+        height: 4px;
+        background-color: #4CC9F0;
+        border-radius: 2px;
+    }
+
+    .feature-card {
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .testimonial-card {
+        background-color: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .cta-button {
+        background: linear-gradient(90deg, #4CC9F0 0%, #3F37C9 100%);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 201, 240, 0.3);
+    }
+
+    .accordion-item {
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .accordion-header {
+        background-color: white;
+        padding: 1.25rem;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .accordion-contents {
+        padding: 0 1.25rem;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        background-color: #f9f9f9;
+    }
+
+    .accordion-contents.active {
+        max-height: 500px;
+        padding: 1.25rem;
+        display: block;
+    }
+
+
+    .rm-report .personality-type:first-child {
+        background: #c9edf869;
+        border-left: 4px solid #057190;
+    }
+
+    .rm-report .personality-type:nth-child(2) {
+        background: #ead9ebcf;
+        border-left: 4px solid #a92caf;
+    }
+
+
+
+
+    .rm-report .personality-type:nth-child(3) {
+        background: #c8f8b66e;
+        border-left: 4px solid #2a740e;
+    }
+
+
+
+    .rm-report .personality-type:nth-child(4) {
+        background: #fff2b680;
+        border-left: 4px solid #6d5c04;
+    }
+
+    .rm-report .personality-type:nth-child(5) {
+        background: #ffd4cf99;
+        border-left: 4px solid #a22717;
+    }
+
+    .rm-report .personality-type:nth-child(6) {
+        background: #fff2b680;
+        border-left: 4px solid #6d5c04;
+    }
+
+    .rm-report .personality-type:nth-child(6) {
+        background: #d4eafd70;
+        border-left: 4px solid #0b5ba1;
+    }
+
+
+    .assessment-step {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .step-number {
+        background-color: #4CC9F0;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 1rem;
+    }
+
+    /* FAQ Accordion Styles */
+    .faq-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    .faq-question {
+        padding: 1rem;
+        background-color: #f9fafb;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .faq-question:hover {
+        background-color: #f3f4f6;
+    }
+
+    .faq-answer {
+        padding: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+
+    .faq-answer.active {
+        padding: 1rem;
+        max-height: 500px;
+    }
+
+    .faq-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .faq-icon.active {
+        transform: rotate(180deg);
+    }
+
+    .trust-badge {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+    }
+
+    .trust-badge svg {
+        width: 2.5rem;
+        height: 2.5rem;
+        margin-bottom: 0.5rem;
+        color: #6b7280;
+    }
+
+    @media (max-width: 768px) {
+        .student-img img {
+            max-height: 300px;
+        }
+    }
+</style>
+
+
+<!-- Hero Section -->
+<section class="hero-gradient text-white">
+    <div class="container mx-auto px-4 ">
+        <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="md:w-1/2 ">
+                <h1 class="text-3xl md:text-5xl font-bold mb-4 mt-5">
+                    Stream Sorter Test - Class 9-10th Career Assessment
+                </h1>
+
+                <p class="text-base md:text-2xl font-bold mb-6 text-white">Discover What You're Made for, Like Never
+                    Before</p>
+                <p class="text-lg md:text-xl mb-8 opacity-90 text-white">
+                    Take the next step with our RIASEC personality, career interest, and aptitude assessments. Discover
+                    your strengths and passions to align with rewarding career paths—your journey to success starts
+                    here.
+                </p>
+                <div class="flex flex-wrap ">
+         <!-- Replace the existing anchor tag with this updated version -->
+<a onclick="startAssessment(event)"
+   class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition flex flex-wrap gap-4 cursor-pointer">
+    <span>Start Your Assessment</span>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2"
+         viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+              d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+              clip-rule="evenodd" />
+    </svg>
+</a>
+                </div>
+            </div>
+            <div class="md:w-1/2 px-6">
+                <img src="{% static 'images/stream-sorter-banner.png' %}" alt="Career Assessment" class="rounded-lg max-w-full">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Assessment Overview -->
+
+
+<!-- Comprehensive Assessment Section -->
+<section class="py-8 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold section-heading">Our Comprehensive Assessment</h2>
+            <p class="text-gray-600 max-w-3xl mx-auto mt-3">
+                Discover your unique strengths and potential with our scientifically validated assessment tools
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Personality Assessment Card -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden">
+                <div class="p-3">
+                    <div class="flex items-start flex-col">
+                        <div class="bg-blue-100 rounded-full p-3 mr-4">
+                            <img src="{% static 'images/gradHat2.png' %}" class="w-8 h-8" alt="Personality Analysis">
+                        </div>
+                        <div class="w-full mt-3">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Personality Assessment</h3>
+                            <div class="description-container relative">
+                                <div class="description-wrapper overflow-hidden">
+                                    <p class="text-gray-600 description-text line-clamp-4 text-sm">
+                                        Personality assessment is the systematic evaluation of individual differences in
+                                        characteristic patterns of thinking, feeling, and behaving. The HEXACO model is
+                                        a
+                                        comprehensive personality assessment framework that identifies six major
+                                        dimensions:
+                                        Honesty-Humility (H), Emotionality (E), Extraversion (X), Agreeableness (A),
+                                        Conscientiousness (C), and Openness to Experience (O).
+                                    </p>
+                                </div>
+                                <button
+                                    class="text-sm text-blue-600 font-medium mt-2 read-more-btn hover:text-blue-800 transition-colors focus:outline-none">
+                                    Read more
+                                </button>
+                                <div class="expanded-content hidden bg-gray-100 rounded">
+                                    <div class="flex justify-between  p-2">
+
+                                        <p class="text-purple-900 text-sm">Full Description</p>
+                                        <button class="close-btn text-gray-500 hover:text-gray-700">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M14.293 5.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414L10 8.586l4.293-4.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="max-h-40 overflow-y-auto p-3 ">
+                                        <p class="text-gray-600 text-sm">
+                                            Personality assessment is the systematic evaluation of individual
+                                            differences in
+                                            characteristic patterns of thinking, feeling, and behaving. The HEXACO model
+                                            is a
+                                            comprehensive personality assessment framework that identifies six major
+                                            dimensions:
+                                            Honesty-Humility (H), Emotionality (E), Extraversion (X), Agreeableness (A),
+                                            Conscientiousness (C), and Openness to Experience (O).
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+
+            <!-- Career Interest Inventory Card -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden ">
+                <div class="p-3">
+                    <div class="flex items-start flex-col">
+                        <div class="bg-yellow-100 rounded-full p-3 mr-4">
+                            <img src="{% static 'images/interest-test-icon.png' %}" class="w-8 h-8  object-cover"
+                                alt="Intelligence">
+                        </div>
+                        <div class="w-full mt-3">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Career Interest assessment</h3>
+                            <div class="description-container relative">
+                                <div class="description-wrapper overflow-hidden">
+                                    <p class="text-gray-600 description-text line-clamp-4 text-sm">
+                                        Career Interest assessment is an assessment tool that evaluates an individual's
+                                        preferences, attractions, and inclinations toward various occupational
+                                        activities,
+                                        work environments, and career fields. These inventories, such as Holland's
+                                        RIASEC
+                                        model (Realistic, Investigative, Artistic, Social, Enterprising, Conventional),
+                                        help
+                                        identify patterns of interest that align with specific career paths and work
+                                        settings.
+                                    </p>
+                                </div>
+                                <button
+                                    class="text-sm text-yellow-600 font-medium mt-2 read-more-btn hover:text-amber-800 transition-colors focus:outline-none">
+                                    Read more
+                                </button>
+                                <div class="expanded-content hidden bg-gray-100 rounded">
+                                    <div class="flex justify-between  p-2">
+
+                                        <p class="text-purple-900 text-sm">Full Description</p>
+                                        <button class="close-btn text-gray-500 hover:text-gray-700">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M14.293 5.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414L10 8.586l4.293-4.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="max-h-40 overflow-y-auto pr-2">
+                                        <p class="text-gray-600 text-sm p-3 text-sm">
+                                            Career Interest Inventory is an assessment tool that evaluates an
+                                            individual's
+                                            preferences, attractions, and inclinations toward various occupational
+                                            activities,
+                                            work environments, and career fields. These inventories, such as Holland's
+                                            RIASEC
+                                            model (Realistic, Investigative, Artistic, Social, Enterprising,
+                                            Conventional), help
+                                            identify patterns of interest that align with specific career paths and work
+                                            settings.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Aptitude Assessment Card -->
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden">
+                <div class="p-3">
+                    <div class="flex items-start flex-col">
+                        <div class="bg-purple-100 rounded-full p-3 mr-4">
+                            <img src="{% static 'images/numeric.png' %}" class="w-8 h-8 object-cover"
+                                alt="Intelligence">
+                        </div>
+                        <div class="w-full mt-3">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Comprehensive Aptitude assessment</h3>
+                            <div class="description-container relative">
+                                <div class="description-wrapper overflow-hidden">
+                                    <p class="text-gray-600 description-text line-clamp-4 text-sm">
+                                        Aptitude Assessment for Class 12 is a comprehensive evaluation that measures
+                                        students' inherent abilities across seven key cognitive domains: Logical
+                                        Reasoning
+                                        (problem-solving skills), Numerical Reasoning (mathematical abilities),
+                                        Mechanical
+                                        Reasoning (understanding of physical principles), Spatial Reasoning (visualizing
+                                        objects in space), Abstract Reasoning (pattern recognition), Clerical Reasoning
+                                        (attention to detail), and Language/Verbal Reasoning (communication skills).
+                                    </p>
+                                </div>
+                                <button
+                                    class="text-sm text-purple-600 font-medium mt-2 read-more-btn hover:text-purple-800 transition-colors focus:outline-none">
+                                    Read more
+                                </button>
+                                <div class="expanded-content hidden bg-gray-100 rounded">
+                                    <div class="flex justify-between  p-2">
+
+                                        <p class="text-purple-900 text-sm">Full Description</p>
+                                        <button class="close-btn text-gray-500 hover:text-gray-700">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M14.293 5.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414L10 8.586l4.293-4.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="max-h-40 overflow-y-auto pr-2">
+                                        <p class="text-gray-600 text-sm p-3">
+                                            Aptitude Assessment for Class 12 is a comprehensive evaluation that measures
+                                            students' inherent abilities across seven key cognitive domains: Logical
+                                            Reasoning
+                                            (problem-solving skills), Numerical Reasoning (mathematical abilities),
+                                            Mechanical
+                                            Reasoning (understanding of physical principles), Spatial Reasoning
+                                            (visualizing
+                                            objects in space), Abstract Reasoning (pattern recognition), Clerical
+                                            Reasoning
+                                            (attention to detail), and Language/Verbal Reasoning (communication skills).
+                                            This
+                                            multifaceted test helps Class 12 students identify their cognitive strengths
+                                            and
+                                            make informed decisions about higher education streams and career paths that
+                                            align
+                                            with their natural aptitudes and abilities.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Read More/Less functionality -->
+
+</section>
+
+
+<!-- RIASEC Personality Types -->
+<section class="py-12 bg-gray-100">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold section-heading">Personality Analysis - RIASEC Model</h2>
+            <p class="text-gray-600 max-w-3xl mx-auto mt-3">
+                Our assessment is based on John Holland's renowned RIASEC model, which categorizes personalities into
+                six distinct types:
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Realistic (Doers) -->
+            <div
+                class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                <div class="h-2 bg-blue-500"></div>
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="rounded-full p-1 bg-blue-50 mr-4">
+                            <img src="{% static 'images/r.png' %}" alt="Realistic Icon" class="w-16 h-16">
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Realistic <span class="text-blue-500">(Doers)</span>
+                        </h3>
+                    </div>
+                    <p class="text-gray-600">
+                        Practical, hands-on individuals who enjoy working with tools, machines, and physical tasks.
+                        Ideal for engineering, construction, and technical fields.
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <span
+                            class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Engineering</span>
+                        <span
+                            class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Construction</span>
+                        <span
+                            class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Mechanics</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Investigative (Thinkers) -->
+            <div
+                class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                <div class="h-2 bg-purple-500"></div>
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="rounded-full p-1 bg-purple-50 mr-4">
+                            <img src="{% static 'images/i.png' %}" alt="Investigative Icon" class="w-16 h-16">
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Investigative <span
+                                class="text-purple-500">(Thinkers)</span></h3>
+                    </div>
+                    <p class="text-gray-600">
+                        Analytical, curious problem-solvers who enjoy research and exploring complex ideas. Perfect for
+                        science, technology, and research careers.
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <span
+                            class="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">Research</span>
+                        <span
+                            class="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">Science</span>
+                        <span
+                            class="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">Technology</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Artistic (Creators) -->
+            <div
+                class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                <div class="h-2 bg-green-500"></div>
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="rounded-full p-1 bg-green-50 mr-4">
+                            <img src="{% static 'images/a.png' %}" alt="Artistic Icon" class="w-16 h-16">
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Artistic <span
+                                class="text-green-500">(Creators)</span></h3>
+                    </div>
+                    <p class="text-gray-600">
+                        Creative, expressive individuals who thrive in unstructured environments. Suited for arts,
+                        media, writing, and design careers.
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <span
+                            class="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Design</span>
+                        <span
+                            class="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Media</span>
+                        <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Fine
+                            Arts</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social (Helpers) -->
+            <div
+                class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                <div class="h-2 bg-yellow-500"></div>
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="rounded-full p-1 bg-yellow-50 mr-4">
+                            <img src="{% static 'images/s.png' %}" alt="Social Icon" class="w-16 h-16">
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Social <span
+                                class="text-yellow-500">(Helpers)</span>
+                        </h3>
+                    </div>
+                    <p class="text-gray-600">
+                        Empathetic, supportive people who excel at helping others. Ideal for healthcare, counseling,
+                        teaching, and social services.
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <span
+                            class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">Teaching</span>
+                        <span
+                            class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">Healthcare</span>
+                        <span
+                            class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">Counseling</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enterprising (Persuaders) -->
+            <div
+                class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                <div class="h-2 bg-red-500"></div>
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="rounded-full p-1 bg-red-50 mr-4">
+                            <img src="{% static 'images/e.png' %}" alt="Enterprising Icon" class="w-16 h-16">
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Enterprising <span
+                                class="text-red-500">(Persuaders)</span></h3>
+                    </div>
+                    <p class="text-gray-600">
+                        Outgoing, ambitious leaders who thrive in business environments. Perfect for sales, management,
+                        and entrepreneurship.
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Business</span>
+                        <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Sales</span>
+                        <span
+                            class="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Leadership</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conventional (Organizers) -->
+            <div
+                class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                <div class="h-2 bg-indigo-500"></div>
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="rounded-full p-1 bg-indigo-50 mr-4">
+                            <img src="{% static 'images/c.png' %}" alt="Conventional Icon" class="w-16 h-16">
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Conventional <span
+                                class="text-indigo-500">(Organizers)</span></h3>
+                    </div>
+                    <p class="text-gray-600">
+                        Detail-oriented, organized individuals who prefer structured environments. Suited for
+                        accounting, administration, and data management.
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <span
+                            class="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full">Finance</span>
+                        <span
+                            class="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full">Administration</span>
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full">Data
+                            Analysis</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</section>
+
+<!--Career Interest Assessment - (RIASEC Model) -->
+<section class="py-8 bg-white-100">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold section-heading">Career Interest Assessment </h2>
+
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="flex items-center justify-center">
+                <img src="{% static 'images/riasec-modal.png' %}" alt="RIASEC Model" class=" h-auto">
+            </div>
+
+            <div class="">
+                <p class="text-gray-700 mb-4">
+                    In addition to personality analysis, the test includes a comprehensive Interest Model. Students are
+                    presented with a curated list of 200+ professions across diverse industries and sectors. From this
+                    list, they are asked to select the professions they:
+                </p>
+
+                <ul class="space-y-3 mb-4">
+
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500 mr-2 flex-shrink-0"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Feel most interested in</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500 mr-2 flex-shrink-0"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Are inspired or influenced by</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500 mr-2 flex-shrink-0"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Or aspire to pursue in the future</span>
+                    </li>
+                </ul>
+
+
+                <p class="text-gray-700 mb-4">
+                    This exercise helps uncover not only immediate preferences but also deeper motivations, passions,
+                    and potential career directions. The selections are then mapped against career clusters and future
+                    opportunities to give meaningful insights into long-term career alignment.
+                </p>
+
+
+            </div>
+
+
+        </div>
+
+
+
+
+
+
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-8 hidden">
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden p-6">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-3">Interest Profile</h3>
+                <p class="text-gray-600">
+                    A detailed breakdown of your interests across various occupational fields, including suggested
+                    career options that align with your preferences.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden p-6">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-3">Career Matching</h3>
+                <p class="text-gray-600">
+                    A list of careers and job roles that best fit your interest profile, helping you target professions
+                    that resonate with your passions and aspirations.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden p-6">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-3">Long-Term Career Potential</h3>
+                <p class="text-gray-600">
+                    An exploration of how your career interests may evolve over time and the kinds of opportunities that
+                    may open up for you in the future.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- Aptitude Assessment -->
+<section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold section-heading">Aptitude assessment</h2>
+            <p class="text-gray-600 max-w-3xl mx-auto mt-4">
+                Our comprehensive aptitude evaluation covers multiple cognitive areas:
+            </p>
+        </div>
+
+        <div>
+            <!-- First 6 cards in regular grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Card 1: Numerical Reasoning -->
+                <div
+                    class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <div class="w-16 h-16 bg-purple-200 rounded-full flex items-center justify-center mb-4 mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-center mb-3">Numerical Reasoning</h3>
+                        <p class="text-gray-600 text-center">Mathematical problem-solving and numerical reasoning</p>
+                    </div>
+                </div>
+
+                <!-- Card 2: Language -->
+                <div
+                    class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <div class="w-16 h-16 bg-pink-200 rounded-full flex items-center justify-center mb-4 mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-pink-600" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-center mb-3">Language Reasoning</h3>
+                        <p class="text-gray-600 text-center">Understanding and analysing written material, grammar, and
+                            sentence structures</p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Verbal Reasoning -->
+                <div
+                    class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <div class="w-16 h-16 bg-red-200 rounded-full flex items-center justify-center mb-4 mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-center mb-3">Verbal Reasoning</h3>
+                        <p class="text-gray-600 text-center">Comprehension, vocabulary, and effective communication
+                            skills</p>
+                    </div>
+                </div>
+
+                <!-- Card 4: Logical Reasoning -->
+                <div
+                    class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <div class="w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center mb-4 mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-center mb-3">Logical Reasoning</h3>
+                        <p class="text-gray-600 text-center">Pattern recognition, logical deduction, and analytical
+                            thinking</p>
+                    </div>
+                </div>
+
+                <!-- Card 5: Mechanical Reasoning -->
+                <div
+                    class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <div class="w-16 h-16 bg-green-200 rounded-full flex items-center justify-center mb-4 mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-center mb-3">Mechanical Reasoning</h3>
+                        <p class="text-gray-600 text-center">Understanding of mechanical concepts, tools, and systems
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Card 6: Critical Reasoning -->
+                <div
+                    class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <div class="w-16 h-16 bg-indigo-200 rounded-full flex items-center justify-center mb-4 mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-600" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-center mb-3">Critical Reasoning</h3>
+                        <p class="text-gray-600 text-center">Ability to analyse, evaluate, and make reasoned judgments
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 7: Spatial Reasoning - Centered -->
+            <div class="flex justify-center mt-6">
+                <div
+                    class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                    <div class="p-6">
+                        <div class="w-16 h-16 bg-yellow-200 rounded-full flex items-center justify-center mb-4 mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-600" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-center mb-3">Spatial Reasoning</h3>
+                        <p class="text-gray-600 text-center">Visualization and manipulation of objects in space</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- Your Complete Career Report Includes Section -->
+<section class="py-16 bg-white-100">
+    <div class="container mx-auto px-4">
+        <!-- Main Heading -->
+        <div class="text-center mb-6">
+            <h2 class="text-3xl md:text-4xl font-bold section-heading text-gray-800">
+                Your Complete Career Report Includes
+            </h2>
+            <p class="text-gray-600 max-w-3xl mx-auto mt-4">
+                Comprehensive insights tailored to unlock your career potential and guide your professional journey
+            </p>
+        </div>
+        <!-- Two Column Layout -->
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <!-- Left Side - Image -->
+            <div class="relative">
+                <img src="{% static 'images/fullreport.png' %}" alt="Career Counseling" class="rounded-lg">
+            </div>
+            <!-- Right Side - Content -->
+            <div class="space-y-8">
+                <!-- Features List -->
+                <div class="space-y-8">
+                   <div class="flex items-center">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                                        <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-lg font-semibold text-gray-800">
+                                            Comprehensive Personality Profile
+                                        </div>
+                                        <div class="text-sm text-blue-600 font-medium">
+                                            RIASEC Based Analysis
+                                        </div>
+                                    </div>
+                                </div>
+                  <div class="flex items-center">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                                        <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-lg font-semibold text-gray-800">
+                                            Detailed Career Interest Analysis
+                                        </div>
+                                        <div class="text-sm text-green-600 font-medium">
+                                            Vocational Preferences
+                                        </div>
+                                    </div>
+                                </div>
+               <div class="flex items-center">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                                        <svg class="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-lg font-semibold text-gray-800">
+                                            Multi-Dimensional Aptitude Assessment
+                                        </div>
+                                        <div class="text-sm text-purple-600 font-medium">
+                                            7-Domain Cognitive Evaluation
+                                        </div>
+                                    </div>
+                                </div>
+             <div class="flex items-center">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                                        <svg class="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-lg font-semibold text-gray-800">
+                                            Strategic Career Development Plan
+                                        </div>
+                                        <div class="text-sm text-orange-600 font-medium">
+                                            Professional Journey Roadmap
+                                        </div>
+                                    </div>
+                                </div>
+           <div class="flex items-center">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                                        <svg class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-lg font-semibold text-gray-800">
+                                            Educational &amp; Training Recommendations
+                                        </div>
+                                        <div class="text-sm text-indigo-600 font-medium">
+                                            Academic Development Guidance
+                                        </div>
+                                    </div>
+                                </div>
+<div class="flex items-center">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
+                                        <svg class="w-6 h-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-lg font-semibold text-gray-800">
+                                            Expert Career Counselling Session
+                                        </div>
+                                        <div class="text-sm text-teal-600 font-medium">
+                                            45-Minute One-on-One Consultation
+                                        </div>
+                                    </div>
+                                </div>
+           <div class="flex items-center">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mr-4">
+                                        <svg class="w-6 h-6 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-lg font-semibold text-gray-800">
+                                            Comprehensive Career Resource Library
+                                        </div>
+                                        <div class="text-sm text-pink-600 font-medium">
+                                            1000+ Career Profiles Database
+                                        </div>
+                                    </div>
+                                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- How It Works -->
+
+<section class="py-16 bg-indigo-50">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold  section-heading">How It Works</h2>
+        <p class="text-gray-600 max-w-3xl mx-auto mt-4">
+            It analyzes your skills, interests, and personality to suggest the best career options tailored just for
+            you.
+        </p>
+
+        <div class="flex flex-col md:flex-row justify-center items-center md:items-start gap-8 mt-8">
+            <div class="max-w-xs">
+                <div
+                    class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+                    1</div>
+                <h3 class="text-xl font-semibold mb-3">Choose Your Plan</h3>
+                <p class="text-gray-600">Select the assessment package that best fits your needs and career goals.</p>
+            </div>
+
+            <div class="max-w-xs">
+                <div
+                    class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+                    2</div>
+                <h3 class="text-xl font-semibold mb-3">Take the Assessment</h3>
+                <p class="text-gray-600">Complete our comprehensive psychometric test at your own pace (approximately 2
+                    hours).</p>
+            </div>
+
+            <div class="max-w-xs">
+                <div
+                    class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+                    3</div>
+                <h3 class="text-xl font-semibold mb-3">Get Your Results</h3>
+                <p class="text-gray-600">Receive a detailed report with personalized career recommendations and
+                    insights.</p>
+            </div>
+
+            <div class="max-w-xs">
+                <div
+                    class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+                    4</div>
+                <h3 class="text-xl font-semibold mb-3">Career Guidance</h3>
+                <p class="text-gray-600">Connect with our career counselors for personalized guidance and next steps.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Career Tree Planner -->
+<section class="py-16 bg-gradient-to-r from-cyan-100 to-blue-100 rounded-xl mx-4 my-8 hidden">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row items-center">
+
+
+
+
+            <div class="md:w-2/3 mb-8 md:mb-0 md:pr-8">
+                <h2 class="text-3xl font-bold mb-6">TopTeen Career Tree Planner</h2>
+                <p class="text-gray-700 mb-4">Map out your career trajectory with our innovative Career Tree Planner.
+                    Unlike traditional career ladders, our approach recognizes that career paths aren't always linear.
+                </p>
+                <p class="text-gray-700 mb-6">The Career Tree Planner helps you visualize various pathways, including
+                    lateral moves, skill development opportunities, and advancement options to achieve your long-term
+                    career goals.</p>
+
+                <button
+                    class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold flex items-center transition duration-300">
+                    <i class="fas fa-leaf mr-2"></i>
+                    <span>Start Your Career Tree</span>
+                </button>
+            </div>
+
+            <div class="md:w-1/3 flex justify-center">
+                <img src="Psychometric%20Test%20_%20Top%20Teen_files/sprout.png" alt="Career Tree"
+                    class="w-48 h-48 md:w-64 md:h-64">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing -->
+<section class="py-16 bg-white" id="pricing ">
+    <div class="container mx-auto px-4">
+
+        <div class="  w-80 md:mx-auto lg:w-1/2 bg-gradient-to-br from-green-50 to-indigo-100 rounded-xl shadow-md ">
+
+            <div class="grid gird-cols-1 md:grid-cols-5">
+
+
+                <div class="student-im relative  md:col-span-2 ">
+                    <img src="{% static 'images/studentwith-tab.png' %}" alt="Career Assessment"
+                        class="  max-w-full md:absolute md:bottom-0 md:left-1/2 md:transform md:-translate-x-1/2 ">
+                </div>
+
+                <div class="p-8 md:col-span-3 order-last ld:order-first">
+                    <h2 class="text-4xl font-semibold">Stream Sorter Test<span class="text-purple-800"> (Class 9th–10th) </span></h2>
+                    <div class="topinr flex items-center space-x-4 mt-4">
+                        {% if not is_student %}
+                            <div class="flex gap-[12px] bg-[#f7f7fa] pt-[13px] pb-[10px] lg:pb-[22px] rounded-[10px]">
+                            <img src="{% static "topteenfrontend/assets/images/advancedCube.svg" %}" class="my-auto w-[36px] h-[36px] lg:w-[55px] lg:h-[55px] object-cover" alt="">
+                            <div class="my-auto">
+                                <p class="text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21px] semibold text-[#333333]">Advanced</p>
+                                <p class="text-[20px] leading-[26px] lg:text-[24px] lg:leading-[32px] semibold text-[#333333]">₹ {{pyschometric_test_amount}}    <del>{{psychometric_cross_test_amount}}</del></p>
+                                <p class="text-[12px] leading-[16.2px] text-[#828282] mediumFont">Career guidance • 1 year validity</p>
+                            </div>
+                            </div>
+                        {% endif %}
+                        <div class="flex flex-col">
+                            <div class="mt-4 text-4xl text-gray-800 font-bold text-purple-800">₹ 999/-</div>
+                            <div class="mt-2 text-xs text-gray-500">One-time payment</div>
+                        </div>
+                        <div class="mt-2 text-2xl text-ur-600 line-through text-gray-500">₹ 9999/-</div>
+                        <span
+                            class="bg-purple-100 text-purple-800 text-base  me-2 px-2.5 py-0.5 rounded-full  px-3 py-2">80%
+                            OFF</span>
+                    </div>
+
+
+                    <div class="mt-6 text-gray-700">
+                        <ul class="list-none list-inside space-y-2 gird grid-cols-1 md:grid-cols-2">
+                            <li class="flex"> <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6 text-indigo-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg> Comprehensive psychometric assessment</li>
+                            <li class="flex"> <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6 text-indigo-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>Stream selection guidance based on strengths</li>
+                            <li class="flex"> <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6 text-indigo-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>Personalized report with subject-wise recommendations</li>
+                            <li class="flex"> <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6 text-indigo-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg> Access to career exploration resources</li>
+                        </ul>
+
+                        <div class="mt-8" id="proceed-section">
+                            <!-- {#
+                            <button id="checkoutadvanced" data-test-type='{{test_type.advanced_test_type}}' class="w-[160px] h-[41px] lg:w-[216px] lg:h-[53px] mt-[10px] lg:mt-[14px] relative bg-[#31b0ff] rounded-[10px]">
+                                <div class="absolute top-0 w-[160px] h-[38px] lg:w-[216px] lg:h-[48px] bg-[#4cc9f0] rounded-[10px] flex justify-center items-center">
+                                <p class="text-[12px] leading-[16px] lg:text-[14px] lg:leading-[19px] text-[#ffffff] text-center boldFont">Select Package <span>pay with razorpay</span></p> 
+                                </div>
+                            </button>
+                            #} -->
+
+                            <button
+                                onclick="proceedToPayment(this)"
+                                data-payment-url="{{psychometric_test_payment_url}}"
+                                data-login-url="{% url 'users:login' %}?next={{request.path}}"
+                                data-is-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
+                                data-test-type-id="{{test_type_id}}"
+                                class=" w-30 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-semibold transition">
+                                Proceed {% if not is_student %} to Buy{% endif %}
+                            </button>
+
+                            <!-- {% if delete_demo_payment_url %}
+                                <button onclick="delete_demo_payment()" class="w-[160px] h-[41px] lg:w-[216px] lg:h-[53px] mt-[10px] lg:mt-[14px] relative bg-[#31b0ff] rounded-[10px]">
+                                    <div class="absolute top-0 w-[160px] h-[38px] lg:w-[216px] lg:h-[48px] bg-[#4cc9f0] rounded-[10px] flex justify-center items-center">
+                                    <p class="text-[12px] leading-[16px] lg:text-[14px] lg:leading-[19px] text-[#ffffff] text-center boldFont">Clear Demo Test</p> 
+                                    </div>
+                                </button>
+                                {% endif %}
+                                {#
+                                <button class="w-[160px] h-[41px] lg:w-[216px] lg:h-[53px] mt-[10px] lg:mt-[14px] relative triggerProfilePopup bg-[#31b0ff] rounded-[10px]">
+                                    <div class="absolute top-0 w-[160px] h-[38px] lg:w-[216px] lg:h-[48px] bg-[#4cc9f0] rounded-[10px] flex justify-center items-center">
+                                    <p class="text-[12px] leading-[16px] lg:text-[14px] lg:leading-[19px] text-[#ffffff] text-center boldFont">Select</p>
+                                    </div>
+                                </button>
+                            #} -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex justify-center hidden">
+                <div
+                    class="bg-white rounded-xl shadow-lg overflow-hidden max-w-md transition-transform duration-300 hover:transform hover:scale-105">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-400 py-6 px-8 text-white">
+                        <h3 class="text-2xl font-bold">Comprehensive Assessment</h3>
+                        <p class="opacity-90 mt-1">Complete career guidance solution</p>
+                    </div>
+
+                    <div class="p-8">
+                        <div class="flex items-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-3"
+                                viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <span>Detailed Career Report</span>
+                        </div>
+
+                        <div class="flex items-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-3"
+                                viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <span>Interest Analysis</span>
+                        </div>
+
+                        <div class="flex items-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-3"
+                                viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <span>Access to Career Library</span>
+                        </div>
+
+                        <div class="flex items-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-3"
+                                viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <span>College Recommendations</span>
+                        </div>
+
+                        <div class="flex items-center mb-8">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-3"
+                                viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <span>Personalized Counseling Session</span>
+                        </div>
+
+                        <button
+                            onclick="proceedToPayment(this)"
+                            data-payment-url="{{psychometric_test_payment_url}}"
+                            data-login-url="{% url 'users:login' %}?next={{request.path}}"
+                            data-is-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
+                            data-test-type-id="{{test_type_id}}"
+                            class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-semibold transition">
+                            Proceed
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+</section>
+
+<!-- FAQ -->
+<section class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+        <div class="max-w-3xl mx-auto space-y-4">
+            <div class="accordion-item border rounded-lg overflow-hidden">
+                <div class="accordion-header flex justify-between items-center p-4 cursor-pointer bg-gray-100"
+                    onclick="toggleAccordion(1)">
+                    <h3 class="font-semibold text-gray-800">Why Career Assessment Matters</h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 transform transition-transform"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" id="accordion-icon-1">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div id="accordion-1" class="accordion-contents hidden p-4 text-gray-600 bg-white">
+                    <p class="text-gray-500 text-base">Career assessments help you understand how your personal characteristics affect your potential for success and satisfaction in various career options:</p>
+                
+                    
+                    <ul class="list-disc pl-5 mt-2 text-sm">
+
+                        <li class="mb-1">Strategic career decision-making </li>
+                        <li class="mb-1">Increased job satisfaction and motivation</li>
+                        <li class="mb-1">Better understanding of strengths and development areas </li>
+                        <li class="mb-1">Alignment between interests and career choices</li>     
+                                         <li class="mb-1">Enhanced self-awareness and personal identity</li>    
+                    </ul>   
+
+                
+                
+                </div>
+            </div>
+
+            <div class="accordion-item border rounded-lg overflow-hidden">
+                <div class="accordion-header flex justify-between items-center p-4 cursor-pointer bg-gray-100"
+                    onclick="toggleAccordion(2)">
+                    <h3 class="font-semibold text-gray-800">What is the importance of Career Assessment tests in career
+                        counseling?</h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 transform transition-transform"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" id="accordion-icon-2">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div id="accordion-2" class="accordion-contents hidden p-4 text-gray-600 bg-white">
+                    <p class="text-gray-500 text-base">Scientific career assessment tests help you understand your
+                        strengths, weaknesses, aptitude,
+                        interests, and guide you towards the right career path.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item border rounded-lg overflow-hidden">
+                <div class="accordion-header flex justify-between items-center p-4 cursor-pointer bg-gray-100"
+                    onclick="toggleAccordion(3)">
+                    <h3 class="font-semibold text-gray-800">What is the duration of the career assessment? Do I have to
+                        take it in a single sitting?</h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 transform transition-transform"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" id="accordion-icon-3">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div id="accordion-3" class="accordion-contents hidden p-4 text-gray-600 bg-white">
+                    <p class="text-gray-500 text-base">The assessment takes about 2 hours but supports auto-save so you
+                        can continue later.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item border rounded-lg overflow-hidden">
+                <div class="accordion-header flex justify-between items-center p-4 cursor-pointer bg-gray-100"
+                    onclick="toggleAccordion(4)">
+                    <h3 class="font-semibold text-gray-800">How does the Top Teen Career assessment test help?</h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 transform transition-transform"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" id="accordion-icon-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div id="accordion-4" class="accordion-contents hidden p-4 text-gray-600 bg-white">
+                    <p class="text-gray-500 text-base">The Top Teen Career Assessment helps you discover top career
+                        options based on personality,
+                        aptitude, and interests with detailed guidance.</p>
+                </div>
+            </div>
+
+        </div>
+
+
+
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-16 bg-gradient-to-r from-indigo-600 to-blue-500 text-white">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold mb-6">Ready to Discover Your Perfect Career Path?</h2>
+        <p class="text-xl text-white opacity-90 mb-8 max-w-2xl mx-auto">TJoin thousands of students who have found their direction with our comprehensive psychometric assessment.</p>
+        <div class="flex flex-wrap justify-center gap-4">
+<!-- Replace the existing anchor tag with this updated version -->
+<a onclick="startAssessment(event)"
+   class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition flex flex-wrap gap-4 cursor-pointer">
+    <span>Start Your Assessment</span>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2"
+         viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+              d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+              clip-rule="evenodd" />
+    </svg>
+</a>
+            <a href="https://test.topteen.in/"
+                class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold  hover:text-blue-600 transition flex items-center">
+           
+                <span>Learn More</span>
+
+                  
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>
+
+
+<script>
+    function toggleDescription(button) {
+        const container = button.parentElement;
+        const descriptionText = container.querySelector('.description-text');
+
+        if (descriptionText.classList.contains('line-clamp-4')) {
+            // Expand
+            descriptionText.classList.remove('line-clamp-4');
+            button.textContent = 'Read less';
+        } else {
+            // Collapse
+            descriptionText.classList.add('line-clamp-4');
+            button.textContent = 'Read more';
+        }
+    }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get all read more buttons
+        const readMoreButtons = document.querySelectorAll('.read-more-btn');
+
+        // Add click event to each read more button
+        readMoreButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const container = this.closest('.description-container');
+                const wrapper = container.querySelector('.description-wrapper');
+                const expandedContent = container.querySelector('.expanded-content');
+
+                // Hide the wrapper with truncated text and read more button
+                wrapper.classList.add('hidden');
+                this.classList.add('hidden');
+
+                // Show the expanded content
+                expandedContent.classList.remove('hidden');
+            });
+        });
+
+        // Get all close buttons
+        const closeButtons = document.querySelectorAll('.close-btn');
+
+        // Add click event to each close button
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const container = this.closest('.description-container');
+                const wrapper = container.querySelector('.description-wrapper');
+                const readMoreBtn = container.querySelector('.read-more-btn');
+                const expandedContent = container.querySelector('.expanded-content');
+
+                // Show the wrapper with truncated text and read more button
+                wrapper.classList.remove('hidden');
+                readMoreBtn.classList.remove('hidden');
+
+                // Hide the expanded content
+                expandedContent.classList.add('hidden');
+            });
+        });
+    });
+</script>
+
+<script>
+    function toggleAccordion(index) {
+        const content = document.getElementById(`accordion-${index}`);
+        const icon = document.getElementById(`accordion-icon-${index}`);
+
+        content.classList.toggle('hidden');
+        icon.classList.toggle('rotate-180');
+    }
+</script>
+
+
+<!-- Add this to the bottom of the file, just before the closing </body> tag -->
+<script>
+    function startAssessment(event) {
+        event.preventDefault();
+        // Scroll to proceed button section
+        var proceedSection = document.getElementById('proceed-section');
+        if (proceedSection) {
+            proceedSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        } else {
+            // Fallback to pricing section if proceed-section not found
+            var pricingSection = document.getElementById('pricing');
+            if (pricingSection) {
+                pricingSection.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }
+    
+    // Load Razorpay checkout script if not already loaded
+    if (typeof Razorpay === 'undefined') {
+        var script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = function() {
+            console.log('Razorpay script loaded');
+        };
+        document.head.appendChild(script);
+    }
+
+    function proceedToPayment(button) {
+        var isAuthenticated = button.getAttribute('data-is-authenticated') === 'true';
+        var paymentUrl = button.getAttribute('data-payment-url');
+        var loginUrl = button.getAttribute('data-login-url');
+        var testTypeId = button.getAttribute('data-test-type-id');
+        
+        // Debug: Log the payment URL being used
+        console.log('Payment URL from button:', paymentUrl);
+        console.log('Test Type ID:', testTypeId);
+        
+        // Ensure we're using the correct API endpoint (not the demo endpoint)
+        if (paymentUrl && paymentUrl.includes('create-demo-psychometric-test-payment-eazypay')) {
+            console.warn('Warning: Using old demo payment URL. Updating to API endpoint...');
+            paymentUrl = '{% url "psychometrictests:createpsychomerticttestpayment" %}';
+            console.log('Updated Payment URL:', paymentUrl);
+        }
+        
+        if (!isAuthenticated) {
+            window.location.href = loginUrl;
+            return;
+        }
+
+        // Show loading state
+        button.disabled = true;
+        var originalText = button.textContent;
+        button.textContent = 'Processing...';
+
+        // Make AJAX call to create payment
+        var formData = new FormData();
+        formData.append("test_type", testTypeId);
+        formData.append("csrfmiddlewaretoken", getCookie('csrftoken'));
+
+        fetch(paymentUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            // Clone the response so we can read it multiple times if needed
+            var responseClone = response.clone();
+            
+            // Check if response is ok
+            if (!response.ok) {
+                // Try to parse as JSON first
+                return response.json().then(errorData => {
+                    var errorMsg = errorData.error || errorData.message || 'HTTP ' + response.status;
+                    throw new Error(errorMsg);
+                }).catch(() => {
+                    // If JSON parsing fails, read as text from the clone
+                    return responseClone.text().then(text => {
+                        throw new Error('HTTP ' + response.status + ': ' + text);
+                    });
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            button.disabled = false;
+            button.textContent = originalText;
+
+            // Debug logging
+            console.log('Payment response:', data);
+            
+            // Show which payment gateway is being used
+            var gatewayName = 'Unknown';
+            if (data.gateway === 1) {
+                gatewayName = 'RAZORPAY';
+            } else if (data.gateway === 2) {
+                gatewayName = 'ICICI EAZYPAY';
+            }
+            console.log('Selected Payment Gateway: ' + gatewayName + ' (value: ' + data.gateway + ')');
+
+            // Check for error in response
+            if (data.error) {
+                console.error('Payment API Error:', data.error);
+                alert('Error: ' + data.error);
+                return;
+            }
+
+            // Check which gateway was used
+            // GatewayChoices: RAZORPAY=1, ICICIEAZYPAY=2
+            if (data.gateway === 1 || data.payment_info) {
+                // Razorpay gateway
+                console.log('Processing payment with Razorpay...');
+                if (!data.payment_info) {
+                    console.error('Razorpay payment_info missing');
+                    alert('Error: Payment information not available. Please try again.');
+                    return;
+                }
+                openRazorpay(data);
+            } else if (data.gateway === 2 || data.payment_url) {
+                // ICICI Eazypay gateway - redirect to payment URL
+                console.log('Processing payment with ICICI Eazypay...');
+                if (!data.payment_url) {
+                    console.error('ICICI Eazypay payment_url missing');
+                    alert('Error: Payment URL not available. Please try again.');
+                    return;
+                }
+                console.log('Redirecting to ICICI Eazypay:', data.payment_url);
+                window.location.href = data.payment_url;
+            } else {
+                console.error('Unexpected response format:', data);
+                console.error('Gateway value:', data.gateway);
+                console.error('Has payment_info:', !!data.payment_info);
+                console.error('Has payment_url:', !!data.payment_url);
+                alert('Error: Unable to process payment. Please check console for details.');
+            }
+        })
+        .catch(error => {
+            console.error('Payment error:', error);
+            button.disabled = false;
+            button.textContent = originalText;
+            var errorMessage = 'Error: Unable to process payment.';
+            if (error.message) {
+                errorMessage += ' ' + error.message;
+            }
+            alert(errorMessage);
+        });
+    }
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function openRazorpay(data) {
+        if (typeof Razorpay === 'undefined') {
+            alert('Razorpay is loading. Please wait a moment and try again.');
+            return;
+        }
+
+        data.payment_info["handler"] = function (response) {
+            updatePayment(data.test_id, data.pay_id, data.test_type, response, data.success_url, data.fail_url);
+        };
+        data.payment_info["modal"] = {
+            "ondismiss": function() {
+                window.location.href = data.fail_url;
+            }
+        };
+        var rzp1 = new Razorpay(data.payment_info);
+        rzp1.open();
+        rzp1.on('payment.failed', function (response) {
+            alert('Payment failed: ' + (response.error.description || response.error.code));
+            window.location.href = data.fail_url;
+        });
+    }
+
+    function updatePayment(test_id, pay_id, test_type, response, success_url, fail_url) {
+        var data = {
+            gateway_order_id: response.razorpay_order_id,
+            gateway_payment_id: response.razorpay_payment_id,
+            gateway_signature: response.razorpay_signature,
+            test_id: test_id,
+            payment_id: pay_id,
+            test_type: test_type
+        };
+
+        fetch('{% url "psychometrictests:psychomerticttestpaymentupdate" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(data),
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            window.location.href = success_url;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            window.location.href = fail_url;
+        });
+    }
+</script>
+{% endblock %}

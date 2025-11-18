@@ -1,0 +1,624 @@
+{% extends 'topteenfrontend/base.html' %}
+{%block additionalheader%}
+<style>
+.pageBtn{
+  height: 35px;
+  width: 35px;
+  border-radius: 3px;
+  border: 1px solid #dadada;
+  font-size: 14px;
+  color: #898A8D;
+  background-color: #FFFFFF;
+}
+.pageBtn.active{
+background-color: #3f37c9;
+color: #FFFFFF;
+}
+
+</style>
+{%endblock%}
+
+{% block main %}
+
+<!-- Main Content -->
+    <main class="lg:container px-[15px] lg:px-[0px] mx-auto">
+      <h1 class="font-bold text-[28px] text-[#333333] text-center md:text-left">
+        College Finder
+      </h1>
+
+      <!-- Filters and Results -->
+      <div class="md:flex sm:gap-[30px] pt-[20px]">
+        <!-- Filters -->
+        <div
+          class="flex flex-col gap-y-[24px] mx-auto md:mt-[40px] justify-start xl:ml-0"
+        >
+        <form  method="GET">
+          {#
+          <!-- Country -->
+          <div class="mx-auto flex flex-col">
+            <h5 class="text-[18px]">Country</h5>
+
+            <button
+              id="selectCountryButton"
+              data-dropdown-toggle="selectCountryDropdown"
+              class="mx-auto text-black font-medium text-sm px-4 py-2.5 border border-gray-300 w-[300px] text-center inline-flex items-center relative mt-[8px]"
+              type="button"
+            >
+              Select Country
+              <svg
+                class="absolute right-3 w-4 h-4"
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+
+            <!-- Dropdown menu -->
+            <div
+              id="selectCountryDropdown"
+              class="hidden z-10 w-[300px] bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600"
+              data-popper-reference-hidden=""
+              data-popper-escaped=""
+              data-popper-placement="bottom"
+              style="
+                position: absolute;
+                inset: 0px auto auto 0px;
+                left: 0;
+                transform: translate(281px, 70px);
+              "
+            >
+              <ul
+                class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200"
+                aria-labelledby="selectCountryButton"
+              >
+              {% for tag,count,selected in facets_filter.facets.country %}
+            
+                <li>
+                  <div class="flex items-center">
+                    <input
+                      id="{{tag}}"
+                      type="checkbox"
+                      name="country"
+                      value="{{tag}}" onchange="this.form.submit()" {% if selected %} checked {% endif %}
+                      class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 dark:ring-offset-gray-700 dark:bg-gray-600 dark:border-gray-500"
+                    />
+                    <label
+                    for="{{tag}}"
+                      class="ml-2 text-sm font-medium text-gray-900 capitalize dark:text-gray-300"
+                      >{{tag}}</label
+                    >
+                  </div>
+                {%endfor%}
+              </ul>
+            </div>
+          </div>
+          <!-- End of Country -->
+        #}
+
+          <!-- Location -->
+          <div class="mx-auto flex flex-col">
+            <h5 class="text-[18px]">State</h5>
+            <button
+              id="selectStateButton"
+              data-dropdown-toggle="selectStateDropdown"
+              class="mx-auto text-black font-medium text-sm px-4 py-2.5 border border-gray-300 w-[300px] text-center inline-flex items-center relative mt-[8px]"
+              type="button"
+            >
+              Select state
+              <svg
+                class="absolute right-3 w-4 h-4"
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+
+            <!-- Dropdown menu -->
+            <div
+              id="selectStateDropdown"
+              class="hidden z-10 w-[300px] bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600"
+              data-popper-reference-hidden=""
+              data-popper-escaped=""
+              data-popper-placement="bottom"
+              style="
+                position: absolute;
+                inset: 0px auto auto 0px;
+                left: 0;
+                transform: translate(281px, 70px);
+              "
+            >
+              <ul
+                class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200"
+                aria-labelledby="selectStateButton"
+              >{% for tag,count,selected in facets_filter.facets.state %}
+            
+                <li>
+                  <div class="flex items-center">
+                    <input
+                      id="{{tag}}"
+                      type="checkbox"
+                      name="state"
+                      value="{{tag}}" onchange="this.form.submit()" {% if selected %} checked {% endif %}
+                      class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 dark:ring-offset-gray-700 dark:bg-gray-600 dark:border-gray-500"
+                    />
+                    <label
+                    for="{{tag}}"
+                      class="ml-2 text-sm font-medium text-gray-900 capitalize dark:text-gray-300"
+                      >{{tag}}</label
+                    >
+                  </div>
+                </li>
+                {%endfor%}
+                
+              </ul>
+            </div>
+          </div>
+          <!-- End of Location -->
+
+          <!-- City -->
+          <div class="mx-auto flex flex-col">
+            <h5 class="text-[18px]">City</h5>
+
+            <button
+              id="selectCityButton"
+              data-dropdown-toggle="selectCityDropdown"
+              class="mx-auto text-black font-medium text-sm px-4 py-2.5 border border-gray-300 w-[300px] text-center inline-flex items-center relative mt-[8px]"
+              type="button"
+            >
+              Select City
+              <svg
+                class="absolute right-3 w-4 h-4"
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+
+            <!-- Dropdown menu -->
+            <div
+              id="selectCityDropdown"
+              class="hidden z-10 w-[300px] bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600"
+              data-popper-reference-hidden=""
+              data-popper-escaped=""
+              data-popper-placement="bottom"
+              style="
+                position: absolute;
+                inset: 0px auto auto 0px;
+                left: 0;
+                transform: translate(281px, 70px);
+              "
+            >
+              <ul
+                class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200"
+                aria-labelledby="selectCityButton"
+              >
+              {% for tag,count,selected in facets_filter.facets.city %}
+            
+                <li>
+                  <div class="flex items-center">
+                    <input
+                      id="{{tag}}"
+                      type="checkbox"
+                      name="city"
+                      value="{{tag}}" onchange="this.form.submit()" {% if selected %} checked {% endif %}
+                      class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 dark:ring-offset-gray-700 dark:bg-gray-600 dark:border-gray-500"
+                    />
+                    <label
+                    for="{{tag}}"
+                      class="ml-2 text-sm font-medium text-gray-900 capitalize dark:text-gray-300"
+                      >{{tag}}</label
+                    >
+                  </div>
+                {%endfor%}
+              </ul>
+            </div>
+          </div>
+          <!-- End of City -->
+        </form>
+
+        
+          <!-- Study Mode -->
+          <div class=" hidden flex flex-col w-[300px] mx-auto">
+            <h5 class="text-[18px]">Study Mode</h5>
+            <form
+              action="submit"
+              id="studyMode"
+              class="mt-[8px] flex flex-col gap-y-[6px] w-[300px]"
+            >
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="studyInput"
+                  name="distance"
+                  value="distance"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="distance" class="my-auto text-[14px]">
+                  Distance</label
+                >
+              </div>
+
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="studyInput"
+                  name="partTime"
+                  value="partTime"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="partTime" class="my-auto text-[14px]">
+                  Part time</label
+                >
+              </div>
+
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="studyInput"
+                  name="exchange"
+                  value="exchange"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="exchange" class="my-auto text-[14px]">
+                  Offering Exchange Program</label
+                >
+              </div>
+
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="studyInput"
+                  name="regularStudy"
+                  value="regularStudy"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="regularStudy" class="my-auto text-[14px]">
+                  Regular</label
+                >
+              </div>
+            </form>
+          </div>
+          <!-- End of Study Mode -->
+
+          <!-- College Type -->
+          <div class=" hidden flex flex-col w-[300px] mx-auto">
+            <h5 class="text-[18px]">Institute/College type</h5>
+            <form
+              action="submit"
+              id="collegeForm"
+              class="mt-[8px] flex flex-col gap-y-[6px] w-[300px]"
+            >
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="collegeInput"
+                  name="govtCollege"
+                  value="govtCollege"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="govtCollege" class="my-auto text-[14px]"
+                  >Government</label
+                >
+              </div>
+
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="collegeInput"
+                  name="regularCollege"
+                  value="regularCollege"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="regularCollege" class="my-auto text-[14px]">
+                  Regular
+                </label>
+              </div>
+
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="collegeInput"
+                  name="publicCollege"
+                  value="publicCollege"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="publicCollege" class="my-auto text-[14px]">
+                  Public
+                </label>
+              </div>
+            </form>
+          </div>
+          <!-- End of college type -->
+
+          <!-- Level -->
+          <div class=" hidden flex flex-col w-[300px] mx-auto">
+            <h5 class="text-[18px]">Level</h5>
+            <form
+              action="submit"
+              id="levelForm"
+              class="mt-[8px] flex flex-col gap-y-[6px] w-[300px]"
+            >
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="levelInput"
+                  name="degreeCollege"
+                  value="degreeCollege"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="degreeCollege" class="my-auto text-[14px]">
+                  Degree</label
+                >
+              </div>
+
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="levelInput"
+                  name="diplomaCollege"
+                  value="diplomaCollege"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="diplomaCollege" class="my-auto text-[14px]">
+                  Diploma</label
+                >
+              </div>
+
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="levelInput"
+                  name="ugCoursesCollege"
+                  value="ugCoursesCollege"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="ugCoursesCollege" class="my-auto text-[14px]">
+                  UG Courses
+                </label>
+              </div>
+
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="levelInput"
+                  name="certificateCourseCollege"
+                  value="certificateCourseCollege"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label
+                  for="certificateCourseCollege"
+                  class="my-auto text-[14px]"
+                >
+                  Certificate Course
+                </label>
+              </div>
+            </form>
+          </div>
+          <!-- End of Level -->
+
+          <!-- Stream -->
+          <div class="hidden flex flex-col w-[300px] mx-auto">
+            <h5 class="text-[18px]">Stream</h5>
+            <form
+              action="submit"
+              id="streamForm"
+              class="mt-[8px] flex flex-col gap-y-[6px] w-[300px]"
+            >
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="streamInput"
+                  name="medicalStream"
+                  value="medicalStream"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="medicalStream" class="my-auto text-[14px]">
+                  Medical
+                </label>
+              </div>
+
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="streamInput"
+                  name="nonMedicalStream"
+                  value="nonMedicalStream"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="nonMedicalStream" class="my-auto text-[14px]">
+                  Non Medical</label
+                >
+              </div>
+
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="streamInput"
+                  name="commerceStream"
+                  value="commerceStream"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="commerceStream" class="my-auto text-[14px]">
+                  Commerce
+                </label>
+              </div>
+
+              <div class="h-[36px] px-4 flex gap-[8px] border border-gray-300">
+                <input
+                  type="checkbox"
+                  id="streamInput"
+                  name="humanitiesStream"
+                  value="humanitiesStream"
+                  class="my-auto border-gray-400 bg-gray-100 rounded-[4px]"
+                />
+                <label for="humanitiesStream" class="my-auto text-[14px]">
+                  Humanities
+                </label>
+              </div>
+            </form>
+          </div>
+          <!-- End of Stream -->
+        </div>
+        <!-- End of Filters -->
+
+        <!-- College List -->
+        <div class="md:-mt-[20px] mx-auto lg:mr-0">
+
+          <div
+            class="flex flex-row justify-between items-center gap-2.5 mb-6 lg:mx-auto max-w-[1065px] mt-10"
+          >
+            <div
+              class="flex flex-row lg:gap-[18px] gap-3 lg:w-full collegeTabList tabList flex-wrap no-scrollbar"
+              data-tabs-toggle="#collegesPanel"
+            >
+            {%for ql in query_list %}
+              <div
+                class="border-2 border-[#E0E0E0] text-[#4F4F4F] flex flex-row justify-center gap-2.5 py-2.5 px-4 semibold text-xs items-center tracking-[0.01em] rounded-[100px] border-2 border-[#3F37C9] bg-[#3F37C9] bg-opacity-5 text-[#3F37C9]"
+                role="tab"
+              >
+                <p class="text-[#4F4F4F] text-xs semibold text-[#3F37C9]">{{ql}}</p>
+              </div>
+            {%endfor%}  
+            {% if query_list %}
+            <a href="{{url('colleges:college')}}">
+              <div
+                class="border-2 border-[#E0E0E0] flex flex-row justify-center gap-2.5 py-2.5 px-4 semibold text-xs items-center tracking-[0.01em] rounded-[100px] border-2 border-[#3F37C9] bg-[#3F37C9] bg-opacity-5 text-[#3F37C9]"
+                style="background-color: #3F37C9;"
+                role="tab"
+              >
+                <p class="text-[#4F4F4F] text-xs semibold text-[#ffffff]">Reset</p>
+              </div>
+            </a>
+            {% endif %}
+          
+            </div>
+          </div>
+
+          <h3
+            class="font-semibold text-[24px] text-[#333333] text-center md:text-left"
+          >
+            Results
+          </h3>
+
+          <div
+            class="grid sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-[15px] gap-y-[15px] gap-x-[15px] sm:gap-x-[25px] sm:gap-y-[25px] content-start mt-[15px]"
+            >
+          {%for college in colleges%}
+          <div class="max-w-[400px] mx-auto">
+              <div class="mb-[12px]">
+                <a href="{{url('colleges:collegedetail',args=[college.slug])}}">
+                <img
+                  src="{{college.logo}}"
+                  class="w-[270px] h-[240px] sm:w-[210px] sm:h-[180px] object-cover rounded-[10px]"
+                  alt=""
+                />
+              </div>
+              <div class="w-[270px] sm:w-[210px]">
+                <p
+                  class="font-semibold text-[16px] sm:text-[14px] text-[#333333]"
+                >
+                {{college.name}}</a>
+                </p>
+              </div>
+              <div class="flex">
+                <p
+                  class="text-[14px] sm:text-[12px] text-[#828282] truncate max-w-[120px]"
+                >
+                  {% if college.country %}{{college.country.name}}{% endif %}{% if college.state and college.country.name %},{% endif %}{% if college.state %}{{college.state.name}}{% endif %}
+                </p>
+                <img
+                  src="{{static("topteenfrontend/assets/images/star.svg")}}"
+                  class="w-[14px] h-[14px] ml-[8px]"
+                  alt=""
+                />
+                <p class="text-[14px] sm:text-[12px] text-[#828282] ml-[6px]">
+                  4.4
+                </p>
+              </div>
+            </div>
+            {%endfor%}
+          </div>
+        </div>
+
+        <!-- End of College List -->
+      </div>
+      <!-- End of Filters and Results -->
+    </main>
+    <!-- End of Mian content -->
+<br>
+ <!-- PAGINATION -->
+ <div
+ class="flex flex-row justify-center items-center gap-x-[9px] mb-[58px]"
+>
+{% if colleges.has_previous() %}
+      
+<a href="?{{ get_updated_url }}{% if get_updated_url %}&{% endif %}page={{colleges.previous_page_number() }}">
+<button
+   class="h-[35px] w-[35px] rounded-[3px] border border-[#DADADA] text-center align-middle text-sm text-[#898A8D] bg-white"
+ >
+ 
+   &lt;&lt;
+ </button>
+</a>
+
+<a href="?{{ get_updated_url }}{% if get_updated_url %}&{% endif %}page={{colleges.number-1}}">
+ <button
+    class="pageBtn"
+ >
+ {{colleges.number-1}}
+ </button>
+ </a>
+ {%endif%}
+
+ <button
+   class="pageBtn active"
+ >
+ {{colleges.number}}
+ </button>
+ {% if colleges.has_next() %}
+ <a href="?{{ get_updated_url }}{% if get_updated_url %}&{% endif %}page={{colleges.number+1}}">
+ <button
+   class="pageBtn"
+ >
+ {{colleges.number+1}}
+ </button>
+</a>
+      
+ <a href="?{{ get_updated_url }}{% if get_updated_url %}&{% endif %}page={{ colleges.next_page_number() }}">
+      
+ <button
+   class="h-[35px] w-[35px] rounded-[3px] border border-[#DADADA] text-center align-middle text-sm text-[#898A8D] bg-white pagebtn"
+  onclick="">
+   &gt;&gt;
+ </button>
+</a>
+{%endif%}
+</div>
+{%endblock%}

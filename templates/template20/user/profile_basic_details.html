@@ -1,0 +1,483 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Profile Basic Details | Top Teen{% endblock %}
+{% block description_content %}Complete your profile to get personalized career recommendations and content.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} profile-onboarding{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<!-- Slick Carousel CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" />
+<style>
+  .profile-onboarding {
+    overflow-x: hidden;
+  }
+  .newPages {
+    position: relative;
+  }
+  .page {
+    min-height: 100vh;
+    padding: 100px 20px 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .streamTab, .hobbiesTab {
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+  }
+  .streamTab:hover, .hobbiesTab:hover {
+    background: #e9ecef !important;
+  }
+  .streamTab.activeOnbTab, .hobbiesTab.activeOnbTab {
+    background: #3f37c9 !important;
+    color: white;
+    border-color: #3f37c9;
+  }
+  .streamTab.activeOnbTab p, .hobbiesTab.activeOnbTab p {
+    color: white !important;
+  }
+  .icon-input {
+    position: relative;
+  }
+  .icon-input img {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+  .icon-input input,
+  .icon-input select {
+    padding-left: 45px;
+  }
+  .imgBtn {
+    position: relative;
+    overflow: hidden;
+  }
+  .imgBtn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .backArrow {
+    position: absolute;
+    left: 20px;
+    top: 36px;
+    z-index: 10;
+    cursor: pointer;
+  }
+  @media (min-width: 992px) {
+    .backArrow {
+      left: 100px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<form class="position-relative w-100 min-vh-100" method="POST" enctype="multipart/form-data" onsubmit="return validatehobbiesform();">
+  {% csrf_token %}
+  
+  <div class="backArrow">
+    <img src="{{ static('images_new/icons/arrow-left.png') }}" alt="Back" style="width: 15px; height: 15px;" />
+  </div>
+
+  <div class="newPages">
+    <!-- Step 1: Choose Motive -->
+    <div class="motive page">
+      <div class="w-100" data-index="1">
+        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3">What are you here for?</h2>
+        <p class="text-center text-gray fs-16 mb-4" style="max-width: 344px;">
+          This will help the app prepare a guided path for you to take
+        </p>
+
+        {% for fg in figureouts %}
+        <div class="w-100 d-flex justify-content-center align-items-center mb-3">
+          <label class="streamTab activeOnbTab d-flex align-items-center p-3 rounded-3 bg-light" style="width: 344px; min-height: 75px; cursor: pointer;">
+            <input type="checkbox" name="userfigureout" value="{{ fg.id }}" class="d-none">
+            {% if fg.image %}
+            <img src="{{ fg.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ fg.name }}" />
+            {% endif %}
+            <div class="d-flex flex-column">
+              <p class="fs-16 fw-semibold mb-1">{{ fg.name }}</p>
+              {% if fg.description %}
+              <p class="fs-12 text-gray mb-0">{{ fg.description }}</p>
+              {% endif %}
+            </div>
+          </label>
+        </div>
+        {% endfor %}
+
+        <div class="mt-5 w-100 d-flex justify-content-center">
+          <button type="button" data-form-name="firstform" class="btn custom-button purple-button slideOnButton" style="width: 344px; height: 48px;">
+            CONTINUE
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Basic Details -->
+    <div class="basicDetails page">
+      <div class="w-100" data-index="2">
+        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3">Tell us more about yourself</h2>
+        <p class="text-center text-gray fs-16 mb-4" style="max-width: 344px;">
+          Let's get the essentials out of the way
+        </p>
+
+        <!-- Full Name -->
+        <div class="w-100 d-flex justify-content-center mb-3">
+          <div class="icon-input position-relative" style="width: 344px;">
+            <img src="{{ static('images_new/icons/signature.png') }}" alt="Name" style="width: 20px; height: 20px;" />
+            <input name="username" type="text" value="{{ request.user.name|default('') }}" 
+                   class="form-control custom-input w-100" 
+                   style="height: 48px; padding-left: 45px;"
+                   placeholder="Full name" required />
+          </div>
+        </div>
+
+        <!-- Birthday and Gender -->
+        <div class="w-100 d-flex justify-content-center gap-3 mb-3">
+          <div class="icon-input position-relative" style="width: 164px;">
+            <img src="{{ static('images_new/icons/calender1.png') }}" alt="Birthday" style="width: 20px; height: 20px;" />
+            <input name="userbirthdaydate" type="text" 
+                   onfocus="this.type='date'" 
+                   {% if request.user.user_profile and request.user.user_profile.birthdate %}value="{{ request.user.user_profile.birthdate }}"{% endif %}
+                   class="form-control custom-input w-100" 
+                   style="height: 48px; padding-left: 40px;"
+                   placeholder="Birthday" required />
+          </div>
+          <div class="icon-input position-relative" style="width: 164px;">
+            <img src="{{ static('images_new/icons/person-fill.png') }}" alt="Gender" style="width: 20px; height: 20px;" />
+            <select name="gender" id="gender" class="form-control custom-input w-100" style="height: 48px; padding-left: 40px;" required>
+              <option value="">Gender</option>
+              <option value="20" {% if request.user.user_profile and request.user.user_profile.gender == 20 %}selected{% endif %}>Male</option>
+              <option value="30" {% if request.user.user_profile and request.user.user_profile.gender == 30 %}selected{% endif %}>Female</option>
+              <option value="10" {% if request.user.user_profile and request.user.user_profile.gender == 10 %}selected{% endif %}>Transgender</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="w-100 d-flex justify-content-center mb-3">
+          <div class="icon-input position-relative" style="width: 344px;">
+            <img src="{{ static('images_new/icons/phone-fill.png') }}" alt="Phone" style="width: 20px; height: 20px;" />
+            <input name="userphone" type="text" 
+                   pattern="[6789][0-9]{9}" 
+                   value="{{ request.user.mobile|default('') }}"
+                   class="form-control custom-input w-100" 
+                   style="height: 48px; padding-left: 45px;"
+                   placeholder="Enter 10 digit number" required />
+          </div>
+        </div>
+
+        <!-- School Name -->
+        <div class="w-100 d-flex justify-content-center mb-3">
+          <div class="icon-input position-relative" style="width: 344px;">
+            <img src="{{ static('images_new/icons/person-2-crop-square-stack-fill.png') }}" alt="School" style="width: 20px; height: 20px;" />
+            <input name="userschool" type="text" 
+                   {% if request.user.user_profile %}value="{{ request.user.user_profile.schoolname|default('') }}"{% endif %}
+                   class="form-control custom-input w-100" 
+                   style="height: 48px; padding-left: 45px;"
+                   placeholder="School name" required />
+          </div>
+        </div>
+
+        <!-- Grade -->
+        <div class="w-100 d-flex justify-content-center mb-3">
+          <div class="icon-input position-relative" style="width: 344px;">
+            <img src="{{ static('images_new/icons/bookmark-square.png') }}" alt="Grade" style="width: 20px; height: 20px;" />
+            <input name="usergrade" type="text" 
+                   {% if request.user.user_profile %}value="{{ request.user.user_profile.grade|default('') }}"{% endif %}
+                   class="form-control custom-input w-100" 
+                   style="height: 48px; padding-left: 45px;"
+                   placeholder="Grade" required />
+          </div>
+        </div>
+
+        <div class="mt-4 w-100 d-flex justify-content-center">
+          <button type="button" data-form-name="secondform" class="btn custom-button purple-button slideOnButton" style="width: 344px; height: 48px;">
+            CONTINUE
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Photo Upload -->
+    <div class="photo page">
+      <div class="w-100" data-index="3">
+        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3">Show us how you look</h2>
+        <p class="text-center text-gray fs-16 mb-4" style="max-width: 344px;">
+          Join a community of 10k+ students and discover your true passion.
+        </p>
+
+        <div class="d-flex justify-content-center align-items-center mt-5">
+          <button type="button" class="imgBtn btn p-0 border-0 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 230px; height: 230px; overflow: hidden;">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" class="w-100 h-100 rounded-circle object-fit-cover" alt="Profile" />
+            {% else %}
+            <i class='bx bx-user fs-48 text-gray'></i>
+            {% endif %}
+          </button>
+          <input type="file" name="image" accept="image/*" class="d-none imgIp" />
+        </div>
+
+        <div class="mt-5 w-100 d-flex justify-content-center">
+          <button type="button" class="btn custom-button purple-button slideOnButton" style="width: 344px; height: 48px;">
+            CONTINUE
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Subjects -->
+    <div class="subjects page">
+      <div class="w-100" data-index="4">
+        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3">What do you enjoy learning?</h2>
+        <p class="text-center text-gray fs-16 mb-4" style="max-width: 344px;">
+          Drag right for subjects you like and left for subjects you don't
+        </p>
+
+        <div class="row g-2 mt-4" style="max-width: 804px;">
+          {% for sb in subjects %}
+          <div class="col-12 col-lg-4">
+            <label class="hobbiesTab activeOnbTab d-flex align-items-center p-3 rounded-3 bg-light" style="min-height: 60px; cursor: pointer;">
+              <input type="checkbox" class="d-none" name="usersubject" value="{{ sb.id }}">
+              {% if sb.image %}
+              <img src="{{ sb.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ sb.name }}" />
+              {% endif %}
+              <p class="fs-16 fw-semibold mb-0">{{ sb.name }}</p>
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="mt-4 w-100 d-flex justify-content-center">
+          <button type="button" data-form-name="thirdform" class="btn custom-button purple-button slideOnButton" id="fourthButton" style="width: 344px; height: 48px;">
+            CONTINUE
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Hobbies -->
+    <div class="hobbies page">
+      <div class="w-100" data-index="5">
+        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3">What are your hobbies?</h2>
+        <p class="text-center text-gray fs-16 mb-4" style="max-width: 344px;">
+          Swipe right for subjects you like and left for subjects you don't
+        </p>
+
+        <div class="row g-2 mt-4" style="max-width: 804px;">
+          {% for hb in hobbies %}
+          <div class="col-12 col-lg-4">
+            <label class="hobbiesTab activeOnbTab d-flex align-items-center p-3 rounded-3 bg-light" style="min-height: 60px; cursor: pointer;">
+              <input type="checkbox" class="d-none" name="hobbies" value="{{ hb.id }}">
+              {% if hb.image %}
+              <img src="{{ hb.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ hb.name }}" />
+              {% endif %}
+              <p class="fs-16 fw-semibold mb-0">{{ hb.name }}</p>
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="mt-4 w-100 d-flex justify-content-center">
+          <button type="submit" class="btn custom-button purple-button" id="fifthButton" style="width: 344px; height: 48px;">
+            FINISH
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- Slick Carousel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Sweet Alert Helper
+  const fireAlert = async function (
+    title,
+    icon = "success",
+    showConfirmButton = false,
+    showCloseButton = false,
+    isPrompt = false
+  ) {
+    const canDo = Swal.fire({
+      title,
+      icon: icon,
+      position: "top-end",
+      showCloseButton,
+      showConfirmButton,
+      toast: true,
+      showCancelButton: false,
+      ...(isPrompt ? {} : { timer: 2000 }),
+    });
+
+    if (isPrompt) {
+      return canDo?.isConfirmed;
+    } else {
+      return -1;
+    }
+  };
+
+  // Back button
+  const backBtn = document.querySelector(".backArrow");
+  if (backBtn) {
+    backBtn.addEventListener("click", function() {
+      window.location.href = "{{ url('users:userfeeds') }}";
+    });
+  }
+
+  // Image upload
+  $(document).ready(function() {
+    $('.imgBtn').click(function() {
+      $('.imgIp').click();
+    });
+
+    $('.imgIp').change(function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          $('.imgBtn').html('<img src="' + e.target.result + '" class="w-100 h-100 rounded-circle object-fit-cover" alt="Profile" />');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Initialize Slick Carousel
+    $(".newPages").slick({
+      dots: true,
+      speed: 300,
+      slidesToShow: 1,
+      centerMode: true,
+      variableWidth: true,
+      adaptiveHeight: true,
+      infinite: false,
+      arrows: false,
+      responsive: [
+        {
+          breakpoint: 375,
+          settings: {
+            dots: true,
+            speed: 300,
+            slidesToShow: 1,
+            adaptiveHeight: true,
+            centerMode: true,
+            variableWidth: true,
+          }
+        },
+      ]
+    });
+
+    $('.newPages .slick-dots li button').on('click', function(e) {
+      e.stopPropagation();
+    });
+
+    // Tab selection
+    $(".streamTab, .hobbiesTab").click(function() {
+      $(this).toggleClass('activeOnbTab');
+      const checkbox = $(this).find('input[type="checkbox"]');
+      checkbox.prop('checked', !checkbox.prop('checked'));
+    });
+
+    // Slide navigation
+    var indexVal = 1;
+    $(".slideOnButton").click(function(e) {
+      const formName = $(this).data('form-name');
+      let canProceed = true;
+
+      if (formName == "firstform") {
+        canProceed = validatefigureoutform();
+      } else if (formName == "secondform") {
+        canProceed = validateuserinfoform();
+      } else if (formName == "thirdform") {
+        canProceed = validatesubjectform();
+      }
+
+      if (canProceed) {
+        e.preventDefault();
+        $('.newPages').slick('slickGoTo', indexVal);
+        indexVal = indexVal + 1;
+        if (indexVal > 5) {
+          indexVal = 1;
+        }
+      }
+    });
+  });
+
+  // Validation functions
+  function validatefigureoutform() {
+    const checked = $('input[name="userfigureout"]:checked').length;
+    if (checked == 0) {
+      fireAlert("Please select at least one option", "error");
+      return false;
+    }
+    return true;
+  }
+
+  function validateuserinfoform() {
+    if ($('input[name="username"]').val() == "") {
+      fireAlert("Please enter a name", "error");
+      return false;
+    }
+    if ($('input[name="userbirthdaydate"]').val() == "") {
+      fireAlert("Please enter a birth date", "error");
+      return false;
+    }
+    if ($('#gender').val() == "") {
+      fireAlert("Please select a gender", "error");
+      return false;
+    }
+    if ($('input[name="userphone"]').val() == "" || !validatePhone($('input[name="userphone"]').val())) {
+      fireAlert("Please enter a valid phone number", "error");
+      return false;
+    }
+    if ($('input[name="userschool"]').val() == "") {
+      fireAlert("Please enter a school", "error");
+      return false;
+    }
+    if ($('input[name="usergrade"]').val() == "") {
+      fireAlert("Please enter a grade", "error");
+      return false;
+    }
+    return true;
+  }
+
+  function validatesubjectform() {
+    const checked = $('input[name="usersubject"]:checked').length;
+    if (checked == 0) {
+      fireAlert("Please select at least one subject", "error");
+      return false;
+    }
+    return true;
+  }
+
+  function validatehobbiesform() {
+    const checked = $('input[name="hobbies"]:checked').length;
+    if (checked == 0) {
+      fireAlert("Please select at least one hobby", "error");
+      return false;
+    }
+    return true;
+  }
+
+  function validatePhone(phone) {
+    const phoneRegex = /^[6789][0-9]{9}$/;
+    return phoneRegex.test(phone);
+  }
+</script>
+{% endblock %}
+

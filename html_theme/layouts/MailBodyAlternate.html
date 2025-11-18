@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mail Body</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      @font-face {
+        font-family: "galanoGrotesqueRegular";
+        src: url("../assets/fonts/GalanoGrotesqueRegular.otf")
+          format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "galanoGrotesqueBold";
+        src: url("../assets/fonts/GalanoGrotesqueBold.otf") format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "galanoGrotesqueSemiBold";
+        src: url("../assets/fonts/GalanoGrotesqueSemiBold.otf")
+          format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "galanoGrotesqueMedium";
+        src: url("../assets/fonts/GalanoGrotesqueMedium.otf") format("opentype");
+        font-weight: normal;
+        font-style: normal;
+      }
+
+      :root {
+        --galanoGrotesqueRegular: galanoGrotesqueRegular;
+        --galanoGrotesqueBold: galanoGrotesqueBold;
+        --galanoGrotesqueSemiBold: galanoGrotesqueSemiBold;
+        --galanoGrotesqueMedium: galanoGrotesqueMedium;
+      }
+
+      body {
+        font-family: var(--galanoGrotesqueRegular);
+      }
+
+      @media only screen and (max-width: 620px) {
+        .gap {
+          display: none !important;
+        }
+
+        .alignVertical {
+          flex-direction: column !important;
+        }
+
+        .heroImageContainer {
+          padding: 0px !important;
+          margin: 0px 16px 30px 16px !important;
+        }
+
+        .planContainer {
+          margin: 0px 16px 30px 16px !important;
+        }
+        .nullifyMargin {
+          margin-right: 0px !important;
+          margin-bottom: 24px !important;
+        }
+
+        .secureText {
+          text-align: center !important;
+          margin: 0px 16px 20px 16px !important;
+        }
+      }
+
+      /* .boldFont {
+        font-family: var(--galanoGrotesqueBold);
+      }
+
+      .semiBold {
+        font-family: var(--galanoGrotesqueSemiBold);
+      } */
+      /* .topContainer {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: flex-start;
+        margin-bottom: 74px;
+      } */
+      /* .paraContainer {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        row-gap: 36px;
+        margin-bottom: 49px;
+      } */
+      /* .topContainer img {
+        margin-right: 30px;
+      } */
+      /* .text-danger {
+        color: #c20000;
+      } */
+
+      /* .mainFont {
+        font-size: 20px;
+        line-height: 28px;
+        color: #4f4f4f;
+      } */
+
+      /* .subFont {
+        font-size: 18px;
+        line-height: 33px;
+      } */
+
+      /* .semiFont {
+        font-size: 16px;
+        line-height: 20px;
+      } */
+
+      /* .smFont {
+        font-size: 12px;
+        line-height: 19px;
+      } */
+      /* .largeFont {
+        font-size: 24px;
+        line-height: 32px;
+      } */
+      /* .bottomContainer {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 111px;
+      } */
+      /* .planCard {
+        display: grid;
+        grid-template-columns: 37px 403px;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 27px;
+      } */
+      /* .planCard > img {
+        margin-right: 27px;
+      } */
+
+      /* .packageBlock {
+        padding: 17px 33px;
+        background-color: #f7f7fa;
+        border: 1px solid #2e289d;
+      } */
+
+      /* .black {
+        color: #131415;
+      } */
+
+      /* .border {
+        border: 1px solid black;
+      } */
+
+      /* .packageDetail1 {
+        margin: 0px 24px;
+        border: 1px solid #dedede;
+        padding: 12px;
+      } */
+
+      /* .alignBetween {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 0px 24px 0px;
+      } */
+
+      /* .borderB {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+      } */
+
+      /* .textMute {
+        color: #828282;
+      } */
+
+      /* .textSemiMute {
+        color: #4f4f4f;
+      } */
+
+      /* .container {
+        max-width: 1082px;
+        margin: auto;
+        border-bottom: 1px solid black;
+        padding: 60px 0px;
+      } */
+
+      /* .listItem {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 14px;
+      } */
+
+      /* .listItem > img {
+        margin-right: 12px;
+      } */
+
+      /* .listItem > span {
+        font-size: 16px;
+        line-height: 19px;
+        color: #777777;
+      } */
+
+      /* .packageDetail2 {
+        padding: 30px 33px;
+        margin: 0px 20px;
+        border: 1px solid #dedede;
+      } */
+      /* .heading {
+        margin-bottom: 18px;
+      } */
+
+      /* .lockText {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        margin: 34px 0px 23px 0px;
+      } */
+
+      /* .lockText i {
+        margin-right: 11px;
+      } */
+
+      /* .lockText > p {
+        font-style: italic;
+        font-weight: 700;
+      } */
+
+      /* .footerContainer {
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        align-items: center;
+        padding-top: 57px;
+      } */
+
+      /* .tollFreeContent {
+        font-size: 16px;
+        line-height: 20px;
+        font-weight: 700;
+        color: #141414;
+        margin-bottom: 30px;
+      } */
+
+      /* .tollFreeLink {
+        font-size: 14px;
+        line-height: 33px;
+        color: #31b0ff;
+        text-decoration: underline;
+      } */
+
+      /* .tollFreeLogo {
+        font-size: 18px;
+        line-height: 33px;
+        margin-bottom: 18px;
+        color: #131415;
+        font-family: var(--galanoGrotesqueBold);
+      } */
+
+      /* .logo {
+        margin-bottom: 75px;
+      } */
+
+      @media only screen and (max-width: 620px) {
+        table[class="body"] .bottomContainer {
+          display: grid !important;
+          grid-template-columns: 100% !important;
+          gap: 20px !important;
+        }
+
+        table[class="body"] .planCard {
+          display: grid !important;
+          grid-template-columns: 100% !important;
+          justify-content: flex-start !important;
+          align-items: flex-start !important;
+          gap: 27px !important;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.25) !important;
+        }
+        table[class="body"].planCard > img {
+          margin-right: 27px !important;
+        }
+
+        table[class="body"] .topContainer {
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: flex-start !important;
+          align-items: flex-start !important;
+          margin-bottom: 74px !important;
+        }
+
+        table[class="body"] .topContainer img {
+          margin: 0px auto !important;
+        }
+
+        table[class="body"] .container {
+          margin: 0px 17px !important;
+        }
+
+        table[class="body"] .lockText {
+          justify-content: center !important;
+        }
+        table[class="body"] .boldFont {
+          font-size: 28px !important;
+        }
+
+        table[class="body"] .logo {
+          margin: 0px auto !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          margin-bottom: 12px !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <table style="margin: auto" class="body">
+      <tr>
+        <td>
+          <table
+            style="
+              max-width: 1125px;
+              margin: 0px auto 81px auto;
+              padding: 0px 57px;
+            "
+            class="heroImageContainer"
+          >
+            <tr>
+              <td style="display: flex" class="alignVertical">
+                <div style="height: 339px; width: 192px; margin-right: 30px">
+                  <img
+                    src="../assets/images/hand.png"
+                    style="object-fit: cover"
+                    width="192"
+                    height="339"
+                  />
+                </div>
+                <div>
+                  <p style="margin-bottom: 49px">
+                    <img
+                      src="../assets/images/checked.png"
+                      style="
+                        height: 24px;
+                        width: 24px;
+                        margin: 24px 36px 0px 0px;
+                        margin-right: 36px;
+                      "
+                      height="24"
+                      width="24"
+                    />
+                    <span
+                      style="font-size: 24px; font-weight: 700; color: #131415"
+                      >Payment
+                      <span style="color: #c20000">Successfull</span></span
+                    >
+                  </p>
+                  <div
+                    style="font-size: 20px; font-weight: 500; color: #4f4f4f"
+                  >
+                    Dear Applicant,<br />
+                    <p>
+                      The payment for the Psychometric test has been received
+                      successfully.
+                    </p>
+                    <br />
+
+                    <p>The link for the test has been generated.</p>
+                    <a
+                      href="#"
+                      style="
+                        color: #31b0ff;
+                        font-size: 14px;
+                        text-decoration: underline;
+                      "
+                      >You can start the test now</a
+                    >
+                    <br />
+                    <br />
+
+                    <p>All the best!</p>
+                    <p>TOPTEEN Team</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </table>
+          <div
+            style="max-width: 1125px; margin: auto; display: flex"
+            class="alignVertical planContainer"
+          >
+            <div style="margin-right: 111px" class="nullifyMargin">
+              <table>
+                <tr>
+                  <td style="width: 37px; vertical-align: top">
+                    <div>
+                      <img
+                        src="../assets/images/credit-card.png"
+                        height="37"
+                        width="37"
+                      />
+                    </div>
+                  </td>
+                  <td style="width: 27px"></td>
+                  <td style="width: 403px">
+                    <p
+                      style="
+                        margin-bottom: 17px;
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #131415;
+                      "
+                    >
+                      Payment Summary
+                    </p>
+                    <div
+                      style="
+                        border: 1px solid #2e289d;
+                        padding: 17px 33px;
+                        background-color: #f7f7fa;
+                        font-size: 16px;
+                        color: #141414;
+                        font-weight: 600;
+                      "
+                    >
+                      Basic Package
+                    </div>
+                    <div
+                      style="
+                        margin: 0px 21px;
+                        padding: 28px 12px;
+                        border: 1px solid #dedede;
+                      "
+                    >
+                      <div
+                        style="
+                          padding: 0px 0px 18px 0px;
+                          border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+                        "
+                      >
+                        <span style="font-size: 16px; color: #828282"
+                          >Total</span
+                        >
+                        <span
+                          style="
+                            font-size: 24px;
+                            color: #333333;
+                            font-weight: 600;
+                            display: inline-block;
+                            margin-left: 92px;
+                          "
+                        >
+                          ₹ 4,900
+                        </span>
+                      </div>
+
+                      <div style="padding: 18px 0px 0px 0px; display: flex">
+                        <div>
+                          <p
+                            style="
+                              font-size: 16px;
+                              color: #131415;
+                              font-weight: 600;
+                            "
+                          >
+                            1 Dec 2022
+                          </p>
+                          <p
+                            style="
+                              font-size: 14px;
+                              color: #4f4f4f;
+                              font-weight: 600;
+                            "
+                          >
+                            06:34 AM
+                          </p>
+                        </div>
+                        <div style="margin-left: 92px">
+                          <p
+                            style="
+                              font-size: 18px;
+                              color: #4f4f4f;
+                              font-weight: 600;
+                            "
+                          >
+                            Transaction ID:
+                          </p>
+                          <p
+                            style="
+                              font-size: 12px;
+                              color: #4f4f4f;
+                              font-weight: 600;
+                            "
+                          >
+                            0522266RBC45
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <!-- <td style="width: 111px"></td> -->
+            <div>
+              <table>
+                <tr>
+                  <td style="width: 37px; vertical-align: top">
+                    <div>
+                      <img
+                        src="../assets/images/cubes.png"
+                        height="37"
+                        width="37"
+                      />
+                    </div>
+                  </td>
+                  <td style="width: 27px"></td>
+                  <td style="width: 403px">
+                    <p
+                      style="
+                        margin-bottom: 17px;
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #131415;
+                      "
+                    >
+                      Basic Package Include
+                    </p>
+                    <div
+                      style="
+                        border: 1px solid #2e289d;
+                        padding: 17px 33px;
+                        background-color: #f7f7fa;
+                        font-size: 16px;
+                        color: #141414;
+                        font-weight: 600;
+                      "
+                    >
+                      Advanced report • 6 month validity
+                    </div>
+                    <ul
+                      style="
+                        list-style-type: none;
+                        padding: 30px 33px;
+                        margin: 0px 21px;
+                        border: 1px solid #dedede;
+                      "
+                    >
+                      <li
+                        style="
+                          display: flex;
+                          justify-content: flex-start;
+                          align-items: center;
+                        "
+                      >
+                        <img
+                          src="../assets/images/checked.png"
+                          height="16"
+                          width="16"
+                          style="margin-right: 12px"
+                        />
+                        <span style="font-size: 17px; color: #777777"
+                          >Detailed Career</span
+                        >
+                      </li>
+                      <li
+                        style="
+                          display: flex;
+                          justify-content: flex-start;
+                          align-items: center;
+                        "
+                      >
+                        <img
+                          src="../assets/images/checked.png"
+                          height="16"
+                          width="16"
+                          style="margin-right: 12px"
+                        />
+                        <span style="font-size: 17px; color: #777777"
+                          >Interest Analysis</span
+                        >
+                      </li>
+                      <li
+                        style="
+                          display: flex;
+                          justify-content: flex-start;
+                          align-items: center;
+                        "
+                      >
+                        <img
+                          src="../assets/images/checked.png"
+                          height="16"
+                          width="16"
+                          style="margin-right: 12px"
+                        />
+                        <span style="font-size: 17px; color: #777777"
+                          >Access to Career</span
+                        >
+                      </li>
+                      <li
+                        style="
+                          display: flex;
+                          justify-content: flex-start;
+                          align-items: center;
+                        "
+                      >
+                        <img
+                          src="../assets/images/checked.png"
+                          height="16"
+                          width="16"
+                          style="margin-right: 12px"
+                        />
+                        <span style="font-size: 17px; color: #777777"
+                          >Library & Colleges</span
+                        >
+                      </li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div
+            style="
+              font-size: 12px;
+              font-weight: 600;
+              color: #131415;
+              max-width: 1125px;
+              margin: auto;
+            "
+            class="secureText"
+          >
+            <i class="fa fa-lock"></i>&nbsp;
+            <span>Secure payments with TopTeen</span>
+          </div>
+          <table
+            style="
+              max-width: 1125px;
+              margin: auto;
+              border-top: 1px solid black;
+              width: 100%;
+            "
+          >
+            <tr style="padding-top: 57px">
+              <td style="width: 208px; margin: 0px auto">
+                <p
+                  style="
+                    text-align: center;
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: #131415;
+                    margin-bottom: 18px;
+                  "
+                >
+                  TOPTEEN
+                </p>
+                <p style="text-align: center">
+                  <a
+                    href="#"
+                    style="
+                      color: #31b0ff;
+                      font-size: 14px;
+                      text-decoration: underline;
+                    "
+                    >support@topteen/careers.com</a
+                  >
+                </p>
+                <p
+                  style="
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #141414;
+                    text-align: center;
+                  "
+                >
+                  Toll Free: 0000 000 000
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

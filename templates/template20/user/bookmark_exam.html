@@ -1,0 +1,180 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}My Exams | Top Teen{% endblock %}
+{% block description_content %}View your bookmarked entrance exams.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} bookmark-exam-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .bookmark-exam-page {
+    padding-top: 80px;
+  }
+  .exam-card {
+    border: 1px solid #efefee;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 7px 32px rgba(0,0,0,0.07);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+  }
+  .exam-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+  }
+  .bookmark-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.03);
+    border-radius: 50%;
+    padding: 6px 7px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .bookmark-btn.active {
+    background-color: #3f37c9;
+  }
+  .bookmark-btn img {
+    width: 12px;
+    height: 16px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="bookmark-exam-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- Exam Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <h1 class="fs-24 fw-semibold mb-0">Exams & Tests</h1>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+        <i class='bx bx-arrow-left fs-18 text-gray'></i>
+      </button>
+      <h2 class="fs-16 fw-normal text-center mb-0">Exams & Tests</h2>
+    </div>
+
+    <!-- Exams Content -->
+    {% if exams %}
+    <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
+      {% for exam in exams %}
+      <div class="exam-card" style="width: 248px;">
+        <div id="exam_{{ exam.id }}" 
+             class="bookmark-btn {% if exam.shortlist.filter(id=request.user.id).exists() %}active{% endif %}" 
+             onclick="examshortlist('{{ exam.id }}')">
+          <img src="{{ static('images_new/icons/bookmark.svg') }}" alt="Bookmark" />
+        </div>
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="d-flex align-items-center gap-2 text-decoration-none">
+            <div style="width: 57px; height: 63px; flex-shrink: 0;">
+              <img src="{{ exam.logo_url }}" class="w-100 h-100 object-cover" alt="{{ exam.name }}" />
+            </div>
+            <div>
+              <h5 class="fs-14 fw-semibold text-dark mb-0" style="max-height: 48px; overflow: hidden;">{{ exam.name }}</h5>
+            </div>
+          </a>
+        </div>
+        <div class="border-top border-bottom py-2 mb-3"></div>
+        <div class="text-center">
+          <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-outline-secondary btn-sm">
+            View Details
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+      <i class='bx bx-clipboard fs-64 text-gray mb-3'></i>
+      <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Exams</h3>
+      <p class="text-gray fs-14 mb-4">You haven't bookmarked any exams yet.</p>
+      <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button purple-button">
+        Browse Exams
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Sweet Alert Helper
+  const fireAlert = async function (
+    title,
+    icon = "success",
+    showConfirmButton = false,
+    showCloseButton = false,
+    isPrompt = false
+  ) {
+    const canDo = Swal.fire({
+      title,
+      icon: icon,
+      position: "top-end",
+      showCloseButton,
+      showConfirmButton,
+      toast: true,
+      showCancelButton: false,
+      ...(isPrompt ? {} : { timer: 2000 }),
+    });
+
+    if (isPrompt) {
+      return canDo?.isConfirmed;
+    } else {
+      return -1;
+    }
+  };
+
+  // Exam shortlist/bookmark functionality
+  function examshortlist(examId) {
+    $.ajax({
+      url: "/api/v1/user/shortlistexam",
+      type: 'POST',
+      data: {
+        'examid': examId,
+        'csrfmiddlewaretoken': '{{ csrf_token }}'
+      },
+      success: function (data) {
+        const bookmarkBtn = document.getElementById('exam_' + examId);
+        if (bookmarkBtn) {
+          bookmarkBtn.classList.toggle('active');
+          if (bookmarkBtn.classList.contains('active')) {
+            fireAlert("Exam bookmarked", "success");
+          } else {
+            fireAlert("Exam removed from bookmarks", "success");
+            // Reload page to remove from list
+            setTimeout(function() {
+              window.location.reload();
+            }, 1000);
+          }
+        }
+      },
+      error: function(data) {
+        try {
+          fireAlert(data.responseJSON?.message || "Error updating bookmark", "error");
+        } catch(e) {
+          fireAlert("Internal Server Error", "error");
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}
+

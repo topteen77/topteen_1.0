@@ -1,0 +1,160 @@
+{% extends 'topteenfrontend/base.html' %}
+
+{% block main %}
+
+<main class="w-full lg:max-w-[1280px] mx-auto lg:pt-[51px]">
+
+  <!-- Left and right -->
+  <div class="lg:container mx-auto lg:flex px-[12px] lg:px-0 lg:justify-between">
+  
+      <!-- Left Part -->
+      <div class="lg:w-[711px] w-full mx-auto lg:mx-0">
+        {% include'topteenfrontend/includes/breadcrumb.html'%}
+        
+        <!-- Heading, figure and tags -->
+        <a href="{{blog.category.url()}}">
+        <p class="text-[11.11px] leading-[16.66px] text-[#4f4f4f] lg:max-w-[343px] mediumFont">{{blog.category}}</p>
+        </a>
+          
+      <h2 class="text-[27.65px] leading-[37.33px] text-[#333333] mt-[16px] semibold">{{blog.title}}</h2>
+    
+      <p class="text-[11.11px] leading-[16.66px] text-[#4f4f4f] mt-[4px] mediumFont ">{{blog.author}} <span class="hidden">{{localtime(blog.created)}} </span></p>    
+      <div>
+        <img src="{{blog.image.url}}" class="md:w-[533.25px] h-full lg:w-[711px] mt-[30px] rounded-[10px] mx-auto" alt="">
+      </div>
+    
+      <!--tags  -->
+      <div class="mx-auto lg:flex gap-[12px] mt-[18px]">
+        <!-- Tags head -->
+        <div class="bg-[#3f37c9] rounded-[100px] py-[5px] px-[9px] max-h-[26px]  inline-block mt-[6px]">
+          <p class="text-[12px] leading-[16px] text-[#ffffff] text-center flex tracking-[0.01em] mediumFont">TAGS</p>
+        </div>
+        <!-- End of tags head -->
+    
+        <!-- custom tags -->
+        <div class="flex flex-wrap items-start w-full gap-x-[6px] gap-y-[8px] mt-[12px] lg:mt-0">
+          {%for blogtag in blog.tags.all() %}
+          <div class="tagsBg rounded-[100px] py-[11px] px-[16px] inline-block">
+            <p class="text-[12px] leading-[16px] text-[#3f37c9] text-center flex tracking-[0.01em] semibold"><a href="{{url('blog:blogtag',args=[blogtag.slug])}}">{{blogtag.name}}</a></p>
+          </div>
+          {% endfor %}
+        
+        </div>
+        <!-- End of custom tags -->
+      </div>
+      <!-- end of tags -->
+      <!-- End of Heading, figure and tags -->
+    
+      <!-- Text content -->
+      <div class="text-justify blogDetail" >
+        <p>{{ blog.content|safe }}</p>
+      </div>
+      <!-- End of text content -->
+    
+      </div>
+    <!-- End of Left Part -->
+    
+    <!-- Right Part -->
+    <div class="pt-[37px] mx-auto lg:mx-0 lg:sticky lg:top-[100px] h-full">
+    <div class="border-b-[3px] border-[#4074fe] pb-[10px] max-w-[400px] lg:max-w-[248px]">
+    <p class="text-[21px] leading-[20px] text-[#080808] mediumFont">Search</p>
+    </div>
+    
+    <div class="lg:flex">
+
+      <form action="{{url('blog:blogs')}}" method="GET">  
+        <div class="relative  mt-[21px]">
+        <input type="text" placeholder="Search" name ="search" id="search" required type="submit" value="{{search_blogs}}" class="max-h-[37px]  w-full sm:w-[400px]  lg:max-w-[248px] border-[#939393] border-solid border-[1px]">
+        <i class="fa fa-magnifying-glass text-[22px] absolute  right-[7px] top-[8px]"></i>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Latest Posts -->
+    <div>
+    <!-- Latest Post Heading -->
+    <div class="border-b-[3px] border-[#4074fe] pb-[10px] max-w-[400px] lg:max-w-[248px] mt-[50px]">
+      <p class="text-[21px] leading-[20px] text-[#080808] mediumFont">Latest Blogs</p>
+    </div>
+    <!-- End of Latest Post Heading -->
+    
+    <!-- Latest Post content -->
+    
+    <div class="w-full lg:max-w-[245px] lg:grid-cols-1 mt-[21px] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-[36px]">
+        {% for blog in latest_blogs[:3] %}
+        <div class="max-w-[245px] mx-auto">
+          <a href="{{blog.url()}}">
+          <img src="{{blog.image.url}}" class="w-[245px] h-[163px]" alt="">
+          <p class="text-[21px] leading-[28.35px] mediumFont text-[#333333] mt-[9px] max-h-[56px] overflow-hidden">{{blog.title}}</p>
+          </a> 
+          <div class="mt-[4px] flex gap-[11px] text-[#777777] text-[10px] leading-[16.5px]  h-[17px] overflow-hidden ">
+            <p>{{blog.author}}</p>
+            <p class="hidden">{{localtime(blog.created)}}</p>
+          </div>
+        </a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- End of Latest Post Content -->
+    </div>
+    <!-- End of Latest posts -->
+    
+    </div>
+    <!-- End of Right Part -->
+  
+  </div>
+  <!-- End of Left and right -->
+  
+  <!-- Blue Banner -->
+  <div class="secondBlogDetailBlueBanner w-full lg:h-[115px] mt-[120px]">
+    <div class="lg:flex lg:container lg:justify-between py-[24px] lg:pt-[34px] my-auto  mx-auto">
+      <p class="text-[28px] leading-[37.8px] text-[#ffffff] semibold tracking-[0.035em] text-center pt-[5px]">Interested in getting latest updates?</p>
+    <div class="bg-[#eaeaea] rounded-[10px] w-[239px] h-[53px] mx-auto my-[6px] lg:my-auto ">
+      <button class="bg-[#ffffff] rounded-[10px] flex content-center justify-center gap-[3px] h-[48px] w-[239px]">
+        <img src="../assets/images/bookmark.png" class="max-w-[28px] max-h-[28px] my-auto" alt="">
+        <p class="text-[14px] leading-[18.9px] boldFont text-[#4f4f4f] my-auto">SUBSCRIBE NOW</p>
+      </button> 
+    </div>
+  </div>
+    
+  </div>
+  <!-- End of Blue Banner -->
+
+  <!-- Subscription email PopUp -->
+  <div
+  class="hidden top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen flex flex-row justify-center items-center subscriptionpopup ">
+  <div class="lg:max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center">
+    <div
+      class="bg-[#ffffff] rounded-[10px] relative referDivs w-full md:max-w-[395px] lg:w-[395px] pb-[24px] pt-[48px] modalContent">
+      <button class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] subscriptionPopupClose">
+        <i class="fa fa-xmark"></i>
+      </button>
+
+      <p class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold ">
+        SUBSCRIBE
+      </p>
+      <form onsubmit="return false" id="subscribeform">
+        <div class="w-full flex justify-center mt-[22px] ">
+          <input type="text" id="subemail" name="email" placeholder="Enter email" class="mx-auto w-[80%] h-[53px] rounded-[10px]">
+        </div>
+        <div class="mx-auto w-[80%] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+          <button type="submit" onclick="subscriptionmailsubmit()"
+            class="w-full h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  </div>
+  <!-- End of Subscription Popup -->
+  </main>
+
+
+{% endblock main %}
+
+{% block additionalfooter %}
+
+
+{% endblock %}

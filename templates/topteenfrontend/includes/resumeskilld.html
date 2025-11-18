@@ -1,0 +1,17 @@
+{% for skill in resumeskill %}
+<div  class="addedData flex justify-between w-full py-[12px] selectedSkillDesktop">
+    <div class="flex flex-col gap-[32px]">
+        <div class="flex flex-col gap-[5px]">
+            <p class="text-[15px] leading-[20.25px] semibold text-[#4f4f4f]">
+                {{skill.title}}</p>
+            <p class=" text-[#828282] regularFont text-[13px] leading-[17.55px]">
+                {{skill.get_profficiency_display()}}</p>
+        </div>
+
+    </div>
+
+    <button class="dataDelete" onclick="addedDeleteHandler(this)" data-id="{{skill.id}}" data-title="{{skill.title}}" type="button" data-url="{{url('resumeskill')}}" data-mdivid="skillm" data-ddivid="skilld" ><i
+            class="fa-solid fa-circle-xmark text-[#bdbdbd] my-auto lg:my-0"></i>
+    </button>
+</div>
+{% endfor %}

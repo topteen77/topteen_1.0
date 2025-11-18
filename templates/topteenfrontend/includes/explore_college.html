@@ -1,0 +1,57 @@
+
+<div class="w-full carouselContainer tabPanelsList" id="collegesPanel"  data-slides="3">
+  <!-- TAB CONTENT -->
+  {%for country in countries%}
+  <div
+    class="lg:mx-[38.5px] mx-[-6px] collegesCarousel carousel hidden collegeTabPanel customCarousel tabPanel"
+    id="{{country.short_name}}"
+  >
+  {%for college in country.college_set.all()[:8]%}
+    <!-- SLIDE -->
+    <div class="relative shrink-0">
+      <figure class="w-full mb-[18px]">
+        <a href="{{url('colleges:collegedetail',args=[college.slug])}}">
+        {%if college.logo%}
+          <div
+          class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+        >
+          <img
+            src="{{college.logo.url}}"
+            alt="{{college.name}}"
+            class="w-full h-full object-cover"
+          />
+        </div>
+        {%endif%}
+
+        <figcaption class="text-[#333333] semibold text-sm mb-1">
+          {{college.name}}</a>
+        </figcaption>
+        <div
+          class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+        >
+          <span>{% if college.country %}{{college.country}}{% endif %} {% if college.state and college.country %},{% endif %}{% if college.state %}{{college.state}}{% endif %}</span>&nbsp;
+          <img
+            src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+            class="inline-block"
+          /><span> 4.4</span>
+        </div>
+
+        <!-- BOOKMARK SIGN -->
+        <div class="absolute top-3 right-3">
+          <div class="bg-white rounded-full px-[5px] py-[3px]">
+            <img
+              src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+              class="w-[14px] h-[18px]"
+            />
+          </div>
+        </div>
+      </figure>
+    </div>
+
+   {%endfor%}
+</div>
+{%endfor%}
+</div>
+
+
+

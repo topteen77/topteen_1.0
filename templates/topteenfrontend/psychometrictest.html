@@ -1,0 +1,438 @@
+{% extends 'topteenfrontend/loggedin-base.html' %}
+{%block additionalheader%}
+{#
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+#}
+{%endblock%}
+{% block main %}
+
+<!-- Complete Profile PopUp -->
+<div
+  class="hidden top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen flex flex-row justify-center items-center  " id="completeProfilePopup">
+  <div class="lg:max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center">
+    <div id="otpPopUp"
+      class="bg-[#ffffff] rounded-[10px] relative w-full md:max-w-[395px] lg:w-[395px] pb-[24px] pt-[55px] lg:pt-[69px] modalContent">
+      <button class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] completeProfileClose">
+        <i class="fa fa-xmark"></i>
+      </button>
+
+      <div class="w-[68px] h-[68px] mx-auto">
+        <img src="{{request.user.image.url}}" class="w-[68px] h-[68px] object-cover rounded-full" alt="" />
+      </div>
+
+      <p class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold mt-[22px]">
+        Choose payment gateway
+      </p>
+      <div class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+        <button id="checkoutadvanced" data-test-type='{{test_type.advanced_test_type}}'
+          class="w-[344px] h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]">
+          Pay With Razorpay
+        </button>
+      </div>
+      <div class="mx-auto w-[344px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+        <button onclick="window.location='{{url('psychometrictests:createpsychomerticttestpaymenteazypay')}}'"
+          class="w-[344px] h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]">
+          Pay With EazyPay
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End of Complete Profile PopUp-->
+
+
+<main class="w-full pt-[24px] lg:pt-[40px] pb-[36px] lg:pb-[50px] mb-[24px] lg:mb-[40px]">
+
+  <!-- Discover -->
+  <section class="lg:max-w-[980px] bg-[#f7f7fa] rounded-[10px] mx-auto lg:flex lg:justify-between pt-[24px] lg:pt-0 px-[30px] lg:pl-[70px] lg:pr-[100px] mt-[30px] lg:mt-[50px]">
+      
+    <div class="lg:max-w-[320px] lg:py-[45px]">
+      <p class="text-[16px] leading-[24px] lg:text-[24px] lg:leading-[32px] semibold text-[#4f4f4f]">Discover what you’re made for, like never before</p>
+    </div>
+
+    <div class="flex flex-col gap-[10px] lg:gap-[15px] lg:pt-[30px] mt-[20px] lg:mt-0">
+
+      <div class="flex gap-[8px]">
+        <div class="my-auto w-[16px] h-[16px] lg:w-[22px] lg:h-[22px] rounded-full bg-[#4cc9f0] flex justify-center items-center">
+          <p class="text-[#ffffff] ">1</p>
+        </div>
+        <p class=" my-auto text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21.6px] text-[#4f4f4f] regularFont">Choose your plan</p>
+      </div>
+
+      <div class="flex gap-[8px]">
+        <div class="my-auto w-[16px] h-[16px] lg:w-[22px] lg:h-[22px] rounded-full bg-[#4cc9f0] flex justify-center items-center">
+          <p class="text-[#ffffff] ">2</p>
+        </div>
+        <p class=" my-auto text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21.6px] text-[#4f4f4f] regularFont">Take the test</p>
+      </div>
+
+      <div class="flex gap-[8px]">
+        <div class="my-auto w-[16px] h-[16px] lg:w-[22px] lg:h-[22px] rounded-full bg-[#4cc9f0] flex justify-center items-center">
+          <p class="text-[#ffffff] ">3</p>
+        </div>
+        <p class=" my-auto text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21.6px] text-[#4f4f4f] regularFont">Get recommendations</p>
+      </div>
+
+    </div>
+
+    <div class="mt-[20px] lg:mt-0 lg:pt-[24px]">
+      <img src="{{static("topteenfrontend/assets/images/discover2.svg")}}" class="w-[135px] h-[132px] object-cover mx-auto lg:mx-0" alt="">
+    </div>
+
+  </section>
+  <!-- End of Discover -->
+
+  <!-- Best Option -->
+  {% include "topteenfrontend/includes/psychometrictestbuy.html" %}
+  <!-- End of Best Option -->
+
+    <!-- Personality Assessment -->
+  <section class="lg:max-w-[1280px] mx-auto px-[20px] lg:px-[100px] mt-[30px] lg:mt-[50px]">
+    <div class="flex gap-[20px] items-center careerIntPara mb-[10px]">
+        <img src="{{static("topteenfrontend/assets/images/gradHat2.png")}}" class="w-[30px] h-[30px] lg:w-[38px] lg:h-[38px] object-cover" alt="">
+        <p class="semibold text-[20px] leading-[28px] lg:text-[24px] lg:leading-[33px] text-[#131415]"> Personality Analysis (RIASEC Model) </p>
+    </div>
+        <div>
+            <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px]  "> <img src="{{static("topteenfrontend/assets/images/careerInterestImg.png")}}" class="careerIntImg mt-[20px] lg:mt-0 mx-auto lg:mx-[12px] lg:my-[4px] max-w-[320px] w-full h-[195px] lg:min-w-[450px] lg:max-w-[450px] lg:h-[274px] inline-block object-cover" alt="">This section provides a detailed analysis of your personality traits based on the RIASEC model (Realistic, Investigative, Artistic, Social, Enterprising, and Conventional). Developed by John Holland, the RIASEC model categorizes individuals into six distinct personality types that align with different career paths. Each type is associated with specific characteristics and preferences that influence your fit with various occupations. The RIASEC features are:</p>
+            
+            <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">The <span class="boldFont">CAREER INTERESTS ASSESSMENT</span> is a short-form interest inventory designed to analyse your occupational and vocational preferences. Based on John Holland’s (1959) model of occupational interests (Holland Occupational Themes), the <span class="boldFont">CAREER INTERESTS ASSESSMENT</span> provides you with an informative evaluation of those occupational areas that suit your interests.</p>
+            <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">The <span class="boldFont">Career Interest Inventory</span> section is based on John Holland’s Occupational Themes and provides an in-depth analysis of your vocational preferences. This includes:</p>
+            <ul>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Realistic (R):</span> Individuals with a Realistic personality are practical, hands-on, and enjoy working with tools, machines, or physical tasks. They tend to prefer outdoor or technical environments and often excel in fields such as engineering, construction, or mechanics.</li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Investigative (I):</span> People with an Investigative personality are analytical, curious, and problem-solving. They enjoy working with abstract concepts, conducting research, and exploring ideas. Careers in science, technology, and research are common for those with an Investigative personality.</li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Artistic (A):</span> Artistic personalities are creative, expressive, and enjoy unstructured environments. They have a strong appreciation for art, design, and self-expression, often pursuing careers in the arts, media, writing, or performing arts.</li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Social (S):</span> Individuals with a Social personality are empathetic, supportive, and enjoy helping others. They excel in environments where they can interact and assist people, making careers in healthcare, counseling, teaching, and social services a good fit. </li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Enterprising (E): </span> Enterprising individuals are outgoing, ambitious, and persuasive. They thrive in leadership roles and are often drawn to careers in business, sales, management, or entrepreneurship where they can influence others and drive success. </li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Conventional (C): </span> Conventional personalities are detail-oriented, organized, and enjoy structured environments. They are often drawn to roles that require precision, order, and efficiency, such as accounting, administration, and data management. </li>
+            </ul>
+            <br>
+
+            <p  class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">The report categorizes your personality type(s) within the RIASEC framework and provides insights into how these traits align with various career fields. It includes:</p>
+
+            <ul>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Dominant Personality Traits:</span> Identification of your strongest personality characteristics and how they relate to specific job roles.</li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Workplace Preferences: </span> Insights into the types of work environments and roles that are most suited to your personality. </li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Strengths and Development Areas: </span> A breakdown of your core strengths and areas where you may need further development to thrive in your chosen career. </li>
+              
+            </ul>
+            <p  class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">This section helps you understand how your personality influences your work style, interactions with others, and overall career satisfaction.</p>
+
+
+          </div>
+
+
+  </section>
+  <!-- End of Personality Assessment -->
+
+    <!-- Career Interest -->
+    <section class="lg:max-w-[1280px] mx-auto px-[20px] lg:px-[100px] mt-[30px] lg:mt-[50px]">
+      <div class="flex gap-[20px] items-center careerIntPara mb-[10px]">
+          <img src="{{static("topteenfrontend/assets/images/gradHat2.png")}}" class="w-[30px] h-[30px] lg:w-[38px] lg:h-[38px] object-cover" alt="">
+          <p class="semibold text-[20px] leading-[28px] lg:text-[24px] lg:leading-[33px] text-[#131415]">Career interest test</p>
+      </div>
+          <div>
+              <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px]  "> <img src="{{static("topteenfrontend/assets/images/careerInterestImg.png")}}" class="careerIntImg mt-[20px] lg:mt-0 mx-auto lg:mx-[12px] lg:my-[4px] max-w-[320px] w-full h-[195px] lg:min-w-[450px] lg:max-w-[450px] lg:h-[274px] inline-block object-cover" alt="">Career interest tests are created to identify candidates' abilities, capabilities, and skill sets. Self-assessment is a practical approach for determining a candidate's strengths and weaknesses. The outcomes may assist candidates in making career decisions that align with their objectives and skills. These kinds of evaluations have generally been shown to introduce more job possibilities, boost happiness with one's career path, and increase one's understanding of oneself, even though the validity of each instrument may vary from test to test.</p>
+              <p  class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">It's crucial to periodically review your professional assets because your interests in a field may change over time. Interests in a career are significant since they reveal your choices for a workplace. Various advantages to coordinating your work with your hobbies include strategic career decisions, job happiness, career success, motivation, and personal identity.</p>
+              <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">The <span class="boldFont">CAREER INTERESTS ASSESSMENT</span> is a short-form interest inventory designed to analyse your occupational and vocational preferences. Based on John Holland’s (1959) model of occupational interests (Holland Occupational Themes), the <span class="boldFont">CAREER INTERESTS ASSESSMENT</span> provides you with an informative evaluation of those occupational areas that suit your interests.</p>
+              <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">The <span class="boldFont">Career Interest Inventory</span> section is based on John Holland’s Occupational Themes and provides an in-depth analysis of your vocational preferences. This includes:</p>
+              <ul>
+                <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Interest Profile:</span> A detailed breakdown of your interests across various occupational fields, including suggested career options that align with your preferences.</li>
+                <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Career Matching:</span> A list of careers and job roles that best fit your interest profile, helping you target professions that resonate with your passions and aspirations.</li>
+                <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Long-Term Career Potential:</span> An exploration of how your career interests may evolve over time and the kinds of opportunities that may open up for you in the future.</li>
+              </ul>
+            </div>
+
+
+    </section>
+    <!-- End of Career Interest -->
+
+    <!-- Intelligence Assessment -->
+  <section class="lg:max-w-[1280px] mx-auto px-[20px] lg:px-[100px] mt-[30px] lg:mt-[50px]">
+    <div class="flex gap-[20px] items-center careerIntPara mb-[10px]">
+        <img src="{{static("topteenfrontend/assets/images/gradHat2.png")}}" class="w-[30px] h-[30px] lg:w-[38px] lg:h-[38px] object-cover" alt="">
+        <p class="semibold text-[20px] leading-[28px] lg:text-[24px] lg:leading-[33px] text-[#131415]"> Intelligence Assessment </p>
+    </div>
+        <div>
+            <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px]  "> <img src="{{static("topteenfrontend/assets/images/brain_intelligence.jpg")}}" class="careerIntImg mt-[20px] lg:mt-0 mx-auto lg:mx-[12px] lg:my-[4px] max-w-[320px] w-full h-[195px] lg:min-w-[450px] lg:max-w-[450px] lg:h-[274px] inline-block object-cover" alt="">The <span class="boldFont">Intelligence Assessment</span> evaluates your natural abilities across multiple cognitive and practical areas. This section provides insights into six distinct domains of intelligence:</p>
+            
+            
+            <ul>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Numerical Intelligence: </span> Evaluates your proficiency in working with numbers, including arithmetic, numerical sequences, and mathematical problem-solving.</li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Verbal Intelligence: </span> Verbal intelligence is the ability to use and understand language, and is linked to problem solving, abstract reasoning, and working memory. </li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Logical Intelligence:</span> Assesses your logical thinking and problem-solving skills, focusing on your ability to identify patterns, relationships, and make logical deductions.</li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Mechanical Intelligence:</span> Measures your ability to understand and apply mechanical concepts, such as tools, machines, and mechanical systems.</li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Emotional Intelligence:</span> Evaluates your ability to recognize, understand, and manage emotions—both your own and others'—which plays a key role in interpersonal relationships and decision-making in the workplace. </li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Spatial Intelligence:</span> Assesses your ability to visualize and manipulate objects in space, important for tasks such as map reading, architecture, and design.</li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Language Intelligence:</span> Measures your ability to understand and use language effectively, assessing vocabulary, comprehension, and communication skills.</li>
+            </ul>
+            <br>
+
+            <p  class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">Each intelligence domain is analyzed to provide you with a clear understanding of your cognitive strengths, along with insights into areas where you may benefit from further development. The report will also offer guidance on how your specific intelligences can guide you toward suitable career paths that leverage your natural abilities.</p>
+            <br>
+            <br>
+            <p class="semibold text-[20px] leading-[28px] lg:text-[24px] lg:leading-[33px] text-[#131415]">Conclusion and Actionable Insights: </p>
+            <br>
+            <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">The final section of your report synthesizes the findings from all three components—<span class="boldFont">Personality, Career Interest Inventory, </span> and <span class="boldFont">Intelligence Assessment—</span> to provide you with <span class="boldFont">actionable insights.  </span> This summary includes:</p>
+            <br>
+
+            <ul>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Career Recommendations:</span> A personalized list of career paths and job roles based on your combined personality, interests, and intelligences.</li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Strategic Next Steps: </span> Recommendations for further career exploration, including possible skill development areas, training, or certifications to pursue based on your intelligence and career interests. </li>
+              <li class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Long-Term Career Planning: </span> Guidance on how to approach your career planning and development over time, with an emphasis on flexibility and personal growth. </li>
+              
+            </ul>
+            <p  class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">The report is designed to help you not only understand your current potential but also give you a roadmap to optimize your career journey by aligning your personal qualities, interests, and abilities with the most suitable career options. It empowers you to make confident, well-informed decisions as you navigate your professional path.</p>
+
+
+          </div>
+
+
+  </section>
+  <!-- End of Intelligence Assessment -->
+
+    <!-- Career Report -->
+    <section class="lg:max-w-[1280px] mx-auto px-[20px] lg:px-[100px]  mt-[30px] lg:mt-[50px]">
+
+        <div class="flex gap-[20px] items-center mt-[20px] lg:mt-0 block mb-[10px]">
+            <img src="{{static("topteenfrontend/assets/images/detailedCareer.svg")}}" class="w-[30px] h-[30px] lg:w-[38px] lg:h-[38px] object-cover" alt="">
+            <p class="semibold text-[20px] leading-[28px] lg:text-[24px] lg:leading-[33px] text-[#131415]"> Detailed career report</p>
+        </div>  
+
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px]">      <img src="{{static("topteenfrontend/assets/images/graph.svg")}}" class="detCarImg mx-auto lg:mx-0 lg:mx-[12px] lg:my-[4px] w-[320px] h-[195px] lg:min-w-[450px] lg:h-[274px] object-cover" alt="">Career evaluations are instruments created to assist people in comprehending how specific personal characteristics (such as data values, preferences, motivations, aptitudes, and abilities) affect their likelihood of success and level of pleasure in various career possibilities and work contexts.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"> Our career Assessment tool is based on RIASEC model. The term refers to the taxonomy of interests based on a theory of vocations and vocational choice that American psychologist John L. Holland initially devised. Holland labelled his six types of interests as: "Realistic (Doers), Investigative (Thinkers), Artistic (Creators), Social (Helpers), Enterprising (Persuaders), and Conventional (Organizers)." Holland also hypothesised that an individual’s career choice is an expression of their personality, and that the RIASEC Model can also be used to identify appropriate work environments.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Realistic</span> individuals, also known as doers, seek practical tasks. They prefer manual activities that are grounded in reality, where the end goal is concrete and tangible. They may like working outdoors and being in contact with nature, generally preferring to work with ‘things’ rather than people. They are likely to enjoy hobbies such as sports, gardening, technology, repairing equipment, and D-I-Y. A person that most identifies with the <span class="boldFont">Realistic</span> type is likely to thrive in jobs such as engineering, manufacturing and security roles, as well as professions involving a lot of outdoor work or those relating to nature.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Investigative</span> individuals, also known as thinkers, are analytical and seek knowledge. They like to understand, and probe into, how things function. They value learning and like to have the freedom to question and explore their environment. They prefer solving highly complex, abstract problems as well as involving themselves in research and scientific activities, feeling most at ease when working with theories and ideas. In their spare time, they may enjoy activities such as solving puzzles, reading and researching and visiting museums. A person that most identifies with the <span class="boldFont">Investigative</span> type is likely to thrive in careers including research roles, science and medicine, or other roles such as computer programming, engineering, and academia.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Artistic</span> individuals, also known as creators, seek innovation and expression. They prefer creative tasks and expressing themselves via different mediums, valuing variety, imagination, and aesthetics. Additionally, they are likely to favour unstructured environments where they are able to independently put their vision into creation. They may enjoy activities such as photography, art and design, writing, playing musical instruments, and the performing arts. A person that most identifies with the <span class="boldFont">Artistic</span> type is likely to thrive in jobs relating to art and design, as well as other occupations related to the media industry, such as marketing, publishing and journalism.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Social</span> individuals, also known as communicators, seek to work closely with people. They enjoy being around others, valuing cooperation and unity. They are likely to enjoy engaging in group activities such as team sports, spending time with friends and attending social events. They also are likely to enjoy helping others through volunteering, charities or activities within the local community. A person that most identifies with the <span class="boldFont">Social</span> type is likely to thrive in jobs requiring social and interpersonal skills such as human resources and public services, as well as teaching, healthcare and social work.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Entrepreneurial</span> individuals, also known as persuaders, seek challenge. They are likely to take risks, and feel at ease in using their initiative and persuading others, taking a leading role in projects. They are also likely to enjoy participating in competitive sports, undertaking personal and business projects, and attending meetings and conferences. A person that most identifies with the <span class="boldFont">Entrepreneurial</span> type is likely to thrive in fast-paced jobs such as real estate and marketing, as well as sales, managerial and executive positions, or working with start-up businesses.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]"><span class="boldFont">Conventional</span> individuals, also known as numerical-minded, seek methodical tasks. Precise and accurate, they like working with numbers and data, and interpreting mathematics. Additionally, they are likely to favour structured environments where there is routine and order, preferring to be led rather than take a leading role. In their spare time they may enjoy problem-solving games and activities. A person that most identifies with the <span class="boldFont">Conventional</span> type is likely to thrive in jobs such as banking, accountancy and statistics as well as insurance, legal and financial analysis-related positions.</p>
+    </section>
+    <!-- End of Career Report -->
+
+    <!-- Career Guidance -->
+    <section class="lg:max-w-[1280px] mx-auto px-[20px] lg:px-[100px] mt-[30px] lg:mt-[50px]">
+        <div class="flex gap-[20px] mb-[10px]">
+            <img src="{{static("topteenfrontend/assets/images/counselor.svg")}}" class="w-[30px] h-[30px] lg:w-[38px] lg:h-[38px] object-cover" alt="">
+            <p class="semibold text-[20px] leading-[28px] lg:text-[24px] lg:leading-[33px] text-[#131415]">Personalised Career guidance from certified career counsellors</p>
+        </div> 
+            <div class="">
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] ">   <img src="{{static("topteenfrontend/assets/images/counsellorGraph.svg")}}" class="careerIntImg lg:mx-[12px] lg:my-[4px] w-[200px] h-[182px] lg:min-w-[400px] lg:h-[274px] object-cover lg:object-contain" alt="">As the number of available careers grows, career counselling has become more important in people's lives. After graduating high school, many students are still figuring out what to do next. Professional counsellors efficiently address these concerns. This ambivalence may be brought on by social pressure, a lack of parental direction, various career possibilities, the uncertainty of one's ability, etc.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">We have the ideal combination of education, cutting-edge technology, expertise, and an unrivalled dedication to ensure that every student advances in the right direction.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">Our career counselling system is dedicated to assisting people in choosing the best professional path. With the aid of well-crafted assessment tools, professional counsellors specializing in career counselling offer expert assistance on an individual's potential, aptitude, motivations, abilities, and weaknesses. These evaluation techniques combine subjectivity and objectivity. Career counsellors help people define their career goals after thoroughly examining their aptitudes and interests and explain their employment options based on  prior education, talents, and knowledge.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">Our expert Career counselling sessions help students gain the expertise, experience, and knowledge required to recognize options, consider alternatives, and flourish in society. These courses do the following to better prepare students for the evolving workplace of the twenty-first century:</p>
+                <ul class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px] pl-[20px] list-disc">
+                  <li>educating students about the complexities of the job and how the labour market has changed</li>
+                  <li>enhancing decision-making abilities</li>
+                  <li>broadening knowledge, skills, and abilities</li>
+                  <li>boosting motivation and self-worth</li>
+                  <li>building interpersonal effectiveness</li>
+                  <li>enhancing the potential for employment</li>
+                  <li>increasing employment opportunities and marketability</li>
+                  <li>successful job placement</li>
+                </ul>
+            </div>
+    
+    </section>
+    <!-- End of Career Guidance -->
+
+    <!-- Support & Resource -->
+    <section class="lg:max-w-[1280px] mx-auto  px-[20px] lg:px-[100px] mt-[30px] lg:mt-[50px]">
+        <div class="flex gap-[20px]  mb-[10px] ">
+            <img src="{{static("topteenfrontend/assets/images/customer-service 2.svg")}}" class="w-[30px] h-[30px] lg:w-[38px] lg:h-[38px] object-cover" alt="">
+            <p class="semibold text-[20px] leading-[28px] lg:text-[24px] lg:leading-[33px] text-[#131415] ">Extensive support & resources</p>
+        </div>
+            <div class="">
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px]">  <img src="{{static("topteenfrontend/assets/images/supportImg.svg")}}" class="detCarImg lg:mx-[12px] lg:my-[4px] w-[220px] h-[182px] lg:w-[320px] lg:h-[250px] object-cover lg:object-contain" alt="">We provide extensive career support to individuals while they are in school, when they are moving to the workforce, when changing occupations, when they are unemployed, and when they are retiring. These assistance services include tools for self- and career assessment, counselling sessions, career education programmes, internships, job search assistance, and transition services.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">We've developed a multitude of tools to help you advance your career, including how-to manuals, examples, and guidance on cover letters, resumes, bargaining, interviewing, self-development resources like short courses, blogs and videos, and much more.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">You may count on our assistance in helping you to develop and achieve, whether through instructional content or chances to network with other professionals. We are investing in tools and resources as your professional body to support you as you go through your career.</p>
+              </div>
+
+    </section>
+    <!-- End of Support & Resource -->
+
+    <!-- Career Guidance -->
+    <section class="lg:max-w-[1280px] mx-auto px-[20px] lg:px-[100px] mt-[30px] lg:mt-[50px]">
+        <div class="flex gap-[20px] mb-[10px]">
+            <img src="{{static("topteenfrontend/assets/images/target 1.svg")}}" class="w-[30px] h-[30px] lg:w-[38px] lg:h-[38px] object-cover" alt="">
+            <p class="semibold text-[20px] leading-[28px] lg:text-[24px] lg:leading-[33px] text-[#131415] lg:max-w-[400px]">Topteen goal setting program</p>
+          </div>
+            <div>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px]"> <img src="{{static("topteenfrontend/assets/images/goalSettingImg.svg")}}" class="careerIntImg lg:mx-[12px] lg:my-[4px] w-[200px] h-[170px] lg:w-[320px] lg:h-[230px] object-cover lg:object-contain" alt="">Young people need to learn how to set goals. They give students the tools to take charge of their lives and work toward self-improvement. The stages in this skill will support students in achieving both short- and long-term objectives. By achieving these objectives, children build self-assurance and are better able to recognize, adopt, and retain positive behaviours that will benefit their future success.</p>
+                <p class="text-[#4f4f4f] mediumFont text-[16px] leading-[25.6px] mt-[4px]">The goal-setting paradigm has four basic steps for grades 9 through 12. The steps are choosing a short-term, healthy goal, developing an action plan, figuring out supporters and obstacles, and reviewing the strategy. Students must first evaluate their general state of health, identifying their assets, needs, and risk factors. Once they have examined their situation, they must decide on a reasonable short-term objective. They must develop an action plan, including methods, a schedule, and resources. The next step is to identify potential obstacles and devise solutions to these problems. After achieving their objective, students will review the goal-setting process and recognize their accomplishments.</p>
+              </div>
+    </section>
+    <!-- End of Career Guidance -->
+
+    <!-- Career Tree -->
+    <section
+    class=" bg-[#4CC9F0] bg-opacity-[0.15] w-full rounded-[10px] mt-[30px] lg:mt-[50px] px-[20px] lg:px-0"
+  >
+    <div class="w-full lg:max-w-[1280px] mx-auto flex justify-between lg:pl-[120px] lg:pr-[60px]">
+      <div
+      class="lg:max-w-[540px] max-w-[60%] self-center py-[24px] lg:py-[36px]"
+    >
+      <h4
+        class="lg:text-[24px] lg:leading-[32px] text-[20px] leading-[26px] tracking-[0.0135em] text-[#000000] mb-3 semibold"
+      >
+      TopTeen career tree planner
+      </h4>
+      <p
+        class="mediumFont text-[13px] lg:text-[16px] leading-[19px] lg:leading-[25px] tracking-[0.0145em] text-[#000000] text-opacity-50"
+      >
+      The steps in a career tree planner are meant to move you closer to your short- and long-term career goals and ambitions. Your job path might need to be more straight-line
+      </p>
+      <p class="mediumFont text-[13px] lg:text-[16px] leading-[19px] lg:leading-[25px] tracking-[0.0145em] text-[#000000] text-opacity-50 mt-[4px]">Numerous professional pathways require progressively more serious responsibilities.</p>
+      <p class="mediumFont text-[13px] lg:text-[16px] leading-[19px] lg:leading-[25px] tracking-[0.0145em] text-[#000000] text-opacity-50 mt-[4px]">Connect with your peers and seize chances to enhance your skill set if you want to create a career path. It is the process by which a professional in talent development collaborates with a student to map out their possible career trajectory. It entails setting objectives and determining a person's knowledge and expertise to acquire to accomplish those objectives.</p>
+      <p class="mediumFont text-[13px] lg:text-[16px] leading-[19px] lg:leading-[25px] tracking-[0.0145em] text-[#000000] text-opacity-50 mt-[4px]">Career tree adopts a more comprehensive strategy than the conventional career ladder, which only lays out "rungs" or levels to ascend. In addition to direct moves, a thorough career path may include lateral ones, training chances, and opportunities to hone particular abilities.</p>
+      
+      <button
+        class="mt-[24px] lg:mt-[48px] px-[24px] py-[12px] lg:px-[64px] lg:py-[15px] bg-[#5CCD16] rounded-[10px] text-white flex justify-start items-center gap-x-[5px] text-sm boldFont uppercase border-b-4 border-[#51B613]"
+      >
+        <span><i class="fa fa-leaf"></i></span><span>Start tree</span>
+      </button>
+    </div>
+    <div
+      class="flex items-center justify-center"
+    >
+      <img
+        src="{{static("topteenfrontend/assets/images/sprout.png")}}"
+        class="min-w-[150px] h-[150px] lg:h-[210px] lg:w-[210px]  "
+      />
+    </div>
+    </div>
+
+    </section>
+    <!-- End of Career Tree -->
+
+    <!-- Discover -->
+    <section class="lg:max-w-[980px] bg-[#f7f7fa] rounded-[10px] mx-auto lg:flex lg:justify-between pt-[24px] lg:pt-0 px-[30px] lg:pl-[70px] lg:pr-[100px] mt-[30px] lg:mt-[50px]">
+      
+      <div class="lg:max-w-[320px] lg:py-[45px]">
+        <p class="text-[16px] leading-[24px] lg:text-[24px] lg:leading-[32px] semibold text-[#4f4f4f]">Discover what you’re made for, like never before</p>
+      </div>
+
+      <div class="flex flex-col gap-[10px] lg:gap-[15px] lg:pt-[30px] mt-[20px] lg:mt-0">
+
+        <div class="flex gap-[8px]">
+          <div class="my-auto w-[16px] h-[16px] lg:w-[22px] lg:h-[22px] rounded-full bg-[#4cc9f0] flex justify-center items-center">
+            <p class="text-[#ffffff] ">1</p>
+          </div>
+          <p class=" my-auto text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21.6px] text-[#4f4f4f] regularFont">Choose your plan</p>
+        </div>
+
+        <div class="flex gap-[8px]">
+          <div class="my-auto w-[16px] h-[16px] lg:w-[22px] lg:h-[22px] rounded-full bg-[#4cc9f0] flex justify-center items-center">
+            <p class="text-[#ffffff] ">2</p>
+          </div>
+          <p class=" my-auto text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21.6px] text-[#4f4f4f] regularFont">Take the test</p>
+        </div>
+
+        <div class="flex gap-[8px]">
+          <div class="my-auto w-[16px] h-[16px] lg:w-[22px] lg:h-[22px] rounded-full bg-[#4cc9f0] flex justify-center items-center">
+            <p class="text-[#ffffff] ">3</p>
+          </div>
+          <p class=" my-auto text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21.6px] text-[#4f4f4f] regularFont">Get recommendations</p>
+        </div>
+
+      </div>
+
+      <div class="mt-[20px] lg:mt-0 lg:pt-[24px]">
+        <img src="{{static("topteenfrontend/assets/images/discover2.svg")}}" class="w-[135px] h-[132px] object-cover mx-auto lg:mx-0" alt="">
+      </div>
+
+    </section>
+    <!-- End of Discover -->
+
+    <!-- Best Option -->
+    {% include "topteenfrontend/includes/psychometrictestbuy.html" %}
+
+    
+    <!-- FAQ -->
+    <section class="lg:max-w-[1280px] mx-auto  px-[20px] lg:px-[100px] mt-[30px] lg:mt-[50px]">
+      <p class="text-center text-[20px] leading-[26px] lg:text-[24px] lg:leading-[33px] semibold text-[#131415]">Frequently asked questions</p>
+
+                
+      <div class="mt-[30px] lg:mt-[50px]" id="accordion-collapse" data-accordion="collapse">
+        {% for q in faq %}
+        <h2 id="accordion-collapse-heading-{{q.id}}">
+          <button type="button" class="flex items-center group justify-between w-full p-5 font-medium text-left border border-gray-200 rounded-t-xl " data-accordion-target="#accordion-collapse-body-{{q.id}}" aria-expanded="false" aria-controls="accordion-collapse-body-{{q.id}}">
+            <span class="text-[#333333] text-[12px] leading-[16px] lg:text-[16px] lg:leading-[21px] semibold">{{q.question|safe}}</span>
+            <svg data-accordion-icon="" class="w-6 h-6 rotate-90 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+          </button>
+        </h2>
+        <div id="accordion-collapse-body-{{q.id}}" class="hidden" aria-labelledby="accordion-collapse-heading-{{q.id}}">
+          <div class="p-5 font-light border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+            <p class="text-[#4f4f4f] text-[12px] leading-[14px] lg:text-[14px] lg:leading-[22px] mediumFont">{{q.answer|safe}}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+    </section>
+    <!-- End of FAQ -->
+
+
+</main>
+
+{% endblock %}
+{% block additionalfooter %}
+
+<script>
+    const dropElem = document.querySelectorAll(".dropElem");
+    dropElem.forEach((elem) => {
+      const iconClass = elem.querySelector(".icon");
+      elem.addEventListener("click", function(e){
+        const value = elem.getAttribute("aria-expanded");
+
+        if(value === "false"){
+          iconClass.classList.remove("fa-circle-plus");
+          iconClass.classList.remove("text-blue-600");
+          iconClass.classList.add("fa-circle-minus");
+          iconClass.classList.add("text-red-600");
+        }else{
+          iconClass.classList.remove("fa-circle-minus");
+          iconClass.classList.remove("text-red-600");
+          iconClass.classList.add("fa-circle-plus");
+          iconClass.classList.add("text-blue-600");
+        } 
+      })
+    })
+
+
+const triggerProfilePopup = document.querySelector(".triggerProfilePopup");
+const profilePopup = document.getElementById("completeProfilePopup");
+const profilePopupClose = document.querySelector(".completeProfileClose");
+
+
+  triggerProfilePopup.addEventListener("click", function () {
+    profilePopup.classList.remove("hidden");
+  });
+
+  profilePopupClose.addEventListener("click", function(){
+    profilePopup.classList.add("hidden");
+  })
+
+  </script>
+  <script type="text/javascript">
+    function delete_demo_payment(){
+      $.ajax({
+        type:"POST",
+        url:"{{url('psychometrictests:deletedemopsychomerticttestpaymenteazypay')}}",
+      }).done(function(response){
+        if(response["success"]===true){
+          Swal.fire ('Deleted!', 'Deleted Successfully!', 'success');
+        }else{
+          Swal.fire ('Clear!', 'Already Cleared!', 'success');
+        }
+      console.log(response);
+    });
+    }   
+  </script>
+  {#
+  <script src="{{static('topteenfrontend/assets/js/psychometricPayment.js')}}"></script>
+  <script type="text/javascript">
+    var create_pyschometric_payment = "{{url('psychometrictests:createpsychomerticttestpayment')}}"
+    var update_pyschometric_payment = "{{url('psychometrictests:psychomerticttestpaymentupdate')}}"
+  </script>
+#}
+{% endblock %}

@@ -1,0 +1,239 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+
+<main class="calenderMain lg:max-w-[1280px] mx-auto">
+    {% if breadcrumb  %}
+    <!-- BreadCrumb -->
+    <section class="px-[20px] lg:px-[100px] gap-[16px] hidden lg:flex mt-10">
+        {% for brd in breadcrumb %}
+        {% if not loop.last and loop.first %}
+        <a href="{{brd.url}}" class="">
+            <img src="{{static("topteenfrontend/assets/images/home.svg")}}" class=" my-auto" alt="">
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if not loop.last and not loop.first  %}
+        <a href="{{brd.url}}" class="my-auto">
+            <p class="text-[12px] my-auto">{{brd.title}}</p>
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if loop.last%}
+        <a href="#" class="my-auto">
+            <p class="text-[12px]">{{brd.title}}</p>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </section>
+    <!-- End of Breadcrumb -->
+    {% endif %}
+
+      <!-- Career Heading -->
+    <section class="lg:pt-[46px] fixed left-0 top-0 lg:relative top-[12px] z-30 w-full bg-[#ffffff]">
+        <div
+            class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+            <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">Your Calendar</p>
+            <button class="absolute bottom-[18px]" onclick="window.location='{{url('users:userdashboard')}}'">
+                <i class="fa-solid fa-arrow-left text-[#828282] text-[18px] leading-[50px]"></i>
+            </button>
+        </div>
+
+        <div class="hidden lg:flex  lg:px-[80px]">
+            <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">Your Calendar</p>
+        </div>
+
+    </section>
+    <!-- End of Career Heading -->
+
+      
+  <div class="eventAddPop hidden">
+   <div class="relative w-full h-full">
+     <div class="eventAddPopContent shadow-xl rounded-[10px]">
+       <div
+         class="w-full h-full relative flex flex-col gap-[20px] items-center"
+       >
+         <button class="absolute right-[15px] top-[10px] eventAddCloseBtn">
+           <i class="fa fa-xmark"></i>
+         </button>
+        <form action="{{url('users:usercalender')}}" method="post" class="w-full h-full relative flex flex-col gap-[20px] items-center">
+          <h2>CREATE NEW EVENT</h2>
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          <input
+            type="text"
+            name="event_name"
+            placeholder="Enter event name"
+            class="eventName mx-auto"
+          />
+
+          <!-- <select class="allDaySelect">
+            <option value="true">Full Day</option>
+            <option value="false">Not full day</option>
+          </select> -->
+
+          <input type="date" name="event_start" value="" class="startDateIp dateIp" />
+          <input type="date" name="event_end" value="" class="endDateIp dateIp" />
+
+
+          <button
+            type="submit"
+            class="submitBtn mx-auto w-full h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]"
+          >
+            <div
+              class="w-full h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center"
+            >
+              <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">
+                Submit
+              </p>
+            </div>
+          </button>
+        </form>
+
+       </div>
+     </div>
+   </div>
+ </div> 
+
+<div class="eventDelPop hidden">
+   <div class="h-full w-full relative">
+       <div class="eventDelPopContent  absolute bg-[#ffffff] rounded-xl py-[26px] px-[20px] inline-block mx-auto">
+           <p class="deleteQuestn text-[16px] leading-[21px] mediumFont text-[#828282]">Are you sure you want to delete this?</p>
+           <div class="flex mt-[24px] gap-[30px] justify-end">
+               <button type="button" class="noEvtDelBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                   No
+               </button>
+               <button type="button" class="yesEvtDelBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                   Yes
+               </button>
+           </div>
+       </div>
+   </div>
+</div>
+
+ <div
+   id="calendar"
+   class="lg:px-[100px] lg:py-[50px] pt-[49px] lg:pt-0 lg:max-w-[1280px] mx-auto mt-10"
+ ></div>
+
+<div></div>
+
+ </main>
+
+ <script>
+
+  let data = [
+    {% if events %}
+    {% for event in events %}
+    {
+      id: "{{event.id}}",
+      title: "{{event.event_name}}",
+      start: "{{event.start_date}}",
+      end: "{{event.end_date}}",
+    },
+    {% endfor %}
+    {% endif %}
+  ];
+
+  const eventAddPop = document.querySelector(".eventAddPop");
+  const eventDelPop = document.querySelector(".eventDelPop");
+  const startDate = document.querySelector(".startDateIp");
+  const endDate = document.querySelector(".endDateIp");
+  const name = document.querySelector(".eventName");
+  const eventId = document.querySelector(".eventId");
+  const submitBtn = document.querySelector(".submitBtn");
+  const eventAddClose = document.querySelector(".eventAddCloseBtn");
+  const noDelBtn = document.querySelector(".noEvtDelBtn");
+  const yesDelBtn = document.querySelector(".yesEvtDelBtn");
+  const allDaySelect = document.querySelector(".allDaySelect");
+  const dateIps = document.querySelectorAll(".dateIp");
+
+  console.log(eventDelPop)
+
+  eventAddClose.addEventListener("click", function () {
+    eventAddPop.classList.add("hidden");
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var calendarEl = document.getElementById("calendar");
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      headerToolbar: {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,timeGridDay",
+      },
+      eventSources: [
+        data,
+        {
+          events: [],
+        },
+      ],  
+      eventColor: "#3f37c9",
+      displayEventTime: true,
+      dateClick: function (info) {
+        const todayPrev = new Date();
+        const today = todayPrev.getFullYear() + '-' + ((todayPrev.getMonth() < 9? '0': '') + (todayPrev.getMonth()+1)) + '-' + ((todayPrev.getDate() < 9? '0': '') + (todayPrev.getDate()));
+        console.log(today)
+        console.log(info.dateStr)
+        if(info.dateStr < today){
+          alert("You can't select previous dates")
+        }else{
+          eventAddPop.classList.remove("hidden");
+        }
+
+        startDate.value = info.dateStr;
+
+        
+      },
+      eventClick: function (el) {
+
+        const parameter = el.event.id;
+        eventDelPop.classList.remove("hidden");
+        customEventClick(parameter);
+
+      },
+      initialView: "dayGridMonth",
+    });
+    calendar.render();
+
+    // Event Adding
+    submitBtn.addEventListener("click", function () {
+      const dummyOb = {
+        id: eventId.value,
+        title: name.value,
+        start: startDate.value,
+        end: endDate.value,
+      };
+
+      calendar.addEvent(dummyOb);
+      data = calendar.getEvents();
+      console.log(data);
+      eventAddPop.classList.add("hidden");
+    });
+
+    // Event Deleting
+
+    function customEventClick(elem){
+
+      noDelBtn.addEventListener("click", function(){
+        eventDelPop.classList.add("hidden");
+        })
+
+        yesDelBtn.addEventListener("click", function(){
+        const toDel = calendar.getEventById(elem);
+        console.log(elem)
+        window.location.href = "event-delete/"+elem;
+          toDel.remove();
+          data = calendar.getEvents();
+          console.log(data);
+          eventDelPop.classList.add("hidden")
+        })
+    }
+
+    
+  // allDaySelect.addEventListener("change", function(){
+  //     dateIps.forEach(elem => {
+  //       elem.type = "datetime-local";
+  //     })
+  //   })
+  });
+</script>
+{% endblock %}

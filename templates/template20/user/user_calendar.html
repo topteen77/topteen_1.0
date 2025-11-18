@@ -1,0 +1,218 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Your Calendar | Top Teen{% endblock %}
+{% block description_content %}Manage your events and calendar. Create and organize your important dates.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} user-calendar-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css" rel="stylesheet" />
+<style>
+  .user-calendar-page {
+    padding-top: 80px;
+  }
+  #calendar {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .fc-event {
+    background-color: #3f37c9;
+    border-color: #3f37c9;
+  }
+  .fc-button-primary {
+    background-color: #3f37c9;
+    border-color: #3f37c9;
+  }
+  .fc-button-primary:hover {
+    background-color: #2e289d;
+    border-color: #2e289d;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="user-calendar-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- Calendar Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <h1 class="fs-24 fw-semibold mb-0">Your Calendar</h1>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.location='{{ url('users:userdashboard') }}'">
+        <i class='bx bx-arrow-left fs-18 text-gray'></i>
+      </button>
+      <h2 class="fs-16 fw-normal text-center mb-0">Your Calendar</h2>
+    </div>
+
+    <!-- Calendar Container -->
+    <div id="calendar" class="mb-4"></div>
+  </div>
+</section>
+
+<!-- Add Event Modal -->
+<div class="modal fade" id="addEventModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">CREATE NEW EVENT</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="eventForm" method="POST" action="{{ url('users:usercalender') }}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="eventName" class="form-label">Event Name</label>
+            <input type="text" 
+                   name="event_name" 
+                   id="eventName" 
+                   class="form-control custom-input" 
+                   placeholder="Enter event name" 
+                   required>
+          </div>
+          <div class="mb-3">
+            <label for="eventStart" class="form-label">Start Date</label>
+            <input type="date" 
+                   name="event_start" 
+                   id="eventStart" 
+                   class="form-control custom-input startDateIp" 
+                   required>
+          </div>
+          <div class="mb-3">
+            <label for="eventEnd" class="form-label">End Date</label>
+            <input type="date" 
+                   name="event_end" 
+                   id="eventEnd" 
+                   class="form-control custom-input endDateIp" 
+                   required>
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Event Confirmation Modal -->
+<div class="modal fade" id="deleteEventModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Event</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">Are you sure you want to delete this event?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+        <a href="#" id="confirmDeleteEventLink" class="btn custom-button purple-button">Yes, Delete</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js"></script>
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Calendar events data
+  let calendarEvents = [
+    {% if events %}
+    {% for event in events %}
+    {
+      id: "{{ event.id }}",
+      title: "{{ event.event_name }}",
+      start: "{{ event.start_date }}",
+      end: "{{ event.end_date }}",
+    },
+    {% endfor %}
+    {% endif %}
+  ];
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    const startDateInput = document.getElementById('eventStart');
+    const endDateInput = document.getElementById('eventEnd');
+    let eventToDelete = null;
+
+    // Initialize FullCalendar
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      initialView: 'dayGridMonth',
+      events: calendarEvents,
+      eventColor: '#3f37c9',
+      displayEventTime: true,
+      dateClick: function(info) {
+        // Check if date is in the past
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const clickedDate = new Date(info.dateStr);
+        clickedDate.setHours(0, 0, 0, 0);
+
+        if (clickedDate < today) {
+          Swal.fire({
+            title: 'Invalid Date',
+            text: "You can't select previous dates",
+            icon: 'warning',
+            confirmButtonText: 'OK'
+          });
+          return;
+        }
+
+        // Set start date and open modal
+        startDateInput.value = info.dateStr;
+        endDateInput.value = info.dateStr;
+        const modal = new bootstrap.Modal(document.getElementById('addEventModal'));
+        modal.show();
+      },
+      eventClick: function(info) {
+        eventToDelete = info.event.id;
+        const modal = new bootstrap.Modal(document.getElementById('deleteEventModal'));
+        modal.show();
+      }
+    });
+
+    calendar.render();
+
+    // Set delete link
+    document.getElementById('confirmDeleteEventLink').href = "{{ url('users:eventdelete', args=[0]) }}".replace('0', eventToDelete);
+
+    // Update delete link when event is clicked
+    document.getElementById('deleteEventModal').addEventListener('show.bs.modal', function() {
+      if (eventToDelete) {
+        document.getElementById('confirmDeleteEventLink').href = "{{ url('users:eventdelete', args=[0]) }}".replace('0', eventToDelete);
+      }
+    });
+
+    // Handle form submission
+    document.getElementById('eventForm').addEventListener('submit', function(e) {
+      // Form will submit normally to create the event
+      // Calendar will refresh on page reload
+    });
+  });
+</script>
+{% endblock %}
+

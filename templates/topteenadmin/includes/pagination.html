@@ -1,0 +1,26 @@
+{% if is_paginated %}
+<div class="row">
+    <div class="col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start">
+
+    </div>
+    <div class="col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end">
+        <div class="dataTables_paginate paging_simple_numbers" id="kt_subscriptions_table_paginate">
+            <ul class="pagination">
+                {% if page_obj.has_previous() %}
+                <li class="paginate_button page-item previous" id="kt_subscriptions_table_previous">
+                <a href="?page={{page_obj.previous_page_number()}}{% for key,value in request.GET.items() %}{% if key != 'page' %}&{{key}}={{value}}{% endif %}{% endfor %}" aria-controls="kt_subscriptions_table" data-dt-idx="0" tabindex="0" class="page-link">
+                    <i class="previous"></i></a>
+                </li>
+                {% endif %}
+                <li class="paginate_button page-item active"><a href="?page={{ page_obj.number }}" aria-controls="kt_subscriptions_table" data-dt-idx="1" tabindex="0" class="page-link">{{page_obj.number }}</a></li>
+                {% if page_obj.has_next() %}
+                <li class="paginate_button page-item next" id="kt_subscriptions_table_next">
+                    <a href="?page={{page_obj.next_page_number()}}{% for key,value in request.GET.items() %}{% if key != 'page' %}&{{key}}={{value}}{% endif %}{% endfor %}" aria-controls="kt_subscriptions_table" data-dt-idx="3" tabindex="0" class="page-link"><i class="next"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}

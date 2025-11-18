@@ -1,0 +1,245 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}My Videos | Top Teen{% endblock %}
+{% block description_content %}View your bookmarked videos.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} bookmark-video-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .bookmark-video-page {
+    padding-top: 80px;
+  }
+  .video-card {
+    border: 1px solid #efefee;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .video-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .video-thumbnail {
+    position: relative;
+    width: 100%;
+    height: 208px;
+    background: #000;
+  }
+  .video-thumbnail video,
+  .video-thumbnail iframe {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .bookmark-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 27px;
+    height: 27px;
+    background: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+  }
+  .bookmark-btn.active {
+    background-color: #3f37c9;
+  }
+  .bookmark-btn i {
+    color: #333;
+    font-size: 13.5px;
+  }
+  .bookmark-btn.active i {
+    color: #fff;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="bookmark-video-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- Video Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <h1 class="fs-24 fw-semibold mb-0">My Videos</h1>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+        <i class='bx bx-arrow-left fs-18 text-gray'></i>
+      </button>
+      <h2 class="fs-16 fw-normal text-center mb-0">My Videos</h2>
+    </div>
+
+    <!-- Videos Content -->
+    {% if videos %}
+    <div class="row g-4" id="addvideos">
+      {% for video in videos %}
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="video-card">
+          <div class="video-thumbnail">
+            {% if video.upload_video %}
+            <video controls muted>
+              <source src="{{ video.get_video_or_url() }}" type="video/mp4">
+            </video>
+            {% else %}
+            <iframe class="h-full w-full" 
+                    allowfullscreen 
+                    src="{{ video.get_video_or_url() }}" 
+                    muted
+                    frameborder="0"
+                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+            </iframe>
+            <div class="absolute inset-0 d-flex justify-content-center align-items-center">
+              <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="btn btn-link p-0">
+                <img src="{{ static('images_new/icons/video-play.svg') }}" alt="Play" style="width: 68px; height: 68px;">
+              </a>
+            </div>
+            {% endif %}
+            <div id="video_{{ video.id }}" 
+                 class="bookmark-btn {% if video.shortlist.filter(id=request.user.id).exists() %}active{% endif %}" 
+                 onclick="shortlist('{{ video.id }}')">
+              <i class='bx bx-bookmark'></i>
+            </div>
+          </div>
+          <div class="p-3 border-top">
+            <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="text-decoration-none">
+              <h5 class="fs-18 fw-semibold text-dark mb-2">{{ video.name }}</h5>
+            </a>
+            <p class="fs-12 text-gray mb-2">
+              <i class='bx bx-calendar me-1'></i>{{ date_format(video.created) }}
+            </p>
+            {% if video.description %}
+            <p class="fs-14 text-gray mb-0">{{ video.description|truncate(150)|safe }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+      <i class='bx bx-video-recording fs-64 text-gray mb-3'></i>
+      <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Videos</h3>
+      <p class="text-gray fs-14 mb-4">You haven't bookmarked any videos yet.</p>
+      <a href="{{ url('careers:careervideos') }}" class="btn custom-button purple-button">
+        Browse Videos
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Video Modal -->
+<div class="modal fade" id="videoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-black">
+      <div class="modal-header border-0">
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="ratio ratio-16x9">
+          <iframe id="videoPlayer" src="" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Sweet Alert Helper
+  const fireAlert = async function (
+    title,
+    icon = "success",
+    showConfirmButton = false,
+    showCloseButton = false,
+    isPrompt = false
+  ) {
+    const canDo = Swal.fire({
+      title,
+      icon: icon,
+      position: "top-end",
+      showCloseButton,
+      showConfirmButton,
+      toast: true,
+      showCancelButton: false,
+      ...(isPrompt ? {} : { timer: 2000 }),
+    });
+
+    if (isPrompt) {
+      return canDo?.isConfirmed;
+    } else {
+      return -1;
+    }
+  };
+
+  // Shortlist/Bookmark functionality
+  function shortlist(videoId) {
+    $.ajax({
+      url: "/api/v1/user/shortlistcareer",
+      type: 'POST',
+      data: {
+        'careerslug': videoId,
+        'csrfmiddlewaretoken': '{{ csrf_token }}'
+      },
+      success: function (data) {
+        const bookmarkBtn = document.getElementById('video_' + videoId);
+        if (bookmarkBtn) {
+          bookmarkBtn.classList.toggle('active');
+          if (bookmarkBtn.classList.contains('active')) {
+            fireAlert("Video bookmarked", "success");
+          } else {
+            fireAlert("Video removed from bookmarks", "success");
+            // Reload page to remove from list
+            setTimeout(function() {
+              window.location.reload();
+            }, 1000);
+          }
+        }
+      },
+      error: function(data) {
+        try {
+          fireAlert(data.responseJSON?.message || "Error updating bookmark", "error");
+        } catch(e) {
+          fireAlert("Internal Server Error", "error");
+        }
+      }
+    });
+  }
+
+  // Video modal functionality
+  document.querySelectorAll('.careerpopup').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const videoUrl = this.dataset.url;
+      document.getElementById('videoPlayer').src = videoUrl;
+      const modal = new bootstrap.Modal(document.getElementById('videoModal'));
+      modal.show();
+    });
+  });
+
+  // Close modal and stop video when modal is hidden
+  document.getElementById('videoModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('videoPlayer').src = '';
+  });
+</script>
+{% endblock %}
+

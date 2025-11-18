@@ -1,0 +1,521 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Career Direction Psychometric Test | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Discover your career path and unlock your true potential with our scientifically designed Career Direction Psychometric Test. Make informed decisions and choose the right career path.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+      
+      <div class="col-lg-6 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Assess. Analyze. Achieve
+        </span>
+        <h1 class="heading-title mt-md-9 mb-md-8 mt-8 mb-3">
+          Discover your Career Path
+          <p> <span class="text-yellow">Unlock</span> your True Potentials! </p>
+        </h1>
+        <p class="text-gray fs-16">Take Our Scientifically Designed Career Direction Psychometric Test to gain deep insights into your personality, skills and career fit. Make informed decisions, choose the right path and build a future that aligns with your strengths.</p>
+        <div class="hero-button d-flex flex-row mt-md-8 mt-5">
+          <button onclick="document.getElementById('pricing-section').scrollIntoView({behavior: 'smooth'})" type="button" class="btn custom-button purple-button me-3">Take The Test</button>
+        </div>
+      </div>
+      <div class="col-lg-6 col-md-12">
+        <div class="right-banner d-md-flex d-none justify-content-end">
+          <img class="img-fluid" src="{{ static('images_new/general/psychometric-test-banner.svg') }}" alt="Career Direction Psychometric Test" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Hero Section -->
+
+<!-- Career Tracks Scrolling Section -->
+<section class="c-tracks">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="scroller" data-direction="left" data-speed="slow">
+          <ul class="tag-list scroller__inner">
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Agriculture & Environmental Sciences">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/agriculture-icon.svg') }}" alt="Agriculture & Natural Resources" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Agriculture & Environmental Sciences</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Architecture & Constructions">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/architecture-icon.svg') }}" alt="Architecture & Constructions" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Architecture & Constructions</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Arts, Media & Mass Communication">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/avtechnology.svg') }}" alt="Art, AV Technology & Design" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Arts, Media & Mass Communication</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Business, Management & Administration">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/businessmanage-icon.svg') }}" alt="Business Management & Administration" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Business, Management & Administration</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Finance, Economics and Statistics">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/finance-icon.svg') }}" alt="Finance" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Finance, Economics and Statistics</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Education And Training">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/educationtraining.svg') }}" alt="Education And Training" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Education And Training</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Government Sector, Pub Adm. & Int. Relations">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/government-services.svg') }}" alt="Engineering & Technology" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Government Sector, Pub Adm. & Int. Relations</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Engineering & Technology">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/eit-icon.svg') }}" alt="Engineering & Technology" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Engineering & Technology</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Information Technology (IT)">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/it-icon.svg') }}" alt="Information Technology (IT)" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Information Technology (IT)</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="STEM">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/stem-icon.svg') }}" alt="STEM" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">STEM</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Health Science & Medical Services">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/health-services.svg') }}" alt="Health Science & Medical Services" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Health Science & Medical Services</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Hospitality and Tourism">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/tourism-icon.svg') }}" alt="Hospitality and Tourism" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Hospitality and Tourism</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Humanities, Social Work & Psychology">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/humanities-icon.svg') }}" alt="Humanities" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Humanities, Social Work & Psychology</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Law and Public Safety">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/law-icon.svg') }}" alt="Law and Public Safety" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Law and Public Safety</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Distribution, Transportation & Logistics">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/transport.svg') }}" alt="Distribution, Transportation & Logistics" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Distribution, Transportation & Logistics</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Marketing & Sales">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/marketing-icon.svg') }}" alt="Marketing & Sales" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Marketing & Sales</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Scientific Research, R&D">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/scientific-research.svg') }}" alt="Scientific Research, R&D" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Scientific Research, R & D</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Sports, Fitness & Wellness">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/sports-icon.svg') }}" alt="Sports, Fitness & Wellness" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Sports, Fitness & Wellness</p>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Fashion, Design & Creativity">
+                <div class="c-m-image">
+                  <img src="{{ static('images_new/careers/career-tracks/faishion-icon.svg') }}" alt="Fashion, Design & Creativity" />
+                </div>
+                <div class="c-m-title">
+                  <p class="text-gray">Fashion, Design & Creativity</p>
+                </div>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Career Tracks Scrolling Section -->
+
+<!-- Find Direction Section -->
+<section class="find-direction py-10">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-5">
+        <div class="find-c-img">
+          <img class="img-fluid" src="{{ static('images_new/general/psychometric-test-info.svg') }}" alt="What is a Psychometric Test" />
+        </div>
+      </div>
+      <div class="offset-md-1 col-md-6 d-flex flex-column justify-content-center align-items-start mt-md-0 mt-5">
+        <span class="highlighter text-gray fw-400">
+          <img class="position-relative top--10" src="{{ static('images_new/icons/find-direction.svg') }}" alt="icon" /> Assess Your Potential
+        </span>
+        <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Confused about What is a Psychometric Test?</h3>
+        <p class="text-gray fs-16">A Psychometric test is a scientific assessment designed to measure an individual's mental capabilities, personality traits, and interests. These tests are commonly used to evaluate how a person thinks, behaves, and interacts with the world around them. By using a combination of questions and tasks, psychometric tests provide objective, reliable insights into a person's cognitive abilities and personal preferences.</p>
+        <button type="button" onclick="document.getElementById('pricing-section').scrollIntoView({behavior: 'smooth'})" class="btn custom-button purple-button mt-md-3 me-3">Take The Test Now!</button>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Find Direction Section -->
+
+<!-- Gateway Higher Education Section -->
+<section class="gateway">
+  <div class="container">
+    <div class="cta-purple px-5 py-md-10 py-5">
+      <div class="row">
+        <div class="col-md-7 d-flex justify-content-center align-items-start flex-column order-md-1 order-2 mt-md-0 mt-5">
+          <span class="highlighter text-gray fw-400">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/entrance-exam.svg') }}" alt="icon" /> Entrance Exam
+          </span>
+          <h3 class="title-two mt-3 fs-38 fs-sm-28 fw-700 my-4 text-white">Your Gateway to Higher Education and Career Success!</h3>
+          <p class="text-white fs-16">Get expert guidance on entrance exams, Olympiads, and government exams after 10th, 12th, and graduation. Stay updated with eligibility, resources, and career insights for a successful future!</p>
+          <div class="com-btn mt-3">
+            <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After 10th</a>
+            <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After 12th</a>
+            <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After Graduation</a>
+          </div>
+        </div>
+        <div class="col-md-5 d-flex justify-content-center align-items-center order-md-2 order-1">
+          <div class="cta-image">
+            <img class="img-fluid" src="{{ static('images_new/general/gateway.svg') }}" alt="gateway" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Gateway Higher Education Section -->
+
+<!-- Why Take the Test Section -->
+<section class="explore-video py-10">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <span class="highlighter text-gray fw-400">
+          <img class="position-relative top--10" src="{{ static('images_new/icons/uncover-icon.svg') }}" alt="icon"> Uncover True Potential
+        </span>
+      </div>
+      <div class="w-100 d-flex justify-content-between align-items-center">
+        <div class="col-md-6">
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Why Take the Career Direction Psychometric Test?</h3>
+          <p class="text-gray fs-16">Choosing the right career path shapes your future. The Career Direction Psychometric Test helps students and professionals make informed decisions by aligning their strengths and interests with the best career path.</p>
+        </div>
+        <div class="col-md-2 offset-md-4">
+          <div class="btn-wrap">
+            <button class="prev-btn"><i class='bx bx-chevron-left' style='color:#808080'></i></button>
+            <button class="next-btn"><i class='bx bx-chevron-right' style='color:#808080'></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12 pys-test-carousel mt-3">
+        <div class="owl-carousel owl-theme psy-carousel">
+          <div class="item">
+            <div class="phy-item-box">
+              <h5>Identifies Strengths and Weaknesses</h5>
+              <p>Helps uncover your natural abilities and areas for improvement.</p>
+            </div>
+          </div>
+          <div class="item">
+            <div class="phy-item-box">
+              <h5>Guides Career and Academic Choices</h5>
+              <p>Provides insights that help align academic paths and career goals with your interests and skills.</p>
+            </div>
+          </div>
+          <div class="item">
+            <div class="phy-item-box">
+              <h5>Streamlines Education and Career Pathway</h5>
+              <p>Ensures a structured and well-informed approach to academic and career planning, reducing trial and error.</p>
+            </div>
+          </div>
+          <div class="item">
+            <div class="phy-item-box">
+              <h5>Enhances Motivation and Engagement</h5>
+              <p>Helps you stay motivated by aligning your studies and activities with your strengths and interests</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Why Take the Test Section -->
+
+<!-- Pricing Section -->
+<section id="pricing-section" class="py-10">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 text-center mb-5">
+        <p class="mb-3 semibold text-20 text-24 text-131415">Choose the best option for you</p>
+      </div>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-md-4">
+        {% if not is_student %}
+        <div class="flex gap-12 bg-f7f7fa pt-13 pb-10 pb-22 rounded-10 mb-3">
+          <img src="{{ static('images_new/icons/advancedCube.svg') }}" class="my-auto w-36 h-36 w-55 h-55 object-cover" alt="">
+          <div class="my-auto">
+            <p class="text-12 text-16 semibold text-333333">Advanced</p>
+            <p class="text-20 text-24 semibold text-333333">₹ {{ currency_format(pyschometric_test_amount) }} <del>{{ currency_format(psychometric_cross_test_amount) }}</del></p>
+            <p class="text-12 text-16-2 text-828282 mediumFont">Career guidance • 1 year validity</p>
+          </div>
+        </div>
+        {% endif %}
+        <div class="px-46 px-60 py-14 py-21 mt-4 bg-f7f7fa rounded-10">
+          <div class="flex flex-col gap-8">
+            <div class="flex gap-10 gap-16">
+              <img src="{{ static('images_new/icons/greenCheck.png') }}" class="my-auto w-12 h-12 w-16 h-16 object-cover" alt="">
+              <p class="text-12 text-16 mediumFont text-777777">Detailed Career</p>
+            </div>
+            <div class="flex gap-10 gap-16">
+              <img src="{{ static('images_new/icons/greenCheck.png') }}" class="my-auto w-12 h-12 w-16 h-16 object-cover" alt="">
+              <p class="text-12 text-16 mediumFont text-777777">Interest Analysis</p>
+            </div>
+            <div class="flex gap-10 gap-16">
+              <img src="{{ static('images_new/icons/greenCheck.png') }}" class="my-auto w-12 h-12 w-16 h-16 object-cover" alt="">
+              <p class="text-12 text-16 mediumFont text-777777">Access to Career</p>
+            </div>
+            <div class="flex gap-10 gap-16">
+              <img src="{{ static('images_new/icons/greenCheck.png') }}" class="my-auto w-12 h-12 w-16 h-16 object-cover" alt="">
+              <p class="text-12 text-16 mediumFont text-777777">Library & Colleges</p>
+            </div>
+            <div class="flex gap-10 gap-16 w-160 w-214">
+              <img src="{{ static('images_new/icons/greenCheck.png') }}" class="my-auto w-12 h-12 w-16 h-16 object-cover" alt="">
+              <p class="text-12 text-16 mediumFont text-777777">Personalised Career Counselling Session</p>
+            </div>
+          </div>
+          <a href="{{ psychometric_test_payment_url }}" class="btn btn-primary w-100 mt-3">Proceed{% if not is_student %} to Buy{% endif %}</a>
+          {% if delete_demo_payment_url %}
+          <button onclick="delete_demo_payment()" class="btn btn-secondary w-100 mt-2">Clear Demo Test</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Pricing Section -->
+
+<!-- FAQ Section -->
+<section class="blog-section pb-10">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
+        <span class="highlighter text-gray fw-400">
+          <img class="position-relative top--10" src="{{ static('images_new/icons/gudiance-icona.svg') }}" alt="icon"> Mastering the Psychometric Test: Your Comprehensive Guide to Success
+        </span>
+        <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Got Questions? We've Got Answers!</h3>
+        <p class="text-gray">Frequently Asked Questions Answered to Help You Prepare, Perform, and Excel in Your Next Psychometric Assessment</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-10 mx-auto custom-faq">
+        <div class="accordion" id="accordionPsychometric">
+          {% for faq_item in faq %}
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="{% if loop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ loop.index }}">
+                {{ faq_item.question }}
+              </button>
+            </h2>
+            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#accordionPsychometric">
+              <div class="accordion-body">
+                {{ faq_item.answer|safe }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- FAQ Section -->
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+// Owl Carousel initialization for psychometric test benefits
+document.addEventListener('DOMContentLoaded', function() {
+  if (jQuery('.psy-carousel').length) {
+    jQuery('.psy-carousel').owlCarousel({
+      loop: true,
+      margin: 20,
+      nav: true,
+      dots: false,
+      navText: ['<i class="bx bx-chevron-left"></i>', '<i class="bx bx-chevron-right"></i>'],
+      responsive: {
+        0: {
+          items: 1
+        },
+        768: {
+          items: 2
+        },
+        1024: {
+          items: 3
+        }
+      }
+    });
+  }
+
+  // Delete demo payment function
+  {% if delete_demo_payment_url %}
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  window.delete_demo_payment = function() {
+    if (confirm('Are you sure you want to clear the demo test?')) {
+      const csrftoken = getCookie('csrftoken');
+      fetch('{{ delete_demo_payment_url }}', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrftoken,
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Demo test cleared successfully!');
+          location.reload();
+        } else {
+          alert('Error clearing demo test.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error clearing demo test.');
+      });
+    }
+  };
+  {% endif %}
+});
+</script>
+{% endblock %}
+

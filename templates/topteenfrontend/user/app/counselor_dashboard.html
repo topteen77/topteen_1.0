@@ -1,0 +1,929 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+
+
+
+<style>
+    p {
+        margin: 0px;
+        color: inherit;
+    }
+</style>
+
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
+
+    <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+
+        <!-- Left Part Mobile -->
+        <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+            <!-- User -->
+            <div
+                class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+                <div class="flex gap-[17px]">
+                    <div>
+                        <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover"
+                            alt="" />
+                    </div>
+                    <div class="flex flex-col gap-y-[5px]">
+                        <div class="pt-[12px]">
+                            <p class="text-[15px] leading-[20.25px] font-semibold">
+                                {{counselors.counselor_name}}
+                            </p>
+                        </div>
+                        <div class="flex flex-col gap-y-[3px]">
+                            <div class="flex gap-[4px]">
+                                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                                    class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                                    Joined {{counselors.created.strftime("%B, %Y")}}
+                                </p>
+                            </div>
+                            <div class="flex gap-[4px]">
+                                <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
+                                    class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+                                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                                    {% if counselors.counselor_education %}
+                                    {{ counselors.counselor_education }}
+                                    {% else %}
+                                    -
+                                    {% endif %} •
+                                    {% if counselors.counselor_address %}
+                                    {{ counselors.counselor_address }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="flex gap-[4px]">
+                                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                                    class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                                    {{counselors.counselor_admin}}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" data-direction="translate-y-full"
+                    class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+                    <i class="fa fa-gear text-white text-[12.5px]"></i>
+                </button>
+            </div>
+            <!-- End of User -->
+
+            <!-- Complete Profile -->
+            <div id="comppro"
+                class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[100px] pt-[18px] relative">
+                <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+                    <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+                </div>
+                <div>
+                    <div class="flex relative">
+                        <div class="absolute -left-[24px]">
+                            <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}"
+                                class="w-[81px] h-[81px]" alt="" />
+                        </div>
+                        <div class="text-left max-w-[217.5px] ml-[74px]">
+                            <div>
+                                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                                    Complete your profile
+                                </p>
+                                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                                    A complete profile helps us cater the best content to you
+                                </p>
+                            </div>
+                            <!-- Progress Bar -->
+                            <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+                            </div>
+                            <!-- End of Progress Bar -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of Complete Profile -->
+        </div>
+
+        <!-- End of left Part Mobile -->
+
+        <!-- Left part Desktop -->
+
+        <div class="flex  hidden lg:block w-[338px] ">
+            <div class=" border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto h-[405px] sticky-sidebar">
+                <!-- User -->
+                <div class="flex justify-center border-b-[1px] border-solid border-[#dedede] ">
+                    <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px] px-2">
+
+                        <div class=" flex flex-col justify-center items-center">
+
+                            <div class="flex justify-center items-center w-full">
+                                <div class="flex gap-[8px]">
+                                    <div class="relative">
+
+
+                                        <img src="/media/upload/users/{{counselors.coun_user.id}}/user_{{counselors.coun_user.id}}.jpg"
+                                            class="w-[104px] h-[104px] rounded-full object-cover"
+                                            alt="no image Uploaded" />
+                                        <!-- <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" />
+                                        <img src="{{request.user.image.url}}"
+                                            class="w-[104px] h-[104px] rounded-full object-cover"
+                                            alt="no image Uploaded" /> -->
+
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{counselors.counselor_name}}</p>
+
+                        </div>
+
+
+                        <div class="flex flex-col gap-y-[8px]">
+
+                            <div class="flex gap-[14px]">
+                                <img src="{{ static ('topteenfrontend/assets/images/clock.fill.png')}}"
+                                    class="w-[18px] h-[18px]" alt="" />
+                                <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                                    Joined {{counselors.created.strftime("%B, %Y")}}
+                                </p>
+                            </div>
+                            <div class="flex gap-[14px]">
+                                <img src="{{ static ('topteenfrontend/assets/images/userGrade.png')}}"
+                                    class="w-[18px] h-[14px]" alt="" />
+                                <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                                    {% if counselors.counselor_education %}
+                                    {{ counselors.counselor_education }}
+                                    {% else %}
+                                    -
+                                    {% endif %} •
+                                    {% if counselors.counselor_address %}
+                                    {{ counselors.counselor_address }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="flex gap-[14px]">
+                                <img src="{{ static ('topteenfrontend/assets/images/clock.fill.png')}}"
+                                    class="w-[18px] h-[18px]" alt="" />
+                                <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                                    {{counselors.counselor_admin}}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- End of User -->
+
+                <!-- Complete Profile -->
+                {% if request.user.user_type==4 %}
+                <div class="flex justify-center pt-[18px] flex-col px-2">
+                    <div class="flex flex-col items-center">
+                        <div class="flex gap-[18px] hidden">
+                            <div class="w-[45px] h-[44px]"><img
+                                    src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}"
+                                    alt="no image" /></div>
+                            <div class="text-left max-w-[206px] flex flex-col gap-y-[5px] ">
+                                <div>
+                                    <p class="text-[12px] leading-[16.2px] font-semibold text-[#333333]"> Complete your
+                                        profile </p>
+                                    <p class="text-[10px] leading-[14.5px] font-normal text-[#828282]"> A complete
+                                        profile helps us cater the best content to you </p>
+                                </div>
+                                <!-- Progress Bar -->
+                                <div class="w-[205px] h-[10px] rounded-[100px] bg-[#4cc9f0] bg-opacity-[0.15]">
+                                    <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+                                </div>
+                                <!-- End of Progress Bar -->
+                            </div>
+                        </div>
+
+                        <!-- Settings -->
+                        <div class="w-[295px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[19px] hidden"> <a
+                                href="{{ url('users:profiledetails') }}">
+                                <div
+                                    class="w-full h-[48px] flex gap-[11.56px] justify-center rounded-[10px] bg-[#3f37c9] text-[#ffffff]">
+                                    <i class="fa fa-gear my-auto" aria-hidden="true"></i>
+                                    <p class="text-[14px] leading-[18.9px] font-bold my-auto text-white"> SETTINGS </p>
+                                </div>
+                            </a>
+                        </div>
+
+
+                        <button onclick="window.location='/counselor/Counselor_Course/' + {{counselors.id}} "
+                            class="uppercase  w-[295px] h-[53px] bg-[#4CC9F0] rounded-[10px] text-xs text-white font-bold tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mt-3 text-[14px] mb-4">
+                            <span class="text-[18px]"> <i class="fa-solid fa-chalkboard"></i></span>
+                            <span>MY COURSE</span>
+                        </button>
+
+                        <!-- End of settings -->
+                    </div>
+
+                </div>
+                {% else %}
+
+
+
+                {%endif%}
+
+                <!-- End of Complete Profile -->
+            </div>
+        </div>
+        <!-- End of Left part Desktop -->
+
+
+
+        <!-- Right Part -->
+        <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20">
+            <h2 class="title-test-info mb-0 mt-md-0 mt-3">Counselor Dashboard </h2>
+            <!--Institute information-->
+            <div
+                class="five-box flex flex-wrap justify-center sm:justify-start gap-[10px] lg:gap-[30px] pt-[14px] lg:pt-[16px] mx-auto">
+                <div title="coming soon.."
+                    class="statDiv flex gap-[12px] px-[11px] py-[15px] bg-[#f7f7fa] rounded-[10px]">
+                    <div> <img src="{{ static ('images1/graduate-student.png')}}" class="w-[30px] h-[30px]" alt="">
+                    </div>
+                    <div>
+                        <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                            {{students_count.count()}}</p>
+                        <p class="text-[10px] leading-[14.5px] text-[#828282]"> Assigned</p>
+                    </div>
+                </div>
+                <div title="coming soon.."
+                    class="statDiv flex gap-[12px] px-[11px]  py-[15px] bg-[#f7f7fa] rounded-[10px]">
+                    <div> <img src="{{ static ('images1/cousellor.png')}}" class="w-[30px] h-[30px]" alt=""> </div>
+                    <div>
+
+                        <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                            {{total_is_followed_up_count}} </p>
+                        <p class="text-[10px] leading-[14.5px] text-[#828282]"> Followed</p>
+                    </div>
+                </div>
+            </div>
+
+            <!--Institute information-->
+
+            <!--search filtet from-->
+
+            <div class="flex flex-row justify-between items-center my-3">
+                <h3 class="title-test-info  fs-18 mb-0">Assigned Students</h3>
+                <button onclick="window.location='/counselor/{{counselors.id}}/follow_up/'"
+                    class="btn blue-button w-[150px] h-[40px] fs-14 fs-sm-12"> <i
+                        class="fa-solid fa-person-walking-arrow-right me-1"></i> FOLLOW-UP HISTORY</button>
+            </div>
+            <div class="card-body mt-1 cutom-table-form">
+                <div class=" mt-6 lg:mb-0 ">
+
+                    <div class="d-md-block d-none">
+                        <form id="filter-form" method="get"
+                            class="newdashboardSelect flex justify-between grid grid-new-2 ">
+
+                            <div class="flex flex-row">
+
+                                <select name="class_and_section" id="classes" class="select-option me-2">
+                                    <option disabled selected>Classes</option>
+                                    {% for cas in class_and_sections %}
+                                    <option value="{{ cas.class_and_section }}" {% if
+                                        request.GET.class_and_section==cas.class_and_section %}selected{% endif %}>
+                                        {{ cas.class_and_section }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+
+                                <input type="text" placeholder="Student Name" name="student_name" id="student_name"
+                                    class="select-option me-2"
+                                    value="{% if request.GET.student_name %}{{ request.GET.student_name }}{% endif %}">
+
+                            </div>
+
+                            <div class="flex flex-row justify-end">
+
+
+                                <button id="parentfaq" type="submit"
+                                    class="uppercase  bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] h-[40px] w-[70px] me-2">
+                                    Search
+                                </button>
+
+
+                                <a href="{{url('counselor:CounselorDashboardView',args=[coun_id])}}">
+                                    <button id="parentfaq" type="button"
+                                        class="uppercase bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] h-[40px] w-[50px]">
+                                        Reset
+                                    </button>
+                                </a>
+
+                            </div>
+
+
+                        </form>
+                    </div>
+
+
+                    <!-- Mobile Filter Button -->
+                    <div class="d-md-none d-flex justify-content-end mb-3">
+                        <button
+                            class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center  bg-purple"
+                            type="button" data-modal-toggle="course-track-modal"> <i class="fa-solid fa-bars me-2"></i>
+                            Filter </button>
+                    </div>
+                </div>
+                <!-- Mobile Filter Button -->
+
+            </div>
+
+            <!-- Search Table -->
+            <div class="table-responsive">
+                <div id="basic-datatables_wrapper" class="dataTables_wrapper container-fluid dt-bootstrap4">
+                    <div class="row">
+                        <div class="col-sm-12 custom-table mt-md-5 px-0">
+                            <table id="basic-datatables" class="display table " role="grid"
+                                aria-describedby="basic-datatables_info">
+                                <thead>
+                                    <tr role="row">
+                                        <th>S.No.</th>
+                                        <th>Class</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Recent Follow-up</th>
+                                        <th>Session Attended</th>
+                                        <th>Psychometric Report</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if students %}
+                                    {% for stu_info in students %}
+
+                                    <tr>
+                                        <td>{{ students.start_index() + loop.index0 }}</td>
+                                        <td>{{ stu_info.student.class_and_section.class_and_section }}</td>
+                                        <td>{{ stu_info.student.student.name }}</td>
+                                        <td>{{ stu_info.student.student.email }}</td>
+                                        <td>{{ stu_info.student.student.mobile }}</td>
+
+                                        <td>
+                                            {% if stu_info.follow_ups %}
+
+                                            {{ stu_info.follow_ups.0.last_follow_up_date }}
+                                            {% else %}
+                                            -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if stu_info.follow_ups %}
+                                            {% if stu_info.follow_ups.0.is_followed_up %}
+                                            <span class="text-success">Yes</span>
+                                            {% else %}
+                                            <span class="text-danger">No</span>
+                                            {% endif %}
+                                            {% else %}
+                                            <p style="color: #e70808;" title="sessions" class="fs-12">No</p>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if results_data %}
+                                            <span class="text-success">
+                                                {% with result=results_data.get(stu_info.student.student) %}
+                                                {% if result %}
+                                                <a target="_blank" href="{{ result.test_link }}">
+                                                    <button class="fs-12">
+                                                        {% if result.test_success %}
+                                                        <p style="color: #2ad214;" title="psychometric result"
+                                                            class="fs-12">
+                                                            <button class="btn blue-button sm-button">View
+                                                                Report</button>
+                                                        </p>
+                                                        {% else %}
+                                                        <p style="color: #e70808;" title="psychometric link"
+                                                            class="fs-12">No</p>
+                                                        {% endif %}
+                                                    </button>
+                                                </a>
+                                                {% else %}
+                                                <button>
+                                                    <i class="fa-solid fa-spinner fa-spin"></i>
+                                                </button>
+                                                {% endif %}
+                                                {% endwith %}
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="8">No students found.</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-footer mt-3">
+                <div class="row">
+                    <div
+                        class="col-sm-12 col-md-5 align-items-center justify-content-md-start justify-content-center d-flex">
+                        <div class="dataTables_info" id="basic-datatables_info" role="status" aria-live="polite">
+                            {% if students %}
+                            Showing {{ students.start_index() }} to {{ students.end_index() }} of {{
+                            students.paginator.count }} entries
+                            {% else %}
+                            No entries to display.
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-7">
+                        <div class="dataTables_paginate paging_simple_numbers d-flex justify-content-end"
+                            id="basic-datatables_paginate">
+
+                            <ul class="pagination mb-0">
+                                {% if students.has_previous() %}
+                                <li class="paginate_button page-item previous" id="basic-datatables_previous">
+                                    <a href="{{ my_url(students.previous_page_number(), 'page', request.GET.urlencode()) }}"
+                                        aria-controls="basic-datatables" class="page-link"><svg
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24"
+                                            style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;">
+                                            <path
+                                                d="m12.707 7.707-1.414-1.414L5.586 12l5.707 5.707 1.414-1.414L8.414 12z">
+                                            </path>
+                                            <path
+                                                d="M16.293 6.293 10.586 12l5.707 5.707 1.414-1.414L13.414 12l4.293-4.293z">
+                                            </path>
+                                        </svg></a>
+                                </li>
+                                {% else %}
+                                <li class="paginate_button page-item previous disabled" id="basic-datatables_previous">
+                                    <a href="#" aria-controls="basic-datatables" class="page-link">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24"
+                                            style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;">
+                                            <path
+                                                d="m12.707 7.707-1.414-1.414L5.586 12l5.707 5.707 1.414-1.414L8.414 12z">
+                                            </path>
+                                            <path
+                                                d="M16.293 6.293 10.586 12l5.707 5.707 1.414-1.414L13.414 12l4.293-4.293z">
+                                            </path>
+                                        </svg></a>
+                                </li>
+                                {% endif %}
+
+                                {% for num in students.paginator.page_range %}
+                                    {% if students.number == num %}
+                                    <li class="paginate_button page-item active">
+                                        <a href="#" aria-controls="basic-datatables" class="page-link">{{ num }}</a>
+                                    </li>
+                                    {% elif num <= 3 or num > students.paginator.num_pages - 3 or (num >= students.number - 2 and num <= students.number + 1) %}
+                                    <li class="paginate_button page-item">
+                                        <a href="{{ my_url(num, 'page', request.GET.urlencode()) }}" aria-controls="basic-datatables" class="page-link">{{ num }}</a>
+                                    </li>
+                                    {% elif num == 4 or num == students.paginator.num_pages - 3 %}
+                                    <li class="paginate_button page-item disabled">
+                                        <a href="#" aria-controls="basic-datatables" class="page-link">...</a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if students.has_next() %}
+                                <li class="paginate_button page-item next" id="basic-datatables_next">
+                                    <a href="{{ my_url(students.next_page_number(), 'page', request.GET.urlencode()) }}"
+                                        aria-controls="basic-datatables" class="page-link"><svg
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24"
+                                            style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;">
+                                            <path
+                                                d="M10.296 7.71 14.621 12l-4.325 4.29 1.408 1.42L17.461 12l-5.757-5.71z">
+                                            </path>
+                                            <path d="M6.704 6.29 5.296 7.71 9.621 12l-4.325 4.29 1.408 1.42L12.461 12z">
+                                            </path>
+                                        </svg></a>
+                                </li>
+                                {% else %}
+                                <li class="paginate_button page-item next disabled" id="basic-datatables_next">
+                                    <a href="#" aria-controls="basic-datatables" class="page-link"><svg
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24"
+                                            style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;">
+                                            <path
+                                                d="M10.296 7.71 14.621 12l-4.325 4.29 1.408 1.42L17.461 12l-5.757-5.71z">
+                                            </path>
+                                            <path d="M6.704 6.29 5.296 7.71 9.621 12l-4.325 4.29 1.408 1.42L12.461 12z">
+                                            </path>
+                                        </svg></a>
+                                </li>
+                                {% endif %}
+                            </ul>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Search Table -->
+            <!--search filtet from-->
+
+            <!-- career-tree start  -->
+
+            <section
+                class="lg:max-w-[1082px] lg:mx-auto bg-purple-gradient relative bg-opacity-[0.15] overflow-hidden flex flex-row justify-between  px-4 pt-[24px] rounded-[10px] lg:mb-[30px] mb-[35px] mx-[17px] z-10 mt-5 hidden">
+                <div class="lg:max-w-[400px] max-w-[203px] self-center lg:mb-[10px] mb-[18px]  z-20">
+                    <h4
+                        class="lg:text-[24px] lg:leading-[38px] text-[16px] leading-[30px]  text-[#ffffff] font-bold lh-21">
+                        Advanced&nbsp;Career Counseling Program
+                    </h4>
+                    <p class="font-normal text-[13px] tracking-[0.0145em] text-[#ffffff]  mb-3 leading-normal">
+
+                    </p>
+                    <!-- <a href="{{ url ('counselor:CounselorCoursepayment')}}"> -->
+                    <!-- <button onclick="window.location.href='/psychometrictest/create-demo-psychometric-test-payment-eazypay'"
+                                class="px-[10px] lg:px-[25px] py-[10px] lg:py-[15px]  bg-[#5CCD16] rounded-[10px] text-white flex flex-row justify-start items-center gap-x-[5px] text-sm boldFont uppercase border-b-4 border-[#51B613] ">
+                                <span>Buy Course</span>
+                            </button> -->
+                    <!-- </a> -->
+                    <button id="rzp-button1"
+                        class="px-[10px] lg:px-[25px] py-[10px] lg:py-[15px]  bg-[#5CCD16] rounded-[10px] text-white flex flex-row justify-start items-center gap-x-[5px] text-sm boldFont uppercase border-b-4 border-[#51B613] ">Pay
+                        with Razorpay</button>
+                </div>
+                <div class="self-center lg:self-center mb-3">
+                    <img src="{{ static ('images1/refer-a-friend.png')}}" class="object-cover object-top-left ">
+                </div>
+            </section>
+
+            <!-- career-tree end  -->
+
+            <!-- institute graph-->
+            <!-- <div class="institute-graph my-5">
+                  <div class="graph-detail d-flex flex-column justify-content-center aling-items-center text-center p-5">
+                    <p class="graph-title my-3 p-color fs-18  fw-bold">Weekly Counselor’s Session Report</p>
+                    <div class="d-flex justify-content-center mt-3"> <img class="img-fluid" src="{{ static ('images1/counsellor-graph.png')}}"
+                          alt="graph"> </div>
+                  </div>
+                </div>
+                
+              </div> -->
+            <!-- <div class="institute-graph my-5">
+                <div class="graph-detail d-flex flex-column justify-content-center align-items-center text-center p-5">
+                  <p class="graph-title my-3 p-color fs-18 fw-bold">Weekly Counselor’s Session Report</p>
+                  <div class="d-flex justify-content-center mt-3">
+                    <canvas id="sessionsChart" width="400" height="200"></canvas>
+                  </div>
+                </div>
+              </div> -->
+            <div class="institute-graph my-5">
+                <div class="graph-detail d-flex flex-column justify-content-center align-items-center text-center p-5">
+                    <p class="graph-title my-3 p-color fs-18 fw-bold">Weekly Counselor Session Report</p>
+                    <canvas id="sessionsChart" class="img-fluid" width="400" height="200"></canvas>
+                </div>
+
+                <div id="no-data-container" data-no-data-img="{{ static ('images1/no-data.png') }}"
+                    style="display: none;"></div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+
+</main>
+
+
+<div data-direction="translate-y-full"
+    class="h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto transition-all duration-500 translate-y-full">
+
+    <div class="inline-block bg-[#ffffff] w-full rounded-t-[10px] absolute bottom-0 drawerContent">
+
+        <div class="pl-[24px] pr-[30px] w-full py-[32px] flex flex-col gap-[20px]">
+
+            <a href="/user/profiledetails" class="inline-block w-full">
+                <div class="flex justify-between w-full">
+                    <div>
+                        <p class="text-[16px] leading-[21.6px] semibold">Edit Profile</p>
+                        <p class="text-[12px] leading-[16px] regularFont text-[#828282]">You answered - Indoors</p>
+                    </div>
+                    <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto" aria-hidden="true"></i>
+                </div>
+            </a>
+
+            <a href="/user/user-history" class="inline-block w-full">
+                <div class="flex justify-between w-full">
+                    <div>
+                        <p class="text-[16px] leading-[21.6px] semibold">Manage payment history</p>
+                        <p class="text-[12px] leading-[16px] regularFont text-[#828282]">You answered - Indoors</p>
+                    </div>
+                    <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto" aria-hidden="true"></i>
+                </div>
+            </a>
+
+            <a href="/user/logout" class="inline-block w-full">
+                <div class="flex justify-between w-full">
+                    <div>
+                        <p class="text-[16px] leading-[21.6px] semibold text-[#f20a18]">Sign Out</p>
+                        <p class="text-[12px] leading-[16px] regularFont text-opacity-60 text-[#f20a18]">You
+                            answered - Indoors</p>
+                    </div>
+                    <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto" aria-hidden="true"></i>
+                </div>
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Edit Stream Modal -->
+
+<div class="modal fade custom-modal" id="edit-stream" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Create Follow up</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row">
+                        <div class="col">
+                            <input type="text" class="form-control custom-input" placeholder="First name"
+                                aria-label="First name">
+                        </div>
+                        <div class="col">
+                            <input type="text" class="form-control custom-input" placeholder="Last name"
+                                aria-label="Last name">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Stream Modal -->
+
+<!-- Add Institute Modal -->
+
+<!-- Main modal -->
+<div id="add-institute" tabindex="-1" aria-hidden="true"
+    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 max-w-[690px] w-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex items-center justify-center p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3
+                    class="text-lg font-semibold text-gray-900 dark:text-white flex align-items-center w-100 justify-center mb-0">
+                    <img class="me-3" src="{{ static ('images1/create-icon.png')}}" alt="icon"> Create Institute
+                </h3>
+                <button type="button"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm h-8 w-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    data-modal-toggle="add-institute">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                    </svg>
+                    <span class="sr-only">Close modal</span> </button>
+            </div>
+
+            <!-- Modal body -->
+            <form class="p-4 md:p-5">
+                <form>
+                    <div class="grid gap-3 mb-3 md:grid-cols-2">
+                        <div>
+                            <input type="text" id="inst-name" class="form-control custom-input"
+                                placeholder="Institute Name" required />
+                        </div>
+                        <div>
+                            <input type="text" id="Email" class="form-control custom-input" placeholder="Email"
+                                required />
+                        </div>
+                        <div>
+                            <input type="text" id="address" class="form-control custom-input" placeholder="Address"
+                                required />
+                        </div>
+                        <div>
+                            <input type="tel" id="cont" class="form-control custom-input" placeholder="Contact No."
+                                pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}" required />
+                        </div>
+                        <div>
+                            <select id="countries" class="form-control custom-input">
+                                <option selected>Groups</option>
+                                <option value="US">United States</option>
+                                <option value="CA">Canada</option>
+                                <option value="FR">France</option>
+                                <option value="DE">Germany</option>
+                            </select>
+                        </div>
+                        <div>
+                            <input type="text" id="credit" class="form-control custom-input"
+                                placeholder="Exam Credits" />
+                        </div>
+                    </div>
+                    <div class="custom-browse">
+                        <input name="institute_logo" type="file" accept=".jpg,.png" oninput="checkfilesize(this)"
+                            alt="Submit" class="form-control custom-input" placeholder="Institute Logo">
+                    </div>
+                    <div class="flex w-full justify-center">
+                        <button type="submit"
+                            class="width-[228px] h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+                            <div
+                                class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+                                <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">Submit</p>
+                            </div>
+                        </button>
+                    </div>
+                </form>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Institute Modal -->
+
+
+<!--Filter Mobile Modal -->
+
+<!-- Main modal -->
+<div id="course-track-modal" aria-hidden="true"
+    class="hidden overflow-x-hidden overflow-y-auto fixed h-modal md:h-full top-0 left-0 right-0 md:inset-0 z-50 justify-center items-center">
+    <div class="relative w-full max-w-md  h-full md:h-auto">
+        <!-- Modal content -->
+        <div class="bg-white  shadow relative dark:bg-gray-700 h-screen">
+            <div class="flex justify-end p-2">
+                <button type="button"
+                    class="top-[36px] right-[36px] text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white"
+                    data-modal-toggle="course-track-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                    </svg>
+                    <span class="sr-only">Close modal</span> </button>
+            </div>
+            <form id="filter-form" method="get" class="newdashboardSelect mobile-filter ">
+                <select name="class_and_section" id="classes" class="select-option me-2 w-full">
+                    <option disabled selected>Classes</option>
+                    {% for cas in class_and_sections %}
+                    <option value="{{ cas.class_and_section }}" {% if
+                        request.GET.class_and_section==cas.class_and_section %}selected{% endif %}>
+                        {{ cas.class_and_section }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <input type="text" placeholder="Student Name" name="student_name" id="student_name"
+                    class="select-option me-2 w-full" style="width:100% ;"
+                    value="{% if request.GET.student_name %}{{ request.GET.student_name }}{% endif %}">
+
+                <button id="parentfaq" type="submit"
+                    class="uppercase  bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] h-[40px] w-full ">
+                    Search
+                </button>
+
+
+                <a href="{{url('counselor:CounselorDashboardView',args=[coun_id])}}" class="w-full">
+                    <button id="parentfaq" type="button"
+                        class="uppercase bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] h-[40px] w-full">
+                        Reset
+                    </button>
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+<!--Filter Mobile Modal -->
+
+<!-- counselor sessions report graph  -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script id="sessions-data" type="application/json">
+            {{ sessions_data_json|safe }}
+        
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const sessionsDataElement = document.getElementById('sessions-data').textContent;
+        const sessionsData = JSON.parse(sessionsDataElement);
+        const chartContainer = document.querySelector(".graph-detail");
+        const canvas = document.getElementById('sessionsChart');
+
+        // Get the static image path from the data attribute
+        const noDataImage = document.getElementById("no-data-container").getAttribute("data-no-data-img");
+
+        // Check if session data is empty
+        if (!sessionsData.length || !sessionsData[0].sessions.length) {
+            chartContainer.innerHTML = `
+                <div class="data-not d-flex justify-content-center align-items-center flex-row">
+                    <img width="30px" src="${noDataImage}" alt="No Data"/>
+                    <p>No matching records found</p>                            
+                </div>
+            `;
+            return; // Exit script early if no data
+        }
+
+        // Define color palette
+        const colorPalette = ['#ff758c', '#11998e', '#667eea', '#3357FF', '#89f7fe', '#9B59B6', '#E67E22'];
+
+        // Prepare datasets for each counselor
+        const datasets = sessionsData.map((counselor, index) => ({
+            label: `Counselor: ${counselor.counselor_name}`,
+            data: counselor.sessions.map(session => session.session_count),
+            backgroundColor: colorPalette[index % colorPalette.length],
+            borderColor: colorPalette[index % colorPalette.length],
+            borderWidth: 1
+        }));
+
+        // Create the chart
+        const ctx = canvas.getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sessionsData[0].sessions.map(session => session.day),
+                datasets: datasets
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function (value) {
+                                return Number.isInteger(value) ? value : null;
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Number of Sessions'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                },
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    });
+
+</script>
+
+
+<!-- end counselor sessions report graph  -->
+
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+
+    var options = {
+        "key": 'rzp_test_TSVD4p2tmGYQqC', // Enter the Key ID generated from the Dashboard
+        "amount": "1", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+        "currency": "INR",
+        "name": "Acme Corp",
+        "description": "Test Transaction",
+        "image": "https://example.com/your_logo",
+        "order_id": "{{payment.id}}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+        "handler": function (response) {
+            alert(response.razorpay_payment_id);
+            alert(response.razorpay_order_id);
+            alert(response.razorpay_signature)
+        },
+
+        "notes": {
+            "address": "Razorpay Corporate Office"
+        },
+        "theme": {
+            "color": "#3399cc"
+        }
+    };
+    var rzp1 = new Razorpay(options);
+    rzp1.on('payment.failed', function (response) {
+        alert(response.error.code);
+        alert(response.error.description);
+        alert(response.error.source);
+        alert(response.error.step);
+        alert(response.error.reason);
+        alert(response.error.metadata.order_id);
+        alert(response.error.metadata.payment_id);
+    });
+    document.getElementById('rzp-button1').onclick = function (e) {
+        rzp1.open();
+        e.preventDefault();
+    }
+</script>
+{% endblock %}

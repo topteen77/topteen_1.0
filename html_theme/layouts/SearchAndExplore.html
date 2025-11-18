@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="../assets/css/styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/customCSS.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+    <title>Seach and Explore</title>
+  </head>
+  <body>
+
+    <!-- Navigation Bar -->
+
+    <!-- Nav -->
+    <div class="flex justify-between lg:px-[44px] py-[16px]  border-b-[2px] border-[#ebebee] border-solid">
+       
+        <div class="lg:max-w-[1082px] mx-auto">
+
+        
+            <div class="flex ml-[36px] lg:justify-start">
+                <i class="fa fa-search mt-[15px] -mr-[32px] text-[#bdbdbd] relative z-[20] "></i>
+                <input type="text" onfocus="focusFunc()" placeholder="Try Outdoor careers" class="searchBox h-[48px] w-[340px] lg:w-[600px] rounded-[10px] pl-[36px] bg-[#f7f7fa] border-[1.5px] border-solid border-[#dcdcdc] placeholder-[#bdbdbd] relative z-[10]">
+            </div> 
+
+        </div>
+    
+              
+
+    </div>
+    <!-- End of Nav -->
+
+
+    <!-- End of Navigation Bar -->
+
+
+    <!-- Main -->
+    <main class="max-w-[1082px] mx-auto relative min-h-[82vh]">
+
+     <!-- Before Typing -->
+     <div class="beforeType hidden absolute z-10 w-full lg:w-[494px] px-[15px] lg:px-[24px] pt-[24px] pb-[56px] bg-[#ffffff] rounded-[10px] lg:left-[50%] lg:-translate-x-[50%]">
+
+        <!-- Recent Searches -->
+            <div class="flex flex-col gap-y-[8px] pb-[24px] lg:border-b-[1px] border-solid border-[#f3f3f3]">
+                <div class="flex justify-between">
+                    <p class="text-[15px] lg:text-[16px] leading-[20.25px] lg:leading-[21.6px] font-semibold">Recent Searches</p>
+                    <p class="text-[13px] leading-[17.55px] font-bold text-[#3f37c9] hidden lg:block">Clear all</p>
+                </div>
+
+                <div class="flex justify-between">
+                    <div class="flex gap-[15px]">
+                        <div class="w-[69px] h-[69px] lg:w-[43px] lg:h-[39px] rounded-[10px]">
+                            <img src="../assets/images/uxSearch.png" class="w-full h-full" alt="">
+                        </div>
+                        <div class="my-auto lg:max-w-[178px]">
+                            <p class="text-[13px] leading-[18px] lg:leading-[17.55px] font-semibold ">UX Designer</p>
+                            <button class="darkBlueBtn lg:hidden">
+                                <p class="text-[10px] leading-[13.5px] text-[#ffffff] font-semibold">Careers</p>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-[10px] leading-[13.5px] text-[#bdbdbd] font-semibold my-auto hidden lg:block">CAREERS</p>
+                    <div class="my-auto lg:hidden">
+                        <img src="../assets/images/x.png" alt="">
+                    </div>
+                </div>
+
+                <div class="flex justify-between">
+                    <div class="flex gap-[15px]">
+                        <div class="w-[69px] h-[69px] lg:w-[43px] lg:h-[39px] rounded-[10px]">
+                            <img src="../assets/images/iitSearch.png" class="w-full h-full" alt="">
+                        </div>
+                        <div class="my-auto lg:max-w-[178px]">
+                            <p class="text-[13px] leading-[18px] lg:leading-[17.55px] font-semibold ">Indian Institute of Technology, Delhi</p>
+                            <button class="skyBlueBtn lg:hidden">
+                                <p class="text-[10px] leading-[13.5px] text-[#ffffff] font-semibold">Colleges & Schools</p>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-[10px] leading-[13.5px] text-[#bdbdbd] font-semibold my-auto hidden lg:block">CAREERS</p>
+                    <div class="my-auto lg:hidden">
+                        <img src="../assets/images/x.png" alt="">
+                    </div>
+                </div>
+
+                <div class="flex justify-between">
+                    <div class="flex gap-[15px]">
+                        <div class="w-[69px] h-[69px] lg:w-[43px] lg:h-[39px] rounded-[10px]">
+                            <img src="../assets/images/uxSearch.png" class="w-full h-full" alt="">
+                        </div>
+                        <div class="my-auto lg:max-w-[178px]">
+                            <raphic class="text-[13px] leading-[18px] lg:leading-[17.55px] font-semibold ">Graphic Designer</p>
+                            <button class="darkBlueBtn lg:hidden">
+                                <p class="text-[10px] leading-[13.5px] text-[#ffffff] font-semibold">Careers</p>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-[10px] leading-[13.5px] text-[#bdbdbd] font-semibold my-auto hidden lg:block">CAREERS</p>
+                    <div class="my-auto lg:hidden">
+                        <img src="../assets/images/x.png" alt="">
+                    </div>
+                </div>
+
+            </div>
+        <!-- End of Recent Searches -->
+
+        <!-- Trending Careers -->
+            <div class="pt-[14px] hidden lg:block">
+                <p class="text-[15px] leading-[20px] text-[#0f0f0f] font-semibold">Trending Careers</p>
+                <div class="pt-[8px] flex gap-[14px]">
+
+                    <div class="border-[1px] border-[#dedede] rounded-[10px] w-[139px] h-[129px]">
+                        <div class=" h-[80px] overflow-clip">
+                            <img src="../assets/images/unsplash4.svg" alt="">
+                        </div>
+                        <div class="py-[6px] px-[10px]">
+                            <p class="text-[10px] leading-[14px] font-semibold">React Developer</p>
+                            <div class="flex">
+                                <p class="text-[10px] leading-[14px] font-normal text-[#828282]">12 LPA .</p>
+                                <div class="w-[10px] h-[10px] ml-[8px] mt-[1px]">
+                                    <img src="../assets/images/star.svg" alt="">
+                                </div>
+                                <p class="text-[10px] leading-[14px] font-normal text-[#828282] ml-[4px]">4.4</p>
+                            </div>
+                        </div> 
+                    </div>
+
+                    <div class="border-[1px] border-[#dedede] rounded-[10px] w-[139px] h-[129px]">
+                        <div class=" h-[80px] overflow-clip">
+                            <img src="../assets/images/unsplash3.svg" alt="">
+                        </div>
+                        <div class="py-[6px] px-[10px]">
+                            <p class="text-[10px] leading-[14px] font-semibold">UX Designer</p>
+                            <div class="flex">
+                                <p class="text-[10px] leading-[14px] font-normal text-[#828282]">12 LPA .</p>
+                                <div class="w-[10px] h-[10px] ml-[8px] mt-[1px]">
+                                    <img src="../assets/images/star.svg" alt="">
+                                </div>
+                                <p class="text-[10px] leading-[14px] font-normal text-[#828282] ml-[4px]">4.4</p>
+                            </div>
+                        </div> 
+                    </div>
+
+                    <div class="border-[1px] border-[#dedede] rounded-[10px] w-[139px] h-[129px]">
+                        <div class=" h-[80px] overflow-clip">
+                            <img src="../assets/images/unsplash4.svg" alt="">
+                        </div>
+                        <div class="py-[6px] px-[10px]">
+                            <p class="text-[10px] leading-[14px] font-semibold">React Developer</p>
+                            <div class="flex">
+                                <p class="text-[10px] leading-[14px] font-normal text-[#828282]">12 LPA .</p>
+                                <div class="w-[10px] h-[10px] ml-[8px] mt-[1px]">
+                                    <img src="../assets/images/star.svg" alt="">
+                                </div>
+                                <p class="text-[10px] leading-[14px] font-normal text-[#828282] ml-[4px]">4.4</p>
+                            </div>
+                        </div> 
+                    </div>
+                </div>
+            </div>
+        <!-- End of Trending Careers -->
+
+        <!-- Search Categories -->
+        <div class="pt-[24px] hidden lg:block">
+
+            <p class="text-[15px] leading-[20.25px] font-semibold text-[#0f0f0f]">Search Categories</p>
+
+            <div class="flex gap-[15px] pt-[8px]">
+
+                <div class="trendingCareerBg w-[77px] h-[76px] rounded-full">
+                    <div class="max-w-[55px] py-[24px] mx-auto">
+                            <p class="text-[10px] leading-[13.5px] font-semibold text-[#ffffff] text-center">Trending Careers</p>
+                    </div>   
+                </div>
+
+                <div class="collegesBg w-[77px] h-[76px] rounded-full">
+                    <div class="max-w-[55px] py-[24px] mx-auto">
+                            <p class="text-[10px] leading-[13.5px] font-semibold text-[#ffffff] text-center">Colleges & Schools</p>
+                    </div>   
+                </div>
+
+                <div class="trendingCareerBg w-[77px] h-[76px] rounded-full">
+                    <div class="max-w-[55px] py-[24px] mx-auto">
+                            <p class="text-[10px] leading-[13.5px] font-semibold text-[#ffffff] text-center">Courses & Content</p>
+                    </div>   
+                </div>
+
+                <div class="collegesBg w-[77px] h-[76px] rounded-full">
+                    <div class="max-w-[55px] py-[24px] max-h-[28px] mx-auto">
+                            <p class="text-[10px] leading-[13.5px] font-semibold text-[#ffffff] text-center">Exams & Tests</p>
+                    </div>   
+                </div>
+
+                <div class="trendingCareerBg w-[77px] h-[76px] rounded-full">
+                    <div class="max-w-[55px] max-h-[28px] py-[24px] mx-auto">
+                            <p class="text-[10px] leading-[13.5px] font-semibold text-[#ffffff] text-center my-auto">Videos</p>
+                    </div>   
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- End of Search Cateories -->
+
+    </div>
+    <!-- End of Before Typing -->
+
+
+
+
+    <!-- Nothing found -->
+    <div class="nothingFound hidden absolute z-10 lg:left-[50%] lg:-translate-x-[50%] w-full lg:w-[494px] h-[296px] pt-[51px] bg-[#ffffff] rounded-[10px]">
+        <div class="mx-auto max-w-[222px] h-[194px]">
+            <img src="../assets/images/nothingFound.png" class="mx-auto" alt="">
+            <div class="flex flex-col gap-y-[7px] full">
+                <p class="text-[16px] leading-[21.6px] text-center font-semibold">Nothing found....</p>
+                <p class="text-[12px] leading-[17.4px] text-[#828282] text-center">We couldn’t find anything for that search term. Try searching for something else.</p>
+            </div>
+        </div>
+           
+    </div>
+    <!-- End of Nothing found -->
+
+    <div class="mainPart relative z-0">
+                <!-- Search Categories -->
+                <div class="px-[16px] lg:px-0 " >
+                    <p class="text-[15px] leading-[20.25px] lg:text-[30px] lg:leading-[40px] text-[#0f0f0f] semibold mt-[24px] mb-[16px]">Search Categories</p>
+        
+                    <div class="flex flex-wrap gap-[12px] mt-[16px]  ">
+        
+                        <div class="flex justify-between  bg-[#3f37c9] rounded-[10px] pt-[10px] pb-[16.9px] pl-[10px] w-[170px] h-[83px]">
+                            <div class="mt-[8px]">
+                                <p class="text-[13px] leading-[18px] font-semibold text-[#ffffff]">Trending Careers</p>
+                                <div class="rounded-[100px] w-[81px] h-[21px] bg-[#ffffff] bg-opacity-[0.22] mt-[6px] pt-[4px] pl-[12px] ">
+                                    <p class="text-[10px] leading-[14px] font-semibold text-[#ffffff]">112 Results</p>
+                                </div>
+                            </div>
+                            <div class="absolute ml-[115px]">
+                                <img src="../assets/images/unsplash5.svg" class=" relative w-[45px] h-[45px]  z-[20]" alt="">
+                                <img src="../assets/images/unsplash6.svg" class=" relative w-[40.11px] h-[40.11px] ml-[4.5px] -mt-[30px] z-[10] " alt="">
+                            </div>  
+                        </div>
+        
+                        <div class="flex bg-[#3cbae1] rounded-[10px] pt-[10px] pb-[16.9px] pl-[10px] w-[170px] h-[83px] overflow-hidden ">
+                            <div class="mt-[8px] z-[30]">
+                                <p class="text-[13px] leading-[18px] font-semibold text-[#ffffff]">Colleges & Schools</p>
+                                <div class="rounded-[100px] w-[81px] h-[21px] bg-[#ffffff] bg-opacity-[0.22] mt-[6px] pt-[4px] pl-[12px] ">
+                                    <p class="text-[10px] leading-[14px] font-semibold text-[#ffffff]">82 Results</p>
+                                </div>
+                            </div>
+                            <div class="absolute ml-[115px]">
+                                <img src="../assets/images/unsplash7.svg" class=" relative w-[45px] h-[45px]  z-[20]" alt="">
+                                <img src="../assets/images/unsplash8.svg" class=" relative w-[40.11px] h-[40.11px] ml-[4.5px] -mt-[30px] z-[10] " alt="">
+                            </div>    
+                        </div>
+        
+                        <div class="flex bg-[#ef5da8] rounded-[10px] pt-[10px] pb-[16.9px] pl-[10px] w-[170px] h-[83px] overflow-hidden ">
+                            <div class="mt-[8px] z-[30]">
+                                <p class="text-[13px] leading-[18px] font-semibold text-[#ffffff]">Courses & Content</p>
+                                <div class="rounded-[100px] w-[81px] h-[21px] bg-[#ffffff] bg-opacity-[0.22] mt-[6px] pt-[4px] pl-[12px] ">
+                                    <p class="text-[10px] leading-[14px] font-semibold text-[#ffffff]">1.3k Results</p>
+                                </div>
+                            </div>
+                            <div class="absolute ml-[115px]">
+                                <img src="../assets/images/unsplash7.svg" class=" relative w-[45px] h-[45px]  z-[20]" alt="">
+                                <img src="../assets/images/unsplash8.svg" class=" relative w-[40.11px] h-[40.11px] ml-[4.5px] -mt-[30px] z-[10] " alt="">
+                            </div>    
+                        </div>
+        
+                        <div class="flex justify-between  bg-[#3f37c9] rounded-[10px] pt-[10px] pb-[16.9px] pl-[10px] w-[170px] h-[83px]">
+                            <div class="mt-[8px]">
+                                <p class="text-[13px] leading-[18px] font-semibold text-[#ffffff]">How-Tos & Tutorials</p>
+                                <div class="rounded-[100px] w-[81px] h-[21px] bg-[#ffffff] bg-opacity-[0.22] mt-[6px] pt-[4px] pl-[12px] ">
+                                    <p class="text-[10px] leading-[14px] font-semibold text-[#ffffff]">807 Results</p>
+                                </div>
+                            </div>
+                            <div class="absolute ml-[115px]">
+                                <img src="../assets/images/unsplash5.svg" class=" relative w-[45px] h-[45px]  z-[20]" alt="">
+                                <img src="../assets/images/unsplash6.svg" class=" relative w-[40.11px] h-[40.11px] ml-[4.5px] -mt-[30px] z-[10] " alt="">
+                            </div>   
+                        </div>
+        
+                        <div class="flex bg-[#3cbae1] rounded-[10px] pt-[10px] pb-[16.9px] pl-[10px] w-[170px] h-[83px] overflow-hidden ">
+                            <div class="mt-[8px] z-[30]">
+                                <p class="text-[13px] leading-[18px] font-semibold text-[#ffffff]">Exams & Tests</p>
+                                <div class="rounded-[100px] w-[81px] h-[21px] bg-[#ffffff] bg-opacity-[0.22] mt-[6px] pt-[4px] pl-[12px] ">
+                                    <p class="text-[10px] leading-[14px] font-semibold text-[#ffffff]">36 Results</p>
+                                </div>
+                            </div>
+                            <div class="absolute ml-[115px]">
+                                <img src="../assets/images/unsplash7.svg" class=" relative w-[45px] h-[45px]  z-[20]" alt="">
+                                <img src="../assets/images/unsplash8.svg" class=" relative w-[40.11px] h-[40.11px] ml-[4.5px] -mt-[30px] z-[10] " alt="">
+                            </div>    
+                        </div>
+        
+                        <div class="flex bg-[#ef5da8] rounded-[10px] pt-[10px] pb-[16.9px] pl-[10px] w-[170px] h-[83px] overflow-hidden ">
+                            <div class="mt-[8px] z-[30]">
+                                <p class="text-[13px] leading-[18px] font-semibold text-[#ffffff]">Videos</p>
+                                <div class="rounded-[100px] w-[81px] h-[21px] bg-[#ffffff] bg-opacity-[0.22] mt-[6px] pt-[4px] pl-[12px] ">
+                                    <p class="text-[10px] leading-[14px] font-semibold text-[#ffffff]">2.2k Results</p>
+                                </div>
+                            </div>
+                            <div class="absolute ml-[115px]">
+                                <img src="../assets/images/unsplash7.svg" class=" relative w-[45px] h-[45px]  z-[20]" alt="">
+                                <img src="../assets/images/unsplash8.svg" class=" relative w-[40.11px] h-[40.11px] ml-[4.5px] -mt-[30px] z-[10] " alt="">
+                            </div>    
+                        </div>
+        
+                    </div>
+        
+                    
+                </div>
+                <!-- End of Search Categories -->
+        
+                <!-- Most Searched Careers -->
+                <div class="pl-[18px] mt-[34px] lg:pl-0 ">
+                    <p class="text-[15px] leading-[20.25px] lg:text-[30px] lg:leading-[40px] text-[#0f0f0f] semibold">Most Searched Careers</p>
+        
+                    <div class=" relative flex gap-[12px] lg:gap-[24px] px-[6px] pt-[16px] overflow-x-scroll no-scrollbar lg:max-w-[1082px]">
+        
+                        <div>
+                            
+                            <div class="absolute z-10 rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 1</p>
+                            </div>
+        
+                            <div class="uxBg  w-[157px] h-[192px] rounded-[10px] ">
+                                <div class="w-[27px] h-[27px] absolute mt-[6px] ml-[125px] bg-[#ffffff] rounded-full"> 
+                                    <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.8px]"></i>
+                                </div>
+                            </div>
+        
+                            <p class="text-[15px] leading-[20px] font-semibold text-[#333333] mt-[10px]">UX Designer</p>
+                            <p class="flex mt-[3px]">
+                                    <span class="text-[13px] leading-[18px] text-[#828282]">16 LPA.</span>
+                                    <img src="../assets/images/star.svg" class="w-[14px] h-[14px] ml-[8px]" alt="">
+                                    <span class="text-[13px] leading-[18px] text-[#828282] ml-[4px]">4.4</span>
+                            </p> 
+                        </div>
+        
+                        <div>
+                            <div class="absolute rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 2</p>
+                            </div>
+        
+                            <div class="codingBg w-[157px] h-[192px] rounded-[10px] ">
+                                <div class="w-[27px] h-[27px] absolute mt-[6px] ml-[125px] bg-[#ffffff] rounded-full"> 
+                                    <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.8px]"></i>
+                                </div>
+                            </div>
+        
+                            <p class="text-[15px] leading-[20px] font-semibold text-[#333333] mt-[10px]">React Developer</p>
+                            <p class="flex mt-[3px]">
+                                    <span class="text-[13px] leading-[18px] text-[#828282]">12 LPA.</span>
+                                    <img src="../assets/images/star.svg" class="w-[14px] h-[14px] ml-[8px]" alt="">
+                                    <span class="text-[13px] leading-[18px] text-[#828282] ml-[4px]">4.2</span>
+                            </p> 
+                        </div>
+        
+                        <div>
+                            <div class="absolute rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 1</p>
+                            </div>
+        
+                            <div class="uxBg w-[157px] h-[192px] rounded-[10px] ">
+                                <div class="w-[27px] h-[27px] absolute mt-[6px] ml-[125px] bg-[#ffffff] rounded-full"> 
+                                    <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.8px]"></i>
+                                </div>
+                            </div>
+        
+                            <p class="text-[15px] leading-[20px] font-semibold text-[#333333] mt-[10px]">UX Designer</p>
+                            <p class="flex mt-[3px]">
+                                    <span class="text-[13px] leading-[18px] text-[#828282]">16 LPA.</span>
+                                    <img src="../assets/images/star.svg" class="w-[14px] h-[14px] ml-[8px]" alt="">
+                                    <span class="text-[13px] leading-[18px] text-[#828282] ml-[4px]">4.4</span>
+                            </p> 
+                        </div>
+        
+                        <div>
+                            <div class="absolute rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 2</p>
+                            </div>
+        
+                            <div class="codingBg w-[157px] h-[192px] rounded-[10px] ">
+                                <div class="w-[27px] h-[27px] absolute mt-[6px] ml-[125px] bg-[#ffffff] rounded-full"> 
+                                    <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.8px]"></i>
+                                </div>
+                            </div>
+        
+                            <p class="text-[15px] leading-[20px] font-semibold text-[#333333] mt-[10px]">React Developer</p>
+                            <p class="flex mt-[3px]">
+                                    <span class="text-[13px] leading-[18px] text-[#828282]">12 LPA.</span>
+                                    <img src="../assets/images/star.svg" class="w-[14px] h-[14px] ml-[8px]" alt="">
+                                    <span class="text-[13px] leading-[18px] text-[#828282] ml-[4px]">4.2</span>
+                            </p> 
+                        </div>
+        
+                        <div>
+                            <div class="absolute rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 1</p>
+                            </div>
+        
+                            <div class="uxBg w-[157px] h-[192px] rounded-[10px] ">
+                                <div class="w-[27px] h-[27px] absolute mt-[6px] ml-[125px] bg-[#ffffff] rounded-full"> 
+                                    <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.8px]"></i>
+                                </div>
+                            </div>
+        
+                            <p class="text-[15px] leading-[20px] font-semibold text-[#333333] mt-[10px]">UX Designer</p>
+                            <p class="flex mt-[3px]">
+                                    <span class="text-[13px] leading-[18px] text-[#828282]">16 LPA.</span>
+                                    <img src="../assets/images/star.svg" class="w-[14px] h-[14px] ml-[8px]" alt="">
+                                    <span class="text-[13px] leading-[18px] text-[#828282] ml-[4px]">4.4</span>
+                            </p> 
+                        </div>
+        
+                        <div>
+                            <div class="absolute rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 2</p>
+                            </div>
+        
+                            <div class="codingBg w-[157px] h-[192px] rounded-[10px] ">
+                                <div class="w-[27px] h-[27px] absolute mt-[6px] ml-[125px] bg-[#ffffff] rounded-full"> 
+                                    <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.8px]"></i>
+                                </div>
+                            </div>
+        
+                            <p class="text-[15px] leading-[20px] font-semibold text-[#333333] mt-[10px]">React Developer</p>
+                            <p class="flex mt-[3px]">
+                                    <span class="text-[13px] leading-[18px] text-[#828282]">12 LPA.</span>
+                                    <img src="../assets/images/star.svg" class="w-[14px] h-[14px] ml-[8px]" alt="">
+                                    <span class="text-[13px] leading-[18px] text-[#828282] ml-[4px]">4.2</span>
+                            </p> 
+                        </div>
+        
+                        <div>
+                            <div class="absolute rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 1</p>
+                            </div>
+        
+                            <div class="uxBg w-[157px] h-[192px] rounded-[10px] ">
+                                <div class="w-[27px] h-[27px] absolute mt-[6px] ml-[125px] bg-[#ffffff] rounded-full"> 
+                                    <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.8px]"></i>
+                                </div>
+                            </div>
+        
+                            <p class="text-[15px] leading-[20px] font-semibold text-[#333333] mt-[10px]">UX Designer</p>
+                            <p class="flex mt-[3px]">
+                                    <span class="text-[13px] leading-[18px] text-[#828282]">16 LPA.</span>
+                                    <img src="../assets/images/star.svg" class="w-[14px] h-[14px] ml-[8px]" alt="">
+                                    <span class="text-[13px] leading-[18px] text-[#828282] ml-[4px]">4.4</span>
+                            </p> 
+                        </div>
+        
+                        <div>
+                            <div class="absolute rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 2</p>
+                            </div>
+        
+                            <div class="codingBg w-[157px] h-[192px] rounded-[10px] ">
+                                <div class="w-[27px] h-[27px] absolute mt-[6px] ml-[125px] bg-[#ffffff] rounded-full"> 
+                                    <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.8px]"></i>
+                                </div>
+                            </div>
+        
+                            <p class="text-[15px] leading-[20px] font-semibold text-[#333333] mt-[10px]">React Developer</p>
+                            <p class="flex mt-[3px]">
+                                    <span class="text-[13px] leading-[18px] text-[#828282]">12 LPA.</span>
+                                    <img src="../assets/images/star.svg" class="w-[14px] h-[14px] ml-[8px]" alt="">
+                                    <span class="text-[13px] leading-[18px] text-[#828282] ml-[4px]">4.2</span>
+                            </p> 
+                        </div>
+        
+                    </div>
+                </div>
+                <!--End of Most Searched Careers -->
+        
+                <!-- Most Searched Schools  -->
+                <div class="pl-[18px] mt-[34px] lg:pl-0">
+                    <p class="text-[15px] leading-[20.25px] lg:text-[30px] lg:leading-[40px] text-[#0f0f0f] semibold">Most Searched Schools</p>
+        
+                    <div class="relative flex gap-[12px] lg:gap-[24px] px-[6px] pt-[16px] overflow-x-scroll no-scrollbar lg:max-w-[1082px]">
+        
+                        
+                        <div>
+                            <div class="absolute z-10 rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 1</p>
+                            </div>
+                            <div class="relative shrink-0">
+                                <figure class="w-full mb-[18px]">
+                                  <div
+                                    class="rounded-lg overflow-hidden mb-[10px] lg:mb-[18px]"
+                                  >
+                                    <img
+                                      src="../assets/images/course.png"
+                                      alt="first college  Image"
+                                      class="min-w-[225px] h-[192px] object-cover"
+                                    />
+                                  </div>
+                  
+                                  <figcaption class="text-[#333333] semibold text-sm mb-1 max-w-[225px] max-h-[20px] overflow-hidden">
+                                    University of Waterloo
+                                  </figcaption>
+                                  <div
+                                    class="text-[#828282] max-h-[17px] overflow-hidden font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                                  >
+                                    <span class="max-w-[160px] overflow-hidden">Waterloo, Canada</span>&nbsp;
+                                    <img
+                                      src="../assets/images/favourite 1.png"
+                                      class="inline-block"
+                                    /><span> 4.4</span>
+                                  </div>
+                  
+                                  <!-- BOOKMARK SIGN -->
+                                  <div class="absolute top-3 right-3">
+                                    <div class="bg-white rounded-full px-[5px] py-[3px]">
+                                      <img
+                                        src="../assets/images/bookmark.png"
+                                        class="w-[14px] h-[18px]"
+                                      />
+                                    </div>
+                                  </div>
+                                </figure>
+                            </div>
+                        </div>
+        
+                        <div>
+                            <div class="absolute z-10 rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 1</p>
+                            </div>
+                            <div class="relative shrink-0">
+                                <figure class="w-full mb-[18px]">
+                                  <div
+                                    class="rounded-lg overflow-hidden mb-[10px] lg:mb-[18px]"
+                                  >
+                                    <img
+                                      src="../assets/images/course.png"
+                                      alt="first college  Image"
+                                      class="min-w-[225px] h-[192px] object-cover"
+                                    />
+                                  </div>
+                  
+                                  <figcaption class="text-[#333333] semibold text-sm mb-1 max-w-[225px] max-h-[20px] overflow-hidden">
+                                    University of Waterloo
+                                  </figcaption>
+                                  <div
+                                    class="text-[#828282] max-h-[17px] overflow-hidden font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                                  >
+                                    <span class="max-w-[160px] overflow-hidden">Waterloo, Canada</span>&nbsp;
+                                    <img
+                                      src="../assets/images/favourite 1.png"
+                                      class="inline-block"
+                                    /><span> 4.4</span>
+                                  </div>
+                  
+                                  <!-- BOOKMARK SIGN -->
+                                  <div class="absolute top-3 right-3">
+                                    <div class="bg-white rounded-full px-[5px] py-[3px]">
+                                      <img
+                                        src="../assets/images/bookmark.png"
+                                        class="w-[14px] h-[18px]"
+                                      />
+                                    </div>
+                                  </div>
+                                </figure>
+                            </div>
+                        </div>
+        
+                        <div>
+                            <div class="absolute z-10 rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 1</p>
+                            </div>
+                            <div class="relative shrink-0">
+                                <figure class="w-full mb-[18px]">
+                                  <div
+                                    class="rounded-lg overflow-hidden mb-[10px] lg:mb-[18px]"
+                                  >
+                                    <img
+                                      src="../assets/images/course.png"
+                                      alt="first college  Image"
+                                      class="min-w-[225px] h-[192px] object-cover"
+                                    />
+                                  </div>
+                  
+                                  <figcaption class="text-[#333333] semibold text-sm mb-1 max-w-[225px] max-h-[20px] overflow-hidden">
+                                    University of Waterloo
+                                  </figcaption>
+                                  <div
+                                    class="text-[#828282] max-h-[17px] overflow-hidden font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                                  >
+                                    <span class="max-w-[160px] overflow-hidden">Waterloo, Canada</span>&nbsp;
+                                    <img
+                                      src="../assets/images/favourite 1.png"
+                                      class="inline-block"
+                                    /><span> 4.4</span>
+                                  </div>
+                  
+                                  <!-- BOOKMARK SIGN -->
+                                  <div class="absolute top-3 right-3">
+                                    <div class="bg-white rounded-full px-[5px] py-[3px]">
+                                      <img
+                                        src="../assets/images/bookmark.png"
+                                        class="w-[14px] h-[18px]"
+                                      />
+                                    </div>
+                                  </div>
+                                </figure>
+                            </div>
+                        </div>
+        
+                        <div>
+                            <div class="absolute z-10 rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 1</p>
+                            </div>
+                            <div class="relative shrink-0">
+                                <figure class="w-full mb-[18px]">
+                                  <div
+                                    class="rounded-lg overflow-hidden mb-[10px] lg:mb-[18px]"
+                                  >
+                                    <img
+                                      src="../assets/images/course.png"
+                                      alt="first college  Image"
+                                      class="min-w-[225px] h-[192px] object-cover"
+                                    />
+                                  </div>
+                  
+                                  <figcaption class="text-[#333333] semibold text-sm mb-1 max-w-[225px] max-h-[20px] overflow-hidden">
+                                    University of Waterloo
+                                  </figcaption>
+                                  <div
+                                    class="text-[#828282] max-h-[17px] overflow-hidden font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                                  >
+                                    <span class="max-w-[160px] overflow-hidden">Waterloo, Canada</span>&nbsp;
+                                    <img
+                                      src="../assets/images/favourite 1.png"
+                                      class="inline-block"
+                                    /><span> 4.4</span>
+                                  </div>
+                  
+                                  <!-- BOOKMARK SIGN -->
+                                  <div class="absolute top-3 right-3">
+                                    <div class="bg-white rounded-full px-[5px] py-[3px]">
+                                      <img
+                                        src="../assets/images/bookmark.png"
+                                        class="w-[14px] h-[18px]"
+                                      />
+                                    </div>
+                                  </div>
+                                </figure>
+                            </div>
+                        </div>
+        
+                        <div>
+                            <div class="absolute z-10 rotate-[-45deg] -ml-[8px] -mt-[4px] w-[32px] h-[24px] bg-[#3f37c9] border-[2px] border-solid border-[#ffffff] rounded-[100px] py-[3.5px] px-[6px]">
+                                <p class="text-[10px] leading-[14px] text-[#ffffff]"># 1</p>
+                            </div>
+                            <div class="relative shrink-0">
+                                <figure class="w-full mb-[18px]">
+                                  <div
+                                    class="rounded-lg overflow-hidden mb-[10px] lg:mb-[18px]"
+                                  >
+                                    <img
+                                      src="../assets/images/course.png"
+                                      alt="first college  Image"
+                                      class="min-w-[225px] h-[192px] object-cover"
+                                    />
+                                  </div>
+                  
+                                  <figcaption class="text-[#333333] semibold text-sm mb-1 max-w-[225px] max-h-[20px] overflow-hidden">
+                                    University of Waterloo
+                                  </figcaption>
+                                  <div
+                                    class="text-[#828282] max-h-[17px] overflow-hidden font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                                  >
+                                    <span class="max-w-[160px] overflow-hidden">Waterloo, Canada</span>&nbsp;
+                                    <img
+                                      src="../assets/images/favourite 1.png"
+                                      class="inline-block"
+                                    /><span> 4.4</span>
+                                  </div>
+                  
+                                  <!-- BOOKMARK SIGN -->
+                                  <div class="absolute top-3 right-3">
+                                    <div class="bg-white rounded-full px-[5px] py-[3px]">
+                                      <img
+                                        src="../assets/images/bookmark.png"
+                                        class="w-[14px] h-[18px]"
+                                      />
+                                    </div>
+                                  </div>
+                                </figure>
+                            </div>
+                        </div>
+                        
+        
+                    </div>
+        
+                </div>
+                <!-- End of Most Searched Schools -->
+        
+                <!-- Trending Content -->
+                <div class="my-[35px] px-[17px] lg:px-0">
+                    <div class="flex flex-row justify-between items-center mb-4">
+                      <span
+                        class="text-[15px] leading-[20px] lg:text-[30px] lg:leading-[40px] semibold tracking-[0.035em] text-[#0F0F0F]"
+                      >
+                        Trending Content
+                      </span>
+                      <div class="text-[13px] leading-[18px] text-[#541BCF] semibold cursor-pointer">
+                        View More
+                      </div>
+                    </div>
+        
+        
+                    <div
+                      class="max-h-[280px] flex flex-col flex-wrap gap-y-[19px] gap-x-[14px] overflow-x-scroll pb-2 no-scrollbar"
+                    >
+                      
+                    
+                        <div
+                          class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                        >
+                          <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                            <img
+                              src="../assets/images/course.png"
+                              class="h-[69px] w-[69px] object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p
+                              class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                            >
+                              Career options that will spring up due to the rise of VR
+                            </p>
+                            <div
+                              class="bg-[#3F37C9] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            >
+                              New Careers
+                            </div>
+                          </div>
+                        </div>
+        
+                        <div
+                          class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                        >
+                          <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                            <img
+                              src="../assets/images/course.png"
+                              class="h-[69px] w-[69px] object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p
+                              class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                            >
+                              Career options that will spring up due to the rise of VR
+                            </p>
+                            <div
+                              class="bg-[#4cc9f0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            >
+                              Online Education
+                            </div>
+                          </div>
+                        </div>
+        
+                        <div
+                          class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                        >
+                          <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                            <img
+                              src="../assets/images/course.png"
+                              class="h-[69px] w-[69px] object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p
+                              class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                            >
+                              Career options that will spring up due to the rise of VR
+                            </p>
+                            <div
+                              class="bg-[#ef5da8] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            >
+                             Application Details
+                            </div>
+                          </div>
+                        </div>
+        
+                        <div
+                          class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                        >
+                          <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                            <img
+                              src="../assets/images/course.png"
+                              class="h-[69px] w-[69px] object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p
+                              class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                            >
+                              Career options that will spring up due to the rise of VR
+                            </p>
+                            <div
+                              class="bg-[#4cc9f0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            >
+                              Online Education
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                        >
+                          <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                            <img
+                              src="../assets/images/course.png"
+                              class="h-[69px] w-[69px] object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p
+                              class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                            >
+                              Career options that will spring up due to the rise of VR
+                            </p>
+                            <div
+                              class="bg-[#4cc9f0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            >
+                              Online Education
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                        >
+                          <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                            <img
+                              src="../assets/images/course.png"
+                              class="h-[69px] w-[69px] object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p
+                              class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                            >
+                              Career options that will spring up due to the rise of VR
+                            </p>
+                            <div
+                              class="bg-[#4cc9f0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            >
+                              Online Education
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                        >
+                          <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                            <img
+                              src="../assets/images/course.png"
+                              class="h-[69px] w-[69px] object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p
+                              class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                            >
+                              Career options that will spring up due to the rise of VR
+                            </p>
+                            <div
+                              class="bg-[#4cc9f0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            >
+                              Online Education
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                        >
+                          <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                            <img
+                              src="../assets/images/course.png"
+                              class="h-[69px] w-[69px] object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p
+                              class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                            >
+                              Career options that will spring up due to the rise of VR
+                            </p>
+                            <div
+                              class="bg-[#4cc9f0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            >
+                              Online Education
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                        >
+                          <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                            <img
+                              src="../assets/images/course.png"
+                              class="h-[69px] w-[69px] object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p
+                              class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                            >
+                              Career options that will spring up due to the rise of VR
+                            </p>
+                            <div
+                              class="bg-[#4cc9f0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            >
+                              Online Education
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                        >
+                          <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                            <img
+                              src="../assets/images/course.png"
+                              class="h-[69px] w-[69px] object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p
+                              class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                            >
+                              Career options that will spring up due to the rise of VR
+                            </p>
+                            <div
+                              class="bg-[#4cc9f0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            >
+                              Online Education
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                        >
+                          <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                            <img
+                              src="../assets/images/course.png"
+                              class="h-[69px] w-[69px] object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p
+                              class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                            >
+                              Career options that will spring up due to the rise of VR
+                            </p>
+                            <div
+                              class="bg-[#4cc9f0] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            >
+                              Online Education
+                            </div>
+                          </div>
+                        </div>
+
+            
+            
+            
+                    </div>
+        
+                </div>
+                <!-- End of Trending Content -->
+
+    </div>
+
+
+    </main>
+    <!-- End of Main -->
+
+
+
+    <!-- Footer -->
+
+    <!-- Mobile footer -->
+    <footer class="lg:hidden bg-[#f7f7fa] mt-[58px] pb-[12px]">
+        <li
+          class="list-none flex justify-between px-[24px] border-y-[1px] border-y-[#3f37c9] border-y-solid border-opacity-[0.15] pt-[13px] pb-[18.67px] mx-auto bg-[#ffffff]"
+        >
+          <ul class="pt-[4.5px] group text-center">
+            <i
+              class="fa fa-bolt text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"
+            ></i>
+            <p
+              class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+            >
+              Discover
+            </p>
+          </ul>
+  
+          <ul class="pt-[4.5px] group text-center">
+            <i
+              class="fa fa-magnifying-glass text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"
+            ></i>
+            <p
+              class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+            >
+              Search
+            </p>
+          </ul>
+  
+          <ul class="pt-[4.5px] group text-center">
+            <i
+              class="fa fa-users-rectangle text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"
+            ></i>
+            <p
+              class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+            >
+              My Plans
+            </p>
+          </ul>
+  
+          <ul class="pt-[4.5px] group text-center">
+            <i
+              class="fa fa-book text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"
+            ></i>
+            <p
+              class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] mx-auto group-hover:scale-110"
+            >
+              Learn
+            </p>
+          </ul>
+  
+          <ul class="pt-[4.5px] group text-center">
+            <i
+              class="fa-regular fa-circle-user text-[24px] text-[#828282] group-hover:text-[#3f37c9] group-hover:scale-110"
+            ></i>
+            <p
+              class="text-[12px] leading-[16.2px] mt-[4.25px] text-[#828282] group-hover:text-[#333333] group-hover:scale-110 mx-auto"
+            >
+              Profile
+            </p>
+          </ul>
+        </li>
+        <div class="flex justify-center mt-[12px]">
+          <p class="text-[12.66px] leading-[15px] text-[#333333] my-auto">
+            topteen.com &nbsp;
+          </p>
+          <i class="fa fa-lock text-[10px] text-[#7f7f83] my-auto"></i>
+        </div>
+      </footer>
+      <!-- End of mobile footer -->
+  
+       <!-- Desktop Footer -->
+    <div class="w-full bg-[#FDFCFF]">
+        <footer
+          class="lg:max-w-[1082px] mx-auto pt-10 mt-8 h-auto tracking-wide lg:block hidden"
+          id="footer"
+        >
+          <div
+            class="grid grid-cols-2 pb-10 border-b border-[#000000] border-opacity-20 gap-10"
+          >
+            <div>
+              <h4 class="text-sm font-bold mb-4 footer-heading">
+                <span
+                  ><img
+                    src="../assets/images/graduation-hat 1.png"
+                    class="h-10 inline-block"
+                /></span>
+                &nbsp;<span class="font-bold text-[13.13px] leading-[18px]"
+                  >TOPTEEN</span
+                >
+              </h4>
+              <p class="text-left text-[#828282] text-lg w-1/2 font-normal">
+                Amet minim mollit non deserunt ullamco est sit aliqua dolor do
+                amet sint.
+              </p>
+            </div>
+            <div class="flex flex-row justify-between items-start">
+              <ul class="flex flex-col justify-evenly items-start">
+                <li
+                  class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+                >
+                  Resources
+                </li>
+                <li
+                  class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+                >
+                  <a href="#"> Learn more </a>
+                </li>
+                <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                  <a href="#"> Downloads </a>
+                </li>
+              </ul>
+  
+              <ul class="flex flex-col justify-evenly items-start">
+                <li
+                  class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+                >
+                  Product
+                </li>
+                <li
+                  class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+                >
+                  <a href="#"> Pricing </a>
+                </li>
+                <li
+                  class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+                >
+                  <a href="#"> Features </a>
+                </li>
+                <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                  <a href="#"> Log In </a>
+                </li>
+              </ul>
+              <ul class="flex flex-col justify-evenly items-start">
+                <li
+                  class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+                >
+                  Socials
+                </li>
+                <li
+                  class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+                >
+                  <a href="#"> Instagram </a>
+                </li>
+  
+                <li
+                  class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+                >
+                  <a href="#"> Linkedin </a>
+                </li>
+                <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                  <a href="#"> Facebook </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+  
+          <div
+            class="flex flex-row justify-between my-2 text-[#828282] font-normal mb-6"
+          >
+            <div class="text-xs">&copy; 2021 TopTeen. All rights reserved.</div>
+            <div class="text-xs">
+              <a href="#" class="underline">Terms & Conditions</a
+              ><span class="font-extrabold">.</span
+              ><a href="#" class="underline"> Privacy Policy</a>
+            </div>
+          </div>
+        </footer>
+      </div>
+      <!-- End of Desktop Footer -->
+  
+      <!-- End of Footer -->
+
+    <script src="../assets/js/search.js"></script>
+</body>
+</html>

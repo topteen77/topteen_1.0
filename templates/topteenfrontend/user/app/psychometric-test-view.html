@@ -1,0 +1,464 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+
+  <style>
+
+p{margin-bottom: 0px;}
+
+@media screen and (max-width: 768px) {
+ol, ul {
+  padding-left: 0px !important;
+}
+
+.list-none {
+	padding-bottom: 0px;
+}
+
+.purple-button {
+	background: #3F37C9;
+	color: #fff;
+	border-bottom: 6px solid #2e289d;
+	width: auto;
+	border-radius: 10px;
+	padding: 7px 0px;
+	width: 101px !important;
+	font-size: 13px;
+	font-weight: 600;
+}
+  }
+  
+
+
+  </style>
+
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full overflow-y-auto pb-[60px] lg:pb-0">
+
+  <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+    <!-- Left Part Mobile -->
+    <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+      <!-- User -->
+      <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+        <div class="flex gap-[17px]">
+          <div>
+            <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" />
+          </div>
+          <div class="flex flex-col gap-y-[5px]">
+            <div class="pt-[5px]">
+              <p class="text-[15px] leading-[20.25px] font-semibold">
+                {{request.user}}
+              </p>
+            </div>
+            <div class="flex flex-col gap-y-[3px]">
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  Joined {{request.user.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
+                  class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  {% if request.user.user_profile %} 
+                  {% if request.user.student_management.last().class_and_section %}
+                  {{request.user.student_management.last().class_and_section}}
+                  {% endif %} • {% if request.user.user_profile.schoolname %}
+                  {{request.user.user_profile.schoolname}}{% endif %}
+                  {% else %} - • - {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-direction="translate-y-full"
+          class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+          <i class="fa fa-gear text-white text-[12.5px]"></i>
+        </button>
+      </div>
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div id="comppro"
+        class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[100px] pt-[18px] relative">
+        <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+          <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+        </div>
+        <div>
+          <div class="flex relative">
+            <div class="absolute -left-[24px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" class="w-[81px] h-[81px]"
+                alt="" />
+            </div>
+            <div class="text-left max-w-[217.5px] ml-[74px]">
+              <div>
+                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+
+    <!-- End of left Part Mobile -->
+
+    <!-- Left part Desktop -->
+    <div class=" hidden lg:block w-[338px] h-[602px] border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto">
+      <!-- User -->
+      <div class="flex justify-center border-b-[1px] border-solid border-[#dedede]">
+        <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px]">
+
+          <div class=" flex flex-col justify-center items-center">
+
+            <div class="flex justify-center items-center w-full">
+              <div class="flex gap-[8px]">
+                <div class="relative">
+                  <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" />
+                  <!-- <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" /> -->
+
+                  <!-- XP  -->
+                  <!-- <div
+                          class="w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px] absolute bottom-1 left-20"
+                        >
+                          <div
+                            class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
+                          >
+                            <img
+                              src="{{static("topteenfrontend/assets/images/xp.svg")}}"
+                              class="w-[20px] h-[20px]"
+                              alt=""
+                            />
+                            <p
+                              class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
+                            >
+                              1280 XP
+                            </p>
+                          </div>
+                        </div> -->
+                  <!-- End of XP -->
+                </div>
+              </div>
+            </div>
+
+            <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user}}</p>
+
+          </div>
+
+
+          <div class="flex flex-col gap-y-[8px]">
+
+            <div class="flex gap-[14px]">
+              <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                Joined {{request.user.created.strftime("%B, %Y")}}
+              </p>
+            </div>
+            <div class="flex gap-[14px]">
+              <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}" class="w-[18px] h-[14px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                {% if request.user.user_profile %} {% if request.user.student_management.last().class_and_section
+                %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if
+                request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{% else %} - •
+                - {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div class="flex justify-center pt-[18px]">
+        <div>
+          <div class="flex gap-[18px]">
+            <div class="w-[45px] h-[44px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" alt="no image" />
+            </div>
+            <div class="text-left max-w-[206px] flex flex-col gap-y-[5px]">
+              <div>
+                <p class="text-[12px] leading-[16.2px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[10px] leading-[14.5px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[205px] h-[10px] rounded-[100px] bg-[#4cc9f0] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div class="w-[295px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[19px] d-none">
+            <a href="{{ url('users:profiledetails') }}">
+              <div class="w-full h-[48px] flex gap-[11.56px] justify-center rounded-[10px] bg-[#3f37c9] text-[#ffffff]">
+                <i class="fa fa-gear my-auto"></i>
+
+                <p class="text-[14px] leading-[18.9px] font-bold my-auto text-[#ffffff]">
+                  SETTINGS
+                </p>
+
+              </div>
+            </a>
+          </div>
+          <!-- End of settings -->
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+    <!-- End of Left part Desktop -->
+
+    <!-- Right Part -->
+    <!-- <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20"> -->
+      <!-- Statistics -->
+      
+
+      <div class="col-lg-8 col-md-12 mt-md-0 mt-5 order-md-2 order-1">
+        <!-- <div class="col-lg-8 col-md-12 mt-md-0 mt-5"> -->
+          {% if messages %}
+            <div>
+                {% for message in messages %}
+                <div class="alert alert-danger" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+          {% endif %}
+          <h2 class="title-test-info mb-0 "> Psychometric Assesment </h2>
+          <div class="view-reports mt-5">
+            <div class="report-list">
+              <div class="vi-r-info">
+                <div class="mgs-icon">
+                  <img class="img-fluid" src="{{ static('images/interest-icon.svg') }}" alt="Interest" />
+                  <h3 class=""> Personality assessment</h3>
+                </div>
+                <div class="view-rr">
+                  
+                  {% if test_completion.test1_complete %}
+                  <form id="downloadForm" action="{{ url_('app:test_1', test_paper='test1') }}" method="GET"
+                    target="_blank">
+                    <button type="submit" class="btn blue-button ms-3" style="width: 133px;">View report</button>
+                  </form>
+                  {% else %}
+                  <form action="{{ url('app:test1-intro') }}" method="GET">
+                    <button type="submit" id="startTestButton" class="btn purple-button " style="width: 133px;">Start Test</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="vi-r-info">
+                <div class="mgs-icon">
+                  <img class="img-fluid" src="{{ static('images/personality-icon.svg') }}" alt="Personality" />
+                  <h3 class=""> Career Interest assessment </h3>
+                </div>
+                <div class="view-rr">
+                  {% if test_completion.test2_complete %}
+                  <form id="downloadForma" action="{{ url_('app:test_1', test_paper='test2') }}" method="GET"
+                    target="_blank">
+                    <button type="submit" class="btn blue-button ms-3" style="width: 133px;">View report </button>
+                  </form>
+                  {% else %}
+                  <form action="{{ url('app:test2-intro') }}" method="GET">
+                    <button type="submit" id="startTestButton" class="btn purple-button " style="width: 133px;">
+                      {% if test_started_status.test2_started %}Resume Test{% else %}Start Test{% endif %}
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="vi-r-info">
+                <div class="mgs-icon">
+                  <img class="img-fluid" src="{{ static('images/aptitute-icon.svg') }}" alt="Aptitude" />
+                  <h3 class="">Comprehensive Aptitude assessment</h3>
+                </div>
+                <div class="view-rr">
+                  {% if test_completion and test_completion.test3_complete and all_test3_subtests_complete %}
+                  <form id="downloadForma" action="{{ url_('app:test_1', test_paper='test3')}}" method="GET"
+                    target="_blank">
+                    <button type="submit" class="btn blue-button ms-3" target="_blank " style="width: 133px;"> View report </button>
+                  </form>
+                  {% else %}
+                  <form action="{{ url('app:test3-intro') }}" method="GET">
+                    <button type="submit" id="startTestButton" class="btn purple-button " style="width: 133px;">
+                      {% if test_started_status.test3_started %}Resume Test{% else %}Start Test{% endif %}
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+    <!-- </div> -->
+  </div>
+</main>
+
+
+<script>
+  document.getElementById('downloadForm').addEventListener('submit', function (event) {
+    // Prevent the form from submitting normally
+    event.preventDefault();
+
+    // Submit the form programmatically
+    window.open(this.action + '?' + new URLSearchParams(new FormData(this)).toString(), '_blank');
+  });
+</script>
+<script>
+
+
+  $(document).ready(function () {
+    var owl = $('.explore-theme');
+    owl.owlCarousel({
+      loop: true,
+      margin: 10,
+      responsiveClass: true,
+      nav: false,
+      dots: false,
+
+      responsive: {
+        0: {
+          items: 1.5,
+        },
+        400: {
+          items: 1.5,
+        },
+        600: {
+          items: 1.5,
+        },
+        1000: {
+          items: 2.5,
+        },
+        1920: {
+          items: 2.5
+        }
+      }
+    });
+
+    // Custom Button
+    $('.customNextBtn').click(function () {
+      owl.trigger('next.owl.carousel');
+    });
+    $('.customPreviousBtn').click(function () {
+      owl.trigger('prev.owl.carousel');
+    });
+
+  });
+
+
+
+  $('.partner-logo').owlCarousel({
+    loop: true,
+    margin: 40,
+    responsiveClass: true,
+    dots: false,
+    autoplay: true,
+    slideTransition: 'linear',
+    autoplayTimeout: 6000,
+    autoplaySpeed: 6000,
+    autoplayHoverPause: true,
+    responsive: {
+      0: {
+        items: 2,
+      },
+      400: {
+        items: 3,
+      },
+      600: {
+        items: 5,
+      },
+      1000: {
+        items: 5,
+      },
+      1920: {
+        items: 5
+      }
+    }
+  });
+
+
+
+  $(document).ready(function () {
+    var owl = $('.top-courses');
+    owl.owlCarousel({
+      loop: true,
+      margin: 10,
+      responsiveClass: true,
+      nav: false,
+      dots: false,
+      responsive: {
+        0: {
+          items: 1.5,
+        },
+        400: {
+          items: 1.5,
+        },
+        600: {
+          items: 3,
+        },
+        1000: {
+          items: 4.5,
+        },
+        1920: {
+          items: 4.5
+        }
+      }
+    });
+
+    // Custom Button
+    $('.customNextBtn').click(function () {
+      owl.trigger('next.owl.carousel');
+    });
+    $('.customPreviousBtn').click(function () {
+      owl.trigger('prev.owl.carousel');
+    });
+
+  });
+
+
+
+  jQuery(document).ready(function ($) {
+    "use strict";
+    //  TESTIMONIALS CAROUSEL HOOK
+    $('#customers-testimonials').owlCarousel({
+      loop: true,
+      center: true,
+      items: 3,
+      margin: 0,
+      autoplay: true,
+      dots: false,
+      autoplayTimeout: 8500,
+      smartSpeed: 450,
+
+      responsive: {
+        0: {
+          items: 1
+        },
+        768: {
+          items: 1.5
+        },
+        1170: {
+          items: 1.5
+        }
+      }
+    });
+  });
+
+</script>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+
+{% block main %}
+<main class="lg:pt-[30px] lg:max-w-[1280px] mx-auto bg-[#ffffff] pb-[200px] lg:pb-0">
+
+    <section
+        class="lg:mb-[76px] mb-[35px] relative tabContainer mx-[17px] lg:mx-auto lg:max-w-[1176px] overflow-hidden">
+       
+        <!-- Heading -->
+        <section class="lg:mt-[21px] fixed lg:relative top-[12px] z-30 w-full bg-[#ffffff]">
+            <div class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+                <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">Colleges</p>
+                <a href="{{request.META.HTTP_REFERER}}">
+                    <button type="button" class="absolute bottom-[18px] left-[24px]">
+                        <i class="fa-solid fa-arrow-left text-[#828282] text-[18px] leading-[50px]"></i>
+                    </button>
+                </a>
+            </div>
+
+            <div class="hidden lg:flex px-[20px] lg:px-[100px] ">
+                <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">Colleges</p>
+            </div>
+
+        </section>
+        <!-- End of Heading -->
+
+        <!-- CAROUSEL FOR DESKTOP -->
+
+        <!-- CAROUSEL SECTION -->
+        <div class="w-full flex flex-col items-center pt-[24px] lg:pt-[36px] gap-[30px] lg:flex-row px-[20px] lg:px-[100px]">
+            <!-- TAB CONTENT -->
+                {%for college in colleges%}
+                <!-- SLIDE -->
+                <div class="relative shrink-0 w-[240px]">
+                    <figure class="w-full mb-[18px] inline-block w-[240px]">
+                        {%if college.logo%}
+                        <div class="lg:h-[240px] h-[192px] w-[240px] rounded-lg overflow-hidden mb-[18px]">
+                            <img src="{{college.logo.url}}" alt="{{college.name}}" class="w-full h-full object-cover" />
+                        </div>
+                        {%endif%}
+
+                        <figcaption class="text-[#333333] semibold text-sm mb-1">
+                            <a href="{{url('colleges:collegedetail',args=[college.slug])}}">{{college.name}}</a>
+                        </figcaption>
+                        <div
+                            class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline">
+                            <span>{% if college.country %}{{college.country}} {% endif %}{% if college.state and college.country %},{% endif %}{% if college.state %}{{college.state}}{% endif %}</span>&nbsp;
+                            <img src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+                                class="inline-block" /><span> 4.4</span>
+                        </div>
+
+                        <!-- BOOKMARK SIGN -->
+                        <div class="absolute top-3 right-3">
+                            <div class="bg-white rounded-full px-[5px] py-[3px]" id="college_{{college.id}}"
+                            onclick="collegeshortlist('{{college.id}}')"
+                            {% if college.shortlist.filter(id=request.user.id).exists() %}
+                            style="background-color: blue;"
+                            {% endif %}
+                            >
+                            <img
+                                src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                                class="w-[14px] h-[18px]"
+                            />
+                            </div>
+                        </div>
+                    </figure>
+                </div>
+                {%endfor%}
+        </div>
+        <div class="flex justify-center">
+            {% if colleges.count() == 0 %}
+            <h1 class="boldFont">No Shortlisted Colleges <a href="{{url('colleges:college')}}" class="text-[#541BCF]">Show More</a></h1>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}

@@ -1,0 +1,262 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Career Interest Inventory Quiz - Test Instructions | Top Teen{% endblock %}
+{% block description_content %}Read the instructions for the Career Interest Inventory Quiz before you begin.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} test-intro-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .test-intro-page {
+    padding-top: 80px;
+  }
+  .instruction-box {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+  }
+  .instruction-icon {
+    width: 48px;
+    height: 48px;
+    margin-right: 16px;
+  }
+  .instruction-list {
+    padding-left: 20px;
+  }
+  .instruction-list li {
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+  .instruction-list ol {
+    padding-left: 20px;
+  }
+  .instruction-list ol li {
+    margin-bottom: 12px;
+  }
+  .sample-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  .sample-table th,
+  .sample-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+  }
+  .sample-table th {
+    background-color: #f4f4f4;
+    color: #000;
+    font-weight: bold;
+  }
+  .sample-table td {
+    background-color: #fff;
+    color: #333;
+  }
+  .sample-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  .sample-table tr:hover {
+    background-color: #e2e2e2;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="test-intro-page pb-5">
+  <div class="container">
+    <div class="row">
+      <!-- Left Sidebar (Desktop) -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
+          <div class="profile-header text-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="profile-img rounded-circle mb-3" style="width: 104px; height: 104px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 104px; height: 104px;">
+              <i class='bx bx-user fs-48 text-gray'></i>
+            </div>
+            {% endif %}
+            <h5 class="profile-name">{{ request.user.name|default(request.user.username) }}</h5>
+            <div class="profile-meta text-gray fs-14">
+              <p class="mb-1">
+                <i class='bx bx-calendar me-1'></i>
+                Joined {{ date_format(request.user.created) }}
+              </p>
+              {% if request.user.user_profile %}
+              <p class="mb-0">
+                <i class='bx bx-book me-1'></i>
+                {% if request.user.student_management.last().class_and_section %}{{ request.user.student_management.last().class_and_section }}{% endif %}
+                {% if request.user.user_profile.schoolname %} • {{ request.user.user_profile.schoolname }}{% endif %}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="profile-progress mt-4">
+            <h6 class="fs-14 fw-semibold">Complete your profile</h6>
+            <p class="text-gray fs-12">A complete profile helps us cater the best content to you</p>
+            <div class="progress mt-2">
+              <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+            </div>
+            <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">Settings</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="col-lg-8">
+        <!-- Mobile Header -->
+        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex align-items-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px;">
+              <i class='bx bx-user fs-24 text-gray'></i>
+            </div>
+            {% endif %}
+            <div>
+              <h5 class="mb-0">{{ request.user.name|default(request.user.username) }}</h5>
+              <p class="text-gray fs-12 mb-0">Joined {{ date_format(request.user.created) }}</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
+            <i class='bx bx-cog'></i>
+          </button>
+        </div>
+
+        <h2 class="fs-24 fw-semibold mb-4">Psychometric Test</h2>
+
+        <div class="instruction-box">
+          <div class="d-flex align-items-start mb-4">
+            <img src="{{ static('images/info-tree.svg') }}" alt="Test Icon" class="instruction-icon">
+            <div>
+              <h4 class="mb-0">Part 2 - Career Interest Inventory Quiz</h4>
+            </div>
+          </div>
+
+          <h5 class="fw-semibold mb-3">Purpose of the Career Interest Inventory Quiz</h5>
+          <p class="mb-3">The Career Interest Inventory Quiz is a valuable tool designed to assist you in understanding your career preferences and interests. The primary goals of this quiz are:</p>
+          
+          <ol class="instruction-list mb-4">
+            <li>
+              <span class="fw-bold">Identify Personal Interests:</span> The quiz helps you identify the types of work and occupational environments that align with your personal interests and passions. By focusing on what you enjoy and find fulfilling, you can gain insights into career paths that are likely to be satisfying and engaging for you.
+            </li>
+            <li>
+              <span class="fw-bold">Explore Career Options:</span> Through this quiz, you will explore a broad range of occupations. This exploration helps uncover career possibilities that you may not have previously considered. It's about opening up a spectrum of career options based on your preferences rather than traditional factors like income or social status.
+            </li>
+            <li>
+              <span class="fw-bold">Self-Assessment:</span> The quiz provides a self-assessment that allows you to reflect on your career aspirations and goals. It's a step toward understanding what motivates and excites you professionally, which is crucial for making informed career decisions.
+            </li>
+            <li>
+              <span class="fw-bold">Align Interests with Careers:</span> By identifying which occupations align best with your interests, the quiz helps you pinpoint career paths that could be a good fit for you. This alignment can lead to greater job satisfaction and a more fulfilling career.
+            </li>
+            <li>
+              <span class="fw-bold">Facilitate Career Planning:</span> The results from this quiz can serve as a foundation for further career planning and exploration. Whether you're just starting your career journey or considering a career change, the quiz results can guide you in making choices that are more aligned with your personal interests.
+            </li>
+            <li>
+              <span class="fw-bold">Non-Judgmental Assessment:</span> The quiz is not designed to measure your intelligence or specific skills. Instead, it focuses on your preferences and interests, ensuring that the results reflect what you find meaningful and engaging in a professional context.
+            </li>
+          </ol>
+
+          <h5 class="fw-semibold mb-3">Test Instructions!</h5>
+          <ul class="instruction-list mb-4">
+            <li>For each question, express your preferences for the listed occupations. Consider your interests, likes, and dislikes without worrying about income or social status.</li>
+            <li>Mark your responses on each page according to your level of interest in each occupation. There is no need to overthink; choose the options that genuinely resonate with you.</li>
+            <li>Answer each question as honestly as possible. There are no right or wrong answers—just your personal preferences.</li>
+            <li>Review all listed occupations before making a choice. It's important to consider a range of options to get a comprehensive view of your interests.</li>
+            <li>The quiz should take approximately 10 minutes to complete.</li>
+            <li>Once you have completed the quiz, you can review your marked responses to see which occupations received the highest interest scores.</li>
+            <li>Use the results to explore careers that align with your interests. You may also want to discuss your results with a career counselor for further insights and guidance.</li>
+          </ul>
+
+          <h4 class="fw-bold mb-3">Sample Table of Career Options</h4>
+          <p class="mb-3">Below is an example of the types of career pairs you will encounter in the test:</p>
+          
+          <div class="table-responsive">
+            <table class="sample-table">
+              <tbody>
+                <tr>
+                  <td colspan="4" class="text-center fw-bold">Example of Career Pairs</td>
+                </tr>
+                <tr>
+                  <td>Biochemist</td>
+                  <td>Statistician</td>
+                  <td>Geologist</td>
+                  <td>Forensic Scientist</td>
+                </tr>
+                <tr>
+                  <td>Mathematician</td>
+                  <td>Food Scientist</td>
+                  <td>Robotics Engineer</td>
+                  <td>Urban Planner</td>
+                </tr>
+                <tr>
+                  <td>Data Scientist</td>
+                  <td>Zoologist</td>
+                  <td>Chemist</td>
+                  <td>Operations Research Analyst</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="mb-0">By understanding your interests, you can make more informed decisions about your education and future career. Good luck, and enjoy the process of discovering more about your interests and potential career paths!</p>
+        </div>
+
+        <div class="d-flex justify-content-end mb-5">
+          <form action="{{ url('app:test2_view') }}" method="GET">
+            <button type="submit" class="btn custom-button purple-button">
+              <i class='bx bx-play me-2'></i> Start
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Mobile Drawer -->
+<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-lg-none" data-direction="translate-y-full">
+  <div class="drawerContent bg-white w-100 rounded-t-lg absolute bottom-0">
+    <div class="p-4 d-flex flex-column gap-3">
+      <a href="{{ url('users:logout') }}" class="d-flex justify-content-between align-items-center text-decoration-none text-danger">
+        <div>
+          <h6 class="mb-0">Sign Out</h6>
+          <p class="text-danger fs-12 mb-0">Log out from your account</p>
+        </div>
+        <i class='bx bx-chevron-right'></i>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Drawer functionality for mobile
+    const drawerTrigger = document.querySelector('.drawerTrigger');
+    const drawerModal = document.querySelector('.drawerModal');
+    
+    if (drawerTrigger && drawerModal) {
+      drawerTrigger.addEventListener('click', function() {
+        drawerModal.classList.toggle('translate-y-full');
+        drawerModal.classList.toggle('translate-y-0');
+      });
+
+      drawerModal.addEventListener('click', function(event) {
+        if (event.target === drawerModal) {
+          drawerModal.classList.add('translate-y-full');
+          drawerModal.classList.remove('translate-y-0');
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
+

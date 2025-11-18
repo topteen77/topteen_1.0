@@ -1,0 +1,308 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{%block additionalheader%}
+{#
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+#}
+{%endblock%}
+{% block main %}
+<main class="lg:container lg:mx-auto mx-[17px] pt-[49px] pb-[56px] lg:pb-0">
+    <section class="mb-[15px]">
+      <h2 class="text-xl text-[#131415] semibold lg:mb-[40px]">
+        Payment details
+      </h2>
+      <div
+        class="lg:max-w-[888px] lg:mx-auto flex lg:flex-row flex-col justify-start items-start lg:gap-x-[46px] "
+      >
+        <img
+          src="{{static("topteenfrontend/assets/images/failed.png")}}"
+          height="262"
+          width="149"
+          class="mx-auto lg:mx-0"
+        />
+        <div>
+          <h1 class="text-xl semibold text-[#131415] lg:mb-[30px]">
+            Your Payment <span class="text-danger">failed</span>
+          </h1>
+          <p class="text-lg text-[#4f4f4f] lg:mb-[20px]">
+            Thank you for trying to make the payment since the transaction is
+            failed , <br />Please try again.
+          </p>
+
+          <div class="greyGrid">
+            <div
+              class="flex justify-start items-center gap-x-3 bg-[#f7f7fa] p-5 rounded-[10px]"
+            >
+              <div class="w-[45px] h-[56px]">
+                <img
+                  src="{{static("topteenfrontend/assets/images/cubes.png")}}"
+                  class="h-full w-full object-cover object-right"
+                />
+              </div>
+              <div>
+                <p class="text-lg text-[#333333] font-semibold text-right">
+                    {{test_name}}
+                </p>
+                <p
+                  class="text-xl text-[#333333] font-semibold mb-6 text-right"
+                >
+                  ₹ {{test_payment.amount}}
+                </p>
+                <p class="text-xs text-[#828282]">
+                  {% if test_payment.test_type == test_type.advanced_test_type %}Advanced report{% else %}Basic report{% endif %} • 6 month validity
+                </p>
+              </div>
+            </div>
+            <ul class="p-5 bg-[#f7f7fa] rounded-[10px]">
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Detailed Career
+                </p>
+              </li>
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Interest Analysis
+                </p>
+              </li>
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Access to Career
+                </p>
+              </li>
+              <li
+                class="flex flex-row justify-start items-center gap-x-3 mb-2"
+              >
+                <img
+                  src="{{static("topteenfrontend/assets/images/checked.png")}}"
+                  height="16"
+                  width="16"
+                />
+                <p class="text-lg text-[#777777] font-semibold">
+                  Library & Colleges
+                </p>
+              </li>
+            </ul>
+          </div>
+          <!-- SUMMARY -->
+          <div class="summaryCard">
+            <!-- <h2 class="lg:text-[21px] lg:leadin-[30px] semibold">Summary</h2> -->
+            <ul class="divide-y lg:mb-[18px]">
+              <li
+                class="mb-[26px] flex justify-between items-center text-[#4f4f4f] py-[16px] border-b border-black border-opacity-25"
+              >
+                <div>
+                  <p class="text-lg semibold text-[#131415] font-semibold">
+                    {{test_payment.modified.strftime("%d %b, %Y")}}
+                  </p>
+                  <p class="text-sm mediumFont">{{test_payment.modified.strftime("%H:%M %p")}}</p>
+                </div>
+                <div>
+                  <p class="text-lg semibold text-[#131415] font-semibold">
+                    Transaction ID:
+                  </p>
+                  <p class="text-sm mediumFont">0522266RBC45</p>
+                </div>
+              </li>
+            </ul>
+
+            <button onclick="tryPaymentAgain(this)" type="button" 
+             class="uppercase lg:w-[216px] h-[48px] bg-[#4CC9F0] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mx-auto lg:mb-[35px]"
+             data-test-type="{{test_payment.test_type}}"
+             data-payment-url="{{payment_api_url}}"
+            >
+              TRY AGAIN
+            </button>
+            {#
+            <button  {% if test_payment.test_type == test_type.advanced_test_type %} id="checkoutadvanced" {% elif test_payment.test_type == test_type.basic_test_type %} id="checkoutbasic"  {% endif %}type="button" 
+            data-test-type='{{test_payment.test_type}}' class="uppercase lg:w-[216px] h-[48px] bg-[#4CC9F0] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mx-auto lg:mb-[35px]"
+            >
+              TRY AGAIN
+            </button>
+          #}
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+{% endblock %}
+{% block additionalfooter %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script type="text/javascript">
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function tryPaymentAgain(button) {
+    // Get test type and payment URL from button data attributes
+    var testType = button.getAttribute('data-test-type');
+    var paymentUrl = button.getAttribute('data-payment-url');
+    
+    console.log('Retrying payment for test type:', testType);
+    console.log('Payment URL:', paymentUrl);
+    
+    // Disable button and show loading
+    button.disabled = true;
+    var originalText = button.textContent;
+    button.textContent = 'PROCESSING...';
+
+    // Make AJAX call to create payment with same test type
+    var formData = new FormData();
+    formData.append("test_type", testType);
+    formData.append("csrfmiddlewaretoken", getCookie('csrftoken'));
+
+    fetch(paymentUrl, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      var responseClone = response.clone();
+      if (!response.ok) {
+        return response.json().then(errorData => {
+          var errorMsg = errorData.error || errorData.message || 'HTTP ' + response.status;
+          throw new Error(errorMsg);
+        }).catch(() => {
+          return responseClone.text().then(text => {
+            throw new Error('HTTP ' + response.status + ': ' + text);
+          });
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      button.disabled = false;
+      button.textContent = originalText;
+
+      console.log('Payment response:', data);
+      
+      // Check for error in response
+      if (data.error) {
+        console.error('Payment API Error:', data.error);
+        alert('Error: ' + data.error);
+        return;
+      }
+
+      // Check which gateway was used
+      // GatewayChoices: RAZORPAY=1, ICICIEAZYPAY=2
+      if (data.gateway === 1 || data.payment_info) {
+        // Razorpay gateway
+        console.log('Processing payment with Razorpay...');
+        if (!data.payment_info) {
+          console.error('Razorpay payment_info missing');
+          alert('Error: Payment information not available. Please try again.');
+          return;
+        }
+        openRazorpay(data);
+      } else if (data.gateway === 2 || data.payment_url) {
+        // ICICI Eazypay gateway - redirect to payment URL
+        console.log('Processing payment with ICICI Eazypay...');
+        if (!data.payment_url) {
+          console.error('ICICI Eazypay payment_url missing');
+          alert('Error: Payment URL not available. Please try again.');
+          return;
+        }
+        console.log('Redirecting to ICICI Eazypay:', data.payment_url);
+        window.location.href = data.payment_url;
+      } else {
+        console.error('Unexpected response format:', data);
+        alert('Error: Unable to process payment. Please check console for details.');
+      }
+    })
+    .catch(error => {
+      console.error('Payment error:', error);
+      button.disabled = false;
+      button.textContent = originalText;
+      var errorMessage = 'Error: Unable to process payment.';
+      if (error.message) {
+        errorMessage += ' ' + error.message;
+      }
+      alert(errorMessage);
+    });
+  }
+
+  function openRazorpay(data) {
+    if (typeof Razorpay === 'undefined') {
+      alert('Razorpay is loading. Please wait a moment and try again.');
+      return;
+    }
+
+    data.payment_info["handler"] = function (response) {
+      updatePayment(data.test_id, data.pay_id, data.test_type, response, data.success_url, data.fail_url);
+    };
+    data.payment_info["modal"] = {
+      "ondismiss": function() {
+        window.location.href = data.fail_url;
+      }
+    };
+    var rzp1 = new Razorpay(data.payment_info);
+    rzp1.open();
+    rzp1.on('payment.failed', function (response) {
+      alert('Payment failed: ' + (response.error.description || response.error.code));
+      window.location.href = data.fail_url;
+    });
+  }
+
+  function updatePayment(test_id, pay_id, test_type, response, success_url, fail_url) {
+    var data = {
+      gateway_order_id: response.razorpay_order_id,
+      gateway_payment_id: response.razorpay_payment_id,
+      gateway_signature: response.razorpay_signature,
+      test_id: test_id,
+      payment_id: pay_id,
+      test_type: test_type
+    };
+
+    fetch('/psychometrictest/update-psychometric-test-payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify(data),
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      window.location.href = success_url;
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      window.location.href = fail_url;
+    });
+  }
+  </script>
+{% endblock %}

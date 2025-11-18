@@ -1,0 +1,333 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}
+Test Prep | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Explore entrance exams and test preparation resources. Find exams for After 10th, After 12th, and After College categories.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Test Preparation
+        </span>
+        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+          Entrance Exam Preparation
+        </h1>
+        <p class="text-gray fs-16">Explore entrance exams and test preparation resources. Find the right exam for your academic level and career goals.</p>
+      </div>
+
+      <div class="col-lg-4 col-md-12">
+        <div class="right-banner d-md-flex justify-content-end">
+          <img class="img-fluid" src="{{ static('images_new/general/testprep-banner.svg') }}" alt="Test Prep Banner" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Hero Section -->
+
+<!-- Category Tabs Section -->
+<section class="pb-10">
+  <div class="container">
+    <!-- Category Tabs -->
+    <ul class="nav nav-pills mb-4 justify-content-center" id="categoryTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tenth-tab" data-bs-toggle="pill" data-bs-target="#tenth" type="button" role="tab" aria-controls="tenth" aria-selected="true">
+          After 10th
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="twelfth-tab" data-bs-toggle="pill" data-bs-target="#twelfth" type="button" role="tab" aria-controls="twelfth" aria-selected="false">
+          After 12th
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="college-tab" data-bs-toggle="pill" data-bs-target="#college" type="button" role="tab" aria-controls="college" aria-selected="false">
+          After College
+        </button>
+      </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="categoryTabContent">
+      <!-- After 10th Tab -->
+      <div class="tab-pane fade show active" id="tenth" role="tabpanel" aria-labelledby="tenth-tab">
+        <!-- Popular Tags -->
+        {% if tenthexamtag %}
+        <div class="popular-tags mb-4">
+          <div class="d-flex flex-wrap gap-2">
+            {% for tag in tenthexamtag[:4] %}
+            <a href="{{ url('entrance_exams:testprepfilter') }}?category=After+10th&tags={{ tag.slug }}" class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+              <i class='bx bx-flame me-1'></i>{{ tag.name }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Exams by Stream -->
+        {% if tenthstream %}
+        {% for stm in tenthstream %}
+        <div class="stream-section mb-5">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="section-title mb-0">{{ stm.name }}</h3>
+            <a href="{{ url('entrance_exams:testprepfilter') }}?category={{ entrance_exam_category.after10 }}&stream={{ stm.slug }}" class="text-primary text-decoration-none">
+              View All <i class='bx bx-right-arrow-alt'></i>
+            </a>
+          </div>
+          
+          <div class="row">
+            {% set exam_count = 0 %}
+            {% for exam in tenthexam %}
+              {% if stm in exam.stream.all() %}
+                {% set exam_count = exam_count + 1 %}
+                {% if exam_count <= 3 %}
+                <div class="col-md-4 col-sm-6 mb-4">
+                  <div class="exam-card h-100 p-3 rounded shadow-sm position-relative">
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="exam-logo me-3" style="width: 60px; height: 60px;">
+                        <img src="{{ exam.logo_url }}" alt="{{ exam.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+                      </div>
+                      <div class="flex-grow-1">
+                        <h5 class="mb-1">
+                          <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="text-decoration-none">{{ exam.name }}</a>
+                        </h5>
+                        {% if exam.exam_date %}
+                        <p class="text-gray fs-12 mb-0">
+                          <i class='bx bx-calendar'></i> {{ date_format(exam.exam_date) }}
+                        </p>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                      <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                      <button class="btn btn-sm btn-outline-secondary shortlist-exam" data-exam-id="{{ exam.id }}">
+                        <i class='bx bx-bookmark'></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- After 12th Tab -->
+      <div class="tab-pane fade" id="twelfth" role="tabpanel" aria-labelledby="twelfth-tab">
+        <!-- Popular Tags -->
+        {% if twelthexamtag %}
+        <div class="popular-tags mb-4">
+          <div class="d-flex flex-wrap gap-2">
+            {% for tag in twelthexamtag[:4] %}
+            <a href="{{ url('entrance_exams:testprepfilter') }}?category=After+12th&tags={{ tag.slug }}" class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+              <i class='bx bx-flame me-1'></i>{{ tag.name }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Exams by Stream -->
+        {% if twelthstreams %}
+        {% for stm in twelthstreams %}
+        <div class="stream-section mb-5">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="section-title mb-0">{{ stm.name }}</h3>
+            <a href="{{ url('entrance_exams:testprepfilter') }}?category={{ entrance_exam_category.after12 }}&stream={{ stm.slug }}" class="text-primary text-decoration-none">
+              View All <i class='bx bx-right-arrow-alt'></i>
+            </a>
+          </div>
+          
+          <div class="row">
+            {% set exam_count = 0 %}
+            {% for exam in twelthexams %}
+              {% if stm in exam.stream.all() %}
+                {% set exam_count = exam_count + 1 %}
+                {% if exam_count <= 3 %}
+                <div class="col-md-4 col-sm-6 mb-4">
+                  <div class="exam-card h-100 p-3 rounded shadow-sm position-relative">
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="exam-logo me-3" style="width: 60px; height: 60px;">
+                        <img src="{{ exam.logo_url }}" alt="{{ exam.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+                      </div>
+                      <div class="flex-grow-1">
+                        <h5 class="mb-1">
+                          <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="text-decoration-none">{{ exam.name }}</a>
+                        </h5>
+                        {% if exam.exam_date %}
+                        <p class="text-gray fs-12 mb-0">
+                          <i class='bx bx-calendar'></i> {{ date_format(exam.exam_date) }}
+                        </p>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                      <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                      <button class="btn btn-sm btn-outline-secondary shortlist-exam" data-exam-id="{{ exam.id }}">
+                        <i class='bx bx-bookmark'></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- After College Tab -->
+      <div class="tab-pane fade" id="college" role="tabpanel" aria-labelledby="college-tab">
+        <!-- Popular Tags -->
+        {% if collegeexamtag %}
+        <div class="popular-tags mb-4">
+          <div class="d-flex flex-wrap gap-2">
+            {% for tag in collegeexamtag[:4] %}
+            <a href="{{ url('entrance_exams:testprepfilter') }}?category=After+College&tags={{ tag.slug }}" class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+              <i class='bx bx-flame me-1'></i>{{ tag.name }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Exams by Stream -->
+        {% if collegestreams %}
+        {% for stm in collegestreams %}
+        <div class="stream-section mb-5">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="section-title mb-0">{{ stm.name }}</h3>
+            <a href="{{ url('entrance_exams:testprepfilter') }}?category={{ entrance_exam_category.aftercollge }}&stream={{ stm.slug }}" class="text-primary text-decoration-none">
+              View All <i class='bx bx-right-arrow-alt'></i>
+            </a>
+          </div>
+          
+          <div class="row">
+            {% set exam_count = 0 %}
+            {% for exam in collegeexams %}
+              {% if stm in exam.stream.all() %}
+                {% set exam_count = exam_count + 1 %}
+                {% if exam_count <= 3 %}
+                <div class="col-md-4 col-sm-6 mb-4">
+                  <div class="exam-card h-100 p-3 rounded shadow-sm position-relative">
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="exam-logo me-3" style="width: 60px; height: 60px;">
+                        <img src="{{ exam.logo_url }}" alt="{{ exam.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+                      </div>
+                      <div class="flex-grow-1">
+                        <h5 class="mb-1">
+                          <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="text-decoration-none">{{ exam.name }}</a>
+                        </h5>
+                        {% if exam.exam_date %}
+                        <p class="text-gray fs-12 mb-0">
+                          <i class='bx bx-calendar'></i> {{ date_format(exam.exam_date) }}
+                        </p>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                      <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                      <button class="btn btn-sm btn-outline-secondary shortlist-exam" data-exam-id="{{ exam.id }}">
+                        <i class='bx bx-bookmark'></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Related Exams -->
+    {% if related_exam %}
+    <section class="related-exams-section mt-5 pt-5 border-top">
+      <h3 class="section-title mb-4">Explore More Exams</h3>
+      <div class="row">
+        {% for exam in related_exam %}
+        <div class="col-md-4 col-sm-6 mb-4">
+          <div class="exam-card h-100 p-3 rounded shadow-sm">
+            <div class="d-flex align-items-center mb-3">
+              <div class="exam-logo me-3" style="width: 50px; height: 50px;">
+                <img src="{{ exam.logo_url }}" alt="{{ exam.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="mb-1">
+                  <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="text-decoration-none">{{ exam.name }}</a>
+                </h6>
+              </div>
+            </div>
+            <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-sm btn-outline-primary w-100">View Details</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+// Shortlist Exam Functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const shortlistButtons = document.querySelectorAll('.shortlist-exam');
+  shortlistButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const examId = this.getAttribute('data-exam-id');
+      
+      fetch('{{ url("entrance_exams:shortlist_exam") }}?id=' + examId, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          if (data.shortlisted) {
+            this.classList.add('active');
+            this.innerHTML = '<i class="bx bxs-bookmark"></i>';
+          } else {
+            this.classList.remove('active');
+            this.innerHTML = '<i class="bx bx-bookmark"></i>';
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    });
+  });
+});
+</script>
+{% endblock %}
+

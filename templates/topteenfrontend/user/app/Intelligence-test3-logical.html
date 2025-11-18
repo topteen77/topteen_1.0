@@ -1,0 +1,630 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+
+{% block main %}
+
+
+<style>
+  /*** Interest Inventory ***/
+
+  p{margin-bottom: 0px;}
+	
+		.btn-sumb, .btn-submit {
+  width: 144px;
+}
+	
+	 .modalcontent {
+      display: none; /* Hidden by default */
+      position: fixed;
+      z-index: 222;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.8); /* Black with opacity */
+    }
+
+    .modal-content {
+      margin: 5% auto;
+      display: block;
+      width: 80%;
+      max-width: 450px;
+    }
+
+    .modal-content img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+    }
+
+   .modalcontent .close {
+      position: absolute;
+      top: 20px;
+      right: 35px;
+      color: #fff;
+      font-size: 30px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+   .modalcontent .close:hover,
+   .modalcontent .close:focus {
+      color: #bbb;
+      text-decoration: none;
+      cursor: pointer;
+    }
+	
+	.image-modalcontent .modal-content {
+	background: #fff;
+	padding: 33px 25px;
+	border-radius: 10px;
+}
+	
+	.image-modalcontent	.modal-dialog-centered {
+
+  min-height: 100%;
+}
+	
+	.modalcontent {
+    backdrop-filter: blur(6px);
+}
+
+
+
+  @media screen and (max-width: 768px) {
+ol, ul {
+  padding-left: 0px !important;
+}
+
+.list-none {
+padding-bottom: 0px;
+    padding-left: 0px;
+}
+
+.title-test-info {
+	font-size: 20px;
+}
+
+.question-label {
+  line-height: 20px;
+}
+
+.question-block.question-box .question-label {justify-content: center; display: flex;}
+
+.question-block.question-box .question-label img {
+	width: 163px !important;
+}
+
+.radio-buttons.image-box {
+	display: grid;
+	grid-template-columns: repeat(2,1fr);
+}
+
+.im {
+	justify-content: center;
+}
+
+.radio-buttons.image-box .custom-radio {
+	max-width: 66px;
+	margin: 7px 0 0 0;
+	height: 71px;
+}
+
+.radio-buttons.image-box .radio-btn img {
+	width: 62px;
+}
+.mobile-footer{display: none;}
+
+  }
+
+
+  </style>
+
+<div data-direction="translate-y-full"
+  class=" h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto translate-y-full transition-all duration-500">
+
+  <div class="inline-block bg-[#ffffff] w-full rounded-t-[10px] absolute bottom-0 drawerContent">
+
+    <div class="pl-[24px] pr-[30px] w-full py-[32px] flex flex-col gap-[20px]">
+
+      <a href="{{url('users:logout')}}" class="inline-block w-full">
+        <div class="flex justify-between w-full">
+          <div>
+            <p class="text-[16px] leading-[21.6px] semibold text-[#f20a18]">Sign Out</p>
+            <p class="text-[12px] leading-[16px] regularFont text-opacity-60 text-[#f20a18]">You
+              answered - Indoors</p>
+          </div>
+          <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+<!--End of Edit Profile PopUp -->
+
+<!-- Refer friends PopUp -->
+<div  class="hidden top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen flex flex-row justify-center items-center referFriendsPopup ">
+  <div class="lg:max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center">
+    <div
+      class="bg-[#ffffff] rounded-[10px] relative referDivs w-full md:max-w-[395px] lg:w-[395px] pb-[24px] pt-[48px] modalContent">
+      <button class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] referPopupClose">
+        <i class="fa fa-xmark"></i>
+      </button>
+
+      <p class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold ">
+        Refer/Invite friends
+      </p>
+      <form onsubmit="return false" id="referform">
+        <div class="w-full flex justify-center mt-[22px] ">
+          <input type="text" id="remail" name="email" placeholder="Enter email"
+            class="mx-auto w-[80%] h-[53px] rounded-[10px]">
+        </div>
+        <div class="mx-auto w-[80%] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+          <button type="submit" onclick="refersubmit()"
+            class="w-full h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- End of Refer Friends Popup -->
+
+<!-- Main Content -->
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
+
+  <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+    <!-- Left Part Mobile -->
+    <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+      <!-- User -->
+      <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+        <div class="flex gap-[17px]">
+          <div>
+            <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" />
+          </div>
+          <div class="flex flex-col gap-y-[5px]">
+            <div class="pt-[12px]">
+              <p class="text-[15px] leading-[20.25px] font-semibold">
+                {{request.user}}
+              </p>
+            </div>
+            <div class="flex flex-col gap-y-[3px]">
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282] mb-0">
+                  Joined {{request.user.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
+                  class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282] mb-0">
+                  {% if request.user.user_profile %}
+                  {% if request.user.student_management.last().class_and_section %}
+                  {{request.user.student_management.last().class_and_section}}
+                  {% endif %} • {% if request.user.user_profile.schoolname %}
+                  {{request.user.user_profile.schoolname}}{% endif %}
+                  {% else %} - • - {% endif %} 
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-direction="translate-y-full"
+          class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+          <i class="fa fa-gear text-white text-[12.5px]"></i>
+        </button>
+      </div>
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div id="comppro"
+        class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[100px] pt-[18px] relative hidden">
+        <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+          <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+        </div>
+        <div>
+          <div class="flex relative">
+            <div class="absolute -left-[24px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" class="w-[81px] h-[81px]"
+                alt="" />
+            </div>
+            <div class="text-left max-w-[217.5px] ml-[74px]">
+              <div>
+                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+
+    <!-- End of left Part Mobile -->
+  <div class="relative">
+    <!-- Left part Desktop -->
+    <div class="  w-[338px] lg:h-[442px] lg:border-[1px] lg:border-solid lg:border-[#dedede] rounded-[10px] mx-auto">
+      <!-- User -->
+      <div class="flex justify-center lg:border-b-[1px] border-solid border-[#dedede] lg:block hidden">
+        <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px] justify-center items-center">
+
+          <div class=" flex flex-col justify-center items-center">
+
+            <div class="flex justify-center items-center w-full">
+              <div class="flex gap-[8px]">
+                <div class="relative">
+                  <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover"
+                    alt="no image Uploaded" />
+                  <!-- <img src="{{static('topteenfrontend/assets/images/test_Img.png')}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" /> -->
+
+                  <!-- XP  -->
+                  <!-- <div
+                          class="w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px] absolute bottom-1 left-20"
+                        >
+                          <div
+                            class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
+                          >
+                            <img
+                              src="{{static("topteenfrontend/assets/images/xp.svg")}}"
+                              class="w-[20px] h-[20px]"
+                              alt=""
+                            />
+                            <p
+                              class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
+                            >
+                              1280 XP
+                            </p>
+                          </div>
+                        </div> -->
+                  <!-- End of XP -->
+                </div>
+              </div>
+            </div>
+
+            <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
+
+          </div>
+
+
+          <div class="flex flex-col gap-y-[8px] align-items-start">
+
+            <div class="flex gap-[14px]">
+              <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282] mb-0">
+                Joined {{request.user.created.strftime("%B, %Y")}}
+              </p>
+            </div>
+            <div class="flex gap-[14px] align-items-center">
+              <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}" class="w-[18px] h-[14px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282] mb-0">
+                {% if request.user.user_profile %} {% if request.user.student_management.last().class_and_section
+                %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if
+                request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{% else %} - •
+                - {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+		  
+		  
+		  
+		
+      </div>
+		
+		
+			  	  <div class=" mb-md-0 mb-5 pb-md-3 mt-md-0 mt-10">			  
+			        <!-- Complete Profile -->
+      <div class="flex justify-md-center pt-[18px] px-3">
+        <div class="test-item-info">
+          <div class="item-st-box">
+            <div class="st-m-icon"> <img src="{{ static ('images/blue-clock.png' )}}"
+                alt="Clock" /> </div>
+            <div class="ttex-bkue">
+              <p class="bt-l-title" id="totalTime">00:00</p><br>
+              <p class="bt-smp-t"> Total Time </p>
+            </div>
+          </div>
+          <div class="item-st-box">
+            <div class="st-m-icon"> <img src="{{ static ('images/blue-eye.png' )}}"
+                alt="Clock" /> </div>
+            <div class="ttex-bkue">
+              <p class="bt-l-title" id="questionProgress">1/4</p><br>
+              <p class="bt-smp-t">Question Displayed</p>
+            </div>
+          </div>
+        </div>
+      </div>
+        <!-- End of Complete Profile -->
+			  
+			  
+			  
+	  </div>
+
+      <!-- End of User -->
+
+
+		
+		
+      </div>
+      <!-- End of Left part Desktop -->
+	  
+	  
+
+	  
+	  
+	  </div>
+
+      <!-- Right Part -->
+      <!-- <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20"> -->
+      <!-- Statistics -->
+
+      <div class="col-lg-8 col-md-12 mt-md-0 mt-5 order-md-2 order-1">
+       <h2 class="title-test-info mb-md-1 mb-3"> 
+         {% if category == "Emotional" %}Critical{% else %}{{ category }}{% endif %} Reasoning</h2>
+
+        <form id="multiStepForm" method="post" action="{{ url('app:test3_view') }}">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          <input type="hidden" name="test_paper" value="{{ test_paper }}">
+          <input type="hidden" name="category" value="{{ category }}">
+
+          {% for question in questions %}
+          <div class="question {% if loop.first %}active{% endif %}" id="question{{ loop.index }}">
+            <div class="question-block question-box" data-question-id="{{ question.id }}">
+
+              {% if question.question_text and question.question_image %}
+              <!-- Case where both text and image are present --> 
+              <div class="question-label fs-20 fs-sm-16 mb-2 d-flex ">
+               <span class="me-2">Q{{ loop.index }}: </span>  {{ question.question_text }}
+                <br>
+              </div>
+				
+				<div class="img-tags"><img class="modal-trigger mt-3"  style="width: 300px;" src="{{ question.question_image.url }}" alt="Question Image"></div>
+              <div class="radio-buttons">
+                {% for answer in question.answer_set.all() %}
+                <label class="custom-radio" for="answer_{{ answer.id }}">
+                  <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}"
+                    value="{{ answer.id }}">
+                  <span class="radio-btn"> {{ answer.answer_text }}</span>
+                </label>
+                {% endfor %}
+              </div>
+
+              {% elif question.question_text %}
+              <!-- Case where only text is present -->
+              <div class="question-label fs-20 fs-sm-16 mb-2 d-flex">
+				  <span class="me-2"> Q{{ loop.index }}: </span> {{ question.question_text }}
+              </div>
+              <div class="radio-buttons">
+                {% for answer in question.answer_set.all() %}
+                <label class="custom-radio" for="answer_{{ answer.id }}">
+                  <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}"
+                    value="{{ answer.id }}">
+                  <span class="radio-btn"> {{ answer.answer_text }}</span>
+                </label>
+                {% endfor %}
+              </div>
+
+              {% elif question.question_image %}
+              <!-- Case where only image is present -->
+              <div class="question-label">
+                <img class="modal-trigger" src="{{ question.question_image.url }}" alt="Question Image">
+              </div>
+              <div class="radio-buttons image-box">
+                {% for answer in question.answer_set.all() %}
+                <div class="im">
+                  <span>{{ answer.answer_text }}</span>
+                  <label class="custom-radio" for="answer_{{ answer.id }}">
+                    <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}"
+                      value="{{ answer.id }}">
+                    <div class="radio-btn">
+                    
+                      {% if answer.answer_image %}
+                      <img src="{{ answer.answer_image.url }}" alt="Answer Image">
+                      {% endif %}
+                    </div>
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+
+              {% else %}
+              <!-- Case where neither text nor image is present -->
+              <div class="question-label">
+                Q{{ loop.index }}
+              </div>
+              <div class="radio-buttons">
+                {% for answer in question.answer_set.all() %}
+                <label class="custom-radio" for="answer_{{ answer.id }}">
+                  <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}"
+                    value="{{ answer.id }}">
+                  <span class="radio-btn"> {{ answer.answer_text }}</span>
+                </label>
+                {% endfor %}
+              </div>
+
+              {% endif %}
+            </div>
+
+            <div class="assessment-button d-flex justify-content-center my-5">
+              {% if not loop.first %}
+              <button type="button" class="btn blue-button ms-3 prev-button px-md-6 fw-600 me-1">Back</button>
+              {% endif %}
+
+              {% if not loop.last %}
+              <button type="button" class="btn purple-button next-button px-md-6 fw-600 ms-1">Continue</button>
+              {% else %}
+              <button type="submit" class="btn btn-success submit-button btn-sumb px-md-6 fw-600">Submit</button>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </form>
+
+
+
+      </div>
+
+      <!-- </div> -->
+    </div>
+	
+	
+	 <div class="modalcontent image-modalcontent">
+    <span class="close">&times;</span>
+		 
+		 <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <img class="modal-image" src="" alt="Modal Image">
+    </div>
+			 </div>
+  </div>
+	
+	
+</main>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+  integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+  $(document).ready(function () {
+    let currentQuestion = 1;
+    const totalQuestions = $('.question').length;
+
+    function getSelectedRadioValues() {
+      const selectedValues = [];
+      $('.question').each(function () {
+        const activeQuestion = $(this);
+        const selectedRadio = activeQuestion.find('input[type="radio"]:checked');
+        selectedValues.push(selectedRadio.val());
+      });
+      return selectedValues;
+    }
+
+    // Timer for the test
+    let startTime, timerInterval, timerDuration;
+
+    function startTimer(duration) {
+      startTime = Date.now();
+      timerDuration = duration * 60 * 1000; // Convert minutes to milliseconds
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = timerDuration - elapsedTime;
+
+      if (remainingTime <= 0) {
+        clearInterval(timerInterval);
+        document.getElementById("multiStepForm").submit(); // Automatically submit the form
+      } else {
+        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+        $('#totalTime').text(
+          `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+        );
+      }
+    }
+    // Timer ends
+
+    function showQuestion(number) {
+      $('.question').removeClass('active');
+      $('#question' + number).addClass('active');
+      $('#questionProgress').text(' ' + number + ' / ' + totalQuestions);
+      $('.next-button').toggle(number < totalQuestions);
+      $('.prev-button').toggle(number > 1);
+      $('.submit-button').toggle(number === totalQuestions);
+    }
+
+    $('.next-button').on('click', function () {
+      if (currentQuestion < totalQuestions) {
+        currentQuestion++;
+        showQuestion(currentQuestion);
+      }
+    });
+
+    $('.prev-button').on('click', function () {
+      if (currentQuestion > 1) {
+        currentQuestion--;
+        showQuestion(currentQuestion);
+      }
+    });
+
+    // Timer condition for the categories
+    const category = "{{ category }}";
+    let duration;
+
+    // Adjusted categories with 2-minute duration
+    const twoMinuteCategories = ["logical", "numerical", "spatial", "critical"];
+
+    if (twoMinuteCategories.includes(category.toLowerCase())) {
+      duration = 10; // 20 minutes for these categories
+    } else {
+      duration = 10; // 10 minute for other categories
+    }
+
+    // Log the duration for debugging
+    console.log("Timer Duration (minutes):", duration);
+
+    // Initialize the timer and show the first question
+    showQuestion(currentQuestion);
+    startTimer(duration);
+  });
+</script>
+
+
+<script>
+    // JavaScript for Class-Based Modal Functionality
+    const modals = document.querySelectorAll('.modalcontent');
+    const triggers = document.querySelectorAll('.modal-trigger');
+    const closeButtons = document.querySelectorAll('.close');
+    // Open the modal
+    triggers.forEach(trigger => {
+      trigger.addEventListener('click', (event) => {
+        const modal = document.querySelector('.modalcontent');
+        const modalImage = modal.querySelector('.modal-image');
+        modal.style.display = 'block';
+        modalImage.src = event.target.src;
+      });
+    });
+
+    // Close the modal
+    closeButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const modal = button.closest('.modalcontent');
+        modal.style.display = 'none';
+      });
+    });
+
+    // Close modal when clicking outside the image
+    window.addEventListener('click', (event) => {
+      modals.forEach(modal => {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    });
+  </script>
+
+
+
+{% endblock %}

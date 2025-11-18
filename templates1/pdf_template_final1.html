@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Direction Assessment Report</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        .download-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #3F37C9;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .download-btn:hover {
+            background-color: #2e2a9e;
+        }
+        .hidden-iframe {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="coverPage">
+        <div class="header-coverage"
+            style="background: #f7f6ff; margin-bottom: 26px; height: 750px; display:flex; flex-direction: column; align-items: center; justify-content:center;">
+            <div class="img-top" style="width: 100%; text-align: center;">
+                <img style="width: 200px; margin-top:15px;" src="" alt="logo" />
+            </div>
+            <div class="heading-cover" style="width: 100%; text-align: center;">
+                <h1 style="font-family: 'Arial', sans-serif; margin-top: 0.23cm; font-size: 35px; color: #3F37C9;">
+                    Career Direction Assessment Report
+                </h1>
+            </div>
+            <div class="image-cover" style="width: 100%; text-align: center;">
+                <img style="width: 320px;" src="" alt="img" />
+            </div>
+        </div>
+
+        <div style="width:100%; margin-top:30px; float: left;">
+            <table style="width:100%; margin-top: 20px;">
+                <tbody>
+                    <tr style="border: 1px solid #3F37CB; border-radius: 10px; background: #f7f6ff;">
+                        <td>
+                            <div class="disclaimer-heading"
+                                style="width:100%; text-align: center; color: #3F37CB; margin-top: -19px;">
+                                <p style="background-color: #3F37CB; padding:2px; color: #fff; font-size: 12px; border-radius: 5px 5px 0 0; text-align: center; width:150px; margin: 0px auto;">
+                                    Disclaimer
+                                </p>
+                            </div>
+                            <p style="width:100%; text-align: center;">
+                                The results of this assessment are based on the responses given by the individual on
+                                the self report questionnaire and are subject to change based on multiple factors.
+                            </p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="chapterPage">
+        <hr />
+        <div class="db-header" style="margin-top: 66px; text-align: center;">
+            <h1 style="color: #3F37C9;">INTRODUCTION</h1>
+        </div>
+        <table>
+            <tbody>
+                <tr style="background: #E7FEFF;">
+                    <td>
+                        <div class="intro-box" style="background: #E7FEFF; padding: 18px; border-radius:10px;">
+                            <p style="font-family: 'Arial', sans-serif;">Figuring out what you want to do in the
+                                future can feel overwhelming—but it's also exciting. Choosing a career isn't just about picking a
+                                job; it’s about discovering what you’re good at, what excites you, and where you can make a
+                                difference. This decision sets the stage for your future, and the more you understand yourself, the easier it
+                                is to make the right choice.</p>
+                            <p style="font-family: 'Arial', sans-serif;">Think of it like standing at a starting
+                                point, with so many paths ahead of you. Some lead to labs and discoveries, others to creative studios,
+                                businesses, hospitals, or even social missions. Whatever your dream might be, finding the right
+                                career direction means knowing yourself first—and that’s exactly what this test helps you do.</p>
+                            <p style="font-family: 'Arial', sans-serif;"> The <strong> Career Direction Assessment
+                                </strong> looks at <strong> four key areas </strong> of who you are: <strong>Personality, Motivation,
+                                Interest, and Aptitude </strong>. These insights help point you toward the career track that best
+                                matches your strengths and passions—giving you a clear, confident start on your journey ahead.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <button class="download-btn" onclick="downloadIframeContent()">Download Report as PDF</button>
+
+    <iframe id="reportIframe" class="hidden-iframe">
+        <div class="coverPage">
+            <div class="header-coverage"
+                style="background: #f7f6ff; margin-bottom: 26px; height: 750px; display:flex; flex-direction: column; align-items: center; justify-content:center;">
+                <div class="img-top" style="width: 100%; text-align: center;">
+                    <img style="width: 200px; margin-top:15px;" src="" alt="logo" />
+                </div>
+                <div class="heading-cover" style="width: 100%; text-align: center;">
+                    <h1 style="font-family: 'Arial', sans-serif; margin-top: 0.23cm; font-size: 35px; color: #3F37C9;">
+                        Career Direction Assessment Report
+                    </h1>
+                </div>
+                <div class="image-cover" style="width: 100%; text-align: center;">
+                    <img style="width: 320px;" src="" alt="img" />
+                </div>
+            </div>
+
+            <div style="width:100%; margin-top:30px; float: left;">
+                <table style="width:100%; margin-top: 20px;">
+                    <tbody>
+                        <tr style="border: 1px solid #3F37CB; border-radius: 10px; background: #f7f6ff;">
+                            <td>
+                                <div class="disclaimer-heading"
+                                    style="width:100%; text-align: center; color: #3F37CB; margin-top: -19px;">
+                                    <p style="background-color: #3F37CB; padding:2px; color: #fff; font-size: 12px; border-radius: 5px 5px 0 0; text-align: center; width:150px; margin: 0px auto;">
+                                        Disclaimer
+                                    </p>
+                                </div>
+                                <p style="width:100%; text-align: center;">
+                                    The results of this assessment are based on the responses given by the individual on
+                                    the self report questionnaire and are subject to change based on multiple factors.
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="chapterPage">
+            <hr />
+            <div class="db-header" style="margin-top: 66px; text-align: center;">
+                <h1 style="color: #3F37C9;">INTRODUCTION</h1>
+            </div>
+            <table>
+                <tbody>
+                    <tr style="background: #E7FEFF;">
+                        <td>
+                            <div class="intro-box" style="background: #E7FEFF; padding: 18px; border-radius:10px;">
+                                <p style="font-family: 'Arial', sans-serif;">Figuring out what you want to do in the
+                                    future can feel overwhelming—but it's also exciting. Choosing a career isn't just about picking a
+                                    job; it’s about discovering what you’re good at, what excites you, and where you can make a
+                                    difference. This decision sets the stage for your future, and the more you understand yourself, the easier it
+                                    is to make the right choice.</p>
+                                <p style="font-family: 'Arial', sans-serif;">Think of it like standing at a starting
+                                    point, with so many paths ahead of you. Some lead to labs and discoveries, others to creative studios,
+                                    businesses, hospitals, or even social missions. Whatever your dream might be, finding the right
+                                    career direction means knowing yourself first—and that’s exactly what this test helps you do.</p>
+                                <p style="font-family: 'Arial', sans-serif;"> The <strong> Career Direction Assessment
+                                    </strong> looks at <strong> four key areas </strong> of who you are: <strong>Personality, Motivation,
+                                    Interest, and Aptitude </strong>. These insights help point you toward the career track that best
+                                    matches your strengths and passions—giving you a clear, confident start on your journey ahead.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </iframe>
+
+    <script>
+        function downloadIframeContent() {
+            const iframe = document.getElementById('reportIframe');
+            const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+
+            // Ensure iframe content is loaded
+            if (!iframeDocument.body) {
+                alert('Iframe content is not loaded yet. Please try again.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            // Use html2canvas to render the iframe content
+            html2canvas(iframeDocument.body, {
+                scale: 2, // Increase resolution for better quality
+                useCORS: true, // Enable CORS for images (if any)
+                logging: false
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 190; // A4 width in mm (210mm - 10mm margin on each side)
+                const pageHeight = 297; // A4 height in mm
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let heightLeft = imgHeight;
+
+                let position = 10;
+
+                // Add first page
+                doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+
+                // Handle multi-page content
+                heightLeft -= pageHeight - 20; // Account for margins
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight + 10; // Adjust position for next page
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight - 20;
+                }
+
+                // Save the PDF
+                doc.save('career_report.pdf');
+            }).catch(error => {
+                console.error('Error generating PDF:', error);
+                alert('An error occurred while generating the PDF. Please try again.');
+            });
+        }
+
+        // Ensure iframe is loaded before allowing download
+        window.onload = function() {
+            const iframe = document.getElementById('reportIframe');
+            iframe.onload = function() {
+                console.log('Iframe content loaded');
+            };
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}My Notepad | Top Teen{% endblock %}
+{% block description_content %}View and manage your notes, reminders, and post-its.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} notepad-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .notepad-page {
+    padding-top: 80px;
+  }
+  .note-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 200px;
+    border: 1px solid #e9ecef;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .note-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  .note-pin {
+    width: 24px;
+    height: 34px;
+    margin-bottom: 10px;
+  }
+  .note-content {
+    max-height: 82px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="notepad-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- Notepad Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <h1 class="fs-24 fw-semibold mb-0">My Notepad</h1>
+      <div class="d-none d-lg-block">
+        <a href="{{ url('users:createnote') }}" class="btn custom-button purple-button">
+          <i class='bx bx-plus me-2'></i> New Note
+        </a>
+      </div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <h2 class="fs-16 fw-normal text-center mb-0">My Notepad</h2>
+      <button type="button" class="btn btn-link position-absolute end-0 top-0" onclick="window.location='{{ url('users:scrapbook') }}'">
+        <i class='bx bx-x fs-24 text-gray'></i>
+      </button>
+    </div>
+
+    <!-- Notes Grid -->
+    {% if notes %}
+    <div class="row g-3 g-lg-4">
+      {% for note in notes %}
+      <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url('users:updatenote', args=[note.id]) }}" class="text-decoration-none">
+          <div class="note-card">
+            <img src="{{ static('images_new/icons/pin.svg') }}" class="note-pin" alt="Pin" />
+            <h3 class="fs-16 fw-semibold text-dark mb-2">
+              {{ note.title|default('Untitled Note') }}
+            </h3>
+            <p class="text-gray fs-12 mb-3">{{ date_format(note.modified) }}</p>
+            <div class="note-content">
+              {% if note.content %}
+              <p class="fs-12 text-gray mb-0">{{ note.content|striptags|truncate(150) }}</p>
+              {% else %}
+              <p class="fs-12 text-gray mb-0">No content</p>
+              {% endif %}
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+      <i class='bx bx-note fs-64 text-gray mb-3'></i>
+      <h3 class="fs-20 fw-semibold text-dark mb-2">No notes yet</h3>
+      <p class="text-gray fs-14 mb-4">Start creating your first note to keep track of your thoughts and reminders.</p>
+      <a href="{{ url('users:createnote') }}" class="btn custom-button purple-button">
+        <i class='bx bx-plus me-2'></i> Create Your First Note
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- Mobile New Note Button -->
+    <div class="d-lg-none fixed-bottom text-center p-3" style="bottom: 80px;">
+      <a href="{{ url('users:createnote') }}" class="btn custom-button purple-button">
+        <i class='bx bx-plus me-2'></i> New Note
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<script>
+  // Any notepad-specific JavaScript can be added here
+</script>
+{% endblock %}
+

@@ -1,0 +1,44 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+ 
+{% block main %}
+<main class="lg:w-[1082px] w-full mx-auto">
+    <section class="flex flex-col">
+        
+      <div class="container mx-auto p-4">
+        <!-- <h1 class="text-2xl font-bold mb-4">Institute Log History</h1> -->
+        <table class="w-full border-collapse border border-gray-300">
+            <!-- <caption class="text-lg font-semibold mb-2">Log Entries for 2023</caption> -->
+            <caption class="text-lg font-semibold mb-2 text-center">
+                <span class="border-b-2 border-black inline-block">Log Entries</span>
+              </caption>
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="border border-gray-300 p-2">Date</th>
+              <th class="border border-gray-300 p-2">Total Students</th>
+              <th class="border border-gray-300 p-2">Total created students</th>
+              <th class="border border-gray-300 p-2">Invalid Students</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for il in institute_logs %}
+            <tr class="bg-white hover:bg-gray-100">
+              <td class="border border-gray-300 p-2">{{il.created.strftime("%m/%d/%Y, %H:%M:%S")}}</td>
+              <td class="border border-gray-300 p-2">{{il.students_counts}}</td>
+              <td class="border border-gray-300 p-2">{{il.get_created_students()}}</td>
+              <td class="border border-gray-300 p-2">
+                {% with emails=il.email %}
+                {% set emails_list=emails|replace('[','')|replace(']','')|replace(' ','')|replace("'","") %}
+                {% for e in emails_list.split(',') %}
+                {{e}}{% if not loop.last %},{% endif %}
+                {% endfor %}
+                {% endwith %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      </section>
+      </main>
+{%endblock%}

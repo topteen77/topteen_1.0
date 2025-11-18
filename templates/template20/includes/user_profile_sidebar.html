@@ -1,0 +1,53 @@
+<!-- Left Sidebar (Desktop) -->
+<div class="col-lg-3 col-md-4 d-none d-md-block">
+  <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
+    <div class="profile-header text-center">
+      {% if user_profile and user_profile.image %}
+      <img src="{{ user_profile.image.url }}" alt="User Profile" class="profile-img rounded-circle mb-3" style="width: 104px; height: 104px; object-fit: cover;">
+      {% else %}
+      <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 104px; height: 104px;">
+        <i class='bx bx-user fs-48 text-gray'></i>
+      </div>
+      {% endif %}
+      <h5 class="profile-name">
+        {% if request.user.get_full_name %}
+          {{ request.user.get_full_name }}
+        {% elif request.user.username %}
+          {{ request.user.username }}
+        {% else %}
+          {{ request.user.email }}
+        {% endif %}
+      </h5>
+      <div class="profile-meta text-gray fs-14">
+        {% if request.user.created %}
+        <p class="mb-1">
+          <i class='bx bx-calendar me-1'></i>
+          Joined {{ request.user.created|date:"M d, Y" }}
+        </p>
+        {% endif %}
+        {% if user_profile and user_profile.schoolname %}
+        <p class="mb-0">
+          <i class='bx bx-book me-1'></i>
+          {{ user_profile.schoolname }}
+        </p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="profile-progress mt-4">
+      <h6 class="fs-14 fw-semibold">Complete your profile</h6>
+      <p class="text-gray fs-12">A complete profile helps us cater the best content to you</p>
+      <div class="progress mt-2">
+        <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+      </div>
+      <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">Settings</a>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Drawer Trigger -->
+<div class="d-md-none d-block mb-3">
+  <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
+    <i class='bx bx-menu me-1'></i> Menu
+  </button>
+</div>
+

@@ -1,0 +1,280 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main%}
+
+
+
+<!-- Delete popUp -->
+<div class="deleteFolderPop fixed hidden">
+    <div class="h-full w-full relative">
+        <div class="deleteFolderContent absolute bg-[#ffffff] rounded-xl py-[26px] px-[20px] inline-block mx-auto">
+            <p class="text-[16px] leading-[21px] mediumFont text-[#828282] deleteLine">Are you sure you want to delete?</p>
+            <div class="flex mt-[24px] gap-[30px] justify-end">
+                <button class="noDeleteFolderBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                    No
+                </button>
+                <button class="yesDeleteFolderBtn inline-block boldFont text-[#3f37c9] text-[16px]">
+                    Yes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Delete PopUp -->
+
+<!-- Add Folder PopUp -->
+<div class="addFolderPop2 fixed hidden">
+    <div class="h-full w-full relative">
+  
+      <div class="addFolderContent2 w-full max-w-[440px]  absolute bg-[#ffffff] rounded-xl inline-block mx-auto">
+        <div class="relative h-full w-full inline-block pb-[22px]">
+  
+            <button class="addFolderCloseBtn2 absolute right-[15px] top-[10px]">
+                <i class="fa fa-xmark boldFont text-[16px] text-[#4f4f4f]"></i>
+            </button>
+  
+            <div class="lg:pb-[25px] lg:border-b-[2px] lg:border-b-[#efefee] py-[26px] px-[20px]">
+                <div class="lg:flex lg:justify-center lg:gap-[10px]">
+                    <p class="text-[24px] leading-[32.4px] semibold text-[#333333] my-auto">Add a new file</p>
+                </div>
+            </div>
+  
+  
+            <form class="pt-[22px] px-[23px] lg:px-[48px] flex flex-col gap-[10px] " id="fileform">
+              <input type="hidden" name="folderid" value="{{folder.id}}" required>
+              <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" required>
+              <p class="errorText text-left errortag" id="filenameerrortag"></p>
+              <input type="text" name="filename" class="w-full h-full rounded-[10px] border-[1.5px] border-[#3f37c9] mx-auto" placeholder="Enter the file name">
+              <p class="errorText text-left errortag" id="fileerrortag"></p>
+              <input type="file" name="file" id="inputfile" class="w-full h-full rounded-[10px] border-[1.5px] border-[#3f37c9] mx-auto" placeholder="Add a new file">
+  
+                <button type="button" id="fileformsubmit" class="folderSaveBtn2 w-full max-w-[347px] h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+                    <div class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+                        <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">Save</p>
+                    </div>
+                </button>
+            </form>
+        </div>
+        
+  
+    </div>
+    </div>
+  
+  </div>
+  <!-- End of Add Folder PopUp -->
+
+<main class="lg:pt-[30px] lg:max-w-[1280px] mx-auto bg-[#ffffff] relative h-full pb-[200px] lg:pb-0">
+    {% if breadcrumb  %}
+    <!-- BreadCrumb -->
+    <section class="px-[20px] lg:px-[100px] gap-[16px] hidden lg:flex">
+        {% for brd in breadcrumb %}
+        {% if not loop.last and loop.first %}
+        <a href="{{brd.url}}" class="">
+            <img src="{{static("topteenfrontend/assets/images/home.svg")}}" class=" my-auto" alt="">
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if not loop.last and not loop.first  %}
+        <a href="{{brd.url}}" class="my-auto">
+            <p class="text-[12px] my-auto">{{brd.title}}</p>
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if loop.last%}
+        <a href="#" class="my-auto">
+            <p class="text-[12px]">{{brd.title}}</p>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </section>
+    <!-- End of Breadcrumb -->
+    {% endif %}
+
+    
+    <!-- Folder Heading -->
+    <section class="lg:pt-[21px] fixed lg:relative top-0 pt-[12px] lg:pt-0 z-30 w-full bg-[#ffffff]">
+        <div class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+            <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">{{folder.title}}</p>
+            <button type="button" onclick="window.location='{{url('users:userfolders')}}'" class="absolute bottom-[18px] right-[24px]">
+                <i class="fa-solid fa-xmark text-[#828282] text-[24px] leading-[50px]"></i>
+            </button>
+        </div>
+  
+        <div class="hidden lg:flex justify-between px-[20px] lg:px-[100px] ">
+            <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">{{folder.title}}</p>
+            <button class="addFolderBtn2 w-[144px] h-[53px] bg-[#2e289d] rounded-[100px] relative my-auto">
+                <div class="w-[144px] flex justify-center items-center gap-[8px] h-[48px] rounded-[100px] bg-[#3f37c9] absolute top-0">
+                    <i class="fa-solid fa-plus text-[#ffffff] boldFont text-[14px] leading-[19px]"></i>
+                    <p class="text-[#ffffff] text-[14px] leading-[19px] boldFont">Upload New file</p>
+                </div>
+            </button>
+        </div>
+    </section>
+    <!-- End of Folder Heading -->
+    
+    <!-- Folder Content -->
+    <section class="pt-[110px] lg:pt-[50px] lg:max-w-[1280px] lg:mx-auto px-[20px] lg:pl-[100px] lg:pr-[95px] flex flex-wrap justify-center sm:justify-start gap-x-[30px] gap-y-[15px]">
+        {% for file in folder.folder_files.all() %}
+        <!-- Loop here -->
+            <div data-id='{{file.id}}' data-name="{{file.title}}" class="flex justify-between rounded-[10px] bg-[#f7f7fa] w-[344px] h-[60px] lg:w-[248px] pl-[18px] pr-[12px] addedFolder">
+                <div class="flex gap-[16px] lg:gap-[10px] items-center">
+                    <i class="fa-solid fa-file text-[36px] text-[#4f4f4f]"></i>
+                    <a href="{{file.file.url}}" download>
+                        <p class="text-[16px] leading-[21px] semibold text-[#4f4f4f] my-auto">{{file.title}}</p>
+                        <p class="text-[10px] leading-[14px] regularFont text-[#4f4f4f] my-auto">Click here to download </p>
+                    </a>
+
+                </div>
+
+                <button type="button" class="my-auto deleteFolderBtn" onclick="folderDeleteFunction(this)" data-id='{{file.id}}' data-folderid="{{folder.id}}">
+                    <i class="fa-solid fa-circle-xmark text-[#bdbdbd]"></i>
+                </button>
+            </div>
+        <!-- End of loop -->
+        {% endfor %}
+
+        <div class="flex justify-center lg:hidden fixed bottom-[120px] left-[50%] -translate-x-[50%] z-30">
+
+            <button type="button"  class="addFolderBtn2 w-[144px] h-[53px] bg-[#2e289d] rounded-[100px] relative my-auto">
+                <div class="w-[144px] flex justify-center items-center gap-[8px] h-[48px] rounded-[100px] bg-[#3f37c9] absolute top-0">
+                    <i class="fa-solid fa-plus text-[#ffffff] boldFont text-[14px] leading-[19px]"></i>
+                    <p class="text-[#ffffff] text-[14px] leading-[19px] boldFont">Upload New file</p>
+                </div>
+            </button>
+    
+        </div>
+    </section>
+    <!-- End of Folder Content -->
+
+</main>
+{% endblock %}
+{% block additionalfooter %}
+<script>
+    // Add folder
+
+    const addFolderPop2 = document.querySelector(".addFolderPop2");
+    const addFolderBtn2 = document.querySelectorAll(".addFolderBtn2");
+
+    addFolderBtn2.forEach(elem => {
+        elem.addEventListener("click", function(){
+            addFolderPop2.classList.remove("hidden");
+        })
+    })
+
+    document.querySelector(".addFolderCloseBtn2").addEventListener("click", function(){
+        addFolderPop2.classList.add("hidden");
+    })
+
+    document.querySelector(".folderSaveBtn2").addEventListener("click", function(){
+        addFolderPop2.classList.add("hidden");
+    })
+
+    // Delete Folder PopUp
+    const folders = document.querySelectorAll(".addedFolder");
+    const deleteFolderPop = document.querySelector(".deleteFolderPop");
+    const noDelFolderBtn = document.querySelector(".noDeleteFolderBtn");
+    const yesDelFolderBtn = document.querySelector(".yesDeleteFolderBtn");
+
+
+    // Delete function for folders
+    function folderDeleteFunction(param){
+
+        const dataId = param.dataset.id;
+        const folderDataId = param.dataset.folderid;
+
+        deleteFolderPop.classList.remove("hidden");
+
+        noDelFolderBtn.addEventListener("click", function(){
+        deleteFolderPop.classList.add("hidden");
+        })
+    
+        yesDelFolderBtn.addEventListener("click", function(){
+            deleteFolderFile(dataId,folderDataId)
+            deleteFolderPop.classList.add("hidden");
+        })
+    }
+
+    function deleteFolderFile(id,folderId){
+        var form = document.createElement("form");
+        form.setAttribute("method","POST");
+        var hiddenField = document.createElement("input");
+        hiddenField.setAttribute("type", "hidden");
+        hiddenField.setAttribute("name", 'csrfmiddlewaretoken');
+        hiddenField.setAttribute("value", '{{ csrf_token }}');
+        form.appendChild(hiddenField);
+        var hiddenField = document.createElement("input");
+        hiddenField.setAttribute("type", "text");
+        hiddenField.setAttribute("name","id");
+        hiddenField.setAttribute("value",id);
+
+        form.appendChild(hiddenField);
+        var hiddenField = document.createElement("input");
+        hiddenField.setAttribute("type", "text");
+        hiddenField.setAttribute("name","delfolderid");
+        hiddenField.setAttribute("value",folderId);
+
+        form.appendChild(hiddenField);
+        var formData = new FormData(form);
+        $.ajax({
+            url: "{{url('createfolderfile')}}",
+            type: 'POST',
+            data: formData,
+            success: function (data) {
+                window.location.reload();
+            },
+            error: function(data){
+                try{
+                fireAlert(data.responseJSON.message,"error");
+                }
+                catch(e){
+                    fireAlert("Internal Server Error","error");
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+        });
+    }
+
+
+    $('#fileformsubmit').on('click',function(e){
+        e.preventDefault();    
+        var formData = new FormData(document.getElementById("fileform"));
+    
+        var filename = formData.get("filename").trim();
+        var file =  $("#inputfile")[0].files.length;
+        if ( filename && file != 0) {
+        $.ajax({
+            url: "{{url('createfolderfile')}}",
+            type: 'POST',
+            data: formData,
+            success: function (data) {
+                window.location.reload();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                fireAlert(jqXHR.responseJSON.message,"error");
+            },
+            error: function(xhr, status, error) {
+                console.log(xhr);
+                if (xhr == 'undefined' || xhr == undefined) {
+                    fireAlert(error,"error");
+                } else {
+                    fireAlert(jqXHR.responseJSON.message,"error");
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+        }); 
+        } else {
+            if ( !filename ){
+            document.getElementById("filenameerrortag").textContent = "This field is required"; 
+            fireAlert('All Fields are required',"error");
+            }
+            if (file == 0){
+            document.getElementById("fileerrortag").textContent = "file is required"; 
+            fireAlert('All Fields are required',"error");
+            }
+        }   
+    });
+</script>
+{% endblock %}

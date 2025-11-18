@@ -1,0 +1,943 @@
+{% extends 'topteenfrontend/base.html' %}
+{%block additionalheader%}
+<style>
+  p {
+    font-family: "galanoGrotesqueRegular";
+  }
+
+  .dropzone-error {
+    border-color: #f56565 !important;
+    border-style: solid !important;
+  }
+
+  .dropzone-error-message {
+      color: #f56565;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      text-align: center;
+  }
+
+  /* Add these to your existing styles */
+  .border-red-500 {
+    border-color: #f56565 !important;
+  }
+
+  .text-red-500 {
+    color: #f56565;
+  }
+
+  .bg-red-100 {
+    background-color: #fff5f5;
+  }
+
+  .border-red-400 {
+    border-color: #fc8181;
+  }
+
+  .text-red-700 {
+    color: #c53030;
+  }
+
+  h2.text-green {
+    color: #0e8a13;
+    font-size: 32px;
+  }
+
+  .bg-\[\#EDE4FC\] {
+    background: #EDE4FC;
+  }
+
+  #successMessage {
+    background: #dcfaeb;
+    padding: 21px;
+    border-radius: 10px;
+  }
+
+  /* Spinner for loading state */
+  .spinner-border {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 0.2em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border .75s linear infinite;
+  }
+
+  @keyframes spinner-border {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+
+  /* Add to your existing styles */
+  .border-541BCF {
+    border-color: #541BCF;
+  }
+
+  .bg-EDE4FC {
+    background-color: #EDE4FC;
+  }
+
+  #preview-container {
+    transition: all 0.3s ease;
+  }
+
+  #preview-container img {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  p {
+    margin-bottom: 0px;
+  }
+
+
+  /* New styles for the registration page */
+
+  .hero-image {
+    background-image: url("");
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+
+
+
+  .registration-container {
+    display: flex;
+    min-height: calc(100vh - 150px);
+    background-color: #f8f9fa;
+  }
+
+  .left-panel {
+    width: 35%;
+    background: linear-gradient(135deg, #541BCF 0%, #8662E3 100%);
+    color: white;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .testimonial p {
+    color: #4a4848 !important;
+  }
+
+  .right-panel {
+    width: 65%;
+    padding: 40px;
+    background-color: white;
+  }
+
+  .left-panel-content {
+    margin-top: 60px;
+  }
+
+  .left-panel h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  .left-panel p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    color: #cab6b6;
+  }
+
+  .benefit-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .benefit-item i {
+    margin-right: 15px;
+    font-size: 20px;
+    color: #ffffff;
+  }
+
+  .testimonial {
+    margin-top: 60px;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: rgba(255, 253, 253);
+  }
+
+  .testimonial-text {
+    font-style: italic;
+    margin-bottom: 15px;
+  }
+
+  .testimonial-author {
+    font-weight: 600;
+  }
+
+  .step-indicator {
+    display: flex;
+    margin-bottom: 30px;
+    width: 100%;
+  }
+
+  .step {
+    flex: 1;
+    position: relative;
+  }
+
+  .step .ord {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .step .circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-weight: bold;
+    color: #666;
+  }
+
+  .step.active .circle {
+    background-color: #541BCF;
+    color: white;
+  }
+
+  .step.completed .circle {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  .step .line {
+    height: 3px;
+    background-color: #e0e0e0;
+    position: absolute;
+    top: 15px;
+    left: 30px;
+    right: 0;
+    z-index: -1;
+  }
+
+  .step:last-child .line {
+    display: none;
+  }
+
+  .step.active .line,
+  .step.completed .line {
+    background-color: #541BCF;
+  }
+
+  .form-title {
+    text-align: center;
+    color: #541BCF;
+    font-weight: 700;
+  }
+
+  .custom-input {
+    height: 50px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    font-size: 16px;
+    transition: all 0.3s;
+  }
+
+  .custom-input:focus {
+    border-color: #541BCF;
+    box-shadow: 0 0 0 0.2rem rgba(84, 27, 207, 0.25);
+  }
+
+  .purple-button {
+    background-color: #541BCF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+
+  .purple-button:hover {
+    background-color: #4016a0;
+    color: white;
+  }
+
+  .blue-button {
+    background-color: white;
+    color: #541BCF;
+    border: 1px solid #541BCF;
+    border-radius: 8px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+
+
+  /* .bg-[#EDE4FC] replaced above with .bg-EDE4FC */
+
+
+  .blue-button:hover {
+    background-color: #f0ebff;
+  }
+
+  .grid-list-col {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+  }
+
+  @media (max-width: 992px) {
+    .registration-container {
+      flex-direction: column;
+    }
+
+    .left-panel,
+    .right-panel {
+      width: 100%;
+    }
+
+    .left-panel {
+      padding: 30px;
+    }
+
+    .grid-list-col {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 576px) {
+    .grid-list-col {
+      grid-template-columns: repeat(6, 1fr);
+    }
+
+    .grid-list-col input {
+      width: 37px;
+      height: 37px;
+
+    }
+  }
+</style>
+
+{%endblock%}
+
+{% block main %}
+
+
+<div class="hero-image">
+  <main class="lg:container mx-auto px-[15px] lg:px-0 w-full pb-[60px] lg:pb-0 hero-image">
+    <!-- New Registration Container with Left Panel -->
+    <div class="registration-container mt-4 shadow-lg rounded-lg overflow-hidden">
+      <!-- Left Panel -->
+      <div class="left-panel d-md-block d-none">
+        <div>
+          <img src="{{static('topteenfrontend/assets/images/topteenwhitelogo.png')}}" class="white-logo"
+            alt="TopTeen Logo">
+          <div class="left-panel-content">
+            <h2>Join TopTeen as an Institute Partner</h2>
+            <p>Connect with students, showcase your programs, and grow your enrollment with TopTeen's comprehensive
+              platform.</p>
+
+            <div class="benefits">
+              <div class="benefit-item">
+                <i class="fas fa-globe"></i>
+                <div>
+                  <strong>Enhanced Visibility</strong>
+                  <p>Reach thousands of students actively searching for educational opportunities</p>
+                </div>
+              </div>
+
+              <div class="benefit-item">
+                <i class="fas fa-chart-line"></i>
+                <div>
+                  <strong>Data-Driven Insights</strong>
+                  <p>Access analytics to understand student preferences and optimize your offerings</p>
+                </div>
+              </div>
+
+              <div class="benefit-item">
+                <i class="fas fa-users"></i>
+                <div>
+                  <strong>Direct Student Engagement</strong>
+                  <p>Connect with qualified prospects through our platform</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+
+      <!-- Right Panel - Registration Form -->
+      <div class="right-panel">
+        <!-- Step Indicators -->
+        <div class="step-indicator">
+
+          <h3 class="form-title "><i class="fa-solid fa-building-columns"></i> Institute Information</h3>
+        </div>
+
+        <!-- Main Form -->
+        <form id="instituteForm" method="post" enctype="multipart/form-data">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+          <fieldset>
+            <legend class="sr-only">Institute Information</legend>
+
+            <div id="step-1-form" class="step-form">
+              <!-- Info Alert -->
+              <div id="alert-border-1" class="flex items-start bg-[#EDE4FC] text-[#541BCF] p-4 rounded mt-3"
+                role="alert">
+                <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                </svg>
+                <div class="ms-3 text-sm font-medium px-2">
+                  Please ensure the owner of the organization completes this form and that the information below matches
+                  their business registration document.
+                </div>
+                <button type="button"
+                  class="ms-auto -mx-1.5 -my-1.5 bg-blue-50 text-blue-500 rounded-lg focus:ring-2 focus:ring-blue-400 p-1.5 hover:bg-blue-200 inline-flex items-center justify-center h-8 w-8"
+                  onclick="dismissAlert()" aria-label="Close">
+                  <span class="sr-only">Dismiss</span>
+                  <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- File Upload Section -->
+              <div class="flex items-center justify-center w-full">
+                <label for="dropzone-file"
+                  class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 mt-3 mb-4 transition-all duration-300"
+                  id="dropzone-label">
+                  <div id="upload-content" class="flex md:flex-row flex-col justify-between py-3 px-3 w-full">
+                    <div class="flex flex-row items-center justify-center">
+                      <svg class="w-[32px] text-gray-500 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 20 16">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                      </svg>
+                      <p class="text-sm text-gray-500 mb-0 ms-2" style="margin-left:10px;">
+                        <span class="font-semibold">Add Institute Logo</span> - Drag and drop, or
+                      </p>
+                    </div>
+                    <p class="text-[#541BCF] border-2 rounded-full border-[#541BCF] px-1 py-1 px-md-4 bg-white hover:bg-[#541BCF] hover:text-white transition-all duration-300"
+                      style="padding:3px 10px; margin-left: 10px;">
+                      Browse Files
+                    </p>
+                  </div>
+                  <div id="preview-container" class="hidden mt-4 text-center">
+                    <img id="preview-image" class="mx-auto max-h-32 object-contain rounded-lg shadow-md" src=""
+                      alt="Preview">
+                    <p id="file-name" class="mt-2 text-sm text-gray-600 font-medium"></p>
+                    <p id="file-size" class="text-xs text-gray-500"></p>
+                    <button type="button" onclick="removeFile()" class="mt-2 text-red-500 hover:text-red-700 text-sm">
+                      <i class="fas fa-trash mr-1"></i>Remove
+                    </button>
+                  </div>
+                  <input type="file" class="hidden" id="dropzone-file" name="institute_logo"
+                    accept="image/jpeg,image/jpg,image/png,image/gif" data-max-size="5242880" required>
+                </label>
+              </div>
+              <p class="text-xs text-gray-500 mt-2 text-center">
+                Supported formats: JPG, PNG, GIF. Maximum size: 5MB
+              </p>
+
+              <!-- Form Fields -->
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <label for="institute_name" class="sr-only">Institute Name</label>
+                  <input type="text" id="institute_name" name="institute_name" class="form-control custom-input w-full"
+                    placeholder="Institute's Name*" aria-describedby="institute-name-help" minlength="2" maxlength="100"
+                    required>
+                  <div class="invalid-feedback"></div>
+                </div>
+
+                 <div class="col-md-12 mb-3">
+                  <label for="user_name" class="sr-only">Principal's Name</label>
+                  <input type="text" id="user_name" name="user_name" class="form-control custom-input w-full"
+                    placeholder="Principal's Name*" minlength="2" maxlength="50" pattern="[A-Za-z\s]+"
+                    title="Please enter a valid name (letters and spaces only)" required>
+                  <div class="invalid-feedback"></div>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <label for="institute_email" class="sr-only">Principal’s Email ID</label>
+                  <input type="email" id="institute_email" name="institute_email"
+                    class="form-control custom-input w-full" placeholder="Principal’s Email ID*" aria-describedby="email-help"
+                    required>
+                  <div class="invalid-feedback"></div>
+                </div>
+
+               
+
+                <div class="col-md-12 mb-3">
+                  <label for="institute_contact" class="sr-only">Institute Contact</label>
+                  <input type="tel" id="institute_contact" name="institute_contact"
+                    class="form-control custom-input w-full" placeholder="Principal's Contact No.*" pattern="[0-9+\-\s\(\)]+"
+                    minlength="10" maxlength="15" title="Please enter a valid phone number" required>
+                  <div class="invalid-feedback"></div>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <label for="institute_admin" class="sr-only">Administrator Contact</label>
+                  <input type="tel" id="institute_admin" name="institute_admin" class="form-control custom-input w-full"
+                    placeholder="Administrator or School Counselor Contact No.*" pattern="[0-9+\-\s\(\)]+" minlength="10" maxlength="15"
+                    title="Please enter a valid phone number" required>
+                  <div class="invalid-feedback"></div>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <label for="institute_address" class="sr-only">Institute Address</label>
+                  <textarea id="institute_address" name="institute_address" class="form-control custom-input w-full"
+                    placeholder="Address*" rows="3" minlength="10" maxlength="200" required></textarea>
+                  <div class="invalid-feedback"></div>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <label for="institute_group" class="sr-only">Institute Group</label>
+                  <select id="institute_group" name="institute_group" class="form-select custom-input w-full hidden">
+                    <option value="" disabled>Institute Group</option>
+                    <!-- {% for group in institute_groups %}
+                      <option value="{{ group.id }}">{{ group }}</option>
+                    {% endfor %} -->
+                  </select>
+                  <div class="invalid-feedback"></div>
+                </div>
+             
+
+                <div class="col-md-12 mb-3">
+                  <label for="marketing_group" class="sr-only">Marketing Group</label>
+                  <select id="marketing_group" name="marketing_group" class="form-select custom-input w-full">
+                    <option value="" disabled selected>Marketing Group</option>
+                    {% for mrk_name in marketing_groups %}
+                      <option value="{{ mrk_name.id }}" {% if loop.first %}selected{% endif %}>{{ mrk_name }}</option>
+                    {%endfor%}
+                    <!-- Add your dynamic options here -->
+                  </select>
+                  <div class="invalid-feedback"></div>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <label for="institute_type" class="sr-only">Institute Type</label>
+                  <select id="institute_type" name="institute_type" class="form-select custom-input w-full" required>
+                      <option value="" disabled selected>Institute Type*</option>
+                      {% for value, label in institute_types %}
+                          <option value="{{ value }}">{{ label }}</option>
+                      {% endfor %}
+                  </select>
+                  <!-- <select id="institute_type" name="institute_type" class="form-select custom-input w-full" required>
+                    <option value="" disabled selected>Institute Type*</option>
+                    <option value="1">College</option>
+                    <option value="2"> High school </option>
+                    <option value="3"> Senior secondary School </option>
+                    <option value="4"> Universities </option>
+                    <option value="5"> Coaching Institute </option>
+                    <option value="6"> Language Institute </option>
+                    <option value="7"> Other </option>
+                  </select> -->
+                  <div class="invalid-feedback"></div>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <div class="flex">
+                    <div class="flex items-start h-5">
+                      <input id="helper-checkbox" aria-describedby="helper-checkbox-text" type="checkbox" value=""
+                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        required>
+                    </div>
+                    <div class="ms-2 text-sm" style="margin-left:10px;">
+                      <label for="helper-checkbox" class="font-medium text-gray-900">
+                        Checking this box declares:
+                      </label>
+                      <ol class="text-xs font-normal text-gray-500 list-decimal list-inside ps-3"
+                        style="padding-left:10px; margin-top:8px;">
+                        <li>The foregoing information/application/document(s) are true and complete. I understand that a
+                          false statement or supporting documents may disqualify me from becoming a Recruitment Partner
+                          for Topteen Career.</li>
+                        <li>I have reviewed and consented to the Topteen Career 
+                          <a href="{{url('core:terms&condition')}}" class="underline">Terms & Conditions</a> and 
+                          <a href="{{url('core:privacypolicy')}}" class="underline">Privacy Policy</a> 
+                          and agree to be bound by them.</li>
+                        </li>
+                      </ol>
+                    </div>
+                  </div>
+                  <div class="invalid-feedback"></div>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Navigation Buttons -->
+          <div class="mt-4 flex justify-center">
+            <button type="submit" class="btn purple-button" id="submitBtn">
+              <span class="btn-text">
+                <i class="fas fa-building mr-2"></i>Create Institute
+              </span>
+              <span class="btn-loading hidden">
+                <svg class="animate-spin h-5 w-5 mr-3 inline" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none">
+                  </circle>
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                  </path>
+                </svg>
+                Processing...
+              </span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Success Modal -->
+        <!-- Add this right after the form closing tag -->
+        <div id="successMessage" class="hidden">
+          <div class="text-center py-10 px-6">
+
+            <h2 class="text-green">Thank You!</h2>
+            <p class="text-lg text-gray-600 mb-8">
+              Your request for claiming this college has been sent to the admin for approval.
+              You will receive a mail with your login credentials after approval.
+            </p>
+          </div>
+        </div>
+
+        <!-- End of Success Modal -->
+
+      </div>
+
+
+  </main>
+</div>
+
+</div>
+</section>
+
+<!-- <script>
+  // Add this to your existing JavaScript
+  document.addEventListener('DOMContentLoaded', function () {
+    const dropzone = document.querySelector('label[for="dropzone-file"]');
+    const fileInput = document.getElementById('dropzone-file');
+    const previewContainer = document.getElementById('preview-container');
+    const previewImage = document.getElementById('preview-image');
+    const fileName = document.getElementById('file-name');
+
+    // Handle drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+      dropzone.classList.add('border-[#541BCF]', 'bg-[#EDE4FC]');
+    }
+    dropzone.classList.add('border-541BCF', 'bg-EDE4FC');
+    function unhighlight(e) {
+      dropzone.classList.remove('border-[#541BCF]', 'bg-[#EDE4FC]');
+    }
+    dropzone.classList.remove('border-541BCF', 'bg-EDE4FC');
+    // Handle dropped files
+    dropzone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      handleFiles(files);
+    }
+
+    // Handle file input change
+    fileInput.addEventListener('change', function (e) {
+      handleFiles(this.files);
+    });
+
+    function handleFiles(files) {
+      if (files.length > 0) {
+        const file = files[0];
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            previewImage.src = e.target.result;
+            fileName.textContent = file.name;
+            previewContainer.classList.remove('hidden');
+          }
+          reader.readAsDataURL(file);
+        } else {
+          alert('Please upload an image file');
+          fileInput.value = '';
+        }
+      }
+    }
+  });
+</script> -->
+
+
+<!-- this script for the validation the form fileds -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form');
+    const dropzone = document.querySelector('label[for="dropzone-file"]');
+    const fileInput = document.getElementById('dropzone-file');
+    const previewContainer = document.getElementById('preview-container');
+    const previewImage = document.getElementById('preview-image');
+    const fileName = document.getElementById('file-name');
+
+    // File Upload Handlers
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropzone.classList.add('border-[#541BCF]', 'bg-[#EDE4FC]');
+    }
+
+    function unhighlight(e) {
+        dropzone.classList.remove('border-[#541BCF]', 'bg-[#EDE4FC]');
+    }
+
+    dropzone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+
+    fileInput.addEventListener('change', function (e) {
+        handleFiles(this.files);
+        removeDropzoneError();
+        if (this.files && this.files[0]) {
+            validateFile(this.files[0]);
+        }
+    });
+
+    function handleFiles(files) {
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    fileName.textContent = file.name;
+                    previewContainer.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please upload an image file');
+                fileInput.value = '';
+            }
+        }
+    }
+
+    // Error Handling Functions
+  function showDropzoneError(message) {
+      // Remove any existing error messages
+      removeDropzoneError();
+      
+      // Add error styling to dropzone
+      dropzone.classList.add('dropzone-error');
+      
+      // Create and add error message
+      const errorMessage = document.createElement('p');
+      errorMessage.className = 'dropzone-error-message';
+      errorMessage.textContent = message;
+      
+      // Insert error message after the dropzone
+      dropzone.parentElement.insertBefore(errorMessage, dropzone.nextSibling);
+  }
+
+  function removeDropzoneError() {
+      // Remove error styling
+      dropzone.classList.remove('dropzone-error');
+      
+      // Remove any existing error messages
+      const errorMessages = dropzone.parentElement.querySelectorAll('.dropzone-error-message');
+      errorMessages.forEach(msg => msg.remove());
+  }
+
+  // Update the validateForm function's image validation part
+  function validateForm(formElement) {
+      let isValid = true;
+      
+      // Clear all existing errors first
+      formElement.querySelectorAll('.text-red-500').forEach(el => el.remove());
+      formElement.querySelectorAll('.border-red-500').forEach(el => el.classList.remove('border-red-500'));
+      removeDropzoneError();
+
+      // Validate logo upload first
+      if (!fileInput.files || fileInput.files.length === 0) {
+          isValid = false;
+          showDropzoneError('Please upload an institute logo');
+      } else if (fileInput.files[0]) {
+          if (!validateFile(fileInput.files[0])) {
+              isValid = false;
+          }
+      }
+
+      // Rest of your validation code...
+      // [Keep the existing validation for other fields]
+
+      return isValid;
+  }
+
+  // Update the validateFile function
+  function validateFile(file) {
+      const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'];
+      const maxSize = 5 * 1024 * 1024; // 5MB
+
+      if (!validImageTypes.includes(file.type)) {
+          showDropzoneError('Please upload a valid image file (JPEG, PNG, GIF, or SVG)');
+          fileInput.value = '';
+          return false;
+      }
+
+      if (file.size > maxSize) {
+          showDropzoneError('Image size should be less than 5MB');
+          fileInput.value = '';
+          return false;
+      }
+
+      removeDropzoneError();
+      return true;
+  }
+
+  // Add this event listener for the dropzone click
+  dropzone.addEventListener('click', function() {
+      fileInput.click();
+  });
+
+  // Add this to handle file input changes
+  fileInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+          handleFiles(this.files);
+      } else {
+          showDropzoneError('Please upload an institute logo');
+      }
+  });
+      // Input Event Listeners
+      const requiredFields = form.querySelectorAll('[required]');
+      requiredFields.forEach(field => {
+          field.addEventListener('input', function () {
+              this.classList.remove('border-red-500');
+              const errorMessage = this.parentElement.querySelector('.text-red-500');
+              if (errorMessage) {
+                  errorMessage.remove();
+              }
+          });
+      });
+
+    // Contact Fields Input Restriction
+    const contactFields = ['institute_contact', 'institute_admin'];
+    contactFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        field.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length > 10) {
+                this.value = this.value.slice(0, 10);
+            }
+        });
+    });
+
+    // Checkbox Event Listener
+    const checkbox = form.querySelector('#helper-checkbox');
+    checkbox.addEventListener('change', function () {
+        this.classList.remove('border-red-500');
+        const errorMessage = this.parentElement.parentElement.querySelector('.text-red-500');
+        if (errorMessage) {
+            errorMessage.remove();
+        }
+    });
+
+    // Form Submission Handler
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!validateForm(this)) {
+            return;
+        }
+
+        const formData = new FormData(this);
+        const submitButton = this.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+
+        // Show loading state
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
+        submitButton.disabled = true;
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                // Hide form and show success message
+                this.style.display = 'none';
+                document.querySelector('.step-indicator').style.display = 'none';
+                const successMessage = document.getElementById('successMessage');
+                successMessage.classList.remove('hidden');
+                successMessage.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                throw new Error(data.message || 'An error occurred');
+            }
+        })
+        .catch(error => {
+            console.error('Catch Error:', error);
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4';
+            errorDiv.innerHTML = `
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline">${error.message}</span>
+            `;
+            this.insertBefore(errorDiv, this.firstChild);
+        })
+        .finally(() => {
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
+        });
+    });
+});
+</script>
+{% endblock main %}

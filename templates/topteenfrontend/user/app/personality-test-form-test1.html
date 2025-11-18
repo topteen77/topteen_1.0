@@ -1,0 +1,736 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+
+{% block main %}
+
+
+<style>
+  /* //new loder css */
+ .loader {
+     position: relative;
+     width: 100px;
+     height: 100px;
+     border-radius: 50%;
+     margin: 20px auto;
+     -o-border-radius: 50%;
+     -ms-border-radius: 50%;
+     -webkit-border-radius: 50%;
+     -moz-border-radius: 50%;
+     -webkit-perspective: 780px;
+     perspective: 780px;
+ }
+ .loader-inner {
+     position: absolute;
+     width: 100%;
+     height: 100%;
+     box-sizing: border-box;
+     -o-box-sizing: border-box;
+     -ms-box-sizing: border-box;
+     -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+     border-radius: 50%;
+     -o-border-radius: 50%;
+     -ms-border-radius: 50%;
+     -webkit-border-radius: 50%;
+     -moz-border-radius: 50%;
+ }
+ .loader-inner.box1{
+     left: 0%;
+     top: 0%;
+     animation: cssload-rotate-one 1.15s linear infinite;
+     -o-animation: cssload-rotate-one 1.15s linear infinite;
+     -ms-animation: cssload-rotate-one 1.15s linear infinite;
+     -webkit-animation: cssload-rotate-one 1.15s linear infinite;
+     -moz-animation: cssload-rotate-one 1.15s linear infinite;
+     border-bottom: 3px solid #5C5EDC;
+ }
+ .loader-inner.box2{
+     right: 0%;
+     top: 0%;
+     animation: cssload-rotate-two 1.15s linear infinite;
+     -o-animation: cssload-rotate-two 1.15s linear infinite;
+     -ms-animation: cssload-rotate-two 1.15s linear infinite;
+     -webkit-animation: cssload-rotate-two 1.15s linear infinite;
+     -moz-animation: cssload-rotate-two 1.15s linear infinite;
+     border-right: 3px solid rgba(76, 70, 101, 0.99);
+ }
+ .loader-inner.box3{
+     right: 0%;
+     bottom: 0%;
+     animation: cssload-rotate-three 1.15s linear infinite;
+     -o-animation: cssload-rotate-three 1.15s linear infinite;
+     -ms-animation: cssload-rotate-three 1.15s linear infinite;
+     -webkit-animation: cssload-rotate-three 1.15s linear infinite;
+     -moz-animation: cssload-rotate-three 1.15s linear infinite;
+     border-top: 3px solid #e9908a;
+ }
+ @keyframes cssload-rotate-one {
+     0% {
+         -webkit-transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg);
+         transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg);
+         transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg);
+     }
+ }
+ @-webkit-keyframes cssload-rotate-one {
+     0% {
+         -webkit-transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg);
+     }
+ }
+ @keyframes cssload-rotate-two {
+     0% {
+         -webkit-transform: rotateX(50deg) rotateY(10deg) rotateZ(0deg);
+         transform: rotateX(50deg) rotateY(10deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(50deg) rotateY(10deg) rotateZ(360deg);
+         transform: rotateX(50deg) rotateY(10deg) rotateZ(360deg);
+     }
+ }
+ @-webkit-keyframes cssload-rotate-two {
+     0% {
+         -webkit-transform: rotateX(50deg) rotateY(10deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(50deg) rotateY(10deg) rotateZ(360deg);
+     }
+ }
+ @keyframes cssload-rotate-three {
+     0% {
+         -webkit-transform: rotateX(35deg) rotateY(55deg) rotateZ(0deg);
+         transform: rotateX(35deg) rotateY(55deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg);
+         transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg);
+     }
+ }
+ @-webkit-keyframes cssload-rotate-three {
+     0% {
+         -webkit-transform: rotateX(35deg) rotateY(55deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg);
+     }
+ }
+
+ .load-effect {
+     background: #ffffffd9;
+     width: 100%;
+     height: 100%;
+     position: fixed;
+     top: 0px;
+     bottom: 0px;
+     z-index: 9999999;
+     right: 0;
+     left: 0;
+     backdrop-filter: blur(3px);
+     justify-content: center;
+     align-items: center;
+     flex-direction: column;
+ }
+
+ p{margin-bottom: 0px;}
+
+ .custom-alert {
+	background: #efeff7;
+	padding: 15px;
+	margin-bottom: 15px;
+	border-radius: 10px;
+	color: #282626;
+}
+
+.custom-alert .fa-circle-info {
+	color: #04a9dd;
+}
+
+@media screen and (max-width: 768px) {
+ol, ul {
+  padding-left: 0px !important;
+}
+
+.list-none {
+	padding-bottom: 0px;
+}
+
+.title-test-info {
+	font-size: 20px;
+}
+
+.question-label {
+  line-height: 20px;
+}
+
+.mobile-footer{display: none;}
+
+
+  }
+ 
+ /* end new loder css */
+
+
+ </style>
+
+<div data-direction="translate-y-full"
+  class=" h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto translate-y-full transition-all duration-500">
+
+  <div class="inline-block bg-[#ffffff] w-full rounded-t-[10px] absolute bottom-0 drawerContent">
+
+    <div class="pl-[24px] pr-[30px] w-full py-[32px] flex flex-col gap-[20px]">   
+
+      <a href="{{url('users:logout')}}" class="inline-block w-full">
+        <div class="flex justify-between w-full">
+          <div>
+            <p class="text-[16px] leading-[21.6px] semibold text-[#f20a18]">Sign Out</p>
+            <p class="text-[12px] leading-[16px] regularFont text-opacity-60 text-[#f20a18]">You
+              answered - Indoors</p>
+          </div>
+          <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+<!--End of Edit Profile PopUp -->
+
+<!-- Refer friends PopUp -->
+<div
+  class="hidden top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen flex flex-row justify-center items-center referFriendsPopup ">
+  <div class="lg:max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center">
+    <div
+      class="bg-[#ffffff] rounded-[10px] relative referDivs w-full md:max-w-[395px] lg:w-[395px] pb-[24px] pt-[48px] modalContent">
+      <button class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] referPopupClose">
+        <i class="fa fa-xmark"></i>
+      </button>
+
+      <p class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold ">
+        Refer/Invite friends
+      </p>
+      <form onsubmit="return false" id="referform">
+        <div class="w-full flex justify-center mt-[22px] ">
+          <input type="text" id="remail" name="email" placeholder="Enter email"
+            class="mx-auto w-[80%] h-[53px] rounded-[10px]">
+        </div>
+        <div class="mx-auto w-[80%] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+          <button type="submit" onclick="refersubmit()"
+            class="w-full h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- End of Refer Friends Popup -->
+
+<!-- Main Content -->
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
+  <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+    <!-- Left Part Mobile -->
+    <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+      <!-- User -->
+      <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+        <div class="flex gap-[17px]">
+          <div>
+            <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" />
+          </div>
+          <div class="flex flex-col gap-y-[5px]">
+            <div class="pt-[12px]">
+              <p class="text-[15px] leading-[20.25px] font-semibold">
+                {{request.user}}
+              </p>
+            </div>
+            <div class="flex flex-col gap-y-[3px]">
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  Joined {{request.user.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
+                  class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  {% if request.user.user_profile %} 
+                  {% if request.user.student_management.last().class_and_section %}
+                  {{request.user.student_management.last().class_and_section}}
+                  {% endif %} • {% if request.user.user_profile.schoolname %}
+                  {{request.user.user_profile.schoolname}}{% endif %}
+                  {% else %} - • - {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" data-direction="translate-y-full"
+          class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+          <i class="fa fa-gear text-white text-[12.5px]"></i>
+        </button>
+      </div>
+      <!-- End of User -->
+      <!-- Complete Profile -->
+      <div id="comppro "
+        class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-15 pt-[18px] mb-3 relative hidden">
+        <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+          <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+        </div>
+        <div>
+          <div class="flex relative">
+            <div class="absolute -left-[24px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" class="w-[81px] h-[81px]"
+                alt=""/>
+            </div>
+            <div class="text-left max-w-[217.5px] ml-[74px]">
+              <div>
+                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+
+    <!-- End of left Part Mobile -->
+
+    <!-- Left part Desktop -->
+	  <div class="relative">
+	  
+    <div class="  w-[338px] lg:h-[450px] lg:border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto">
+      <!-- User -->
+      <div class="hidden lg:block flex justify-center border-b-[1px] border-solid border-[#dedede]">
+        <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px] justify-center items-center">
+
+          <div class=" flex flex-col justify-center items-center">
+
+            <div class="flex justify-center items-center w-full">
+              <div class="flex gap-[8px]">
+                <div class="relative">
+                  <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" />
+                  <!-- <img src="{{static('topteenfrontend/assets/images/test_Img.png')}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" /> -->
+
+                  <!-- XP  -->
+                  <!-- <div
+                          class="w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px] absolute bottom-1 left-20"
+                        >
+                          <div
+                            class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
+                          >
+                            <img
+                              src="{{static("topteenfrontend/assets/images/xp.svg")}}"
+                              class="w-[20px] h-[20px]"
+                              alt=""
+                            />
+                            <p
+                              class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
+                            >
+                              1280 XP
+                            </p>
+                          </div>
+                        </div> -->
+                  <!-- End of XP -->
+                </div>
+              </div>
+            </div>
+
+            <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
+
+          </div>
+
+
+          <div class="flex flex-col gap-y-[8px]">
+
+            <div class="flex gap-[14px]">
+              <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                Joined {{request.user.created.strftime("%B, %Y")}}
+              </p>
+            </div>
+            <div class="flex gap-[14px]">
+              <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}" class="w-[18px] h-[14px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                {% if request.user.user_profile %} {% if request.user.student_management.last().class_and_section
+                %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if
+                request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{% else %} - •
+                - {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- End of User -->
+
+      <div class="flex justify-md-center pt-[18px] mt-md-0 mt-10"> 
+          <div class="test-item-info px-md-3 mt-md-2 mb-md-4">
+            <div class="item-st-box">
+              <div class="st-m-icon"> <img src="{{ static ('images/blue-clock.png')}}" alt="Clock" /> </div>
+              <div class="ttex-bkue">
+                <p class="bt-l-title" id="totalTime">00:00</p><br>
+                <p class="bt-smp-t">Total Time</p>
+              </div>
+            </div>
+            <div class="item-st-box">
+              <div class="st-m-icon"> <img src="{{ static ('images/blue-eye.png')}}" alt="Clock" /> </div>
+              <div class="ttex-bkue">
+                <p class="bt-l-title" id="questionProgress">1/4</p><br>
+                <p class="bt-smp-t">Question Displayed</p>
+              </div>
+            </div>
+          </div>        
+      </div>
+		
+		
+		  </div>
+		  
+		
+		  		      <!-- Complete Profile -->
+
+			
+      <!-- End of Complete Profile -->
+    </div>
+    <!-- End of Left part Desktop -->
+
+    <!-- Right Part -->
+    <!-- <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20"> -->
+      <!-- Statistics -->      
+      <div class="col-lg-8 col-md-12 mt-md-0 order-md-2 order-1">
+        <h2 class="title-test-info mb-3 mt-md-0 mt-5 ">Holland Code Career Quiz </h2>
+        <div role="alert" class="custom-alert d-flex align-items-center">
+  <i aria-hidden="true" class="fa-solid fa-circle-info me-2"></i>
+  <div style="line-height: 15px;font-size: 13px;">Select the most effective option from the choices provided based on the given statement</div>
+</div>
+
+        <form id="multiStepForm" method="post" action="{{ url('app:app_submit') }}">
+          <div class="tsp-title w-100 alert alert-danger" id="error-message" style="display: none;">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> Please select an option for all questions before submitting.
+          </div>
+          <input type="hidden" name="test_paper" value="{{ test_paper }}">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          {%- for question in questions %}
+          <div class="question {% if loop.first %}active{% endif %}" id="question{{ loop.index }}">
+            <div class="question-box">
+              <div class="question-label fs-20 fs-sm-16 mb-2 d-flex"> <span class="me-2"> Q{{ loop.index }}: </span> {{ question.question_text }}</div>
+              <div class="radio-buttons">
+                <label class="custom-radio" for="radio-{{ loop.index }}-1">
+                  <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-1" value="1">
+                  <span class="radio-btn"> Not at all like me </span>
+                </label>
+                <label class="custom-radio" for="radio-{{ loop.index }}-2">
+                  <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-2" value="2">
+                  <span class="radio-btn"> A little like me </span>
+                </label>
+                <label class="custom-radio" for="radio-{{ loop.index }}-3">
+                  <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-3" value="3">
+                  <span class="radio-btn"> Somewhat like me </span>
+                </label>
+                <label class="custom-radio" for="radio-{{ loop.index }}-4">
+                  <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-4" value="4">
+                  <span class="radio-btn"> A lot like me </span>
+                </label>
+                <label class="custom-radio" for="radio-{{ loop.index }}-5">
+                  <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-5" value="5">
+                  <span class="radio-btn"> Exactly like me </span>
+                </label>
+              </div>
+            </div>
+
+            <div class="assestment-button d-flex justify-content-center my-5">
+              {% if not loop.first %}
+              <button type="button" class="btn blue-button ms-3 prev-button px-md-6 fw-600 me-1">Back</button>
+              {% endif %}
+              {% if not loop.last %}
+              <button type="button" class="btn purple-button next-button px-md-6 fw-600 ms-1">Continue</button>
+              {%- else %}
+              <button type="submit" onclick="return validateForm()"
+                class="btn btn-success submit-button btn-sumb px-md-6 fw-600">Submit</button>
+              {% endif %}
+            </div>
+          </div>
+          {%- endfor %}
+        </form>
+      </div>
+
+
+
+      <!-- <section class="footer-nav d-lg-none d-block">
+        <div class="nav-footer">
+          <ul>
+            <li> <a href="#" class="ft-dis-icon"> <span></span>
+                <p>Discover</p>
+              </a> </li>
+            <li> <a href="#" class="ft-search-icon"> <span></span>
+                <p>Search</p>
+              </a> </li>
+            <li> <a href="#" class="ft-dash-icon"> <span></span>
+                <p>My Dashboard</p>
+              </a> </li>
+            <li> <a href="#" class="ft-learn-icon"> <span></span>
+                <p>Learn</p>
+              </a> </li>
+            <li> <a href="#" class="ft-profile-icon"> <span></span>
+                <p>Profile</p>
+              </a> </li>
+          </ul>
+        </div>
+      </section> -->
+    <!-- </div> -->
+  </div>
+
+  <div id="loader" class="load-effect" style="display: none;">
+    <div class="loader">
+        <div class="loader-inner box1"></div>
+        <div class="loader-inner box2"></div>
+        <div class="loader-inner box3"></div>
+    </div>
+    <p><img src="/static/topteenfrontend/assets/images/logo/topteen.png" class="h-[45px] inline-block"></p>
+</div>
+
+</main>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+  integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+  $(document).ready(function () {
+    let currentQuestion = 1;
+    const totalQuestions = $('.question').length;
+    
+    function getSelectedRadioValues() {
+      const selectedValues = [];
+      $('.question').each(function () {
+        const activeQuestion = $(this);
+        const selectedRadio = activeQuestion.find('input[type="radio"]:checked');
+        selectedValues.push(selectedRadio.val());
+      });
+      
+      return selectedValues;
+    }
+    let startTime, timerInterval;
+    let totalSeconds = 20 * 60; // 20 minutes in seconds
+
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+        
+        const minutes = Math.floor(remainingSeconds / 60);
+        const seconds = remainingSeconds % 60;
+
+        $('#totalTime').text(
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+        );
+
+        // If timer reaches 0, stop the timer and submit the form
+        // if (remainingSeconds <= 0) {
+        //     clearInterval(timerInterval);
+        //     $('#multiStepForm').submit(); // Auto-submit when time is up
+        // }
+    }
+    function showQuestion(number) {
+      $('.question').removeClass('active');
+      $('#question' + number).addClass('active');
+      $('#questionProgress').text(' ' + number + ' / ' + totalQuestions);
+      $('.next-button').toggle(number < totalQuestions);
+      $('.prev-button').toggle(number > 1);
+      $('.submit-button').toggle(number === totalQuestions);
+    }
+
+    $('.next-button').on('click', function () {
+      var radioChecked = $('input[name="question_' + currentQuestion + '"]:checked').length > 0;
+      
+
+      if (radioChecked) {
+        if (currentQuestion < totalQuestions) {
+          currentQuestion++;
+          showQuestion(currentQuestion);
+
+        }
+      } else {
+        document.getElementById('error-message').style.display = 'block';
+        setTimeout(function () {
+          document.getElementById('error-message').style.display = 'none';
+        }, 2000);
+      }
+    });
+
+    $('.prev-button').on('click', function () {
+      if (currentQuestion > 1) {
+        currentQuestion--;
+        showQuestion(currentQuestion);
+      }
+    });
+
+    $('#multiStepForm').on('submit', function (e) {
+      e.preventDefault(); // Prevent the default form submission
+      const testPaper = $('input[name="test_paper"]').val();
+      // Collect all the form data
+      const formData = $(this).serialize();
+      document.getElementById('loader').style.display = 'flex';
+
+      // Validate the form before submitting
+      const allQuestionsAnswered = true; // Implement your validation logic here
+
+      if (allQuestionsAnswered) {
+        // AJAX call to submit the form and download PDF
+        $.ajax({
+          type: 'POST',
+          url: $(this).attr('action'), // Use the form action URL
+          
+          data: formData,
+          success: function (response) {
+            // Handle the response (if needed)
+
+            // Get the test paper value from the input            
+            if (response) {
+                // Redirect to the PDF download link using the actual test paper value
+                document.getElementById('loader').style.display = 'flex';
+                // window.location.href = `/psychometric/download_pdf/test1?`;
+                window.location.href = `/psychometric/submit/`;
+                // window.location.href = `/psychometric/test_1/${testPaper}?`;
+            } else {
+              document.getElementById('loader').style.display = 'none';
+                console.error("PDF URL is undefined");
+                alert('Error: PDF URL is undefined.');
+            }
+        },
+        error: function (error) {
+          console.error("Error:", error);
+          alert('An error occurred while processing your request.');
+        }
+      });
+      } else {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('error-message').style.display = 'flex';
+        setTimeout(function () {
+          document.getElementById('error-message').style.display = 'none';
+        }, 4000);
+      }
+    });
+
+    showQuestion(currentQuestion);
+    startTimer();
+
+  });
+
+</script>
+
+<script>
+  function validateForm() {
+    var questionGroups = document.querySelectorAll('.question-box');
+    
+    var unanswered = false;
+    var firstUncheckedGroup = null; // Variable to store the first unchecked question group
+
+    questionGroups.forEach(function (group) {
+      var isChecked = false;
+      group.querySelectorAll('input[type="radio"]').forEach(function (radio) {
+        if (radio.checked) {
+          isChecked = true;
+        }
+      });
+      
+      if (!isChecked) {
+        unanswered = true;
+        
+
+        // Add class to highlight unanswered question
+        group.classList.add('unchecked');
+        // Set focus on the first unchecked question group
+        if (!firstUncheckedGroup) {
+          firstUncheckedGroup = group;
+        }
+      } else {
+        // Remove highlighting if question is answered
+        group.classList.remove('unchecked');
+      }
+    });
+
+    if (unanswered) {
+      // Display error message if there are unanswered questions
+      document.getElementById('error-message').style.display = 'block';
+      // Set focus on the first unchecked question group
+      if (firstUncheckedGroup) {
+        firstUncheckedGroup.scrollIntoView({ behavior: 'smooth', block: 'center' }); // Optionally scroll to the first unchecked group
+      }
+      return false; // Prevent form submission
+    } else {
+      // Hide error message if all questions are answered
+      document.getElementById('error-message').style.display = 'none';
+      return true; // Allow form submission
+    }
+  };
+
+</script>
+
+<script>
+
+  let referTrigger = document.querySelectorAll(".referPopupTrigger");
+  const referPopup = document.querySelector(".referFriendsPopup")
+  const referClose = document.querySelector(".referPopupClose")
+
+  referTrigger.forEach(elem => {
+    elem.addEventListener("click", function () {
+      referPopup.classList.remove("hidden");
+    })
+  })
+
+  referClose.addEventListener("click", function () {
+    referPopup.classList.add("hidden");
+  })
+
+</script>
+
+<script>
+  const refersubmit = function () {
+    $.ajax({
+      url: "{{url('users:refer')}}",
+      type: "POST",
+      data: { "email": document.getElementById("remail").value, "csrfmiddlewaretoken": "{{ csrf_token }}" },
+      success: function (response) {
+        if (response["success"] === "true") {
+          Swal.fire('Invited successfully!', 'Invitation sent successfully!', 'success')
+          document.querySelector(".referFriendsPopup").classList.add("hidden")
+          document.getElementById("referform").reset()
+        } else {
+          Swal.fire('Invalid !', 'Please Enter the Correct Email!', 'error')
+          document.querySelector(".referFriendsPopup").classList.add("hidden")
+          document.getElementById("referform").reset()
+        }
+      },
+      error: function (response) {
+        Swal.fire('Invalid !', 'Please Enter the Correct Email!', 'error')
+        document.querySelector(".referFriendsPopup").classList.add("hidden")
+        document.getElementById("referform").reset()
+      }
+    });
+    return false;
+  };
+</script>
+
+{% endblock %}

@@ -1,0 +1,22 @@
+<button type="button" onclick="window.location='{{url('users:mynotepad')}}'"
+class="bg-[#3f37c9] bg-opacity-[0.09] rounded-[100px] py-[5px] px-[8px] inline-block mt-[3.5px]">
+<p class="text-[10px] leading-[16px] text-[#3f37c9]">My Notepad</p>
+</button>
+<button onclick="window.location='{{url('users:careerinterest')}}'"
+class="bg-[#fcddec] rounded-[100px] py-[5px] px-[8px] inline-block mt-[3.5px]">
+<p class="text-[10px] leading-[16px] text-[#ef5da8]">Career Interests</p>
+</button>
+<button type="button" onclick="window.location='{{url('users:myhobbies')}}'"
+class="bg-[#4cc9f0] bg-opacity-[0.09] rounded-[100px] py-[5px] px-[8px] inline-block mt-[3.5px]">
+<p class="text-[10px] leading-[16px] text-[#4cc9f0]">My Hobbies</p>
+</button>
+<button class="bg-[#3f37c9] bg-opacity-[0.09] rounded-[100px] py-[5px] px-[8px] inline-block mt-[3.5px]"
+onclick="window.location='{{url('users:savemedia')}}'">
+<p class="text-[10px] leading-[16px] text-[#3f37c9]">Saved Media</p>
+</button>
+{% for folder in folders[:5] %}
+<button class="bg-opacity-[0.09] rounded-[100px] py-[5px] px-[8px] inline-block mt-[3.5px] addedFolder"
+onclick="window.location='{{url('users:userfolder',args=[folder.id])}}'">
+<p class="text-[10px] leading-[16px] ">{{folder.title}}</p>
+</button>
+{% endfor %}

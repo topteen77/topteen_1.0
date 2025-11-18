@@ -1,0 +1,426 @@
+{% extends 'topteenfrontend/base.html' %}
+{% block main %}
+
+
+        {%if allsearch%}
+        <main>
+          
+          <!-- Mobile -->
+           <div id="" class=" lg:hidden px-[17px] pb-[30px] rounded-[10px] w-full bg-[#ffffff] mx-auto">
+
+            <!-- Careers -->
+            {%if allsearch['career']%}
+              <div class=" pt-[24px]">
+                <p class="text-[15px] leading-[20.25px] text-[#0f0f0f] semibold">Careers</p>
+                <div class="pt-[16px] flex flex-col gap-y-[16px]">
+                  {%for car in allsearch['career']%}
+                  <a href="{{url('careers:careerdetail',args=[car.slug,car.id])}}">
+               
+                    <div class="flex gap-[13px]">
+                        <div class="w-[69px] h-[69px] rounded-[10px]">
+                            <img src="{{car.image}}" class="w-[69px] h-[69px] rounded-[10px] object-cover" alt="">
+                        </div>
+                        <div class="my-auto">
+                            <p class="text-[13px] leading-[17.55px] semibold">{{car.name}}</p>
+                            <div class="flex">
+                                <p class="text-[13px] leading-[17.55px] text-[#828282]">{{car.get_max_salary}} .</p>
+                                <img src="{{static('topteenfrontend/assets/images/star.svg')}}" alt="">
+                                <p class="text-[13px] leading-[18px]">4.4</p>
+                            </div>
+                        </div>
+                    </div>
+                    </a>
+                    {%endfor%}
+           
+                    
+      
+                </div>
+            </div>
+            {%endif%}
+            <!-- End of careers -->
+      
+            <!-- Colleges & Schools -->
+            {%if allsearch['college']%}
+            <div class="pt-[35px]">
+                <p class="text-[15px] leading-[20.25px] text-[#0f0f0f] semibold">Colleges & Schools</p>
+      
+                <div class="pt-[16px] flex flex-col gap-y-[16px]">
+                  {%for col in allsearch['college']%}
+                  <a href="{{url('colleges:collegedetail',args=[col.slug])}}">
+              
+                    <div class="flex gap-[13px]">
+                        <div class="w-[69px] h-[69px] rounded-[10px] relative">
+                            <img src="{{col.logo}}" class="w-[69px] h-[69px] object-cover rounded-[10px] absolute z-10" alt="">
+                            
+                          </div>
+                        <div class="flex flex-col justify-evenly">
+                            <p class="text-[13px] leading-[17.55px] semibold text-[#333333]">{{col.name}}</p>
+                            <p class="text-[13px] leading-[17.55px] font-normal text-[#828282]">{{col.state['name']}}, {{col.country['name']}}</p>
+                        </div>
+                    </div>
+                    </a>
+                    {%endfor%}
+                    
+      
+                </div>
+            </div>
+            {%endif%}
+            <!-- End of Colleges & Schools -->
+
+            <!-- Exams & tests -->
+            {%if allsearch['entranceexam']%}
+            <div class="pt-[35px]">
+              <p class="text-[15px] leading-[20.25px] text-[#0f0f0f] semibold">Exams & Tests</p>
+    
+              <div class="pt-[16px] flex flex-col gap-y-[16px]">
+                {%for exam in allsearch['entranceexam']%}
+                <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}">
+              
+                  <div class="flex gap-[13px]">
+                      <div class="w-[69px] h-[69px] rounded-[10px]">
+                          <img src="{{exam.logo_url}}" class="w-[69px] h-[69px] object-cover rounded-[10px]" alt="">
+                      </div>
+                      <div class="flex flex-col justify-evenly">
+                          <p class="text-[13px] leading-[17.55px] semibold text-[#333333]">{{exam.name}}</p>
+                      </div>
+                  </div>
+                  </a>
+                  {%endfor%}
+    
+                  
+    
+              </div>
+            </div>
+            {%endif%}
+          <!-- End of exam & tests -->
+
+          
+            <!-- course -->
+            {%if allsearch['course']%}
+            <div class="pt-[35px]">
+              <p class="text-[15px] leading-[20.25px] text-[#0f0f0f] semibold">Courses</p>
+    
+              <div class="pt-[16px] flex flex-col gap-y-[16px]">
+                {%for cor in allsearch['course']%}
+                <a href="#">
+                 
+                  <div class="flex gap-[13px]">
+                      <div class="w-[69px] h-[69px] rounded-[10px]">
+                          <img src="#" class="w-[69px] h-[69px] object-cover rounded-[10px]" alt="">
+                      </div>
+                      <div class="flex flex-col justify-evenly">
+                          <p class="text-[13px] leading-[17.55px] semibold text-[#333333]">{{cor.name}}</p>
+                      </div>
+                  </div>
+                  </a>
+                  {%endfor%}
+                  
+    
+              </div>
+          </div>
+          {%endif%}
+          <!-- End of course -->
+
+          <!-- videos -->
+          {%if allsearch['videos']%}
+          <div class="pt-[35px]">
+            <p class="text-[15px] leading-[20.25px] text-[#0f0f0f] semibold">Videos</p>
+  
+            <div class="pt-[16px] flex gap-x-[16px] overflow-x-scroll no-scrollbar">
+              {%for video in allsearch['videos']%}
+              <a href="#">
+               
+                <div class=" gap-[13px]">
+                    <div class="w-[326px] h-[146px] rounded-[10px]">
+                      {%if video.link%}
+                        <iframe src="{{video.link}}" class="[326px] h-[146px] rounded-[10px]"  frameborder="0"></iframe>
+                      {%else%}
+                        <video src="{{video.upload_video}}" class="[326px] h-[146px] rounded-[10px]"></video>
+                      {%endif%}
+                      </div>
+                    <div class="flex flex-col justify-evenly">
+                        <p class="text-[13px] leading-[17.55px] mt-[4px] semibold text-[#333333]">{{video.name}}</p>
+                    </div>
+                </div>
+                </a>
+                {%endfor%}
+                
+  
+            </div>
+        </div>
+        {%endif%}
+        <!-- End of course -->
+        {% if allsearch['career']|length == 0 and allsearch['college']|length == 0 and allsearch['entranceexam']|length == 0 and allsearch['course']|length == 0 and allsearch['videos']|length == 0 %}
+          <h1 class="boldFont mt-8 text-xl">No Match Result</h1>
+        {% endif %}
+
+
+             <!-- Trending Content -->
+             <div class="my-[35px]">
+                <div class="flex flex-row justify-between items-center mb-4">
+                  <span
+                    class="text-[15px] leading-[20px] lg:text-[30px] lg:leading-[40px] semibold tracking-[0.035em] text-[#0F0F0F]"
+                  >
+                    Trending Content
+                  </span>
+                  <div class="text-[13px] leading-[18px] text-[#541BCF] semibold cursor-pointer">
+                    <a href="{{url('blog:blogs')}}">View More</a>
+                  </div>
+                </div>
+    
+    
+                <div
+                  class="max-h-[280px] flex flex-col flex-wrap gap-y-[19px] gap-x-[14px] overflow-x-scroll pb-2 no-scrollbar"
+                >
+                  
+                {%for blog in tranding_content%}
+                    <div
+                      class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                    >
+                    <a href="{{blog.url()}}">
+                    
+                      <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                        <img
+                          src={{blog.image.url}}
+                          class="h-[69px] w-[69px] object-cover"
+                        />
+                      </div>
+                      <div>
+                        <p
+                          class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                        >
+                        {{blog.title|truncate(60)}}
+                      </p>
+                        <div
+                          class="bg-[#3F37C9] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                          style="background-color: #{{blog.category.color}};">
+                        <a href="{{blog.category.url()}}">{{blog.category}}</a>
+                      
+                        </div>
+                      </div>
+                      </a>
+                    </div>
+                    {%endfor%}
+        
+        
+        
+                </div>
+    
+            </div>
+            <!-- End of Trending Content -->
+              
+      
+          </div>
+          <!-- End of Mobile -->
+      
+          <!-- Desktop -->
+        <div id="" class="hidden lg:block lg:max-w-[1082px] mx-auto  mt-[16px] px-[30px] lg:mt-0 bg-[#ffffff] w-full rounded-[10px] overflow-hidden no-scrollbar">
+      
+              <!-- Careers -->
+              {%if allsearch['career']%}
+              <div>
+                <p class="lg:text-[30px] lg:leading-[40px] semibold text-[#0f0f0f]">Careers</p>
+                <div class="flex gap-[24px] pt-[16px] overflow-x-scroll no-scrollbar">
+                  {%for car in allsearch['career']%}
+                  <a href="{{url('careers:careerdetail',args=[car.slug,car.id])}}">
+               
+                      <div class="flex flex-col gap-y-[8px]">
+                        <div class=" min-w-[100px] h-[100px] rounded-full mx-auto">
+                            <img src="{{car.image}}" class="w-[100px] h-[100px] rounded-full object-cover" alt="">
+                        </div>
+                        <p class="text-[14px] leading-[21px] font-semibold text-center max-w-[120px]">{{car.name}}</p>
+                    </div>
+                  </a>
+                    {%endfor%}
+                </div>
+      
+                
+            </div>
+            {%endif%}
+            <!-- End of Careers -->
+      
+            <!-- Schools and Colleges -->
+            {%if allsearch['college']%}
+            <div class="pt-[36px]">
+                <p class="lg:text-[30px] lg:leading-[40px] semibold text-[#0f0f0f]">Schools and Colleges</p>
+                <div class="flex gap-[24px] pt-[16px] overflow-x-scroll no-scrollbar">
+                  {%for col in allsearch['college']%}
+                   
+                  <a href="{{url('colleges:collegedetail',args=[col.slug])}}">
+              
+                    <div class=" rounded-[10px] relative h-[175px]">
+                        <img src="{{col.logo}}" class="absolute z-0 brightness-50 w-[160px] h-[175px] rounded-[10px] object-cover " alt="">
+                       
+                        <div>
+                            <p class="text-[10px] leading-[13.5px] font-semibold text-[#828282] w-[150px] overflow-x-scroll no-scrollbar h-[13.5px]">{{col.name}}</p>
+                            <p class="text-[10px] leading-[13.5px] font-normal opacity-[0.8] text-[#828282] w-[150px] overflow-x-scroll no-scrollbar h-[13.5px] ">{{col.state['name']}}, {{col.country['name']}}</p>
+                        </div> 
+                    </div>
+                  </a>
+                    {%endfor%}
+            
+                    
+                </div>
+            </div>
+            {%endif%}
+            <!-- End of Schools and Colleges -->
+      
+            {%if allsearch['entranceexam']%}
+                  <!-- Schools and Exams -->
+                  <div class="pt-[36px]">
+                    <p class="lg:text-[30px] lg:leading-[40px] semibold text-[#0f0f0f]">Exams and Tests</p>
+                    <div class="flex gap-[24px] pt-[16px] overflow-x-scroll no-scrollbar">
+                      {%for exam in allsearch['entranceexam']%}
+                       
+                      <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}">
+              
+                        <div class=" relative">
+                          <img src="{{exam.logo_url}}" class=" w-[160px] h-[175px] rounded-[10px] object-cover " alt="">
+                            <div>
+                                <p class="text-[12px] text-center leading-[16px] semibold w-[150px] overflow-x-scroll no-scrollbar h-[13.5px]">{{exam.name}}</p>
+                            </div> 
+                        </div>
+                        </a>
+                        {%endfor%}
+                
+                        
+                    </div>
+                </div>
+                <!-- End of Schools and Colleges -->
+              {%endif%}
+              
+              {%if allsearch['course']%}
+              <!-- Schools and Colleges -->
+            <div class="pt-[36px]">
+              <p class="lg:text-[30px] lg:leading-[40px] semibold text-[#0f0f0f]">Course and Content</p>
+              <div class="flex gap-[24px] pt-[16px] overflow-x-scroll no-scrollbar">
+                {%for cur in allsearch['course']%}
+                 
+                <a href="#">
+              
+                  <div class=" relative h-[175px]">
+                      <img src="{{static('topteenfrontend/assets/images/waterloo.png')}}" class="absolute z-0 brightness-50 w-[160px] h-[175px] rounded-[10px] object-cover " alt="">
+                      <div>
+                          <p class="text-[12px] leading-[16px] semibold w-[150px] overflow-x-scroll no-scrollbar h-[13.5px]">{{cur.name}}</p>
+                      </div> 
+                  </div>
+                  </a>
+                  {%endfor%}
+          
+                  
+              </div>
+          </div>
+          <!-- End of Schools and Colleges -->
+            {%endif%}
+
+            {% if allsearch['videos']%}
+            <!-- Videos -->
+            <div class="pt-[36px]">
+              <p class="lg:text-[30px] lg:leading-[40px] semibold text-[#0f0f0f]">videos</p>
+              <div class="flex gap-[24px] pt-[16px] overflow-x-scroll no-scrollbar">
+                {%for video in allsearch['videos']%}
+                 
+                <a href="{{url('careers:videodetail',args=[video.slug])}}">
+               
+              
+                  <div class=" rounded-[10px] relative">
+                      {%if video.upload_video%}
+                      <video src="{{video.upload_video}}" class=" w-[248px] h-[208px] rounded-[10px] object-cover "></video>
+                      {%else%}
+                      <iframe src="{{video.link}}" class="w-[248px] h-[208px] rounded-[10px] object-cover " frameborder="0"></iframe>
+                      {%endif%}>
+                        <div>
+                            <p class="text-[12px] text-center leading-[16px] semibold w-[150px] overflow-x-scroll no-scrollbar h-[13.5px]">{{video.name}}</p>
+                        </div>  
+                  </div>
+                  </a>
+                  {%endfor%}
+          
+                  
+              </div>
+          </div>
+          {%endif%}
+          <!-- End of videos -->
+          {% if allsearch['career']|length == 0 and allsearch['college']|length == 0 and allsearch['entranceexam']|length == 0 and allsearch['course']|length == 0 and allsearch['videos']|length == 0 %}
+          <h1 class="boldFont mt-8 text-xl">No Match Result</h1>
+          {% endif %}
+
+             <!-- Trending Content -->
+             <div class="pt-[36px]">
+                <div class="flex flex-row justify-between items-center mb-4">
+                  <span
+                    class="text-[15px] leading-[20px] lg:text-[30px] lg:leading-[40px] semibold tracking-[0.035em] text-[#0F0F0F]"
+                  >
+                    Trending Content
+                  </span>
+                  <div class="text-[13px] leading-[18px] text-[#541BCF] semibold cursor-pointer">
+                    <a href="{{url('blog:blogs')}}">View More</a>
+                    </div>
+                </div>
+    
+    
+                <div
+                  class="pt-[8px] max-h-[280px] flex flex-col flex-wrap gap-y-[19px] gap-x-[14px] overflow-x-scroll pb-2 no-scrollbar"
+                  >
+                  
+                
+                  <div
+                  class="max-h-[280px] flex flex-col flex-wrap gap-y-[19px] gap-x-[14px] overflow-x-scroll pb-2 no-scrollbar"
+                    >
+                    {%for blog in tranding_content%}
+                
+                    <div
+                      class="min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0"
+                      >
+                     <a href="{{blog.url()}}">
+                            
+                      <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+                        <img
+                          src="{{blog.image.url}}"
+                          class="h-[69px] w-[69px] object-cover"
+                        />
+                      </div>
+                      
+                      <div>
+                          <p
+                          class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                              >
+                             {{blog.title|truncate(60)}}
+                          </p>
+                          </a>
+                          <div
+                           class="bg-[#3F37C9] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]"
+                            style="background-color: #{{blog.category.color}};">
+                            <a href="{{blog.category.url()}}">{{blog.category}}</a>
+                      </div>
+                      </div>
+                    </div>
+                    {%endfor%}
+                  </div>
+                </div>
+    
+            </div>
+            <!-- End of Trending Content -->
+      
+      
+        </div>
+              
+          <!-- End of Desktop -->
+        </main>
+        {%else%}
+            <!-- Nothing found -->
+    <div class="nothingFound min-h-[70vh] w-full lg:pt-[143px] pt-[51px] bg-[#ffffff] rounded-[10px]">
+      <div class="mx-auto max-w-[222px] h-[194px]">
+          <img src="{{static('topteenfrontend/assets/images/nothingFound.png')}}" class="mx-auto lg:w-[160px] lg:h-[160px]" alt="">
+          <div class="flex flex-col gap-y-[7px] full">
+              <p class="text-[16px] leading-[21.6px] lg:text-[23px] lg:leading-[30px] text-center semibold">Nothing found....</p>
+              <p class="text-[12px] leading-[17.4px] text-[#828282] text-center lg:text-[14px] lg:leading-[20px] lg:mt-[8px]">We couldn’t find anything for that search term. Try searching for something else.</p>
+          </div>
+      </div>
+         
+  </div>
+  <!-- End of Nothing found -->
+{%endif%}
+
+{% endblock %}
+

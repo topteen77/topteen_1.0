@@ -1,0 +1,127 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+
+{% block main %}
+<main class="lg:pt-[30px] lg:max-w-[1280px] mx-auto bg-[#ffffff] pb-[200px] lg:pb-0">
+
+    <!-- <div class="px-[20px] lg:px-[100px] pt-[30px] lg:pt-0">
+        <h1 class="text-[24px] leading-[32px] semibold">My Examss</h1>
+    </div> -->
+
+    <!-- Exams Heading -->
+    <section class="lg:mt-[21px] fixed lg:relative top-[12px] z-30 w-full bg-[#ffffff]">
+        <div class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+            <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">Exams & Tests</p>
+            <a href="{{request.META.HTTP_REFERER}}">
+                <button type="button" class="absolute bottom-[18px] left-[24px]">
+                    <i class="fa-solid fa-arrow-left text-[#828282] text-[18px] leading-[50px]"></i>
+                </button>
+            </a>
+        </div>
+
+        <div class="hidden lg:flex px-[20px] lg:px-[100px] ">
+            <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">Exams & Tests</p>
+        </div>
+
+    </section>
+    <!-- End of Exam Heading -->
+
+    <section class="mb-[30px] pt-[110px] lg:pt-[24px]">
+        <div
+            class=" flex flex-col lg:flex-row lg:flex-wrap lg:px-[100px] gap-[30px] w-full overflow-auto items-center lg:overflow-x-visible pb-3">
+            <!-- CARD -->
+            {% for exam in exams %}
+            <div>
+                <div
+                    class="px-[14px] pt-3 pb-[18px] rounded-[12px] shadow-[0_7px_32px_rgba(0,0,0,0.07)] relative w-[248px] shrink-0">
+                    <div class="flex flex-row justify-start gap-x-2.5 items-center mb-4">
+                        <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}"
+                            class="flex flex-row justify-start gap-x-2.5 items-center">
+                            <div class="w-[57px] h-[63px] shrink-0">
+                                <img src="{{exam.logo_url}}" class="h-full w-full object-cover" />
+                            </div>
+                            <div class="pr-[16px]">
+                                <h3
+                                    class="font-semibold text-[#131415] h-[48px] overflow-hidden mb-[5px] text-[14px] leading-4">
+                                    {{exam.name}}
+                                </h3>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- DIVIDER -->
+                    <div class="h-[0.8px] w-full bg-black bg-opacity-10 mb-[8.5px]"></div>
+                    <!-- BOTTOM PART -->
+                    <div class="flex flex-row justify-between items-center mb-[14px]">
+                        {#
+                        <div class="text-xs font-normal text-[#131415]">
+                            <h6
+                                class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                                Fees
+                            </h6>
+                            <p class="font-medium">&#8377; 800</p>
+                        </div>
+
+                        <div class="text-xs font-normal text-[#131415]">
+                            <h6
+                                class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                                Prep Time
+                            </h6>
+                            <p class="font-medium">8 Months</p>
+                        </div>
+
+                        <div class="text-xs font-normal text-[#131415]">
+                            <h6
+                                class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                                Next Exam Date
+                            </h6>
+                            <p class="font-medium">4 July, 2023</p>
+                        </div>
+                        #}
+                    </div>
+
+                    <div class="flex flex-row justify-center items-center">
+                        <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}"
+                            class="text-[#3f37c9] font-semibold text-xs">
+                            <button
+                                class="px-5 py-[9px] text-[10px] leading-[14px] text-[#141414] font-normal border-[0.8px] border-[#E0E0E0] rounded-[39px]">
+                                View Details
+                            </button>
+                        </a>
+                        {#
+                        <button
+                            class="px-5 py-[9px] text-[11px] leading-[15px] text-white font-normal rounded-[39px] bg-[#3F37C9]">
+                            Apply Now &nbsp; &rarr;
+                        </button>#}
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <div
+                          id="exam_{{exam.id}}"
+                          class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]"
+                          onclick="examshortlist('{{exam.id}}')"
+                          {% if exam.shortlist.filter(id=request.user.id).exists() %}
+                          style="background-color: blue;"
+                          {% endif %}
+                        >
+                          <img
+                            src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                            class="w-[12px] h-[16px]"
+                          />
+                        </div>
+                      </div>
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="flex justify-center">
+            {% if exams.count() == 0 %}
+            <h1 class="boldFont">No Shortlisted Exams <a href="{{url('entrance_exams:testpreptenth')}}"
+                    class="text-[#541BCF]">Show More</a></h1>
+            {% endif %}
+        </div>
+
+    </section>
+
+
+
+</main>
+{% endblock %}

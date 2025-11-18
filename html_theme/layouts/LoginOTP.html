@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login OTP</title>
+    <link href="../assets/css/customCSS.css" rel="stylesheet" />
+    <link href="../assets/css/styles.css" rel="stylesheet" />
+    <script
+      src="https://kit.fontawesome.com/75bd64d95c.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+
+  <body>
+    <!-- modal button -->
+    <button id="open" class="absolute z-20">open page</button>
+    <!-- wrappin div -->
+    <div
+      id="popup"
+      class="hidden transition-all duration-1000 ease-in-out h-screen"
+    >
+      <div
+        class="w-full h-screen flex justify-center items-center bg-black bg-opacity-[0.4]"
+      >
+        <div
+          class="w-[395px] lg:h-[455px] bg-white border-none rounded-2xl"
+          <div
+          class="w-full h-screen flex justify-center items-center bg-black bg-opacity-50"
+        >
+          <div
+            class="w-full lg:w-[395px] lg:mt-0 lg:h-[402px] bg-white border-none rounded-2xl"
+          >
+            <button
+              class="w-full flex justify-end items-center mt-[30px] pr-[25px] cursor-pointer"
+              id="closePopup"
+            >
+              <img src="../assets/images/xmark.png" />
+            </button>
+            <div
+              class="flex justify-center items-center w-full lg:mt-[35px] mt-[5px]"
+            >
+              <img src="../assets/images/smartphone 1.png" />
+            </div>
+            <div
+              class="w-full h-[32px] flex justify-center items-center mt-[22px]"
+            >
+              <p class="min-w-[206px] h-[32px] text-[24px] font-semibold">
+                Check your phone
+              </p>
+            </div>
+            <div
+              class="w-full lg:h-[44px] flex justify-center items-center mt-[17px]"
+            >
+              <p
+                class="min-w-[344px] lg:h-[44px] font-normal text-center px-[15px] text-[#494949]"
+              >
+                To confirm your account, please enter the six digit code sent to
+                your phone <button class="text-[#3F37C9]">9234793942</button>
+              </p>
+            </div>
+
+            <div
+              class="w-full flex justify-between items-center mt-[25px] px-[25px]"
+            >
+              <input
+                class="otpIp otpSource w-[48px] h-[48px] border-[2px] border-[#DCDCDC] focus:bg-[#F7F7FA] border-[#3F37C9] rounded-xl focus:bg-[#FFFFFF]"
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                maxlength="6"
+             
+              />
+
+              <input
+                class=" otpIp w-[48px] h-[48px] border-[2px] border-[#DCDCDC] focus:bg-[#F7F7FA] border-[#3F37C9] rounded-xl focus:bg-[#FFFFFF]"
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                maxlength="1"
+              />
+
+              <input
+                class="otpIp  w-[48px] h-[48px] border-[2px] border-[#DCDCDC] focus:bg-[#F7F7FA] border-[#3F37C9] rounded-xl focus:bg-[#FFFFFF]"
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                maxlength="1"
+              />
+              <input
+                class="otpIp w-[48px] h-[48px] border-[2px] border-[#DCDCDC] focus:bg-[#F7F7FA] border-[#3F37C9] rounded-xl focus:bg-[#FFFFFF]"
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                maxlength="1"
+              />
+              <input
+                class="otpIp w-[48px] h-[48px] border-[2px] border-[#DCDCDC] focus:bg-[#F7F7FA] border-[#3F37C9] rounded-xl focus:bg-[#FFFFFF]"
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                maxlength="1"
+              />
+              <input
+                class="otpIp w-[48px] h-[48px] border-[2px] border-[#DCDCDC] focus:bg-[#F7F7FA] border-[#3F37C9] rounded-xl focus:bg-[#FFFFFF]"
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                maxlength="1"
+              />
+            </div>
+
+            <div
+              class="w-full h-[44px] flex justify-center items-center mt-[17px]"
+            >
+              <p
+                class="min-w-[344px] h-[44px] font-normal text-center px-[15px] text-[#494949]"
+              >
+                Didn’t receive it?
+                <button class="text-[#3F37C9]">Resend code</button>
+              </p>
+            </div>
+
+  
+
+            <div class="w-full h-[44px] flex justify-center items-center">
+              <button
+                class="h-[48px] w-[344px] border-none rounded-xl text-white text-center bg-[#3F37C9] mt-[5px] font-bold"
+                id="open"
+              >
+                CONTINUE
+              </button>
+            </div>
+
+            <!-- bottom line -->
+            <div
+              class="h-[48px] w-full flex flex-col bg-[#F9F9F9] lg:hidden mt-[10px] justify-center items-center border-t-[1px] border-gray-500"
+            >
+              <div class="flex justify-center items-center space-x-[3px]">
+                <p>topteen.com</p>
+                <img src="../assets/images/trust.png" />
+              </div>
+              <div
+                class="bg-[#4B4B4B] h-[5px] w-[139px] rounded-full mt-[5px] mb-[8px]"
+              ></div>
+            </div>
+            <!-- bottom line -->
+            <div
+              class="h-[48px] w-full flex flex-col bg-[#F9F9F9] lg:hidden mt-[10px] justify-center items-center border-t-[1px] border-gray-500 lg:static fixed bottom-0 inset-x-0"
+            >
+              <div class="flex justify-center items-center space-x-[3px]">
+                <p>topteen.com</p>
+                <img src="../assets/images/trust.png" />
+              </div>
+              <div
+                class="bg-[#4B4B4B] h-[5px] w-[139px] rounded-full mt-[5px] mb-[8px]"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="../assets/js/Loginpassword.js"></script>
+</html>

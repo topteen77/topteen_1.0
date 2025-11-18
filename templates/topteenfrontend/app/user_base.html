@@ -1,0 +1,278 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta charset="UTF-8" />
+  <meta name="robots" content="noindex" />
+  <meta name="googlebot" content="noindex">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <link rel="apple-touch-icon" sizes="180x180" href="{{static('images/favicon/apple-touch-icon.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{static('images/favicon/favicon-32x32.png')}}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{static('images/favicon/favicon-16x16.png')}}">
+  <link rel="mask-icon" href="{{static('images/favicon/safari-pinned-tab.svg ')}}" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <title>Every Student, Career Ready | Top Teen</title>
+
+  <!-- Bootstrap CSS -->
+  <link rel="preload stylesheet" href="{{static('css/bootstrap.min.css')}}">
+  <link rel="preload stylesheet" href="{{static('font/font-style.css')}}">
+  <link rel="stylesheet" href="{{static('css/custom-min.css')}}" type="text/css" media="all" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
+  <link rel="stylesheet" type="text/css"
+    href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- custom- js -->
+
+</head>
+
+<body>
+  <header class="dashboard-header d-lg-block d-none">
+    <div class="container">
+      <nav class="header-nav">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="hd-left">
+              <div class="logo"> <a href="#"><img src="{{ static ('images/logo.svg')}}" alt="Logo" /> </a> </div>
+              <div class="search-input"> <i class="bi bi-search"></i>
+                <input type="text" class="form-control" aria-label="Default"
+                  placeholder=" Careers, colleges, courses..">
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="nav-info">
+              <ul class="nav-items-menu">
+                <li><a href="#" class="discover"> Discover </a></li>
+                <li><a href="#" class="testprep"> Testprep </a></li>
+                <li><a href="#" class="dashboard"> My Dashboard </a></li>
+                <li class="nav-item dropend">
+                  <a class="nav-link dropdown-toggle user-icon" href="#" role="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <span><img src="{{ static('images/user-image.png') }}" /></span>
+                  </a>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Setting</a></li>
+                    <li><a class="dropdown-item" href="#">Logout</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+  <section class="dashboard-test-user mt-md-10 mt-5 py-md-0 pb-10">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4 col-md-12">
+          <div class="user-info-box">
+            <div class="user-detail">
+              <div class="sm-i mb-4">
+                <div class="user-image">
+                  <img class="img-fluid" src="{{ static('images/user-image.png') }}" alt="" />
+                </div>
+                <div class="d-n-name">
+                  <p>Nikhil Verma</p>
+                  <div class="user-blue-badge">
+                    <span><img src="{{ static('images/reward-badge.svg') }}" alt="Rewards" /> 1280 xp</span>
+                  </div>
+                </div>
+              </div>
+              <div class="joi-info">
+                <div class="in-rs">
+                  <p><img src="{{ static('images/clock.svg') }}" alt="icon" /> Joined December 2021 </p>
+                </div>
+                <div class="in-rs">
+                  <p><img src="{{ static('images/id-info.svg') }}" alt="icon" /> 11th Grade • DPS, RK Puram </p>
+                </div>
+              </div>
+            </div>
+            <div class="user-setting-dk">
+              <div class="user-cp-dts">
+                <div class="user-cp-imgs">
+                  <img src="{{ static('images/user-profile-cp.svg') }}" alt="icon" />
+                </div>
+                <div class="user-di-t">
+                  <h5 class="tsp-title">Complete your profile</h5>
+                  <p>A complete profile helps us cater the best content to you</p>
+                  <div class="cs-pr-bar">
+                    <div class="progress">
+                      <div class="progress-bar bg-blue" style="width:20%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="setting-button">
+                <button type="button" class="purple-button button">
+                  <img src="{{ static('images/setting-icon.svg') }}" alt="icon" /> SETTING
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% block main %} {% endblock %}
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+        integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+      <script src="{{static('js/bootstrap.min.js' )}}"></script>
+      <script src="{{static('js/main.js' )}}"></script>
+      <script src="{{static('js/jquery.sticky.js' )}}"></script>
+    
+    </body>
+    <script>
+      document.getElementById('downloadForm').addEventListener('submit', function (event) {
+        // Prevent the form from submitting normally
+        event.preventDefault();
+    
+        // Submit the form programmatically
+        window.open(this.action + '?' + new URLSearchParams(new FormData(this)).toString(), '_blank');
+      });
+    </script>
+    <!-- <script>
+    
+    
+      $(document).ready(function () {
+        var owl = $('.explore-theme');
+        owl.owlCarousel({
+          loop: true,
+          margin: 10,
+          responsiveClass: true,
+          nav: false,
+          dots: false,
+    
+          responsive: {
+            0: {
+              items: 1.5,
+            },
+            400: {
+              items: 1.5,
+            },
+            600: {
+              items: 1.5,
+            },
+            1000: {
+              items: 2.5,
+            },
+            1920: {
+              items: 2.5
+            }
+          }
+        });
+    
+        // Custom Button
+        $('.customNextBtn').click(function () {
+          owl.trigger('next.owl.carousel');
+        });
+        $('.customPreviousBtn').click(function () {
+          owl.trigger('prev.owl.carousel');
+        });
+    
+      });
+    
+    
+      $('.partner-logo').owlCarousel({
+        loop: true,
+        margin: 40,
+        responsiveClass: true,
+        dots: false,
+        autoplay: true,
+        slideTransition: 'linear',
+        autoplayTimeout: 6000,
+        autoplaySpeed: 6000,
+        autoplayHoverPause: true,
+        responsive: {
+          0: {
+            items: 2,
+          },
+          400: {
+            items: 3,
+          },
+          600: {
+            items: 5,
+          },
+          1000: {
+            items: 5,
+          },
+          1920: {
+            items: 5
+          }
+        }
+      });
+    
+    
+    
+      $(document).ready(function () {
+        var owl = $('.top-courses');
+        owl.owlCarousel({
+          loop: true,
+          margin: 10,
+          responsiveClass: true,
+          nav: false,
+          dots: false,
+          responsive: {
+            0: {
+              items: 1.5,
+            },
+            400: {
+              items: 1.5,
+            },
+            600: {
+              items: 3,
+            },
+            1000: {
+              items: 4.5,
+            },
+            1920: {
+              items: 4.5
+            }
+          }
+        });
+    
+        // Custom Button
+        $('.customNextBtn').click(function () {
+          owl.trigger('next.owl.carousel');
+        });
+        $('.customPreviousBtn').click(function () {
+          owl.trigger('prev.owl.carousel');
+        });
+    
+      });
+    
+    
+    
+      jQuery(document).ready(function ($) {
+        "use strict";
+        //  TESTIMONIALS CAROUSEL HOOK
+        $('#customers-testimonials').owlCarousel({
+          loop: true,
+          center: true,
+          items: 3,
+          margin: 0,
+          autoplay: true,
+          dots: false,
+          autoplayTimeout: 8500,
+          smartSpeed: 450,
+    
+          responsive: {
+            0: {
+              items: 1
+            },
+            768: {
+              items: 1.5
+            },
+            1170: {
+              items: 1.5
+            }
+          }
+        });
+      });
+    
+    </script> -->
+    
+    </html>

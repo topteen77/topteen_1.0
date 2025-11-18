@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard</title>
+    {% load static %}
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card {
+            border-left: 4px solid #4e73df;
+        }
+
+        .stat-card.primary {
+            border-left-color: #4e73df;
+        }
+
+        .stat-card.success {
+            border-left-color: #1cc88a;
+        }
+
+        .stat-card.warning {
+            border-left-color: #f6c23e;
+        }
+
+        .stat-card.danger {
+            border-left-color: #e74a3b;
+        }
+
+        .stat-card.info {
+            border-left-color: #36b9cc;
+        }
+
+        .stat-card .stat-icon {
+            font-size: 2rem;
+            opacity: 0.3;
+        }
+
+        .real-time-badge {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Analytics Dashboard</h1>
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <span class="badge bg-danger real-time-badge">LIVE</span>
+                    <span id="real-time-users" class="fw-bold">{{ summary.realTimeUsers }}</span> active users now
+                </div>
+                <button id="refresh-data" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i> Refresh Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Time period selector -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Select Time Period</h5>
+                <div class="btn-group" role="group">
+                    <button type="button"
+                        class="btn btn-outline-primary period-btn {% if time_period == 'today' %}active{% endif %}"
+                        data-period="today">Today</button>
+                    <button type="button"
+                        class="btn btn-outline-primary period-btn {% if time_period == 'yesterday' %}active{% endif %}"
+                        data-period="yesterday">Yesterday</button>
+                    <button type="button"
+                        class="btn btn-outline-primary period-btn {% if time_period == '7days' %}active{% endif %}"
+                        data-period="7days">Last 7 Days</button>
+                    <button type="button"
+                        class="btn btn-outline-primary period-btn {% if time_period == '30days' %}active{% endif %}"
+                        data-period="30days">Last 30 Days</button>
+                    <button type="button"
+                        class="btn btn-outline-primary period-btn {% if time_period == '90days' %}active{% endif %}"
+                        data-period="90days">Last 90 Days</button>
+                </div>
+                <div class="form-check form-switch mt-3">
+                    <input class="form-check-input" type="checkbox" id="autoRefreshToggle">
+                    <label class="form-check-label" for="autoRefreshToggle">Auto-refresh every 5 minutes</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-4">
+                <div class="card stat-card primary h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Users</div>
+                                <div class="h3 mb-0 font-weight-bold text-gray-800" id="totalUsers">
+                                    {{ summary.totalUsers|default:"0" }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-users stat-icon text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card stat-card success h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Sessions
+                                </div>
+                                <div class="h3 mb-0 font-weight-bold text-gray-800" id="totalSessions">
+                                    {{ summary.totalSessions|default:"0" }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-laptop stat-icon text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card stat-card warning h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total Pageviews
+                                </div>
+                                <div class="h3 mb-0 font-weight-bold text-gray-800" id="totalPageviews">
+                                    {{ summary.totalPageviews|default:"0" }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-eye stat-icon text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card stat-card info h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">New Users</div>
+                                <div class="h3 mb-0 font-weight-bold text-gray-800" id="newUsers">
+                                    {{ summary.newUsers|default:"0" }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-user-plus stat-icon text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6 mb-4">
+                <div class="card stat-card danger h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Total Conversions
+                                </div>
+                                <div class="h3 mb-0 font-weight-bold text-gray-800" id="totalConversions">
+                                    {{ summary.totalConversions|default:"0" }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-check-circle stat-icon text-danger"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card stat-card primary h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Revenue
+                                </div>
+                                <div class="h3 mb-0 font-weight-bold text-gray-800" id="totalRevenue">₹
+                                    {{ summary.totalRevenue|default:"0"|floatformat:2 }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-rupee-sign stat-icon text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User metrics chart -->
+        <div class="row mb-4">
+            <div class="col-md-8 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">User Activity - {{ display_period }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="userMetricsChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Device Breakdown</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="deviceChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Traffic sources and engagement -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Traffic Sources</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="trafficSourcesChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Engagement Metrics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center mb-4">
+                                    <h6 class="text-muted">Avg. Engagement</h6>
+                                    <h3 class="mb-0">{{ engagement.engagementDuration|default:"0"|floatformat:2 }} min
+                                    </h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center mb-4">
+                                    <h6 class="text-muted">Avg. Session</h6>
+                                    <h3 class="mb-0">{{ engagement.averageSessionDuration|default:"0"|floatformat:2 }}
+                                        min</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center mb-4">
+                                    <h6 class="text-muted">Bounce Rate</h6>
+                                    <h3 class="mb-0">{{ engagement.bounceRate|default:"0"|floatformat:2 }}%</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="bounceRateGauge" style="height: 180px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top pages -->
+        <div class="row">
+           <div class="col-md-12">
+    <div class="card">
+        <div class="card-header bg-white">
+            <!-- Bootstrap Tabs -->
+            <ul class="nav nav-tabs card-header-tabs" id="pagesTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="top-pages-tab" data-bs-toggle="tab" data-bs-target="#top-pages" type="button" role="tab" aria-controls="top-pages" aria-selected="true">
+                        <i class="fas fa-chart-line me-2"></i>Top Pages
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="real-time-pages-tab" data-bs-toggle="tab" data-bs-target="#real-time-pages" type="button" role="tab" aria-controls="real-time-pages" aria-selected="false">
+                        <span class="badge bg-danger real-time-badge me-2">LIVE</span>Real-Time Activity
+                        <span id="real-time-users-badge" class="badge bg-primary ms-2">{{ summary.realTimeUsers }} active</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <!-- Tab Content -->
+            <div class="tab-content" id="pagesTabContent">
+                <!-- Top Pages Tab -->
+                <div class="tab-pane fade show active" id="top-pages" role="tabpanel" aria-labelledby="top-pages-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Page Title</th>
+                                    <th>Path</th>
+                                    <th class="text-end">Pageviews</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for page in top_pages %}
+                                <tr>
+                                    <td>{{ page.title }}</td>
+                                    <td><code>{{ page.path }}</code></td>
+                                    <td class="text-end ">
+                                        <span class="badge bg-success">{{ page.pageviews }}</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Real-time Pages Tab -->
+                <div class="tab-pane fade" id="real-time-pages" role="tabpanel" aria-labelledby="real-time-pages-tab">
+                    <div class="d-flex justify-content-end mb-3">
+                        <small class="text-muted" id="last-updated">
+                            Last updated: <span id="update-time">{{ now|date:"H:i:s" }}</span>
+                        </small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="real-time-pages-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Page Title</th>
+                                    <th>Path</th>
+                                    <th class="text-end">Active Views</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for realpage in real_time_pages %}
+                                <tr>
+                                    <td>{{ realpage.title }}</td>
+                                    <td><code>{{ realpage.path }}</code></td>
+                                    <td class="text-end">
+                                        <span class="badge bg-success">{{ realpage.views }} viewing now</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No real-time pages data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        </div>
+    </div>
+
+    <!-- Font Awesome for icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js" crossorigin="anonymous"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ApexCharts for gauge chart -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <script>
+        // Parse JSON data safely
+        const userMetricsData = JSON.parse('{{ user_metrics|default:"{}" |escapejs }}');
+        const deviceData = JSON.parse('{{ device_breakdown|default:"{}" |escapejs }}');
+        const trafficSourcesData = JSON.parse('{{ traffic_sources|default:"{}" |escapejs }}');
+        
+        // Default bounce rate to a number
+        const bounceRate = parseFloat('{{ engagement.bounceRate|default:"0" }}') || 0;
+
+        let userMetricsChart, deviceChart, trafficSourcesChart, bounceRateGauge;
+
+        // Chart colors
+        const chartColors = {
+            blue: 'rgb(54, 162, 235)',
+            red: 'rgb(255, 99, 132)',
+            green: 'rgb(75, 192, 192)',
+            orange: 'rgb(255, 159, 64)',
+            purple: 'rgb(153, 102, 255)',
+            yellow: 'rgb(255, 205, 86)',
+            grey: 'rgb(201, 203, 207)'
+        };
+
+        // Function to create and show an alert with auto-dismiss
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `${message} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+            document.querySelector('.container-fluid').prepend(alertDiv);
+
+            // Auto-remove alert after 5 seconds
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+
+            return alertDiv;
+        }
+
+        // Function to show loader with random message
+        function showLoader() {
+            // Array of random loading messages
+            const loadingMessages = [
+                "Crunching the numbers...",
+                "Gathering insights...",
+                "Analyzing user behavior...",
+                "Processing analytics data...",
+                "Fetching the latest metrics...",
+                "Compiling reports...",
+                "Calculating engagement rates...",
+                "Retrieving dashboard data...",
+                "Updating statistics...",
+                "Loading performance metrics..."
+            ];
+
+            // Get a random message from the array
+            const randomMessage = loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
+
+            // Create loader overlay
+            const loaderOverlay = document.createElement('div');
+            loaderOverlay.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center';
+            loaderOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+            loaderOverlay.style.zIndex = '1050';
+            loaderOverlay.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="text-primary">${randomMessage}</h5>
+            </div>
+        `;
+
+            document.body.appendChild(loaderOverlay);
+            return loaderOverlay;
+        }
+
+        // Function to hide loader
+        function hideLoader(loaderElement) {
+            if (loaderElement && loaderElement.parentNode) {
+                loaderElement.parentNode.removeChild(loaderElement);
+            }
+        }
+
+        // Helper function to convert hex to rgba
+        function hexToRgba(hex, alpha) {
+            // Extract RGB values from the rgb() format
+            const rgbMatch = hex.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+            if (rgbMatch) {
+                return `rgba(${rgbMatch[1]}, ${rgbMatch[2]}, ${rgbMatch[3]}, ${alpha})`;
+            }
+            return hex;
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // Check if userMetricsData has required properties
+            if (userMetricsData && userMetricsData.dates && userMetricsData.activeUsers) {
+                const ctx = document.getElementById('userMetricsChart').getContext('2d');
+                userMetricsChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: userMetricsData.dates || [],
+                        datasets: [
+                            {
+                                label: 'Active Users',
+                                data: userMetricsData.activeUsers || [],
+                                borderColor: chartColors.blue,
+                                backgroundColor: hexToRgba(chartColors.blue, 0.1),
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 3,
+                                pointHoverRadius: 5
+                            },
+                            {
+                                label: 'Sessions',
+                                data: userMetricsData.sessions || [],
+                                borderColor: chartColors.red,
+                                backgroundColor: hexToRgba(chartColors.red, 0.1),
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 3,
+                                pointHoverRadius: 5
+                            },
+                            {
+                                label: 'Pageviews',
+                                data: userMetricsData.screenPageViews || [],
+                                borderColor: chartColors.green,
+                                backgroundColor: hexToRgba(chartColors.green, 0.1),
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 3,
+                                pointHoverRadius: 5
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+            }
+
+            // Device breakdown chart
+            if (deviceData && deviceData.devices && deviceData.users) {
+                const deviceCtx = document.getElementById('deviceChart').getContext('2d');
+                deviceChart = new Chart(deviceCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: deviceData.devices || [],
+                        datasets: [{
+                            data: deviceData.users || [],
+                            backgroundColor: [
+                                chartColors.blue,
+                                chartColors.red,
+                                chartColors.green
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                            }
+                        },
+                        cutout: '65%'
+                    }
+                });
+            }
+
+            // Traffic sources chart
+            if (trafficSourcesData && trafficSourcesData.sources && trafficSourcesData.sessions) {
+                const trafficCtx = document.getElementById('trafficSourcesChart').getContext('2d');
+                trafficSourcesChart = new Chart(trafficCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: trafficSourcesData.sources || [],
+                        datasets: [{
+                            label: 'Sessions',
+                            data: trafficSourcesData.sessions || [],
+                            backgroundColor: chartColors.purple,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Create bounce rate gauge with ApexCharts
+            const gaugeOptions = {
+                series: [bounceRate],
+                chart: {
+                    height: 180,
+                    type: 'radialBar',
+                },
+                plotOptions: {
+                    radialBar: {
+                        startAngle: -90,
+                        endAngle: 90,
+                        hollow: {
+                            margin: 0,
+                            size: '70%',
+                        },
+                        track: {
+                            background: "#e7e7e7",
+                            strokeWidth: '97%',
+                            margin: 5,
+                        },
+                        dataLabels: {
+                            name: {
+                                show: true,
+                                fontSize: '16px',
+                                fontWeight: 600,
+                                color: '#888',
+                                offsetY: -10
+                            },
+                            value: {
+                                offsetY: -2,
+                                fontSize: '22px',
+                                fontWeight: 'bold',
+                                formatter: function (val) {
+                                    return val + '%';
+                                }
+                            }
+                        }
+                    }
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shade: 'dark',
+                        shadeIntensity: 0.15,
+                        inverseColors: false,
+                        opacityFrom: 1,
+                        opacityTo: 1,
+                        stops: [0, 50, 65, 91]
+                    },
+                },
+                stroke: {
+                    dashArray: 4
+                },
+                labels: ['Bounce Rate'],
+                colors: [function (value) {
+                    if (value < 40) return '#1cc88a';  // Green for low bounce rate (good)
+                    if (value < 60) return '#f6c23e';  // Yellow for medium
+                    return '#e74a3b';  // Red for high bounce rate (bad)
+                }],
+            };
+
+            if (document.getElementById('bounceRateGauge')) {
+                bounceRateGauge = new ApexCharts(document.getElementById('bounceRateGauge'), gaugeOptions);
+                bounceRateGauge.render();
+            }
+        }
+
+        // Period button click handler with loader
+        document.querySelectorAll('.period-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const period = this.getAttribute('data-period');
+
+                // Update active button
+                document.querySelectorAll('.period-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                // Show loader with random message
+                const loader = showLoader();
+
+                // Update dashboard data
+                updateDashboardData(period, () => {
+                    // Hide loader after data is loaded (with slight delay for better UX)
+                    setTimeout(() => {
+                        hideLoader(loader);
+                    }, 500);
+                });
+            });
+        });
+
+        // Refresh button click handler with loader
+        document.getElementById('refresh-data').addEventListener('click', function () {
+            // Show loading indicator on button
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+            this.disabled = true;
+
+            // Get current active period
+            const activePeriod = document.querySelector('.period-btn.active');
+            const period = activePeriod ? activePeriod.getAttribute('data-period') : '30days';
+
+            // Show loader with random message
+            const loader = showLoader();
+
+            updateDashboardData(period, () => {
+                // Reset button
+                this.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
+                this.disabled = false;
+
+                // Hide loader
+                hideLoader(loader);
+
+                // Show success message with timestamp
+                const timestamp = new Date().toLocaleTimeString();
+                showAlert(`Data refreshed successfully at ${timestamp}`);
+            });
+        });
+
+        // Auto-refresh toggle
+        let autoRefreshInterval;
+        document.getElementById('autoRefreshToggle').addEventListener('change', function () {
+            if (this.checked) {
+                // Enable auto-refresh every 5 minutes
+                autoRefreshInterval = setInterval(() => {
+                    document.getElementById('refresh-data').click();
+                }, 5 * 60 * 1000);
+
+                // Show toast notification
+                const toastDiv = document.createElement('div');
+                toastDiv.className = 'toast align-items-center text-white bg-success border-0 position-fixed bottom-0 end-0 m-3';
+                toastDiv.setAttribute('role', 'alert');
+                toastDiv.setAttribute('aria-live', 'assertive');
+                toastDiv.setAttribute('aria-atomic', 'true');
+                toastDiv.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        Auto-refresh enabled. Dashboard will update every 5 minutes.
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+                document.body.appendChild(toastDiv);
+
+                // Show the toast
+                const toast = new bootstrap.Toast(toastDiv);
+                toast.show();
+
+                // Auto-dismiss toast after 5 seconds
+                setTimeout(() => {
+                    toast.hide();
+                    setTimeout(() => {
+                        if (toastDiv.parentNode) {
+                            toastDiv.parentNode.removeChild(toastDiv);
+                        }
+                    }, 500);
+                }, 5000);
+            } else {
+                // Disable auto-refresh
+                clearInterval(autoRefreshInterval);
+
+                // Show toast for disabled auto-refresh
+                const toastDiv = document.createElement('div');
+                toastDiv.className = 'toast align-items-center text-white bg-secondary border-0 position-fixed bottom-0 end-0 m-3';
+                toastDiv.setAttribute('role', 'alert');
+                toastDiv.setAttribute('aria-live', 'assertive');
+                toastDiv.setAttribute('aria-atomic', 'true');
+                toastDiv.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        Auto-refresh disabled.
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+                document.body.appendChild(toastDiv);
+
+                // Show the toast
+                const toast = new bootstrap.Toast(toastDiv);
+                toast.show();
+
+                // Auto-dismiss toast after 5 seconds
+                setTimeout(() => {
+                    toast.hide();
+                    setTimeout(() => {
+                        if (toastDiv.parentNode) {
+                            toastDiv.parentNode.removeChild(toastDiv);
+                        }
+                    }, 500);
+                }, 5000);
+            }
+        });
+
+        // Function to update dashboard data
+        function updateDashboardData(period, callback) {
+            fetch('{% url "analytics_dashboard:update_dashboard_data" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ period: period })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Check if data has summary property
+                    if (!data || !data.summary) {
+                        throw new Error('Invalid data format received from server');
+                    }
+
+                    // Update summary metrics
+                    document.getElementById('totalUsers').textContent = data.summary.totalUsers || 0;
+                    document.getElementById('totalSessions').textContent = data.summary.totalSessions || 0;
+                    document.getElementById('totalPageviews').textContent = data.summary.totalPageviews || 0;
+                    document.getElementById('newUsers').textContent = data.summary.newUsers || 0;
+                    document.getElementById('totalConversions').textContent = data.summary.totalConversions || 0;
+                    document.getElementById('totalRevenue').textContent = '₹' + (data.summary.totalRevenue || 0).toFixed(2);
+
+                    // Update charts
+                    if (userMetricsChart && data.user_metrics) {
+                        userMetricsChart.data.labels = data.user_metrics.dates || [];
+                        userMetricsChart.data.datasets[0].data = data.user_metrics.activeUsers || [];
+                        userMetricsChart.data.datasets[1].data = data.user_metrics.sessions || [];
+                        userMetricsChart.data.datasets[2].data = data.user_metrics.screenPageViews || [];
+                        userMetricsChart.update();
+                    }
+
+                    if (deviceChart && data.device_breakdown) {
+                        deviceChart.data.labels = data.device_breakdown.devices || [];
+                        deviceChart.data.datasets[0].data = data.device_breakdown.users || [];
+                        deviceChart.update();
+                    }
+
+                    if (trafficSourcesChart && data.traffic_sources) {
+                        trafficSourcesChart.data.labels = data.traffic_sources.sources || [];
+                        trafficSourcesChart.data.datasets[0].data = data.traffic_sources.sessions || [];
+                        trafficSourcesChart.update();
+                    }
+
+                    // Update bounce rate gauge with null check
+                    if (bounceRateGauge && data.engagement && typeof data.engagement.bounceRate === 'number') {
+                        bounceRateGauge.updateSeries([data.engagement.bounceRate]);
+                    } else if (bounceRateGauge) {
+                        // Set to 0 when no data is available
+                        bounceRateGauge.updateSeries([0]);
+                    }
+
+                    // Update top pages table - make sure we're selecting the correct table
+                    const topPagesTable = document.querySelector('table:not(#real-time-pages-table) tbody');
+                    if (topPagesTable) {
+                        topPagesTable.innerHTML = '';
+
+                        if (data.top_pages && data.top_pages.length > 0) {
+                            data.top_pages.forEach(page => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                <td>${page.title || 'Unknown'}</td>
+                                <td><code>${page.path || '/'}</code></td>
+                                <td class="text-end">${page.pageviews || 0}</td>
+                            `;
+                                topPagesTable.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = '<td colspan="3" class="text-center">No data available</td>';
+                            topPagesTable.appendChild(row);
+                        }
+                    }
+
+                    // Update card title with selected period
+                    let displayPeriod = "Last 30 Days";
+                    switch (period) {
+                        case 'today':
+                            displayPeriod = "Today";
+                            break;
+                        case 'yesterday':
+                            displayPeriod = "Yesterday";
+                            break;
+                        case '7days':
+                            displayPeriod = "Last 7 Days";
+                            break;
+                        case '90days':
+                            displayPeriod = "Last 90 Days";
+                            break;
+                    }
+                    
+                    // Find the specific card title to update
+                    const userActivityTitle = document.querySelector('.card-header .card-title');
+                    if (userActivityTitle && userActivityTitle.textContent.includes('User Activity')) {
+                        userActivityTitle.textContent = `User Activity - ${displayPeriod}`;
+                    }
+
+                    // Call callback if provided
+                    if (callback) callback();
+                })
+                .catch(error => {
+                    console.error('Error updating data:', error);
+
+                    // Show error message using the showAlert function
+                    showAlert(`Error updating data: ${error.message}`, 'danger');
+
+                    // Call callback if provided (to hide loader)
+                    if (callback) callback();
+                });
+        }
+
+        // Real-time users update
+        // Update real-time data function
+        function updateRealTimeData() {
+            fetch('{% url "analytics_dashboard:get_real_time_data" %}')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update real-time users count
+                    document.getElementById('real-time-users').textContent = data.realTimeUsers || '0';
+                    document.getElementById('real-time-users-badge').textContent = 
+                        (data.realTimeUsers || '0') + ' active users';
+
+                    // Update real-time pages table
+                    const realTimePagesTable = document.getElementById('real-time-pages-table')
+                        .querySelector('tbody');
+                    if (realTimePagesTable) {
+                        realTimePagesTable.innerHTML = '';
+
+                        if (data.realTimePages && data.realTimePages.length > 0) {
+                            data.realTimePages.forEach(page => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${page.title || 'Unknown'}</td>
+                                    <td><code>${page.path || '/'}</code></td>
+                                    <td class="text-end">
+                                        <span class="badge bg-success">${page.views || 0} viewing now</span>
+                                    </td>
+                                `;
+                                realTimePagesTable.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = '<td colspan="3" class="text-center">No real-time page data available</td>';
+                            realTimePagesTable.appendChild(row);
+                        }
+                    }
+
+                    // Update last updated time
+                    const now = new Date();
+                    const updateTimeElement = document.getElementById('update-time');
+                    if (updateTimeElement) {
+                        updateTimeElement.textContent = now.toLocaleTimeString();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating real-time data:', error);
+                    showAlert('Error updating real-time data. Will retry...', 'warning');
+                });
+        }
+        
+        // Start real-time updates
+        updateRealTimeData(); // Initial call
+        
+        // Update real-time users every 60 seconds
+        setInterval(updateRealTimeData, 60 * 1000);
+
+        // Initialize charts when the page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            initCharts();
+        });
+    </script>
+
+</body>
+
+</html>

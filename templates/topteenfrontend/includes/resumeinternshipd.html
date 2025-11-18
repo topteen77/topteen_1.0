@@ -1,0 +1,15 @@
+{% for i in resumeinternship %}
+<div class="addedData flex justify-between w-full py-[12px] selectedSkillDesktop">
+    <div class="flex flex-col gap-[32px]">
+        <div class="flex flex-col gap-[5px]">
+            <p class="text-[15px] leading-[20.25px] semibold text-[#4f4f4f]">{{i.role}}</p>
+            <p class=" text-[#828282] regularFont text-[13px] leading-[17.55px]">
+                {{i.provider}}  •  {% if i.start_date %}{{i.start_date.strftime("%b, %Y")}} - {{i.start_date.strftime("%b, %Y")}}{% endif %}</p>
+        </div>
+
+    </div>
+
+    <button type="button" class="dataDelete" onclick="addedDeleteHandler(this)" data-id="{{i.id}}" data-title="{{i.role}}" data-url="{{url('resumeinternship')}}" data-mdivid="internshipm" data-ddivid="internshipd" ><i
+            class="fa-solid fa-circle-xmark text-[#bdbdbd] my-auto lg:my-0"></i></button>
+</div>
+{% endfor %}

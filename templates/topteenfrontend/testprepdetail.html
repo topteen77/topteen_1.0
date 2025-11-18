@@ -1,0 +1,254 @@
+{% extends 'topteenfrontend/loggedin-base.html' %}
+
+{% block main %}
+<!-- MAIN CONTENT -->
+    <main
+      class="grid lg:grid-cols-4 grid-cols-1 gap-x-[30px] container mt-8 px-3 mx-auto"
+    >
+      <div class="lg:col-start-1 lg:col-span-3">
+        {% include'topteenfrontend/includes/breadcrumb.html'%}
+      
+        
+        <main>
+          <div
+            class="flex flex-row justify-start items-center gap-x-[23px] mb-[40px]"
+          >
+            <div class="w-[92px] h-[70px]">
+              <img
+                src="{{exam.logo_url}}"
+                class="h-full w-full object-contain"
+              />
+            </div>
+            <h1 class="text-xl semibold">
+              {{exam.name}}
+            </h1>
+          </div>
+          <!-- ABOUT US -->
+          <section class="mb-[43px]">
+            <h2
+              class="text-[23px] leading-[16px] mb-3.5 semibold text-[#131415]"
+            >
+              About
+            </h2>
+            <p
+              class="text-[16px] leading-[24px] font-medium text-[#4F4F4F] mediumFont "
+            ><div class="ckeditorStyles">
+            {{exam.about|safe}}
+          </div>
+            </p>
+          </section>
+
+
+         
+
+          <!-- Eligibility -->
+          <section class="mb-[43px]">
+            <h2
+              class="text-[23px] leading-[16px] mb-3.5 semibold text-[#131415]"
+            >
+              Eligibility
+            </h2>
+            <p
+              class="text-[16px] leading-[24px] font-medium text-[#4F4F4F] mediumFont "
+            >
+            <div class="ckeditorStyles">
+             {{exam.eligibility|safe}}
+            </div>
+            </p>
+          </section>
+          
+
+          <!-- Syllabus and Exam Pattern -->
+
+          <!-- Eligibility -->
+          <section class="mb-[43px]">
+            <h2
+              class="text-[23px] leading-[16px] mb-3.5 semibold text-[#131415]"
+            >
+               Exam Pattern
+            </h2>
+            <div
+              class="text-[16px] leading-[24px] font-medium text-[#4F4F4F] mediumFont ckeditorStyles"
+            >
+              <p class="mb-3">
+              {{exam.exam_pattern|safe}}
+              </p>
+            </div>
+          </section>
+<!-- How to Enroll -->
+          <section class="mb-[43px] ckeditorStyles">
+            <h2 class="text-[23px] leading-[16px] semibold text-[#131415] mb-4">
+              More Information
+            </h2>
+            <div class="ckeditorStyles">
+             {{exam.more_info|safe}}
+            </div>
+            </section>
+
+        <!-- HAVE A QUESTIONS -->
+          <div
+            class="lg:py-[25px] py-[18px] rounded-[10px] flex flex-row justify-start items-center lg:gap-x-[46px] gap-x-[10px] blue-banner mb-[40px] lg:mb-[96px] lg:mt-[0px]"
+          >
+            <div class="w-[110px] h-[152px]">
+              <img src="{{static('topteenfrontend/assets/images/student.png')}}" class="h-full w-full" />
+            </div>
+
+            <div class="lg:w-[491px] w-[75%]">
+              <h5
+                class="lg:text-xl text-[22px] font-bold tracking-[0.035em] text-white lg:mb-1.5 mb-[11px]"
+              >
+                Have a question? Connect with Alumni.
+              </h5>
+              <p class="text-[13px] leading-[19px] font-normal text-white mb-4">
+                Our counsellors guide you on all the steps of the way from
+                application to your job interview, connect now!
+              </p>
+
+              <button onclick="window.location='{{url('core:contactus')}}'"
+                class="uppercase px-[64px] pt-4 pb-[13px] text-sm font-bold text-[#4F4F4F] bg-white rounded-[10px] border-b-[6px] border-[#EAEAEA] lg:block hidden"
+              >
+                Connect Now
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+      <!-- RIGHT DIV -->
+      <div>
+        <div
+          class="bg-white px-[9px] py-[3px] min-h-[377px] border border-[#DEDEDE] rounded-[10px] mb-[36px]"
+        >
+          <h4 class="text-[20px] leading-[26px] font-semibold mb-4">
+            Related Exams
+          </h4>
+          <ul class="space-y-3.5">
+            <!-- CARD -->
+            {%if related_exam%}
+            {%for related in related_exam[:4]%}
+            <a href="{{url('entrance_exams:testprepdetail',args=[related.slug])}}" class="">
+      
+            <li
+              class="px-3 py-3.5 flex flex-row  justify-start items-center gap-x-[8px] rounded-[10px] border border-[#F3F3F3]"
+            >
+              <div class="w-[33px] h-[39px] shrink-0">
+                <img src="{{related.logo_url}}" class="h-full w-full object-cover shrink-0" />
+              </div>
+              <div>
+                <h6 class="text-sm font-semibold text-[#333333]">
+                  {{related.name}}
+                </h6>
+
+                {% if related.exam_date %}
+                <p
+                  class="text-[11px] leading-[15px] font-medium text-[#828282]"
+                >
+                  {{related.exam_date.strftime("%d-%b-%Y")}}
+                </p>
+                {% endif %}
+
+              </div>
+            </li>
+            </a>
+            {%endfor%}
+            {%else%}
+
+            {%for related in random_exam[:4]%}
+            <a href="{{url('entrance_exams:testprepdetail',args=[related.slug])}}" class="">
+      
+            <li
+              class="px-3 py-3.5 flex flex-row justify-start items-center gap-x-[8px] rounded-[10px] border border-[#F3F3F3]"
+            >
+              <div class="w-[33px] h-[39px]">
+                <img src="{{related.logo_url}}" class="h-full w-full object-cover" />
+              </div>
+              <div>
+                <h6 class="text-sm font-semibold text-[#333333]">
+                  {{related.name}}
+                </h6>
+                <!-- <p
+                  class="text-[11px] leading-[15px] font-medium text-[#828282]"
+                >
+                  28 June, 2023
+                </p> -->
+              </div>
+            </li>
+            </a>
+            {%endfor%}
+            {%endif%}
+           
+          </ul>
+        </div>
+        <!-- STREAMS -->
+        <div class="lg:mb-[30px] mb-[40px]">
+          <h4 class="font-semibold text-lg mb-3.5">Streams</h4>
+          <!-- CONTENT -->
+          <div class="flex flex-row flex-wrap gap-x-[8px] gap-y-[8px]">
+            {%for str in exam.stream.all()%}
+            <div
+              class="bg-[#3F37C9] bg-opacity-[0.15] text-xs text-[#3F37C9] lg:py-[11px] lg:px-4 py-[11px] px-[9px] font-semibold rounded-[100px] tracking-[1%]"
+            >
+            <a href="{{url('entrance_exams:testprepfilter')}}?stream={{str}}">
+              {{str}}
+            </a>
+            </div>
+            {%endfor%}
+            
+          </div>
+        </div>
+
+        <!-- Exams and Tests -->
+        <div class="mb-10">
+          <h4 class="font-semibold text-lg mb-2">Exams and Tests</h4>
+          <!-- Content -->
+          <div class="flex flex-col gap-3.5">
+            {%if related_exam%}
+            {%for exam in related_exam[:3]%}
+            <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="">
+      
+            <div
+              class="border border-[#F3F3F3] rounded-[10px] flex flex-row gap-x-2.5 py-3.5 pr-[20px] pl-[17px] items-center bg-gradient-to-b from-gray-100 to-transparent"
+            >
+              <div class="shrink-0">
+                <img
+                  src="{{exam.logo_url}}"
+                  width="35px"
+                  height="39px"
+                  class="object-cover shrink-0"
+                />
+              </div>
+              <div>
+                <p class="font-semibold text-sm">{{exam.name}}</p>
+                <!-- <p class="text-[#828282] text-xs font-normal">28 June, 2021</p> -->
+              </div>
+            </div>
+          </a>
+            {%endfor%}
+            {%else%}
+            {%for exam in random_exam[:3]%}
+            <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="">
+      
+            <div
+              class="border border-[#F3F3F3] rounded-[10px] flex flex-row gap-x-2.5 py-3.5 pr-[20px] pl-[17px] items-center bg-gradient-to-b from-gray-100 to-transparent"
+            >
+              <div>
+                <img
+                  src="{{exam.logo_url}}"
+                  width="35px"
+                  height="39px"
+                  class="object-cover"
+                />
+              </div>
+              <div>
+                <p class="font-semibold text-sm">{{exam.name}}</p>
+                <!-- <p class="text-[#828282] text-xs font-normal">28 June, 2021</p> -->
+              </div>
+            </div>
+            </a>
+            {%endfor%}
+            {%endif%}
+            
+          </div>
+        </div>
+      </div>
+    </main>
+{%endblock%}

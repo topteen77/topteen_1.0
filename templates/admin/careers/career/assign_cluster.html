@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Assign careers to cluster" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Assign careers to cluster" %}</h1>
+
+<p>{% trans "You have selected" %} {{ careers.count }} {% trans "career(s) to assign to a cluster." %}</p>
+
+<form method="post">
+    {% csrf_token %}
+    <fieldset class="module aligned">
+        <div class="form-row">
+            <div>
+                <label for="cluster_id">{% trans "Select Career Cluster:" %}</label>
+                <select name="cluster_id" id="cluster_id" required>
+                    <option value="">{% trans "-- Select a cluster --" %}</option>
+                    {% for cluster in clusters %}
+                        <option value="{{ cluster.id }}">{{ cluster.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="submit-row">
+        <input type="submit" value="{% trans 'Assign to Cluster' %}" class="default" name="post">
+        <a href="{% url 'admin:careers_career_changelist' %}" class="button cancel-link">{% trans "Cancel" %}</a>
+    </div>
+
+    <div class="results">
+        <h2>{% trans "Selected Careers:" %}</h2>
+        <ul>
+            {% for career in careers %}
+                <li>{{ career.name }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</form>
+
+<style>
+.results {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.results ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.results li {
+    margin: 5px 0;
+}
+</style>
+{% endblock %}

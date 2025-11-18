@@ -1,0 +1,468 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{{ career.name }} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+{{ career.summary if career.summary else career.name }}
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="career-hero mt-md-18 mt-13 pb-8">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8 single-track-col">
+        <div class="track-header">
+          <h1 class="cat-title">{{ career.name }}</h1>
+          
+          {% if career.summary %}
+          <div class="blog-summary-box">
+            <h3 class="blog-summary-title">Summary</h3>
+            <p class="blog-summary-text add-read-more show-less-content">{{ career.summary }}</p>
+          </div>
+          {% endif %}
+
+          {% if career.image and career.image.name %}
+          <div class="blog-featured-image">
+            <img src="{{ career.image.url }}" alt="{{ career.name }}">
+          </div>
+          {% endif %}
+
+          <div class="blog-share">
+            <div class="blog-share-title">Share :</div>
+            <div class="blog-share-icons">
+              <a href="#" class="blog-share-icon" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank'); return false;"><i class="bx bxl-facebook"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent('{{ career.name }}'), '_blank'); return false;"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://www.linkedin.com/shareArticle?url=' + encodeURIComponent(window.location.href) + '&title=' + encodeURIComponent('{{ career.name }}'), '_blank'); return false;"><i class="bx bxl-linkedin"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('{{ career.name }} ' + window.location.href), '_blank'); return false;"><i class="bx bxl-whatsapp"></i></a>
+              <a href="#" class="blog-share-icon copy-link" data-url="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}"><i class="bx bx-link"></i></a>
+            </div>
+          </div>
+
+          <!-- Tabs Navigation -->
+          <ul class="nav nav-tabs mt-4" id="careerTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">Overview</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="education-tab" data-bs-toggle="tab" data-bs-target="#education" type="button" role="tab" aria-controls="education" aria-selected="false">Education</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="career-path-tab" data-bs-toggle="tab" data-bs-target="#career-path" type="button" role="tab" aria-controls="career-path" aria-selected="false">Career Path</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="industry-insights-tab" data-bs-toggle="tab" data-bs-target="#industry-insights" type="button" role="tab" aria-controls="industry-insights" aria-selected="false">Industry Insights</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="resource-tab" data-bs-toggle="tab" data-bs-target="#resource" type="button" role="tab" aria-controls="resource" aria-selected="false">Resources</button>
+            </li>
+          </ul>
+
+          <!-- Tab Content -->
+          <div class="tab-content mt-4" id="careerTabContent">
+            <!-- Overview Tab -->
+            <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+              <div class="cat-main-content">
+                {% if career.description %}
+                <h4>Career Description</h4>
+                <div class="blogDetail careerDetail">{{ career.description|safe }}</div>
+                {% endif %}
+
+                {% if career.role_description %}
+                <h4>Roles and Responsibilities</h4>
+                <div class="blogDetail careerDetail">{{ career.role_description|safe }}</div>
+                {% endif %}
+
+                {% if career.eligibility %}
+                <h4>Eligibility</h4>
+                <div class="blogDetail careerDetail">{{ career.eligibility|safe }}</div>
+                {% endif %}
+
+                {% if career.pros_cons %}
+                <h4>Pros and Cons</h4>
+                <div class="blogDetail careerDetail">{{ career.pros_cons|safe }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Education Tab -->
+            <div class="tab-pane fade" id="education" role="tabpanel" aria-labelledby="education-tab">
+              <div class="cat-main-content">
+                {% if career.eligibility %}
+                <h4>Study Route & Eligibility Criteria</h4>
+                <div class="blogDetail careerDetail">{{ career.eligibility|safe }}</div>
+                {% endif %}
+
+                {% if career.courses.all() %}
+                <h4>Related Courses</h4>
+                <div class="row">
+                  {% for course in career.courses.all()[:6] %}
+                  <div class="col-md-4 mb-4">
+                    <div class="blog-card">
+                      <div class="blog-image">
+                        {% if course.logo %}
+                        <img src="{{ course.logo.url }}" alt="{{ course.name }}">
+                        {% else %}
+                        <img src="{{ static('images/career-icon.png') }}" alt="{{ course.name }}">
+                        {% endif %}
+                      </div>
+                      <div class="blog-content">
+                        <h5 class="blog-title mt-0">{{ course.name }}</h5>
+                        {% if course.stream %}
+                        <p class="text-gray fs-14">{{ course.stream.name }}</p>
+                        {% endif %}
+                        {% if course.overview %}
+                        <p class="blog-excerpt">{{ course.overview|truncate(100) }}</p>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Career Path Tab -->
+            <div class="tab-pane fade" id="career-path" role="tabpanel" aria-labelledby="career-path-tab">
+              <div class="cat-main-content">
+                {% if career.career_paths.all() %}
+                  {% for career_path in career.career_paths.all() %}
+                  <div class="mb-4">
+                    <h4>{{ career_path.name }}</h4>
+                    {% if career_path.get_sorted_priority() %}
+                    <ul class="list-disc pl-4">
+                      {% for step in career_path.get_sorted_priority() %}
+                      <li>{{ step.name }}</li>
+                      {% endfor %}
+                    </ul>
+                    {% endif %}
+                  </div>
+                  {% endfor %}
+                {% else %}
+                <p>Career path information coming soon.</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Industry Insights Tab -->
+            <div class="tab-pane fade" id="industry-insights" role="tabpanel" aria-labelledby="industry-insights-tab">
+              <div class="cat-main-content">
+                {% if career.prospective_employment_areas.exists() %}
+                <h4>Employment Areas</h4>
+                <ul>
+                  {% for area in career.prospective_employment_areas.all() %}
+                  <li>{{ area.name }}</li>
+                  {% endfor %}
+                </ul>
+                {% endif %}
+
+                {% if career.prospective_recruiters.exists() %}
+                <h4>Top Recruiters</h4>
+                <ul>
+                  {% for recruiter in career.prospective_recruiters.all() %}
+                  <li>{{ recruiter.name }}</li>
+                  {% endfor %}
+                </ul>
+                {% endif %}
+
+                {% if career.get_max_salary() %}
+                <h4>Salary Range</h4>
+                <p>{{ career.get_max_salary() }}</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Resources Tab -->
+            <div class="tab-pane fade" id="resource" role="tabpanel" aria-labelledby="resource-tab">
+              <div class="cat-main-content">
+                {% if career.careermedia.all() %}
+                <h4>Career Media</h4>
+                <div class="row">
+                  {% for media in career.careermedia.all()[:6] %}
+                  <div class="col-md-4 mb-4">
+                    {% if media.type == 1 %}
+                    <img src="{{ media.media.url }}" alt="Career Media" class="img-fluid rounded">
+                    {% elif media.type == 2 %}
+                    <video class="w-100 rounded" controls>
+                      <source src="{{ media.media.url }}" type="video/mp4">
+                    </video>
+                    {% endif %}
+                  </div>
+                  {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if career.careerFAQ.all() %}
+                <h4>Frequently Asked Questions</h4>
+                <div class="accordion" id="careerFAQ">
+                  {% for faq in career.careerFAQ.all() %}
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq-heading-{{ faq.id }}">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-collapse-{{ faq.id }}" aria-expanded="false" aria-controls="faq-collapse-{{ faq.id }}">
+                        {{ faq.question|safe }}
+                      </button>
+                    </h2>
+                    <div id="faq-collapse-{{ faq.id }}" class="accordion-collapse collapse" aria-labelledby="faq-heading-{{ faq.id }}" data-bs-parent="#careerFAQ">
+                      <div class="accordion-body">
+                        {{ faq.answer|safe }}
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <!-- Knowledge & Skills You Will Learn Sidebar -->
+        {% if career.skills.all() %}
+        <div class="skill-box mb-4">
+          <h5 class="skill-title">Knowledge & Skills You Will Learn</h5>
+          <ul class="skill-list">
+            {% for skill in career.skills.all() %}
+            <li>{{ skill.name }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <!-- Career Videos Sidebar -->
+        {% if career.videos.all() %}
+        <div class="career-sidebar mt-5 mb-4">
+          <h3 class="sidebar-title">Career Video</h3>
+          <div class="car-rel-video video-vertical flex-column">
+            {% for video in career.videos.all()[:2] %}
+            <div class="video-box mb-3">
+              <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="video-link">
+                <div class="text-b">
+                  <div class="blankdiv"></div>
+                  <div class="video-play"><img src="{{ static('images_new/icons/video-play.svg') }}" alt="Play Icon" /></div>
+                </div>
+                <div class="video-thumb-auto">
+                  {% if video.upload_video %}
+                  <video class="videoPlayer">
+                    <source src="{{ video.upload_video.url }}" type="video/mp4">
+                  </video>
+                  {% elif video.video_image %}
+                  <img src="{{ video.video_image.url }}" alt="{{ video.name }}" class="img-fluid">
+                  {% else %}
+                  <div class="bg-gray p-4 text-center">
+                    <i class='bx bx-play-circle fs-48'></i>
+                  </div>
+                  {% endif %}
+                </div>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Leading Professions Sidebar -->
+        {% if career.profession.all() %}
+        <div class="profession-sidebar blog-sidebar mt-5 mb-5">
+          <h3 class="sidebar-title">Leading Professions</h3>
+          <div class="proffesion-card-inn">
+            {% for profession in career.profession.all()[:3] %}
+            <div class="profession-card mb-3">
+              <div class="prf-image">
+                {% if profession.image and profession.image.name %}
+                <img src="{{ profession.image.url }}" alt="{{ profession.name }}">
+                {% else %}
+                <img src="{{ static('images/career-icon.png') }}" alt="{{ profession.name }}">
+                {% endif %}
+              </div>
+              <div class="prf-content">
+                <h3 class="prf-title mt-0">{{ profession.name }}</h3>
+                {% if profession.summary %}
+                <p class="blog-excerpt">{{ profession.summary|truncate(150) }}</p>
+                {% endif %}
+                {% if profession.get_salary_display() %}
+                <p class="text-gray fs-14">{{ profession.get_salary_display() }}</p>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+            <div class="view-all">
+              <a href="{{ url('careers:profession', args=[career.slug]) }}">View All</a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- CTA Section -->
+        <div class="career-cta mt-4 p-4 bg-light rounded">
+          <h5 class="mb-3">Interested in this career?</h5>
+          <p class="text-gray fs-14 mb-3">Take the next step and explore more about {{ career.name }}.</p>
+          <button type="button" class="btn custom-button purple-button w-100 shortlistcareer" data-careerslug="{{ career.slug }}">
+            {% if shortlisted_career %}
+            <i class='bx bxs-bookmark'></i> Remove from Shortlist
+            {% else %}
+            <i class='bx bx-bookmark'></i> Shortlist Career
+            {% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Related Careers Section -->
+{% if related_careers %}
+<section class="py-10 bg-light">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h3 class="section-title mb-4">Related Careers</h3>
+        <p class="text-gray mb-4">Explore similar career paths that might interest you</p>
+      </div>
+    </div>
+    <div class="row">
+      {% for related_career in related_careers %}
+      <div class="col-md-4 col-sm-6 mb-4">
+        <div class="blog-card">
+          <div class="blog-image">
+            <div class="cat-header">
+              {% if related_career.career_cluster.all() %}
+                <a href="{{ url('careers:careerlibrary', args=[related_career.career_cluster.first().slug, related_career.career_cluster.first().id]) }}" class="blog-category category-parent">
+                  {{ related_career.career_cluster.first().name }}
+                </a>
+              {% else %}
+                <span class="blog-category category-parent">Career</span>
+              {% endif %}
+            </div>
+            <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}">
+              {% if related_career.image and related_career.image.name %}
+                <img src="{{ related_career.image.url }}" alt="{{ related_career.name }}">
+              {% else %}
+                <img src="{{ static('images/career-icon.png') }}" alt="{{ related_career.name }}">
+              {% endif %}
+            </a>
+          </div>
+          <div class="blog-content">
+            <h3 class="blog-title mt-0">
+              <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}">{{ related_career.name }}</a>
+            </h3>
+            {% if related_career.get_max_salary() %}
+            <div class="salary-range">
+              <i class='bx bx-rupee'></i>
+              <span>{{ related_career.get_max_salary() }}</span>
+            </div>
+            {% endif %}
+            {% if related_career.summary %}
+            <p class="blog-excerpt">{{ related_career.summary|truncate(120) }}</p>
+            {% endif %}
+            <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Video Modal -->
+<div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="videoModalLabel">Career Video</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <video id="modalVideo" class="w-100" controls>
+          <source src="" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+  // Video modal handler
+  document.addEventListener('DOMContentLoaded', function() {
+    const videoModal = document.getElementById('videoModal');
+    const modalVideo = document.getElementById('modalVideo');
+    
+    if (videoModal) {
+      videoModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const videoUrl = button.getAttribute('data-video');
+        if (modalVideo && videoUrl) {
+          modalVideo.src = videoUrl;
+        }
+      });
+      
+      videoModal.addEventListener('hide.bs.modal', function() {
+        if (modalVideo) {
+          modalVideo.pause();
+          modalVideo.src = '';
+        }
+      });
+    }
+
+    // Copy link functionality
+    const copyLinks = document.querySelectorAll('.copy-link');
+    copyLinks.forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const url = this.getAttribute('data-url');
+        navigator.clipboard.writeText(url).then(function() {
+          alert('Link copied to clipboard!');
+        });
+      });
+    });
+
+    // Read more/less functionality
+    const readMoreElements = document.querySelectorAll('.add-read-more');
+    readMoreElements.forEach(function(element) {
+      const text = element.textContent;
+      if (text.length > 200) {
+        const shortText = text.substring(0, 200) + '...';
+        const fullText = text;
+        element.innerHTML = '<span class="first-section">' + shortText + '</span><span class="second-section">' + fullText.substring(200) + '</span><span class="read-more">Read More</span><span class="read-less">Read Less</span>';
+        
+        const readMoreBtn = element.querySelector('.read-more');
+        const readLessBtn = element.querySelector('.read-less');
+        
+        if (readMoreBtn) {
+          readMoreBtn.addEventListener('click', function() {
+            element.classList.remove('show-less-content');
+            element.classList.add('show-more-content');
+          });
+        }
+        
+        if (readLessBtn) {
+          readLessBtn.addEventListener('click', function() {
+            element.classList.remove('show-more-content');
+            element.classList.add('show-less-content');
+          });
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}
+

@@ -1,0 +1,16 @@
+{% extends 'template20/base.html' %}
+
+{% block bodyclass %}{{ block.super }} admin{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .admin .header {
+    /* Admin-specific header styles */
+  }
+  .admin-sidebar {
+    /* Admin sidebar styles - to be implemented as needed */
+  }
+</style>
+{% endblock %}
+

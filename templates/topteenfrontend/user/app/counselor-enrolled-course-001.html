@@ -1,0 +1,1199 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+<style>
+  .tab-content {
+    display: none;
+  }
+
+  .radial-section, .video-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .progress-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .progress-container  svg {
+      transform: rotate(-90deg);
+      width: 25px;
+      height: 25px;
+    }
+    .progress-container  circle {
+      fill: none;
+      stroke-width: 2;
+    }
+    .progress-container  .bg-circle {
+      stroke: #ddd;
+    }
+    .progress-container  .progress-circle {
+      stroke: #4caf50;
+      stroke-dasharray: 65.97;
+      stroke-dashoffset: 65.97;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+    .progress-container  .tick {
+      display: none;
+      font-size: 20px;
+      color: green;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .progress-container  .tooltip {
+      display: none;
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .progress-container:hover .tooltip {
+      display: block;
+    }
+</style>
+
+<body>
+
+  <main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0 ">
+    <div class="lg:flex lg:gap-[30px]  w-full">
+      <!-- Left part Desktop -->
+      <div class="hidden lg:block w-[265px]  rounded-[10px] mx-auto bg-[#FBFBFB]">
+        <div class=" sticky top-[20px]">
+          <div class="my-corse-head px-2 py-3 bg-[#ffffff] m-2">
+            <h4 class="fw-bold mb-0">My Course</h4>
+            <p>Career Counseling Course</p>
+          </div>
+          <div id="accordion-collapse" data-accordion="collapse" class=" px-2 custom-accordion-left">
+            <button type="button"  class="list-data text active-lecture content-btn d-flex justify-between w-full" data-target="content1">
+              <div class="chapter-detail fs-18 fw-800 py-3"> <i class="fa-solid fa-list me-2"></i> Introduction </div>
+              <div class="test-read-full read-circle"> <i class="fa-solid fa-circle-check text-success"></i> </div>
+            </button>
+            <!-- single accordian -->
+
+            {% for chapter in chapters %}
+              <!-- Chapter Section -->
+              <h2 id="accordion-collapse-heading-{{ chapter.id }}" class="mb-0">
+                  <button type="button"
+                    class="chapter-title flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-500 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                    data-accordion-target="#accordion-collapse-body-{{ chapter.id }}" aria-expanded="false"
+                    aria-controls="accordion-collapse-body-{{ chapter.id }}"> <span>{{ chapter.title }}</span>
+                    <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5 5 1 1 5" />
+                    </svg>
+                  </button>
+              </h2>
+                <div id="accordion-collapse-body-{{ chapter.id }}" class="hidden" aria-labelledby="accordion-collapse-heading-{{ chapter.id }}">
+                  {% for part in chapter.parts.all() %}
+                  <div class="data-show">
+                    <button type="button" class="list-data text content-btn d-flex justify-between w-full" data-target="content-{{ part.id }}">
+                      <div class="chapter-detail"> {{ part.title }} </div>
+                      <div class="test-read-full unread-circle">                         
+                        <div class="progress-container" data-video-id="video-{{ part.id }}">
+                          <svg>
+                            <circle class="bg-circle" cx="12.5" cy="12.5" r="10.5"></circle>
+                            <circle class="progress-circle" cx="12.5" cy="12.5" r="10.5"></circle>
+                          </svg>
+                          <div class="tick" style="display: none;"><i class="fa-solid fa-circle-check text-success"></i> </div>
+                          <div class="tooltip">Progress: 0%</div>
+                        </div>
+                      
+                      </div>
+                    </button>
+                  </div>
+                  <button type="button" class="quiz-button list-data text justify-between w-full bg-white" data-target="contentquiz-{{ part.id }}">
+                    <div class="chapter-detail"> Quiz </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-solid fa-lock" aria-hidden="true"></i> </div>
+                  </button>
+                  
+                  {%endfor%}
+                  
+                  <!-- <button type="button" class="list-data text content-btn d-flex justify-between w-full bg-white" data-target="contentquiz-{{ chapter.id }}">
+                    <div class="chapter-detail"> Quiz </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-solid fa-lock" aria-hidden="true"></i> </div>
+                  </button> -->
+                </div>
+                
+            {%endfor%}
+
+            <!-- single accordian -->
+
+        
+            <!-- Certification -->
+            <h2 id="accordion-collapse-heading11" class="mb-0">
+              <button type="button"
+                class="flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-800 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                data-accordion-target="#accordion-collapse-body11" aria-expanded="true"
+                aria-controls="accordion-collapse-body-11"> <span class="text-left"> Claim Your Course Certificate</span>
+                <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 5 5 1 1 5" />
+                </svg>
+              </button>
+            </h2>
+            <div id="accordion-collapse-body11" class="hidden" aria-labelledby="accordion-collapse-heading11">
+              <div class="data-show">
+                <div class="list-data text">
+                  <button type="button" id="certificate" class="button list-data text content-btn d-flex justify-between w-full bg-white" data-target="certificate-clam">
+                    <div class="chapter-detail"> Claim Your Course Certificate </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-solid fa-lock" aria-hidden="true"></i> </div>
+                  </button>
+                  <!-- <div class="test-read-full read-circle"> <i class="fa-solid fa-lock"></i> </div> -->
+                </div>
+              </div>
+            </div>
+            <!-- Certification -->
+          </div>
+        </div>
+      </div>
+
+      <!-- End of Left part Desktop -->
+
+      <!-- Right Part -->
+      <div class="mx-auto lg:w-[784px]  z-20 pt-4">
+
+        <!-- Share Course Modal button -->
+        <div class="flex justify-between mb-3 md:flex-row flex-col">
+          <div class="mb-[16px] lg:px-0 px-2 mt-[12px] lg:mt-0">
+            
+          </div>
+          <div class="l-p-sm">
+            <div class="flex flex-row justify-between">
+              <button type="button" data-modal-target="share-course-modal" data-modal-toggle="share-course-modal"
+                class="ms-1 text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:bg-gray-700">
+                <svg class="w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    d="M17.5 3A3.5 3.5 0 0 0 14 7L8.1 9.8A3.5 3.5 0 0 0 2 12a3.5 3.5 0 0 0 6.1 2.3l6 2.7-.1.5a3.5 3.5 0 1 0 1-2.3l-6-2.7a3.5 3.5 0 0 0 0-1L15 9a3.5 3.5 0 0 0 6-2.4c0-2-1.6-3.5-3.5-3.5Z" />
+                </svg>
+                Share course </button>
+
+              <button onclick="window.location='/counselor/Counselor_Course'" type="button"
+                class="ms-1 text-gray-900 bg-blue hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:bg-gray-700">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back
+              </button>
+
+            </div>
+
+            <!-- Course mobile button -->
+            <div class="lg:hidden sm:block flex justify-center mt-3 sticky top-[20px] ">
+              <button
+                class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center  bg-purple"
+                type="button" data-modal-toggle="course-track-modal"> <i class="fa-solid fa-bars me-2"></i> Course
+                Content </button>
+            </div>
+            <!-- Course mobile button -->
+          </div>
+        </div>
+        <!-- Share Course Modal button -->
+
+        <!--Course Intoduction Content-->
+        <div id="content1" class="content" style="display: block;">
+          <div class="bg-[#FBFBFB] p-3 rounded">
+              <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="myTab" data-tabs-toggle="#myTabContentintro" role="tablist">
+                  <li class="mr-2" role="presentation">
+                      <button class="inline-block p-4 rounded-t-lg border-b-2" id="introvideo-tab" data-tabs-target="#introvideo" type="button" role="tab" aria-controls="introvideo" aria-selected="false">Video</button>
+                  </li>
+                  <li class="mr-2" role="presentation">
+                      <button class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="intropdf-tab" data-tabs-target="#intropdf" type="button" role="tab" aria-controls="intropdf" aria-selected="false">PDF Notes</button>
+                  </li>
+                
+              </ul>
+          <div id="myTabContenintro">
+              <div class="hidden p-4 bg-gray-50 rounded-lg dark:bg-gray-800" id="introvideo" role="tabpanel" aria-labelledby="introvideo-tab">
+                
+                <div id="tab1" class="tab-content active">
+                  <video class="w-full" controls crossorigin="anonymous">
+                    <source src="{{ static ('images1/counselors_course/Course_Introduction_Topteen.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                    <track label="English subtitles" kind="subtitles" srclang="en" src="https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/courseintroduction/courseintroductiontopteen.vtt">
+                  </video>
+                  <h5 class="mt-3">
+                    Introduction
+                    </h2>
+                    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the
+                      industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type
+                      and
+                      scrambled it to make a type specimen book. It has survived not only five centuries,</p>
+                </div>
+              </div>
+              <div class="hidden p-4 bg-gray-50 rounded-lg dark:bg-gray-800" id="intropdf" role="tabpanel" aria-labelledby="intropdf-tab">
+                <div class="pdf-viewer">
+                  <iframe id="inlineFrameExample" title="Inline Frame Example" width="100%" height="450"
+                    src="{{ static ('images1/counselors_course/Course-Introduction- Index.pdf') }}"> </iframe>
+                </div>
+              </div>
+          </div>
+          </div>
+        </div>
+
+        <!-- certificate clam tab block -->
+        <div id="certificate-clam" class="content" style="display: block;">
+          <div class="bg-[#FBFBFB] p-3 rounded">
+              <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="myTab1" data-tabs-toggle="#myTabContentintro1" role="tablist">
+                  <li class="mr-2" role="presentation">
+                      <button class="inline-block p-4 rounded-t-lg border-b-2" id="certificate-1" data-tabs-target="#certificate-id" type="button" role="tab" aria-controls="certificate-id" aria-selected="false">Certificate</button>
+                  </li>
+              </ul>
+            <div id="myTabContenintro1">
+                <div class="hidden p-4 bg-gray-50 rounded-lg dark:bg-gray-800" id="certificate-id" role="tabpanel" aria-labelledby="certificate-1">
+                  
+                  <div id="tab1" class="tab-content active">
+                    
+                    
+
+                    <h5 class="mt-3">
+                    certificate-clam
+                      </h2>
+                      <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the
+                        industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type
+                        and
+                        scrambled it to make a type specimen book. It has survived not only five centuries,</p>
+                  </div>
+                </div>
+                
+            </div>
+          </div>
+        </div>
+        <!-- End certificate clam tab block -->
+
+        <!--Course Intoduction Content End-->
+
+        <!--Parts  Start-->
+          {% for chapter in chapters %}
+            {% for part in chapter.parts.all() %}
+              <div id="content-{{ part.id }}" class="content" style="display: none;">
+                <div class="bg-[#FBFBFB] p-3 rounded">
+
+                  <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="myTab" data-tabs-toggle="#myTabContentpart-{{ part.id }}" role="tablist">
+                    <li class="mr-2" role="presentation">
+                        <button class="inline-block p-4 rounded-t-lg border-b-2" id="p-{{ part.id }}video-tab" data-tabs-target="#p-{{ part.id }}video" type="button" role="tab" aria-controls="p-{{ part.id }}video" aria-selected="false">Video</button>
+                    </li>
+                    <li class="mr-2" role="presentation">
+                        <button class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="p-{{ part.id }}pdf-tab" data-tabs-target="#p-{{ part.id }}pdf" type="button" role="tab" aria-controls="p-{{ part.id }}pdf" aria-selected="false">PDF Notes</button>
+                    </li>
+                  </ul>
+
+
+                  <div id="myTabContenpart-{{ part.id }}">
+                    <div class="hidden p-4 bg-gray-50 rounded-lg dark:bg-gray-800" id="p-{{ part.id }}video" role="tabpanel" aria-labelledby="p-{{ part.id }}video-tab">              
+                      <div id="tab1" class="tab-content active">
+
+                        <video id="video-{{ part.id }}" preload="metadata" controls  crossorigin="anonymous" controlsList="nodownload">
+                          <source src="{{ part.video_url }}" type="video/mp4">
+                          <!-- <source src=".webm" type="video/webm"> -->
+                          <track label="English subtitles" kind="subtitles" srclang="en" src="https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/courseintroduction/courseintroductiontopteen.vtt">
+                        </video>
+                        <h5 class="mt-3">
+                          Part {{ part.id }}
+                          </h2>
+                          <p>{{part.chapter.description}}</p>
+                      </div>
+                    </div>
+
+                    <div class="hidden p-4 bg-gray-50 rounded-lg dark:bg-gray-800" id="p-{{ part.id }}pdf" role="tabpanel" aria-labelledby="p-{{ part.id }}pdf-tab">
+                      <div class="pdf-viewer">
+                        <iframe id="inlineFrameExample" title="Inline Frame Example" width="100%" height="450"
+                          src="{{ part.pdf_url }}"> </iframe>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            {%endfor%}
+          {%endfor%}
+
+        <!--Parts End-->
+
+        <!--Quiz  Start-->
+        {% for chapter in chapters %}
+        {% for part in chapter.parts.all() %}
+        <div id="contentquiz-{{ part.id }}" class="content" style="display: none;">
+          <div class="bg-[#FBFBFB] p-3 rounded">
+            <div class="mt-3 quiz-title">Quiz</div>
+            {% for quiz in part.quizzes.all() %}
+        
+              <div class="qt-dts flex mb-3 w-full">
+                <p class="me-3"><i class="fa-solid fa-list me-1"></i> Questions: <span id="questionProgress">{{ loop.index }}/{{
+                    quiz.questions.all().count() }}</span></p>
+              </div>
+          
+              <div id="startScreen-{{ part.id }}" class="screen text-center">
+                <div class="img-quiz d-flex justify-center"><img src="{{ static ('images1/quiz-start.svg') }}" alt="Quiz" /></div>
+                <h4 class="mt-3">Let's test Basics of Career Counselling Part {{ part.id }}</h4>
+                <p class="my-3"><span>Quiz 1</span> | <span>{{ quiz.questions.all().count() }} Questions</span></p>
+                <p>Let's test your basic knowledge of Career Counselling</p>
+                <button type="button" id="startTestButton-{{ part.id }}" class="btn purple-button px-md-6 fw-600 mt-3">Start
+                  Test</button>
+              </div>
+          
+              <!-- Quiz Form Section -->
+              <form class="white-form" id="multiStepForm-{{ part.id }}" method="POST" autocomplete="off" action=""
+                novalidate="novalidate" style="display: none;">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <input type="hidden" name="part_id" value="{{ part.id }}">
+          
+                {% for question in quiz.questions.all() %}
+                <div class="question {% if loop.first %}active{% endif %}" id="question{{ loop.index }}-{{ part.id }}"
+                  data-quiz-id="{{ quiz.id }}"
+                  data-correct-answer="{% for answer in question.answers.all() %}{% if answer.is_correct %}{{ answer.id }}{% endif %}{% endfor %}">
+                  <div class="question-box" data-question-id="{{ question.id }}">
+                    <div class="question-label">Q{{ loop.index }}: {{ question.question_text }}</div>
+                    <div class="radio-buttons">
+                      {% for answer in question.answers.all() %}
+                      <label class="custom-radio" for="answer_{{ answer.id }}">
+                        <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}">
+                        <span class="radio-btn"><i class="las la-check"></i> {{ answer.answer_text }}</span>
+                      </label>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <div class="assestment-button d-flex justify-content-center my-5">
+                    <button type="button" class="btn blue-button ms-3 prev-button px-md-6 fw-600 me-1">Back</button>
+                    <button type="button" class="btn purple-button next-button px-md-6 fw-600 ms-1">Continue</button>
+                    <button type="submit" class="btn btn-success submit-button btn-sumb px-md-6 fw-600"
+                      style="display: none;">Submit</button>
+                  </div>
+                </div>
+                {% endfor %}
+              </form>
+
+              <div class="screen">
+                {% if json_data %}
+                  {{json_data}}
+                  {%endif%}
+              </div>
+          
+              <!-- Results Screen -->
+              <!-- Result Screen (hidden initially) -->
+              <div id="resultScreen-{{ part.id }}" class="screen" style="display: none;">
+                <div class="text-center">
+                  <div class="rs-i d-flex justify-content-center">
+                    <img style="width:150px;" src="{{ static ('images1/quiz-result-icon.webp')}}" alt="icon">
+                  </div>
+                  <h2>Your Results</h2>
+                  <p>Thank you for completing the quiz!</p>
+                  <div class="rs-ans d-flex justify-content-center my-2">
+                    <div class="correct-ans me-3">
+                      <i class="fa-solid fa-check" style="color: #7dc227;"></i> <span class="correct-count"></span> Correct
+                    </div>
+                    <div class="incorrect-ans">
+                      <i class="fa-solid fa-xmark" style="color:#f04e49;"></i> <span class="incorrect-count"></span> Incorrect
+                    </div>
+                  </div>
+                  <div id="accordion-arrow-icon" data-accordion="open">
+                    <p id="accordion-arrow-icon-heading-{{ part.id }}" class="my-3 d-flex justify-content-center text-blue-600">
+                      <button type="button" class="d-flex" data-accordion-target="#accordion-arrow-icon-body-{{ part.id }}"
+                        aria-expanded="false" aria-controls="accordion-arrow-icon-body-{{ part.id }}">
+                        <span>Show Answer</span>
+                        <svg class="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clip-rule="evenodd"></path>
+                        </svg>
+                      </button>
+                    </p>
+                    <div id="accordion-arrow-icon-body-{{ part.id }}" class="hidden"
+                      aria-labelledby="accordion-arrow-icon-heading-{{ part.id }}">
+          
+                      {% for quiz in part.quizzes.all() %}
+                        {% for question in quiz.questions.all() %}
+                          <div class="question-crs text-left border p-3 mb-3">
+                            <div class="qs-m-review border-bottom py-2 mb-3">
+                              <p class="fs-16 text-dark mt-3">Q{{ loop.index }}: {{ question.question_text }}</p>
+                              <p class="mt-2">Your Answer: <span class="user-answer"></span></p>
+                              {% for answer in question.answers.all() %}
+                              <p>Correct Answer: {{ answer.is_correct }}</p>
+                              {% endfor %}
+                            </div>
+                          </div>
+                        {% endfor %}
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <!-- <div id="alert-border-1" class="flex items-start bg-[#EDE4FC] text-[#541BCF] p-2  " role="alert">
+                    <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                      viewBox="0 0 20 20">
+                      <path
+                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z">
+                      </path>
+                    </svg>
+                    <div class="ms-3 text-sm font-medium px-2"> You are allowed only one retake. Make sure to prepare thoroughly,
+                      as this will be your only opportunity to improve your score. </div>
+          
+                  </div> -->
+                  <!-- <button type="button" class="restart-button btn purple-button px-md-6 fw-600 my-3">Restart Quiz</button> -->
+                </div>
+              </div>
+        
+            {%endfor%}
+        
+          </div>
+          
+        </div>
+        {%endfor%}
+        {%endfor%}
+        </div>
+        
+        <!--quiz End-->
+
+      </div>
+    </div>
+    <!-- End of Right Part -->
+    </div>
+  </main>
+
+  <!-- Mobile Course Chapter -->
+
+  <!-- Main modal -->
+  <div id="course-track-modal" aria-hidden="true"
+    class="hidden overflow-x-hidden overflow-y-auto fixed h-modal md:h-full top-0 left-0 right-0 md:inset-0 z-50 justify-center items-center">
+    <div class="relative w-full max-w-md  h-full md:h-auto">
+      <!-- Modal content -->
+      <div class="bg-white  shadow relative dark:bg-gray-700 h-screen">
+        <div class="flex justify-end p-2">
+          <button type="button"
+            class="top-[36px] right-[36px] text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white"
+            data-modal-toggle="course-track-modal">
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            </svg>
+            <span class="sr-only">Close modal</span> </button>
+        </div>
+        <form class="space-y-6 px-6 lg:px-8 pb-4 sm:pb-6 xl:pb-8" action="#">
+          <div class=" sticky top-[20px]">
+            <div class="my-corse-head px-2 py-3 bg-[#ffffff] m-2">
+              <h4 class="fw-bold mb-0">My Course</h4>
+              <p>Career Counseling Course</p>
+            </div>
+            <div id="accordion-collapse-mb" data-accordion="collapse" class=" px-2 custom-accordion-left">
+
+              <!-- single accordian -->
+              <h2 id="accordion-collapse-heading-mb-1" class="mb-0">
+                <button type="button"
+                  class="flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-500 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                  data-accordion-target="#accordion-collapse-body-mb-1" aria-expanded="true"
+                  aria-controls="accordion-collapse-body-mb-1"> <span>Chapter 1</span>
+                  <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5 5 1 1 5" />
+                  </svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-mb-1" class="hidden" aria-labelledby="accordion-collapse-heading-mb-1">
+                <div class="data-show"> <a class="list-data text">
+                    
+                  
+                 
+                <button type="button" class="list-data text active-lecture content-btn d-flex justify-between w-full" data-target="content2">
+                  <div class="chapter-detail"> Part 1 </div>
+                  <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                </button>
+
+                <button type="button" class="list-data text content-btn d-flex justify-between w-full" data-target="content3">
+                  <div class="chapter-detail"> Part 2 </div>
+                  <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                </button>
+
+                <button type="button" class="list-data text content-btn d-flex justify-between w-full" data-target="content4">
+                  <div class="chapter-detail"> Part 3 </div>
+                  <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                </button>
+
+                <button type="button" class="list-data text content-btn d-flex justify-between w-full" data-target="content5">
+                  <div class="chapter-detail"> Quiz </div>
+                  <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                </button>
+                
+                
+                
+                </div>
+              </div>
+
+              <!-- single accordian -->
+
+              <!-- single accordian -->
+              <h2 id="accordion-collapse-heading-mb-2" class="mb-0">
+                <button type="button"
+                  class="flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-800 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                  data-accordion-target="#accordion-collapse-body-mb-2" aria-expanded="true"
+                  aria-controls="accordion-collapse-body-mb-2"> <span>Chapter 2</span>
+                  <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5 5 1 1 5" />
+                  </svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-mb-2" class="hidden" aria-labelledby="accordion-collapse-heading-mb-2">
+                <div class="data-show"> <a class="list-data text">
+                    <div class="chapter-detail"> Introduction </div>
+                    <div class="test-read-full read-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 4 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 5 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 6 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> </div>
+              </div>
+
+              <!-- single accordian -->
+
+              <!-- single accordian -->
+              <h2 id="accordion-collapse-heading-mb-3" class="mb-0">
+                <button type="button"
+                  class="flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-800 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                  data-accordion-target="#accordion-collapse-body-mb-3" aria-expanded="true"
+                  aria-controls="accordion-collapse-body-mb-3"> <span>Chapter 3</span>
+                  <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5 5 1 1 5" />
+                  </svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-mb-3" class="hidden" aria-labelledby="accordion-collapse-heading-mb-3">
+                <div class="data-show"> <a class="list-data text">
+                    <div class="chapter-detail"> Introduction </div>
+                    <div class="test-read-full read-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 6 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 7 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 8 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> </div>
+              </div>
+
+              <!-- single accordian -->
+
+              <!-- single accordian -->
+              <h2 id="accordion-collapse-heading-mb-4" class="mb-0">
+                <button type="button"
+                  class="flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-800 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                  data-accordion-target="#accordion-collapse-body-mb-4" aria-expanded="true"
+                  aria-controls="accordion-collapse-body-mb-4"> <span>Chapter 4</span>
+                  <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5 5 1 1 5" />
+                  </svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-mb-4" class="hidden" aria-labelledby="accordion-collapse-heading-mb-4">
+                <div class="data-show"> <a class="list-data text">
+                    <div class="chapter-detail"> Introduction </div>
+                    <div class="test-read-full read-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 4 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 5 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 6 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> </div>
+              </div>
+
+              <!-- single accordian -->
+
+              <!-- single accordian -->
+              <h2 id="accordion-collapse-heading-mb-5" class="mb-0">
+                <button type="button"
+                  class="flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-800 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                  data-accordion-target="#accordion-collapse-body-mb-5" aria-expanded="true"
+                  aria-controls="accordion-collapse-body-mb-5"> <span>Chapter 5</span>
+                  <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5 5 1 1 5" />
+                  </svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-mb-5" class="hidden" aria-labelledby="accordion-collapse-heading-mb-5">
+                <div class="data-show"> <a class="list-data text">
+                    <div class="chapter-detail"> Introduction </div>
+                    <div class="test-read-full read-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 4 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 5 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 6 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> </div>
+                -mb
+              </div>
+
+              <!-- single accordian -->
+
+              <!-- single accordian -->
+              <h2 id="accordion-collapse-heading-mb-6" class="mb-0">
+                <button type="button"
+                  class="flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-800 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                  data-accordion-target="#accordion-collapse-body-mb-6" aria-expanded="true"
+                  aria-controls="accordion-collapse-body-mb-6"> <span>Chapter 6</span>
+                  <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5 5 1 1 5" />
+                  </svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-mb-6" class="hidden" aria-labelledby="accordion-collapse-heading-mb-6">
+                <div class="data-show"> <a class="list-data text">
+                    <div class="chapter-detail"> Introduction </div>
+                    <div class="test-read-full read-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-daetail"> Part 4 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 5 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 6 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> </div>
+              </div>
+
+              <!-- single accordian -->
+
+              <!-- single accordian -->
+              <h2 id="accordion-collapse-heading-mba-7" class="mb-0">
+                <button type="button"
+                  class="flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-800 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                  data-accordion-target="#accordion-collapse-body-mba-7" aria-expanded="true"
+                  aria-controls="accordion-collapse-body-mba-7"> <span>Chapter 7</span>
+                  <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5 5 1 1 5" />
+                  </svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-mba-7" class="hidden" aria-labelledby="accordion-collapse-heading-mba-7">
+                <div class="data-show"> <a class="list-data text">
+                    <div class="chapter-detail"> Introduction </div>
+                    <div class="test-read-full read-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 4 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 5 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 6 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> </div>
+              </div>
+
+              <!-- single accordian -->
+
+              <!-- single accordian -->
+              <h2 id="accordion-collapse-heading-mb-8" class="mb-0">
+                <button type="button"
+                  class="flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-800 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                  data-accordion-target="#accordion-collapse-body-mb-8" aria-expanded="true"
+                  aria-controls="accordion-collapse-body-mb-8"> <span>Chapter 8</span>
+                  <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5 5 1 1 5" />
+                  </svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-mb-8" class="hidden" aria-labelledby="accordion-collapse-heading-mb-8">
+                <div class="data-show"> <a class="list-data text">
+                    <div class="chapter-detail"> Introduction </div>
+                    <div class="test-read-full read-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 4 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 5 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 6 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> </div>
+              </div>
+
+              <!-- single accordian -->
+
+              <!-- single accordian -->
+              <h2 id="accordion-collapse-heading-mb-9" class="mb-0">
+                <button type="button"
+                  class="flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-800 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                  data-accordion-target="#accordion-collapse-body-mb-9" aria-expanded="true"
+                  aria-controls="accordion-collapse-body-mb-9"> <span>Chapter 9</span>
+                  <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5 5 1 1 5" />
+                  </svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-mb-9" class="hidden" aria-labelledby="accordion-collapse-heading-mb-9">
+                <div class="data-show"> <a class="list-data text">
+                    <div class="chapter-detail"> Introduction </div>
+                    <div class="test-read-full read-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 4 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 5 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> <a class="list-data text">
+                    <div class="chapter-detail"> Part 6 </div>
+                    <div class="test-read-full unread-circle"> <i class="fa-regular fa-circle"></i> </div>
+                  </a> </div>
+              </div>
+
+              <!-- single accordian -->
+
+              <!-- Certification -->
+              <h2 id="accordion-collapse-heading-mb-11" class="mb-0">
+                <button type="button"
+                  class="flex items-center justify-between w-full p-3 fs-16 rtl:text-right text-gray-800 border-b border-gray-200  focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3 "
+                  data-accordion-target="#accordion-collapse-body-mb-11" aria-expanded="false"
+                  aria-controls="accordion-collapse-body-mb-11"> <span class="text-left"> Claim Your Course
+                    Certificate</span>
+                  <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="false"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5 5 1 1 5" />
+                  </svg>
+                </button>
+              </h2>
+              <div id="accordion-collapse-body-mb-11" class="hidden" aria-labelledby="accordion-collapse-heading-mb-11">
+                <div class="data-show">
+                  <div class="list-data text">
+                    <div class="chapter-detail"> Claim Your Course Certificate </div>
+                    <div class="test-read-full read-circle"> <i class="fa-solid fa-lock"></i> </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Certification -->
+
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- Mobile Course Chapter -->
+
+  <!-- Share Course Modal  -->
+  <div id="share-course-modal" tabindex="-1" aria-hidden="true"
+    class="fixed inset-0 flex items-center justify-center z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto">
+    <div class="relative p-4 w-[350px] max-h-full z-80">
+      <!-- Modal content -->
+      <div class="relative bg-white rounded-lg shadow dark:bg-gray-800">
+        <!-- Modal header -->
+        <div class="flex items-center justify-between p-4 md:p-5">
+          <h3 class="text-lg text-gray-500 dark:text-gray-400"> Share course </h3>
+          <button type="button"
+            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm h-8 w-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-700 dark:hover:text-white"
+            data-modal-toggle="share-course-modal">
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            </svg>
+            <span class="sr-only">Close modal</span> </button>
+        </div>
+        <!-- Modal body -->
+        <div class="px-4 pb-4 md:px-5 md:pb-5">
+          <label for="course-url" class="text-sm font-medium text-gray-900 dark:text-white mb-2 block">Share the course
+            link below with your friends:</label>
+          <div class="social-icon flex justify-center my-5"> <a href="#"><i
+                class="fa-brands fa-square-facebook fs-40 me-3" style="color:#1877F2;"></i> </a> <a href="#"><i
+                class="fa-brands fa-linkedin  fs-40 me-3" style="color: #0a66c2;"></i> </a> </div>
+          <div class="relative mb-4">
+            <input id="course-url" type="text"
+              class="col-span-6 bg-gray-50 border border-gray-300 text-gray-500 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              value="https://www.topteen.in/user/dashboard" disabled readonly>
+            <button data-copy-to-clipboard-target="course-url" data-tooltip-target="tooltip-course-url"
+              class="absolute end-2 top-0 r-0 mt-1 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-2 inline-flex items-center justify-center">
+              <span id="default-icon-course-url">
+                <svg class="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                  viewBox="0 0 18 20">
+                  <path
+                    d="M16 1h-3.278A1.992 1.992 0 0 0 11 0H7a1.993 1.993 0 0 0-1.722 1H2a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2Zm-3 14H5a1 1 0 0 1 0-2h8a1 1 0 0 1 0 2Zm0-4H5a1 1 0 0 1 0-2h8a1 1 0 1 1 0 2Zm0-5H5a1 1 0 0 1 0-2h2V2h4v2h2a1 1 0 1 1 0 2Z" />
+                </svg>
+              </span> <span id="success-icon-course-url" class="hidden inline-flex items-center">
+                <svg class="w-3.5 h-3.5 text-blue-700 dark:text-blue-500" aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 12">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M1 5.917 5.724 10.5 15 1.5" />
+                </svg>
+              </span> </button>
+            <div id="tooltip-course-url" role="tooltip"
+              class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+              <span id="default-tooltip-message-course-url">Copy to clipboard</span> <span
+                id="success-tooltip-message-course-url" class="hidden">Copied!</span>
+              <div class="tooltip-arrow" data-popper-arrow></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Course Modal  -->
+
+</body>
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://kit.fontawesome.com/df31b3ad5b.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script type="text/javascript" src="https://www.topteen.in//static/topteenfrontend/assets/js/slick.min.js"></script>
+<script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
+ <script type="text/javascript" src="{{static('topteenfrontend/assets/js/userDashboard.js')}}">
+  </script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/homePage.js"></script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/common.js"></script>
+<script src="https://www.topteen.in/static/topteenfrontend/assets/js/common.js"></script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/search.js">    </script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/resumeBuilder.js"></script>
+
+<!--new js -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+  integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{{ static ('js/bootstrap.min.js')}}"></script>
+<!--new js -->
+
+<!-- Chart js -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.35.3/apexcharts.min.js"
+  integrity="sha512-yhdujT21BI/kqk9gcupTh4jMwqLhb+gc6Ytgs4cL0BJjXW+Jo9QyllqLbuluI0cBHqV4XsR7US3lemEGjogQ0w=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- Chart js -->
+<script>
+  /*** Chapter onclick Script **/ 
+  document.addEventListener("DOMContentLoaded", function() {
+    const buttons = document.querySelectorAll('.content-btn');
+    const quizButtons = document.querySelectorAll('.quiz-button'); // Select only enabled quiz buttons
+    const contents = document.querySelectorAll('.content');
+
+    // Show the content for Button 1 by default
+    document.getElementById('content1').style.display = 'block'; // Adjust if necessary
+
+    buttons.forEach(button => {
+      button.addEventListener('click', function() {
+        const targetContent = this.getAttribute('data-target');
+
+        // Hide all content divs
+        contents.forEach(content => {
+          content.style.display = 'none';
+        });
+
+        // Show the target content div
+        document.getElementById(targetContent).style.display = 'block';
+      });
+    });
+
+    quizButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        if (this.classList.contains('enabled')) { // Check if the button is enabled
+          const targetContent = this.getAttribute('data-target');
+
+          // Hide all content divs
+          contents.forEach(content => {
+            content.style.display = 'none';
+          });
+
+          // Show the target content div
+          document.getElementById(targetContent).style.display = 'block';
+        }
+      });
+    });
+  });
+  /*** Chapter onclick Script **/   
+</script>
+
+
+<!-- <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Toggle quiz visibility when clicked
+    document.querySelectorAll('[data-target^="contentquiz-"]').forEach(button => {
+        button.addEventListener("click", function () {
+            const quizContent = document.querySelector(`#${this.getAttribute('data-target')}`);
+            quizContent.style.display = quizContent.style.display === 'none' ? 'block' : 'none';
+        });
+    });
+
+    // Start quiz functionality
+    document.querySelectorAll('[id^="startTestButton-"]').forEach(button => {
+        button.addEventListener("click", function () {
+            const partId = this.id.split('-')[1];
+            const startScreen = document.querySelector(`#startScreen-${partId}`);
+            const quizForm = document.querySelector(`#multiStepForm-${partId}`);
+            startScreen.style.display = 'none';
+            quizForm.style.display = 'block';
+        });
+    });
+
+    // Navigation buttons for the quiz
+    document.querySelectorAll('.next-button').forEach(button => {
+        button.addEventListener("click", function () {
+            const currentQuestion = this.closest('.question');
+            const nextQuestion = currentQuestion.nextElementSibling;
+            if (nextQuestion) {
+                currentQuestion.classList.remove('active');
+                nextQuestion.classList.add('active');
+                updateProgress(currentQuestion, nextQuestion);
+            }
+        });
+    });
+
+    document.querySelectorAll('.prev-button').forEach(button => {
+        button.addEventListener("click", function () {
+            const currentQuestion = this.closest('.question');
+            const prevQuestion = currentQuestion.previousElementSibling;
+            if (prevQuestion) {
+                currentQuestion.classList.remove('active');
+                prevQuestion.classList.add('active');
+                updateProgress(currentQuestion, prevQuestion);
+            }
+        });
+    });
+
+    // Update progress bar or question index
+    function updateProgress(currentQuestion, nextQuestion) {
+        const totalQuestions = document.querySelectorAll('.question').length;
+        const currentIndex = [...currentQuestion.parentElement.children].indexOf(currentQuestion) + 1;
+        const nextIndex = [...nextQuestion.parentElement.children].indexOf(nextQuestion) + 1;
+        
+        document.querySelector('#questionProgress').innerText = `${nextIndex}/${totalQuestions}`;
+    }
+
+    // Quiz Submit functionality
+    document.querySelectorAll('.submit-button').forEach(button => {
+        button.addEventListener("click", function () {
+            const form = this.closest('form');
+            const partId = form.id.split('-')[1];
+            const correctAnswers = form.querySelectorAll('.question[data-correct-answer]').length;
+            let correctCount = 0;
+            let incorrectCount = 0;
+
+            form.querySelectorAll('.question').forEach(question => {
+                const selectedAnswer = question.querySelector('input[type="radio"]:checked');
+                const correctAnswerId = question.getAttribute('data-correct-answer');
+                if (selectedAnswer && selectedAnswer.value === correctAnswerId) {
+                    correctCount++;
+                } else {
+                    incorrectCount++;
+                }
+            });
+
+            // Show results
+            document.querySelector(`#resultScreen-${partId}`).style.display = 'block';
+            document.querySelector(`#resultScreen-${partId} .correct-count`).innerText = correctCount;
+            document.querySelector(`#resultScreen-${partId} .incorrect-count`).innerText = incorrectCount;
+
+            // Hide quiz form after submission
+            form.style.display = 'none';
+        });
+    });
+});
+
+</script> -->
+<script>
+  $(document).ready(function () {
+      $('.content').each(function () {
+          
+          const partId= this.id.split('-')[1];
+          const startButton = $(`#startTestButton-${partId}`);
+          const startScreen = $(`#startScreen-${partId}`);
+          const multiStepForm = $(`#multiStepForm-${partId}`);
+          const resultScreen = $(`#resultScreen-${partId}`);
+
+          // const restartButton = resultScreen.find('.restart-button');
+          const questions = multiStepForm.find('.question');
+          const totalQuestions = questions.length;
+          let currentQuestion = 1;
+          let correctAnswers = 0;
+          let incorrectAnswers = 0;
+
+          // Function to show a specific question
+          function showQuestion(number) {
+              questions.hide();
+              $(`#question${number}-${partId}`).show();
+
+              // Toggle navigation buttons
+              multiStepForm.find('.next-button').toggle(number < totalQuestions);
+              multiStepForm.find('.prev-button').toggle(number > 1);
+              multiStepForm.find('.submit-button').toggle(number === totalQuestions);
+          }
+
+          // Start test event
+          startButton.on('click', function () {
+              startScreen.hide();
+              resultScreen.hide();
+              multiStepForm.show();
+              currentQuestion = 1; // Reset question tracker
+              showQuestion(currentQuestion);
+          });
+
+          // Navigation button handlers
+          multiStepForm.find('.next-button').on('click', function () {
+              if (currentQuestion < totalQuestions) {
+                  currentQuestion++;
+                  showQuestion(currentQuestion);
+              }
+          });
+
+          multiStepForm.find('.prev-button').on('click', function () {
+              if (currentQuestion > 1) {
+                  currentQuestion--;
+                  showQuestion(currentQuestion);
+              }
+          });
+
+          multiStepForm.find('.submit-button').on('click', function () {
+            // Initialize counters
+            let correctAnswers = 0;
+            let incorrectAnswers = 0;
+
+            // Calculate results
+            questions.each(function () {
+                const selectedAnswer = $(this).find('input[type="radio"]:checked').val();
+                const correctAnswer = $(this).data('correct-answer');
+
+                if (selectedAnswer == correctAnswer) {
+                    correctAnswers++;
+                } else {
+                    incorrectAnswers++;
+                }
+            });
+
+            // Display results
+            resultScreen.find('.correct-ans').html(`<i class="fa-solid fa-check" style="color: #7dc227;"></i> ${correctAnswers} Correct`);
+            resultScreen.find('.incorrect-ans').html(`<i class="fa-solid fa-xmark" style="color:#f04e49;"></i> ${incorrectAnswers} Incorrect`);
+
+            // Hide the multi-step form
+            multiStepForm.hide();
+            resultScreen.show();
+
+            // Prepare data for sending
+            const resultsData = {
+                correct_answers: correctAnswers,
+                incorrect_answers: incorrectAnswers,
+                csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val() // Include CSRF token
+            };
+
+            // Send the results to the Django view
+            $.ajax({
+                type: 'POST',
+                url: '', // Specify the URL you want to POST to
+                data: resultsData,
+                success: function (response) {
+                    // Handle response from Django if needed
+                    console.log(response);
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error occurred:', error);
+                }
+            });
+        });
+
+          
+      });
+  });
+</script>
+
+
+
+<script>
+  // Get all progress containers
+  const progressContainers = document.querySelectorAll('.progress-container');
+
+  progressContainers.forEach(container => {
+    const videoId = container.getAttribute('data-video-id');
+    const video = document.getElementById(videoId);
+    const progressCircle = container.querySelector('.progress-circle');
+    const tooltip = container.querySelector('.tooltip');
+    const tick = container.querySelector('.tick');
+
+    // Calculate the circumference
+    const radius = 10.5;
+    const circumference = 2 * Math.PI * radius;
+
+    // Set initial stroke-dasharray and stroke-dashoffset
+    progressCircle.style.strokeDasharray = `${circumference}`;
+    progressCircle.style.strokeDashoffset = `${circumference}`;
+
+    // Update progress function
+    function updateProgress() {
+      const currentTime = video.currentTime;
+      const duration = video.duration;
+      const progress = currentTime / duration;
+      const offset = circumference * (1 - progress);
+
+      // Update stroke-dashoffset
+      progressCircle.style.strokeDashoffset = offset;
+
+      // Update tooltip
+      const percentage = Math.round(progress * 100);
+      tooltip.textContent = `Progress: ${percentage}%`;
+    }
+
+    // Add event listeners to the video
+    video.addEventListener('timeupdate', updateProgress);
+
+    // When the video ends
+    video.addEventListener('ended', () => {
+      progressCircle.style.display = 'none'; // Hide progress circle
+      tick.style.display = 'flex'; // Show tick mark
+      tooltip.textContent = 'Completed'; // Update tooltip to "Completed"
+    });
+
+    // Reset when the video starts playing
+    video.addEventListener('play', () => {
+      progressCircle.style.display = ''; // Show progress circle
+      tick.style.display = 'none'; // Hide tick mark
+      tooltip.textContent = 'Progress: 0%'; // Reset tooltip
+    });
+  });
+</script>
+
+
+
+
+
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'topteenfrontend/base.html' %}
+
+{% block main %}
+          <!-- RESOURCES FOR MOBILE -->
+          <section class="mb-[35px] mx-[17px] lg:hidden">
+            <h3
+
+            class=" text-center text-[28px] leading-[37.8px] tracking-[0.035em] text-[#333333] font-semibold"
+          >
+            Skill Lab Courses
+          </h3>
+            <div
+              class=" overflow-x-auto pb-2"
+            >
+              <!-- FIRST COL -->
+              {%for skill in skilllab %}
+              <a href="{{url('skilllab:skilllabcoursedetail',args=[skill.slug])}}">
+                
+              <div
+              class="shrink-0 flex flex-col justify-start items-start gap-y-[19px]"
+              >
+                <!-- FIRST COL FIRST ROW -->
+                <div
+                  class="mx-auto shrink-0"
+                >
+                  <div class="h-full w-full rounded-[10px] overflow-hidden">
+                    {%if skill.video_url%}
+                    <iframe src="{{skill.video_url}}" frameborder="0"   class="w-[340px] h-[200px]"
+                    ></iframe> 
+                    {%else%}
+                    <img class="w-[340px] h-[200px]" src="{{skill.image}}" >
+                    {%endif%}
+                    
+                  </div>
+                <div
+                    class=" px-[9px] py-[5px] rounded-[100px] bg-[#3F37C9] text-white inline-block semibold mt-3">
+                    <a href="{{url('skilllab:skilllabcoursedetail',args=[skill.slug])}}">{{skill.name}}</a>
+                    </div> 
+
+                  <div class="">
+                    <p
+                      class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]"
+                    >
+                    {{skill.description|truncate(50)|safe}}
+                </p>
+                    
+                  </div>
+                </div>
+              </div>
+            </a> 
+                
+              {%endfor%}
+            </div>    
+          </section>  
+    
+
+   <!-- RESOURCES  FOR DESKTOP-->
+   <section
+   class="hidden lg:flex flex-col justify-start max-w-[1082px] mb-[76px] mx-auto"
+ >
+    <h3 class=" mx-0 text-left text-[36px] leading-[37.8px] tracking-[0.035em] text-[#333333] font-semibold"
+    > Skill Lab Courses 
+        </h3>
+   <div class="grid lg:grid-cols-4 gap-x-8 gap-y-[48px]">
+     {%for skill in skilllab[:8] %}
+     <!-- IMAGE CARD -->
+     <div>
+         <br>
+       <a href="{{url('skilllab:skilllabcoursedetail',args=[skill.slug])}}">
+       <div class="h-[208px] w-full max-w-[248px] mb-[23px]">
+        {%if skill.video_url%}
+        <iframe src="{{skill.video_url}}" frameborder="0"   class="w-full h-full rounded"
+        ></iframe> 
+        {%else%}
+        <img class="h-full w-full rounded" src="{{skill.image}}" >
+        {%endif%}
+       </div>
+     </a>
+       <div
+       class="px-[9px] py-[5px] rounded-[100px] bg-[#3F37C9] text-white inline-block mb-3.5 semibold"
+       
+       >
+       {{skill.category}}
+     </div>
+     
+     <a href="#">
+     <h5
+     class="text-lg semibold text-[#333333] tracking-[0.01em] mb-[5px]"
+     >
+     <a href="{{url('skilllab:skilllabcoursedetail',args=[skill.slug])}}">{{skill.name}}</a>
+   </h5>
+   </a>
+ </div>
+ {%endfor%}
+   </div>
+ </section>
+
+{% endblock main %}

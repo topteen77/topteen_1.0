@@ -1,0 +1,51 @@
+{% if breadcrumb %}
+<div class="col-md-12">
+  <div class="breadcrumb">
+    <ol class="ps-0">
+      <li>
+        <a class="active" href="{{ url('core:home') }}">Home</a>
+      </li>
+      {% if breadcrumb is iterable and breadcrumb is not string and breadcrumb is not mapping %}
+        {# If breadcrumb is a list/array (not a dict) #}
+        {% for item in breadcrumb %}
+          {% if item is mapping %}
+            {# item is a dict - use .get() method #}
+            {% set item_text = item.get('text', '') or item.get('title', '') %}
+            {% set item_url = item.get('url', '#') %}
+          {% else %}
+            {# item is an object - access as dict using bracket notation #}
+            {% set item_text = item['text'] if 'text' in item else (item['title'] if 'title' in item else '') %}
+            {% set item_url = item['url'] if 'url' in item else '#' %}
+          {% endif %}
+          {% if not loop.last %}
+            <li>
+              <a href="{{ item_url }}">{{ item_text }}</a>
+            </li>
+          {% else %}
+            <li>{{ item_text }}</li>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {# If breadcrumb is a single object/dict #}
+        {% if breadcrumb is mapping %}
+          {# breadcrumb is a dict - use .get() method #}
+          {% set breadcrumb_text = breadcrumb.get('text', '') or breadcrumb.get('title', '') %}
+          {% set breadcrumb_url = breadcrumb.get('url', '') %}
+        {% else %}
+          {# breadcrumb might be a string or other type #}
+          {% set breadcrumb_text = breadcrumb|string if breadcrumb else '' %}
+          {% set breadcrumb_url = '' %}
+        {% endif %}
+        {% if breadcrumb_url %}
+          <li>
+            <a href="{{ breadcrumb_url }}">{{ breadcrumb_text }}</a>
+          </li>
+        {% else %}
+          <li>{{ breadcrumb_text }}</li>
+        {% endif %}
+      {% endif %}
+    </ol>
+  </div>
+</div>
+{% endif %}
+

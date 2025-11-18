@@ -1,0 +1,537 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Career Interest Assessment Test | Top Teen{% endblock %}
+{% block description_content %}Take the Career Interest Assessment test to discover your career interests.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} test-view-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .test-view-page {
+    padding-top: 80px;
+  }
+  .question {
+    display: none;
+  }
+  .question.active {
+    display: block;
+  }
+  .question-box {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+  }
+  .career-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .career-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 2px solid #efefee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #fff;
+  }
+  .career-checkbox:hover {
+    border-color: #3f37c9;
+    background: rgba(63, 55, 201, 0.05);
+  }
+  .career-checkbox input[type="checkbox"] {
+    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+  .career-checkbox input[type="checkbox"]:checked + label {
+    color: #3f37c9;
+    font-weight: 600;
+  }
+  .career-checkbox:has(input[type="checkbox"]:checked) {
+    border-color: #3f37c9;
+    background: rgba(63, 55, 201, 0.1);
+  }
+  .career-checkbox label {
+    cursor: pointer;
+    margin: 0;
+    flex: 1;
+  }
+  .test-stats-box {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+  .test-stats-box .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #3f37c9;
+  }
+  .test-stats-box .stat-label {
+    font-size: 12px;
+    color: #828282;
+    margin-top: 5px;
+  }
+  .loader {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 20px auto;
+  }
+  .loader-inner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border-radius: 50%;
+  }
+  .loader-inner.box1 {
+    left: 0%;
+    top: 0%;
+    animation: cssload-rotate-one 1.15s linear infinite;
+    border-bottom: 3px solid #5C5EDC;
+  }
+  .loader-inner.box2 {
+    right: 0%;
+    top: 0%;
+    animation: cssload-rotate-two 1.15s linear infinite;
+    border-right: 3px solid rgba(76, 70, 101, 0.99);
+  }
+  .loader-inner.box3 {
+    right: 0%;
+    bottom: 0%;
+    animation: cssload-rotate-three 1.15s linear infinite;
+    border-top: 3px solid #e9908a;
+  }
+  @keyframes cssload-rotate-one {
+    0% { transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg); }
+    100% { transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg); }
+  }
+  @keyframes cssload-rotate-two {
+    0% { transform: rotateX(50deg) rotateY(10deg) rotateZ(0deg); }
+    100% { transform: rotateX(50deg) rotateY(10deg) rotateZ(360deg); }
+  }
+  @keyframes cssload-rotate-three {
+    0% { transform: rotateX(35deg) rotateY(55deg) rotateZ(0deg); }
+    100% { transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg); }
+  }
+  .load-effect {
+    background: rgba(255, 255, 255, 0.95);
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    z-index: 9999;
+    right: 0;
+    left: 0;
+    backdrop-filter: blur(3px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  @media (max-width: 768px) {
+    .career-grid {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="test-view-page pb-5">
+  <div class="container">
+    <div class="row">
+      <!-- Left Sidebar (Desktop) -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
+          <div class="profile-header text-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="profile-img rounded-circle mb-3" style="width: 104px; height: 104px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 104px; height: 104px;">
+              <i class='bx bx-user fs-48 text-gray'></i>
+            </div>
+            {% endif %}
+            <h5 class="profile-name">{{ request.user.name|default(request.user.username) }}</h5>
+            <div class="profile-meta text-gray fs-14">
+              <p class="mb-1">
+                <i class='bx bx-calendar me-1'></i>
+                Joined {{ date_format(request.user.created) }}
+              </p>
+              {% if request.user.user_profile %}
+              <p class="mb-0">
+                <i class='bx bx-book me-1'></i>
+                {% if request.user.student_management.last().class_and_section %}{{ request.user.student_management.last().class_and_section }}{% endif %}
+                {% if request.user.user_profile.schoolname %} • {{ request.user.user_profile.schoolname }}{% endif %}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Test Stats -->
+          <div class="test-stats-box mt-4">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-time fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="totalTime">00:00</p>
+                <p class="stat-label">Total Time</p>
+              </div>
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-list-check fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="questionProgress">1/{{ questions.count() }}</p>
+                <p class="stat-label">Question</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="col-lg-8">
+        <!-- Mobile Header -->
+        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex align-items-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px;">
+              <i class='bx bx-user fs-24 text-gray'></i>
+            </div>
+            {% endif %}
+            <div>
+              <h5 class="mb-0">{{ request.user.name|default(request.user.username) }}</h5>
+              <p class="text-gray fs-12 mb-0">Joined {{ date_format(request.user.created) }}</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
+            <i class='bx bx-cog'></i>
+          </button>
+        </div>
+
+        <!-- Mobile Test Stats -->
+        <div class="d-lg-none mb-4">
+          <div class="test-stats-box">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-time fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="totalTimeMobile">00:00</p>
+                <p class="stat-label">Total Time</p>
+              </div>
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-list-check fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="questionProgressMobile">1/{{ questions.count() }}</p>
+                <p class="stat-label">Question</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="fs-24 fw-semibold mb-3">Career Interest Assessment</h2>
+        
+        <div class="alert alert-info d-flex align-items-center mb-4">
+          <i class='bx bx-info-circle me-2 fs-20'></i>
+          <div class="fs-14">Select all the careers that interest you. You can select multiple options for each question.</div>
+        </div>
+
+        <form id="multiStepForm" method="post" action="{{ url('app:app_submit') }}">
+          <div class="alert alert-danger" id="error-message" style="display: none;">
+            <i class='bx bx-error-circle me-2'></i> Please select at least one option for all questions before submitting.
+          </div>
+          
+          <input type="hidden" name="test_paper" value="{{ test_paper }}">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          
+          {% for question in questions %}
+          <div class="question {% if loop.first %}active{% endif %}" id="question{{ loop.index }}">
+            <div class="question-box">
+              {% if question.question_text %}
+              <div class="question-label fs-18 fw-semibold mb-4">
+                <span class="text-purple me-2">Q{{ loop.index }}:</span>
+                {{ question.question_text }}
+              </div>
+              {% else %}
+              <div class="question-label fs-18 fw-semibold mb-4">
+                <span class="text-purple me-2">Q{{ loop.index }}:</span>
+                Select the careers that interest you:
+              </div>
+              {% endif %}
+              
+              <!-- Career Options Grid -->
+              <div class="career-grid">
+                {% if question.answers.all() %}
+                  {% for answer in question.answers.all() %}
+                  <div class="career-checkbox">
+                    <input type="checkbox" 
+                           name="question_{{ loop.parent.loop.index }}_careers" 
+                           id="career-{{ loop.parent.loop.index }}-{{ loop.index }}" 
+                           value="{{ answer.text }}">
+                    <label for="career-{{ loop.parent.loop.index }}-{{ loop.index }}">
+                      {{ answer.text }}
+                    </label>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <!-- Fallback: If no answers in database, show placeholder careers -->
+                  <!-- This can be customized based on actual data structure -->
+                  <div class="career-checkbox">
+                    <input type="checkbox" name="question_{{ loop.index }}_careers" id="career-{{ loop.index }}-1" value="Career Option 1">
+                    <label for="career-{{ loop.index }}-1">Career Option 1</label>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3 my-4">
+              {% if not loop.first %}
+              <button type="button" class="btn custom-button blue-button prev-button">Back</button>
+              {% endif %}
+              {% if not loop.last %}
+              <button type="button" class="btn custom-button purple-button next-button">Continue</button>
+              {% else %}
+              <button type="submit" onclick="return validateForm()" class="btn btn-success submit-button">
+                <i class='bx bx-check me-2'></i> Submit Test
+              </button>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Loading Overlay -->
+<div id="loader" class="load-effect" style="display: none;">
+  <div class="loader">
+    <div class="loader-inner box1"></div>
+    <div class="loader-inner box2"></div>
+    <div class="loader-inner box3"></div>
+  </div>
+  <p class="mt-3">
+    <img src="{{ static('images_new/logos/topteen-logo.svg') }}" style="height: 45px;" alt="TopTeen">
+  </p>
+</div>
+
+<!-- Mobile Drawer -->
+<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-lg-none" data-direction="translate-y-full">
+  <div class="drawerContent bg-white w-100 rounded-t-lg absolute bottom-0">
+    <div class="p-4 d-flex flex-column gap-3">
+      <a href="{{ url('users:logout') }}" class="d-flex justify-content-between align-items-center text-decoration-none text-danger">
+        <div>
+          <h6 class="mb-0">Sign Out</h6>
+          <p class="text-danger fs-12 mb-0">Log out from your account</p>
+        </div>
+        <i class='bx bx-chevron-right'></i>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script>
+  $(document).ready(function () {
+    let currentQuestion = 1;
+    const totalQuestions = $('.question').length;
+    let startTime, timerInterval;
+    let totalSeconds = 10 * 60; // 10 minutes in seconds (as per intro instructions)
+
+    // Timer functionality
+    function startTimer() {
+      startTime = Date.now();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+      const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+      
+      const minutes = Math.floor(remainingSeconds / 60);
+      const seconds = remainingSeconds % 60;
+      const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+      $('#totalTime').text(timeString);
+      $('#totalTimeMobile').text(timeString);
+
+      // Auto-submit when time is up (optional - currently commented)
+      // if (remainingSeconds <= 0) {
+      //   clearInterval(timerInterval);
+      //   $('#multiStepForm').submit();
+      // }
+    }
+
+    // Question navigation
+    function showQuestion(number) {
+      $('.question').removeClass('active');
+      $('#question' + number).addClass('active');
+      
+      const progressText = number + ' / ' + totalQuestions;
+      $('#questionProgress').text(progressText);
+      $('#questionProgressMobile').text(progressText);
+      
+      $('.next-button').toggle(number < totalQuestions);
+      $('.prev-button').toggle(number > 1);
+      $('.submit-button').toggle(number === totalQuestions);
+    }
+
+    // Next button
+    $('.next-button').on('click', function () {
+      const currentQuestionBox = $('#question' + currentQuestion);
+      const checkedBoxes = currentQuestionBox.find('input[type="checkbox"]:checked').length;
+      
+      // For test2, at least one checkbox should be selected (optional validation)
+      // You can remove this if multiple selections are not required
+      if (checkedBoxes > 0 || true) { // Allow proceeding even if none selected
+        if (currentQuestion < totalQuestions) {
+          currentQuestion++;
+          showQuestion(currentQuestion);
+          $('#error-message').hide();
+        }
+      } else {
+        $('#error-message').show();
+        setTimeout(function () {
+          $('#error-message').hide();
+        }, 3000);
+      }
+    });
+
+    // Previous button
+    $('.prev-button').on('click', function () {
+      if (currentQuestion > 1) {
+        currentQuestion--;
+        showQuestion(currentQuestion);
+      }
+    });
+
+    // Form validation
+    function validateForm() {
+      let allAnswered = true;
+      $('.question').each(function () {
+        const checkedBoxes = $(this).find('input[type="checkbox"]:checked').length;
+        // At least one selection per question (optional - can be removed)
+        // if (checkedBoxes === 0) {
+        //   allAnswered = false;
+        // }
+      });
+
+      if (!allAnswered) {
+        $('#error-message').show();
+        setTimeout(function () {
+          $('#error-message').hide();
+        }, 3000);
+        // Scroll to first unanswered question
+        $('.question').each(function () {
+          const questionNum = $(this).attr('id').replace('question', '');
+          const checkedBoxes = $(this).find('input[type="checkbox"]:checked').length;
+          if (checkedBoxes === 0) {
+            showQuestion(parseInt(questionNum));
+            return false;
+          }
+        });
+        return false;
+      }
+
+      // Show loader on submit
+      $('#loader').show();
+      return true;
+    }
+
+    // Form submit handler
+    $('#multiStepForm').on('submit', function(e) {
+      e.preventDefault();
+      const testPaper = $('input[name="test_paper"]').val();
+      const formData = $(this).serialize();
+      
+      // Validate all questions have at least one selection (optional)
+      let allAnswered = true;
+      $('.question').each(function () {
+        const checkedBoxes = $(this).find('input[type="checkbox"]:checked').length;
+        // Uncomment if at least one selection is required per question
+        // if (checkedBoxes === 0) {
+        //   allAnswered = false;
+        // }
+      });
+
+      if (allAnswered) {
+        $('#loader').show();
+        
+        // AJAX call to submit the form
+        $.ajax({
+          type: 'POST',
+          url: $(this).attr('action'),
+          data: formData,
+          success: function (response) {
+            $('#loader').show();
+            // Redirect after successful submission
+            window.location.href = '/app/submit/';
+          },
+          error: function (error) {
+            $('#loader').hide();
+            console.error("Error:", error);
+            alert('An error occurred while processing your request.');
+          }
+        });
+      } else {
+        $('#error-message').show();
+        setTimeout(function () {
+          $('#error-message').hide();
+        }, 3000);
+        // Scroll to first unanswered question
+        $('.question').each(function () {
+          const questionNum = $(this).attr('id').replace('question', '');
+          const checkedBoxes = $(this).find('input[type="checkbox"]:checked').length;
+          if (checkedBoxes === 0) {
+            showQuestion(parseInt(questionNum));
+            return false;
+          }
+        });
+      }
+    });
+
+    // Start timer when page loads
+    startTimer();
+
+    // Drawer functionality for mobile
+    const drawerTrigger = document.querySelector('.drawerTrigger');
+    const drawerModal = document.querySelector('.drawerModal');
+    
+    if (drawerTrigger && drawerModal) {
+      drawerTrigger.addEventListener('click', function() {
+        drawerModal.classList.toggle('translate-y-full');
+        drawerModal.classList.toggle('translate-y-0');
+      });
+
+      drawerModal.addEventListener('click', function(event) {
+        if (event.target === drawerModal) {
+          drawerModal.classList.add('translate-y-full');
+          drawerModal.classList.remove('translate-y-0');
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
+

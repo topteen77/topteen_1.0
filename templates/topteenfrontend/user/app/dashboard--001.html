@@ -1,0 +1,902 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
+
+<style>
+  p {
+    margin: 0px;
+    color: inherit;
+  }
+</style>
+
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full overflow-y-auto pb-[60px] lg:pb-0">
+
+  <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+    <!-- Left Part Mobile -->
+    <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+      <!-- User -->
+      <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+        <div class="flex gap-[17px]">
+          <div>
+            <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" />
+          </div>
+          <div class="flex flex-col gap-y-[5px]">
+            <div class="pt-[12px]">
+              <p class="text-[15px] leading-[20.25px] font-semibold">
+                {{request.user}}
+              </p>
+            </div>
+            <div class="flex flex-col gap-y-[3px]">
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  Joined {{request.user.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
+                  class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  {% if request.user.user_profile %}
+                  {% if request.user.student_management.last().class_and_section %}
+                  {{request.user.student_management.last().class_and_section}}
+                  {% endif %} • {% if request.user.user_profile.schoolname %}
+                  {{request.user.user_profile.schoolname}}{% endif %}
+                  {% else %} - • - {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-direction="translate-y-full"
+          class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+          <i class="fa fa-gear text-white text-[12.5px]"></i>
+        </button>
+      </div>
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div id="comppro"
+        class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[100px] pt-[18px] relative">
+        <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+          <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+        </div>
+        <div>
+          <div class="flex relative">
+            <div class="absolute -left-[24px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" class="w-[81px] h-[81px]"
+                alt="" />
+            </div>
+            <div class="text-left max-w-[217.5px] ml-[74px]">
+              <div>
+                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+
+    <!-- End of left Part Mobile -->
+
+    <!-- Left part Desktop -->
+
+    <div class="flex  hidden lg:block w-[338px] ">
+      <div class=" border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto h-[902px] sticky-sidebar">
+        <!-- User -->
+        <div class="flex justify-center border-b-[1px] border-solid border-[#dedede] ">
+          <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px]">
+
+            <div class=" flex flex-col justify-center items-center">
+
+              <div class="flex justify-center items-center w-full">
+                <div class="flex gap-[8px]">
+                  <div class="relative">
+                    <!-- <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" /> -->
+                    <img src="{{request.user.image.url}}"
+                      class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" />
+
+                    
+                  </div>
+                </div>
+              </div>
+
+              <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
+
+            </div>
+
+
+            <div class="flex flex-col gap-y-[8px]">
+
+              <div class="flex gap-[14px]">
+                <img src="{{ static ('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]"
+                  alt="" />
+                <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                  Joined {{request.user.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[14px]">
+                <img src="{{ static ('topteenfrontend/assets/images/userGrade.png')}}" class="w-[18px] h-[14px]"
+                  alt="" />
+                <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                  {% if request.user.user_profile %} {% if request.user.student_management.last().class_and_section
+                  %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if
+                  request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{% else %} -
+                  •
+                  - {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- End of User -->
+
+        <!-- Complete Profile -->
+        <div class="flex justify-center pt-[18px] flex-col">
+          <div class="flex flex-col items-center">
+            <div class="flex gap-[18px]">
+              <div class="w-[45px] h-[44px]"><img src="{{static ('topteenfrontend/assets/images/verified-account-2.png') }}" alt="no image" /></div>
+              <div class="text-left max-w-[206px] flex flex-col gap-y-[5px]">
+                <div>
+                  <p class="text-[12px] leading-[16.2px] font-semibold text-[#333333]"> Complete your profile </p>
+                  <p class="text-[10px] leading-[14.5px] font-normal text-[#828282]"> A complete profile helps us cater the best content to you </p>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-[205px] h-[10px] rounded-[100px] bg-[#4cc9f0] bg-opacity-[0.15]">
+                  <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+                </div>
+                <!-- End of Progress Bar -->
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="w-[295px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[19px]"> <a href="{{ url('users:profiledetails') }}">
+                <div
+                  class="w-full h-[48px] flex gap-[11.56px] justify-center rounded-[10px] bg-[#3f37c9] text-[#ffffff]">
+                  <i class="fa fa-gear my-auto" aria-hidden="true"></i>
+                  <p class="text-[14px] leading-[18.9px] font-bold my-auto text-white"> SETTINGS </p>
+                </div>
+              </a>
+
+
+
+            </div>
+
+            <a href="{{ url ('app:quick-link') }}" class="">
+              <button class="uppercase  w-[295px] h-[53px] bg-[#4CC9F0] rounded-[10px] text-xs text-white font-bold tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mt-3 text-[14px] ">
+                <span class="text-[18px]"> <i class="fa-solid fa-shield-heart"></i></span><span>Quick Links</span>
+              </button>
+            </a>
+            <!-- End of settings -->
+
+
+
+
+          </div>
+
+          <!-- career Tree -->
+          <div class="flex flex-col items-center p-3 text-center mt-5">
+
+            <div class="tree-image"><img src="{{ static ('images1/career-tree.png')}}" alt="career tree" /> </div>
+            <p>Lorem ipsum dolor sit amet consectetur.</p>
+            
+            <a href="{{ url ('app:career-tree') }}" class="w-full">
+              <button
+                  class="w-full h-[48px] py-[10px] bg-[#5CCD16] rounded-[10px] text-white flex flex-row justify-center items-center gap-x-[5px] text-sm boldFont uppercase border-b-4 border-[#51B613] mt-2 text-[14px]"
+                  >
+                  <span><i class="fa fa-leaf" aria-hidden="true"></i></span><span>Start tree</span>
+              </button>
+          </a>
+          
+
+          </div>
+          <!-- career Tree -->
+
+        </div>
+        <!-- End of Complete Profile -->
+      </div>
+    </div>
+    <!-- End of Left part Desktop -->
+
+    <!-- Right Part -->
+    <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20">
+      <h2 class="title-test-info md:mt-1 mt-5 mb-0">Welcome </h2>
+
+      <!--Institute information-->
+      <div
+        class="flex flex-wrap justify-center sm:justify-start gap-[10px] lg:gap-[30px] pt-[14px] lg:pt-[16px] mx-auto">
+        <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px]  py-[15px] bg-[#f7f7fa] rounded-[10px]">
+          <div> <img src="{{ static ('images1/test-attempt-icon.png')}}" class="w-[30px] h-[30px]" alt=""> </div>
+          <div>
+            <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold"> 3 </p>
+            <p class="text-[10px] leading-[14.5px] text-[#828282]"> Test Attempts </p>
+          </div>
+        </div>
+        <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px] py-[15px] bg-[#f7f7fa] rounded-[10px]">
+          <div> <img src="{{ static ('images1/badge.png')}}" class="w-[30px] h-[30px]" alt=""> </div>
+          <div>
+            <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold"> 1200 </p>
+            <p class="text-[10px] leading-[14.5px] text-[#828282]"> Total Points </p>
+          </div>
+        </div>
+      </div>
+      
+      <!--Psychometric Test Report -->
+      <h3 class="title-test-info my-5 fs-18">Psychometric Test Report</h3>
+      <div class="card border-0">
+        <div class="card-body bg-[#f7f7fa] rounded border-0">
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="r-box r-box-one">
+              <div class="rone-top">
+                <div class="c-grpah">
+
+                <div id="Personality"></div>
+
+                </div>
+                <p>Personality</p>
+              </div>
+              <div class="db-info rounded-[10px] flex flex-col p-1  text-white justify-center items-center">
+                <p>{{ top_category.fullname }}</p>
+                <!-- <span>Realistic investigative Artistic</span> -->
+              </div>
+            </div>
+            <div class="r-box r-box-two">
+              <div class="rone-top">
+                <div class="c-grpah">
+
+                <div id="Interest"></div>
+
+                </div>
+                <p>Interest</p>
+              </div>
+              <div class="db-info rounded-[10px] flex flex-col p-1 text-white justify-center items-center">
+                <p>{{ max_length }}</p>
+              </div>
+            </div>
+            <div class="r-box r-box-three">
+              <div class="rone-top">
+                <div class="c-grpah">
+
+                <div id="Intelligence"></div>
+
+                </div>
+                <p>Intelligence</p>
+              </div>
+              
+                {% if above_avg %}
+                  <div class="db-info rounded-[10px] flex flex-col p-1  text-white justify-center items-center">
+                    <p>{{ above_avg[0] }} REASONING</p>
+                  </div>
+                
+                {% else %}
+                  <div class="db-info rounded-[10px] flex flex-col p-1  text-white justify-center items-center">
+                    <p>No Above Reasoning</p>
+                  </div>            
+              {% endif %}
+            </div>
+          </div>
+          <div class="flex justify-center mt-4">
+            <a href="{{ url ('app:final_assessment_pdf')}}">
+              <button type="button" class="btn purple-button max-w-[150px]">View Report</button>
+            </a>
+
+            <!-- <button type="button" class="btn purple-button max-w-[150px]">View Report</button> -->
+          </div>
+        </div>
+      </div>
+      <!--Psychometric Test Report -->
+      <h3 class="title-test-info my-5 fs-18">Suggested Streams based on Personality</h3>
+      <div class="card border-0 ">
+        <div class="card-body bg-[#f7f7fa] rounded border-0">
+          <div class="grid grid-cols-2 gap-3">
+            {% for stream, subject in streamsubject %}
+            <div class="sg-stream-card p-3 flex rounded-[10px] items-center ">
+              <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static('images/pcm-icon.png')}}"
+                  alt="pcm" /> </div>
+              <p class="fw-bold">{{ stream }}</p>
+              <div class="subject-list">
+                <ul class="mb-0">
+                  <li>{{ subject }}</li>
+                </ul>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <!--Psychometric Test Report -->
+      
+      <!--Psychometric Test Report -->
+      {% if above_avg %}
+      <h3 class="title-test-info my-5 fs-18">Suggested Streams based on Intelligence</h3>
+      <div class="card border-0 ">
+        <div class="card-body bg-[#f7f7fa] rounded border-0">
+          <div class="grid grid-cols-2 gap-3">
+            {% if 'NUMERICAL' in above_avg %}
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/pcm-icon.png' )}}" alt="img">  
+                </div>
+                <p class="fw-bold">PCM</p>
+                <div class="subject-list">
+                  <ul class="mb-0">
+                    <li>Physics Chemistry Mathematics</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/cwm-icon.png' )}}" alt="img"> 
+                </div>
+                <p class="fw-bold">CWM</p>
+                <div class="subject-list">
+                  <ul class="mb-0">
+                    <li>Commerce With Mathematics</li>
+                  </ul>
+                </div>
+              </div>
+
+            {% elif 'VERBAL' in above_avg %}
+
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/hum-icon.png' )}}" alt="img">  
+                </div>
+                <p class="fw-bold">HUM</p>
+                <div class="subject-list">
+                  <ul class="mb-0">
+                    <li>Humanities</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/cwm-icon.png' )}}" alt="img"> 
+                </div>
+                <p class="fw-bold">CWM</p>
+                  <div class="subject-list">
+                    <ul class="mb-0">
+                      <li>Commerce With Mathematics</li>
+                    </ul>
+                  </div>
+              </div>
+
+            {% elif 'LOGICAL' in above_avg %}
+
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/pcm-icon.png' )}}" alt="img">  
+                </div>
+                <p class="fw-bold">PCM</p>
+                <div class="subject-list">
+                  <ul class="mb-0">
+                    <li>Physics Chemistry Mathematics</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/pcb-icon.png' )}}" alt="img"> 
+                </div>
+                <p class="fw-bold">PCB</p>
+                  <div class="subject-list">
+                    <ul class="mb-0">
+                      <li>Physics Chemistry Biology</li>
+                    </ul>
+                  </div>
+              </div>
+
+              {% elif 'MECHANICAL' in above_avg %}
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src=" {{ static ('images/pcm-icon.png' )}}" alt="img">  
+                </div>
+                <p class="fw-bold">PCM</p>
+                <div class="subject-list">
+                  <ul class="mb-0">
+                    <li>Physics Chemistry Mathematics</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/computer-sci-icon.png' )}}" alt="img"> 
+                </div>
+                <p class="fw-bold">CS</p>
+                  <div class="subject-list">
+                    <ul class="mb-0">
+                      <li>Computer Science</li>
+                    </ul>
+                  </div>
+              </div>
+
+              {% elif 'SPATIAL' in above_avg %}
+
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/pcm-icon.png' )}}" alt="img">  
+                </div>
+                <p class="fw-bold">PCM</p>
+                <div class="subject-list">
+                  <ul class="mb-0">
+                    <li>Physics Chemistry Mathematics</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/fine-art-icon.png' )}}" alt="img"> 
+                </div>
+                <p class="fw-bold">Fine Arts</p>
+                  <div class="subject-list">
+                    <ul class="mb-0">
+                      <li>Fine Arts</li>
+                    </ul>
+                  </div>
+              </div>
+
+              {% elif 'LANGUAGE' in above_avg %}
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/hum-icon.png' )}}" alt="img">  
+                </div>
+                <p class="fw-bold">HUM</p>
+                <div class="subject-list">
+                  <ul class="mb-0">
+                    <li> Humanities </li>
+                  </ul>
+                </div>
+              </div>
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/hwl-icon.png' )}}" alt="img"> 
+                </div>
+                <p class="fw-bold">HWL</p>
+                  <div class="subject-list">
+                    <ul class="mb-0">
+                      <li> Humanities with Language </li>
+                    </ul>
+                  </div>
+              </div>
+
+              {% elif 'EMOTIONAL' in above_avg %}
+
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/pcb-icon.png' )}}" alt="img">  
+                </div>
+                <p class="fw-bold">PCM</p>
+                <div class="subject-list">
+                  <ul class="mb-0">
+                    <li>Physics Chemistry Mathematics</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="sg-bg-stream-card p-3 flex rounded-[10px] items-center ">
+                <div class="s-m-icon md:me-5 me-3 items-center flex "> <img src="{{ static ('images/hum-icon.png' )}}" alt="img"> 
+                </div>
+                <p class="fw-bold">HUM</p>
+                <div class="subject-list">
+                  <ul class="mb-0">
+                    <li> Humanities </li>
+                  </ul>
+                  </div>
+              </div>
+            
+              {% endif %}
+
+          </div>
+
+            
+        </div>
+      </div>
+      {% else %}
+      <div style="display: none;"></div>
+      {% endif %}
+
+      <!--Psychometric Test Report -->
+
+      <!-- career-tree start  -->
+
+      <section class="lg:max-w-[1082px] lg:mx-auto bg-purple-gradient relative bg-opacity-[0.15] overflow-hidden flex flex-row justify-between  px-4 pt-[24px] rounded-[10px] lg:mb-[30px] mb-[35px] mx-[17px] z-10 mt-5">
+        <div class="lg:max-w-[400px] max-w-[203px] self-center lg:mb-[10px] mb-[18px]  z-20">
+           <h4 class="lg:text-[24px] lg:leading-[38px] text-[16px] leading-[30px]  text-[#ffffff] font-bold lh-21">
+            Refer&nbsp;your Friends
+          </h4>
+          <p class="font-normal text-[13px] tracking-[0.0145em] text-[#ffffff]  mb-3 leading-normal">
+            Lorem ipsum dolor sit amet consectetur. Aliquet donec faucibus aliquam tell
+          </p>
+          <button class="px-[10px] lg:px-[25px] py-[10px] lg:py-[15px]  bg-[#5CCD16] rounded-[10px] text-white flex flex-row justify-start items-center gap-x-[5px] text-sm boldFont uppercase border-b-4 border-[#51B613] ">
+          <span>Refer Now</span>
+          </button>
+        </div>
+        <div class="self-center lg:self-center mb-3">
+          <img src="{{ static ('images1/refer-a-friend.png')}}" class="object-cover object-top-left ">
+        </div>
+      </section>
+
+      <!-- career-tree end  -->
+
+      <!--Vocation Course -->
+
+      <h3 class="title-test-info my-5 fs-18">Vocational Courses for Below Average Students</h3>
+      <div class="grid md:grid-cols-3  gap-3">
+        <div class="relative w-full h-full bg-[#f7f7fa]  rounded-[10px] blur-3">
+          <!-- IMAGE SECTION -->
+          <div class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"> <a
+              class="text-dark" href="/careers/career/accessory-designing-20-detail" tabindex="0"> <img
+                src="{{ static ('images1/Accessories-2.jpg')}}" class="h-full w-full object-cover">
+              <div class="absolute inset-0 h-full w-full backgroundGradient z-10"></div>
+            </a> </div>
+          <!-- CONTENT -->
+          <p class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px] ms-3 mb-3"> <a class="text-dark"
+              href="/careers/career/accessory-designing-20-detail" tabindex="0">Accessory Designing</a> </p>
+          <!-- <div
+            class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline ms-3 mb-3">
+            <span>15.0LPA •</span>&nbsp; <img src="{{ static ('images1/favourite%201.png')}}" class="inline-block"><span> 3.4</span>
+          </div> -->
+
+          <!-- BOOKMARK SIGN -->
+          <div class="absolute top-3 right-3 z-20">
+            <div class="bg-white rounded-full px-[5px] py-[3px]"> <img src="" class="w-[14px] h-[18px]"> </div>
+          </div>
+        </div>
+        <div class="relative w-full h-full bg-[#f7f7fa]  rounded-[10px] blur-3">
+          <!-- IMAGE SECTION -->
+          <div class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"> <a
+              href="/careers/career/accessory-designing-20-detail" tabindex="0"> <img src="{{ static ('images1/what-skills-should-an-actuary-have.jpg')}}"
+                class="h-full w-full object-cover">
+              <div class="absolute inset-0 h-full w-full backgroundGradient z-10"></div>
+            </a> </div>
+          <!-- CONTENT -->
+          <p class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px] ms-3"> <a class="text-dark"
+              href="/careers/career/accessory-designing-20-detail" tabindex="0">Actuarial Science</a> </p>
+          <!-- <div
+            class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline ms-3 mb-3">
+            <span>15.0LPA •</span>&nbsp; <img src="{{ static ('images1/favourite%201.png')}}" class="inline-block"><span> 3.4</span>
+          </div> -->
+
+          <!-- BOOKMARK SIGN -->
+
+          <div class="absolute top-3 right-3 z-20">
+            <div class="bg-white rounded-full px-[5px] py-[3px]"> <img src="" class="w-[14px] h-[18px]"> </div>
+          </div>
+        </div>
+        <div class="relative w-full h-full bg-[#f7f7fa]  rounded-[10px]  blur-3" >
+          <!-- IMAGE SECTION -->
+          <div class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"> <a
+              href="/careers/career/accessory-designing-20-detail" tabindex="0"> <img src="{{ static ('images1/istockphoto-1167549703-612x612.jpg')}}"
+                class="h-full w-full object-cover">
+              <div class="absolute inset-0 h-full w-full backgroundGradient z-10"></div>
+            </a> </div>
+          <!-- CONTENT -->
+          <p class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px] ms-3 "> <a class="text-dark"
+              href="/careers/career/accessory-designing-20-detail" tabindex="0">Aerospace Engineering
+            </a> </p>
+          <!-- <div
+            class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline ms-3 mb-3">
+            <span>15.0LPA •</span>&nbsp; <img src="{{ static ('images1/favourite%201.png')}}" class="inline-block"><span> 3.4</span>
+          </div> -->
+
+          <!-- BOOKMARK SIGN -->
+
+          <div class="absolute top-3 right-3 z-20">
+            <div class="bg-white rounded-full px-[5px] py-[3px]"> <img src="" class="w-[14px] h-[18px]"> </div>
+          </div>
+        </div>
+      </div>
+
+      <!--Vocation Course -->
+
+      <!-- carrerr plant  -->
+      <!-- <section class="lg:max-w-[1082px] lg:mx-auto bg-[#4CC9F0] relative bg-opacity-[0.15] overflow-hidden flex flex-row justify-between  px-4 pt-[24px] rounded-[10px] lg:mb-[30px] mb-[35px] mx-[17px] z-10 mt-5">
+        <div class="lg:max-w-[494px] max-w-[203px] self-center lg:mb-[10px] mb-[18px]  z-20">
+           <h4 class="lg:text-[18px] lg:leading-[38px] text-[16px] leading-[30px]  text-[#333333] font-bold lh-21">
+            Plant a new career tree to get started
+          </h4>
+          <p class="font-normal text-[13px] tracking-[0.0145em] text-[#000000] text-opacity-50 mb-3">
+            Visualise your career progress and always stay on top of your goals.
+          </p>
+          <button class="px-[40px] lg:px-[64px] py-[10px] lg:py-[15px]  bg-[#5CCD16] rounded-[10px] text-white flex flex-row justify-start items-center gap-x-[5px] text-sm boldFont uppercase border-b-4 border-[#51B613] ">
+            <span><i class="fa fa-leaf" aria-hidden="true"></i></span><span>Start tree</span>
+          </button>
+        </div>
+        <div class="self-center lg:self-end ">
+          <img src="{{ static ('images1/career-tree.png')}}" class="object-cover object-top-left ">
+        </div>
+      </section> -->
+
+      <!-- carrer plant  -->
+
+      <!--Marks Academic-->
+      <h3 class="title-test-info my-5 fs-18">Marks of Academic Each Year Scored</h3>
+      <div class="institute-graph mb-5 bg-white ">
+        <div class="graph-detail d-flex flex-column justify-content-center aling-items-center text-center p-5">
+
+          <div class="d-flex justify-content-center mt-3 w-100 blur-5">
+            <div id="Marks" class="w-100"></div>
+          </div>
+        </div>
+
+        <!--Marks Academic-->
+
+      </div>
+
+
+    </div>
+    <!-- End of Right Part -->
+  </div>
+</main>
+<section class="footer-nav d-lg-none d-block">
+  <div class="nav-footer">
+    <ul>
+      <li> <a href="#" class="ft-dis-icon"> <span></span>
+          <p>Discover</p>
+        </a> </li>
+      <li> <a href="#" class="ft-search-icon"> <span></span>
+          <p>Search</p>
+        </a> </li>
+      <li> <a href="#" class="ft-dash-icon"> <span></span>
+          <p>My Dashboard</p>
+        </a> </li>
+      <li> <a href="#" class="ft-learn-icon"> <span></span>
+          <p>Learn</p>
+        </a> </li>
+      <li> <a href="#" class="ft-profile-icon"> <span></span>
+          <p>Profile</p>
+        </a> </li>
+    </ul>
+  </div>
+</section>
+</div>
+</section>
+
+<!-- Edit Stream Modal -->
+
+<div class="modal fade custom-modal" id="edit-stream" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Create Follow up</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="row">
+            <div class="col">
+              <input type="text" class="form-control custom-input" placeholder="First name" aria-label="First name">
+            </div>
+            <div class="col">
+              <input type="text" class="form-control custom-input" placeholder="Last name" aria-label="Last name">
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://kit.fontawesome.com/df31b3ad5b.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script type="text/javascript" src="https://www.topteen.in//static/topteenfrontend/assets/js/slick.min.js"></script>
+<script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
+ <script type="text/javascript" src="{{static('topteenfrontend/assets/js/userDashboard.js')}}">
+  </script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/homePage.js"></script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/common.js"></script>
+<script src="https://www.topteen.in/static/topteenfrontend/assets/js/common.js"></script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/search.js">    </script>
+<script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/resumeBuilder.js"></script>
+
+<!--new js -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+  integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{{ static ("js/bootstrap.min.js") }}"></script>
+<!--new js -->
+
+<!-- Chart js -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.35.3/apexcharts.min.js"
+  integrity="sha512-yhdujT21BI/kqk9gcupTh4jMwqLhb+gc6Ytgs4cL0BJjXW+Jo9QyllqLbuluI0cBHqV4XsR7US3lemEGjogQ0w=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- Chart js -->
+
+
+
+
+<script>
+  
+  // Use the highest value dynamically from the Django context variable
+  const highestValue = {{ highest_value|safe }};
+  
+  /** Apex Chart data **/
+  var options = {
+    chart: {
+      height: 120,
+      type: "radialBar"
+    },
+    series: [highestValue],  // Set the highest value dynamically
+    plotOptions: {
+      radialBar: {
+        hollow: {
+          margin: 15,
+          size: "40%"
+        },
+        dataLabels: {
+          showOn: "always",
+          value: {
+            offsetY: -12,
+            color: "#111",
+            fontSize: "13px",
+            show: true
+          }
+        }
+      }
+    },
+    fill: {
+      type: "solid",
+      colors: ["#4A4CB3"]
+    },
+    stroke: {
+      lineCap: "round",
+    },
+    labels: [""]
+  };
+
+  var chart = new ApexCharts(document.querySelector("#Personality"), options);
+  chart.render();
+
+  /** Apex Chart data for Interest **/
+  const interestHighestValue = {{ interest_highest_value|safe }}; // Get the interest highest value from Django
+  var interestOptions = {
+    chart: {
+      height: 120,
+      type: "radialBar"
+    },
+    series: [interestHighestValue], // Set the highest value dynamically
+    plotOptions: {
+      radialBar: {
+        hollow: {
+          margin: 15,
+          size: "40%"
+        },
+        dataLabels: {
+          showOn: "always",
+          value: {
+            offsetY: -12,
+            color: "#111",
+            fontSize: "13px",
+            show: true
+          }
+        }
+      }
+    },
+    fill: {
+      type: "solid",
+      colors: ["#CA7B04"]
+    },
+    stroke: {
+      lineCap: "round",
+    },
+    labels: [""]
+  };
+  var interestChart = new ApexCharts(document.querySelector("#Interest"), interestOptions);
+  interestChart.render();
+
+  /** Apex Chart data for Intelligence **/
+  const intelligenceHighestValue = {{ intelligence_highest_value|safe }}; // Get the intelligence highest value from Django
+  var intelligenceOptions = {
+    chart: {
+      height: 120,
+      type: "radialBar"
+    },
+    series: [intelligenceHighestValue], // Set the highest value dynamically
+    plotOptions: {
+      radialBar: {
+        hollow: {
+          margin: 15,
+          size: "40%"
+        },
+        dataLabels: {
+          showOn: "always",
+          value: {
+            offsetY: -12,
+            color: "#111",
+            fontSize: "13px",
+            show: true
+          }
+        }
+      }
+    },
+    fill: {
+      type: "solid",
+      colors: ["#961099"]
+    },
+    stroke: {
+      lineCap: "round",
+    },
+    labels: [""]
+  };
+  var intelligenceChart = new ApexCharts(document.querySelector("#Intelligence"), intelligenceOptions);
+  intelligenceChart.render();
+
+  
+// Marks Chart
+
+
+var options = {
+  series: [
+    {
+      data: [
+        {
+          x: "8th",
+          y: 6
+        },
+        {
+          x: "9th",
+          y: 21
+        },
+        {
+          x: "10th",
+          y: 16
+        },
+        {
+          x: "11th",
+          y: 33
+        },
+        {
+          x: "12th",
+          y: 43
+        },
+       
+      ]
+    }
+  ],
+  chart: {
+    type: "bar",
+    height: 450
+  },
+  plotOptions: {
+    bar: {
+      horizontal: false,
+      distributed: true
+    }
+  },
+  dataLabels: {
+    enabled: false
+  },
+
+  xaxis: {
+    tickPlacement: "on",
+    min: 1,
+    max:5
+  },
+  yaxis: {
+    title: {
+      text: "(Marks)"
+    }
+  },
+  legend: {
+    show: false
+  }
+};
+
+var chart = new ApexCharts(document.querySelector("#Marks"), options);
+chart.render();
+
+
+
+        	/** Apex Chart data **/
+
+
+</script>
+
+
+
+
+{% endblock %}

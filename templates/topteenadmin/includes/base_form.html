@@ -1,0 +1,42 @@
+<div class="card card-flush py-4">
+    <!--begin::Card header-->
+    {% if form.non_field_error %}
+    <div class="card-header">
+        <div class="card-title">
+            <div class="fv-plugins-message-container invalid-feedback">{{form.non_field_errors}}</div>
+        </div>  
+    </div>
+    {% endif %}
+    <!--end::Card header-->
+    
+    <!--begin::Card body-->
+    <div class="card-body pt-0">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <!--begin::Input group-->
+        {% for field in form %}
+        <div class="mb-10 fv-row">
+            <!--begin::Label-->
+            <label class="form-label {% if field.field.required %}fw-bolder required{%endif%}">{{field.label}}</label>
+            {% if form.get_foreign_key_add_url(field)%}
+                <span><a href="javascript:void()" onclick='OpenWindow("{{form.get_foreign_key_add_url(field)}}")'>add</a></span>
+            {%endif%}
+            {% if field.errors %}
+            <div class="fv-plugins-message-container invalid-feedback"><div data-field="{{field.label}}" data-validator="nonEmpty">{{field.errors|striptags}}</div>
+            {% endif %}
+            <!--end::Label-->
+            {{field}}
+            <!--begin::Description-->
+            <div class="text-muted fs-7">{{field.help_text}}</div>
+            <!--end::Description-->
+        </div>
+        {% endfor %}
+        {% if request.GET.get('_popup') == "1" %}
+        <input type="hidden" name="_popup" value="1">
+        <input type="hidden" name="foreign_key" value="{{request.GET.get('foreign_key')}}">
+        
+        {% endif %}
+        <!--end::Input group-->                                    
+    </div>
+    <!--end::Card header-->
+</div>
+<!--end::General options-->

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <link rel="stylesheet" href="./style1.css"> -->
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            background-color: #F6F6F6;
+
+        }
+
+        body {
+            font-family: sans-serif;
+        }
+
+        .main {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .container {
+            /* border: 1px solid black; */
+            /* width: 803px; */
+            width: 100%;
+            height: 1137px;
+            margin: 0px auto;
+            padding-top: 28px;
+            padding-left: 63px;
+            padding-right: 63px;
+
+
+        }
+
+        .header {
+            height: 50px;
+            /* width: 667px; */
+            background-color: rgba(25, 113, 140, 0.75);
+        }
+
+        .resume {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 43px;
+            /* border: 1px solid yellow; */
+        }
+
+        .left_container {
+            width: 580px;
+            margin-right: 80px;
+        }
+
+
+        .person_name {
+            font-size: 40px;
+            line-height: 33px;
+            font-weight: 600;
+            font-style: normal;
+            color: #5193a7;
+            text-transform: uppercase;
+        }
+
+        .person_profession_heading {
+            font-style: normal;
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 20px;
+            text-transform: uppercase;
+            margin-top: 7px;
+        }
+
+        .person_summary {
+            display: flex;
+            margin-top: 59px;
+            justify-content: space-between;
+
+        }
+
+        .person_summary_heading p {
+            margin-top: -8px;
+            font-style: normal;
+            font-weight: 500;
+            font-style: 16px;
+            line-height: 20px;
+            color: #19718c;
+            text-transform: uppercase;
+        }
+
+        .person_summary_information,
+        .person_education_information {
+            display: flex;
+            flex-direction: column;
+            width: 340px;
+
+
+        }
+
+        .person_summary_information hr,
+        .person_education_information hr {
+            height: 5px;
+            background: #d9d9d9;
+            border: none;
+            margin-bottom: 10px;
+        }
+
+        .person_summary_information p {
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 16px;
+        }
+
+        .bar {
+            border: 2px solid #19718C;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .person_education_qualification {
+            text-transform: capitalize;
+            font-weight: 450;
+            font-size: 14px;
+            line-height: 16px;
+            margin-bottom: 5px;
+            font-style: normal;
+
+        }
+
+        .person_college {
+            font-style: normal;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 16px;
+
+        }
+
+        .person_college_state {
+
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 16px;
+            margin-bottom: 13px;
+        }
+
+        .person_education_data {
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 16px;
+        }
+
+        .person_img {
+            width: 184px;
+            height: 236px;
+            background: #FFFFFF;
+            /* border: 1px solid rgba(0, 0, 0, 0.5); */
+
+            /* display: flex;
+            align-items: center;
+            justify-content: center; */
+
+            background-size: cover;
+
+            margin-bottom: 25px;
+        }
+
+        .person_img_null {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+
+        }
+
+        .person_img_null p {
+            font-style: normal;
+            font-weight: 500;
+            font-size: 9px;
+            line-height: 12px;
+        }
+
+        .person_contact,
+        .person_interest {
+            width: 184px;
+        }
+
+        .person_contact_heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 13px;
+        }
+
+        .person_contact_heading p {
+            font-style: normal;
+            font-weight: 500;
+            font-style: 16px;
+            color: #19718C;
+            text-transform: uppercase;
+        }
+
+        .person_contact_heading hr {
+            width: 91px;
+            height: 5px;
+            background-color: #d9d9d9;
+            border: none;
+        }
+
+        .person_contact_information {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+
+        }
+
+        .person_contact_box {
+            display: flex;
+            align-items: center;
+
+            /* gap: 15px; */
+
+        }
+
+        .person_contact_box p {
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main">
+        <div class="container">
+            <div class="header"></div>
+            <div class="resume">
+                <div class="left_container">
+                    <div class="person_name_box">
+                        <p class="person_name">{{request.user}}</p>
+                        <!-- <p class="person_profession_heading">profession</p> -->
+                    </div>
+                    <div class="person_summary">
+                        <div class="person_summary_heading">
+                            <p>summary</p>
+
+                        </div>
+                        <div class="person_summary_information">
+                            <hr>
+                            <p>{{request.user.user_resume.about}}</p>
+                        </div>
+
+                    </div>
+                    <div class="bar"></div>
+                    <div class="person_summary">
+                        <div class="person_summary_heading">
+                            <p>Certification</p>
+                        </div>
+                        <div class="person_education_information">
+                            <hr>
+                            {% for certificate in certificates %}
+                            <div>
+                                <p class="person_education_qualification">{{certificate.title}}({{certificate.issue_date}})</p>
+                                <p class="person_education_data">
+                                    {{certificate.description}}
+                                </p>
+                            </div>
+                            <br>
+                            {% endfor %}
+
+                        </div>
+
+
+                    </div>
+                    <div class="bar"></div>
+                    <div class="person_summary">
+                        <div class="person_summary_heading">
+                            <p>skills</p>
+                        </div>
+                        <div class="person_summary_information">
+                            <hr>
+                            {% for skill in skills %}
+                            <p style="font-size: 14px;font-weight: 300;">{{skill.title}} ({% if skill.profficiency == 10 %}Beginner{% endif %}{% if skill.profficiency == 20 %}Intermediate{% endif %}{% if skill.profficiency == 30 %}Expert{% endif %})</p>
+                            <p class="person_education_data">
+                                {{skill.description}}
+                            </p>
+                            <br>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="bar"></div>
+                    <div class="person_summary">
+                        <div class="person_summary_heading">
+                            <p>INTERNSHIPS</p>
+                        </div>
+                        <div class="person_summary_information">
+                            <hr>
+                            {% for internship in internships %}
+                            <p style="font-size: 14px;font-weight: 300;">{{internship.role}} ({{internship.start_date}} - {{internship.end_date}})</p>
+                            <p class="person_education_data">
+                                {{internship.description}}
+                            </p>
+                            <p class="person_education_data">
+                                Provider : {{internship.provider}}
+                            </p>
+                            <br>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="bar"></div>
+                    <div class="person_summary">
+                        <div class="person_summary_heading">
+                            <p>ACTIVITIES</p>
+                        </div>
+                        <div class="person_summary_information">
+                            <hr>
+                            {% for activity in activities %}
+                            <p style="font-size: 14px;font-weight: 300;">{{activity.title}} ({{activity.issue_date}})</p>
+                            <p class="person_education_data">
+                                {{activity.description}}
+                            </p>
+                            <br>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="bar"></div>
+                    <div class="person_summary">
+                        <div class="person_summary_heading" style="margin-right: 10px;">
+                            <p>VOLUNTEERING</p>
+                        </div>
+                        <div class="person_summary_information">
+                            <hr>
+                            {% for volunteer in volunteers %}
+                            <p style="font-size: 14px;font-weight: 300;">{{volunteer.title}} ({{volunteer.start_date}} - {{volunteer.end_date}})</p>
+                            <p class="person_education_data">
+                                Role : {{volunteer.role}}
+                            </p>
+                            <p class="person_education_data">
+                                {{volunteer.description}}
+                            </p>
+                            <br>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="right_container">
+                    <div class="person_img">
+                        {% if request.user.image %}
+                        <img alt="" src="{{image_url}}" style="height: 236px;width: 184px;background-size: contain;">
+                        {% else %}
+                        <img alt="" src="https://www.topteen.in/media/upload/users/22/user_22.jpg" style="height: 236px;width: 184px;background-size: contain;">
+                        {% endif %}
+                    </div>
+
+                    <div class="person_contact">
+                        <div class="person_contact_heading">
+                            <p>contact</p>
+                            <hr>
+                        </div>
+
+                        <div class="person_contact_information">
+                            <div class="person_contact_box">
+                                <img src="https://topteen.in/static/topteenfrontend/assets/images/Vector.png" style="margin-right: 15px;">
+                                <p>India</p>
+                            </div>
+
+                            {% if request.user.mobile %}
+                            <div class="person_contact_box">
+                                <img src="https://topteen.in/static/topteenfrontend/assets/images/Vector(1).png" style="margin-right: 15px;">
+                                <p>{{request.user.mobile}} </p>
+                            </div>
+                            {% endif %}
+
+                            {% if request.user.email %}
+                            <div class="person_contact_box">
+                                <img src="https://topteen.in/static/topteenfrontend/assets/images/Vector(2).png" style="margin-right: 15px;">
+                                <p>{{request.user.email}}</p>
+                            </div>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="person_contact" style="margin-top: 57px;">
+                        <div class="person_contact_heading">
+                            <p>HOBBIES</p>
+                            <hr>
+                        </div>
+                        <div class="person_contact_information">
+                            {% for hobbie in profile.hobbies.all() %}
+                            <div class="person_contact_box">
+                               <img src="https://topteen.in/static/topteenfrontend/assets/images/Vector(3).png" style="margin-right: 15px;">
+                                <p>{{hobbie.name}}</p>
+                            </div>
+                            {% endfor %}
+
+
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>

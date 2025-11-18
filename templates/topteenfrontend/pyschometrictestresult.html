@@ -1,0 +1,550 @@
+{% extends 'topteenfrontend/user/user_base.html' %} {%block additionalheader%}
+<link
+  href="{{static('topteenfrontend/assets/css/slick/slick.css')}}"
+  rel="stylesheet"
+/>
+<link
+  href="{{static('topteenfrontend/assets/css/slick/slick-theme.css')}}"
+  rel="stylesheet"
+/>
+{%endblock%} {% block main %}
+<div class="pt-[55px]">
+  <div class="flex lg:hidden justify-between items-center mx-[17px]">
+    <a href="{{url('users:userdashboard')}}">
+      <i class="fa fa-arrow-left text-[#828282]"></i>
+    </a>
+    <!-- <a href="#">
+      <i class="fa fa-ellipsis text-[#828282]"></i>
+    </a> -->
+  </div>
+  <div class="flex flex-col justify-center items-center mb-[57px] lg:pt-[55px]">
+    <img
+      src="{{static('topteenfrontend/assets/images/donut-chart.png')}}"
+      height="36"
+      width="36"
+      alt=""
+      class="mb-2"
+    />
+    <h1 class="text-xl lg:text-[28px] font-semibold mb-1">
+      Your Psychometric Profile
+    </h1>
+    <p class="text-[15px] leading-[20px] text-[#494949] text-center">
+      Here’s what we understood about you from your responses
+    </p>
+  </div>
+  <main class="container mx-auto">
+    <section class="mb-[35px] mx-[17px]">
+      <h2
+        class="text-[15px] leading-[20px] lg:leading-[37.8px] lg:text-[28px] font-semibold mb-3.5 lg:mb-6"
+      >
+        RIASEC Profile
+      </h2>
+      <p class="text-[13px] leading-[18px] lg:text-lg text-[#828282] mb-4">
+        Profile derived from the combination of the three most dominant
+        interests
+      </p>
+      <div class="flex justify-start items-center flex-wrap lg:grid lg:grid-cols-4 lg:gap-x-[30px] gap-x-2.5">
+        {% for key,value in result.get_riasec_best_score().items() %}
+        <!-- CARD -->
+        <div
+          class="grow flex flex-col items-center justify-center h-[95px] {{result.get_score_color_code(key)}} rounded-[10px] text-white p-2"
+        >
+          <p class="text-[15px] leading-[20px]">
+            <a href="#" class="text-[32px] leading-[40px] boldFont">{{key[0]}}</a>
+          </p>
+          <p class="mb-2 font-semibold">{{key}}</p>
+          <p class="text-[10px] leading-[13.5px] text-opacity-60 text-white">
+            {{value}}/10
+          </p>
+        </div>
+        <!-- CARD -->
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="mb-[35px] mx-[17px]">
+      <h2
+        class="text-[15px] leading-[20px] lg:text-[28px] lg:leading-[37.8px] font-semibold mb-3.5 lg:mb-6"
+      >
+        About You
+      </h2>
+      {{result.about|safe}}
+    </section>
+    <section class="mb-[35px] mx-[17px]">
+      <h2
+        class="text-[15px] leading-[20px] lg:text-[28px] lg:leading-[37.8px] mb-3.5 lg:mb-6 font-semibold text-[#0F0F0F] lg:text-[#333333]"
+      >
+        Suggested Trades
+      </h2>
+      {{result.suggested_trades|safe}}
+    </section>
+
+    <!-- GRAPHS -->
+
+    <div class="bg-[#F7F7FA] py-[20px] mb-[60px] px-[17px]">
+      <section>
+        <h2
+          class="text-[15px] leading-[20px] lg:text-[28px] lg:leading-[37.8px] font-semibold mb-2"
+        >
+          RIASEC Metrics
+        </h2>
+        <p class="text-[13px] leading-[18px] lg:text-lg text-[#828282] mb-4">
+          The histogram below presents the results of each factor of the RIASEC
+          model
+        </p>
+         <!-- GRAPH -->
+         <div class="graphGrid">
+          <div>
+            <div class="bg-white w-full" style="height: {{result.realistic*10}}%">
+              <span>R</span>
+              <p>{{result.realistic}}</p>
+            </div>
+          </div>
+          <div>
+            <div class="bg-white w-full" style="height: {{result.investigative*10}}%">
+              <span>I</span>
+              <p>{{result.investigative}}</p>
+            </div>
+          </div>
+          <div>
+            <div class="bg-white w-full" style="height: {{result.artistic*10}}%">
+              <span>A</span>
+              <p>{{result.artistic}}</p>
+            </div>
+          </div>
+          <div>
+            <div class="bg-white w-full" style="height: {{result.social*10}}%">
+              <span>S</span>
+              <p>{{result.social}}</p>
+            </div>
+          </div>
+          <div>
+            <div class="bg-white w-full" style="height: {{result.entrepreneurial*10}}%">
+              <span>E</span>
+              <p>{{result.entrepreneurial}}</p>
+            </div>
+          </div>
+          <div>
+            <div class="bg-white w-full" style="height: {{result.conventional*10}}%">
+              <span>C</span>
+              <p>{{result.conventional}}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2
+          class="text-[15px] leading-[20px] lg:text-[28px] lg:leading-[37.8px] font-semibold mb-2"
+        >
+          Sub-factors
+        </h2>
+        <p class="text-[13px] leading-[18px] lg:text-lg text-[#828282] mb-4">
+          The radar chart below presents further detailing of the histogram
+          above
+        </p>
+      </section>
+    </div>
+
+    <section class="relative mx-auto max-w-[1176px]">
+      <div
+        class="flex flex-row justify-between items-center mb-[16px] lg:mb-6 lg:mx-auto mx-[17px] lg:max-w-[1065px]"
+      >
+        <span
+          class="text-[15px] leading-[20px] lg:text-[28px] lg:leading-[37.8px] font-semibold text-[#0F0F0F] lg:text-[#333333]"
+        >
+          Career Matches
+        </span>
+        <button onclick="window.location='{{url('careers:career')}}'" type="button" class="text-[13px] leading-[18px] text-[#541BCF] font-semibold">
+          View All
+        </button>
+      </div>
+      <!-- NAVIGATION ARROWS -->
+      <ul class="navArrows lg:block hidden">
+        <li
+          class="absolute nextArr rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[45%] right-[-10px] flex flex-row justify-center items-center z-1 nextArrow cursor-pointer"
+        >
+          <i class="fa fa-angle-right"></i>
+        </li>
+        <li
+          class="absolute prevArr rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[45%] left-[-10px] flex justify-center items-center z-1 prevArrow cursor-pointer"
+        >
+          <i class="fa fa-angle-left"></i>
+        </li>
+      </ul>
+
+      <div class="carouselContainer w-full">
+        <!-- SLICK CAROUSEL -->
+        <div class="matchCarousel mx-[17px] carousel customCarousel">
+          {% for career in careers %}
+          <div class="max-w-[248px]">
+            <!-- SLIDE -->
+            <div class="relative shrink-0">
+              <figure class="w-full mb-[18px]">
+                <div
+                  class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+                >
+                  <img
+                    src="{% if career.image and career.image.name %}{{career.image.url}}{% else %}{{static('images/career-icon.png')}}{% endif %}"
+                    alt="first college  Image"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+
+                <figcaption class="text-[#333333] semibold text-sm mb-1">
+                  {{career}}
+                </figcaption>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>{{career.get_max_salary()}}</span>&nbsp;
+                  <img
+                    src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+                    class="inline-block" 
+                  /><span>4.4</span>
+                </div>
+
+                <!-- BOOKMARK SIGN -->
+                <div class="absolute top-3 right-3">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img
+                      src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                      class="w-[14px] h-[18px]"
+                    />
+                  </div>
+                </div>
+              </figure>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    <!-- EXPLORE COLLEGES -->
+    <section
+    class="lg:mb-[76px] mb-[35px] relative tabContainer mx-[17px] lg:mx-auto lg:max-w-[1176px] overflow-hidden"
+  >
+    <div
+      class="flex flex-row justify-between items-center mb-[16px] lg:mb-6 mx-auto lg:max-w-[1065px]"
+    >
+      <span
+        class="text-[15px] leading-[20px] lg:text-[28px] lg:leading-[37.8px] semibold text-[#0F0F0F] lg:text-[#333333]"
+      >
+        Explore Colleges
+      </span>
+      <a href="{{url('colleges:college')}}">
+        <div
+          class="text-[13px] leading-[18px] text-[#541BCF] semibold lg:hidden"
+        >
+          View More
+        </div>
+      </a>
+    </div>
+    <!-- COUNTRY TABS -->
+    <div
+      class="flex flex-row justify-between items-center gap-2.5 mb-6 lg:mx-auto max-w-[1065px]"
+    >
+      <div
+        class="flex flex-row lg:gap-[18px] gap-3 lg:w-full collegeTabList tabList overflow-x-scroll no-scrollbar"
+        data-tabs-toggle="#collegesPanel"
+      >
+      {%for country in countries%}
+        <button
+          class="grow border-2 border-[#E0E0E0] text-[#4F4F4F] flex flex-row justify-center gap-5 py-2.5 px-[20px] semibold text-xs items-center tracking-[0.01em] rounded-[100px] hover:border-2 hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-5 hover:text-[#3F37C9]  collegeTab {# tab #}"
+          role="tab"
+          {#
+          data-tabs-target="#{{country.short_name}}"
+          #}
+          {% if country.short_name == 'IND' %}
+          onclick="window.open('https://kaunsacollege.com/search-university', '_blank')"
+          {% elif country.short_name == 'CA' %}
+          onclick="window.open('https://www.canamgroup.com/study-in-canada', '_blank')"
+          {% elif country.short_name == 'USA' %}
+          onclick="window.open('https://www.canamgroup.com/study-in-usa', '_blank')"
+          {% elif country.short_name == 'UK' %}
+          onclick="window.open('https://www.canamgroup.com/study-in-uk', '_blank')"
+          {% elif country.short_name == 'NZ' %}
+          onclick="window.open('https://www.canamgroup.com/study-in-newzealand', '_blank')"
+          {% elif country.short_name == 'AU' %}
+          onclick="window.open('https://www.canamgroup.com/study-in-australia', '_blank')"
+          {% endif %}
+        >
+        {% if country.flag %}
+          <span class="inline-block h-[40px] w-[70px] overflow-hidden rounded-lg">
+            <img
+              src="{{country.flag.url}}"
+              alt="india-flag"
+              class="h-full w-full object-cover"
+            />
+          </span>
+          {%endif%}
+          <p class="text-[#4F4F4F] text-lg semibold group-hover:text-[#3F37C9]">{{country.short_name}}</p>
+        </button>
+      {%endfor%}  
+    
+      </div>
+      <!-- <a href="{{url('colleges:college')}}">
+        <button
+          class="rounded-[50%] border px-2.5 h-75 text-[#333333] border-[#E0E0E0] lg:block hidden"
+        >
+          <i class="fa fa-angle-right"></i>
+        </button>
+      </a> -->
+    </div>
+
+    <!-- CAROUSEL FOR DESKTOP -->
+    {#
+    <!-- NAVIGATION ARROWS -->
+    <ul class="hidden lg:block navArrows">
+      <li
+        class="absolute nextCollege rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] right-[0px] flex flex-row justify-center items-center z-1 nextArrow"
+      >
+        <i class="fa fa-angle-right"></i>
+      </li>
+      <li
+        class="absolute prevCollege rounded-full h-[30px] w-[30px] bg-[#F8F8F8] text-[#333333] top-[55%] left-[0px] flex justify-center items-center z-1 prevArrow"
+      >
+        <i class="fa fa-angle-left"></i>
+      </li>
+    </ul>
+
+    <!-- CAROUSEL SECTION -->
+    <div class="w-full carouselContainer tabPanelsList" id="collegesPanel">
+      <!-- TAB CONTENT -->
+      {%for country in countries%}
+      <div
+        class="lg:mx-[38.5px] mx-[-6px] collegesCarousel carousel hidden collegeTabPanel customCarousel tabPanel"
+        id="{{country.short_name}}"
+      >
+      {%for college in country.college_set.all()[:8]%}
+        <!-- SLIDE -->
+        <div class="relative shrink-0">
+          <figure class="w-full mb-[18px]">
+            {%if college.logo%}
+            <div
+              class="lg:h-[240px] h-[192px] rounded-lg overflow-hidden mb-[18px]"
+            >
+              <img
+                src="{{college.logo.url}}"
+                alt="{{college.name}}"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            {%endif%}
+
+            <figcaption class="text-[#333333] semibold text-sm mb-1">
+              <a href="{{url('colleges:collegedetail',args=[college.slug])}}">{{college.name}}</a>
+            </figcaption>
+            <div
+              class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+            >
+              <span>{% if college.country %}{{college.country}}{% endif %}{% if college.state and college.country %},{% endif %} {% if college.state %}{{college.state}}{% endif %}</span>&nbsp;
+              <img
+                src="{{static('topteenfrontend/assets/images/favourite 1.png')}}"
+                class="inline-block"
+              /><span> 4.4</span>
+            </div>
+
+            <!-- BOOKMARK SIGN -->
+            <div class="absolute top-3 right-3">
+              <div class="bg-white rounded-full px-[5px] py-[3px]" id="college_{{college.id}}"
+              onclick="collegeshortlist('{{college.id}}')"
+              {% if college.shortlist.filter(id=request.user.id).exists() %}
+              style="background-color: blue;"
+              {% endif %}
+              >
+                <img
+                  src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                  class="w-[14px] h-[18px]"
+                />
+              </div>
+            </div>
+          </figure>
+        </div>
+
+      {%endfor%}
+      </div>
+    {%endfor%}  
+    </div>
+#}
+  </section> 
+    <!-- End Explore College-->
+
+
+    <!-- RESOURCES  FOR DESKTOP-->
+    <section class="lg:mb-[60px] lg:mx-auto mx-[17px]">
+      <div class="flex flex-row justify-between items-center mb-[22px]">
+        <h2 class="text-xl font-semibold text-[#333333]">Courses</h2>
+        <button  onclick="window.location.href='{{url('skilllab:skilllabcourselist')}}'" class="text-xs text-[#3f37c9] font-semibold">View All</button>
+      </div>
+      <div class="lg:grid grid-cols-4 gap-x-[30px]">
+        <!-- CARD -->
+        {%for skilllab_course in skilllab_courses[:4]%}
+        <div class="lg:max-w-[248px] mb-[20px] lg:mb-0">
+          <div
+            class="lg:h-[214px] h-[76px] w-full relative flex flex-row justify-start items-end py-[16px] px-[20px] bg-black rounded-[10px] overflow-hidden"
+          >
+            <div
+              class="grid grid-cols-4 gap-x-[14px] relative z-10 gap-y-[4px]"
+            >
+              <p
+                class="text-[10px] leading-[13.5px] font-normal text-opacity-[0.77] col-start-2 col-span-3 text-white"
+              >
+              {{skilllab_course.get_category_display()}}
+              </p>
+              <div class="w-[25px] h-[24px]">
+                <img
+                  src="{{static('topteenfrontend/assets/images/chat.png')}}"
+                  class="h-full w-full"
+                />
+              </div>
+              <h5
+                class="semibold text-[15px] leading-[20px] tracking-[0.035em] col-start-2 col-span-3 text-white"
+              >
+              <a href="{{url('skilllab:skilllabcoursedetail',args=[skilllab_course.slug])}}">{{skilllab_course.name}}</a>
+              </h5>
+              <!-- </div> -->
+            </div>
+
+            <!-- BG IMAGE -->
+            <div class="absolute inset-0">
+              <img
+                src="{{skilllab_course.image.url}}"
+                class="h-full w-full object-cover brightness-50"
+              />
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Connect -->
+    <section
+      class="py-[20px] flex items-center gap-[12px] lg:gap-[45px] pr-[30px] lg:pr-[90px] bg-[#f7f7fa] rounded-[10px] overflow-hidden mb-4 lg:mx-auto mx-[17px]"
+    >
+      <img
+        src="{{static('topteenfrontend/assets/images/counsellor.png')}}"
+        class="w-[111.8px] h-[111.8px] lg:w-[134px] lg:h-[181px] -ml-[32px] lg:-ml-[51px] my-auto"
+        alt=""
+      />
+      <div>
+        <p
+          class="text-[22px] leading-[29.7px] lg:text-[24px] lg:leading-[32.4px] tracking-[3.5%] text-[#4f4f4f] semibold"
+        >
+          Connect with expert counsellors
+        </p>
+        <div class="flex gap-[10px] lg:gap-[7px] mt-[7px] lg:mt-[4px]">
+          <img
+            src="{{static('topteenfrontend/assets/images/greenDot.png')}}"
+            class="w-[15px] h-[15px] lg:w-[19px] lg:h-[19px] object-cover my-auto"
+            alt=""
+          />
+          <p
+            class="text-[16px] leading-[23.2px] regularFont my-auto text-[#4f4f4f]"
+          >
+            124 counsellors online
+          </p>
+        </div>
+        <p
+          class="text-[13px] leading-[18.85px] text-[#828282] mt-[20px] lg:mt-[13px] mb-3"
+        >
+          Our counsellors guide you on all the steps of the way from application
+          to your <br />job interview, connect now!
+        </p>
+
+        <div class="flex flex-col gap-[16px] lg:flex-row mt-[10px]">
+          
+          <button type="button" onclick="Calendly.initPopupWidget({url:'https://calendly.com/counsellortopteen/topteen-counselling-1?hide_event_type_details=1&hide_gdpr_banner=1'});return false;"
+          class="w-[172px] lg:w-[239px] py-3.5 px-6 bg-[#3F37C9] flex justify-center items-center text-white rounded-[10px] border-b-[6px] border-[#2E289D] text-sm font-bold space-x-2"
+          ><i class="fa fa-message"></i>
+          <span>CONNECT NOW</span>
+          </button>
+
+          <!-- <a href="{{result.pdf_url}}" download
+          class="w-[172px] lg:w-[239px] py-3.5 px-6 bg-[#3F37C9] flex justify-center items-center text-white rounded-[10px] border-b-[6px] border-[#2E289D] text-sm font-bold space-x-2"
+          >
+            <i class="fa fa-file-arrow-down"></i>
+            <span>FULL REPORT</span>
+          </a> -->
+
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- BUTTONS -->
+  <section
+    class="bg-white flex lg:flex-row flex-col lg:justify-between justify-start items-center gap-y-4 lg:gap-x-[46px] container mx-auto lg:mb-[60px] mb-[35px] lg:mt-[68px] mt-[21px]"
+  >
+    <p class="text-xs lg:text-xl font-semibold text-[#4f4f4f]">
+      Download the full report for more info
+    </p>
+    <div class="flex justify-between items-center gap-x-2.5">
+      <button type="button" onclick="saveLeads();"
+        class="w-[172px] py-3.5 px-6 bg-[#5CCD16] text-white rounded-[10px] border-b-[6px] border-[#51B613] text-sm font-bold space-x-2"
+      >
+        <i class="fa fa-message"></i>
+        <span>COUNSELLING</span>
+      </button>
+      <a href="{{result.pdf_url}}" download
+        class="w-[172px] py-3.5 px-6 bg-[#3F37C9] text-white rounded-[10px] border-b-[6px] border-[#2E289D] text-sm font-bold space-x-2"
+      >
+        <i class="fa fa-file-arrow-down"></i>
+        <span>FULL REPORT</span>
+      </a>
+    </div>
+  </section>
+</div>
+{% endblock %}
+{% block additionalfooter %} 
+<link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+<script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+<script type="text/javascript">
+    function saveLeads(){
+        var formData = new FormData();
+        formData.append("lead_action",{{lead_action.lead_psychometriccounsling}});
+        $.ajax({
+            url: "{{url('leads')}}",
+            type: 'POST',
+            data: formData,
+            success: function (data) {
+              console.log(data)
+                fireAlert(data.message,"success");
+            },
+            error: function(data){
+                try{
+                   fireAlert(data.message,"error");
+                }
+                catch(e){
+                    fireAlert("Internal Server Error","error");
+                }
+              },
+            cache: false,
+            contentType: false,
+            processData: false
+        });
+    }
+
+</script>
+
+<script type="text/javascript">
+  function collegeshortlist(param){
+    $.ajax({
+      type:"GET",
+      url:"{{url('colleges:shortlistcollege')}}",
+      data:{id:param}
+    }).done(function(response){
+      if(response["success"]==="true"){
+        $('#college_'+param).css({"background-color":"blue"});
+        Swal.fire ('Added!', 'Added to Bookmark!', 'success');
+      }else{
+        $('#college_'+param).css({"background-color":"white"});
+        Swal.fire ('Removed!', 'Removed from Bookmark!', 'error');
+      }
+    // $('#ratingmsg').css({"display":"block"});
+    console.log(response);
+  });
+  }   
+</script>
+{% endblock %}

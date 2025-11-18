@@ -1,0 +1,185 @@
+  <!-- Before Typing -->
+  <div class="beforeType hidden absolute z-50 w-full top-[110%] lg:w-[494px] px-[15px] lg:px-[24px] pt-[24px] pb-[56px] bg-[#ffffff] rounded-[10px] lg:left-[50%] lg:-translate-x-[50%]">
+
+    <!-- Recent Searches -->
+        <div class="flex flex-col gap-y-[8px] pb-[24px] lg:border-b-[1px] border-solid border-[#f3f3f3]">
+            <div class="flex justify-between">
+                <p class="text-[15px] lg:text-[16px] leading-[20.25px] lg:leading-[21.6px] font-semibold">Recent Searches</p>
+                <a href="{{url('core:deletehistory')}}"><p class="text-[13px] leading-[17.55px] font-bold text-[#3f37c9] hidden lg:block">Clear all</p>
+                </a>
+                
+            </div>
+            
+            {%for career in recentcareer%}
+            <a href="{{url('careers:careerdetail',args=[career.slug,career.id])}}">
+           
+            <div class="flex justify-between margin">
+                <div class="flex gap-[15px]">
+                    <div class="w-[69px] h-[69px] lg:w-[43px] lg:h-[39px] rounded-[10px]">
+                        <img src="{% if career.image and career.image.name %}{{career.image.url}}{% else %}{{static('images/career-icon.png')}}{% endif %}" class="w-full h-full object-cover" alt="">
+                    </div>
+                    <div class="my-auto lg:max-w-[178px]">
+                        <p class="text-[13px] leading-[18px] lg:leading-[17.55px] font-semibold ">{{career.name}}</p>
+                        <button class="darkBlueBtn lg:hidden">
+                            <p class="text-[10px] leading-[13.5px] text-[#ffffff] font-semibold">Careers</p>
+                        </button>
+                    </div>
+                </div>
+                <p class="text-[10px] leading-[13.5px] text-[#bdbdbd] font-semibold my-auto hidden lg:block">CAREERS</p>
+                <div class="my-auto lg:hidden">
+                    <img src="{{static('topteenfrontend/assets/images/x.png')}}" alt="">
+                </div>
+            </div>
+            </a>
+            {%endfor%}
+            
+
+            {%for college in recentcollege%}
+            
+
+                
+            <a href="{{url('colleges:collegedetail',args=[college.slug])}}">
+                              
+            <div class="flex justify-between">
+                <div class="flex gap-[15px]">
+                    <div class="w-[69px] h-[69px] lg:w-[43px] lg:h-[39px] rounded-[10px]">
+                        <img {% if college.logo %} src="{{college.logo.url}}"{% else %} src="" {% endif %} class="w-full h-full object-cover" alt="">
+                    </div>
+                    <div class="my-auto lg:max-w-[178px]">
+                        <p class="text-[13px] leading-[18px] lg:leading-[17.55px] font-semibold ">{{college}}</p>
+                        <button class="skyBlueBtn lg:hidden">
+                            <p class="text-[10px] leading-[13.5px] text-[#ffffff] font-semibold">Colleges & Schools</p>
+                        </button>
+                    </div>
+                </div>
+                <p class="text-[10px] leading-[13.5px] text-[#bdbdbd] font-semibold my-auto hidden lg:block">COLLEGE</p>
+                <div class="my-auto lg:hidden">
+                    <img src="{{static('topteenfrontend/assets/images/x.png')}}" alt="">
+                </div>
+            </div>
+          </a>
+            {%endfor%}
+
+            {%for exam in recentexam%}
+                
+            <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}">
+                              
+            <div class="flex justify-between">
+                <div class="flex gap-[15px]">
+                    <div class="w-[69px] h-[69px] lg:w-[43px] lg:h-[39px] rounded-[10px]">
+                        <img {% if exam.logo %}src="{{exam.logo.url}}"{% else %} src="" {% endif %} class="w-full h-full object-cover" alt="">
+                    </div>
+                    <div class="my-auto lg:max-w-[178px]">
+                        <p class="text-[13px] leading-[18px] lg:leading-[17.55px] font-semibold ">{{exam.name}}</p>
+                        <button class="skyBlueBtn lg:hidden">
+                            <p class="text-[10px] leading-[13.5px] text-[#ffffff] font-semibold">Exam & Tests</p>
+                        </button>
+                    </div>
+                </div>
+                <p class="text-[10px] leading-[13.5px] text-[#bdbdbd] font-semibold my-auto hidden lg:block">Exam</p>
+                <div class="my-auto lg:hidden">
+                    <img src="{{static('topteenfrontend/assets/images/x.png')}}" alt="">
+                </div>
+            </div>
+          </a>
+            {%endfor%}
+
+           
+
+        </div>
+    <!-- End of Recent Searches -->
+
+    <!-- Trending Careers -->
+        <div class="pt-[14px] hidden lg:block">
+            <p class="text-[15px] leading-[20px] text-[#0f0f0f] font-semibold">Trending Careers</p>
+            <div class="pt-[8px] flex gap-[14px]">
+                {%for career in most_searchcareers[:3]%}
+                <a href="{{url('careers:careerdetail',args=[career.slug,career.id])}}">
+          
+                <div class="border-[1px] border-[#dedede] rounded-[10px] w-[139px] h-[129px]">
+                    <div class=" h-[80px] overflow-clip">
+                        <img src="{% if career.image and career.image.name %}{{career.image.url}}{% else %}{{static('images/career-icon.png')}}{% endif %}" alt="" class="object-cover">
+                    </div>
+                    <div class="py-[6px] px-[10px]">
+                        <p class="text-[10px] leading-[14px] font-semibold">{{career.name}}</p>
+                        <div class="flex">
+                            <p class="text-[10px] leading-[14px] font-normal text-[#828282]">{{career.get_max_salary()}}.</p>
+                            <div class="w-[10px] h-[10px] ml-[8px] mt-[1px]">
+                                <img src="{{static('topteenfrontend/assets/images/star.svg')}}" alt="">
+                            </div>
+                            <p class="text-[10px] leading-[14px] font-normal text-[#828282] ml-[4px]">{{career.get_average_rating()}}</p>
+                        </div>
+                    </div> 
+                </div>
+                </a>
+                {%endfor%}
+
+                
+            </div>
+        </div>
+    <!-- End of Trending Careers -->
+
+    <!-- Search Categories -->
+    <div class="pt-[24px] hidden lg:block">
+
+        <p class="text-[15px] leading-[20.25px] font-semibold text-[#0f0f0f]">Search Categories</p>
+
+        <div class="flex gap-[15px] pt-[8px]">
+
+            <div class=" w-[77px] h-[76px] rounded-full relative">
+              <a href="{{url('careers:career')}}">
+                <img src="{{static('topteenfrontend/assets/images/uxSearch.png')}}" class="absolute w-[77px] h-[77px] brightness-50 object-cover rounded-full z-0 "alt="">  
+                            
+              <div class="max-w-[55px] top-[24px] mx-auto absolute left-[50%] -translate-x-[50%]">
+                        <p class="text-[10px] leading-[13.5px] font-semibold text-[#ffffff] text-center">Trending Careers</p>
+                </div>   
+            </a>
+              </div>
+
+              <div class=" w-[77px] h-[76px] rounded-full relative">
+                <a href="{{url('colleges:college')}}">
+                  <img src="{{static('topteenfrontend/assets/images/unsplash10.svg')}}" class="absolute w-[77px] h-[76px] brightness-50 object-cover rounded-full z-0 "alt="">  
+                              
+                <div class="max-w-[55px] top-[24px] mx-auto absolute left-[50%] -translate-x-[50%]">
+                          <p class="text-[10px] leading-[13.5px] font-semibold text-[#ffffff] text-center">Colleges & Schools</p>
+                  </div>   
+              </a>
+                </div>
+
+                <div class=" w-[77px] h-[76px] rounded-full relative">
+                  <a href="{{url('skilllab:skilllabcourselist')}}">
+                    <img src="{{static('topteenfrontend/assets/images/uxSearch.png')}}" class="absolute w-[77px] h-[77px] brightness-50 object-cover rounded-full z-0 "alt="">  
+                                
+                  <div class="max-w-[55px] top-[24px] mx-auto absolute left-[50%] -translate-x-[50%]">
+                            <p class="text-[10px] leading-[13.5px] font-semibold text-[#ffffff] text-center">Courses & Content</p>
+                    </div>   
+                </a>
+                  </div>
+
+                  <div class=" w-[77px] h-[76px] rounded-full relative">
+                    <a href="{{url('entrance_exams:testprepfilter')}}">
+                      <img src="{{static('topteenfrontend/assets/images/unsplash9.svg')}}" class="absolute w-[77px] h-[77px] brightness-50 object-cover rounded-full z-0 "alt="">  
+                                  
+                    <div class="max-w-[55px] top-[24px] mx-auto absolute left-[50%] -translate-x-[50%]">
+                              <p class="text-[10px] leading-[13.5px] font-semibold text-[#ffffff] text-center">Exams & Tests</p>
+                      </div>   
+                  </a>
+                    </div>
+
+                    <div class=" w-[77px] h-[76px] rounded-full relative">
+                      <a href="{{url('careers:careervideos')}}">
+                        <img src="{{static('topteenfrontend/assets/images/uxSearch.png')}}" class="absolute w-[77px] h-[77px] brightness-50 object-cover rounded-full z-0 "alt="">  
+                                    
+                      <div class="max-w-[55px] top-[24px] mx-auto absolute left-[50%] -translate-x-[50%]">
+                                <p class="text-[10px] leading-[13.5px] font-semibold text-[#ffffff] text-center">Videos</p>
+                        </div>   
+                    </a>
+                      </div>
+
+        </div>
+
+    </div>
+
+    <!-- End of Search Cateories -->
+
+  </div>

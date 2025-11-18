@@ -1,0 +1,121 @@
+{% extends 'template20/base.html' %}
+{% block title_content %}Contact Us{% endblock %}
+{% block description_content %}Contact TopTeen for career guidance, support, and inquiries. We're here to help you on your career journey.{% endblock %}
+{% block content %}
+{% include 'template20/includes/messages.html' %}
+<main class="contact-us-page pt-15">
+
+
+    <section class="contact-page pb-10">
+      <div class="container">
+
+        <div class="row">
+          {% include 'template20/includes/breadcrumb.html' %}
+        </div>
+
+
+
+
+        <div class="row">
+
+          <div class="col-md-4 col-sm-12 mt-md-5">
+            <h1 class="title-two fs-38 fw-700 my-4 mb-3 text-left fs-sm-28">Contact Us</h1>
+            <p class="text-gray text-left py-3 fw-400 fs-19">We're here to help and answer any question you might have.
+              We look forward to hearing from you </p>
+
+
+            <div class="contact-mb-test">
+              <div class="contact-mb-test-icon d-flex align-items-center mb-4">
+                <div class="img-bot">
+                  <i class='bx bxs-time' style='color:#ffffff'></i>
+                </div>
+                <div class="r-ct-text">
+                  <h5 class="mb-0">Timings</h5>
+                  <p class="text-gray mb-0">Mon-Sat, 10am-6pm</p>
+                </div>
+              </div>
+              <div class="contact-mb-test-icon d-flex align-items-center mb-4">
+                <div class="img-bot">
+                  <i class='bx bxs-envelope' style='color:#ffffff'></i>
+                </div>
+                <div class="r-ct-text">
+                  <h5 class="mb-0">Email</h5>
+                  <p class="text-gray mb-0"> <a href="mailto:info@topteen.in">info@topteen.in</a> </p>
+                </div>
+              </div>
+              <div class="contact-mb-test-icon d-flex align-items-center mb-4">
+                <div class="img-bot">
+                  <i class='bx bxs-phone-call' style='color:#ffffff'></i>
+                </div>
+                <div class="r-ct-text">
+                  <h5 class="mb-0">Phone Number</h5>
+                  <p class="text-gray mb-0"> <a href="tel:+91 6239505640">+91 6239505640</a> </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+
+
+          <div class="offset-md-2 col-md-6 col-sm-12 mt-md-5 mt-4">
+
+            <div class="form-area">
+
+              <form class="contact-form" action="{{ url('core:contactus') }}" method="post">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+                <h3>Ask Topteen </h3>
+                <div class="form-group row">
+                  <div class="col-md-6 mb-4">
+                    <label for="inputEmail4" class="form-label">First Name </label>
+                    <input type="text" class="form-control custom-input" id="first_name" name="first_name" required placeholder="Enter First Name">
+                  </div>
+                  <div class="col-md-6 mb-4">
+                    <label for="inputPassword4" class="form-label">Last Name </label>
+                    <input type="text" class="form-control custom-input" id="last_name" name="last_name" required placeholder="Enter Last Name">
+                  </div>
+                </div>
+
+                <div class="form-group mb-4">
+                  <label for="email" class="form-label">Phone Number </label>
+                  <input class="form-control custom-input" type="tel" id="mobile" name="mobile" required placeholder="Enter your phone number">
+                </div>
+
+
+                <div class="form-group mb-4">
+                  <label for="email" class="form-label">Email address </label>
+                  <input class="form-control custom-input" type="email" id="email" name="email" required placeholder="Enter your email address">
+                </div>
+                <div class="form-group mb-4">
+                  <label for="message" class="form-label">Type message </label>
+                  <textarea class="form-control custom-input" id="message" name="message" required
+                    placeholder="Enter your message"></textarea>
+                </div>
+                <div class="form-group">
+                  <button type="submit" class="btn custom-button purple-button d-flex align-items-center">Send
+                    Message</button>
+                </div>
+              </form>
+            </div>
+
+
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+
+
+
+
+  
+</main>
+{% endblock %}

@@ -1,0 +1,1150 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Resume Builder | Top Teen{% endblock %}
+{% block description_content %}Build your professional resume by adding your skills, certifications, internships, and more.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} resume-builder-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .resume-builder-page {
+    padding-top: 80px;
+  }
+  .resume-section {
+    padding: 25px 0;
+    border-bottom: 2px solid #efefee;
+  }
+  .resume-section:last-child {
+    border-bottom: none;
+  }
+  .section-icon {
+    width: 47px;
+    height: 47px;
+  }
+  .add-btn {
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: 1px dashed #3f37c9;
+    color: #3f37c9;
+    background: rgba(63, 55, 201, 0.15);
+    transition: all 0.3s;
+  }
+  .add-btn:hover {
+    background: rgba(63, 55, 201, 0.25);
+  }
+  .added-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #efefee;
+  }
+  .added-item:last-child {
+    border-bottom: none;
+  }
+  .data-delete-btn {
+    background: none;
+    border: none;
+    color: #bdbdbd;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.3s;
+  }
+  .data-delete-btn:hover {
+    color: #dc3545;
+  }
+  .resume-content-box {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 20px;
+    min-width: 394px;
+    max-width: 400px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="resume-builder-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+        <i class='bx bx-arrow-left fs-18 text-gray'></i>
+      </button>
+      <h2 class="fs-16 fw-normal text-center mb-0">Resume Builder</h2>
+    </div>
+
+    <!-- Desktop Header -->
+    <div class="d-none d-lg-block mb-4">
+      <h1 class="fs-24 fw-semibold mb-4">Resume Builder</h1>
+      
+      <!-- Profile Info -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-4">
+          <div>
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" class="rounded-circle" style="width: 104px; height: 104px; object-fit: cover;" alt="Profile" />
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 104px; height: 104px;">
+              <i class='bx bx-user fs-48 text-gray'></i>
+            </div>
+            {% endif %}
+          </div>
+          <div>
+            <h3 class="fs-24 fw-semibold text-dark mb-1">{{ request.user.name|default(request.user.username) }}</h3>
+            {% if request.user.user_profile %}
+            <p class="fs-14 text-gray mb-1">{{ request.user.user_profile.grade|default('') }}</p>
+            <p class="fs-14 text-gray mb-0">{{ request.user.user_profile.schoolname|default('') }}</p>
+            {% endif %}
+          </div>
+        </div>
+        <a href="{{ url('users:resumepdf') }}" download class="btn custom-button purple-button">
+          <i class='bx bx-export me-2'></i> Export Resume
+        </a>
+      </div>
+    </div>
+
+    <!-- Resume Sections -->
+    <div class="resume-sections">
+      <!-- About Section -->
+      <div class="resume-section">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
+          <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
+            <img src="{{ static('images_new/icons/man.png') }}" class="section-icon" alt="About" />
+            <div>
+              <h4 class="fs-20 fw-semibold text-dark mb-2">About Yourself</h4>
+              {% if resume.about %}
+              <div id="aboutd" class="d-none d-lg-block">
+                <p class="fs-16 text-gray mb-0">{{ resume.about }}</p>
+              </div>
+              <div id="aboutm" class="d-lg-none">
+                <p class="fs-16 text-gray mb-0">{{ resume.about }}</p>
+              </div>
+              {% else %}
+              <p class="fs-16 text-gray mb-0">Describe yourself in a few words</p>
+              {% endif %}
+            </div>
+          </div>
+          <button type="button" 
+                  class="btn add-btn w-100 w-lg-auto" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#aboutModal">
+            {% if resume.about %}Edit{% else %}+ Add about{% endif %}
+          </button>
+        </div>
+      </div>
+
+      <!-- Skills Section -->
+      <div class="resume-section">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
+          <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
+            <img src="{{ static('images_new/icons/skills.png') }}" class="section-icon" alt="Skills" />
+            <div class="flex-grow-1">
+              <h4 class="fs-20 fw-semibold text-dark mb-2" id="skillcount">Skills ({{ resumeskill.count() }})</h4>
+              <p class="fs-16 text-gray mb-3">Add any relevant skills and your profficiency levels</p>
+              {% if resumeskill %}
+              <div class="resume-content-box d-none d-lg-block" id="skilld">
+                {% for skill in resumeskill %}
+                <div class="added-item">
+                  <div>
+                    <p class="fs-15 fw-semibold text-dark mb-1">{{ skill.title }}</p>
+                    <p class="fs-13 text-gray mb-0">{{ skill.get_profficiency_display() }}</p>
+                  </div>
+                  <button type="button" 
+                          class="data-delete-btn" 
+                          onclick="deleteResumeItem(this)" 
+                          data-id="{{ skill.id }}" 
+                          data-url="/api/v1/user/resume-skill"
+                          data-mdivid="skillm"
+                          data-ddivid="skilld">
+                    <i class='bx bx-x-circle fs-24'></i>
+                  </button>
+                </div>
+                {% endfor %}
+              </div>
+              <div class="d-lg-none" id="skillm">
+                {% for skill in resumeskill %}
+                <div class="added-item">
+                  <div>
+                    <p class="fs-15 fw-semibold text-dark mb-1">{{ skill.title }}</p>
+                    <p class="fs-13 text-gray mb-0">{{ skill.get_profficiency_display() }}</p>
+                  </div>
+                  <button type="button" 
+                          class="data-delete-btn" 
+                          onclick="deleteResumeItem(this)" 
+                          data-id="{{ skill.id }}" 
+                          data-url="/api/v1/user/resume-skill"
+                          data-mdivid="skillm"
+                          data-ddivid="skilld">
+                    <i class='bx bx-x-circle fs-24'></i>
+                  </button>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          <button type="button" 
+                  class="btn add-btn w-100 w-lg-auto" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#skillModal">
+            + Add a skill
+          </button>
+        </div>
+      </div>
+
+      <!-- Certifications Section -->
+      <div class="resume-section">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
+          <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
+            <img src="{{ static('images_new/icons/certificationUser.png') }}" class="section-icon" alt="Certifications" />
+            <div class="flex-grow-1">
+              <h4 class="fs-20 fw-semibold text-dark mb-2" id="certificatecount">Certifications ({{ resumecertificate.count() }})</h4>
+              <p class="fs-16 text-gray mb-3">Add any relevant Certifications</p>
+              {% if resumecertificate %}
+              <div class="resume-content-box d-none d-lg-block" id="certificated">
+                {% for c in resumecertificate %}
+                <div class="added-item">
+                  <div>
+                    <p class="fs-15 fw-semibold text-dark mb-1">{{ c.title }}</p>
+                    {% if c.issue_date %}
+                    <p class="fs-13 text-gray mb-0">{{ date_format(c.issue_date) }}</p>
+                    {% endif %}
+                  </div>
+                  <button type="button" 
+                          class="data-delete-btn" 
+                          onclick="deleteResumeItem(this)" 
+                          data-id="{{ c.id }}" 
+                          data-url="/api/v1/user/resume-certificate"
+                          data-mdivid="certificatem"
+                          data-ddivid="certificated">
+                    <i class='bx bx-x-circle fs-24'></i>
+                  </button>
+                </div>
+                {% endfor %}
+              </div>
+              <div class="d-lg-none" id="certificatem">
+                {% for c in resumecertificate %}
+                <div class="added-item">
+                  <div>
+                    <p class="fs-15 fw-semibold text-dark mb-1">{{ c.title }}</p>
+                    {% if c.issue_date %}
+                    <p class="fs-13 text-gray mb-0">{{ date_format(c.issue_date) }}</p>
+                    {% endif %}
+                  </div>
+                  <button type="button" 
+                          class="data-delete-btn" 
+                          onclick="deleteResumeItem(this)" 
+                          data-id="{{ c.id }}" 
+                          data-url="/api/v1/user/resume-certificate"
+                          data-mdivid="certificatem"
+                          data-ddivid="certificated">
+                    <i class='bx bx-x-circle fs-24'></i>
+                  </button>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          <button type="button" 
+                  class="btn add-btn w-100 w-lg-auto" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#certificateModal">
+            + Add a certificate
+          </button>
+        </div>
+      </div>
+
+      <!-- Internships Section -->
+      <div class="resume-section">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
+          <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
+            <img src="{{ static('images_new/icons/internshipsUser.png') }}" class="section-icon" alt="Internships" />
+            <div class="flex-grow-1">
+              <h4 class="fs-20 fw-semibold text-dark mb-2" id="internshipcount">Internships ({{ resumeinternship.count() }})</h4>
+              <p class="fs-16 text-gray mb-3">Add any relevant Internships</p>
+              {% if resumeinternship %}
+              <div class="resume-content-box d-none d-lg-block" id="internshipd">
+                {% for i in resumeinternship %}
+                <div class="added-item">
+                  <div>
+                    <p class="fs-15 fw-semibold text-dark mb-1">{{ i.role }}</p>
+                    <p class="fs-13 text-gray mb-0">
+                      {{ i.provider }} • 
+                      {% if i.start_date %}{{ date_format(i.start_date) }}{% endif %}
+                      {% if i.end_date %} - {{ date_format(i.end_date) }}{% endif %}
+                    </p>
+                  </div>
+                  <button type="button" 
+                          class="data-delete-btn" 
+                          onclick="deleteResumeItem(this)" 
+                          data-id="{{ i.id }}" 
+                          data-url="/api/v1/user/resume-internship"
+                          data-mdivid="internshipm"
+                          data-ddivid="internshipd">
+                    <i class='bx bx-x-circle fs-24'></i>
+                  </button>
+                </div>
+                {% endfor %}
+              </div>
+              <div class="d-lg-none" id="internshipm">
+                {% for i in resumeinternship %}
+                <div class="added-item">
+                  <div>
+                    <p class="fs-15 fw-semibold text-dark mb-1">{{ i.role }}</p>
+                    <p class="fs-13 text-gray mb-0">
+                      {{ i.provider }} • 
+                      {% if i.start_date %}{{ date_format(i.start_date) }}{% endif %}
+                      {% if i.end_date %} - {{ date_format(i.end_date) }}{% endif %}
+                    </p>
+                  </div>
+                  <button type="button" 
+                          class="data-delete-btn" 
+                          onclick="deleteResumeItem(this)" 
+                          data-id="{{ i.id }}" 
+                          data-url="/api/v1/user/resume-internship"
+                          data-mdivid="internshipm"
+                          data-ddivid="internshipd">
+                    <i class='bx bx-x-circle fs-24'></i>
+                  </button>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          <button type="button" 
+                  class="btn add-btn w-100 w-lg-auto" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#internshipModal">
+            + Add an internship
+          </button>
+        </div>
+      </div>
+
+      <!-- Activities Section -->
+      <div class="resume-section">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
+          <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
+            <img src="{{ static('images_new/icons/extraCurricular.png') }}" class="section-icon" alt="Activities" />
+            <div class="flex-grow-1">
+              <h4 class="fs-20 fw-semibold text-dark mb-2" id="activitycount">Extracurricular Activities ({{ resumeactivity.count() }})</h4>
+              <p class="fs-16 text-gray mb-3">Add any relevant Extracurricular Activities</p>
+              {% if resumeactivity %}
+              <div class="resume-content-box d-none d-lg-block" id="activityd">
+                {% for a in resumeactivity %}
+                <div class="added-item">
+                  <div>
+                    <p class="fs-15 fw-semibold text-dark mb-1">{{ a.title }}</p>
+                    {% if a.issue_date %}
+                    <p class="fs-13 text-gray mb-0">{{ date_format(a.issue_date) }}</p>
+                    {% endif %}
+                  </div>
+                  <button type="button" 
+                          class="data-delete-btn" 
+                          onclick="deleteResumeItem(this)" 
+                          data-id="{{ a.id }}" 
+                          data-url="/api/v1/user/resume-activity"
+                          data-mdivid="activitym"
+                          data-ddivid="activityd">
+                    <i class='bx bx-x-circle fs-24'></i>
+                  </button>
+                </div>
+                {% endfor %}
+              </div>
+              <div class="d-lg-none" id="activitym">
+                {% for a in resumeactivity %}
+                <div class="added-item">
+                  <div>
+                    <p class="fs-15 fw-semibold text-dark mb-1">{{ a.title }}</p>
+                    {% if a.issue_date %}
+                    <p class="fs-13 text-gray mb-0">{{ date_format(a.issue_date) }}</p>
+                    {% endif %}
+                  </div>
+                  <button type="button" 
+                          class="data-delete-btn" 
+                          onclick="deleteResumeItem(this)" 
+                          data-id="{{ a.id }}" 
+                          data-url="/api/v1/user/resume-activity"
+                          data-mdivid="activitym"
+                          data-ddivid="activityd">
+                    <i class='bx bx-x-circle fs-24'></i>
+                  </button>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          <button type="button" 
+                  class="btn add-btn w-100 w-lg-auto" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#activityModal">
+            + Add activities
+          </button>
+        </div>
+      </div>
+
+      <!-- Volunteering Section -->
+      <div class="resume-section">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
+          <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
+            <img src="{{ static('images_new/icons/volunteering.png') }}" class="section-icon" alt="Volunteering" />
+            <div class="flex-grow-1">
+              <h4 class="fs-20 fw-semibold text-dark mb-2" id="volunteercount">Volunteering ({{ resumevolunteer.count() }})</h4>
+              <p class="fs-16 text-gray mb-3">Add any relevant Volunteering Activities</p>
+              {% if resumevolunteer %}
+              <div class="resume-content-box d-none d-lg-block" id="volunteerd">
+                {% for v in resumevolunteer %}
+                <div class="added-item">
+                  <div>
+                    <p class="fs-15 fw-semibold text-dark mb-1">{{ v.title }}</p>
+                    <p class="fs-13 text-gray mb-0">
+                      {{ v.role }} • 
+                      {% if v.start_date %}{{ date_format(v.start_date) }}{% endif %}
+                      {% if v.end_date %} - {{ date_format(v.end_date) }}{% endif %}
+                    </p>
+                  </div>
+                  <button type="button" 
+                          class="data-delete-btn" 
+                          onclick="deleteResumeItem(this)" 
+                          data-id="{{ v.id }}" 
+                          data-url="/api/v1/user/resume-volunteer"
+                          data-mdivid="volunteerm"
+                          data-ddivid="volunteerd">
+                    <i class='bx bx-x-circle fs-24'></i>
+                  </button>
+                </div>
+                {% endfor %}
+              </div>
+              <div class="d-lg-none" id="volunteerm">
+                {% for v in resumevolunteer %}
+                <div class="added-item">
+                  <div>
+                    <p class="fs-15 fw-semibold text-dark mb-1">{{ v.title }}</p>
+                    <p class="fs-13 text-gray mb-0">
+                      {{ v.role }} • 
+                      {% if v.start_date %}{{ date_format(v.start_date) }}{% endif %}
+                      {% if v.end_date %} - {{ date_format(v.end_date) }}{% endif %}
+                    </p>
+                  </div>
+                  <button type="button" 
+                          class="data-delete-btn" 
+                          onclick="deleteResumeItem(this)" 
+                          data-id="{{ v.id }}" 
+                          data-url="/api/v1/user/resume-volunteer"
+                          data-mdivid="volunteerm"
+                          data-ddivid="volunteerd">
+                    <i class='bx bx-x-circle fs-24'></i>
+                  </button>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          <button type="button" 
+                  class="btn add-btn w-100 w-lg-auto" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#volunteerModal">
+            + Add volunteering
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Export Button -->
+    <div class="d-lg-none fixed-bottom text-center p-3" style="bottom: 80px;">
+      <a href="{{ url('users:resumepdf') }}" download class="btn custom-button purple-button">
+        <i class='bx bx-export me-2'></i> Export Resume
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- About Modal -->
+<div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center gap-2">
+          <img src="{{ static('images_new/icons/man.png') }}" style="width: 24px; height: 24px;" alt="About" />
+          Add About Myself
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="aboutform">
+          {% csrf_token %}
+          <div class="mb-3">
+            <textarea name="about" 
+                      id="aboutid" 
+                      class="form-control custom-input" 
+                      rows="4" 
+                      placeholder="Description" 
+                      required>{% if resume.about %}{{ resume.about }}{% endif %}</textarea>
+            <div class="text-danger fs-12 mt-1" id="abouterrortag"></div>
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button" id="aboutformsubmit">Done</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Skill Modal -->
+<div class="modal fade" id="skillModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center gap-2">
+          <img src="{{ static('images_new/icons/skills.png') }}" style="width: 24px; height: 24px;" alt="Skill" />
+          Add Skill
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="skillform">
+          {% csrf_token %}
+          <div class="mb-3">
+            <input type="text" 
+                   name="skilltitle" 
+                   id="skilltitleid" 
+                   class="form-control custom-input" 
+                   placeholder="Skill Title" 
+                   required>
+            <div class="text-danger fs-12 mt-1" id="skilltitleerrortag"></div>
+          </div>
+          <div class="mb-3">
+            <textarea name="skilldesc" 
+                      id="skilldescid" 
+                      class="form-control custom-input" 
+                      rows="3" 
+                      placeholder="Skill Description"></textarea>
+            <div class="text-danger fs-12 mt-1" id="skilldescerrortag"></div>
+          </div>
+          <div class="mb-3">
+            <select name="skillprofficiency" 
+                    id="skillprofficiencyid" 
+                    class="form-control custom-input" 
+                    required>
+              <option value="" disabled selected>Select Profficiency</option>
+              <option value="10">Beginner</option>
+              <option value="20">Intermediate</option>
+              <option value="30">Expert</option>
+            </select>
+            <div class="text-danger fs-12 mt-1" id="skillprofficiencyerrortag"></div>
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button" id="skillformsubmit">Done</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Certificate Modal -->
+<div class="modal fade" id="certificateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center gap-2">
+          <img src="{{ static('images_new/icons/certificationUser.png') }}" style="width: 24px; height: 24px;" alt="Certificate" />
+          Add Certification
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="certificateform">
+          {% csrf_token %}
+          <div class="mb-3">
+            <input type="text" 
+                   name="certificatetitle" 
+                   id="certificatetitleid" 
+                   class="form-control custom-input" 
+                   placeholder="Certification Title" 
+                   required>
+            <div class="text-danger fs-12 mt-1" id="certificatetitleerrortag"></div>
+          </div>
+          <div class="mb-3">
+            <textarea name="certificatedescription" 
+                      id="certificatedescriptionid" 
+                      class="form-control custom-input" 
+                      rows="3" 
+                      placeholder="Certification Description" 
+                      required></textarea>
+            <div class="text-danger fs-12 mt-1" id="certificatedescriptionerrortag"></div>
+          </div>
+          <div class="mb-3">
+            <input type="date" 
+                   name="issuedate" 
+                   id="issuedateid" 
+                   class="form-control custom-input" 
+                   placeholder="Date of Completion" 
+                   required>
+            <div class="text-danger fs-12 mt-1" id="issuedateerrortag"></div>
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button" id="certificateformsubmit">Done</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Internship Modal -->
+<div class="modal fade" id="internshipModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center gap-2">
+          <img src="{{ static('images_new/icons/internshipsUser.png') }}" style="width: 24px; height: 24px;" alt="Internship" />
+          Add an Internship
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="internshipform">
+          {% csrf_token %}
+          <div class="mb-3">
+            <input type="text" 
+                   name="provider" 
+                   class="form-control custom-input" 
+                   placeholder="Company" 
+                   required>
+            <div class="text-danger fs-12 mt-1" id="providererrortag"></div>
+          </div>
+          <div class="mb-3">
+            <input type="text" 
+                   name="role" 
+                   class="form-control custom-input" 
+                   placeholder="Role" 
+                   required>
+            <div class="text-danger fs-12 mt-1" id="roleerrortag"></div>
+          </div>
+          <div class="mb-3">
+            <textarea name="internshipdescription" 
+                      id="description" 
+                      class="form-control custom-input" 
+                      rows="3" 
+                      placeholder="Description" 
+                      required></textarea>
+            <div class="text-danger fs-12 mt-1" id="internshipdescriptionerrortag"></div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-6">
+              <input type="date" 
+                     name="start_date" 
+                     class="form-control custom-input" 
+                     placeholder="Start" 
+                     required>
+              <div class="text-danger fs-12 mt-1" id="start_dateerrortag"></div>
+            </div>
+            <div class="col-6">
+              <input type="date" 
+                     name="end_date" 
+                     class="form-control custom-input" 
+                     placeholder="End" 
+                     required>
+              <div class="text-danger fs-12 mt-1" id="end_dateerrortag"></div>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button" id="internshipformsubmit">Done</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Activity Modal -->
+<div class="modal fade" id="activityModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center gap-2">
+          <img src="{{ static('images_new/icons/extraCurricular.png') }}" style="width: 24px; height: 24px;" alt="Activity" />
+          Add an Activity
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="activityform">
+          {% csrf_token %}
+          <div class="mb-3">
+            <input type="text" 
+                   name="activity" 
+                   class="form-control custom-input" 
+                   placeholder="Activity" 
+                   required>
+            <div class="text-danger fs-12 mt-1" id="activityerrortag"></div>
+          </div>
+          <div class="mb-3">
+            <textarea name="activity_description" 
+                      class="form-control custom-input" 
+                      rows="3" 
+                      placeholder="Description" 
+                      required></textarea>
+            <div class="text-danger fs-12 mt-1" id="activity_descriptionerrortag"></div>
+          </div>
+          <div class="mb-3">
+            <input type="date" 
+                   name="particiopation_date" 
+                   class="form-control custom-input" 
+                   placeholder="Participation Date" 
+                   required>
+            <div class="text-danger fs-12 mt-1" id="particiopation_dateerrortag"></div>
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button" id="activityformsubmit">Done</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Volunteer Modal -->
+<div class="modal fade" id="volunteerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center gap-2">
+          <img src="{{ static('images_new/icons/volunteering.png') }}" style="width: 24px; height: 24px;" alt="Volunteer" />
+          Add Volunteer Involvement
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="volunteerform">
+          {% csrf_token %}
+          <div class="mb-3">
+            <input type="text" 
+                   name="volunteertitle" 
+                   class="form-control custom-input" 
+                   placeholder="Title" 
+                   required>
+            <div class="text-danger fs-12 mt-1" id="volunteertitleerrortag"></div>
+          </div>
+          <div class="mb-3">
+            <input type="text" 
+                   name="volunteerrole" 
+                   class="form-control custom-input" 
+                   placeholder="Role" 
+                   required>
+            <div class="text-danger fs-12 mt-1" id="volunteerroleerrortag"></div>
+          </div>
+          <div class="mb-3">
+            <textarea name="volunteerdescription" 
+                      class="form-control custom-input" 
+                      rows="3" 
+                      placeholder="Description" 
+                      required></textarea>
+            <div class="text-danger fs-12 mt-1" id="volunteerdescriptionerrortag"></div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-6">
+              <input type="date" 
+                     name="volunteer_start_date" 
+                     class="form-control custom-input" 
+                     placeholder="Start" 
+                     required>
+              <div class="text-danger fs-12 mt-1" id="volunteer_start_dateerrortag"></div>
+            </div>
+            <div class="col-6">
+              <input type="date" 
+                     name="volunteer_end_date" 
+                     class="form-control custom-input" 
+                     placeholder="End" 
+                     required>
+              <div class="text-danger fs-12 mt-1" id="volunteer_end_dateerrortag"></div>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button" id="volunteerformsubmit">Done</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteResumeItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">Are you sure you want to delete this item?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+        <button type="button" class="btn custom-button purple-button" id="confirmDeleteResumeItemBtn">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Sweet Alert Helper
+  const fireAlert = async function (
+    title,
+    icon = "success",
+    showConfirmButton = false,
+    showCloseButton = false,
+    isPrompt = false
+  ) {
+    const canDo = Swal.fire({
+      title,
+      icon: icon,
+      position: "top-end",
+      showCloseButton,
+      showConfirmButton,
+      toast: true,
+      showCancelButton: false,
+      ...(isPrompt ? {} : { timer: 2000 }),
+    });
+
+    if (isPrompt) {
+      return canDo?.isConfirmed;
+    } else {
+      return -1;
+    }
+  };
+
+  // URL variables for AJAX calls
+  const resumeabout = "/api/v1/user/resume-about";
+  const resumeskill = "/api/v1/user/resume-skill";
+  const resumecertificate = "/api/v1/user/resume-certificate";
+  const resumeinternship = "/api/v1/user/resume-internship";
+  const resumeactivity = "/api/v1/user/resume-activity";
+  const resumevolunteer = "/api/v1/user/resume-volunteer";
+
+  // Clear error tags
+  function clearAllErrorTag() {
+    document.querySelectorAll('.errortag').forEach(el => el.textContent = '');
+  }
+
+  // About form submission
+  $('#aboutformsubmit').on('click', function(e) {
+    e.preventDefault();
+    clearAllErrorTag();
+    const formData = new FormData(document.getElementById("aboutform"));
+    const about = formData.get("about").trim();
+
+    if (about) {
+      $.ajax({
+        url: resumeabout,
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          $('#aboutd').html(data.htmld);
+          $('#aboutm').html(data.htmlm);
+          document.getElementById("aboutform").reset();
+          fireAlert("About saved successfully!", "success");
+          const modal = bootstrap.Modal.getInstance(document.getElementById('aboutModal'));
+          if (modal) modal.hide();
+        },
+        error: function(jqXHR) {
+          fireAlert(jqXHR.responseJSON?.message || "Error saving about", "error");
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+    } else {
+      document.getElementById("abouterrortag").textContent = "This field is required";
+      fireAlert('All Fields are required', "error");
+    }
+  });
+
+  // Skill form submission
+  $('#skillformsubmit').on('click', function(e) {
+    e.preventDefault();
+    clearAllErrorTag();
+    const formData = new FormData(document.getElementById("skillform"));
+    const skilltitle = formData.get("skilltitle").trim();
+    const skillprofficiency = formData.get("skillprofficiency");
+
+    if (skilltitle && skillprofficiency) {
+      $.ajax({
+        url: resumeskill,
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          $('#skilld').html(data.htmld);
+          $('#skillm').html(data.htmlm);
+          document.getElementById("skillform").reset();
+          document.getElementById("skillcount").textContent = "Skills (" + data.count + ")";
+          fireAlert("Skill added successfully!", "success");
+          const modal = bootstrap.Modal.getInstance(document.getElementById('skillModal'));
+          if (modal) modal.hide();
+        },
+        error: function(jqXHR) {
+          fireAlert(jqXHR.responseJSON?.message || "Error adding skill", "error");
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+    } else {
+      if (!skilltitle) document.getElementById("skilltitleerrortag").textContent = "This field is required";
+      if (!skillprofficiency) document.getElementById("skillprofficiencyerrortag").textContent = "This field is required";
+      fireAlert('All Fields are required', "error");
+    }
+  });
+
+  // Certificate form submission
+  $('#certificateformsubmit').on('click', function(e) {
+    e.preventDefault();
+    clearAllErrorTag();
+    const formData = new FormData(document.getElementById("certificateform"));
+    const certificatetitle = formData.get("certificatetitle").trim();
+    const certificatedescription = formData.get("certificatedescription").trim();
+    const issuedate = formData.get("issuedate");
+
+    if (certificatetitle && certificatedescription && issuedate) {
+      $.ajax({
+        url: resumecertificate,
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          $('#certificated').html(data.htmld);
+          $('#certificatem').html(data.htmlm);
+          document.getElementById("certificateform").reset();
+          document.getElementById("certificatecount").textContent = "Certifications (" + data.count + ")";
+          fireAlert("Certification added successfully!", "success");
+          const modal = bootstrap.Modal.getInstance(document.getElementById('certificateModal'));
+          if (modal) modal.hide();
+        },
+        error: function(jqXHR) {
+          fireAlert(jqXHR.responseJSON?.message || "Error adding certification", "error");
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+    } else {
+      if (!certificatetitle) document.getElementById("certificatetitleerrortag").textContent = "This field is required";
+      if (!certificatedescription) document.getElementById("certificatedescriptionerrortag").textContent = "This field is required";
+      if (!issuedate) document.getElementById("issuedateerrortag").textContent = "This field is required";
+      fireAlert('All Fields are required', "error");
+    }
+  });
+
+  // Internship form submission
+  $('#internshipformsubmit').on('click', function(e) {
+    e.preventDefault();
+    clearAllErrorTag();
+    const formData = new FormData(document.getElementById("internshipform"));
+    const provider = formData.get("provider").trim();
+    const role = formData.get("role").trim();
+    const internshipdescription = formData.get("internshipdescription").trim();
+    const start_date = formData.get("start_date");
+    const end_date = formData.get("end_date");
+
+    if (provider && role && internshipdescription && start_date && end_date) {
+      $.ajax({
+        url: resumeinternship,
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          $('#internshipd').html(data.htmld);
+          $('#internshipm').html(data.htmlm);
+          document.getElementById("internshipform").reset();
+          document.getElementById("internshipcount").textContent = "Internships (" + data.count + ")";
+          fireAlert("Internship added successfully!", "success");
+          const modal = bootstrap.Modal.getInstance(document.getElementById('internshipModal'));
+          if (modal) modal.hide();
+        },
+        error: function(jqXHR) {
+          fireAlert(jqXHR.responseJSON?.message || "Error adding internship", "error");
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+    } else {
+      if (!provider) document.getElementById("providererrortag").textContent = "This field is required";
+      if (!role) document.getElementById("roleerrortag").textContent = "This field is required";
+      if (!internshipdescription) document.getElementById("internshipdescriptionerrortag").textContent = "This field is required";
+      if (!start_date) document.getElementById("start_dateerrortag").textContent = "This field is required";
+      if (!end_date) document.getElementById("end_dateerrortag").textContent = "This field is required";
+      fireAlert('All Fields are required', "error");
+    }
+  });
+
+  // Activity form submission
+  $('#activityformsubmit').on('click', function(e) {
+    e.preventDefault();
+    clearAllErrorTag();
+    const formData = new FormData(document.getElementById("activityform"));
+    const activity = formData.get("activity").trim();
+    const activity_description = formData.get("activity_description").trim();
+    const particiopation_date = formData.get("particiopation_date");
+
+    if (activity && activity_description && particiopation_date) {
+      $.ajax({
+        url: resumeactivity,
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          $('#activityd').html(data.htmld);
+          $('#activitym').html(data.htmlm);
+          document.getElementById("activityform").reset();
+          document.getElementById("activitycount").textContent = "Extracurricular Activities (" + data.count + ")";
+          fireAlert("Activity added successfully!", "success");
+          const modal = bootstrap.Modal.getInstance(document.getElementById('activityModal'));
+          if (modal) modal.hide();
+        },
+        error: function(jqXHR) {
+          fireAlert(jqXHR.responseJSON?.message || "Error adding activity", "error");
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+    } else {
+      if (!activity) document.getElementById("activityerrortag").textContent = "This field is required";
+      if (!activity_description) document.getElementById("activity_descriptionerrortag").textContent = "This field is required";
+      if (!particiopation_date) document.getElementById("particiopation_dateerrortag").textContent = "This field is required";
+      fireAlert('All Fields are required', "error");
+    }
+  });
+
+  // Volunteer form submission
+  $('#volunteerformsubmit').on('click', function(e) {
+    e.preventDefault();
+    clearAllErrorTag();
+    const formData = new FormData(document.getElementById("volunteerform"));
+    const volunteertitle = formData.get("volunteertitle").trim();
+    const volunteerrole = formData.get("volunteerrole").trim();
+    const volunteerdescription = formData.get("volunteerdescription").trim();
+    const volunteer_start_date = formData.get("volunteer_start_date");
+    const volunteer_end_date = formData.get("volunteer_end_date");
+
+    if (volunteertitle && volunteerrole && volunteerdescription && volunteer_start_date && volunteer_end_date) {
+      $.ajax({
+        url: resumevolunteer,
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          $('#volunteerd').html(data.htmld);
+          $('#volunteerm').html(data.htmlm);
+          document.getElementById("volunteerform").reset();
+          document.getElementById("volunteercount").textContent = "Volunteering (" + data.count + ")";
+          fireAlert("Volunteering added successfully!", "success");
+          const modal = bootstrap.Modal.getInstance(document.getElementById('volunteerModal'));
+          if (modal) modal.hide();
+        },
+        error: function(jqXHR) {
+          fireAlert(jqXHR.responseJSON?.message || "Error adding volunteering", "error");
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+    } else {
+      if (!volunteertitle) document.getElementById("volunteertitleerrortag").textContent = "This field is required";
+      if (!volunteerrole) document.getElementById("volunteerroleerrortag").textContent = "This field is required";
+      if (!volunteerdescription) document.getElementById("volunteerdescriptionerrortag").textContent = "This field is required";
+      if (!volunteer_start_date) document.getElementById("volunteer_start_dateerrortag").textContent = "This field is required";
+      if (!volunteer_end_date) document.getElementById("volunteer_end_dateerrortag").textContent = "This field is required";
+      fireAlert('All Fields are required', "error");
+    }
+  });
+
+  // Delete resume item functionality
+  let itemToDelete = null;
+
+  function deleteResumeItem(btn) {
+    itemToDelete = {
+      id: btn.dataset.id,
+      url: btn.dataset.url,
+      mdivid: btn.dataset.mdivid,
+      ddivid: btn.dataset.ddivid
+    };
+    const modal = new bootstrap.Modal(document.getElementById('deleteResumeItemModal'));
+    modal.show();
+  }
+
+  document.getElementById('confirmDeleteResumeItemBtn')?.addEventListener('click', function() {
+    if (itemToDelete) {
+      const form = document.createElement("form");
+      form.setAttribute("method", "POST");
+      
+      const csrfField = document.createElement("input");
+      csrfField.setAttribute("type", "hidden");
+      csrfField.setAttribute("name", "csrfmiddlewaretoken");
+      csrfField.setAttribute("value", "{{ csrf_token }}");
+      form.appendChild(csrfField);
+      
+      const idField = document.createElement("input");
+      idField.setAttribute("type", "hidden");
+      idField.setAttribute("name", "id");
+      idField.setAttribute("value", itemToDelete.id);
+      form.appendChild(idField);
+      
+      const formData = new FormData(form);
+      
+      $.ajax({
+        url: itemToDelete.url,
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          $('#' + itemToDelete.mdivid).html(data.htmlm);
+          $('#' + itemToDelete.ddivid).html(data.htmld);
+          if (data.count !== undefined) {
+            // Update count if provided
+            const countElement = document.querySelector('[id$="count"]');
+            if (countElement && data.section) {
+              countElement.textContent = data.section + " (" + data.count + ")";
+            }
+          }
+          fireAlert("Item deleted successfully", "success");
+          const modal = bootstrap.Modal.getInstance(document.getElementById('deleteResumeItemModal'));
+          if (modal) modal.hide();
+        },
+        error: function(jqXHR) {
+          fireAlert(jqXHR.responseJSON?.message || "Error deleting item", "error");
+          const modal = bootstrap.Modal.getInstance(document.getElementById('deleteResumeItemModal'));
+          if (modal) modal.hide();
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+    }
+  });
+</script>
+{% endblock %}
+

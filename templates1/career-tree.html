@@ -1,0 +1,505 @@
+<head>
+  <meta charset="utf-8">
+  <meta charset="UTF-8" />
+  <meta name="robots" content="noindex" />
+  <meta name="googlebot" content="noindex">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <link rel="apple-touch-icon" sizes="180x180" href="{{static('images/favicon/apple-touch-icon.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{static('images/favicon/favicon-32x32.png')}}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{static('images/favicon/favicon-16x16.png')}}">
+  <link rel="mask-icon" href="{{static('images/favicon/safari-pinned-tab.svg ')}}" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <title>Every Student, Career Ready | Top Teen</title>
+  
+  <!-- Bootstrap CSS -->
+  
+  <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"/>
+  <link rel="preload stylesheet" href="https://www.topteen.in/static/topteenfrontend/assets/css/styles.css">
+  <link rel="preload stylesheet" href="https://www.topteen.in/static/topteenfrontend/assets/css/custom.css">
+  <link rel="preload stylesheet" href="css/tailwindcustom.css">
+  <link rel="preload stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/custom-min.css" type="text/css" media="all" />
+  <link rel="preload stylesheet" href="font/font-style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
+  <link rel="stylesheet" type="text/css"  href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css" />
+  <!-- custom- js -->
+  
+  <style>
+  p {
+      margin-bottom: 0px;
+      color: #000;
+  }
+  body {
+      font-family: 'Galano Grotesque';
+      /*  height: 200vh;*/
+      position: relative;
+  }
+  p {
+      font-family: 'Galano Grotesque';
+  }
+  h1, h2, h3, h4, h5, h6 {
+      font-family: 'Galano Grotesque';
+  }
+  </style>
+  </head>
+  
+  <body>
+  <div class="mx-auto hidden lg:flex justify-between py-[16px] border-b-[2px] border-[#EBEBEE]">
+    <div class="hidden lg:flex justify-between lg:container mx-auto">
+      <ul class="flex gap-[24px] mb-0">
+        <li class="flex"> <a href="/"> <img src="https://www.topteen.in/static/topteenfrontend/assets/images/logo.svg" class="w-[38.5px] h-[38.5px]" alt=""> </a> <a href="/">
+          <p class="text-[13.8px] leading-[18px] mt-[14px] ml-[8px] font-bold text-[#494949] tracking-[0.01em]"> TOPTEEN </p>
+          </a> </li>
+        <li class="flex"> <i class="fa fa-search mt-[15px] -mr-[32px] text-[#bdbdbd] z-[20]" aria-hidden="true"></i>
+          <form action="/searchand-explore-result" method="get" autocomplete="off" class="mb-0">
+            <div class="relative">
+              <input name="search" type="text" placeholder=" Careers, colleges, courses..." class="searchBox searchinput h-[48px] w-[300px] rounded-[10px] pl-[36px] bg-[#f7f7fa] border-[1.5px] border-solid border-[#dcdcdc] placeholder-[#bdbdbd] z-[10]" id="collegesearch" onfocus="focusFunc()" required="" oninput="inputFunc()" value="">
+              <div id="searchresults"> </div>
+              <!-- Before Typing --> 
+              
+            </div>
+          </form>
+        </li>
+      </ul>
+      <ul class="flex gap-[12px] mb-0">
+        <a href="/user/user-feeds">
+        <li class="flex"> <img src="https://www.topteen.in/static/topteenfrontend/assets/images/discover.svg" class="w-[22px] h-[22px] mt-[10px]" alt="">
+          <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[4px]"> Discover </p>
+        </li>
+        </a> <a href="/testprep/">
+        <li class="flex"> <img src="https://www.topteen.in/static/topteenfrontend/assets/images/myPlans.svg" class="w-[22px] h-[22px] mt-[10px]" alt="">
+          <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]"> Test prep </p>
+        </li>
+        </a> <a href="/user/dashboard">
+        <li class="flex"> <img src="https://www.topteen.in/static/topteenfrontend/assets/images/myPlans.svg" class="w-[22px] h-[22px] mt-[10px]" alt="">
+          <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]"> My Dashboard </p>
+        </li>
+        </a> <a href="/institute/admindashboard">
+        <li class="flex"> <img src="https://www.topteen.in/static/topteenfrontend/assets/images/myPlans.svg" class="w-[22px] h-[22px] mt-[10px]" alt="">
+          <p class="text-[14px] leading-[19px] font-semibold mt-[12px] ml-[8px] text-[#828282]"> Super Admin </p>
+        </li>
+        </a> 
+        
+        <!-- Dropdown menu -->
+        
+        <li class="flex relative">
+          <div>
+            <button class="popTrigr h-[42px] w-[42px] rounded-full -mr-[16px]"> <img src="https://www.topteen.in/media/upload/users/1/marketer-creates-workflow-automation_1_ORL7EfU.jpg" alt="" class="h-full w-full rounded-full object-cover"> </button>
+          </div>
+          <div class="absolute z-80 popDiv w-[144px] inline-block">
+            <div id="smallPop" class="hidden px-[10px] py-[10px] bg-[#FFFFFF] shadow-lg rounded-[8px] relative flex flex-col gap-[6px]">
+              <button onclick="window.location='/user/logout'" value="3" class="text-black hover:bg-slate-200 text-[16px] font-bold py-1  h-full transition-all duration-[600ms] ease-in-out w-full"> Logout </button>
+              <div class="trianglePop absolute left-[50%] -translate-x-[50%]"> </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
+    <div class="lg:flex lg:gap-[30px] pt-[15px] w-full"> 
+      <!-- Left Part Mobile -->
+      <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto "> 
+        <!-- User -->
+        <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+          <div class="flex gap-[17px]">
+            <div> <img src="images/marketer-creates-workflow-automation_1_ORL7EfU.jpg" class="w-[71px] h-[71px] rounded-full object-cover" alt=""> </div>
+            <div class="flex flex-col items-start justify-center gap-y-[5px]">
+              <div class="">
+                <p class="text-[15px] leading-[20.25px] font-semibold"> Nikhil Verma </p>
+              </div>
+              <div class="flex flex-col gap-y-[3px]">
+                <div class="flex gap-[4px]"> <img src="images/clock.fill.png" class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="">
+                  <p class="text-[10px] leading-[13.5px] text-[#828282]"> Joined July, 2022 </p>
+                </div>
+                <div class="flex gap-[4px]"> <img src="images/userGrade.png" class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="">
+                  <p class="text-[10px] leading-[13.5px] text-[#828282]"> • KV Rk Puram </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+        <!-- End of User --> 
+        
+        <!-- Complete Profile -->
+        
+        <div id="comppro" class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[100px] pt-[18px] relative">
+          <div class="absolute top-[8px] right-[20px]" onclick="myfunc()"> <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]" aria-hidden="true"></i> </div>
+          <div>
+            <div class="flex relative">
+              <div class="absolute -left-[24px]"> <img src="images/verified-account%202.png" class="w-[81px] h-[81px]" alt=""> </div>
+              <div class="text-left max-w-[217.5px] ml-[74px]">
+                <div>
+                  <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]"> Complete your profile </p>
+                  <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]"> A complete profile helps us cater the best content to you </p>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                  <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+                </div>
+                <!-- End of Progress Bar --> 
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- End of Complete Profile --> 
+      </div>
+      
+      <!-- End of left Part Mobile --> 
+      
+      <!-- Left part Desktop -->
+      
+      <div class="flex  hidden lg:block w-[338px] ">
+        <div class=" border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto h-[825px] sticky-sidebar"> 
+          <!-- User -->
+          <div class="flex justify-center border-b-[1px] border-solid border-[#dedede]   ">
+            <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px]">
+              <div class=" flex flex-col justify-center items-center">
+                <div class="flex justify-center items-center w-full">
+                  <div class="flex gap-[8px]">
+                    <div class="relative"> <img src="images/marketer-creates-workflow-automation_1_ORL7EfU.jpg" class="w-[104px] h-[104px] rounded-full object-cover" alt=""> </div>
+                  </div>
+                </div>
+                <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">Nikhil Verma</p>
+              </div>
+              <div class="flex flex-col gap-y-[8px]">
+                <div class="flex gap-[14px]"> <img src="images/clock.fill.png" class="w-[18px] h-[18px]" alt="">
+                  <p class="text-[16px] leading-[21.6px] text-[#828282]"> Joined July, 2022 </p>
+                </div>
+                <div class="flex gap-[14px]"> <img src="images/userGrade.png" class="w-[18px] h-[14px]" alt="">
+                  <p class="text-[16px] leading-[21.6px] text-[#828282]"> • KV Rk Puram </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- End of User --> 
+          
+          <!-- Complete Profile -->
+          <div class="flex justify-center pt-[18px] flex-col">
+            <div class="flex flex-col items-center">
+              <div class="flex gap-[18px]">
+                <div class="w-[45px] h-[44px]"> <img src="images/verified-account%202.png" alt=""> </div>
+                <div class="text-left max-w-[206px] flex flex-col gap-y-[5px]">
+                  <div>
+                    <p class="text-[12px] leading-[16.2px] font-semibold text-[#333333]"> Complete your profile </p>
+                    <p class="text-[10px] leading-[14.5px] font-normal text-[#828282]"> A complete profile helps us cater the best content to you </p>
+                  </div>
+                  <!-- Progress Bar -->
+                  <div class="w-[205px] h-[10px] rounded-[100px] bg-[#4cc9f0] bg-opacity-[0.15]">
+                    <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+                  </div>
+                  <!-- End of Progress Bar --> 
+                </div>
+              </div>
+              
+              <!-- Settings -->
+              <div class="w-[295px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[19px] d-none"> <a href="/user/profiledetails">
+                <div class="w-full h-[48px] flex gap-[11.56px] justify-center rounded-[10px] bg-[#3f37c9] text-[#ffffff]"> <i class="fa fa-gear my-auto" aria-hidden="true"></i>
+                  <p class="text-[14px] leading-[18.9px] font-bold my-auto text-white"> SETTINGS </p>
+                </div>
+                </a> </div>
+              <button  class="uppercase  w-[295px] h-[53px] bg-[#4CC9F0] rounded-[10px] text-xs text-white font-bold tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mt-3 text-[14px] "> <span class="text-[18px]"> <i class="fa-solid fa-shield-heart"></i></span><span>My WishList</span> </button>
+              <!-- End of settings --> 
+              
+            </div>
+            
+            <!-- career Tree -->
+            <div class="flex flex-col items-center p-3 text-center mt-5">
+              <div class="tree-image"><img src="images/career-tree.png" alt="career tree"/> </div>
+              <p>Lorem ipsum dolor sit amet consectetur.</p>
+              <button class="w-full h-[48px] py-[10px]  bg-[#5CCD16] rounded-[10px] text-white flex flex-row justify-center items-center gap-x-[5px] text-sm boldFont uppercase border-b-4 border-[#51B613] mt-2 text-[14px] "> <span><i class="fa fa-leaf" aria-hidden="true"></i></span><span>Start tree</span> </button>
+            </div>
+            
+            <!-- career Tree --> 
+            
+          </div>
+          <!-- End of Complete Profile --> 
+        </div>
+      </div>
+      <!-- End of Left part Desktop --> 
+      
+      <!-- Right Part -->
+      <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20">       
+        <div class="header-title">
+<h2>Grow your <span class="text-green">Career Tree!</span></h2>
+        </div>
+
+
+        <div class="c-tree ">
+          <div class="grid md:grid-cols-2 grid-col-1">
+            <div class="tree-journey flex flex-col  items-center">
+              <div class="stage-step">
+              <div class="stage-head stage-enable"> Stage I</div>
+              <div class="stage-system">
+<button type="button" class="enable-button stage-button" >Psychometric Test</button>
+<button type="button" class="disables-button stage-button" disabled>AI Counselor</button> 
+              </div>
+              </div>
+
+
+              <div class="stage-step">
+                <div class="stage-head "> Stage II</div>
+                <div class="stage-system">
+ <button type="button" class="disables-button stage-button" disabled>Courses</button> 
+                </div>
+                </div>
+
+
+
+
+                
+              <div class="stage-step last-stage ">
+                <div class="stage-head "> Stage III</div>
+                <div class="text-dt text-center"><p>To Nourishing your Career Tree <br> Explore the Resources below </p></div>
+                <div class="b-botton mt-3">
+                  <button type="button" class="disables-button stage-button" disabled>Blogs</button>          <button type="button" class="disables-button stage-button" disabled>Videos</button> 
+                  <button type="button" class="disables-button stage-button" disabled>Podcast</button>  <button type="button" class="disables-button stage-button" disabled>Webinar</button> 
+                </div>
+     
+                </div>
+  
+
+
+
+
+
+
+
+
+            </div>
+
+
+
+            <div class="tree-grow">
+
+
+<div class="fixed-tree">
+
+<img src="images/tree-stage-3.png" alt="Stage 3"/>
+
+</div>
+
+
+            </div>
+
+
+
+
+
+
+
+          </div>
+
+
+
+
+        </div>
+
+
+      </div>
+      <!-- End of Right Part --> 
+    </div>
+  </main>
+  <section class="footer-nav d-lg-none d-block">
+    <div class="nav-footer">
+      <ul>
+        <li> <a href="#" class="ft-dis-icon"> <span></span>
+          <p>Discover</p>
+          </a> </li>
+        <li> <a href="#" class="ft-search-icon"> <span></span>
+          <p>Search</p>
+          </a> </li>
+        <li> <a href="#" class="ft-dash-icon"> <span></span>
+          <p>My Dashboard</p>
+          </a> </li>
+        <li> <a href="#" class="ft-learn-icon"> <span></span>
+          <p>Learn</p>
+          </a> </li>
+        <li> <a href="#" class="ft-profile-icon"> <span></span>
+          <p>Profile</p>
+          </a> </li>
+      </ul>
+    </div>
+  </section>
+  </div>
+  </section>
+  
+  <!-- Edit Stream Modal -->
+  
+  <div class="modal fade custom-modal" id="edit-stream" tabindex="-1"  aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Create Follow up</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="row">
+              <div class="col">
+                <input type="text" class="form-control custom-input" placeholder="First name" aria-label="First name">
+              </div>
+              <div class="col">
+                <input type="text" class="form-control custom-input" placeholder="Last name" aria-label="Last name">
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Edit Stream Modal --> 
+  
+  <!-- Add Institute Modal -->
+  
+  <footer class="hidden lg:block bg-[#fdfcff]  mx-auto py-[60px]">
+    <div class="lg:container mx-auto">
+      <div class="flex justify-between">
+        <div class="w-[246px]">
+          <div class="flex gap-[8.2px]"> <img src="/static/topteenfrontend/assets/images/logo.svg" class="w-[38.58px] h-[38.58px]" alt="">
+            <p class="text-[13.13px] leading-[17.73px] text-[#494949] mt-[12px] font-bold"> TOPTEEN </p>
+          </div>
+          <div>
+            <p class="text-[16px] leading-[21.6px] tracking-[0.01em] text-[#828282] mt-[18px]"> Every Student, Career Ready! </p>
+          </div>
+        </div>
+        <div class="flex gap-[109px]">
+          <div> <a href="/about-us">
+            <p class="text-[16px] leading-[21.6px] text-[#333333] tracking-[0.01em] font-bold"> About the company </p>
+            </a> <a href="/">
+            <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[22px]"> TopTeen </p>
+            </a> <a href="/about-us">
+            <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]"> About Us </p>
+            </a> <a href="/contact-us">
+            <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]"> Contact Us </p>
+            </a> </div>
+          <div> <a href="#">
+            <p class="text-[16px] leading-[21.6px] text-[#333333] tracking-[0.01em] font-bold"> Product </p>
+            </a> <a href="/psychometrictest/">
+            <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[22px]"> Career Assesment Test </p>
+            </a> <a href="/blogs/category/blogs">
+            <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]"> Blogs For Students </p>
+            </a> <a href="/blogs/category/parenting-blogs">
+            <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]"> Blogs For Parents </p>
+            </a> <a href="/all-faq">
+            <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]"> FAQs </p>
+            </a> </div>
+          <div> <a href="#">
+            <p class="text-[16px] leading-[21.6px] text-[#333333] tracking-[0.01em] font-bold"> Socials </p>
+            </a> <a href="https://www.instagram.com/topteen.careers/" target="_blank">
+            <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[22px]"> Instagram </p>
+            </a> <a href="https://twitter.com/topteencareers" target="_blank">
+            <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]"> Twitter </p>
+            </a> <a href="https://www.facebook.com/topteen.in" target="_blank">
+            <p class="text-[16px] leading-[21.6px] text-[#828282] mt-[16px]"> Facebook </p>
+            </a> </div>
+        </div>
+      </div>
+      <hr class="text-[#000000] opacity-[0.8] font-bold mt-[42px]">
+      <div class="flex justify-between mt-[12px]">
+        <p class="text-[12px] leading-[16.2px] text-[#828282]"> © 2023 TopTeen. All rights reserved. </p>
+        <div class="text-[12px] leading-[16px] text-[#828282] flex"> <a href="/terms-and-condition" class="underline-offset-[2px]">Terms and Conditions</a>
+          <p>&nbsp;.</p>
+          <a href="/privacy-policy" class="underline-offset-[2px]">&nbsp;Privacy Policy</a> </div>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Main modal -->
+  <div id="add-institute" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 max-w-[690px] w-full"> 
+      <!-- Modal content -->
+      <div class="relative bg-white rounded-lg shadow dark:bg-gray-700"> 
+        <!-- Modal header -->
+        <div class="flex items-center justify-center p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex align-items-center w-100 justify-center mb-0"> <img class="me-3" src="images/create-icon.png" alt="icon"> Create Institute </h3>
+          <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm h-8 w-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="add-institute">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+          </svg>
+          <span class="sr-only">Close modal</span> </button>
+        </div>
+        
+        <!-- Modal body -->
+        <form class="p-4 md:p-5">
+        <form>
+          <div class="grid gap-3 mb-3 md:grid-cols-2">
+            <div>
+              <input type="text" id="inst-name" class="form-control custom-input" placeholder="Institute Name" required />
+            </div>
+            <div>
+              <input type="text" id="Email" class="form-control custom-input" placeholder="Email" required />
+            </div>
+            <div>
+              <input type="text" id="address" class="form-control custom-input" placeholder="Address" required />
+            </div>
+            <div>
+              <input type="tel" id="cont" class="form-control custom-input" placeholder="Contact No." pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}" required />
+            </div>
+            <div>
+              <select id="countries" class="form-control custom-input">
+                <option selected>Groups</option>
+                <option value="US">United States</option>
+                <option value="CA">Canada</option>
+                <option value="FR">France</option>
+                <option value="DE">Germany</option>
+              </select>
+            </div>
+            <div>
+              <input type="text" id="credit" class="form-control custom-input" placeholder="Exam Credits" />
+            </div>
+          </div>
+          <div class="custom-browse">
+            <input name="institute_logo" type="file" accept=".jpg,.png" oninput="checkfilesize(this)" alt="Submit" class="form-control custom-input" placeholder="Institute Logo">
+          </div>
+          <div class="flex w-full justify-center">
+            <button type="submit" class="width-[228px] h-[53px] rounded-[10px] bg-[#2e289d] relative mt-[15px]">
+            <div class=" w-full max-w-[347px] h-[48px] rounded-[10px] bg-[#3f37c9] absolute top-0 flex justify-center items-center">
+              <p class="text-[14px] leading-[18.9px] boldFont text-[#ffffff]">Submit</p>
+            </div>
+            </button>
+          </div>
+        </form>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Add Institute Modal --> 
+  
+  <!-- Main modal -->
+  
+  </body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script  src="https://kit.fontawesome.com/df31b3ad5b.js"  crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script  type="text/javascript"  src="https://www.topteen.in//static/topteenfrontend/assets/js/slick.min.js"></script>
+  <script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
+   <script type="text/javascript" src="{{static('topteenfrontend/assets/js/userDashboard.js')}}">
+  </script>
+  <script  type="text/javascript"  src="https://www.topteen.in/static/topteenfrontend/assets/js/homePage.js"></script><script
+      type="text/javascript"  src="https://www.topteen.in/static/topteenfrontend/assets/js/common.js"  ></script>
+  <script src="https://www.topteen.in/static/topteenfrontend/assets/js/common.js"></script>
+  <script
+          type="text/javascript"      src="https://www.topteen.in/static/topteenfrontend/assets/js/search.js">    </script>
+  <script type="text/javascript" src="https://www.topteen.in/static/topteenfrontend/assets/js/resumeBuilder.js"></script>
+  
+  <!--new js -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js" integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <!--new js -->
+  
+  <!-- Chart js -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.35.3/apexcharts.min.js" integrity="sha512-yhdujT21BI/kqk9gcupTh4jMwqLhb+gc6Ytgs4cL0BJjXW+Jo9QyllqLbuluI0cBHqV4XsR7US3lemEGjogQ0w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- Chart js -->
+  
+
+  

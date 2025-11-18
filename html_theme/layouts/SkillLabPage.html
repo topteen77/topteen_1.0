@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SKILL LAB PAGE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="./css/styles.css" rel="stylesheet" />
+    <link href="../assets/css/customCSS.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    />
+    <style>
+      .widgetGradient {
+        background: linear-gradient(180deg, #3f37c9 0%, #4cc9f0 100%);
+      }
+
+      .shadowGradient {
+        background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+      }
+
+      .parentIntro > * {
+        display: inline;
+      }
+
+      .widget:hover svg {
+        fill: url(#MyGradient);
+      }
+    </style>
+    <script defer src="../assets/js/skillLabPage.js"></script>
+  </head>
+  <body class="bg-white">
+    <header
+      class="relative w-full lg:sticky lg:top-0 bg-[#FFFFFF] border-2 border-[#EBEBEE] z-20"
+      id="headerPanel"
+    >
+      <div
+        class="flex flex-row justify-between items-baseline py-3 inset-x-0 lg:mx-auto lg:container lg:px-20 px-[23px] py-[17px]"
+      >
+        <div
+          class="flex lg:hidden flex-row justify-start items-center gap-x-[18px]"
+        >
+          <button id="trigger"><i class="fa fa-bars"></i></button>
+          <div class="h-[39px] w-[39px]">
+            <img
+              src="../assets/images/graduation-hat 1.png"
+              class="h-full w-full"
+            />
+          </div>
+        </div>
+        <div class="lg:block hidden">
+          <span
+            ><img
+              src="../assets/images/graduation-hat 1.png"
+              class="h-10 inline-block" /></span
+          >&nbsp;
+          <span
+            class="text-[#494949] font-bold text-[13.13px] leading-[17.73px]"
+          >
+            TOPTEEN</span
+          >
+        </div>
+        <nav class="lg:block hidden">
+          <ul
+            class="flex flex-row justify-evenly gap-3 tracking-wide font-semibold text-[#4F4F4F] allTabs"
+            data-active="activeBtn"
+            data-tabs-toggle="#careerPanel"
+          >
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link group relative cursor-pointer tab"
+              id="careerTab"
+              data-tabs-target="#career"
+              role="tab"
+            >
+              <span class="text-sm">Browse Careers</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform group-hover:-rotate-180"
+                ></i>
+              </span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer tab"
+              data-tabs-target="#analysis"
+              role="tab"
+            >
+              <span class="text-sm">Self-Analysis</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform hover:-rotate-180"
+                ></i
+              ></span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer tab"
+              data-tabs-target="#resources"
+              role="tab"
+            >
+              <span class="text-sm">Resources</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform hover:-rotate-180"
+                ></i
+              ></span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer"
+            >
+              <span class="text-sm">Pricing</span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer"
+            >
+              <span class="text-sm">Company</span>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="flex flex-row gap-5 items-center">
+          <a
+            href="#"
+            class="text-[#3F37C9] text-sm font-semibold lg:inline-block hidden"
+            >LOG IN</a
+          >
+
+          <button
+            class="bg-[#3F37C9] text-xs text-white font-bold border-b-[6px] border-[#2E289D] rounded-lg lg:px-2 lg:py-3 px-[9px] pt-[12px] pb-[9px]"
+          >
+            GET STARTED
+          </button>
+        </div>
+      </div>
+      <div
+        class="absolute top-[100%] inset-x-0 bg-white hidden border-b-[2px] border-[#EBEBEE] z-50"
+        id="careerPanel"
+      >
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-4 gap-x-[30px] container"
+          id="career"
+        >
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/books 1.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+        </div>
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-4 gap-x-[30px] container"
+          id="analysis"
+        >
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career skills</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/books 1.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+        </div>
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-6 gap-x-3 container"
+          id="resources"
+        >
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#3f37c9] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Courses & Content
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                1.3k Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#3CBAE1] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">Videos</h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                1.3k Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#EF5DA8] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                How to's & Tutorials
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#F2994A] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Exams & Tests
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#27AE60] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Colleges & Schools
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#2F80ED] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">Guides</h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                12 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container mt-0 lg:mx-auto lg:mt-10 mb-0">
+      <!-- STICKY DIV -->
+      <div
+        class="lg:hidden grid grid-cols-3 grid-rows-1 sticky top-0 inset-x-0 border py-[21px] px-[32px] z-30 bg-white stickyDiv hidden"
+      >
+        <div></div>
+        <p
+          class="text-center text-[#0F0F0F] text-lg font-normal tracking-[0.035em]"
+        >
+          Skill Lab
+        </p>
+        <div class="text-right text-[16px] text-[#828282]">
+          <i class="fa fa-search"></i>
+        </div>
+      </div>
+      <!-- //////////////////// -->
+      <div></div>
+      <div class="lg:grid lg:grid-cols-4 gap-8 lg:px-20 lg:mb-[92px] block">
+        <!-- LEFT PART -->
+        <div class="lg:col-start-1 lg:col-span-3">
+          <!-- VIDEO PART -->
+          <section
+            class="w-full lg:h-[315px] mb-[35px] lg:mb-6 h-[374px] relative lg:static videoPlayer"
+          >
+            <iframe
+              src="https://www.youtube.com/embed/BFS9n4B_2xA"
+              title="YouTube video player"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              class="w-full h-full object-cover lg:rounded-[4px] border"
+            ></iframe>
+
+            <div class="absolute inset-0 videoBgGradient z-10 lg:hidden"></div>
+            <div
+              class="absolute inset-x-0 bottom-0 py-[19px] px-[22px] z-10 text-white lg:hidden"
+            >
+              <h1 class="mb-3 text-[20px] leading-[27px] font-bold">
+                Introduction to Skill Lab
+              </h1>
+              <div
+                class="parentIntro text-normal text-[13px] leading-[18.9px] tracking-[-0.015em] text-white text-opacity-80 intro"
+              >
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+                  tortor, adipiscing pretium risus. Egestas arcu arcu, ut ac
+                  cursus eget ultricies ac elit. Vitae tempor egestas id tellus
+                  nisi.
+                </p>
+                <!-- <button class="text-white readMore uppercase">READ MORE</button> -->
+              </div>
+            </div>
+          </section>
+
+          <!-- INTRODUCTION -->
+          <section class="mb-[60px] hidden lg:block">
+            <h1
+              class="text-xl tracking-[0.01em] text-[#000000] font-semibold mb-3.5"
+            >
+              Introduction to Skill Lab
+            </h1>
+            <div
+              class="parentIntro text-[16px] font-normal leading-[26px] tracking-[-0.015em] text-[#4F4F4F]"
+            >
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+                tortor, adipiscing pretium risus. Egestas arcu arcu, ut ac
+                cursus eget ultricies ac elit. Vitae tempor egestas id tellus
+                nisi. Diam viverra malesuada scelerisque in. Magna tincidunt
+                massa, diam viverra nisi, eu congue cursus enim. Sed mauris
+                aenean nunc facilisis ullamcorper odio. Mauris, vulputate
+                consequat in eu. Convallis posuere ipsum maecenas eget amet non
+                ut tristique ultrices.
+                <span
+                  class="font-bold text-lg text-[#3F37C9] tracking-[-0.015em]"
+                  >KNOW MORE</span
+                >
+              </p>
+            </div>
+          </section>
+
+          <!-- RECOMMENDED COURSES FOR MOBILE -->
+          <section class="block lg:hidden mb-[35px]">
+            <h5
+              class="font-semibold lg:mx-0 text-[15px] leading-[20.25px] tracking-[0.035em] lg:text-xl lg:tracking-[0.01em] mb-2 mx-[17px]"
+            >
+              Recommended Courses
+            </h5>
+
+            <!-- IMAGE BLOCK -->
+            <div
+              class="flex flex-row justify-start items-center gap-x-3 pt-3 overflow-x-auto pb-2 px-3 mx-[6px]"
+            >
+              <!-- VIDEO -->
+              <div class="w-[157px] shrink-0">
+                <div class="h-[138px] w-full relative z-0 mb-3">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 1
+                  </div>
+
+                  <div class="absolute top-1.5 right-1.5 z-10">
+                    <div class="bg-white rounded-full px-[5px] py-[3px]">
+                      <img
+                        src="../assets/images/bookmark.png"
+                        class="w-[12px] h-[16px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-[15px] leading-[20px] font-semibold tracking-[0.035em] text-[#333333] mb-[3px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+              <!-- VIDEO -->
+              <div class="w-[157px] shrink-0">
+                <div class="h-[138px] w-full relative z-0 mb-3">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 2
+                  </div>
+
+                  <div class="absolute top-1.5 right-1.5 z-10">
+                    <div class="bg-white rounded-full px-[5px] py-[3px]">
+                      <img
+                        src="../assets/images/bookmark.png"
+                        class="w-[12px] h-[16px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-[15px] leading-[20px] font-semibold tracking-[0.035em] text-[#333333] mb-[3px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+              <!-- VIDEO -->
+              <div class="w-[157px] shrink-0">
+                <div class="h-[138px] w-full relative z-0 mb-3">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 3
+                  </div>
+
+                  <div class="absolute top-1.5 right-1.5 z-10">
+                    <div class="bg-white rounded-full px-[5px] py-[3px]">
+                      <img
+                        src="../assets/images/bookmark.png"
+                        class="w-[12px] h-[16px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-[15px] leading-[20px] font-semibold tracking-[0.035em] text-[#333333] mb-[3px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- RECOMMENDED COURSES for desktop -->
+          <section class="mb-[60px] lg:block hidden">
+            <!-- HEADING -->
+            <div
+              class="mb-6 flex flex-row justify-between items-center lg:mx-0 mx-3.5"
+            >
+              <h5
+                class="font-semibold lg:mx-0 text-[15px] leading-[20.25px] tracking-[0.035em] lg:text-xl lg:tracking-[0.01em]"
+              >
+                Recommended Courses
+              </h5>
+              <a href="#" class="text-[#3f37c9] font-semibold text-xs"
+                >View All</a
+              >
+            </div>
+            <!-- IMAGE BLOCK -->
+            <div class="grid grid-cols-3 gap-[30px] rounded-[10px]">
+              <!-- VIDEO -->
+              <div>
+                <div class="h-[214px] w-full relative z-0 mb-[18px]">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover lg:rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 1
+                  </div>
+
+                  <div class="absolute top-3 right-3 z-10">
+                    <div class="bg-white rounded-full px-[8px] py-[6px]">
+                      <img
+                        src="../assets/images/bookmark.png"
+                        class="w-[14px] h-[18px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-sm font-semibold tracking-[0.035em] text-[#333333] mb-[4px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+              <!-- VIDEO -->
+              <div>
+                <div class="h-[214px] w-full relative z-0 mb-[18px]">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover lg:rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 2
+                  </div>
+
+                  <div class="absolute top-3 right-3 z-10">
+                    <div class="bg-white rounded-full px-[8px] py-[6px]">
+                      <img
+                        src="../assets/images/bookmark.png"
+                        class="w-[14px] h-[18px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-sm font-semibold tracking-[0.035em] text-[#333333] mb-[4px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+              <!-- VIDEO -->
+              <div>
+                <div class="h-[214px] w-full relative z-0 mb-[18px]">
+                  <iframe
+                    src="https://www.youtube.com/embed/BFS9n4B_2xA"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-full h-full object-cover lg:rounded-[10px]"
+                  ></iframe>
+
+                  <div class="absolute shadowGradient inset-0 z-10"></div>
+                  <div
+                    class="absolute top-[-10px] left-[-10px] py-[5px] px-[9px] bg-[#3F37C9] border-b-2 border-white rounded-[100px] rotate-[-45deg] text-[10px] leading-[14px] text-white font-bold inline-block"
+                  >
+                    # 3
+                  </div>
+
+                  <div class="absolute top-3 right-3 z-10">
+                    <div class="bg-white rounded-full px-[8px] py-[6px]">
+                      <img
+                        src="../assets/images/bookmark.png"
+                        class="w-[14px] h-[18px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-sm font-semibold tracking-[0.035em] text-[#333333] mb-[4px]"
+                >
+                  UX Design 101
+                </p>
+
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline"
+                >
+                  <span>16 LPA &#x2022;</span>&nbsp;
+                  <img
+                    src="../assets/images/favourite 1.png"
+                    class="inline-block"
+                  /><span> 4.4</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- BLUE BANNER FOR MOBILE -->
+
+          <section
+            class="pt-6 pb-[27px] pr-[13px] pl-0 flex flex-row justify-start gap-x-[7px] items-center blue-banner mx-[17px] rounded-[10px] mb-[35px] lg:hidden"
+          >
+            <div class="h-[112px] w-[86px] shrink-0">
+              <img
+                src="../assets/images/box.png"
+                class="h-full w-full object-cover object-right"
+              />
+            </div>
+            <div>
+              <h5
+                class="text-[22px] leading-[29px] font-bold text-white mb-2.5"
+              >
+                Level up by learning new skills
+              </h5>
+              <p
+                class="text-[13px] leading-[19px] text-white text-opacity-90 font-normal"
+              >
+                Answer a few quick questions to get better suited course
+                recommendations
+              </p>
+            </div>
+          </section>
+
+          <!-- BLUE BANNER FOR DEKTOP -->
+          <section
+            class="w-full py-[26px] pl-[45px] pr-[33px] lg:flex flex-row justify-between items-center blue-banner rounded-[10px] gap-x-[69px] mb-[60px] hidden"
+          >
+            <div class="h-[224px] w-[224px] shrink-0">
+              <img src="../assets/images/box.png" class="h-full w-full" />
+            </div>
+            <div class="grow-0">
+              <h5
+                class="text-[28px] leading-[38px] font-semibold tracking-[0.035em] text-white mb-[8px]"
+              >
+                Level up by learning new skills on the go
+              </h5>
+              <p
+                class="text-[16px] leading-[27px] font-semibold text-white text-opacity-80 mb-6"
+              >
+                Answer a few questions for us to learn more about your interests
+                and get better course recommendations
+              </p>
+              <button
+                class="pt-[13px] pb-[19px] px-[87px] uppercase text-xs font-bold tracking-[0.01em] text-[#4F4F4F] bg-white border-b-[6px] border-[#EAEAEA] rounded-[10px]"
+              >
+                CONTINUE
+              </button>
+            </div>
+          </section>
+
+          <!-- ACTIVE COURSES FOR MOBILE -->
+          <section class="block lg:hidden mx-[17px] mb-[35px]">
+            <h5
+              class="font-semibold lg:mx-0 text-[15px] leading-[20.25px] tracking-[0.035em] lg:text-xl lg:tracking-[0.01em] mb-4"
+            >
+              Active Courses
+            </h5>
+            <!-- IMAGE BLOCK -->
+
+            <div class="flex flex-col gap-y-2.5">
+              <div
+                class="flex flex-row justify-start items-end border w-full h-[76px] gap-2 relative p-3.5"
+              >
+                <div class="text-white z-10 mb-1">
+                  <img
+                    src="../assets/images/tractor.png"
+                    height="28px"
+                    width="35px"
+                  />
+                </div>
+                <div class="text-white z-10">
+                  <p class="text-[10px] font-normal leading-[13.5px] mb-1">
+                    Agricultual Engineering &#x2022; 18 hours
+                  </p>
+                  <p
+                    class="font-semibold text-[15px] leading-[20.25px] tracking-[0.035em]"
+                  >
+                    What is agricultural engineering ?
+                  </p>
+                </div>
+                <div class="absolute inset-0 z-1 brightness-50">
+                  <img
+                    src="../assets/images/second.png"
+                    class="w-full h-full rounded-lg object-cover"
+                  />
+                </div>
+              </div>
+              <div
+                class="flex flex-row justify-start items-end border w-full h-[76px] gap-2 relative p-3.5"
+              >
+                <div class="text-white z-10 mb-1">
+                  <img
+                    src="../assets/images/tractor.png"
+                    height="28px"
+                    width="35px"
+                  />
+                </div>
+                <div class="text-white z-10">
+                  <p class="text-[10px] font-normal leading-[13.5px] mb-1">
+                    Agricultual Engineering &#x2022; 18 hours
+                  </p>
+                  <p
+                    class="font-semibold text-[15px] leading-[20.25px] tracking-[0.035em]"
+                  >
+                    What is agricultural engineering ?
+                  </p>
+                </div>
+                <div class="absolute inset-0 z-1 brightness-50">
+                  <img
+                    src="../assets/images/first.png"
+                    class="w-full h-full rounded-lg object-cover"
+                  />
+                </div>
+              </div>
+              <div
+                class="flex flex-row justify-start items-end border w-full h-[76px] gap-2 relative p-3.5"
+              >
+                <div class="text-white z-10 mb-1">
+                  <img
+                    src="../assets/images/tractor.png"
+                    height="28px"
+                    width="35px"
+                  />
+                </div>
+                <div class="text-white z-10">
+                  <p class="text-[10px] font-normal leading-[13.5px] mb-1">
+                    Agricultual Engineering &#x2022; 18 hours
+                  </p>
+                  <p
+                    class="font-semibold text-[15px] leading-[20.25px] tracking-[0.035em]"
+                  >
+                    What is agricultural engineering ?
+                  </p>
+                </div>
+                <div class="absolute inset-0 z-1 brightness-50">
+                  <img
+                    src="../assets/images/third.png"
+                    class="w-full h-full rounded-lg object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ACTIVE COURSES FOR DESKTOP -->
+          <section class="mb-[125px] lg:block hidden">
+            <!-- HEADING -->
+            <div
+              class="mb-6 flex flex-row justify-between items-center lg:mx-0 mx-3.5"
+            >
+              <h5
+                class="font-semibold lg:mx-0 text-[15px] leading-[20.25px] tracking-[0.035em] lg:text-xl lg:tracking-[0.01em]"
+              >
+                Active Courses
+              </h5>
+              <a href="#" class="text-[#3f37c9] font-semibold text-xs"
+                >View All</a
+              >
+            </div>
+
+            <!-- CONTENT -->
+            <div class="grid grid-cols-3 gap-[30px]">
+              <div>
+                <!-- IMAGE -->
+                <div
+                  class="flex flex-row justify-start items-end w-full h-[214px] gap-2 relative p-3.5 mb-[19px]"
+                >
+                  <div class="text-white z-10 mb-1">
+                    <img
+                      src="../assets/images/tractor.png"
+                      height="28px"
+                      width="35px"
+                    />
+                  </div>
+                  <div class="text-white z-10">
+                    <p class="text-[10px] font-normal leading-[14px] mb-1">
+                      Agricultual Engineering &#x2022; 18 hours
+                    </p>
+                    <p class="font-semibold text-sm tracking-[0.035em]">
+                      What is agricultural engineering ?
+                    </p>
+                  </div>
+                  <div class="absolute inset-0 z-1 brightness-50">
+                    <img
+                      src="../assets/images/second.png"
+                      class="w-full h-full rounded-lg"
+                    />
+                  </div>
+                </div>
+                <!-- PROGRESS BAR -->
+
+                <div
+                  class="w-full h-2.5 bg-[#DEDEDE] rounded-full relative overflow-hidden mb-[8px]"
+                >
+                  <div
+                    class="absolute inset-y-0 left-0 w-[36%] bg-[#333333] rounded-full"
+                  ></div>
+                </div>
+
+                <!-- LABEL -->
+                <div class="text-xs font-normal text-[#4F4F4F]">
+                  Progress : 36% Completed
+                </div>
+              </div>
+
+              <!--COURSE  -->
+              <div>
+                <!-- IMAGE -->
+                <div
+                  class="flex flex-row justify-start items-end w-full h-[214px] gap-2 relative p-3.5 mb-[19px]"
+                >
+                  <div class="text-white z-10 mb-1">
+                    <img
+                      src="../assets/images/tractor.png"
+                      height="28px"
+                      width="35px"
+                    />
+                  </div>
+                  <div class="text-white z-10">
+                    <p class="text-[10px] font-normal leading-[14px] mb-1">
+                      Agricultual Engineering &#x2022; 18 hours
+                    </p>
+                    <p class="font-semibold text-sm tracking-[0.035em]">
+                      What is agricultural engineering ?
+                    </p>
+                  </div>
+                  <div class="absolute inset-0 z-1 brightness-50">
+                    <img
+                      src="../assets/images/second.png"
+                      class="w-full h-full rounded-lg"
+                    />
+                  </div>
+                </div>
+                <!-- PROGRESS BAR -->
+
+                <div
+                  class="w-full h-2.5 bg-[#DEDEDE] rounded-full relative overflow-hidden mb-[8px]"
+                >
+                  <div
+                    class="absolute inset-y-0 left-0 w-[98%] bg-[#333333] rounded-full"
+                  ></div>
+                </div>
+
+                <!-- LABEL -->
+                <div class="text-xs font-normal text-[#4F4F4F]">
+                  Progress : 98% Completed
+                </div>
+              </div>
+              <!-- COURSE -->
+              <div>
+                <!-- IMAGE -->
+                <div
+                  class="flex flex-row justify-start items-end w-full h-[214px] gap-2 relative p-3.5 mb-[19px]"
+                >
+                  <div class="text-white z-10 mb-1">
+                    <img
+                      src="../assets/images/tractor.png"
+                      height="28px"
+                      width="35px"
+                    />
+                  </div>
+                  <div class="text-white z-10">
+                    <p class="text-[10px] font-normal leading-[14px] mb-1">
+                      Agricultual Engineering &#x2022; 18 hours
+                    </p>
+                    <p class="font-semibold text-sm tracking-[0.035em]">
+                      What is agricultural engineering ?
+                    </p>
+                  </div>
+                  <div class="absolute inset-0 z-1 brightness-50">
+                    <img
+                      src="../assets/images/second.png"
+                      class="w-full h-full rounded-lg"
+                    />
+                  </div>
+                </div>
+                <!-- PROGRESS BAR -->
+
+                <div
+                  class="w-full h-2.5 bg-[#DEDEDE] rounded-full relative overflow-hidden mb-[8px]"
+                >
+                  <div
+                    class="absolute inset-y-0 left-0 w-[54%] bg-[#333333] rounded-full"
+                  ></div>
+                </div>
+
+                <!-- LABEL -->
+                <div class="text-xs font-normal text-[#4F4F4F]">
+                  Progress : 54% Completed
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- LIST SEEN ONLY IN MOBILE VIEW -->
+          <div class="block lg:hidden mx-[17px] mb-[34px]">
+            <div class="flex flex-row justify-between items-center mb-[17px]">
+              <h3
+                class="text-[15px] leading-[20px] tracking-[0.035em] font-semibold text-[#0F0F0F]"
+              >
+                Activities & Worksheets
+              </h3>
+              <p
+                class="text-[#541BCF] text-[13px] leading-[18px] font-semibold"
+              >
+                View All
+              </p>
+            </div>
+
+            <ul class="flex flex-col justify-start items-start gap-y-3.5">
+              <!-- ALTERNATE -->
+              <li
+                class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+              >
+                <div class="w-[24px] h-[26px]">
+                  <img
+                    src="../assets/images/calendar.png"
+                    class="h-full w-full"
+                  />
+                </div>
+                <div>
+                  <h4
+                    class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                  >
+                    Top interview questions
+                  </h4>
+                  <p class="text-[10px] leading-[14px] font-normal">
+                    <span class="text-[#828282]">ends</span
+                    ><span class="text-[#3CBAE1] font-bold"> 21st March</span>
+                  </p>
+                </div>
+              </li>
+
+              <li
+                class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+              >
+                <div class="w-[24px] h-[26px]">
+                  <img src="../assets/images/list.png" class="h-full w-full" />
+                </div>
+                <div>
+                  <h4
+                    class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                  >
+                    Code speed calculations
+                  </h4>
+                  <p class="text-[10px] leading-[14px] font-normal">
+                    <span class="text-[#828282]">ends </span
+                    ><span class="text-[#3F37C9] font-bold"> 21st March</span>
+                  </p>
+                </div>
+              </li>
+              <!-- ALTERNATE -->
+              <li
+                class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+              >
+                <div class="w-[24px] h-[26px]">
+                  <img
+                    src="../assets/images/calendar.png"
+                    class="h-full w-full"
+                  />
+                </div>
+                <div>
+                  <h4
+                    class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                  >
+                    Top interview questions
+                  </h4>
+                  <p class="text-[10px] leading-[14px] font-normal">
+                    <span class="text-[#828282]">ends</span
+                    ><span class="text-[#3CBAE1] font-bold"> 21st March</span>
+                  </p>
+                </div>
+              </li>
+
+              <li
+                class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+              >
+                <div class="w-[24px] h-[26px]">
+                  <img src="../assets/images/list.png" class="h-full w-full" />
+                </div>
+                <div>
+                  <h4
+                    class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                  >
+                    Code speed calculations
+                  </h4>
+                  <p class="text-[10px] leading-[14px] font-normal">
+                    <span class="text-[#828282]">ends </span
+                    ><span class="text-[#3F37C9] font-bold"> 21st March</span>
+                  </p>
+                </div>
+              </li>
+              <!-- ALTERNATE -->
+              <li
+                class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+              >
+                <div class="w-[24px] h-[26px]">
+                  <img
+                    src="../assets/images/calendar.png"
+                    class="h-full w-full"
+                  />
+                </div>
+                <div>
+                  <h4
+                    class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                  >
+                    Top interview questions
+                  </h4>
+                  <p class="text-[10px] leading-[14px] font-normal">
+                    <span class="text-[#828282]">ends</span
+                    ><span class="text-[#3CBAE1] font-bold"> 21st March</span>
+                  </p>
+                </div>
+              </li>
+
+              <li
+                class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+              >
+                <div class="w-[24px] h-[26px]">
+                  <img src="../assets/images/list.png" class="h-full w-full" />
+                </div>
+                <div>
+                  <h4
+                    class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                  >
+                    Code speed calculations
+                  </h4>
+                  <p class="text-[10px] leading-[14px] font-normal">
+                    <span class="text-[#828282]">ends </span
+                    ><span class="text-[#3F37C9] font-bold"> 21st March</span>
+                  </p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- RIGHT PART -->
+        <div class="hidden lg:block">
+          <h3
+            class="text-lg font-semibold tracking-[-0.02em] text-[#333333] mb-3.5"
+          >
+            Activities & Worksheets
+          </h3>
+
+          <ul class="flex flex-col justify-start items-start gap-y-3.5">
+            <!-- ALTERNATE -->
+            <li
+              class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+            >
+              <div class="w-[24px] h-[26px]">
+                <img
+                  src="../assets/images/calendar.png"
+                  class="h-full w-full"
+                />
+              </div>
+              <div>
+                <h4
+                  class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                >
+                  Top interview questions
+                </h4>
+                <p class="text-[10px] leading-[14px] font-normal">
+                  <span class="text-[#828282]">ends</span
+                  ><span class="text-[#3CBAE1] font-bold"> 21st March</span>
+                </p>
+              </div>
+            </li>
+
+            <li
+              class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+            >
+              <div class="w-[24px] h-[26px]">
+                <img src="../assets/images/list.png" class="h-full w-full" />
+              </div>
+              <div>
+                <h4
+                  class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                >
+                  Code speed calculations
+                </h4>
+                <p class="text-[10px] leading-[14px] font-normal">
+                  <span class="text-[#828282]">ends </span
+                  ><span class="text-[#3F37C9] font-bold"> 21st March</span>
+                </p>
+              </div>
+            </li>
+            <!-- ALTERNATE -->
+            <li
+              class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+            >
+              <div class="w-[24px] h-[26px]">
+                <img
+                  src="../assets/images/calendar.png"
+                  class="h-full w-full"
+                />
+              </div>
+              <div>
+                <h4
+                  class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                >
+                  Top interview questions
+                </h4>
+                <p class="text-[10px] leading-[14px] font-normal">
+                  <span class="text-[#828282]">ends</span
+                  ><span class="text-[#3CBAE1] font-bold"> 21st March</span>
+                </p>
+              </div>
+            </li>
+
+            <li
+              class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+            >
+              <div class="w-[24px] h-[26px]">
+                <img src="../assets/images/list.png" class="h-full w-full" />
+              </div>
+              <div>
+                <h4
+                  class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                >
+                  Code speed calculations
+                </h4>
+                <p class="text-[10px] leading-[14px] font-normal">
+                  <span class="text-[#828282]">ends </span
+                  ><span class="text-[#3F37C9] font-bold"> 21st March</span>
+                </p>
+              </div>
+            </li>
+            <!-- ALTERNATE -->
+            <li
+              class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+            >
+              <div class="w-[24px] h-[26px]">
+                <img
+                  src="../assets/images/calendar.png"
+                  class="h-full w-full"
+                />
+              </div>
+              <div>
+                <h4
+                  class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                >
+                  Top interview questions
+                </h4>
+                <p class="text-[10px] leading-[14px] font-normal">
+                  <span class="text-[#828282]">ends</span
+                  ><span class="text-[#3CBAE1] font-bold"> 21st March</span>
+                </p>
+              </div>
+            </li>
+
+            <li
+              class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+            >
+              <div class="w-[24px] h-[26px]">
+                <img src="../assets/images/list.png" class="h-full w-full" />
+              </div>
+              <div>
+                <h4
+                  class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                >
+                  Code speed calculations
+                </h4>
+                <p class="text-[10px] leading-[14px] font-normal">
+                  <span class="text-[#828282]">ends </span
+                  ><span class="text-[#3F37C9] font-bold"> 21st March</span>
+                </p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </main>
+
+    <!-- FOOTER FOR MOBILE -->
+
+    <!-- DIVIDER FOR MOBILE -->
+    <div class="h-[0.3px] w-full bg-[#000000] bg-opacity-[0.1] lg:hidden"></div>
+    <footer
+      class="lg:hidden flex flex-row justify-between items-center pt-[13px] pb-[19px] px-4"
+    >
+      <!-- widget -->
+      <div
+        class="flex flex-col justify-center items-center text-[#828282] widget group"
+      >
+        <div class="h-[32px] w-[32px] flex justify-center items-center">
+          <svg
+            width="16"
+            height="25"
+            viewBox="0 0 16 25"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="fill-[#828282]"
+          >
+            <path
+              d="M5.6596 23.6864L15.0413 11.7132C15.2221 11.4922 15.3125 11.2813 15.3125 11.0402C15.3125 10.6183 14.9911 10.317 14.5491 10.317H8.81362L11.7868 2.44197C12.1987 1.33706 11.0435 0.754466 10.3404 1.65848L0.96875 13.6217C0.787946 13.8527 0.6875 14.0636 0.6875 14.3047C0.6875 14.7165 1.00893 15.0279 1.45089 15.0279H7.19643L4.21317 22.8929C3.80134 23.9978 4.95647 24.5804 5.6596 23.6864ZM9.69754 13.4107H3.44978L9.00446 6.05804L6.29241 11.9342H12.5402L6.99553 19.2868L9.69754 13.4107Z"
+            />
+            <linearGradient id="MyGradient">
+              <stop offset="0%" stop-color="#3F37C9" />
+              <stop offset="100%" stop-color="#4CC9F0" />
+            </linearGradient>
+          </svg>
+        </div>
+
+        <p class="text-xs text-[#828282] group-hover:text-[#333333]">
+          Discover
+        </p>
+      </div>
+      <!-- widget -->
+      <div
+        class="flex flex-col justify-center items-center text-[#828282] widget group"
+      >
+        <div class="h-[32px] w-[32px] flex justify-center items-center">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="fill-[#828282]"
+          >
+            <path
+              d="M6.08594 13.9196C6.08594 18.4297 9.75223 22.096 14.2623 22.096C15.9397 22.096 17.4766 21.5837 18.7623 20.7098L23.3828 25.3304C23.6641 25.6217 24.0558 25.7522 24.4475 25.7522C25.3013 25.7522 25.9141 25.1094 25.9141 24.2757C25.9141 23.8739 25.7734 23.5022 25.5022 23.221L20.9118 18.6205C21.8661 17.3047 22.4386 15.6775 22.4386 13.9196C22.4386 9.4096 18.7723 5.74331 14.2623 5.74331C9.75223 5.74331 6.08594 9.4096 6.08594 13.9196ZM8.2154 13.9196C8.2154 10.5848 10.9174 7.87277 14.2623 7.87277C17.5971 7.87277 20.3091 10.5848 20.3091 13.9196C20.3091 17.2545 17.5971 19.9665 14.2623 19.9665C10.9174 19.9665 8.2154 17.2545 8.2154 13.9196Z"
+            />
+            <linearGradient id="MyGradient">
+              <stop offset="0%" stop-color="#3F37C9" />
+              <stop offset="100%" stop-color="#4CC9F0" />
+            </linearGradient>
+          </svg>
+        </div>
+
+        <p class="text-xs text-[#828282] group-hover:text-[#333333]">Search</p>
+      </div>
+      <!-- widget -->
+      <div
+        class="flex flex-col justify-center items-center text-[#828282] widget group"
+      >
+        <div class="h-[32px] w-[32px] flex justify-center items-center">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="fill-[#828282]"
+          >
+            <path
+              d="M9.64174 5.59047H22.3583C22.2879 4.6965 21.7656 4.21436 20.8013 4.21436H11.1886C10.2344 4.21436 9.70201 4.6965 9.64174 5.59047ZM7.59263 8.48333H24.4074C24.2667 7.52909 23.7846 6.98668 22.7199 6.98668H9.28013C8.2154 6.98668 7.73326 7.52909 7.59263 8.48333ZM8.67746 26.9755H23.3125C25.4721 26.9755 26.6071 25.8505 26.6071 23.711V13.3851C26.6071 11.2356 25.4721 10.1206 23.3125 10.1206H8.67746C6.50781 10.1206 5.38281 11.2356 5.38281 13.3851V23.711C5.38281 25.8606 6.50781 26.9755 8.67746 26.9755ZM8.79799 25.0068C7.86384 25.0068 7.35156 24.5146 7.35156 23.5402V13.5458C7.35156 12.5715 7.86384 12.0894 8.79799 12.0894H23.192C24.1161 12.0894 24.6384 12.5715 24.6384 13.5458V23.5402C24.6384 24.5146 24.1161 25.0068 23.192 25.0068H21.856C20.9721 23.0079 18.7221 21.6519 16.0402 21.6519C13.3683 21.6519 11.1183 23.0079 10.2243 25.0068H8.79799ZM16.0402 20.2054C17.7879 20.2255 19.144 18.7389 19.144 16.8204C19.144 14.9923 17.7779 13.4856 16.0402 13.4856C14.3125 13.4856 12.9364 14.9923 12.9464 16.8204C12.9464 18.7389 14.3025 20.1853 16.0402 20.2054Z"
+            />
+            <linearGradient id="MyGradient">
+              <stop offset="0%" stop-color="#3F37C9" />
+              <stop offset="100%" stop-color="#4CC9F0" />
+            </linearGradient>
+          </svg>
+        </div>
+
+        <p class="text-xs text-[#828282] group-hover:text-[#333333]">
+          My Plans
+        </p>
+      </div>
+      <!-- widget -->
+      <div
+        class="flex flex-col justify-center items-center text-[#828282] widget group"
+      >
+        <div class="h-[32px] w-[32px] flex justify-center items-center">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="fill-[#828282]"
+          >
+            <path
+              d="M7.01953 24.5031C7.01953 25.3469 7.22042 25.8592 8.00391 26.2409C9.73158 27.0143 12.1423 27.5065 14.9749 27.5165C17.8878 27.5065 21.1323 27.0645 23.3923 25.9797C24.6479 25.367 24.9794 24.8045 24.9794 23.4886V8.13037C24.9794 6.41274 24.1858 5.59912 22.5385 5.59912H21.5843V5.2576C21.5843 4.21296 21.0218 3.70068 20.0776 3.70068C19.7561 3.70068 19.3744 3.771 18.9325 3.92167C15.899 4.896 13.1267 5.5489 9.59096 5.5489H8.82757C7.67243 5.5489 7.01953 6.21184 7.01953 7.26653V24.5031ZM12.2628 25.5277C15.8387 25.3871 19.053 24.4027 20.8209 23.0567C21.3733 22.6348 21.5843 22.213 21.5843 21.2788V7.48751H22.4883C22.9001 7.48751 23.091 7.69845 23.091 8.1605V23.2877C23.091 23.8804 22.9905 24.1315 22.418 24.3726C20.5898 25.1761 18.0787 25.6784 15.6981 25.7085C14.553 25.7185 13.4481 25.6683 12.2628 25.5277ZM10.716 13.4038V9.9585C10.716 9.81787 10.8265 9.69734 10.9671 9.68729C13.2874 9.59689 15.3767 9.21519 17.5262 8.41162C17.6568 8.37144 17.8577 8.42167 17.8577 8.66274V12.2386C17.8577 12.329 17.8075 12.4194 17.7171 12.4596C15.8387 13.223 13.3677 13.6449 10.9671 13.6449C10.8365 13.6449 10.716 13.5645 10.716 13.4038Z"
+            />
+            <linearGradient id="MyGradient">
+              <stop offset="0%" stop-color="#3F37C9" />
+              <stop offset="100%" stop-color="#4CC9F0" />
+            </linearGradient>
+          </svg>
+        </div>
+
+        <p class="text-xs text-[#828282] group-hover:text-[#333333]">Learn</p>
+      </div>
+      <!-- widget -->
+      <div
+        class="flex flex-col justify-center items-center text-[#828282] widget group"
+      >
+        <div class="h-[32px] w-[32px] flex justify-center items-center">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="fill-[#828282]"
+          >
+            <path
+              d="M15.9897 25.992C21.685 25.992 26.3859 21.2912 26.3859 15.6059C26.3859 9.92062 21.6749 5.21973 15.9796 5.21973C10.2944 5.21973 5.60352 9.92062 5.60352 15.6059C5.60352 21.2912 10.3044 25.992 15.9897 25.992ZM15.9897 23.9229C11.3792 23.9229 7.6928 20.2164 7.6928 15.6059C7.6928 10.9954 11.3792 7.29897 15.9796 7.29897C20.5901 7.29897 24.2966 10.9954 24.3066 15.6059C24.3167 20.2164 20.6002 23.9229 15.9897 23.9229ZM15.9897 15.2644C17.3959 15.2744 18.531 14.0691 18.531 12.482C18.531 10.9954 17.3959 9.75991 15.9897 9.75991C14.5734 9.75991 13.4383 10.9954 13.4383 12.482C13.4383 14.0691 14.5734 15.2543 15.9897 15.2644ZM11.5499 20.6282H20.4194C20.8513 20.6282 21.0723 20.3269 21.0723 19.9251C21.0723 18.8403 19.4651 16.0479 15.9897 16.0479C12.5042 16.0479 10.897 18.8403 10.897 19.9251C10.897 20.3269 11.118 20.6282 11.5499 20.6282Z"
+            />
+            <linearGradient id="MyGradient">
+              <stop offset="0%" stop-color="#3F37C9" />
+              <stop offset="100%" stop-color="#4CC9F0" />
+            </linearGradient>
+          </svg>
+        </div>
+
+        <p class="text-xs text-[#828282] group-hover:text-[#333333]">Profile</p>
+      </div>
+    </footer>
+    <!-- DIVIDER FOR MOBILE -->
+    <div class="h-[0.3px] w-full bg-[#000000] bg-opacity-[0.1] lg:hidden"></div>
+
+    <!-- COPRIGHT -->
+    <div
+      class="lg:hidden flex flex-col justify-center gap-y-3 items-center py-3 text-[13px] leading-[15px] text-[#333333]"
+    >
+      <p>
+        <span>topteen.com</span> &nbsp;<span
+          class="inline-block w-[6px] h-[9px] text-[#7F7F83]"
+          ><i class="fa fa-lock"></i
+        ></span>
+      </p>
+      <div class="w-[139px] h-[5px] bg-[#4B4B4B] rounded-[4px] border"></div>
+    </div>
+
+    <!-- FOOTER PORTION FOR DESKTOP -->
+    <footer class="w-full bg-[#FDFCFF] hidden lg:block">
+      <div
+        class="container mx-auto px-20 pt-10 my-8 h-auto tracking-wide"
+        id="footer"
+      >
+        <div
+          class="grid grid-cols-2 pb-10 border-b border-[#000000] border-opacity-20 gap-10"
+        >
+          <div>
+            <h4 class="text-sm font-bold mb-4 footer-heading">
+              <span
+                ><img
+                  src="../assets/images/graduation-hat 1.png"
+                  class="h-10 inline-block"
+              /></span>
+              &nbsp;<span class="font-bold text-[13.13px] leading-[18px]"
+                >TOPTEEN</span
+              >
+            </h4>
+            <p class="text-left text-[#828282] text-lg w-1/2 font-normal">
+              Amet minim mollit non deserunt ullamco est sit aliqua dolor do
+              amet sint.
+            </p>
+          </div>
+          <div class="flex flex-row justify-between items-start">
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Resources
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Learn more </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Downloads </a>
+              </li>
+            </ul>
+
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Product
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Pricing </a>
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Features </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Log In </a>
+              </li>
+            </ul>
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Socials
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Instagram </a>
+              </li>
+
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Linkedin </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Facebook </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div
+          class="flex flex-row justify-between my-2 text-[#828282] font-normal mb-6"
+        >
+          <div class="text-xs">&copy; 2021 TopTeen. All rights reserved.</div>
+          <div class="text-xs">
+            <a href="#" class="underline">Terms & Conditions</a
+            ><span class="font-extrabold">.</span
+            ><a href="#" class="underline"> Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

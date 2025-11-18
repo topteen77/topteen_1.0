@@ -1,0 +1,924 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+
+{% block main %}
+
+<!-- Edit Profile PopUp -->
+<div data-direction="translate-y-full"
+  class="h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto translate-y-full transition-all duration-500">
+
+  <div class="inline-block bg-[#ffffff] w-full rounded-t-[10px] absolute bottom-0 drawerContent">
+
+    <div class="pl-[24px] pr-[30px] w-full py-[32px] flex flex-col gap-[20px]">
+
+      <a href="{{ url('users:profiledetails') }}" class="inline-block w-full">
+
+        <div class="flex justify-between w-full">
+          <div>
+            <p class="text-[16px] leading-[21.6px] semibold">Edit Profile</p>
+            <p class="text-[12px] leading-[16px] regularFont text-[#828282]">You answered - Indoors</p>
+          </div>
+          <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
+        </div>
+      </a>
+
+      <a href="{{ url ('users:userhistory') }}" class="inline-block w-full">
+        <div class="flex justify-between w-full">
+          <div>
+            <p class="text-[16px] leading-[21.6px] semibold">Manage payment history</p>
+            <p class="text-[12px] leading-[16px] regularFont text-[#828282]">You answered - Indoors</p>
+          </div>
+          <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
+        </div>
+      </a>
+
+      <a href="{{ url ('users:logout') }}" class="inline-block w-full">
+        <div class="flex justify-between w-full">
+          <div>
+            <p class="text-[16px] leading-[21.6px] semibold text-[#f20a18]">Sign Out</p>
+            <p class="text-[12px] leading-[16px] regularFont text-opacity-60 text-[#f20a18]">You answered - Indoors</p>
+          </div>
+          <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+<!--End of Edit Profile PopUp -->
+
+<!-- Refer friends PopUp -->
+<div
+  class="hidden top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen flex flex-row justify-center items-center referFriendsPopup ">
+  <div class="lg:max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center">
+    <div
+      class="bg-[#ffffff] rounded-[10px] relative referDivs w-full md:max-w-[395px] lg:w-[395px] pb-[24px] pt-[48px] modalContent">
+      <button class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] referPopupClose">
+        <i class="fa fa-xmark"></i>
+      </button>
+
+      <p class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold ">
+        Refer/Invite friends
+      </p>
+      <form onsubmit="return false" id="referform">
+        <div class="w-full flex justify-center mt-[22px] ">
+          <input type="text" id="remail" name="email" placeholder="Enter email"
+            class="mx-auto w-[80%] h-[53px] rounded-[10px]">
+        </div>
+        <div class="mx-auto w-[80%] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+          <button type="submit" onclick="refersubmit()"
+            class="w-full h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- End of Refer Friends Popup -->
+
+<!-- Main Content -->
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full overflow-y-auto pb-[60px] lg:pb-0">
+
+  <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+    <!-- Left Part Mobile -->
+    <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+      <!-- User -->
+      <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+        <div class="flex gap-[17px]">
+          <div>
+            <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" />
+          </div>
+          <div class="flex flex-col gap-y-[5px]">
+            <div class="pt-[12px]">
+              <p class="text-[15px] leading-[20.25px] font-semibold">
+                {{request.user.name}}
+              </p>
+            </div>
+            <div class="flex flex-col gap-y-[3px]">
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  Joined {{request.user.created.strftime("%B, %Y")}}
+                </p>
+              </div>
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
+                  class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  {% if request.user.user_profile %} {% if request.user.student_management.last().class_and_section
+                  %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if
+                  request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{% else %} -
+                  • - {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" data-direction="translate-y-full"
+          class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+          <i class="fa fa-gear text-white text-[12.5px]"></i>
+        </button>
+      </div>
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div id="comppro"
+        class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-[100px] pt-[18px] relative">
+        <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+          <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+        </div>
+        <div>
+          <div class="flex relative">
+            <div class="absolute -left-[24px]">
+              <img src="{{static('topteenfrontend/assets/images/verified-account-2.png')}}" class="w-[81px] h-[81px]"
+                alt="" />
+            </div>
+            <div class="text-left max-w-[217.5px] ml-[74px]">
+              <div>
+                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+
+    <!-- End of left Part Mobile -->
+
+    <!-- Left part Desktop -->
+    <div class=" hidden lg:block w-[338px] h-[382px] border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto">
+      <!-- User -->
+      <div class="flex justify-center border-b-[1px] border-solid border-[#dedede]">
+        <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px]">
+
+          <div class=" flex flex-col justify-center items-center">
+
+            <div class="flex justify-center items-center w-full">
+              <div class="flex gap-[8px]">
+                <div class="relative">
+                  <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="" />
+
+                  <!-- XP  -->
+                  <!-- <div
+                          class="w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px] absolute bottom-1 left-20"
+                        >
+                          <div
+                            class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
+                          >
+                            <img
+                              src="{{static("topteenfrontend/assets/images/xp.svg")}}"
+                              class="w-[20px] h-[20px]"
+                              alt=""
+                            />
+                            <p
+                              class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
+                            >
+                              1280 XP
+                            </p>
+                          </div>
+                        </div> -->
+                  <!-- End of XP -->
+                </div>
+              </div>
+            </div>
+
+            <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
+
+          </div>
+
+
+          <div class="flex flex-col gap-y-[8px]">
+
+            <div class="flex gap-[14px]">
+              <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                Joined {{request.user.created.strftime("%B, %Y")}}
+              </p>
+            </div>
+            <div class="flex gap-[14px]">
+              <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}" class="w-[18px] h-[14px]" alt="userGrade" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                {% if request.user.user_profile %} {% if request.user.student_management.last().class_and_section
+                %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if
+                request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{% else %} - •
+                - {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div class="flex justify-center pt-[18px]">
+        <div>
+          <div class="flex gap-[18px]">
+            <div class="w-[45px] h-[44px]">
+              <img src="{{static('topteenfrontend/assets/images/verified-account-2.png')}}" alt="Verified Account" />
+          </div>
+            <div class="text-left max-w-[206px] flex flex-col gap-y-[5px]">
+              <div>
+                <p class="text-[12px] leading-[16.2px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[10px] leading-[14.5px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[205px] h-[10px] rounded-[100px] bg-[#4cc9f0] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div class="w-[295px] h-[53px] rounded-[10px] bg-[#2e289d] mt-[19px]">
+            <a href="{{ url('users:profiledetails') }}">
+              <div class="w-full h-[48px] flex gap-[11.56px] justify-center rounded-[10px] bg-[#3f37c9] text-[#ffffff]">
+                <i class="fa fa-gear my-auto"></i>
+
+                <p class="text-[14px] leading-[18.9px] font-bold my-auto">
+                  SETTINGS
+                </p>
+
+              </div>
+            </a>
+          </div>
+          <!-- End of settings -->
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+    <!-- End of Left part Desktop -->
+
+    <!-- Right Part -->
+    <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20">
+      <!-- Statistics -->
+      <div class="mx-auto max-w-[640px] lg:max-w-full mt-[24px] lg:mt-0">
+        <p class="text-[15px] lg:text-[24px] leading-[20.25px] lg:leading-[32.4px] semibold">
+          Statistics <span class="text-[10px] lg:text-[16px] regularFont">(Coming soon...)</span>
+        </p>
+
+        <div
+          class="flex flex-wrap justify-center sm:justify-start gap-[10px] lg:gap-[30px] pt-[14px] lg:pt-[16px] mx-auto">
+          <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px]  py-[15px] bg-[#f7f7fa] rounded-[10px]">
+            <div>
+              <img src="{{static('topteenfrontend/assets/images/trophy.png')}}" class="w-[30px] h-[30px]" alt="" />
+            </div>
+            <div>
+              <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                12
+              </p>
+              <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                Trophies Unlocked
+              </p>
+            </div>
+          </div>
+
+          <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px] py-[15px] bg-[#f7f7fa] rounded-[10px]">
+            <div>
+              <img src="{{static('topteenfrontend/assets/images/badge.png')}}" class="w-[30px] h-[30px]" alt="" />
+            </div>
+            <div>
+              <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                1200
+              </p>
+              <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                Total Points
+              </p>
+            </div>
+          </div>
+
+          <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px]  py-[15px] bg-[#f7f7fa] rounded-[10px]">
+            <div>
+              <img src="{{static('topteenfrontend/assets/images/fire.png')}}" class="w-[30px] h-[30px]" alt="" />
+            </div>
+            <div>
+              <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                5 days
+              </p>
+              <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                Streak
+              </p>
+            </div>
+          </div>
+
+          <div title="coming soon.." class="statDiv flex gap-[12px] px-[11px]  py-[15px] bg-[#f7f7fa] rounded-[10px]">
+            <div>
+              <img src="{{static('topteenfrontend/assets/images/medal.png')}}" class="w-[30px] h-[30px]" alt="" />
+            </div>
+            <div>
+              <p class="text-[15px] lg:text-[18px] leading-[21.75px] lg:leading-[21.6px] font-semibold">
+                Rookie
+              </p>
+              <p class="text-[10px] leading-[14.5px] text-[#828282]">
+                Current Level
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End of Statistics -->
+
+      <!-- Quick Links Mobile -->
+      <div class="lg:hidden max-w-[640px] mx-auto mt-[35px] mb-10">
+        <p class="text-[15px] leading-[20.25px] font-semibold">
+          Quick Links
+        </p>
+
+        <div class="flex flex-col gap-y-[10px] pt-[14px]">
+          <!-- Psychometric-->
+          {% if psychometric_test_payment and test_dashboard_url %}
+          {# Show test dashboard link if student has successfully paid for a test #}
+          <div onclick="window.location='{{test_dashboard_url}}'"
+            class="h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden  cursor-pointer">
+            <div class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]">
+              <img src="{{static('topteenfrontend/assets/images/planning.png')}}" class="w-[34.8px] h-[34.8px]"
+                alt="planning" />
+            </div>
+            <div class="flex flex-col gap-y-[3px] my-auto">
+              <p class="text-[13px] leading-[17.55px] font-semibold text-[#097969]">
+                {{test_name}} Dashboard
+              </p>
+              <p class="text-[10px] leading-[13.5px] text-[#097969] text-opacity-70">
+                View your test results and reports
+              </p>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+          </div>
+          <!-- End of Psychometric -->
+          {% elif central_test_candidate %}
+          <div {% if central_test_candidate.last_test_is_success() %}
+            onclick="window.location='{{central_test_candidate.get_test_report_or_test_link()}}'" {% else
+            %}onclick="window.open('{{central_test_candidate.get_test_report_or_test_link()}}','_blank')" {% endif %}
+            class="h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden  cursor-pointer">
+            <div class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]">
+              <img src="{{static('topteenfrontend/assets/images/planning.png')}}" class="w-[34.8px] h-[34.8px]"
+                alt="planning" />
+            </div>
+
+            {% if central_test_candidate.last_test_is_success() %}
+            <div class="flex flex-col gap-y-[3px] my-auto">
+              <p class="text-[13px] leading-[17.55px] font-semibold text-[#097969]">
+                Psychometric Test Reports
+              </p>
+              <p class="text-[10px] leading-[13.5px] text-[#097969] text-opacity-70">
+                Access past reports or take a new test
+              </p>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+            {% else %}
+            <div class="flex flex-col gap-y-[3px] my-auto">
+              <p class="text-[13px] leading-[17.55px] font-semibold text-[#3f37c9]">
+                Take a Pyschmetric Test
+              </p>
+              <p class="text-[10px] leading-[13.5px] text-[#3f37c9] text-opacity-70">
+                Click here to take a test
+              </p>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+            {% endif %}
+          </div>
+          <!-- End of Psychometric -->
+          {% else %}
+          <div onclick="window.location='{{ url('psychometrictests:psychometrictest') }}'"
+            class="h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden  cursor-pointer">
+            <div class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]">
+              <img src="{{static('topteenfrontend/assets/images/planning.png')}}" class="w-[34.8px] h-[34.8px]"
+                alt="" />
+            </div>
+            <div class="flex flex-col gap-y-[3px] my-auto">
+              <p class="text-[13px] leading-[17.55px] font-semibold text-[#a3051f]">
+                Psychometric Test appear now
+              </p>
+              <p class="text-[10px] leading-[13.5px] text-[#a3051f] text-opacity-70">
+                Take a new test
+              </p>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+          </div>
+          <!-- End of Psychometric -->
+          {% endif %}
+          <!-- Scrapbook -->
+          <div onclick="window.location='{{url('users:scrapbook')}}'"
+            class="h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden  cursor-pointer">
+            <div class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]">
+              <img src="{{static('topteenfrontend/assets/images/diary.png')}}" class="w-[34.8px] h-[34.8px]" alt="" />
+            </div>
+            <div class="flex flex-col gap-y-[3px] my-auto">
+              <p class="text-[13px] leading-[17.55px] font-semibold text-[#333333]">
+                Digital Scrapbook
+              </p>
+              <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                Your notes, reminders, and post-its
+              </p>
+            </div>
+
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+
+          </div>
+          <!-- End of scrapbook -->
+
+          <!-- Calender -->
+          <div onclick="window.location='{{url('users:usercalender')}}'"
+            class="h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden  cursor-pointer">
+            <div class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]">
+              <img src="{{static('topteenfrontend/assets/images/calendar1.png')}}" class="w-[34.8px] h-[34.8px]"
+                alt="" />
+            </div>
+            <div class="flex flex-col gap-y-[3px] my-auto">
+              <p class="text-[13px] leading-[17.55px] font-semibold text-[#333333]">
+                Your Calender
+              </p>
+              <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                Your notes, reminders, and post-its
+              </p>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+          </div>
+          <!-- End of Calender -->
+
+          <!-- Parent Accounts -->
+          <div
+            class=" dashBoardParent h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden  cursor-pointer">
+            <div class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]">
+              <img src="{{static('topteenfrontend/assets/images/employee.png')}}" class="w-[34.8px] h-[34.8px]"
+                alt="" />
+            </div>
+            <div class="flex flex-col gap-y-[3px] my-auto">
+              <p class="text-[13px] leading-[17.55px] font-semibold text-[#333333]">
+                Add parent Accounts
+              </p>
+              <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                Add parents to your account for view access
+              </p>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+          </div>
+          <!-- End of Parent Accounts -->
+
+          <!-- bookmark -->
+          <a href="{{url('users:bookmark')}}">
+            <div
+              class="h-[58px] bg-[#f7f7fa] rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden  cursor-pointer">
+              <div class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]">
+                <img src="{{static('topteenfrontend/assets/images/boy.png')}}" class="w-[34.8px] h-[34.8px]" alt="" />
+              </div>
+              <div class="flex flex-col gap-y-[3px] my-auto">
+                <p class="text-[13px] leading-[17.55px] font-semibold text-[#333333]">
+                  Bookmarks
+                </p>
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  Get your shortlist items
+                </p>
+              </div>
+              <div class="my-auto">
+                <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+              </div>
+            </div>
+          </a>
+          <!-- end bookmark -->
+
+          <!-- refer/invite -->
+          <div
+            class="h-[58px] bg-[#f7f7fa] referPopupTrigger rounded-[10px] flex justify-between pl-[48px] pr-[18.33px] relative overflow-hidden  cursor-pointer">
+            <div class="absolute -left-[3px] my-auto rotate-[31.19deg] top-[10px]">
+              <img src="{{static('topteenfrontend/assets/images/boy.png')}}" class="w-[34.8px] h-[34.8px]" alt="" />
+            </div>
+            <div class="flex flex-col gap-y-[3px] my-auto">
+              <p class="text-[13px] leading-[17.55px] font-semibold text-[#333333]">
+                Refer/Invite Friends
+              </p>
+              <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                Earn points and discounts by inviting friends
+              </p>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+          </div>
+          <!-- End of refer/invite -->
+        </div>
+      </div>
+      <!-- End of Quick links Mobile -->
+
+      <!-- Quick Links Desktop -->
+      <div class="hidden lg:block lg:pt-[50px]">
+        <p class="text-[15px] leading-[20.25px] lg:text-[24px] lg:leading-[32.4px] mb-[16px] font-semibold">
+          Quick Links
+        </p>
+
+        <div class="w-[712px] border-[1px] border-solid border-[#dedede] rounded-[10px]">
+          <!-- Psychometric Test Reports -->
+          {% if psychometric_test_payment and test_dashboard_url %}
+          {# Show test dashboard link if student has successfully paid for a test #}
+          <div class="h-[67px] flex gap-[18.33px] border-b-[1px] border-[#dedede] pl-[16px] pr-[21.34px] cursor-pointer"
+            onclick="window.location='{{test_dashboard_url}}'">
+            <div class="flex justify-between w-full">
+              <div class="flex gap-[22px]">
+                <div class="my-auto">
+                  <img src="{{static('topteenfrontend/assets/images/planning.png')}}" class="w-[35px] h-[35px]"
+                    alt="" />
+                </div>
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p class="text-[13px] leading-[17.55px] font-semibold text-[#097969]">
+                    {{test_name}} Dashboard
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#097969] text-opacity-70">
+                    View your test results and reports
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+          </div>
+          {% elif central_test_candidate %}
+
+          <div class="h-[67px] flex gap-[18.33px] border-b-[1px] border-[#dedede] pl-[16px] pr-[21.34px] cursor-pointer"
+            {% if central_test_candidate.last_test_is_success() %}
+            onclick="window.location='{{central_test_candidate.get_test_report_or_test_link()}}'" {% else
+            %}onclick="window.open('{{central_test_candidate.get_test_report_or_test_link()}}','_blank')" {% endif %}>
+            <div class="flex justify-between w-full">
+              <div class="flex gap-[22px]">
+                <div class="my-auto">
+                  <img src="{{static('topteenfrontend/assets/images/planning.png')}}" class="w-[35px] h-[35px]"
+                    alt="" />
+                </div>
+                {% if central_test_candidate.last_test_is_success() %}
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p class="text-[13px] leading-[17.55px] font-semibold text-[#097969]">
+                    Psychometric Test Reports
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#097969] text-opacity-70">
+                    Access past reports
+                  </p>
+                </div>
+                {% else %}
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p class="text-[13px] leading-[17.55px] font-semibold text-[#3f37c9]">
+                    Take a Pyschmetric Test
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#3f37c9] text-opacity-70">
+                    Click here to take a test
+                  </p>
+                </div>
+                {% endif %}
+              </div>
+
+              {% if central_test_candidate.last_test_is_success() %}
+              <div class="flex gap-[4.94px] my-auto">
+                {% if central_test_candidate.candidate_test.last().psychometric_test_results %}
+                {% with result = central_test_candidate.candidate_test.last().psychometric_test_results %}
+                {% for key,value in result.get_riasec_best_score().items() %}
+                <div class="w-[55.37px] h-[46.97px] rounded-[4.94px] {{result.get_score_color_code(key)}} pt-[6px]">
+                  <p class="text-[18.72px] leading-[21px] boldFont text-[#ffffff] text-center">
+                    {{key[0]}}
+                  </p>
+                  <p class="text-[10px] leading-[7px] semibold opacity-[0.6] text-[#ffffff] text-center">
+                    {{value}}/10
+                  </p>
+                </div>
+                {% endfor %}
+                {% endwith %}
+                {% else %}
+                <div class="my-auto flex gap-[4px]">
+                  <div class="flex gap-[3px] mx-auto px-[9px] py-[6px] bg-[#f7f7fa] rounded-[7.42px]">
+                    <p class="text-[7px] leading-[9.87px] text-[#494949] font-semibold my-auto">
+                      Result awaited
+                    </p>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+              {% endif %}
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+          </div>
+          {% else %}
+          <div
+            class="h-[67px] flex gap-[18.33px] border-b-[1px] border-[#dedede] pl-[16px] pr-[21.34px]  cursor-pointer"
+            onclick="window.location='{{ url('psychometrictests:psychometrictest') }}'">
+            <div class="flex justify-between w-full">
+              <div class="flex gap-[22px]">
+                <div class="my-auto">
+                  <img src="{{static('topteenfrontend/assets/images/planning.png')}}" class="w-[35px] h-[35px]"
+                    alt="" />
+                </div>
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p class="text-[13px] leading-[17.55px] font-semibold text-[#a3051f]">
+                    Psychometric Test Reports
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#a3051f] text-opacity-70">
+                    Take a new Test
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+          </div>
+          {% endif %}
+          <!-- End of Psychometric Test Reports -->
+
+          <!-- Your Calender -->
+          <div onclick="window.location='{{url('users:usercalender')}}'"
+            class="h-[67px] flex gap-[18.33px] border-b-[1px] border-[#dedede] pl-[16px] pr-[21.34px]  cursor-pointer">
+            <div class="flex justify-between w-full">
+              <div class="flex gap-[22px]">
+                <div class="my-auto">
+                  <img src="{{static('topteenfrontend/assets/images/calender 1.png')}}" class="w-[35px] h-[35px]"
+                    alt="" />
+                </div>
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p class="text-[13px] leading-[17.55px] font-semibold">
+                    Your Calender
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                    Your notes, reminders and post-its
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="my-auto min-w-[116px] bg-[#f7f7fa] rounded-[7.42px] pt-[7.42px] pb-[6.03px] pl-[5.57px] pr-[8.35px] h-[52.9px]  cursor-pointer">
+                <div class="mx-auto">
+                  <div class="flex justify-between">
+                    <p class="text-[7px] leading-[10.5px] text-[#4f4f4f] font-semibold">
+                      Complete Course
+                    </p>
+                    <i class="fa fa-ellipsis-vertical text-[11px]"></i>
+                  </div>
+                  <div class="mt-[1.86px]">
+                    <p class="text-[5.57px] leading-[8.35px] text-[#4f4f4f]">
+                      Computer Science Career Tree
+                    </p>
+                  </div>
+                  <div class="flex gap-[2px] mt-[5.1px]">
+                    <img src="{{static('topteenfrontend/assets/images/badge 2.png')}}" class="w-[13px] h-[13px]"
+                      alt="" />
+                    <p class="font-semibold text-[5.57px] leading-[8.07px] my-auto">
+                      400 Points
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+          </div>
+          <!-- End of Your Calender -->
+
+          <!-- Digital Scrapbook -->
+          <div onclick="window.location='{{url('users:scrapbook')}}'"
+            class="h-[67px] flex gap-[18.33px] border-b-[1px] border-[#dedede] pl-[16px] pr-[21.34px]  cursor-pointer">
+            <div class="flex justify-between w-full">
+              <div class="flex gap-[22px]">
+                <div class="my-auto">
+                  <img src="{{static('topteenfrontend/assets/images/diary.png')}}" class="w-[35px] h-[35px]" alt="" />
+                </div>
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p class="text-[13px] leading-[17.55px] font-semibold">
+                    Digital Scrapbook
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                    Your notes, reminders and post-its
+                  </p>
+                </div>
+              </div>
+
+              <div class="my-auto flex gap-[4px]">
+
+                <a href="{{url('users:mynotepad')}}">
+                  <div class="flex gap-[3px] mx-auto px-[9px] py-[6px] bg-[#f7f7fa] rounded-[7.42px]">
+                    <img src="{{static('topteenfrontend/assets/images/diary.png')}}" class="w-[12px] h-[17px]"
+                      alt="" />
+                    <p class="text-[7px] leading-[9.87px] text-[#494949] font-semibold my-auto">
+                      My Notepad
+                    </p>
+                  </div>
+                </a>
+                <a href="{{url('users:resumebuilderwelcome')}}">
+                  <div class="flex gap-[3px] mx-auto px-[9px] py-[6px] bg-[#f7f7fa] rounded-[7.42px]">
+                    <img src="{{static('topteenfrontend/assets/images/resumeBuilder.png')}}" class="w-[12px] h-[17px]"
+                      alt="" />
+                    <p class="text-[7px] leading-[9.87px] text-[#494949] font-semibold my-auto">
+                      Resume Builder
+                    </p>
+                  </div>
+                </a>
+                <a href="{{url('users:careerinterest')}}">
+                  <div class="flex gap-[3px] mx-auto px-[9px] py-[6px] bg-[#f7f7fa] rounded-[7.42px]">
+                    <img src="{{static('topteenfrontend/assets/images/careerinsterests.png')}}"
+                      class="w-[12px] h-[17px]" alt="" />
+                    <p class="text-[7px] leading-[9.87px] text-[#494949] font-semibold my-auto">
+                      Career Interests
+                    </p>
+                  </div>
+                </a>
+              </div>
+            </div>
+
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+
+          </div>
+          <!-- End of Digital Scrapbook -->
+
+          <!-- Parent Accounts -->
+          <div style="cursor:pointer"
+            class="dashBoardParent h-[67px] flex gap-[18.33px] border-b-[1px] border-[#dedede] pl-[16px] pr-[21.34px]  cursor-pointer">
+            <div class="flex justify-between w-full">
+              <div class="flex gap-[22px]">
+                <div class="my-auto">
+                  <img src="{{static('topteenfrontend/assets/images/employee.png')}}" class="w-[35px] h-[35px]"
+                    alt="" />
+                </div>
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p class="text-[13px] leading-[17.55px] font-semibold">
+                    Add Parent Accounts
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                    Add parents to your accounts for view access
+                  </p>
+                </div>
+              </div>
+
+              <div class="my-auto flex gap-[5.28px]">
+                <div
+                  class="flex gap-[8px] bg-[#f7f7fa] rounded-[7.42px] pl-[10.48px] pr-[11.72px] pt-[5.87px] pb-[7.12px]">
+                  <img src="{{static('topteenfrontend/assets/images/female.png')}}" class="w-[15.5px] h-[31px] my-auto"
+                    alt="" />
+                  <div class="flex flex-col gap-y-[1.1px] my-auto">
+                    <p class="text-[7px] leading-[9.45px] font-semibold">
+                      Chitra Verma
+                    </p>
+                    <p class="text-[5.57px] leading-[8.08px] text-[#828282]">
+                      Mother • +91-3278288213
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  class="flex gap-[8px] bg-[#f7f7fa] rounded-[7.42px] pl-[10.48px] pr-[11.72px] pt-[5.87px] pb-[7.12px]">
+                  <img src="{{static('topteenfrontend/assets/images/male.png')}}" class="w-[15.5px] h-[31px] my-auto"
+                    alt="" />
+                  <div class="flex flex-col gap-y-[1.1px] my-auto">
+                    <p class="text-[7px] leading-[9.45px] font-semibold">
+                      Dinesh Verma
+                    </p>
+                    <p class="text-[5.57px] leading-[8.08px] text-[#828282]">
+                      Father • +91-3278288213
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+          </div>
+          <!-- End of parent Accounts -->
+
+          <!-- Bookmark -->
+          <a href="{{url('users:bookmark')}}">
+            <div style="cursor:pointer" class="h-[67px] flex gap-[18.33px] pl-[16px] pr-[21.34px]">
+              <div class="flex justify-between w-full">
+                <div class="flex gap-[22px]">
+                  <div class="my-auto">
+                    <img src="{{static('topteenfrontend/assets/images/boy.png')}}" class="w-[35px] h-[35px]" alt="" />
+                  </div>
+                  <div class="flex flex-col gap-y-[3px] my-auto">
+                    <p class="text-[13px] leading-[17.55px] font-semibold">
+                      Bookmarks
+                    </p>
+                    <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                      Get your shortlist items
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="my-auto">
+                <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+              </div>
+            </div>
+          </a>
+          <!-- End Bookmark -->
+          <hr>
+          <!-- Refer Friends -->
+          <div style="cursor:pointer" class="referPopupTrigger h-[67px] flex gap-[18.33px] pl-[16px] pr-[21.34px]">
+            <div class="flex justify-between w-full">
+              <div class="flex gap-[22px]">
+                <div class="my-auto">
+                  <img src="{{static('topteenfrontend/assets/images/boy.png')}}" class="w-[35px] h-[35px]" alt="" />
+                </div>
+                <div class="flex flex-col gap-y-[3px] my-auto">
+                  <p class="text-[13px] leading-[17.55px] font-semibold">
+                    Refer/Invite Friends
+                  </p>
+                  <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                    Earn points and discounts by inviting friends
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="my-auto">
+              <i class="fa fa-angle-right text-[#bdbdbd]"></i>
+            </div>
+          </div>
+          <!-- End of Refer Friends -->
+        </div>
+      </div>
+      <!-- End of Quick Links desktop -->
+    </div>
+    <!-- End of Right Part -->
+  </div>
+</main>
+<!-- End of Main Content -->
+
+
+
+<script>
+
+  let referTrigger = document.querySelectorAll(".referPopupTrigger");
+  const referPopup = document.querySelector(".referFriendsPopup")
+  const referClose = document.querySelector(".referPopupClose")
+
+  referTrigger.forEach(elem => {
+    elem.addEventListener("click", function () {
+      referPopup.classList.remove("hidden");
+    })
+  })
+
+  referClose.addEventListener("click", function () {
+    referPopup.classList.add("hidden");
+  })
+
+</script>
+
+<script>
+  const refersubmit = function () {
+    $.ajax({
+      url: "{{url('users:refer')}}",
+      type: "POST",
+      data: { "email": document.getElementById("remail").value, "csrfmiddlewaretoken": "{{ csrf_token }}" },
+      success: function (response) {
+        if (response["success"] === "true") {
+          Swal.fire('Invited successfully!', 'Invitation sent successfully!', 'success')
+          document.querySelector(".referFriendsPopup").classList.add("hidden")
+          document.getElementById("referform").reset()
+        } else {
+          Swal.fire('Invalid !', 'Please Enter the Correct Email!', 'error')
+          document.querySelector(".referFriendsPopup").classList.add("hidden")
+          document.getElementById("referform").reset()
+        }
+      },
+      error: function (response) {
+        Swal.fire('Invalid !', 'Please Enter the Correct Email!', 'error')
+        document.querySelector(".referFriendsPopup").classList.add("hidden")
+        document.getElementById("referform").reset()
+      }
+    });
+    return false;
+  };
+</script>
+
+{% endblock %}

@@ -1,0 +1,46 @@
+version: '3.2'
+
+services:
+    topteens_django:
+      build: .  
+      image: developertopteen/demotopteen:topteens_django_prod
+      working_dir: /app
+      volumes:
+        - "/data/topteens/nginx/static:/var/www/html/static"
+        - "/data/topteens/nginx/media:/var/www/html/media"
+      environment:
+        - "PYTHONUNBUFFERED=1"
+        - "asdfasdf=1"
+        # - NEW_RELIC_CONFIG_FILE=/app/newrelic.ini
+    
+    celery:
+      image: developertopteen/demotopteen:topteens_django_prod
+      command: celery -A topteens worker -l info
+      working_dir: /app
+      volumes:
+        - "/data/topteens/nginx/static:/var/www/html/static"
+        - "/data/topteens/nginx/media:/var/www/html/media"
+      environment:
+        - "PYTHONUNBUFFERED=1"
+        - "asdfasdf=1"
+        # - NEW_RELIC_CONFIG_FILE=/app/newrelic.ini
+    
+    celery_beat:
+      image: developertopteen/demotopteen:topteens_django_prod
+      command: celery -A topteens beat -l info
+      working_dir: /app
+      volumes:
+        - "/data/topteens/nginx/static:/var/www/html/static"
+        - "/data/topteens/nginx/media:/var/www/html/media"
+      environment:
+        - "PYTHONUNBUFFERED=1"
+        - "asdfasdf=1"
+        # - NEW_RELIC_CONFIG_FILE=/app/newrelic.ini
+      
+  
+
+    
+networks:
+  default:
+    external:
+      name: canam-network

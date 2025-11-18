@@ -1,0 +1,36 @@
+{% extends 'topteenfrontend/base.html' %} 
+{% block main %}
+
+<div class="lg:mx-auto lg:container lg:p-0 px-[23px] py-[17px] lg:mt-[48px]">
+  {% if breadcrumb %}
+  <div class=" text-[12px] mt-[6px]  mb-[10px]  flex items-center space-x-2 scrollbar-hide overflow-x-auto whitespace-nowrap sm:mt-2 lg:-mt-[-150px] xl:mt-0">
+
+      {% for brdcrm in breadcrumb %}
+      {% if loop.first %}
+      <a href="{{brdcrm.url}}"><img class='h-3 opacity-50' src="{{static('topteenfrontend/assets/images/home.svg')}}"></a>
+      <span>&rarr;</span>
+      {% endif %}
+      {% if not loop.first and not loop.last %}
+      <a class='h-5 opacity-50' href="{{brdcrm.url}}">{{brdcrm.title}}</a>
+      <span>&rarr;</span>
+      {% endif %}
+      {% if loop.last %}
+      <p class='text-green-600  font-[galanoGrotesqueBold]'>{{brdcrm.title}}</p>
+      {% endif %}
+      {% endfor %}
+  </div>
+  {%endif%}
+  <h1
+    class="boldFont lg:leading-[1.35em] lg:text-[32px] text-[#333333] mb-[10px] boldFont text-center text-[24px] leading-[32px]"
+  >{{activityworksheet.name}}
+  </h1>
+  <br>
+  <div class="text-justify ckeditorStyles">
+    {{activityworksheet.content|safe}}
+
+  </div>
+
+  
+</div>
+
+{% endblock %}

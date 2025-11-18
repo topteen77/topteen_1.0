@@ -1,0 +1,174 @@
+{% extends 'topteenfrontend/app/user_base.html' %}
+
+{% block main %}
+
+<div class="col-lg-8 col-md-12 mt-md-0 mt-5 order-md-2 order-1">
+  <h2 class="title-test-info mb-0"> PERSONALITY ASSESSMENT REPORT </h2>
+  <p>Accurate, Free Test to Find Your Ideal Career </p>
+  <form id="multiStepForm" method="post" action="{{ url('app:app_submit')}}">
+    <input type="hidden" name="test_paper" value="{{ test_paper }}">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+    {%- for question in questions %}
+    <div class="question {% if loop.first %}active{% endif %}" id="question{{ loop.index }}">
+        <div class="question-box">
+          <div class="question-label"> Q{{ loop.index }}: {{ question.question_text }}</div>
+        <div class="radio-buttons">
+          <label class="custom-radio" for="radio-{{ loop.index }}-1">
+            <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-1" value="1">
+            <span class="radio-btn"><i class="las la-check"></i> Disagree strongly</span>
+          </label>
+          <label class="custom-radio" for="radio-{{ loop.index }}-2">
+            <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-2" value="2">
+            <span class="radio-btn"><i class="las la-check"></i> Disagree a little</span>
+          </label>
+          <label class="custom-radio" for="radio-{{ loop.index }}-3">
+            <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-3" value="3">
+            <span class="radio-btn"><i class="las la-check"></i> Neither agree nor disagree</span>
+          </label>
+          <label class="custom-radio" for="radio-{{ loop.index }}-4">
+            <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-4" value="4">
+            <span class="radio-btn"><i class="las la-check"></i> Agree a little</span>
+          </label>
+          <label class="custom-radio" for="radio-{{ loop.index }}-5">
+            <input type="radio" name="question_{{ loop.index }}" id="radio-{{ loop.index }}-5" value="5">
+            <span class="radio-btn"><i class="las la-check"></i> Agree strongly</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="assessment-button d-flex justify-content-center my-5">
+        {% if not loop.first %}
+        <button type="button" class="btn blue-button ms-3 prev-button px-md-6 fw-600 me-1">Back</button>
+        {% endif %}
+        {% if not loop.last %}
+        <button type="button" class="btn purple-button next-button px-md-6 fw-600 ms-1">Continue</button>
+        {%- else %}
+        <button type="submit" onclick="return validateForm()"
+          class="btn btn-success submit-button btn-submit px-md-6 fw-600">Submit</button>
+        {% endif %}
+      </div>
+    </div>
+    {%- endfor %}
+  </form>
+</div>
+
+
+
+<section class="footer-nav d-lg-none d-block">
+  <div class="nav-footer">
+    <ul>
+      <li> <a href="#" class="ft-dis-icon"> <span></span>
+          <p>Discover</p>
+        </a> </li>
+      <li> <a href="#" class="ft-search-icon"> <span></span>
+          <p>Search</p>
+        </a> </li>
+      <li> <a href="#" class="ft-dash-icon"> <span></span>
+          <p>My Dashboard</p>
+        </a> </li>
+      <li> <a href="#" class="ft-learn-icon"> <span></span>
+          <p>Learn</p>
+        </a> </li>
+      <li> <a href="#" class="ft-profile-icon"> <span></span>
+          <p>Profile</p>
+        </a> </li>
+    </ul>
+  </div>
+</section>
+
+<script>
+  $(document).ready(function () {
+    let currentQuestion = 1;
+    const totalQuestions = $('.question').length;
+
+    function getSelectedRadioValues() {
+      const selectedValues = [];
+      $('.question').each(function () {
+        const activeQuestion = $(this);
+        const selectedRadio = activeQuestion.find('input[type="radio"]:checked');
+        selectedValues.push(selectedRadio.val());
+      });
+      console.log("selectedValues", selectedValues)
+      return selectedValues;
+    }
+
+
+    let startTime, timerInterval;
+
+    function startTimer() {
+      startTime = Date.now();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      const elapsedTime = Date.now() - startTime;
+      const hours = Math.floor(elapsedTime / (1000 * 60 * 60));
+      const minutes = Math.floor((elapsedTime % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+
+      $('#totalTime').text(
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      );
+    }
+    function showQuestion(number) {
+      $('.question').removeClass('active');
+      $('#question' + number).addClass('active');
+      $('#questionProgress').text(' ' + number + ' / ' + totalQuestions);
+      $('.next-button').toggle(number < totalQuestions);
+      $('.prev-button').toggle(number > 1);
+      $('.submit-button').toggle(number === totalQuestions);
+    }
+
+    $('.next-button').on('click', function () {
+      if (currentQuestion < totalQuestions) {
+        currentQuestion++;
+        showQuestion(currentQuestion);
+      }
+    });
+
+    $('.prev-button').on('click', function () {
+      if (currentQuestion > 1) {
+        currentQuestion--;
+        showQuestion(currentQuestion);
+      }
+    });
+
+    showQuestion(currentQuestion);
+    startTimer();
+
+  });
+
+</script>
+<script>
+  function validateForm() {
+    var questionGroups = document.querySelectorAll('.question-container');
+    var unanswered = false;
+
+    questionGroups.forEach(function (group) {
+      var isChecked = false;
+      group.querySelectorAll('input[type="radio"]').forEach(function (radio) {
+        if (radio.checked) {
+          isChecked = true;
+        }
+      });
+
+      console.log('Question group:', group.id, 'isChecked:', isChecked);
+
+      if (!isChecked) {
+        unanswered = true;
+        group.classList.add('unchecked');
+      } else {
+        group.classList.remove('unchecked');
+      }
+    });
+
+    if (unanswered) {
+      alert("Please select an option for all questions before submitting.");
+      return false;
+    }
+
+    return true;
+  }
+</script>
+{% endblock %}

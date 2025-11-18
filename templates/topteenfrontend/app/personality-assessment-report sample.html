@@ -1,0 +1,843 @@
+<!-- quiz/templates/pdf_template.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="preload stylesheet" href="/static/font/font-style.css">
+  <title> Stream Sorter
+
+    Assessment Report </title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    
+
+    body {
+      margin: 0;
+      padding: 0;
+      color: var(--text-color);
+      font-family: 'Galano Grotesque';
+      font-size: 10pt;
+      counter-reset: chapters;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+      color:#494949;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    hr {
+      height: 0;
+      border: 0;
+      border-top: 1px solid #494949;
+      margin: 10px 0 10px 0;
+    }
+
+    header {
+      position: running(header);
+      height: 2cm;
+      border-bottom: .5mm solid var(--table-row-separator-color);
+    }
+
+    .coverPage,
+    .tocPage,
+    .chapterPage {
+      page-break-after: always;
+    }
+
+    .pageBreak {
+      page-break-before: always;
+      height: 1cm;
+    }
+
+    .coverPage {
+
+      margin: .5cm;
+    }
+
+    .coverPage h1 {
+      margin-top: 0.23cm;
+      font-size: 35px;
+      color: #3F37C9;
+    }
+
+    .coverPage .coverFooter {
+      text-transform: uppercase;
+      font-size: 8pt;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: absolute;
+      bottom: 1cm;
+      width: calc(100% - 4cm);
+    }
+
+    .coverPage .coverFooter a:first-of-type {
+      font-weight: bold;
+    }
+
+    .coverPage .coverFooter hr {
+      height: .5mm;
+      background-color: white;
+      border-top: 0;
+      width: 40%;
+    }
+
+    .top-info {
+      display: flex;
+    }
+
+    .info-box {
+      border: 1px solid #3F37C9;
+      width: 100%;
+      display: flex;
+      margin-bottom: 26px;
+      border-radius: 5px;
+    }
+
+    .top-info .info-box:last-child {
+      margin-left: 26px;
+    }
+
+    .dt-i-info {
+      background: #3F37C9;
+      width: 2cm;
+      font-size: 16px;
+      font-weight: 600;
+      padding-left: 20px;
+      display: flex;
+      align-items: center;
+      padding: 10px 0 13px 20px;
+      border-radius: 4px;
+    }
+
+    .top-info .info-box:first-child {
+      margin-right: 26px;
+    }
+
+    .output p {
+      font-size: 14px;
+      color: var(--text-color);
+      font-weight: 500;
+      display: flex;
+      justify-content: center;
+      line-height: 44px;
+      margin-bottom: 0px;
+      padding-left: 21px;
+    }
+
+    .bibliographyPage {
+      page: bibliography;
+    }
+
+    .disclaimer-box {
+      border: 1px solid #3F37C9;
+      margin-top: 10px;
+      position: relative;
+      border-radius: 4px;
+      color: #000;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-top: 140px;
+    }
+
+    .disclaimer-heading {
+      /*background: #3F37C9;*/
+      width: 120px;
+      text-align: center;
+      
+      margin-bottom: 13px;
+      color: #fff;
+      border-radius: 4px 5px 0 0;
+      line-height: 31px;
+      font-weight: 600;
+    }
+
+    .disclaimer-box {
+      color: #000;
+      text-align: center;
+    }
+
+    .top-info.last-info {
+      margin-right: 0px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .top-info.last-info .info-box {
+      margin-left: 0px;
+      width: 369px;
+    }
+
+    .chapterPage h1,
+    .tocPage h1,
+    .bibliographyPage h1 {
+      margin-top: 1cm;
+      text-transform: uppercase;
+    }
+
+    h4 {
+      font-size: 10pt;
+      margin: 0;
+    }
+
+    p {
+      margin-top: 0;
+      color:#494949;
+    }
+
+    dt {
+      font-size: 16pt;
+    }
+
+    dd {
+      margin: 0 0 .5cm 0;
+    }
+
+    .intro-box p {
+      font-size: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 4px;
+      text-align: left;
+      outline: 0px;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .text-info-paragraph p {
+      font-size: 16px;
+    }
+
+  
+    .box-info {
+      background: #E7E5FF;
+      border-radius: 10px;
+      border-right: 4px solid #3F37C9;
+      border-bottom: 4px solid #3F37C9;
+      width: 180px;
+      margin:10px;
+      float: left;
+    }
+
+    .box-info .img {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    
+
+    .box-info h5 {
+      font-size: 14px;
+      text-align: center;
+      color: #000;
+      margin-bottom: 11px;
+    }
+
+    .box-i {
+      width: 250px;
+      height: 150px;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .bullet ul li {
+      font-size: 16px;
+    }
+
+    .two-box {
+      display: flex;
+      justify-content: center;
+      margin: 32px 0;
+    }
+
+    .two-box {
+      display: flex;
+      justify-content: center;
+      margin: 32px 0;
+    }
+
+    .two-box-in {
+      width: 210px;
+      height: 138px;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      background: #E7E5FF;
+      grid-gap: 1rem;
+      align-items: center;
+      text-align: center;
+      margin: 0 9px;
+      padding: 3px 7px;
+      border-radius: 10px;
+      border-right: 3px solid #3F37CB;
+      border-bottom: 3px solid #3F37C9;
+    }
+
+    .img-tow {
+      margin-top: 16px;
+    }
+
+    .odd-even-color tr {
+      background: #D4EAFD;
+      color: #000;
+    }
+
+    .odd-even-color tr:nth-child(2n),
+    .odd-even-color tr:nth-child(2n) {
+      background: #7737C9;
+      color: #fff !important;
+    }
+
+    .cat-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .cat-one-box .cat-head {
+      background: #E7E5FF;
+    }
+
+    .cat-head {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: gray;
+      border-radius: 7px 7px 0 0;
+      padding: 13px 0;
+      color: #494949;
+    }
+
+    .cat-one-box .cat-list {
+      background: #F7F6FF;
+    }
+
+    .cat-head h4 img {
+      margin-right: 20px;
+    }
+
+    .cat-head h4 {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .cat-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-bottom: 31px;
+    }
+
+    .cat-two-box .cat-list {
+      background: #FFEDEB;
+    }
+
+    .cat-two-box .cat-head {
+      background: #FFD4CF;
+    }
+
+    .cat-three-box .cat-list {
+      background: #FFFCEC;
+    }
+
+    .cat-three-box .cat-head {
+      background: #FFF2B6;
+    }
+
+    .cat-four-box .cat-list {
+      background: #F0FFEA;
+    }
+
+    .cat-four-box .cat-head {
+      background: #C8F8B6;
+    }
+
+    .cat-five-box .cat-list {
+      background: #E5F9FF;
+    }
+
+    .cat-five-box .cat-head {
+      background: #C9EDF8;
+    }
+
+    .contact-detail {
+      text-align: center;
+      margin-top: 44px;
+    }
+
+    .detail-options {
+      display: flex;
+      justify-items: last baseline;
+      align-items: center;
+      text-align: center;
+      justify-content: center;
+      margin-top: 19px;
+      margin-bottom: 45px;
+    }
+
+    .b-box {
+      background: #3F37C9;
+      border-radius: 50px;
+      padding: 10px 17px;
+      font-size: 16px;
+      color: #fff;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      margin: 0 11px;
+    }
+
+
+    .b-box {
+      font-size: 16px;
+      color: #fff;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+
+ 
+
+
+
+
+
+  <div class="coverPage">
+    <div class="img-top" style="width: 100%; text-align: center;"> <img style="width: 200px;" src="{% static 'images/logo.png' %}"
+        alt="logo" /> </div>
+    <div class="heading-cover" style="width: 100%; text-align: center;">
+      <h1 style="font-family: 'Galano Grotesque'; margin-top: 0.23cm;
+      font-size: 35px;
+      color: #3F37C9;">Stream Sorter Assessment Report </h1>
+    </div>
+    <div class="image-cover" style="width: 100%; text-align: center;"> <img style="width: 320px;"
+        src="{% static 'images/report-image.png'%} " alt="img" /> </div>
+    
+        
+    
+    
+    
+        <div class="student-detail-info" style="margin-top: 0px; width:600px; margin-bottom:30px;">
+      <div class="top-info">
+        <div class="info-box">
+          <div class="dt-i-info" style="color:#fff;"> Name </div>
+          <div class="output">
+            <p>Dilpreet Singh</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div class="dt-i-info" style="color:#fff;"> DOB </div>
+          <div class="output">
+            <p>24-08-2024</p>
+          </div>
+        </div>
+      </div>
+      <div class="top-info">
+        <div class="info-box">
+          <div class="dt-i-info" style="color:#fff;"> Age </div>
+          <div class="output">
+            <p>12 Years</p>
+          </div>
+        </div>
+        <div class="info-box">
+          <div class="dt-i-info" style="color:#fff;"> Grade</div>
+          <div class="output">
+            <p>8th </p>
+          </div>
+        </div>
+      </div>
+      <div class="top-info last-info">
+        <div class="info-box">
+          <div class="dt-i-info" style="width: 3cm;color:#fff;"> Date of Test </div>
+          <div class="output">
+            <p>23-07-2024</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div  style="width:100%; margin-top: 80px; float: left;"><table style="width:100%; margin-top: 20px;">
+  <tbody>
+    <tr style="border: 1px solid  #3F37CB; border-radius: 10px;">
+<td>
+
+
+  <div class="disclaimer-heading" style="width:100%; text-align: center; color: #3F37CB; text-align: center; margin-top: -19px;"><p style="background-color: #3F37CB; padding:2px; color: #fff; font-size: 12px; border-radius: 5px 5px 0 0; text-align: center; width:150px;  margin: 0px auto;"> Disclaimer </p></div>
+<p style="width:100%; text-align: center;">The results of this assessment are based on the responses given by the
+  individual on the self report questionnaire and are subject to change
+  based on multiple factors.</p>
+
+    
+
+    </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+  </div>
+  <div class="chapterPage">
+    <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png' %}" alt="logo" />
+    </div>
+    <hr />
+    <div class="db-header" style="margin-top: 66px; text-align: center;">
+      <h1 style="color: #3F37C9;">INTRODUCTION</h1>
+    </div>
+<table >
+
+  <tbody>
+
+<tr style="background: #E7FEFF;">
+
+<td>
+
+
+
+
+
+    <div class="intro-box" style="background: #E7FEFF;  padding: 18px;">
+      <p style="font-family: 'Galano Grotesque';">Selecting the right academic stream is a significant milestone in a student's educational journey. It’s like
+        choosing a path in a vast, exciting forest where each trail leads to unique adventures and destinations. This
+        decision lays the foundation for future career prospects and academic pursuits, making it crucial for students
+        to carefully evaluate their options.</p>
+      <p style="font-family: 'Galano Grotesque';">Imagine standing at a crossroads with a map in hand, each route offering a glimpse into different
+        worlds—science teeming with discoveries, commerce bustling with business acumen, and humanities rich with
+        cultural insights. This pivotal choice is not just about subjects and exams; it’s about uncovering your
+        passions, unlocking potential, and setting the stage for your future. Whether you dream of becoming an engineer,
+        an entrepreneur, or an artist, the right stream can be the launch pad to your aspirations, turning your academic
+        journey into an exhilarating quest for knowledge and success.</p>
+      <p style="font-family: 'Galano Grotesque';"> The Stream Sorter Assessment Test aims to guide students in this
+        decision by evaluating three key aspects: <strong>Interest, Personality, and Intelligence</strong>. These elements are essential in identifying the most suitable
+        academic path for each individual.</p>
+    </div>
+
+  </td>
+
+
+</tr>
+
+  </tbody>
+
+  </table>
+
+    <div class="img-info" style="width: 100%; text-align: center; margin-top:30px;"> <img style="width:500px"
+        src="{% static 'images/student-sitting.png'%}" alt="Student" /> </div>
+  </div>
+  <div class="chapterPage">
+    <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png' %}" alt="logo" />
+    </div>
+    <hr />
+    <div class="db-header" style="margin-top: 10px; text-align: center;">
+      <h1 style="color: #3F37C9;">HOW TO USE THIS REPORT</h1>
+    </div>
+    <div class="text-info-paragraph">
+      <p>This test typically consists of a series of questions in 3 parts that evaluate
+        various aspects of a student's <stong>Personality, Interest and Intelligence</stong> and it
+        helps you decide the suggested stream to consider in your high school.</p>
+    </div>
+
+    <div class="boxthree" style="margin: 20px 0 40px 0; float:left; width: 100%;">
+      <div class="box-info" style="text-align: center;">
+        <div class="img"> <img style="width:50px;"   src="{% static 'images/interest-icon.png' %}" alt="img" /> </div>
+        <h5>Interest</h5>
+      </div>
+
+      <div class="box-info" style="text-align: center;">
+        <div class="img"> <img style="width:50px;"   src="{% static 'images/intelligence-icon.png' %}" alt="img" /> </div>
+        <h5>Intelligence</h5>
+      </div>
+      <div class="box-info" style="text-align: center;">
+        <div class="img"> <img style="width:50px;"   src="{% static 'images/personality-icon.png' %}" alt="img" /> </div>
+        <h5>Personality</h5>
+      </div>
+     
+    </div>
+
+
+    <table style="margin-bottom: 30px; margin-top:25px; ">
+      <thead>
+        <tr>
+          <th style="background: 
+
+#E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px;">Part</th>
+          <th style="background: 
+
+#E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border:1px solid #9490dd;">
+          <td style=" width: 200px; padding-left:14px; color: #000; font-weight: 700;">Part I</td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span
+              style="color:#2720A7;">Interest</span> refers to the subjects and activities that naturally engage and
+            excite you</td>
+        </tr>
+
+        <tr style="border:1px solid #9490dd; width: 200px; ">
+          <td style=" padding-left:14px;  color: #000; font-weight: 700;">Part II</td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span
+              style="color:#2720A7;">Intelligence</span> refers to your cognitive abilities, including logical
+            reasoning, problem-solving skills, and understanding of complex concepts</td>
+        </tr>
+
+
+        <tr style="border:1px solid #9490dd;">
+          <td style=" width: 200px; padding-left:14px;  color: #000; font-weight: 700;">Part III</td>
+          <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span
+              style="color:#2720A7;">Personality</span> encompasses the traits & characteristics that define how you
+            interact with the world and approach tasks</td>
+        </tr>
+      
+      </tbody>
+    </table>
+    <div class="text-info-paragraph">
+      <p> This comprehensive report ensures that you make informed decision about
+        your academic path, leading to more successful and fulfilling career.</p>
+    </div>
+  </div>
+
+
+
+
+
+<div class="chapterPage">
+  <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png' %}" alt="logo"/> </div>
+  <hr/>
+  <div class="text-color-top" style="display: flex;  justify-content: center;">
+    <div class="top-layout" style="background: #3F37C9;
+  color: #fff;
+  font-size: 16px;
+  padding: 11px 38px;
+  margin-top: 28px;
+  font-weight: 600;
+  border-radius: 10px 10px 0 0;">Part -3</div>
+  </div>
+  <div class="db-header" style="margin-top: 0px; text-align: center;">
+    <h1 style="color: #3F37C9; margin-top: 10px;">PERSONALITY ASSESSMENT REPORT</h1>
+  </div>
+  <div class="text-info-paragraph">
+    <p>Personality assessment is the process of measuring and evaluating individual personality traits, behaviors, and characteristics. This assessment helps in understanding an individual's consistent patterns of thinking, feeling, and behaving.  This report is based on the Big Five personality traits (OCEAN) representing a widely accepted framework for understanding human personality. These traits are <strong>Openness to Experience, Conscientiousness, Extraversion, Agreeableness, and Neuroticism</strong>.</p>
+  </div>
+  <div class="boxthree" style="margin-top: 60px; margin-bottom: 10px;">
+    <div class="box-info">
+      <div class="img"> <img style="width:35px;" src="{% static 'images/opens.png' %}" alt="img"> </div>
+      <h5>Openness to
+        Experience</h5>
+    </div>
+    <div class="box-info">
+      <div class="img"> <img style="width:35px;" src="{% static 'images/Conscientiousness.png' %}" alt="img"> </div>
+      <h5>Conscientiousness</h5>
+    </div>
+    <div class="box-info">
+      <div class="img"> <img style="width:35px;" src="{% static 'images/Extraversion.png' %}" alt="img"> </div>
+      <h5>Extraversion</h5>
+    </div>
+  </div>
+  <div class="boxthree" style="margin-top: 20px; margin-bottom: 10px;width:420px; margin:0px auto;">
+    <div class="box-info">
+      <div class="img"> <img style="width:35px;" src="{% static 'images/Agreeableness.png' %}" alt="img"> </div>
+      <h5>Agreeableness</h5>
+    </div>
+    <div class="box-info">
+      <div class="img"> <img style="width:35px;" src="{% static 'images/Neuroticism.png' %}" alt="img"> </div>
+      <h5>Neuroticism</h5>
+    </div>
+  </div>
+</div>
+<div class="chapterPage">
+  <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png' %}" alt="logo"/> </div>
+  <hr/>
+  <div class="test-title" style="color:#000; font-size:16; font-weight: 600; margin-top: 40px; margin-bottom: 15px">Reasoning type description</div>
+  <table style="margin-bottom: 30px; margin-top:0px; ">
+    <thead>
+      <tr>
+        <th style="background: 
+
+#E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px;">Personality Code</th>
+        <th style="background: 
+
+#E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Characteristics</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border:1px solid #9490dd;">
+        <td style=" width: 200px; padding-left:14px; color: #000; font-weight: 700;">Openness to Experience (O)</td>
+        <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 13px;">Openness to experience involves the degree to which a person is imaginative, curious, and open-minded. People high in this trait tend to be adventurous and appreciate art, new ideas, and novel experiences. Those low in openness may prefer routine and familiarity. Suitable careers include those in creative fields like art, music, writing, and research roles that require innovation and abstract thinking.</td>
+      </tr>
+      <tr style="border:1px solid #9490dd;">
+        <td style=" width: 200px; padding-left:14px;  color: #000; font-weight: 700;">Conscientiousness (C)</td>
+        <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size:  13px;">Conscientiousness reflects how organized, dependable, and disciplined an individual is. Highly conscientious people are often goal-oriented, mindful of details, and reliable. Those with low conscientiousness may be more spontaneous and less focused on long-term goals. Careers in management, administration, accounting, and healthcare can be a good fit, where attention to detail, reliability, and organization are crucial..</td>
+      </tr>
+      <tr style="border:1px solid #9490dd; width: 200px; ">
+        <td style=" padding-left:14px;  color: #000; font-weight: 700;">Extraversion (E)</td>
+        <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size:  13px;">Extraversion measures the extent to which a person is outgoing,   energetic, and enjoys social interactions. Extraverts tend to be enthusiastic   and seek out company, whereas introverts may prefer solitude and quiet   activities. Roles in sales, public relations, teaching, and event planning   can be ideal for extraverts, who thrive in social and dynamic environments.</td>
+      </tr>
+      <tr style="border:1px solid #9490dd; width: 200px; ">
+        <td style=" padding-left:14px;  color: #000; font-weight: 700;">Agreeableness (A)</td>
+        <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size:  13px;">Agreeableness describes how cooperative, compassionate, and friendly   an individual is. Those high in agreeableness are often empathetic and enjoy   helping others, while those low in this trait may be more competitive and   less concerned with others' feelings. Careers in social work, counseling,   customer service, and healthcare are well-suited for individuals high in   agreeableness, where empathy and collaboration are key.</td>
+      </tr>
+      <tr style="border:1px solid #9490dd; width: 200px; ">
+        <td style=" padding-left:14px;  color: #000; font-weight: 700;">Neuroticism (N)</td>
+        <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size:  13px;">Neuroticism refers to the tendency to experience negative emotions   like anxiety, depression, and irritability. High neuroticism indicates a   person may be more sensitive to stress, while low neuroticism suggests a more   emotionally stable and resilient individual. Careers in roles that provide   stability and support, such as administrative positions or technical roles,   can be beneficial for individuals with higher neuroticism, helping them   manage stress effectively.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="chapterPage">
+  <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png' %}" alt="logo"/> </div>
+  <hr/>
+  <div class="db-header" style="margin-top: 0px; text-align: center;">
+    <h1 style="color: #3F37C9; margin-top: 10px;">Interpretation & Recommendations</h1>
+  </div>
+  <div class="text-info-paragraph">
+    <p>Based on your test results, your strongest areas of interest are:</p>
+  </div>
+  <div class="text-color-top" style="display: flex;  justify-content: center;">
+    <div class="top-layout" style="background: #3F37C9;
+  color: #fff;
+  font-size: 16px;
+  padding: 11px 38px;
+  margin-top: 28px;
+  font-weight: 600;
+  border-radius: 10px 10px 0 0; text-align: center; margin-bottom: 20px;">{{top_3_ocean}}<br>
+      </div>
+      <!-- <small>(Openness to Experience, Conscientiousness and Extraversion)</small> -->
+  </div>
+  <table style="margin-bottom: 30px; margin-top:0px; ">
+    <thead>
+      <tr>
+        <th style="background: 
+
+#E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px;">Personality
+          Trait</th>
+        <th style="background: 
+
+#E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; text-align: center; ">Your
+          Score</th>
+        <th style="background: 
+
+#E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border:1px solid #9490dd;">
+        <td style=" width: 200px; padding-left:14px; color: #000; font-weight: 700;">Openness to Experience</td>
+        <td style=" width: 90px; padding-left:14px; color: #000; font-weight: 700; text-align: center;">
+          <span style="background: #E7E5FF;width: 40px;height: 40px;float: left;display: flex;justify-content: center;align-items: center;font-size: 14px;border-radius: 100px;">{{ personality.sum_O }}</span></td>
+        <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 12px;"><span style="color:#2720A7;">High Score: </span>Indicates a strong preference for new experiences and intellectual pursuits. The individual enjoys exploring new ideas, creative endeavors, & diverse cultural experiences.<br>
+          <span style="color:#2720A7;"> Low Score:</span> Suggests a preference for traditional and familiar experiences. The individual may be more practical, grounded, and detail-oriented. </td>
+      </tr>
+      <tr style="border:1px solid #9490dd;">
+        <td style=" width: 200px; padding-left:14px; color: #000; font-weight: 700;">Conscientiousness </td>
+        <td style=" width: 90px; padding-left:14px; color: #000; font-weight: 700; text-align: center;">
+			
+			
+		<span style="background: #E7E5FF;width: 40px;height: 40px;float: left;display: flex;justify-content: center;align-items: center;font-size: 14px;border-radius: 100px;">{{ personality.sum_C }}</span>
+		  
+		  </td>
+        <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 12px;"><span style="color:#2720A7;">High Score: </span>Indicates strong self-discipline, careful planning, and dependability. The individual is likely to be organized, thorough, and focused on achieving goals.<br>
+          <span style="color:#2720A7;"> Low Score:</span> Suggests a more relaxed and spontaneous approach to tasks. The individual may be flexible and adaptable but may struggle with long-term planning & organization. </td>
+      </tr>
+      <tr style="border:1px solid #9490dd;">
+        <td style=" width: 200px; padding-left:14px; color: #000; font-weight: 700;">Extraversion </td>
+        <td style=" width: 90px; padding-left:14px; color: #000; font-weight: 700;">
+			
+			<span style="background: #E7E5FF;width: 40px;height: 40px;float: left;display: flex;justify-content: center;align-items: center;font-size: 14px;border-radius: 100px;">{{ personality.sum_E }}</span></td>
+        <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 12px;"><span style="color:#2720A7;">High Score: </span>Indicates a sociable, outgoing, and energetic personality. The individual enjoys social interactions, is often enthusiastic, and seeks out new and stimulating experiences.<br>
+          <span style="color:#2720A7;"> Low Score:</span> Suggests a preference for solitude and introspection. The individual may be reserved, enjoy quiet environments, and prefer deeper, one-on-one interactions. </td>
+      </tr>
+      <tr style="border:1px solid #9490dd;">
+        <td style=" width: 200px; padding-left:14px; color: #000; font-weight: 700;">Agreeableness </td>
+        <td style=" width: 90px; padding-left:14px; color: #000; font-weight: 700;">
+		  
+		  <span style="background: #E7E5FF;width: 40px;height: 40px;float: left;display: flex;justify-content: center;align-items: center;font-size: 14px;border-radius: 100px;">{{ personality.sum_A }}</span>
+		  </td>
+        <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 12px;"><span style="color:#2720A7;">High Score: </span> Indicates a warm, compassionate, and cooperative personality. The individual is likely to be empathetic, helpful, and enjoys fostering harmonious relationships.<br>
+          <span style="color:#2720A7;"> Low Score:</span> Suggests a more competitive and self-reliant approach. The individual may be more straightforward and less concerned with social harmony. </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="chapterPage">
+  <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png' %}" alt="logo"/> </div>
+  <hr/>
+  <table style="margin-bottom: 30px; margin-top:0px; ">
+    <thead>
+      <tr>
+        <th style="background: 
+
+#E7E5FF;  color:#3F37C9;  color:#2720A7; paddi ng: 21px 0 21px 14px; border-top-left-radius: 15px;">Personality
+          Trait</th>
+        <th style="background: 
+
+#E7E5FF;  color:#3F37C9;  color:#2720A7; paddi ng: 21px 0 21px 14px; ">Your
+          Score</th>
+        <th style="background: 
+
+#E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border:1px solid #9490dd;">
+        <td style=" width: 200px; padding-left:14px; color: #000; font-weight: 700;">Neuroticism</td>
+        <td style=" width: 90px; padding-left:14px; color: #000; font-weight: 700;">
+		  <span style="background: #E7E5FF;width: 40px;height: 40px;float: left;display: flex;justify-content: center;align-items: center;font-size: 14px;border-radius: 100px;">{{ personality.sum_N }}</span>
+		  
+		  </td>
+        <td style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 13px;"><span style="color:#2720A7;">High Score: </span>Indicates strong self-discipline, careful planning, and dependability. The individual is likely to be organized, thorough, and focused on achieving goals<br>
+          <span style="color:#2720A7;"> Low Score:</span> Suggests a more relaxed and spontaneous approach to tasks. The individual may be flexible and adaptable but may struggle with long-term planning & organization.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="chapterPage">
+  <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;" src="{% static 'images/logo.png' %}" alt="logo"/> </div>
+  <hr/>
+  <div class="graph" style="width:100%; text-align: center; margin-top: 30px"> <img style="width:400px;" src="{% static 'graph_images/Personality_Assessment.png' %}" alt="graph"/> </div>
+
+  <div class="text-info-paragraph" style="margin-top: 30px;">
+    <p style="color: #2720A7;"><strong>Special Note*</strong></p>
+  </div>
+  <div class="text-info-paragraph">
+    <p>Neuroticism assesses an individual's tendency to experience negative emotions and emotional instability.</p>
+  </div>
+  <div class="bullet">
+    <ul>
+      {% if 'N' in top_3_ocean %}
+      <li><span style="color: #2720A7;"><strong> High Neuroticism Score:</strong></span> Prone to anxiety, depression, mood swings, and stress. Individuals with higher neuroticism might prefer stable, supportive environments and roles that provide emotional security. They should practice stress management techniques, such as mindfulness, exercise, and seek support from friends or a counselor. </li>
+      {% else %}
+      <li> <span style="color: #2720A7;"><strong>Low Neuroticism Score</strong> (Emotional Stability) :</span> Calm, emotionally resilient, and less reactive to stress. Individuals with low neuroticism are often well-suited for high-stress environments, such as emergency services, military, and leadership roles. </li>
+      
+      {% endif %}
+    </ul>
+  </div>
+</div>
+
+	
+
+</body>
+
+</html>

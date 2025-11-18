@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./css/styles.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../assets/css/customCSS.css" />
+    <title>BlogList (TopTeens)</title>
+</head>
+<body class="no-scrollbar">
+
+    <!-- Header -->
+    <header
+      class="relative w-full lg:sticky lg:top-0 bg-[#FFFFFF] border-2 border-[#EBEBEE] z-20"
+      id="headerPanel"
+    >
+      <div
+        class="flex flex-row justify-between items-baseline py-3 inset-x-0 lg:mx-auto lg:container lg:px-20 px-[23px] py-[17px]"
+      >
+        <div
+          class="flex lg:hidden flex-row justify-start items-center gap-x-[18px]"
+        >
+          <button id="trigger"><i class="fa fa-bars"></i></button>
+          <div class="h-[39px] w-[39px]">
+            <img
+              src="../assets/images/graduation-hat 1.png"
+              class="h-full w-full"
+            />
+          </div>
+        </div>
+        <div class="lg:block hidden">
+          <span
+            ><img
+              src="../assets/images/graduation-hat 1.png"
+              class="h-10 inline-block" /></span
+          >&nbsp;
+          <span
+            class="text-[#494949] font-bold text-[13.13px] leading-[17.73px]"
+          >
+            TOPTEEN</span
+          >
+        </div>
+        <nav class="lg:block hidden">
+          <ul
+            class="flex flex-row justify-evenly gap-3 tracking-wide font-semibold text-[#4F4F4F] allTabs"
+            data-active="activeBtn"
+            data-tabs-toggle="#careerPanel"
+          >
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link group relative cursor-pointer tab"
+              id="careerTab"
+              data-tabs-target="#career"
+              role="tab"
+            >
+              <span class="text-sm">Browse Careers</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform group-hover:-rotate-180"
+                ></i>
+              </span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer tab"
+              data-tabs-target="#analysis"
+              role="tab"
+            >
+              <span class="text-sm">Self-Analysis</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform hover:-rotate-180"
+                ></i
+              ></span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer tab"
+              data-tabs-target="#resources"
+              role="tab"
+            >
+              <span class="text-sm">Resources</span>
+              <span class="text-sm font-thin text-[#BDBDBD]">
+                <i
+                  class="fa fa-angle-down transition duration-300 ease-in-out transform hover:-rotate-180"
+                ></i
+              ></span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer"
+            >
+              <span class="text-sm">Pricing</span>
+            </li>
+            <li
+              class="mt-2 flex items-center gap-1 p-2 nav-link cursor-pointer"
+            >
+              <span class="text-sm">Company</span>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="flex flex-row gap-5 items-center">
+          <a
+            href="#"
+            class="text-[#3F37C9] text-sm font-semibold lg:inline-block hidden"
+            >LOG IN</a
+          >
+
+          <button
+            class="bg-[#3F37C9] text-xs text-white font-bold border-b-[6px] border-[#2E289D] rounded-lg lg:px-2 lg:py-3 px-[9px] pt-[12px] pb-[9px]"
+          >
+            GET STARTED
+          </button>
+        </div>
+      </div>
+      <div
+        class="absolute top-[100%] inset-x-0 bg-white hidden border-b-[2px] border-[#EBEBEE] z-50"
+        id="careerPanel"
+      >
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-4 gap-x-[30px] container"
+          id="career"
+        >
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/books 1.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+        </div>
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-4 gap-x-[30px] container"
+          id="analysis"
+        >
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career skills</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/tab_image.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/books 1.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+          <!-- ITEM -->
+          <div class="flex flex-row justify-start gap-x-[12px] items-start">
+            <div class="h-[32px] w-[32px]">
+              <img src="../assets/images/flame.png" class="h-full w-full" />
+            </div>
+            <div>
+              <h5 class="text-sm font-semibold mb-2">Career Tracks</h5>
+              <p class="font-normal text-xs text-[#828282] mb-[5px]">
+                Look at different career tracks and jobs within them
+              </p>
+              <a href="#" class="text-xs font-semibold text-[#3f37c9]"
+                >View Tracks &rarr;</a
+              >
+            </div>
+          </div>
+        </div>
+        <!-- CONTENT -->
+        <div
+          class="mx-auto px-[80px] py-[40px] grid grid-cols-6 gap-x-3 container"
+          id="resources"
+        >
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#3f37c9] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Courses & Content
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                1.3k Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#3CBAE1] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">Videos</h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                1.3k Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#EF5DA8] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                How to's & Tutorials
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#F2994A] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Exams & Tests
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#27AE60] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">
+                Colleges & Schools
+              </h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                850 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+
+          <!-- ITEM -->
+          <div
+            class="flex flex-row justify-between items-start gap-x-[7px] items-start w-full py-[20px] pl-2.5 bg-[#2F80ED] rounded-[10px] relative overflow-hidden"
+          >
+            <div class="w-[95%]">
+              <h5 class="text-sm font-semibold text-white mb-2.5">Guides</h5>
+              <button
+                class="py-2 px-3 text-[10px] leading-[14px] font-semibold tracking-[0.035em] bg-white bg-opacity-20 text-white rounded-[100px]"
+              >
+                12 Items
+              </button>
+            </div>
+
+            <!-- ABSOLUTE -->
+            <ul class="absolute top-[20px] right-[-19px] rotate-[17deg]">
+              <li class="h-[45px] w-[45px] relative z-10">
+                <img
+                  src="../assets/images/res2.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+              <li class="h-[45px] w-[45px] ml-[10px] mt-[-30px] relative z-0">
+                <img
+                  src="../assets/images/res1.jpg"
+                  class="h-full w-full object-cover"
+                />
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="overflow-hidden">
+        <div
+          class="w-full -translate-x-full transition-all duration-500 absolute top-0 inset-x-0 z-40 bg-white px-[30px]"
+          id="sidebar"
+        >
+          <div class="w-full h-[70px] flex justify-between items-center">
+            <button id="closeBtn" class="text-[20px] text-black font-extrabold">
+              X
+            </button>
+            <div class="flex justify-start gap-x-[15px] items-center">
+              <button class="text-sm font-semibold text-[#3f37c9]">LOG IN</button>
+              <button
+                class="px-[9px] py-3 rounded-[10px] border-b-[6px] border-[#2E289D] bg-[#3f37c9] text-xs font-bold text-white"
+              >
+                GET STARTED
+              </button>
+            </div>
+          </div>
+          <ul
+            class="flex flex-col justify-start items-start gap-y-[30px] my-[20px]"
+          >
+            <li
+              class="flex flex-col justify-start items-start gap-y-[8px] bg-[#3f37c9] bg-opacity-[0.07] rounded-[6px]"
+            >
+              <p class="text-[20px] leading-[34px] text-[#333333]">
+                Browse Careers
+              </p>
+            </li>
+            <li class="flex flex-col justify-start items-start gap-y-[8px]">
+              <p class="text-[20px] leading-[34px] text-[#333333]">
+                Understand yourself
+              </p>
+              <a
+                href="#"
+                class="text-[15px] leading-[25px] text-[#828282] font-normal inline-block group"
+                ><span class="text-[#3f37c9] hidden group-hover:inline-block"
+                  ><i class="fa fa-check"></i>&nbsp;</span
+                ><span class="group-hover:text-[#3f37c9]"
+                  >Psychometric Analysis</span
+                ></a
+              >
+              <a
+                href="#"
+                class="text-[15px] leading-[25px] text-[#828282] font-normal"
+                >Stream Finder</a
+              >
+              <a
+                href="#"
+                class="text-[15px] leading-[25px] text-[#828282] font-normal"
+                >Job readiness</a
+              >
+            </li>
+  
+            <li class="flex flex-col justify-start items-start gap-y-[8px]">
+              <p class="text-[20px] leading-[34px] text-[#333333]">Learn more</p>
+              <a
+                href="#"
+                class="text-[15px] leading-[25px] text-[#828282] font-normal"
+                >Articles</a
+              >
+              <a
+                href="#"
+                class="text-[15px] leading-[25px] text-[#828282] font-normal"
+                >Videos</a
+              >
+            </li>
+  
+            <li class="flex flex-col justify-start items-start gap-y-[8px]">
+              <p class="text-[20px] leading-[34px] text-[#333333]">Language</p>
+              <a
+                href="#"
+                class="text-[15px] leading-[25px] text-[#828282] font-normal inline-block group"
+                ><span class="text-[#3f37c9] hidden group-hover:inline-block"
+                  ><i class="fa fa-check"></i>&nbsp;</span
+                ><span class="group-hover:text-[#3f37c9]">Hindi</span></a
+              >
+              <a
+                href="#"
+                class="text-[15px] leading-[25px] text-[#828282] font-normal inline-block group"
+                ><span class="text-[#3f37c9] hidden group-hover:inline-block"
+                  ><i class="fa fa-check"></i>&nbsp;</span
+                ><span class="group-hover:text-[#3f37c9]">English</span></a
+              >
+            </li>
+          </ul>
+  
+          <hr />
+          <p class="text-[15px] leading-[25px] text-[#828282] my-[10px]">
+            Follow us
+          </p>
+          <div class="flex flex-row justify-start gap-x-[25px]">
+            <div
+              class="h-[32px] w-[32px] rounded-full text-white text-[16px] bg-[#3f37c9] flex justify-center items-center"
+            >
+              <i class="fa fa-angle-down"></i>
+            </div>
+            <div
+              class="h-[32px] w-[32px] rounded-full text-white text-[16px] bg-[#3f37c9] flex justify-center items-center"
+            >
+              <i class="fa fa-angle-down"></i>
+            </div>
+            <div
+              class="h-[32px] w-[32px] rounded-full text-white text-[16px] bg-[#3f37c9] flex justify-center items-center"
+            >
+              <i class="fa fa-angle-down"></i>
+            </div>
+          </div>
+        </div>
+    </div>
+    <!-- End of Header -->
+
+    <main>
+        <div class=" lg:container mx-auto pt-[16px] px-[15px] lg:px-[80px]">
+          
+            <h3 class="text-[28px] leading-[37.8px] font-semibold text-center md:text-left">Blogs</h3>
+
+            <div class="lg:flex lg:gap-[30px] pt-[32px]">
+
+              <div class="mx-auto md:px-0 gap-y-[30px] grid sm:grid-cols-2 md:grid-cols-3 justify-center  lg:justify-start gap-[30px]">
+
+                <div class="max-w-[400px] overflow-hidden">
+                    <div>
+                        <img src="../assets/images/col-mobile.png" class=" w-[400px] h-[233.2px] md:w-[283px] md:h-[165px] mb-[16px]"   alt="">
+                    </div>
+                    <a href="#">
+                        <button class="darkBlueBtn">
+                            <p class="text-[16px] font-semibold text-[#ffffff]">Trending</p>
+                        </button>
+                    </a>
+                    <p class="text-[12px] text-[#4b5563] mt-[16px]">Jul 28, 2022 4:51 AM</p>
+                    <h5 class="text-[16px] text-[#333333] mb-[5px] font-semibold">AI</h5>
+                    <p class="text-[12px] text-[#828282] truncate">IN future AI is most important and common... IN future AI is most important and common...  </p>
+                </div>
+
+                <div class="max-w-[400px] overflow-hidden">
+                  <div>
+                      <img src="../assets/images/ai.jpg" class=" w-[400px] h-[233.2px] md:w-[283px] md:h-[165px] mb-[16px]"   alt="">
+                  </div>
+                  <a href="#">
+                      <button class="darkBlueBtn">
+                          <p class="text-[16px] font-semibold text-[#ffffff]">Trending</p>
+                      </button>
+                  </a>
+                  <p class="text-[12px] text-[#4b5563] mt-[16px]">Jul 28, 2022 4:51 AM</p>
+                  <h5 class="text-[16px] text-[#333333] mb-[5px] font-semibold">AI</h5>
+                  <p class="text-[12px] text-[#828282] truncate">IN future AI is most important and common... IN future AI is most important and common... . </p>
+              </div>
+
+              <div class="max-w-[400px] overflow-hidden">
+                <div>
+                    <img src="../assets/images/second-college.png" class=" w-[400px] h-[233.2px] md:w-[283px] md:h-[165px] mb-[16px]"   alt="">
+                </div>
+                <a href="#">
+                    <button class="darkBlueBtn">
+                        <p class="text-[16px] font-semibold text-[#ffffff]">Trending</p>
+                    </button>
+                </a>
+                <p class="text-[12px] text-[#4b5563] mt-[16px]">Jul 28, 2022 4:51 AM</p>
+                <h5 class="text-[16px] text-[#333333] mb-[5px] font-semibold">AI</h5>
+                <p class="text-[12px] text-[#828282] truncate">IN future AI is most important and common... IN future AI is most important and commo </p>
+            </div>
+
+              
+
+              </div>
+
+              <div class="flex flex-col lg:max-w-[275px] w-full px-3 mt-[48px] md:mt-[56px] lg:mt-0 mx-auto">
+              <h3 class="text-[#3f37c9] regularFont text-[18.72px]">CATEGORIES</h3>
+      
+              <ul class="flex flex-col">
+                <li class="mt-[0.6rem] list-none regularFont text-[1rem] cursor-pointer p-[5px] leading-[1.43rem] border-b-2">
+                  <a href="#">All</a>
+                </li>
+      
+                <li class="text-[1rem] p-[5px] list-none regularFont cursor-pointer leading-[1.43rem] border-b-2">
+                  <a href="#">Admissions </a>
+                </li>
+      
+                <li class="text-[1rem] p-[5px] list-none regularFont cursor-pointer leading-[1.43rem] border-b-2">
+                  <a href="#">Study Abroad? </a>
+                </li>
+      
+                <li class="text-[1rem] p-[5px] list-none regularFont cursor-pointer leading-[1.43rem] border-b-2">
+                  <a href="#">Programs</a>
+                </li>
+      
+                <li class="text-[1rem] p-[5px] list-none regularFont cursor-pointer leading-[1.43rem] border-b-2">
+                  <a href="#">Career </a>
+                </li>
+      
+                <li class="text-[1rem] p-[5px] list-none regularFont cursor-pointer leading-[1.43rem] border-b-2">
+                  <a href="#">Tips and Tricks</a>
+                </li>
+      
+                <li class="text-[1rem] p-[5px] list-none regularFont cursor-pointer leading-[1.43rem] border-b-2">
+                  <a href="#">Study in Canada</a>
+                </li>
+              </ul>
+              </div>
+
+            </div>
+            
+            
+
+            
+
+
+            <div class="mt-[72px]">
+                <p class="text-center">Page 1 of 1</p>
+            </div>
+            
+        </div>
+    </main>
+    
+
+    <!-- Footer -->
+
+    <!-- Mobile Footer -->
+    <div
+  class="w-full absolute py-[48px] bg-[#fdfcff] mt-[36px] flex flex-col justify-start gap-y-[18px] items-center lg:hidden"
+>
+  <div
+    class="flex flex-row justify-start items-center gap-x-[8px]"
+  >
+    <div class="h-[39px] w-[39px]">
+      <img
+        src="../assets/images/graduation-hat 1.png"
+        class="h-full w-full"
+      />
+    </div>
+    <div class="text-[14px] leading-[16px] font-bold">TOP TEEN</div>
+  </div>
+  <div class="text-center w-[246px] text-lg font-normal text-[#828282]">
+    Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet
+    sint.
+  </div>
+    </div>
+    <!-- End Mobile Footer -->
+
+    <!-- Desktop Footer -->
+    <div class="w-full absolute mt-[36px] bg-[#FDFCFF]">
+      <footer
+        class="lg:container mx-auto px-20 pt-10 h-auto tracking-wide lg:block hidden"
+        id="footer"
+      >
+        <div
+          class="grid grid-cols-2 pb-10 border-b border-[#000000] border-opacity-20 gap-10"
+        >
+          <div>
+            <h4 class="text-sm font-bold mb-4 footer-heading">
+              <span
+                ><img
+                  src="../assets/images/graduation-hat 1.png"
+                  class="h-10 inline-block"
+              /></span>
+              &nbsp;<span class="font-bold text-[13.13px] leading-[18px]"
+                >TOPTEEN</span
+              >
+            </h4>
+            <p class="text-left text-[#828282] text-lg w-1/2 font-normal">
+              Amet minim mollit non deserunt ullamco est sit aliqua dolor do
+              amet sint.
+            </p>
+          </div>
+          <div class="flex flex-row justify-between items-start">
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Resources
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Learn more </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Downloads </a>
+              </li>
+            </ul>
+
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Product
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Pricing </a>
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Features </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Log In </a>
+              </li>
+            </ul>
+            <ul class="flex flex-col justify-evenly items-start">
+              <li
+                class="text-lg font-normal tracking-[0.01em] text-[#333333] mb-[22px] footer-heading"
+              >
+                Socials
+              </li>
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Instagram </a>
+              </li>
+
+              <li
+                class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+              >
+                <a href="#"> Linkedin </a>
+              </li>
+              <li class="text-lg font-normal text-[#828282] tracking-[0.01em]">
+                <a href="#"> Facebook </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div
+          class="flex flex-row justify-between my-2 text-[#828282] font-normal mb-6"
+        >
+          <div class="text-xs">&copy; 2021 TopTeen. All rights reserved.</div>
+          <div class="text-xs">
+            <a href="#" class="underline">Terms & Conditions</a
+            ><span class="font-extrabold">.</span
+            ><a href="#" class="underline"> Privacy Policy</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <!-- End of Desktop Footer -->
+
+    <!-- End of Footer -->
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://unpkg.com/flowbite@1.4.7/dist/flowbite.js"></script>
+<script src="../assets/js/common.js"></script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+/* DOCX Processing CSS */
+.docx-processing-container {
+    margin: 10px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.processing-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.processing-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007cba;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+.processing-text {
+    font-weight: bold;
+    color: #007cba;
+}
+
+.processing-progress {
+    width: 100%;
+    background-color: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 6px;
+    background-color: #007cba;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.processing-message {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.success-message {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.error-message {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

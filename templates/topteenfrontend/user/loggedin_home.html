@@ -1,0 +1,899 @@
+
+  <div class="popUpDivEV fixed  mx-auto">
+    <div class="lg:max-w-[1280px] h-full mx-auto relative">
+      <button onclick="closePopUpEV()" class="btnDiv absolute">
+        <i class="fa fa-xmark lg:text-xl"></i>
+      </button>
+      <div class="yTContent my-auto">
+        <iframe class="mx-auto yTembedEV" src="" title="" frameborder="0"
+          allow="accelerometer;  clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+  <!-- Desktop Main -->
+  <main class="lg:flex lg:pt-[40px] px-[16px] pt-[33px] lg:gap-[32px] lg:max-w-[1082px] mx-auto min-h-[100vh]">
+
+    <!-- Left Div -->
+    <div class="hidden lg:block">
+      <div
+        class="hidden lg:inline-block py-[4px] min-w-[246px] border-[1px] boorder-[#dedede] rounded-[10px] text-center">
+
+        <!-- Profile -->
+        <div class=" mx-auto text-center px-[21px] py-[18px] border-b-[1px] border-b-[#dedede] border-b-solid">
+          <img src="{{request.user.image.url}}" class="w-[79px] h-[79px] rounded-full mx-auto" alt="user_logo">
+          <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
+          <p class="text-[12px] leading-[16.2px] -tracking-[1.5%] mt-[5px] text-[#494949] opacity-[0.8]">9th Standard .
+            DPS, Rk Puram</p>
+
+          <!--<div class="h-[43px] w-[89px] rounded-[120px] bg-[#40b2d6] mx-auto">
+            <div class=" flex h-[40px] w-[89px] mt-[10px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px] mx-auto">
+              <img src="../assets/images/xp.svg" class="w-[20px] h-[20px]" alt="">
+              <p class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]">1280 XP</p>
+            </div>
+          </div>-->
+
+        </div>
+        <!-- End of Profile -->
+
+        <!-- checkList -->
+        <div class="px-[21px] py-[16px] border-b-[1px] border-b-[#dedede] border-b-solid">
+          <div class="flex">
+            <i class="fa-solid fa-list-check text-[12px] my-auto"></i>
+            <p class="text-[12px] leading-[16px] semibold ml-[9.45px]">My Checklist</p>
+          </div>
+
+          <div class="flex flex-col mt-[16px]">
+
+            <div class="flex justify-between">
+              <div class="flex">
+                <input type="radio" class="w-[19px] h-[19px] mt-[1px]">
+                <p class="text-[10px] leading-[14px] text-[#494949] opacity-[0.8] mt-[4px] ml-[9px]">Complete profile</p>
+              </div>
+              <div class="flex bg-[#f8f8f8] rounded-[100px] py-[5px] pl-[7px] gap-[4px] w-[50px]">
+                <img src="{{static("topteenfrontend/assets/images/star.svg")}}" class="w-[9px] h-[9px] mt-[1px]" alt="">
+                <p class="text-[10px] leading-[14px] text-[#828282] font-semibold">200</p>
+              </div>
+            </div>
+
+            <div class="flex justify-between">
+              <div class="flex">
+                <input type="radio" class="w-[19px] h-[19px] mt-[1px]">
+                <p class="text-[10px] leading-[14px] text-[#494949] opacity-[0.8] mt-[4px] ml-[9px]">Take psychometric
+                  test</p>
+              </div>
+              <div class="flex bg-[#f8f8f8] rounded-[100px] py-[5px] pl-[7px] gap-[4px] w-[50px]">
+                <img src="{{static("topteenfrontend/assets/images/star.svg")}}" class="w-[9px] h-[9px] mt-[1px]" alt="">
+                <p class="text-[10px] leading-[14px] text-[#828282] font-semibold">300</p>
+              </div>
+            </div>
+
+            <div class="flex justify-between">
+              <div class="flex">
+                <input type="radio" class="w-[19px] h-[19px] mt-[1px]">
+                <p class="text-[10px] leading-[14px] text-[#494949] opacity-[0.8] mt-[4px] ml-[9px]">Take psychometric
+                  test</p>
+              </div>
+              <div class="flex bg-[#f8f8f8] rounded-[100px] py-[5px] pl-[7px] gap-[4px] w-[50px]">
+                <img src="{{static("topteenfrontend/assets/images/star.svg")}}" class="w-[9px] h-[9px] mt-[1px]" alt="">
+                <p class="text-[10px] leading-[14px] text-[#828282] font-semibold">500</p>
+              </div>
+            </div>
+
+          </div>
+
+
+        </div>
+        <!-- End of CheckList -->
+
+        <!-- Scrapbook -->
+        <div class="inline-block px-[22px] py-[16px]">
+          <div class="flex">
+            <img src="{{static("topteenfrontend/assets/images/scrapBook.svg")}}" class="w-[11.2px] h-[14.9px]" alt="">
+            <p class="text-[12px] leading-[16.2px] ml-[12px] font-semibold text-[#333333]">My Scrapbook</p>
+          </div>
+          <div class="flex flex-wrap mt-[14px] gap-[6px]">
+            <div class="bg-[#3f37c9] bg-opacity-[0.09] rounded-[100px] py-[5px] px-[8px] mt-[3.5px]">
+              <p class="text-[10px] leading-[16px] text-[#3f37c9]">My Notepad</p>
+            </div>
+            <div class="bg-[#fcddec] rounded-[100px] py-[5px] px-[8px] w-[105px] h-[24px] mt-[3.5px]">
+              <p class="text-[10px] leading-[16px] text-[#ef5da8]">Career Interests</p>
+            </div>
+            <div class="bg-[#4cc9f0] bg-opacity-[0.09] rounded-[100px] py-[5px] px-[8px] w-[105px] h-[24px] mt-[3.5px]">
+              <p class="text-[10px] leading-[16px] text-[#4cc9f0]">My Hobbies</p>
+            </div>
+            <div class="bg-[#3f37c9] bg-opacity-[0.09] rounded-[100px] py-[5px] px-[8px] w-[89px] h-[24px] mt-[3.5px]">
+              <p class="text-[10px] leading-[16px] text-[#3f37c9]">Saved Media</p>
+            </div>
+            <div
+              class="bg-[#ffffff] bg-opacity-[0.09] rounded-[100px] py-[5px] px-[8px] w-[86px] h-[24px] -tracking-[0.015em] border-[#4f4f4f] border-dashed border-[1px] mt-[3.5px]">
+              <p class="text-[10px] leading-[14px] text-[#4f4f4f]">+ Add Folder</p>
+            </div>
+
+          </div>
+        </div>
+        <!-- End of Scrapbook -->
+      </div>
+    </div>
+    <!-- End of Left Div -->
+
+    <!-- Right Div -->
+    <div>
+
+      <!-- Career Choices -->
+      <div>
+        <div class="flex justify-between mt-[30px]">
+          <p class="lg:hidden text-[15px] leading-[20.25px] semibold text-[#333333]">Career Picks</p>
+          <p
+            class="hidden lg:block text-[16px] leading-[21.6px] lg:text-[24px] lg:leading-[32.4px] semibold text-[#333333]">
+            Top Career Choices</p>
+          <p class="text-[12px] leading-[16px] text-[#3f3769] semibold my-auto"> <a href="{{url('careers:career')}}"> View all </a></p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="lg:max-w-[804px] flex gap-[12px] pt-[16px] overflow-x-scroll no-scrollbar tabList" role="tablist" data-tabs-toggle="#careerTabs">
+          {%for tag in tags%}
+          <button
+        role="tab"
+        class="px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[3px] bg-[#F8F8F8] items-center group hover:border-[2px] hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-[0.05] border-[2px] border-transparent shrink-0 tab "
+        data-tabs-target="#{{tag.slug}}" >
+        <div>
+          <div class="h-[24px] w-[24px]">
+            <img src="{{tag.icon.url}}" class="h-full w-full" />
+          </div>
+        </div>
+        <p class="text-[#4F4F4F] text-xs semibold group-hover:text-[#3F37C9]">
+          {{tag.name}}
+        </p>
+        </button>
+          {%endfor%}
+
+          <button
+        role="tab"
+        class="px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[3px] bg-[#F8F8F8] items-center group hover:border-[2px] hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-[0.05] border-[2px] border-transparent shrink-0 tab "
+        data-tabs-target="#allcareers" >
+        <div>
+          <div class="h-[24px] w-[24px]">
+            <img src="https://topteen.in/media/upload/career/media/None/Upcoming.png" class="h-full w-full" />
+          </div>
+        </div>
+        <p class="text-[#4F4F4F] text-xs semibold group-hover:text-[#3F37C9]">
+          All Careers
+        </p>
+        </button>
+
+      </div>
+        <!-- End of Tabs -->
+
+        <!-- Career List -->
+
+        <div id="careerTabs"
+          class="lg:max-w-[804px] mt-[16px] flex gap-[15px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+          {%for tag in tags%}
+          <div class="lg:max-w-[804px] flex gap-[15px] lg:gap-[30px] overflow-x-scroll no-scrollbar"
+          role="tabpanel" id="{{tag.slug}}">
+            {%for career in tag.career_set.all()[:3]%}
+            
+            <div class="">
+              <div class="w-[326px] lg:w-[248px] rounded-[10px] relative">
+                <!-- IMAGE SECTION -->
+                <div class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden">
+                <a href="{{career.url()}}">
+                  <img src="{% if career.image and career.image.name %}{{career.image.url}}{% else %}{{static('images/career-icon.png')}}{% endif %}" class="h-full w-full object-cover" />
+    
+                  <div class="absolute inset-0 h-full w-full backgroundGradient z-10"></div>
+                </a>
+                </div>
+                <!-- CONTENT -->
+                <p class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]">
+                  <a href="{{career.url()}}">{{career}}</a>
+                </p>
+                <div
+                  class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline">
+                  <span>{{career.get_max_salary()}} &#x2022;</span>&nbsp;
+                  <img src="{{static('topteenfrontend/assets/images/favourite 1.png')}}" class="inline-block" /><span> 4.4</span>
+                </div>
+    
+                <!-- BOOKMARK SIGN -->
+    
+                <div class="absolute top-3 right-3 z-20">
+                  <div class="bg-white rounded-full px-[5px] py-[3px]">
+                    <img src="{{static('topteenfrontend/assets/images/bookmark.png')}}" class="w-[14px] h-[18px]" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+
+          <div
+          class="lg:max-w-[804px] flex gap-[15px] lg:gap-[30px] overflow-x-scroll no-scrollbar"
+          role="tabpanel" id="allcareers">
+
+          {%for career in careers.all()[:3]%}
+          <!-- SLIDE -->
+          <div class="">
+            <div class="w-[326px] lg:w-[248px] rounded-[10px] relative">
+              <!-- IMAGE SECTION -->
+              <div class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden">
+              <a href="{{career.url()}}">
+                <img src="{% if career.image and career.image.name %}{{career.image.url}}{% else %}{{static('images/career-icon.png')}}{% endif %}" class="h-full w-full object-cover" />
+
+                <div class="absolute inset-0 h-full w-full backgroundGradient z-10"></div>
+              </a>
+              </div>
+              <!-- CONTENT -->
+              <p class="text-sm semibold text-[#333333] tracking-[0.035em] mb-[5px]">
+                <a href="{{career.url()}}">{{career}}</a>
+              </p>
+              <div
+                class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline">
+                <span>{{career.get_max_salary()}} &#x2022;</span>&nbsp;
+                <img src="{{static('topteenfrontend/assets/images/favourite 1.png')}}" class="inline-block" /><span> 4.4</span>
+              </div>
+
+              <!-- BOOKMARK SIGN -->
+
+              <div class="absolute top-3 right-3 z-20">
+                <div class="bg-white rounded-full px-[5px] py-[3px]">
+                  <img src="{{static('topteenfrontend/assets/images/bookmark.png')}}" class="w-[14px] h-[18px]" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {%endfor%}
+      </div>
+
+        </div>
+
+        <!-- End of Career List -->
+      </div>
+      <!-- End of Career Choices -->
+
+      <!-- Blue Banner -->
+      <div
+        class="w-full lg:max-w-[804px] overflow-hidden flex flex-row justify-between lg:gap-[50px] lg:pl-[50px] lg:mx-auto blue-banner lg:pt-[24px] rounded-[10px] mt-[35px] lg:mt-[64px] mb-[35px] lg:mb-[76px]">
+        <div class="h-full w-[384px] self-end lg:block hidden -mb-[14px] ">
+          <img src="{{static("topteenfrontend/assets/images/blue_banner_image.png")}}" class="h-full w-full object-cover" />
+        </div>
+        <div class="w-[82px] h-[112px]  lg:hidden block self-center">
+          <img src="{{static("topteenfrontend/assets/images/cardboard.png")}}" class="h-full w-full object-cover" />
+        </div>
+        <div class="lg:w-[432px] w-[250px] mx-auto">
+          <h3
+            class="hidden lg:block max-w-[340px] text-[24px] leading-[32.4px] tracking-[3.5%] mediumFont mb-[23px] text-white">
+            Confused about which career track suits you best?
+          </h3>
+          <h3
+            class="lg:hidden w-[250px] text-[22px] leading-[30px] tracking-[3.5%] font-bold mb-[10px] mt-[28px] text-white">
+            Confused about which career suits you best?
+          </h3>
+          <p class="lg:hidden  text-[13px] leading-[19px] mb-[34px] text-white">
+            Take a quick psychometric quiz and understand your inclinations better.
+          </p>
+          <button
+            class="px-[35px] py-[13px] rounded-[10px] bg-white border-b-[6px] border-[#EAEAEA] text-[#4F4F4F] boldFont lg:block hidden">
+            TAKE PSYCHOMETRIC TEST
+          </button>
+        </div>
+      </div>
+      <!-- End of Blue Banner -->
+
+      <!-- Trending Videos -->
+      <div class="mb-[35px] lg:mb-[60px]">
+
+        <div class="flex justify-between mt-[30px] mb-[16px] lg:mb-[22px]">
+          <p class="lg:hidden text-[15px] leading-[20.25px] semibold text-[#333333]">Trending Videos</p>
+          <p
+            class="hidden lg:block text-[16px] leading-[21.6px] lg:text-[24px] lg:leading-[32.4px] semibold text-[#333333]">
+            Trending Videos</p>
+          <p class="text-[12px] leading-[16px] text-[#3f37c9] semibold my-auto"><a href="{{url('careers:careervideos')}}">View All</a></p>
+        </div>
+
+        <div class="lg:max-w-[804px] flex gap-[15px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+          {%for video in videos%}
+            <div class="">
+                <div class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+                    {% if video.upload_video %}
+                        <video controls muted class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover">
+                            <source src="{{video.get_video_or_url()}}" type="video/mp4">
+                        </video>
+                    {% else %}
+                        <div>
+                          <iframe src="{{video.get_video_or_url()}}" title="YouTube video player" frameborder="0"
+                          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowfullscreen
+                          class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover" muted>
+                          </iframe>
+                      
+                          <div class=" absolute z-10 inset-0 hidden lg:flex justify-center items-center">
+                            <button class="trendingPopUp" data-url="{{video.get_video_or_url()}}">
+                              <i class="fa-brands fa-youtube text-[64px] text-red-700"></i>
+                            </button>
+                          </div>
+                        </div>
+                    {% endif %}
+                <div
+                    class="absolute z-10 top-[6px] right-[4px] lg:top-[10px] lg:right-[10px] w-[27px] h-[27px] bg-[#ffffff] rounded-full">
+                    <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.5px]"></i>
+                </div>
+
+                <div class="lg:hidden -bottom-[12px] px-[9px] py-[6px] rounded-[100px] absolute z-10 bg-[#ef5da8]">
+                    <p class="text-[10px] leading-[13.5px] text-[#ffffff] text-center semibold">Studying Abroad</p>
+                </div>
+
+                </div>
+
+                <div class="hidden lg:inline-block mt-[18px] px-[9px] py-[6px] rounded-[100px] bg-[#ef5da8]">
+                <span class="text-[10px]  text-[#ffffff] semibold flex justify-center items-center">coding</span>
+                </div>
+
+                <p
+                class="max-w-[326px] lg:max-w-[248px] text-[15px] leading-[20.25px] lg:text-[16px] lg:leading-[19.1px] semibold text-[#333333] mt-[14px]">
+                {{video.name|truncate(40)|safe}}</p>
+                <p class="mt-[4px] text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#828282]">
+                {{video.description|truncate(40)|safe}}
+                </p>
+
+            </div>
+          {% endfor %}
+
+        </div>
+
+
+
+      </div>
+      <!-- End of Trending Videos -->
+
+      <!-- Career Tracks -->
+      <section class="mb-[35px] lg:mb-[60px]">
+        <div class="flex justify-between items-center mb-[16px]">
+          <span
+            class="text-[15px] leading-[20px] lg:text-[24px] lg:leading-[32.4px]  semibold tracking-[0.035em] text-[#0F0F0F]">
+            Explore Career Tracks
+          </span>
+        </div>
+
+        <div class="lg:max-w-[804px] flex justify-start gap-[12px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+
+          <div
+            class="w-[125px] h-[125px] lg:w-[248px] lg:h-[208px] flex flex-col lg:flex-col-reverse items-center lg:justify-end lg:pt-[24px] pt-[9px] bg-[#333333] overflow-hidden rounded-[10px] shrink-0">
+            <div class="lg:mt-[24px]">
+              <h6
+                class="text-[13px] leading-[18px] lg:text-[18px] lg:leading-[24.3px] tracking-[0.035em] semibold mb-[6px] text-white">
+                Engineering
+              </h6>
+              <div
+                class="text-center px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px]  text-white semibold mb-[25px]">
+                122 Careers
+              </div>
+            </div>
+
+            <div class="h-[48px] w-[63px] lg:w-[88px] lg:h-[88px]">
+              <img class="h-[48px] w-[63px] lg:w-[88px] lg:h-[88px] object-cover object-top"
+                src="{{static("topteenfrontend/assets/images/engineering.png")}}" />
+            </div>
+
+          </div>
+
+
+          <div
+            class="w-[125px] h-[125px] lg:w-[248px] lg:h-[208px] flex flex-col lg:flex-col-reverse items-center lg:justify-end lg:pt-[24px] pt-[9px] bg-[#333333] overflow-hidden rounded-[10px] shrink-0">
+            <div class="lg:mt-[24px]">
+              <h6
+                class="text-[13px] leading-[18px] lg:text-[18px] lg:leading-[24.3px] tracking-[0.035em] semibold mb-[6px] text-white">
+                Art & Design
+              </h6>
+              <div
+                class="text-center px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px]  text-white semibold mb-[25px]">
+                180 Careers
+              </div>
+            </div>
+
+            <div class="h-[48px] w-[63px] lg:w-[88px] lg:h-[88px]">
+              <img class="h-[48px] w-[63px] lg:w-[88px] lg:h-[88px] object-cover object-top"
+                src="{{static("topteenfrontend/assets/images/portrait.png")}}" />
+            </div>
+
+          </div>
+
+
+          <div
+            class="w-[125px] h-[125px] lg:w-[248px] lg:h-[208px] flex flex-col lg:flex-col-reverse items-center lg:justify-end lg:pt-[24px] pt-[9px] bg-[#333333] overflow-hidden rounded-[10px] shrink-0">
+            <div class="lg:mt-[24px]">
+              <h6
+                class="text-[13px] leading-[18px] lg:text-[18px] lg:leading-[24.3px] tracking-[0.035em] semibold mb-[6px] text-white">
+                Astronomy
+              </h6>
+              <div
+                class="text-center px-[8px] py-[3px] rounded-[100px] bg-white bg-opacity-[0.22] text-[10px] leading-[13.5px]  text-white semibold mb-[25px]">
+                122 Careers
+              </div>
+            </div>
+
+            <div class="h-[48px] w-[63px] lg:w-[88px] lg:h-[88px]">
+              <img class="h-[48px] w-[63px] lg:w-[88px] lg:h-[88px] object-cover object-top"
+                src="{{static("topteenfrontend/assets/images/solar-system.png")}}" />
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+      <!-- End of Career Tracks -->
+
+      <!-- College Recommendations -->
+      <section class="lg:mb-[76px] mb-[35px] relative">
+        <div class="flex justify-between mb-[16px] lg:mb-[12px] mx-auto lg:max-w-[804]">
+          <span
+            class="text-[15px] leading-[20px] lg:text-[24px] lg:leading-[32.4px] semibold text-[#0F0F0F] lg:text-[#333333]">
+            College Recommendations
+          </span>
+          <div class="text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#541BCF] semibold">
+            <a href="{{url('colleges:college')}}">
+                View All
+            </a>
+          </div>
+        </div>
+
+        <!-- Country Buttons-->
+
+        <div
+          class="flex gap-[12px] lg:w-full mb-[20px] lg:mb-[40px] lg:max-w-[804px] overflow-x-scroll no-scrollbar collegeTabList tabList" data-tabs-toggle="#collegesPanel">
+
+          {%for country in countries%}
+          <button 
+            class="px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[10px] bg-[#F8F8F8] items-center group hover:border-[2px] hover:border-[#3F37C9] hover:bg-[#3F37C9] hover:bg-opacity-[0.05] border-[2px] border-transparent shrink-0 tab "
+            role="tab"
+            data-tabs-target="#{{country.short_name}}"
+            >
+            {% if country.flag %}
+          <span class="inline-block h-[18px] w-[24px] object-cover">
+            <img
+              src="{{country.flag.url}}"
+              alt="india-flag"
+              class="h-full w-full"
+            />
+          </span>
+          {%endif%}
+          <p class="text-[#4F4F4F] text-xs semibold group-hover:text-[#3F37C9]">{{country.name}}</p>
+          </button>
+          {% endfor %}
+        </div>
+
+        <!-- Colleges -->
+        <div class="collegeContent">
+          {%for country in countries%}
+          <div class="lg:max-w-[804px] flex gap-[12px] lg:gap-[30px] overflow-x-scroll no-scrollbar" id="{{country.short_name}}">
+            {%for college in country.college_set.all()[:3]%}
+            <div>
+              <div
+                class="w-[225px] lg:w-[240px] h-[192px] lg:h-[240px] relative rounded-[10px] overflow-hidden mb-[18px]">
+                {%if college.logo%}
+                <img src="{{college.logo.url}}"
+                alt="{{college.name}}"
+                  class="w-[225px] lg:w-[240px] h-[192px] lg:h-[240px] object-cover" />
+                {% endif %}
+                <div class="absolute top-[6px] right-[4px] lg:top-[12px] lg:right-[12px]">
+                  <div class="bg-white rounded-full w-[27px] h-[27px] px-[5px] py-[3px]">
+                    <img src="{{static("topteenfrontend/assets/images/bookmark.png")}}" class="w-[14px] h-[18px] mx-auto mt-[1px]" />
+                  </div>
+                </div>
+              </div>
+
+              <p
+                class="text-[#333333] semibold text-[15px] leading-[20.25px] lg:text-[14px] lg:leading-[18.9px] mb-[4px]">
+                <a href="{{url('colleges:collegedetail',args=[college.slug])}}">{{college.name}}</a>
+              </p>
+
+              <div class="text-[#828282] font-normal text-[13px] leading-[17.55px] flex gap-[4px]">
+                <span>{{college.country}} ,{{college.state}}</span>&nbsp;
+                <img src="{{static("topteenfrontend/assets/images/favourite 1.png")}}" class="inline-block my-auto" /><span class="my-auto">
+                  4.4</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+
+        </div>
+
+      </section>
+      <!-- End of College Recommendations -->
+
+      <!-- Green Banner -->
+      <section
+        class="lg:max-w-[804px] lg:mx-auto bg-[#4CC9F0] bg-opacity-[0.15] flex justify-between lg:pl-[48px] pl-[18px] pt-[24px] lg:pt-[32px] rounded-[10px] lg:mb-[76px] mb-[35px]">
+        <div class="lg:max-w-[494px] max-w-[203px] self-center lg:mb-[45px] mb-[18px]">
+          <h4
+            class="lg:hidden lg:text-[28px] lg:leading-[38px] text-[22px] leading-[30px] tracking-[0.0135em] text-[#333333] mb-[10px] semibold">
+            Plant a new career tree to get started
+          </h4>
+          <h4
+            class="hidden lg:block lg:text-[28px] lg:leading-[38px] text-[22px] leading-[30px] tracking-[0.0135em] text-[#333333] mb-[10px] semibold">
+            Plant a new career tree today to start your career progress
+          </h4>
+          <p
+            class="lg:hidden regularFont text-[13px] leading-[18.85px] tracking-[0.0145em] text-[#000000] text-opacity-50">
+            Visualise your career progress and always stay on top of your goals
+          </p>
+
+          <p
+            class="hidden lg:block regularFont text-[13px] leading-[18.85px] tracking-[0.0145em] text-[#000000] text-opacity-50 lg:mb-[34px]">
+            Visualise your career progress and always stay on top of your goals. Earn extra experience points and unlock
+            new features lorem ipsum
+          </p>
+
+          <button
+            class="pl-[32px] py-[15px] w-[239px] bg-[#5CCD16] rounded-[10px] text-white lg:flex justify-start gap-x-[40px] text-sm boldFont uppercase border-b-4 border-[#51B613] hidden ">
+            <span><i class="fa fa-leaf"></i></span><span>Start tree</span>
+          </button>
+        </div>
+        <div class="lg:self-end self-center lg:h-[248px] lg:w-[248px] h-[143px] w-[128px]">
+          <img src="{{static("topteenfrontend/assets/images/tree.png")}}" class="lg:h-[248px] lg:w-[248px] h-[143px] w-[128px] object-cover " />
+        </div>
+      </section>
+      <!-- End of Green Banner -->
+
+      <!-- Important Exams -->
+      <section class="mb-[35px] lg:mb-[60px]">
+        <div class="flex justify-between items-center mb-[16px]">
+          <span
+            class="text-[15px] leading-[20.25px] lg:text-[24px] lg:leading-[32.4px]  semibold tracking-[0.035em] text-[#0F0F0F]">
+            Important Exams
+          </span>
+          <p class="lg:hidden text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#541BCF] semibold">
+            <a href="{{url('entrance_exams:testpreptenth')}}">
+                View More
+            </a>
+          </p>
+          <p
+            class="hidden lg:block text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#541BCF] semibold">
+            <a href="{{url('entrance_exams:testpreptenth')}}">
+            View All
+            </a>
+          </p>
+        </div>
+
+        <!-- Buttons -->
+        <div
+          class="flex gap-[12px] lg:w-full mb-[20px] lg:mb-[40px] lg:max-w-[804px] overflow-x-scroll no-scrollbar collegeTabList tabList">
+
+          <!-- India -->
+          <button onclick="openExams(event, 'indiaExams')"
+            class="examsTab border-2 border-[#E0E0E0] text-[#4F4F4F] flex justify-center gap-[10px] py-[10px] px-[16px] semibold text-xs items-center tracking-[0.01em] rounded-[100px] tab activeTab">
+            <span class="inline-block h-[24px] w-[24px]">
+              <img src="{{static("topteenfrontend/assets/flags/india.png")}}" alt="india-flag" class="w-[24px] h-[24px]" />
+            </span>
+            <span>India</span>
+          </button>
+
+        </div>
+
+        <!-- Exam List -->
+        <div id="indiaExams" class="lg:max-w-[804px] flex gap-[15px] lg:gap-[8px] overflow-x-scroll no-scrollbar examContent ">
+            {%for exam in exams%}
+          <div class="">
+
+            <div
+              class="min-w-[272.3px] px-[14px] pt-3 pb-[16px] lg:pb-[18px] lg:w-[248px] rounded-[10px] relative">
+              <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}">
+                <div class="flex justify-start gap-x-[10px] items-center mb-[9px] lg:mb-[16px]">
+                    <img src="{{exam.logo_url}}"
+                      class="w-[47px] h-[53px] lg:w-[62px] lg:h-[57px] my-auto object-cover" />
+
+                    <div>
+                      <h3
+                        class="semibold text-[#131415] mb-[4.5px] text-[14px] leading-[16.2px] max-w-[120px] max-h-[18px] overflow-hidden">
+                        {{exam.name}}
+                      </h3>
+                      
+                      <p
+                      class="text-[10px] leading-[11px] mediumFont text-opacity-[0.25] text-black"
+                      >
+                        {{exam.stream.first()}}
+                      </p>
+                      
+                    </div>
+                </div>
+              </a>
+
+              <!-- DIVIDER -->
+              <div class="h-[0.8px] w-full bg-black bg-opacity-10 mb-[8.5px]"></div>
+              <!-- BOTTOM PART -->
+              <div class="flex justify-between items-center mb-[14px]">
+                <div class=" font-normal text-[#131415]">
+                  <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                    Fees
+                  </h6>
+                  <p class="regularFont text-[12px] leading-[16.2px]">&#8377; 800</p>
+                </div>
+
+                <div class="text-xs font-normal text-[#131415]">
+                  <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                    Prep Time
+                  </h6>
+                  <p class="regularFont text-[12px] leading-[16.2px]">8 Months</p>
+                </div>
+
+                <div class="text-xs font-normal text-[#131415]">
+                  <h6 class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]">
+                    Next Exam Date
+                  </h6>
+                  <p class="regularFont text-[12px] leading-[16.2px]">4 July, 2023</p>
+                </div>
+              </div>
+
+              <div class="flex justify-center gap-[15px] lg:gap-[11px] items-center">
+                <button
+                  class="px-5 py-[9px] text-[10px] leading-[14px] text-[#141414] font-normal border-[0.8px] border-[#E0E0E0] rounded-[39px]">
+                  <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}">
+                  View Details
+                  </a>
+                </button>
+
+                <button
+                  class="px-5 py-[9px] text-[11px] leading-[15px] text-white font-normal rounded-[39px] bg-[#3F37C9]" data-dynamic="{{exam.name}}">
+                  Apply Now&nbsp; &rightarrow;
+                </button>
+              </div>
+
+              <div class="absolute top-3 right-3">
+                <div class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]">
+                  <img src="{{static("topteenfrontend/assets/images/bookmark.png")}}" class="w-[12px] h-[16px]" />
+                </div>
+              </div>
+            </div>
+
+          </div>
+          {% endfor %}
+        </div>
+
+
+      </section>
+      <!-- End of Important Exams -->
+
+      <!-- Connect -->
+      <section
+        class="mb-[35px] lg:mb-[60px] flex gap-[12px] lg:gap-[45px] pr-[30px] lg:pr-[90px] py-[18px] bg-[#f7f7fa] rounded-[10px] overflow-hidden">
+        <img src="{{static("topteenfrontend/assets/images/counsellor.png")}}"
+          class="w-[111.8px] h-[111.8px] lg:w-[184px] lg:h-[170px] -ml-[32px] lg:-ml-[51px] my-auto" alt="">
+        <div class="my-auto">
+          <p
+            class="text-[22px] leading-[29.7px] lg:text-[24px] lg:leading-[32.4px] tracking-[3.5%] text-[#4f4f4f] semibold">
+            Connect with expert counsellors</p>
+          <div class="flex gap-[10px] lg:gap-[7px] mt-[7px] lg:mt-[4px]">
+            <img src="{{static("topteenfrontend/assets/images/greenDot.png")}}"
+              class="w-[15px] h-[15px] lg:w-[19px] lg:h-[19px] object-cover my-auto" alt="">
+            <p class="text-[16px] leading-[23.2px] regularFont my-auto text-[#4f4f4f]">124 counsellors online</p>
+          </div>
+          <p class="text-[13px] leading-[18.85px] text-[#828282] mt-[20px] lg:mt-[13px]">Our counsellors guide you on
+            all the steps of the way from application to your job interview, connect now!</p>
+        </div>
+      </section>
+      <!-- End of Connect -->
+
+      <!-- Trending Content -->
+
+      <!--Desktop Content-->
+      <div class="hidden lg:block mb-[35px] lg:mb-[60px]">
+
+        <div class="flex justify-between mt-[30px] mb-[16px] lg:mb-[22px]">
+          <p
+            class="text-[16px] leading-[21.6px] lg:text-[24px] lg:leading-[32.4px] semibold text-[#333333]">
+            Trending Content</p>
+          <p class="text-[12px] leading-[16px] text-[#3f37c9] semibold my-auto"><a href="{{url('blog:blogs')}}">View All</a></p>
+        </div>
+
+        <div class=" lg:max-w-[804px] flex gap-[15px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+            {%for blog in blogs %}
+            <div class="">
+                <div class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+                    <img
+                    src="{{blog.image.url}}"
+                    class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover"
+                    />
+
+                <div
+                    class="absolute z-10 top-[6px] right-[4px] lg:top-[10px] lg:right-[10px] w-[27px] h-[27px] bg-[#ffffff] rounded-full">
+                    <i class="fa-regular fa-bookmark text-[13.5px] leading-[38px] mt-[7px] ml-[7.5px]"></i>
+                </div>
+
+                <div class="lg:hidden -bottom-[12px] px-[9px] py-[6px] rounded-[100px] absolute z-10 bg-[#ef5da8]">
+                    <p class="text-[10px] leading-[13.5px] text-[#ffffff] text-center semibold">Studying Abroad</p>
+                </div>
+
+                </div>
+
+                <div class="hidden lg:inline-block mt-[18px] px-[9px] py-[6px] rounded-[100px] bg-[#ef5da8]">
+                <span class="text-[10px]  text-[#ffffff] semibold flex justify-center items-center">{{blog.category}}</span>
+                </div>
+                <a href="{{blog.url()}}">
+                    <p
+                    class="max-w-[326px] lg:max-w-[248px] text-[15px] leading-[20.25px] lg:text-[16px] lg:leading-[19.1px] semibold text-[#333333] mt-[14px]">
+                    {{blog.title|truncate(25)}}</p>
+                    <p class="mt-[4px] text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#828282]">
+                        {{blog.summary|truncate(60)}}
+                    </p>
+                </a>
+            </div>
+            {% endfor %}
+
+        </div>
+
+      </div>
+      
+      <!--Mobile Content-->
+      <div class="block lg:hidden mb-[35px] lg:mb-[60px]">
+        <div class="flex justify-between items-center mb-[16px]">
+          <span
+            class="text-[15px] leading-[20px] lg:text-[24px] lg:leading-[32.4px]  semibold tracking-[0.035em] text-[#0F0F0F]">
+            Trending Content
+          </span>
+          <p
+            class="htext-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#541BCF] semibold">
+            <a href="{{url('blog:blogs')}}">View All</a>
+          </p>
+        </div>
+
+        <div
+          class="max-h-[280px] flex flex-col flex-wrap gap-y-[19px] gap-x-[14px] overflow-x-scroll pb-2 no-scrollbar">
+
+          {%for blog in blogs %}
+          <div class=" min-w-[327px] flex flex-row justify-start items-center gap-x-[13px] shrink-0">
+            <div class="h-[69px] w-[69px] rounded-[10px] overflow-hidden">
+              <img src="{{blog.image.url}}" class="h-[69px] w-[69px] object-cover" />
+            </div>
+            <div>
+              <a href="{{blog.url()}}">
+                <p class="text-[13px] leading-[18px] tracking-[0.035em] text-[#333333] semibold mb-[10px] w-[244px]">
+                  {{blog.title|truncate(60)}}</p>
+              </p>
+              </a>
+              <div
+                class="bg-[#3F37C9] text-white px-[9px] py-[5px] text-[10px] leading-[14px] semibold inline-block rounded-[100px]">
+                {{blog.category}}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
+        </div>
+
+      </div>
+
+      <!-- End of Trending Content -->
+
+      <!-- Courses -->
+      <div>
+
+        <div class="flex justify-between items-center mb-[16px]">
+          <span
+            class="text-[15px] leading-[20px] lg:text-[24px] lg:leading-[32.4px]  semibold tracking-[0.035em] text-[#0F0F0F]">
+            Courses
+          </span>
+          <p
+            class="hidden lg:block text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#541BCF] semibold">
+            View All
+          </p>
+        </div>
+
+        <div class="lg:max-w-[804px] flex flex-col lg:flex-row gap-[10px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+
+          <div class="w-[356px] h-[76px] lg:min-w-[248px] lg:h-[214px] relative mx-auto rounded-[10px]">
+            <img src="{{static("topteenfrontend/assets/images/bgImage.jpg")}}"
+              class="brightness-50 absolute z-0 w-[356px] h-[76px] lg:w-[248px] lg:h-[214px] rounded-[10px] object-cover"
+              alt="">
+            <div
+              class="left-[22.5px] lg:left-[20.5px] top-[19px] lg:top-[140px]  flex gap-[19px] lg:gap-[13px] absolute z-10">
+              <img src="{{static("topteenfrontend/assets/images/chat.png")}}" class="w-[25px] h-[24px] object-cover my-auto" alt="">
+              <div class="">
+                <div class="flex max-w-[250px] lg:max-w-[174px] max-h-[14px] overflow-hidden text-opacity-75">
+                  <p class="text-[10px] leading-[13.5px] regularFont text-[#ffffff]">Design Fundamentals</p>
+                  <p class="text-white -mt-[6px]">&nbsp;•&nbsp;&nbsp;</p>
+                  <p class="text-[10px] leading-[13.5px] text-[#ffffff]">18 hours</p>
+                </div>
+                <p
+                  class="text-[15px] leading-[20.25px] tracking-[3.5%] semibold text-white max-w-[250px] max-h-[22px] lg:max-w-[174px] lg:max-h-[42px] overflow-hidden">
+                  UX Design 101: User Research</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-[356px] h-[76px] lg:min-w-[248px] lg:h-[214px] relative mx-auto rounded-[10px]">
+            <img src="{{static("topteenfrontend/assets/images/unsplash13.svg")}}"
+              class="brightness-50 absolute z-0 w-[356px] h-[76px] lg:w-[248px] lg:h-[214px] rounded-[10px] object-cover"
+              alt="">
+            <div
+              class="left-[22.5px] lg:left-[20.5px] top-[19px] lg:top-[140px] flex gap-[19px] lg:gap-[13px] absolute z-10">
+              <img src="{{static("topteenfrontend/assets/images/chat.png")}}" class="w-[25px] h-[24px] object-cover my-auto" alt="">
+              <div class="">
+                <div class="flex max-w-[250px] lg:max-w-[174px] max-h-[14px] overflow-hidden text-opacity-75">
+                  <p class="text-[10px] leading-[13.5px] regularFont text-[#ffffff]">Design Fundamentals</p>
+                  <p class="text-white -mt-[6px]">&nbsp;•&nbsp;&nbsp;</p>
+                  <p class="text-[10px] leading-[13.5px] text-[#ffffff]">18 hours</p>
+                </div>
+                <p
+                  class="text-[15px] leading-[20.25px] tracking-[3.5%] semibold text-white max-w-[250px] max-h-[22px] lg:max-w-[174px] lg:max-h-[42px] overflow-hidden">
+                  UX Design 101: User Research</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-[356px] h-[76px] lg:min-w-[248px] lg:h-[214px] relative mx-auto rounded-[10px]">
+            <img src="{{static("topteenfrontend/assets/images/bgImage.jpg")}}"
+              class="brightness-50 absolute z-0 w-[356px] h-[76px] lg:w-[248px] lg:h-[214px] rounded-[10px] object-cover"
+              alt="">
+            <div
+              class="left-[22.5px] lg:left-[20.5px] top-[19px] lg:top-[140px] flex gap-[19px] lg:gap-[13px] absolute z-10">
+              <img src="{{static("topteenfrontend/assets/images/chat.png")}}" class="w-[25px] h-[24px] object-cover my-auto" alt="">
+              <div class="">
+                <div class="flex max-w-[250px] lg:max-w-[174px] max-h-[14px] overflow-hidden text-opacity-75">
+                  <p class="text-[10px] leading-[13.5px] regularFont text-[#ffffff]">Design Fundamentals</p>
+                  <p class="text-white -mt-[6px]">&nbsp;•&nbsp;&nbsp;</p>
+                  <p class="text-[10px] leading-[13.5px] text-[#ffffff]">18 hours</p>
+                </div>
+                <p
+                  class="text-[15px] leading-[20.25px] tracking-[3.5%] semibold text-white max-w-[250px] max-h-[22px] lg:max-w-[174px] lg:max-h-[42px] overflow-hidden">
+                  UX Design 101: User Research</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-[356px] h-[76px] lg:min-w-[248px] lg:h-[214px] relative mx-auto rounded-[10px]">
+            <img src="{{static("topteenfrontend/assets/images/bgImage.jpg")}}"
+              class="brightness-50 absolute z-0 w-[356px] h-[76px] lg:w-[248px] lg:h-[214px] rounded-[10px] object-cover"
+              alt="">
+            <div
+              class="left-[22.5px] lg:left-[20.5px] top-[19px] lg:top-[140px] flex gap-[19px] lg:gap-[13px] absolute z-10">
+              <img src="{{static("topteenfrontend/assets/images/chat.png")}}" class="w-[25px] h-[24px] object-cover my-auto" alt="">
+              <div class="">
+                <div class="flex max-w-[250px] lg:max-w-[174px] max-h-[14px] overflow-hidden text-opacity-75">
+                  <p class="text-[10px] leading-[13.5px] regularFont text-[#ffffff]">Design Fundamentals</p>
+                  <p class="text-white -mt-[6px]">&nbsp;•&nbsp;&nbsp;</p>
+                  <p class="text-[10px] leading-[13.5px] text-[#ffffff]">18 hours</p>
+                </div>
+                <p
+                  class="text-[15px] leading-[20.25px] tracking-[3.5%] semibold text-white max-w-[250px] max-h-[22px] lg:max-w-[174px] lg:max-h-[42px] overflow-hidden">
+                  UX Design 101: User Research</p>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+
+      </div>
+      <!-- End of Courses -->
+
+
+
+    </div>
+    <!-- End of Right Div -->
+
+  </main>
+  <!-- End of Desktop Main -->
+
+<script>
+  let popUpDivEV = document.querySelector(".popUpDivEV")
+  let yTembedEV = document.querySelector(".yTembedEV");
+  const openPopUpEV = (dynamicYTurl) => {
+    yTembedEV.setAttribute("src", dynamicYTurl);
+    popUpDivEV.style.display = "block";
+  }
+  const closePopUpEV = () => {
+    popUpDivEV.style.display = "none";
+     yTembedEV.setAttribute("src", " " );
+  }
+  const trendingpopuparray=document.querySelectorAll(".trendingPopUp");
+  [...trendingpopuparray]?.forEach((elem)=>{
+    elem.addEventListener("click", function(e){
+      console.log("clicked");
+      const target = e.target.closest(".trendingPopUp");
+      const url = target.dataset.url;
+      openPopUpEV(url)
+    })
+  })
+</script>

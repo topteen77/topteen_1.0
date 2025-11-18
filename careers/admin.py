@@ -1,0 +1,482 @@
+from django.contrib import admin
+from django.utils.html import format_html
+from django.contrib import messages
+from django import forms
+from django.db import models
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
+from django.urls import path
+from core import choices
+from .models import Career, CareerFAQ,CareerPath,CareerMedia, Skill,ProspectiveEmploymentArea,ProspectiveRecruiter,Profession,CareerPathStep,CareerCluster,RIASECCareer,CareerRating
+from nested_inline.admin import NestedStackedInline, NestedModelAdmin
+from modeltranslation.admin import TranslationAdmin,TranslationStackedInline
+from .docx_utils import convert_docx_to_html, extract_career_data_from_html
+
+# Register your models here.
+class CareerPathInline(NestedStackedInline,TranslationStackedInline):
+    model = CareerPath
+    extra = 1
+    fields= ['name']
+    readonly_fields=['created','modified']
+
+class CareerMediaInline(NestedStackedInline):
+    model = CareerMedia
+    extra = 1
+    fields= ['type','media']
+    readonly_fields=['created','modified']
+
+
+class CareerClusterSelectWidget(forms.SelectMultiple):
+    """Custom widget for career cluster selection in list view"""
+    
+    def __init__(self, attrs=None, choices=()):
+        super().__init__(attrs)
+        self.choices = choices
+    
+    def render(self, name, value, attrs=None, renderer=None):
+        if value is None:
+            value = []
+        if not isinstance(value, (list, tuple)):
+            value = [value] if value else []
+        
+        # Get all career clusters
+        clusters = CareerCluster.objects.all().order_by('name')
+        
+        # Create options
+        options = []
+        for cluster in clusters:
+            selected = 'selected' if cluster.id in value else ''
+            options.append(f'<option value="{cluster.id}" {selected}>{cluster.name}</option>')
+        
+        return format_html(
+            '<select name="{}" multiple style="width: 200px; height: 30px;">{}</select>',
+            name,
+            format_html(''.join(options))
+        )
+
+
+class CareerAdminForm(forms.ModelForm):
+    """Custom form for Career admin with automatic DOCX processing"""
+    
+    # Custom field for DOCX upload (not stored in database)
+    docx_file = forms.FileField(
+        required=False,
+        help_text='''
+        <div id="docx-processing-status" style="display: none; margin: 10px 0; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <div id="processing-spinner" style="width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #007cba; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px;"></div>
+                <span id="processing-text" style="font-weight: bold; color: #007cba;">Processing DOCX file...</span>
+            </div>
+            <div id="processing-progress" style="width: 100%; background-color: #e9ecef; border-radius: 10px; overflow: hidden;">
+                <div id="progress-bar" style="height: 6px; background-color: #007cba; width: 0%; transition: width 0.3s ease;"></div>
+            </div>
+            <div id="processing-message" style="margin-top: 10px; font-size: 14px; color: #6c757d;"></div>
+        </div>
+        
+        <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        </style>
+        
+        Upload a DOCX file to automatically populate career name, summary and description fields. This will overwrite existing content.
+        ''',
+        widget=forms.FileInput(attrs={
+            'accept': '.docx',
+            'id': 'docx_file_input',
+            'onchange': 'processDocxFile(this)'
+        })
+    )
+    
+    class Meta:
+        model = Career
+        fields = '__all__'
+        widgets = {
+            'career_cluster': CareerClusterSelectWidget(),
+        }
+    
+    def clean(self):
+        cleaned = super().clean()
+        # Enforce image when publishing
+        publish_status = cleaned.get('publish_status')
+        image = cleaned.get('image')
+        try:
+            from core import choices as core_choices
+            published_value = core_choices.PublishStatus.PUBLISHED
+        except Exception:
+            published_value = 1
+        if publish_status == published_value:
+            # Require that an actual file is present
+            if not image or not getattr(image, 'name', None):
+                self.add_error('image', 'Image is required to publish a career.')
+        return cleaned
+    def clean_docx_file(self):
+        """Validate uploaded DOCX file"""
+        docx_file = self.cleaned_data.get('docx_file')
+        
+        if docx_file:
+            # Check file extension
+            if not docx_file.name.endswith('.docx'):
+                raise forms.ValidationError('Only DOCX files are allowed.')
+            
+            # Check file size (limit to 10MB)
+            if docx_file.size > 10 * 1024 * 1024:
+                raise forms.ValidationError('File size must be under 10MB.')
+        
+        return docx_file
+
+
+class CareerAdmin(admin.ModelAdmin):
+    form = CareerAdminForm
+    list_display = ['id', 'name', 'career_clusters_display', 'publish_status_display', 'preview_link', 'skills_count', 'created_date']
+    list_filter = ['publish_status', 'created', 'career_cluster']
+    search_fields = ['name', 'summary', 'description']
+    list_per_page = 25
+    ordering = ['-created']
+    # Using custom AJAX dropdown instead of inline edit
+    # list_editable = ['publish_status']
+    actions = ['make_published', 'make_draft', 'assign_to_cluster']
+    
+    inlines = [CareerMediaInline]
+    readonly_fields = ['created', 'modified', 'preview_url', 'validation_errors']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'summary', 'description', 'image', 'publish_status')
+        }),
+        ('Career Cluster Assignment', {
+            'fields': ('career_cluster',),
+            'description': 'Select one or more career clusters to categorize this career. This helps organize careers in the career library.',
+        }),
+        ('DOCX Upload', {
+            'fields': ('docx_file',),
+            'description': 'Upload a DOCX file to automatically populate career name, summary and description fields. This will overwrite existing content.',
+            'classes': ('collapse',),
+        }),
+        ('Preview & Validation', {
+            'fields': ('preview_url', 'validation_errors'),
+            'classes': ('collapse',),
+        }),
+        ('Optional Details', {
+            'fields': ('role_description', 'eligibility', 'pros_cons'),
+            'classes': ('collapse',),
+        }),
+        ('Other Relationships', {
+            'fields': ('skills', 'prospective_employment_areas', 'prospective_recruiters', 
+                      'career_tags', 'courses', 'career_paths'),
+            'classes': ('collapse',),
+        }),
+        ('Media & Links', {
+            'fields': ('video_url', 'videos'),
+            'classes': ('collapse',),
+        }),
+        ('SEO', {
+            'fields': ('seo_title', 'seo_description'),
+            'classes': ('collapse',),
+        }),
+    )
+    
+    filter_horizontal = ('skills', 'prospective_employment_areas', 'prospective_recruiters', 
+                        'career_tags', 'courses', 'career_cluster', 'career_paths', 'videos')
+    
+    def career_clusters_display(self, obj):
+        """Display career clusters with editable dropdown"""
+        clusters = obj.career_cluster.all()
+        cluster_ids = [str(cluster.id) for cluster in clusters]
+        
+        # Get all career clusters
+        all_clusters = CareerCluster.objects.all().order_by('name')
+        
+        # Create dropdown options
+        options = []
+        for cluster in all_clusters:
+            selected = 'selected' if str(cluster.id) in cluster_ids else ''
+            options.append(f'<option value="{cluster.id}" {selected}>{cluster.name}</option>')
+        
+        # Create the dropdown HTML
+        dropdown_html = format_html(
+            '<select name="career_cluster_{}" onchange="updateCareerCluster({}, this.value)" style="width: 200px; font-size: 12px;">'
+            '<option value="">-- Select Cluster --</option>'
+            '{}'
+            '</select>',
+            obj.id,
+            obj.id,
+            format_html(''.join(options))
+        )
+        
+        # Show current clusters as text below dropdown
+        current_clusters = ', '.join([cluster.name for cluster in clusters]) if clusters else 'None'
+        current_text = format_html('<br><small style="color: #666;">Current: {}</small>', current_clusters)
+        
+        return format_html('{}{}', dropdown_html, current_text)
+
+    def publish_status_display(self, obj):
+        """Display publish status with editable dropdown via AJAX"""
+        # Build options from choices
+        options_html = [
+            f'<option value="{value}" {"selected" if obj.publish_status == value else ""}>{label}</option>'
+            for value, label in choices.PublishStatus.CHOICES
+        ]
+        dropdown_html = format_html(
+            '<select name="publish_status_{id}" onchange="updatePublishStatus({id}, this.value, this)" style="width: 150px; font-size: 12px;">{options}</select>',
+            id=obj.id,
+            options=format_html(''.join(options_html))
+        )
+        return dropdown_html
+    publish_status_display.short_description = 'Publish Status'
+    
+    career_clusters_display.short_description = "Career Clusters"
+    career_clusters_display.admin_order_field = 'career_cluster__name'
+    
+    def preview_link(self, obj):
+        if obj.id and obj.is_valid_for_preview():
+            return format_html('<a href="/careers/career/{}-{}-detail" target="_blank" style="color: green;">View</a>', obj.slug, obj.id)
+        elif obj.id:
+            errors = obj.get_validation_errors()
+            error_text = '; '.join(errors)
+            # Show a red label with inline details and full details in tooltip
+            return format_html(
+                '<span style="color: red; font-weight:600;" title="{title}">Invalid</span><br>'
+                '<small style="color:#b94a48;">{inline}</small>',
+                title=error_text,
+                inline=error_text
+            )
+        return '-'
+    preview_link.short_description = 'Preview'
+    
+    def validation_errors(self, obj):
+        """Show validation errors in detail"""
+        errors = obj.get_validation_errors()
+        if not errors:
+            return format_html('<span style="color: green;">No validation errors</span>')
+        
+        error_list = format_html('<ul style="color: red;">')
+        for error in errors:
+            error_list += format_html('<li>{}</li>', error)
+        error_list += format_html('</ul>')
+        return error_list
+    validation_errors.short_description = 'Validation Errors'
+    
+    def preview_url(self, obj):
+        if obj.id:
+            return f'/careers/career/{obj.slug}-{obj.id}-detail'
+        return 'Save first to generate preview URL'
+    
+    def skills_count(self, obj):
+        return obj.skills.count()
+    skills_count.short_description = 'Skills'
+    
+    def created_date(self, obj):
+        return obj.created.strftime('%Y-%m-%d %H:%M') if obj.created else '-'
+    created_date.short_description = 'Created'
+    
+    def make_published(self, request, queryset):
+        updated = queryset.update(publish_status=1)
+        self.message_user(request, f'{updated} career(s) marked as published.')
+    make_published.short_description = "Mark selected careers as published"
+    
+    def make_draft(self, request, queryset):
+        updated = queryset.update(publish_status=0)
+        self.message_user(request, f'{updated} career(s) marked as draft.')
+    make_draft.short_description = "Mark selected careers as draft"
+    
+    def assign_to_cluster(self, request, queryset):
+        """Bulk action to assign careers to a cluster"""
+        if request.POST.get('post'):
+            cluster_id = request.POST.get('cluster_id')
+            if cluster_id:
+                cluster = CareerCluster.objects.get(id=cluster_id)
+                for career in queryset:
+                    career.career_cluster.add(cluster)
+                self.message_user(request, f'{queryset.count()} career(s) assigned to {cluster.name}.')
+                return None
+        
+        # Show form for cluster selection
+        clusters = CareerCluster.objects.all().order_by('name')
+        return render(request, 'admin/careers/career/assign_cluster.html', {
+            'careers': queryset,
+            'clusters': clusters,
+            'action_name': 'assign_to_cluster',
+        })
+    assign_to_cluster.short_description = "Assign selected careers to cluster"
+    
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if 'role_description' in form.base_fields:
+            form.base_fields['role_description'].required = False
+        if 'eligibility' in form.base_fields:
+            form.base_fields['eligibility'].required = False
+        if 'pros_cons' in form.base_fields:
+            form.base_fields['pros_cons'].required = False
+        if 'career_paths' in form.base_fields:
+            form.base_fields['career_paths'].required = False
+        return form
+    
+    def update_career_cluster_ajax(self, request):
+        """Handle AJAX request to update career cluster"""
+        if request.method == 'POST':
+            try:
+                career_id = request.POST.get('career_id')
+                cluster_id = request.POST.get('cluster_id')
+                
+                if not career_id or not cluster_id:
+                    return JsonResponse({'success': False, 'error': 'Missing career_id or cluster_id'})
+                
+                career = Career.objects.get(id=career_id)
+                cluster = CareerCluster.objects.get(id=cluster_id)
+                
+                # Clear existing clusters and add the new one
+                career.career_cluster.clear()
+                career.career_cluster.add(cluster)
+                
+                return JsonResponse({
+                    'success': True, 
+                    'message': f'Career "{career.name}" assigned to cluster "{cluster.name}"'
+                })
+                
+            except Career.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Career not found'})
+            except CareerCluster.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Career cluster not found'})
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+        
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+    def get_urls(self):
+        """Add custom URLs for AJAX requests"""
+        urls = super().get_urls()
+        custom_urls = [
+            path('update-cluster-ajax/', self.admin_site.admin_view(self.update_career_cluster_ajax), name='careers_career_update_cluster_ajax'),
+            path('update-publish-ajax/', self.admin_site.admin_view(self.update_publish_status_ajax), name='careers_career_update_publish_ajax'),
+        ]
+        return custom_urls + urls
+
+    def update_publish_status_ajax(self, request):
+        """Handle AJAX request to update publish status"""
+        if request.method == 'POST':
+            try:
+                career_id = request.POST.get('career_id')
+                publish_status = request.POST.get('publish_status')
+                if not career_id or publish_status is None:
+                    return JsonResponse({'success': False, 'error': 'Missing career_id or publish_status'})
+                try:
+                    publish_status = int(publish_status)
+                except ValueError:
+                    return JsonResponse({'success': False, 'error': 'Invalid publish status value'})
+
+                # Validate against defined choices
+                valid_values = {val for val, _ in choices.PublishStatus.CHOICES}
+                if publish_status not in valid_values:
+                    return JsonResponse({'success': False, 'error': 'Publish status not allowed'})
+
+                career = Career.objects.get(id=career_id)
+                # If attempting to publish, run validation first
+                published_value = dict(choices.PublishStatus.CHOICES).get(choices.PublishStatus.PUBLISHED, None)
+                # The above line yields a label; use numeric constant instead
+                published_value = choices.PublishStatus.PUBLISHED
+                if publish_status == published_value:
+                    errors = career.get_validation_errors()
+                    if errors:
+                        return JsonResponse({
+                            'success': False,
+                            'error': '; '.join(errors),
+                            'errors': errors
+                        })
+                career.publish_status = publish_status
+                career.save(update_fields=['publish_status'])
+                label = dict(choices.PublishStatus.CHOICES).get(publish_status, publish_status)
+                return JsonResponse({'success': True, 'message': f'Publish status set to "{label}"'})
+            except Career.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Career not found'})
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+    class Media:
+        css = {
+            'all': ('admin/css/docx_processing.css',)
+        }
+        js = ('admin/js/docx_processing.js', 'admin/js/career_cluster_dropdown.js',)
+    
+    
+class CareerPathAdmin(admin.ModelAdmin):
+    list_display = ['id','name']
+    readonly_fields=['created','modified']
+    
+class CareerPathStepAdmin(admin.ModelAdmin):
+    list_display = ['id','name']
+    readonly_fields=['created','modified']
+    
+class CareerMediaAdmin(admin.ModelAdmin):
+    list_display = ['id','career','type','media']
+    readonly_fields=['created','modified']
+    
+class SkillAdmin(admin.ModelAdmin):
+    list_display = ['id','name','created','modified']
+    readonly_fields=['created','modified']
+
+class ProspectiveEmploymentAreaAdmin(admin.ModelAdmin):
+    list_display = ['id','name','created','modified']
+    readonly_fields=['created','modified']
+    
+class ProspectiveRecruiterAdmin(admin.ModelAdmin):
+    list_display = ['id','name','created','modified']
+    readonly_fields=['created','modified']
+
+class ProfessionAdmin(admin.ModelAdmin):
+    list_display =['id','name','salary','career']
+    readonly_fields=['created','modified']
+
+class CareerFAQAdmin(admin.ModelAdmin):
+    list_display = ['id','career','question','answer']
+    readonly_fields=['created','modified']    
+
+class CareerRatingAdmin(admin.ModelAdmin):
+    list_display = ['id','career','user','rating']
+
+
+class CareerClusterAdmin(admin.ModelAdmin):
+    """Enhanced CareerCluster admin with better organization"""
+    list_display = ['id', 'name', 'parent', 'careers_count', 'object_status', 'created']
+    list_filter = ['parent', 'object_status', 'created']
+    search_fields = ['name']
+    list_per_page = 25
+    ordering = ['name']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'parent', 'image', 'object_status')
+        }),
+    )
+    
+    def careers_count(self, obj):
+        """Show number of careers in this cluster"""
+        count = obj.career_clusters.count()
+        if count > 0:
+            return format_html(
+                '<a href="/admin/careers/career/?career_cluster__id__exact={}" target="_blank">{}</a>',
+                obj.id, count
+            )
+        return count
+    careers_count.short_description = "Careers"
+    careers_count.admin_order_field = 'career_clusters__count'
+
+
+admin.site.register(Career,CareerAdmin)
+admin.site.register(Skill,SkillAdmin)
+admin.site.register(ProspectiveEmploymentArea,ProspectiveEmploymentAreaAdmin)
+admin.site.register(ProspectiveRecruiter,ProspectiveRecruiterAdmin)
+admin.site.register(CareerMedia,CareerMediaAdmin)
+admin.site.register(CareerPath,CareerPathAdmin)
+admin.site.register(CareerPathStep,CareerPathStepAdmin)
+admin.site.register(Profession,ProfessionAdmin)
+admin.site.register(CareerFAQ,CareerFAQAdmin)
+admin.site.register(CareerCluster, CareerClusterAdmin)
+admin.site.register(RIASECCareer)
+admin.site.register(CareerRating,CareerRatingAdmin)
+

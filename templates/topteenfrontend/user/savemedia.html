@@ -1,0 +1,499 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+ 
+{% block main %}
+<main class="lg:max-w-[1280px] mx-auto pt-[24px] lg:pt-[30px] px-[20px] lg:pl-[100px] lg:pr-[90px] pb-[200px] lg:pb-0">
+
+    {% if breadcrumb  %}
+    <!-- BreadCrumb -->
+    <section class=" gap-[16px] hidden lg:flex">
+        {% for brd in breadcrumb %}
+        {% if not loop.last and loop.first %}
+        <a href="{{brd.url}}" class="">
+            <img src="{{static("topteenfrontend/assets/images/home.svg")}}" class=" my-auto" alt="">
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if not loop.last and not loop.first  %}
+        <a href="{{brd.url}}" class="my-auto">
+            <p class="text-[12px] my-auto">{{brd.title}}</p>
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if loop.last%}
+        <a href="#" class="my-auto">
+            <p class="text-[12px]">{{brd.title}}</p>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </section>
+    <!-- End of Breadcrumb -->
+    {% endif %}
+
+    <!-- Media Heading -->
+    <section class="lg:mt-[21px]">
+        <div
+            class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+            <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">Saved Media</p>
+            <button class="absolute bottom-[18px] left-[24px]">
+                <i class="fa-solid fa-arrow-left text-[#828282] text-[18px] leading-[50px]"></i>
+            </button>
+        </div>
+
+        <div class="hidden lg:flex ">
+            <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">Saved Media</p>
+        </div>
+
+    </section>
+    <!-- End of Media Heading -->
+
+    <!-- Tab Buttons -->
+    <section class="lg:max-w-[1280px] flex gap-[12px] lg:gap-[16px] pt-[24px] lg:pt-[36px] overflow-x-scroll no-scrollbar">
+
+        <button data-tab-target="#videos"
+          class="px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[3px] bg-[#F8F8F8] items-center group border-[2px] border-transparent shrink-0 tab activeTab">
+          <div class="h-[24px] w-[24px]">
+            <img src="{{static('topteenfrontend/assets/images/videos.png')}}" class="h-full w-full" />
+          </div>
+          <p class="text-[#4F4F4F] text-xs semibold">Videos</p>
+        </button>
+        
+        <button data-tab-target="#articles"
+          class="px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[3px] bg-[#F8F8F8] items-center group border-[2px] border-transparent shrink-0 tab">
+          <div class="h-[24px] w-[24px]">
+            <img src="{{static('topteenfrontend/assets/images/newsPaper.png')}}" class="h-full w-full" />
+          </div>
+          <p class="text-[#4F4F4F] text-xs semibold">Articles</p>
+        </button>
+ 
+        <button data-tab-target="#courses"
+          class="px-[16px] py-[11px] rounded-[100px] flex flex-row justify-start gap-x-[3px] bg-[#F8F8F8] items-center group border-[2px] border-transparent shrink-0 tab">
+          <div class="h-[24px] w-[24px]">
+            <img src="{{static('topteenfrontend/assets/images/celebrate.png')}}" class="h-full w-full" />
+          </div>
+          <p class="text-[#4F4F4F] text-xs semibold">Courses</p>
+        </button>
+
+    </section>
+    <!-- End of Tab Buttons -->
+
+    <!-- Videos  -->
+    <section id="videos" data-tab-content class="pt-[24px] flex gap-[15px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+
+        <div class="">
+          <div class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+
+            <iframe src="https://www.youtube.com/embed/imy3ooM0UHE" title="YouTube video player" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover"></iframe>
+
+            <button
+              class="absolute z-10 top-[6px] right-[4px] lg:top-[10px] lg:right-[10px]">
+              <i class="fa-solid fa-circle-xmark text-[#ffffff] text-[13.5px] leading-[38px] mt-[7px] ml-[7.5px]"></i>
+            </button>
+
+            <div class="lg:hidden -bottom-[12px] px-[9px] py-[6px] rounded-[100px] absolute z-10 bg-[#3f37c9]">
+              <p class="text-[10px] leading-[13.5px] text-[#ffffff] text-center semibold">Coding</p>
+            </div>
+
+          </div>
+
+          <div class="hidden lg:inline-block mt-[18px] px-[9px] py-[6px] rounded-[100px] bg-[#3f37c9]">
+            <span class="text-[10px]  text-[#ffffff] semibold flex justify-center items-center">Coding</span>
+          </div>
+
+          <p
+            class="max-w-[326px] lg:max-w-[248px] text-[15px] leading-[20.25px] lg:text-[16px] lg:leading-[19px] semibold text-[#333333] mt-[14px]">
+            The current state of Javascipt development</p>
+          <p class="mt-[4px] text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#828282]">
+            Amet minim mollit non deserunt....
+          </p>
+
+        </div>
+
+        <div class="">
+          <div class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+
+            <iframe src="https://www.youtube.com/embed/4Unv7rw5HNk"
+              title="Mr Bean | Baking | Full Episodes Compilation | Cartoons for Children" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover"></iframe>
+
+              <button
+              class="absolute z-10 top-[6px] right-[4px] lg:top-[10px] lg:right-[10px]">
+              <i class="fa-solid fa-circle-xmark text-[#ffffff] text-[13.5px] leading-[38px] mt-[7px] ml-[7.5px]"></i>
+              </button>
+
+            <div class="lg:hidden -bottom-[12px] px-[9px] py-[6px] rounded-[100px] absolute z-10 bg-[#4cc9f0]">
+                <p class="text-[10px] leading-[13.5px] text-[#ffffff] text-center semibold">Exam Preparations</p>
+              </div>
+
+            </div>
+
+            <div class="hidden lg:inline-block mt-[18px] px-[9px] py-[6px] rounded-[100px] bg-[#4cc9f0]">
+              <span class="text-[10px]  text-[#ffffff] semibold flex justify-center items-center">Exam Preparations</span>
+            </div>
+
+          <p
+            class="max-w-[326px] lg:max-w-[248px] text-[15px] leading-[20.25px] lg:text-[16px] lg:leading-[19.1px] semibold text-[#333333] mt-[14px]">
+            How to crack the GRE exam in 10 days</p>
+          <p class="mt-[4px] text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#828282]">
+            Amet minim mollit non deserunt....
+          </p>
+
+        </div>
+
+        <div class="">
+          <div class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+
+            <iframe src="https://www.youtube.com/embed/H84IY1WMZao"
+              title="Mr Bean | Baking | Full Episodes Compilation | Cartoons for Children" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover"></iframe>
+
+              <button
+              class="absolute z-10 top-[6px] right-[4px] lg:top-[10px] lg:right-[10px]">
+              <i class="fa-solid fa-circle-xmark text-[#ffffff] text-[13.5px] leading-[38px] mt-[7px] ml-[7.5px]"></i>
+            </button>
+
+            <div class="lg:hidden -bottom-[12px] px-[9px] py-[6px] rounded-[100px] absolute z-10 bg-[#ef5da8]">
+                <p class="text-[10px] leading-[13.5px] text-[#ffffff] text-center semibold">Studying Abroad</p>
+              </div>
+
+            </div>
+
+            <div class="hidden lg:inline-block mt-[18px] px-[9px] py-[6px] rounded-[100px] bg-[#ef5da8]">
+              <span class="text-[10px]  text-[#ffffff] semibold flex justify-center items-center">Studying Abroad</span>
+            </div>
+
+          <p
+            class="max-w-[326px] lg:max-w-[248px] text-[15px] leading-[20.25px] lg:text-[16px] lg:leading-[19.1px] semibold text-[#333333] mt-[14px]">
+            Studying as an exchange student</p>
+          <p class="mt-[4px] text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#828282]">
+            Amet minim mollit non deserunt....
+          </p>
+
+        </div>
+
+        <div class="">
+          <div class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+
+            <iframe src="https://www.youtube.com/embed/D4Snvb1UJVE"
+              title="Mr Bean | Baking | Full Episodes Compilation | Cartoons for Children" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover"></iframe>
+
+              <button
+              class="absolute z-10 top-[6px] right-[4px] lg:top-[10px] lg:right-[10px]">
+              <i class="fa-solid fa-circle-xmark text-[#ffffff] text-[13.5px] leading-[38px] mt-[7px] ml-[7.5px]"></i>
+            </button>
+
+            <div class="lg:hidden -bottom-[12px] px-[9px] py-[6px] rounded-[100px] absolute z-10 bg-[#ef5da8]">
+              <p class="text-[10px] leading-[13.5px] text-[#ffffff] text-center semibold">Studying Abroad</p>
+            </div>
+
+          </div>
+
+          <div class="hidden lg:inline-block mt-[18px] px-[9px] py-[6px] rounded-[100px] bg-[#ef5da8]">
+            <span class="text-[10px]  text-[#ffffff] semibold flex justify-center items-center">Studying Abroad</span>
+          </div>
+
+          <p
+            class="max-w-[326px] lg:max-w-[248px] text-[15px] leading-[20.25px] lg:text-[16px] lg:leading-[19.1px] semibold text-[#333333] mt-[14px]">
+            Studying as an exchange student</p>
+          <p class="mt-[4px] text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#828282]">
+            Amet minim mollit non deserunt....
+          </p>
+
+        </div>
+
+    </section>
+    <!-- End of Videos -->
+
+    <!-- Articles -->
+    <section id="articles" data-tab-content class="hidden pt-[24px] flex gap-[15px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+
+        <div class="">
+            <div class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+
+              <img src="../assets/images/unsplash4.svg" 
+                class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover"/>
+
+              <div class="lg:hidden -bottom-[12px] px-[9px] py-[6px] rounded-[100px] absolute z-10 bg-[#3f37c9]">
+                <p class="text-[10px] leading-[13.5px] text-[#ffffff] text-center semibold">Coding</p>
+              </div>
+
+            </div>
+
+            <div class="hidden lg:inline-block mt-[18px] px-[9px] py-[6px] rounded-[100px] bg-[#3f37c9]">
+              <span class="text-[10px]  text-[#ffffff] semibold flex justify-center items-center">Coding</span>
+            </div>
+
+            <p
+              class="max-w-[326px] lg:max-w-[248px] text-[15px] leading-[20.25px] lg:text-[16px] lg:leading-[19.1px] semibold text-[#333333] mt-[14px]">
+              The current state of Javascipt development</p>
+            <p class="mt-[4px] text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+
+        </div>
+
+        <div class="">
+            <div class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+
+              <img src="../assets/images/unsplash3.svg" 
+                class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover"/>
+
+              <div class="lg:hidden -bottom-[12px] px-[9px] py-[6px] rounded-[100px] absolute z-10 bg-[#4cc9f0]">
+                <p class="text-[10px] leading-[13.5px] text-[#ffffff] text-center semibold">Exam Preparations</p>
+              </div>
+
+            </div>
+
+            <div class="hidden lg:inline-block mt-[18px] px-[9px] py-[6px] rounded-[100px] bg-[#4cc9f0]">
+              <span class="text-[10px]  text-[#ffffff] semibold flex justify-center items-center">Exam Preparations</span>
+            </div>
+
+            <p
+              class="max-w-[326px] lg:max-w-[248px] text-[15px] leading-[20.25px] lg:text-[16px] lg:leading-[19.1px] semibold text-[#333333] mt-[14px]">
+              How to crack the GRE exam in 10 days</p>
+            <p class="mt-[4px] text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+
+        </div>
+     
+        <div class="">
+            <div class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+
+              <img src="../assets/images/unsplash10.svg" 
+                class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover"/>
+
+              <div class="lg:hidden -bottom-[12px] px-[9px] py-[6px] rounded-[100px] absolute z-10 bg-[#ef5da8]">
+                <p class="text-[10px] leading-[13.5px] text-[#ffffff] text-center semibold">Studying Abroad</p>
+              </div>
+
+            </div>
+
+            <div class="hidden lg:inline-block mt-[18px] px-[9px] py-[6px] rounded-[100px] bg-[#ef5da8]">
+              <span class="text-[10px]  text-[#ffffff] semibold flex justify-center items-center">Studying Abroad</span>
+            </div>
+
+            <p
+              class="max-w-[326px] lg:max-w-[248px] text-[15px] leading-[20.25px] lg:text-[16px] lg:leading-[19.1px] semibold text-[#333333] mt-[14px]">
+              Studying as an exchange student</p>
+            <p class="mt-[4px] text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+
+        </div>
+
+        <div class="">
+            <div class="w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+
+              <img src="../assets/images/unsplash10.svg" 
+                class="absolute z-0 w-[326px] h-[146px] lg:w-[248px] lg:h-[208px] rounded-[10px] object-cover"/>
+
+              <div class="lg:hidden -bottom-[12px] px-[9px] py-[6px] rounded-[100px] absolute z-10 bg-[#ef5da8]">
+                <p class="text-[10px] leading-[13.5px] text-[#ffffff] text-center semibold">Studying Abroad</p>
+              </div>
+
+            </div>
+
+            <div class="hidden lg:inline-block mt-[18px] px-[9px] py-[6px] rounded-[100px] bg-[#ef5da8]">
+              <span class="text-[10px]  text-[#ffffff] semibold flex justify-center items-center">Studying Abroad</span>
+            </div>
+
+            <p
+              class="max-w-[326px] lg:max-w-[248px] text-[15px] leading-[20.25px] lg:text-[16px] lg:leading-[19.1px] semibold text-[#333333] mt-[14px]">
+              Studying as an exchange student</p>
+            <p class="mt-[4px] text-[13px] leading-[18px] lg:text-[12px] lg:leading-[16.2px] text-[#828282]">
+              Amet minim mollit non deserunt....
+            </p>
+
+        </div>
+
+    </section>
+    <!-- End of Articles -->
+
+    <!-- Courses -->
+    <section id="courses" data-tab-content class="hidden pt-[24px] flex gap-[15px] lg:gap-[30px] overflow-x-scroll no-scrollbar">
+      
+      <div class="w-[326px] lg:w-[248px] pb-[20px] border-b-[1px] border-b-solid border-b-[#000000] md:border-b-0 lg:pb-0 border-opacity-10">
+        <div class="w-[326px] h-[154px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+            <img src="../assets/images/unsplash3.svg"
+                class="opacity-90 w-[356px] h-[154px] lg:w-[340px] lg:h-[216px] object-cover rounded-[10px]"
+                alt="">
+            <button
+                class="absolute opacity-100 top-[50%] -translate-y-[50%] -translate-x-[50%] left-[50%] z-10">
+                <i class="fa-solid fa-circle-play text-[48px] lg:text-[36px] text-[#ffffff]"></i>
+            </button>
+        </div>
+
+        <div class="pt-[15px]">
+
+            <p class="semibold text-[15px] leading-[20px] lg:text-[18px] lg:leading-[24px] text-[#333333]">UX Design 101</p>
+
+            <div
+                class="mt-[2px] text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline">
+                <span>12 Hours &#x2022;</span>&nbsp;
+                <img src="../assets/images/favourite 1.png" class="inline-block" /><span> 4.4</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-[18px] w-[326px] h-[7px] rounded-[100px] lg:w-[248px] bg-[#3f37c9] bg-opacity-[0.15]">
+                <div class="w-[40%] h-[7px] rounded-[100px] bg-[#3f37c9]">
+                </div>
+            </div>
+            <!-- End of Progress Bar -->
+
+            <div class="pt-[8px]">
+                <p class="text-[13px] leading-[17.55px] text-[#4f4f4f] semibold">Part 4: Human centered design</p>
+
+                <p class="max-w-[356px] lg:max-w-[339px] max-h-[44px] overflow-hidden mt-[8px] text-[10px] leading-[13px] regularFont text-[#828282]">Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.</p>
+            </div>
+        </div>
+      </div>
+
+      <div class="w-[326px] lg:w-[248px] pb-[20px] border-b-[1px] border-b-solid border-b-[#000000] md:border-b-0 lg:pb-0 border-opacity-10">
+        <div class="w-[326px] h-[154px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+            <img src="../assets/images/unsplash4.svg"
+                class="opacity-90 w-[356px] h-[154px] lg:w-[340px] lg:h-[216px] object-cover rounded-[10px]"
+                alt="">
+            <button
+                class="absolute opacity-100 top-[50%] -translate-y-[50%] -translate-x-[50%] left-[50%] z-10">
+                <i class="fa-solid fa-circle-play text-[48px] lg:text-[36px] text-[#ffffff]"></i>
+            </button>
+        </div>
+
+        <div class="pt-[15px]">
+
+            <p class="semibold text-[15px] leading-[20px] lg:text-[18px] lg:leading-[24px] text-[#333333]">UX Design 101</p>
+
+            <div
+                class="mt-[2px] text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline">
+                <span>12 Hours &#x2022;</span>&nbsp;
+                <img src="../assets/images/favourite 1.png" class="inline-block" /><span> 4.4</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-[18px] w-[326px] h-[7px] rounded-[100px] lg:w-[248px] bg-[#3f37c9] bg-opacity-[0.15]">
+                <div class="w-[40%] h-[7px] rounded-[100px] bg-[#3f37c9]">
+                </div>
+            </div>
+            <!-- End of Progress Bar -->
+
+            <div class="pt-[8px]">
+                <p class="text-[13px] leading-[17.55px] text-[#4f4f4f] semibold">Part 4: Human centered design</p>
+
+                <p class="max-w-[356px] lg:max-w-[339px] max-h-[44px] overflow-hidden mt-[8px] text-[10px] leading-[13px] regularFont text-[#828282]">Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.</p>
+            </div>
+        </div>
+      </div>
+
+      <div class="w-[326px] lg:w-[248px] pb-[20px] border-b-[1px] border-b-solid border-b-[#000000] md:border-b-0 lg:pb-0 border-opacity-10">
+        <div class="w-[326px] h-[154px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+            <img src="../assets/images/unsplash12.svg"
+                class="opacity-90 w-[356px] h-[154px] lg:w-[340px] lg:h-[216px] object-cover rounded-[10px]"
+                alt="">
+            <button
+                class="absolute opacity-100 top-[50%] -translate-y-[50%] -translate-x-[50%] left-[50%] z-10">
+                <i class="fa-solid fa-circle-play text-[48px] lg:text-[36px] text-[#ffffff]"></i>
+            </button>
+        </div>
+
+        <div class="pt-[15px]">
+
+            <p class="semibold text-[15px] leading-[20px] lg:text-[18px] lg:leading-[24px] text-[#333333]">UX Design 101</p>
+
+            <div
+                class="mt-[2px] text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline">
+                <span>12 Hours &#x2022;</span>&nbsp;
+                <img src="../assets/images/favourite 1.png" class="inline-block" /><span> 4.4</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-[18px] w-[326px] h-[7px] rounded-[100px] lg:w-[248px] bg-[#3f37c9] bg-opacity-[0.15]">
+                <div class="w-[40%] h-[7px] rounded-[100px] bg-[#3f37c9]">
+                </div>
+            </div>
+            <!-- End of Progress Bar -->
+
+            <div class="pt-[8px]">
+                <p class="text-[13px] leading-[17.55px] text-[#4f4f4f] semibold">Part 4: Human centered design</p>
+
+                <p class="max-w-[356px] lg:max-w-[339px] max-h-[44px] overflow-hidden mt-[8px] text-[10px] leading-[13px] regularFont text-[#828282]">Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.</p>
+            </div>
+        </div>
+      </div>
+
+      <div class="w-[326px] lg:w-[248px] pb-[20px] border-b-[1px] border-b-solid border-b-[#000000] md:border-b-0 lg:pb-0 border-opacity-10">
+        <div class="w-[326px] h-[154px] lg:w-[248px] lg:h-[208px] rounded-[10px] relative">
+            <img src="../assets/images/unsplash13.svg"
+                class="opacity-90 w-[356px] h-[154px] lg:w-[340px] lg:h-[216px] object-cover rounded-[10px]"
+                alt="">
+            <button
+                class="absolute opacity-100 top-[50%] -translate-y-[50%] -translate-x-[50%] left-[50%] z-10">
+                <i class="fa-solid fa-circle-play text-[48px] lg:text-[36px] text-[#ffffff]"></i>
+            </button>
+        </div>
+
+        <div class="pt-[15px]">
+
+            <p class="semibold text-[15px] leading-[20px] lg:text-[18px] lg:leading-[24px] text-[#333333]">UX Design 101</p>
+
+            <div
+                class="mt-[2px] text-[#828282] font-normal text-[13px] leading-[17.55px] flex flex-row justify-start gap-1 items-baseline">
+                <span>12 Hours &#x2022;</span>&nbsp;
+                <img src="../assets/images/favourite 1.png" class="inline-block" /><span> 4.4</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-[18px] w-[326px] h-[7px] rounded-[100px] lg:w-[248px] bg-[#3f37c9] bg-opacity-[0.15]">
+                <div class="w-[40%] h-[7px] rounded-[100px] bg-[#3f37c9]">
+                </div>
+            </div>
+            <!-- End of Progress Bar -->
+
+            <div class="pt-[8px]">
+                <p class="text-[13px] leading-[17.55px] text-[#4f4f4f] semibold">Part 4: Human centered design</p>
+
+                <p class="max-w-[356px] lg:max-w-[339px] max-h-[44px] overflow-hidden mt-[8px] text-[10px] leading-[13px] regularFont text-[#828282]">Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.</p>
+            </div>
+        </div>
+      </div>
+    </section>
+    <!-- End of Courses -->
+
+
+</main>
+{% endblock %}
+{% block additionalfooter %} 
+<script type="text/javascript">
+    const tabs = document.querySelectorAll("[data-tab-target]");
+    const tabContents = document.querySelectorAll("[data-tab-content]");
+    
+    
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        const target = document.querySelector(tab.dataset.tabTarget);
+        console.log(target)
+        
+    
+        tabContents.forEach(tabContent => {
+          tabContent.classList.add("hidden");
+        })
+    
+        tabs.forEach(tab => {
+          tab.classList.remove("activeTab");
+        })
+    
+        tab.classList.add("activeTab");
+        target.classList.remove("hidden");
+      })
+    })
+</script>
+{% endblock %}

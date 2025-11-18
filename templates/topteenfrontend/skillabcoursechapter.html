@@ -1,0 +1,215 @@
+{% extends 'topteenfrontend/base.html' %} 
+{% block main %}
+    <!-- MAIN CONTENT -->
+    <div class="bg-white border">
+    <main class="container mt-0 lg:mx-auto lg:mt-10 mb-0 mx-auto ">
+        {% if breadcrumb %}
+        <div class=" text-[12px] mt-[6px]  mb-[10px]  flex items-center space-x-2 scrollbar-hide overflow-x-auto whitespace-nowrap sm:mt-2 lg:-mt-[-150px] xl:mt-0">
+      
+            {% for brdcrm in breadcrumb %}
+            {% if loop.first %}
+            <a href="{{brdcrm.url}}"><img class='h-3 opacity-50' src="{{static('topteenfrontend/assets/images/home.svg')}}"></a>
+            <span>&rarr;</span>
+            {% endif %}
+            {% if not loop.first and not loop.last %}
+            <a class='h-5 opacity-50' href="{{brdcrm.url}}">{{brdcrm.title}}</a>
+            <span>&rarr;</span>
+            {% endif %}
+            {% if loop.last %}
+            <p class='text-green-600  font-[galanoGrotesqueBold]'>{{brdcrm.title}}</p>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {%endif%}
+      
+      <!-- STICKY DIV -->
+      <div
+        class="lg:hidden grid grid-cols-3 grid-rows-1 sticky top-0 inset-x-0 border py-[21px] px-[32px] z-30 bg-white stickyDiv hidden"
+      >
+        <div></div>
+        <p
+          class="text-center text-[#0F0F0F] text-lg font-normal tracking-[0.035em]"
+        >
+          {{skilllab_course_chapter.chapter_name}}
+        </p>
+        <div class="text-right text-[16px] text-[#828282]">
+          <i class="fa fa-search"></i>
+        </div>
+      </div>
+      <!-- //////////////////// -->
+      <div></div>
+      <div class="lg:grid lg:grid-cols-4 gap-8 lg:px-0 lg:mb-[92px] block">
+        <!-- LEFT PART -->
+        <div class="lg:col-start-1 lg:col-span-3">
+          <div
+          class=" py-[19px] px-[22px] lg:hidden"
+        >
+            <h1 class="mb-3 text-[20px] leading-[27px] font-bold">
+              {{skilllab_course_chapter.chapter_name}}
+            </h1>
+            <div
+              class="parentIntro text-normal text-[13px] leading-[18.9px] tracking-[-0.015em] text-opacity-80 intro parentContainer ckeditorStyles"
+              data-limit="60">
+                {{skilllab_course_chapter.content|safe}}
+            </div>
+          </div>
+
+          <!-- INTRODUCTION -->
+          <section class="mb-[60px] hidden lg:block">
+            <h1
+              class="text-xl tracking-[0.01em] text-[#000000] font-semibold mb-3.5"
+            >
+            {{skilllab_course_chapter.chapter_name}}
+            </h1>
+            <div
+              class="parentIntro text-[16px] font-normal leading-[26px] tracking-[-0.015em] text-[#4F4F4F] parentContainer ckeditorStyles">
+              {{skilllab_course_chapter.content|safe}}
+            </div>
+          </section>
+
+          <!-- LIST SEEN ONLY IN MOBILE VIEW -->
+          <div class="block lg:hidden mx-[17px] mb-[34px]">
+            <div class="flex flex-row justify-between items-center mb-[17px]">
+              <h3
+                class="text-[15px] leading-[20px] tracking-[0.035em] font-semibold text-[#0F0F0F]"
+              >
+                Skill Lab Course Activity & Worksheet
+              </h3>
+              <p
+                class="text-[#541BCF] text-[13px] leading-[18px] font-semibold"
+              >
+                View All
+              </p>
+            </div>
+
+            <ul class="flex flex-col justify-start items-start gap-y-3.5">
+              <!-- ALTERNATE -->
+              {% for workactive in skilllab_course_chapter.skilllabcourseactivity.all() %}
+              {% if workactive.type==1 %}
+              {% if workactive.downloadable_file %}
+              <a class="w-full" href="{{workactive.downloadable_file.url}}" download>
+              {% else %}
+              <a class="w-full" href="{{url('skilllab:skilllabcourseactivityworksheetdetail',args=[workactive.slug])}}">
+              {% endif %}
+              <li
+                class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+              >
+                <div class="w-[24px] h-[26px]">
+                  <img
+                    src="{{static('topteenfrontend/assets/images/calendar.png')}}"
+                    class="h-full w-full"
+                  />
+                </div>
+                <div>
+                  <h4
+                    class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                  >
+                  {{workactive.name}}
+                  </h4>
+                    <span class="text-[10px] leading-[14px] font-normal text-[#3CBAE1] font-bold">{{workactive.content|safe|truncate(50)}}</span>
+                </div>
+              </li>
+              </a>
+              {%else%}
+              {% if workactive.downloadable_file %}
+              <a class="w-full" href="{{workactive.downloadable_file.url}}" download>
+              {% else %}
+              <a class="w-full" href="{{url('skilllab:skilllabcourseactivityworksheetdetail',args=[workactive.slug])}}">
+                {% endif %}
+              <li
+              class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+            >
+              <div class="w-[24px] h-[26px]">
+                <img src="{{static('topteenfrontend/assets/images/list.png')}}" class="h-full w-full" />
+              </div>
+              <div>
+                <h4
+                  class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                >
+                {{workactive.name}}
+                </h4>
+                <div class="text-[10px] leading-[14px] font-normal text-[#3F37C9] font-bold">{{workactive.content|safe|truncate(50)}}</span>
+              </div>
+            </li>
+            </a>
+            
+            {% endif %}
+            {% endfor %}
+
+              
+            </ul>
+          </div>
+        </div>
+
+        <!-- RIGHT PART -->
+        <div class="hidden lg:block">
+          <h3
+            class="text-lg font-semibold tracking-[-0.02em] text-[#333333] mb-3.5"
+          >
+          SkilllabCourse Activity & Worksheet
+          </h3>
+
+          <ul class="flex flex-col justify-start items-start gap-y-3.5">
+
+            <!-- ALTERNATE -->
+              {% for workactive in skilllab_course_chapter.skilllabcourseactivity.all() %}
+              {%if workactive.type==1%}
+              {% if workactive.downloadable_file %}
+              <a class="w-full" href="{{workactive.downloadable_file.url}}" download>
+              {% else %}
+              <a class="w-full" href="{{url('skilllab:skilllabcourseactivityworksheetdetail',args=[workactive.slug])}}">
+              {% endif %}
+              <li
+              class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+            >
+              <div class="w-[24px] h-[26px] shrink-0">
+                <img
+                  src="{{static('topteenfrontend/assets/images/calendar.png')}}"
+                  class="h-full w-full"
+                />
+              </div>
+              <div>
+                <h4
+                  class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                >
+                  {{workactive.name}}
+                </h4>
+                  <div class="text-[#3CBAE1] font-bold text-[10px] leading-[14px] font-normal">{{workactive.content|safe|truncate(50)}}</div>
+                
+              </div>
+            </li>
+          </a>
+            
+            {% else %}
+            {% if workactive.downloadable_file %}
+            <a class="w-full" href="{{workactive.downloadable_file.url}}" download>
+            {% else %}
+            <a class="w-full" href="{{url('skilllab:skilllabcourseactivityworksheetdetail',args=[workactive.slug])}}">
+            {% endif %}
+            <li
+              class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
+            >
+              <div class="w-[24px] h-[26px] shrink-0">
+                <img src="{{static('topteenfrontend/assets/images/list.png')}}" class="h-full w-full" />
+              </div>
+              <div>
+                <h4
+                  class="text-xs tracking-[0.035em] text-[#4F4F4F] font-semibold mb-[2px]"
+                >
+                {{workactive.name}}
+                </h4>
+                
+                  <div class="text-[10px] leading-[14px] font-normal text-[#3F37C9] font-bold workactive">{{workactive.content|safe|truncate(50)}}</div>
+              </div>
+            </li>
+            </a>
+            {% endif %}
+            {% endfor %}
+
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+    {%endblock%}
+

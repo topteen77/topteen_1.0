@@ -1,0 +1,483 @@
+{% extends 'topteenadmin/base.html' %}
+{% block main %}
+<!--begin::Post-->
+<div class="post d-flex flex-column-fluid" id="kt_post">
+	<!--begin::Container-->
+	<div id="kt_content_container" class="container-xxl">
+		<!--begin::Card-->
+		<div class="card">
+			<!--begin::Card header-->
+			<div class="card-header border-0 pt-6">
+				<!--begin::Card title-->
+				<div class="card-title">
+					<h2 class="fw-bolder">Student Management</h2>
+				</div>
+				{% include 'topteenadmin/includes/messages.html' %}
+				
+				<!--begin::Card toolbar-->
+				<div class="card-toolbar">
+					<!--begin::Toolbar-->
+					<div class="d-flex justify-content-end" data-kt-subscription-table-toolbar="base">
+						<!--begin::Export buttons-->
+						<a href="{{ url('topteenadminmanaged:exportallclass12results') }}" class="btn btn-primary me-3">
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M19 9H15V3H9V9H5L12 16L19 9Z" fill="currentColor"/>
+									<path d="M5 18H19V20H5V18Z" fill="currentColor"/>
+								</svg>
+							</span>
+							Export Class 12 Results
+						</a>
+						<a href="{{ url('topteenadminmanaged:exportclass12testquestions') }}" class="btn btn-success me-3">
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M14 2H6C4.89 2 4 2.89 4 4V20C4 21.11 4.89 22 6 22H18C19.11 22 20 21.11 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z" fill="currentColor"/>
+								</svg>
+							</span>
+							Export Class 12 Test Questions
+						</a>
+						<a href="{{ url('topteenadminmanaged:exportallclass10results') }}" class="btn btn-secondary me-3">
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M19 9H15V3H9V9H5L12 16L19 9Z" fill="currentColor"/>
+									<path d="M5 18H19V20H5V18Z" fill="currentColor"/>
+								</svg>
+							</span>
+							Export Class 10 Results
+						</a>
+						<a href="{{ url('topteenadminmanaged:exportclass10testquestions') }}" class="btn btn-info me-3">
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M14 2H6C4.89 2 4 2.89 4 4V20C4 21.11 4.89 22 6 22H18C19.11 22 20 21.11 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z" fill="currentColor"/>
+								</svg>
+							</span>
+							Export Class 10 Test Questions
+						</a>
+						<button type="button" class="btn btn-light" onclick="location.reload()">
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M17.5 11H6.5C4.567 11 3 9.433 3 7.5C3 5.567 4.567 4 6.5 4H17.5C19.433 4 21 5.567 21 7.5C21 9.433 19.433 11 17.5 11Z" fill="currentColor"/>
+									<path opacity="0.3" d="M6.5 13H17.5C19.433 13 21 14.567 21 16.5C21 18.433 19.433 20 17.5 20H6.5C4.567 20 3 18.433 3 16.5C3 14.567 4.567 13 6.5 13ZM6.5 13C4.567 13 3 14.567 3 16.5C3 18.433 4.567 20 6.5 20H17.5C19.433 20 21 18.433 21 16.5C21 14.567 19.433 13 17.5 13H6.5Z" fill="currentColor"/>
+								</svg>
+							</span>
+							Refresh
+						</button>
+						<!--end::Export buttons-->
+					</div>
+					<!--end::Toolbar-->
+				</div>
+				<!--end::Card toolbar-->
+			</div>
+			<!--end::Card header-->
+			
+			<!--begin::Card body-->
+			<div class="card-body pt-0">
+				
+				<!--begin::Class 12 Section-->
+				<div class="mb-10">
+					<h3 class="fw-bolder mb-6">Class 12 Students</h3>
+					
+					<!--begin::Class 12 Statistics Cards-->
+					<div class="row mb-6">
+						<div class="col-lg-3 col-md-6 mb-4">
+							<div class="card card-flush h-100">
+								<div class="card-body d-flex align-items-center">
+									<div class="symbol symbol-45px me-4">
+										<span class="symbol-label bg-light-primary">
+											<span class="svg-icon svg-icon-2x svg-icon-primary">
+												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+													<path d="M14 2H6C4.89 2 4 2.89 4 4V20C4 21.11 4.89 22 6 22H18C19.11 22 20 21.11 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z" fill="currentColor"/>
+												</svg>
+											</span>
+										</span>
+									</div>
+									<div class="d-flex flex-column flex-grow-1">
+										<span class="text-gray-600 fw-bold fs-6 mb-1">Total Students</span>
+										<span class="text-gray-800 fw-bolder fs-2" id="class12_total">
+											<span class="spinner-border spinner-border-sm" role="status"></span>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-3 col-md-6 mb-4">
+							<div class="card card-flush h-100">
+								<div class="card-body d-flex align-items-center">
+									<div class="symbol symbol-45px me-4">
+										<span class="symbol-label bg-light-success">
+											<span class="svg-icon svg-icon-2x svg-icon-success">
+												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+													<path d="M10 18C9.7 17.8 9.5 17.6 9.5 17.1V7.1C9.5 6.6 9.7 6.4 10 6.2L16 3.1C16.3 2.9 16.7 2.9 17 3.1L23 6.2C23.3 6.4 23.5 6.6 23.5 7.1V17.1C23.5 17.6 23.3 17.8 23 18L17 21.1C16.7 21.3 16.3 21.3 16 21.1L10 18Z" fill="currentColor"/>
+												</svg>
+											</span>
+										</span>
+									</div>
+									<div class="d-flex flex-column flex-grow-1">
+										<span class="text-gray-600 fw-bold fs-6 mb-1">Completed</span>
+										<span class="text-gray-800 fw-bolder fs-2" id="class12_completed">
+											<span class="spinner-border spinner-border-sm" role="status"></span>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-3 col-md-6 mb-4">
+							<div class="card card-flush h-100">
+								<div class="card-body d-flex align-items-center">
+									<div class="symbol symbol-45px me-4">
+										<span class="symbol-label bg-light-warning">
+											<span class="svg-icon svg-icon-2x svg-icon-warning">
+												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+													<path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM12 20C7.6 20 4 16.4 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20ZM11 7V13H13V7H11ZM11 15V17H13V15H11Z" fill="currentColor"/>
+												</svg>
+											</span>
+										</span>
+									</div>
+									<div class="d-flex flex-column flex-grow-1">
+										<span class="text-gray-600 fw-bold fs-6 mb-1">In Progress</span>
+										<span class="text-gray-800 fw-bolder fs-2" id="class12_pending">
+											<span class="spinner-border spinner-border-sm" role="status"></span>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-3 col-md-6 mb-4">
+							<div class="card card-flush h-100">
+								<div class="card-body d-flex align-items-center">
+									<div class="symbol symbol-45px me-4">
+										<span class="symbol-label bg-light-secondary">
+											<span class="svg-icon svg-icon-2x svg-icon-secondary">
+												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+													<path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM12 20C7.6 20 4 16.4 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20ZM11 7V13H13V7H11ZM11 15V17H13V15H11Z" fill="currentColor"/>
+												</svg>
+											</span>
+										</span>
+									</div>
+									<div class="d-flex flex-column flex-grow-1">
+										<span class="text-gray-600 fw-bold fs-6 mb-1">Not Started</span>
+										<span class="text-gray-800 fw-bolder fs-2" id="class12_not_started">
+											<span class="spinner-border spinner-border-sm" role="status"></span>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--end::Class 12 Statistics Cards-->
+					
+					<!--begin::Verification Info-->
+					<div class="alert alert-info d-flex align-items-center p-5 mb-6">
+						<span class="svg-icon svg-icon-2hx svg-icon-info me-4">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<path opacity="0.3" d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor"/>
+								<path d="M12 7C11.4 7 11 7.4 11 8C11 8.6 11.4 9 12 9C12.6 9 13 8.6 13 8C13 7.4 12.6 7 12 7Z" fill="currentColor"/>
+								<path d="M10.8 17C10.8 17.3314 11.0686 17.6 11.4 17.6H12.6C12.9314 17.6 13.2 17.3314 13.2 17V13.4C13.2 13.0686 12.9314 12.8 12.6 12.8H11.4C11.0686 12.8 10.8 13.0686 10.8 13.4V17Z" fill="currentColor"/>
+							</svg>
+						</span>
+						<div class="d-flex flex-column">
+							<h4 class="mb-1 text-dark">Data Verification</h4>
+							<span class="text-gray-700" id="verification_info">
+								<span class="spinner-border spinner-border-sm" role="status"></span> Loading statistics...
+							</span>
+							<span class="text-gray-700 mt-2">Export counts will match display counts. Blank grades indicate missing StudentManagement or UserProfile data.</span>
+						</div>
+					</div>
+					<!--end::Verification Info-->
+					
+					<!--begin::Class 12 School-wise Table-->
+					<div class="card mb-6">
+						<div class="card-header">
+							<h3 class="card-title fw-bolder">School-wise Status (Class 12)</h3>
+						</div>
+						<div class="card-body pt-0">
+							<div class="table-responsive">
+								<table class="table align-middle table-row-dashed fs-6 gy-5">
+									<thead>
+										<tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0">
+											<th class="min-w-200px">School Name</th>
+											<th class="min-w-100px">Total Students</th>
+											<th class="min-w-100px">Completed</th>
+											<th class="min-w-100px">In Progress</th>
+											<th class="min-w-100px">Not Started</th>
+										</tr>
+									</thead>
+									<tbody class="text-gray-600 fw-bold" id="class12_schools_tbody">
+										<tr>
+											<td colspan="5" class="text-center py-10">
+												<div class="spinner-border text-primary" role="status">
+													<span class="visually-hidden">Loading...</span>
+												</div>
+												<div class="text-gray-500 mt-2">Loading school data...</div>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					<!--end::Class 12 School-wise Table-->
+				</div>
+				<!--end::Class 12 Section-->
+				
+				<!--begin::Class 10 Section-->
+				<div class="mb-10">
+					<h3 class="fw-bolder mb-6">Class 10 Students</h3>
+					
+					<!--begin::Class 10 Statistics Cards-->
+					<div class="row mb-6">
+						<div class="col-lg-3 col-md-6 mb-4">
+							<div class="card card-flush h-100">
+								<div class="card-body d-flex align-items-center">
+									<div class="symbol symbol-45px me-4">
+										<span class="symbol-label bg-light-primary">
+											<span class="svg-icon svg-icon-2x svg-icon-primary">
+												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+													<path d="M14 2H6C4.89 2 4 2.89 4 4V20C4 21.11 4.89 22 6 22H18C19.11 22 20 21.11 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z" fill="currentColor"/>
+												</svg>
+											</span>
+										</span>
+									</div>
+									<div class="d-flex flex-column flex-grow-1">
+										<span class="text-gray-600 fw-bold fs-6 mb-1">Total Students</span>
+										<span class="text-gray-800 fw-bolder fs-2" id="class10_total">
+											<span class="spinner-border spinner-border-sm" role="status"></span>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-3 col-md-6 mb-4">
+							<div class="card card-flush h-100">
+								<div class="card-body d-flex align-items-center">
+									<div class="symbol symbol-45px me-4">
+										<span class="symbol-label bg-light-success">
+											<span class="svg-icon svg-icon-2x svg-icon-success">
+												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+													<path d="M10 18C9.7 17.8 9.5 17.6 9.5 17.1V7.1C9.5 6.6 9.7 6.4 10 6.2L16 3.1C16.3 2.9 16.7 2.9 17 3.1L23 6.2C23.3 6.4 23.5 6.6 23.5 7.1V17.1C23.5 17.6 23.3 17.8 23 18L17 21.1C16.7 21.3 16.3 21.3 16 21.1L10 18Z" fill="currentColor"/>
+												</svg>
+											</span>
+										</span>
+									</div>
+									<div class="d-flex flex-column flex-grow-1">
+										<span class="text-gray-600 fw-bold fs-6 mb-1">Completed</span>
+										<span class="text-gray-800 fw-bolder fs-2" id="class10_completed">
+											<span class="spinner-border spinner-border-sm" role="status"></span>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-3 col-md-6 mb-4">
+							<div class="card card-flush h-100">
+								<div class="card-body d-flex align-items-center">
+									<div class="symbol symbol-45px me-4">
+										<span class="symbol-label bg-light-warning">
+											<span class="svg-icon svg-icon-2x svg-icon-warning">
+												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+													<path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM12 20C7.6 20 4 16.4 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20ZM11 7V13H13V7H11ZM11 15V17H13V15H11Z" fill="currentColor"/>
+												</svg>
+											</span>
+										</span>
+									</div>
+									<div class="d-flex flex-column flex-grow-1">
+										<span class="text-gray-600 fw-bold fs-6 mb-1">In Progress</span>
+										<span class="text-gray-800 fw-bolder fs-2" id="class10_pending">
+											<span class="spinner-border spinner-border-sm" role="status"></span>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-3 col-md-6 mb-4">
+							<div class="card card-flush h-100">
+								<div class="card-body d-flex align-items-center">
+									<div class="symbol symbol-45px me-4">
+										<span class="symbol-label bg-light-secondary">
+											<span class="svg-icon svg-icon-2x svg-icon-secondary">
+												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+													<path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM12 20C7.6 20 4 16.4 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20ZM11 7V13H13V7H11ZM11 15V17H13V15H11Z" fill="currentColor"/>
+												</svg>
+											</span>
+										</span>
+									</div>
+									<div class="d-flex flex-column flex-grow-1">
+										<span class="text-gray-600 fw-bold fs-6 mb-1">Not Started</span>
+										<span class="text-gray-800 fw-bolder fs-2" id="class10_not_started">
+											<span class="spinner-border spinner-border-sm" role="status"></span>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--end::Class 10 Statistics Cards-->
+					
+					<!--begin::Class 10 School-wise Table-->
+					<div class="card">
+						<div class="card-header">
+							<h3 class="card-title fw-bolder">School-wise Status (Class 10)</h3>
+						</div>
+						<div class="card-body pt-0">
+							<div class="table-responsive">
+								<table class="table align-middle table-row-dashed fs-6 gy-5">
+									<thead>
+										<tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0">
+											<th class="min-w-200px">School Name</th>
+											<th class="min-w-100px">Total Students</th>
+											<th class="min-w-100px">Completed</th>
+											<th class="min-w-100px">In Progress</th>
+											<th class="min-w-100px">Not Started</th>
+										</tr>
+									</thead>
+									<tbody class="text-gray-600 fw-bold" id="class10_schools_tbody">
+										<tr>
+											<td colspan="5" class="text-center py-10">
+												<div class="spinner-border text-primary" role="status">
+													<span class="visually-hidden">Loading...</span>
+												</div>
+												<div class="text-gray-500 mt-2">Loading school data...</div>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					<!--end::Class 10 School-wise Table-->
+				</div>
+				<!--end::Class 10 Section-->
+			</div>
+			<!--end::Card body-->
+		</div>
+		<!--end::Card-->
+	</div>
+	<!--end::Container-->
+</div>
+<!--end::Post-->
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	// Load statistics via AJAX
+	fetch('{{ url("topteenadminmanaged:studentlist_stats_api") }}')
+		.then(response => response.json())
+		.then(data => {
+			// Update Class 12 statistics
+			document.getElementById('class12_total').textContent = data.class12_total || 0;
+			document.getElementById('class12_completed').textContent = data.class12_completed || 0;
+			document.getElementById('class12_pending').textContent = data.class12_pending || 0;
+			document.getElementById('class12_not_started').textContent = data.class12_not_started || 0;
+			
+			// Update Class 10 statistics
+			document.getElementById('class10_total').textContent = data.class10_total || 0;
+			document.getElementById('class10_completed').textContent = data.class10_completed || 0;
+			document.getElementById('class10_pending').textContent = data.class10_pending || 0;
+			document.getElementById('class10_not_started').textContent = data.class10_not_started || 0;
+			
+			// Update verification info
+			document.getElementById('verification_info').textContent = 
+				'Class 12 Statistics: Total=' + data.class12_total + 
+				', Completed=' + data.class12_completed + 
+				', Pending=' + data.class12_pending + 
+				', Not Started=' + data.class12_not_started;
+		})
+		.catch(error => {
+			console.error('Error loading statistics:', error);
+			document.getElementById('class12_total').textContent = 'Error';
+			document.getElementById('class12_completed').textContent = 'Error';
+			document.getElementById('class12_pending').textContent = 'Error';
+			document.getElementById('class12_not_started').textContent = 'Error';
+			document.getElementById('class10_total').textContent = 'Error';
+			document.getElementById('class10_completed').textContent = 'Error';
+			document.getElementById('class10_pending').textContent = 'Error';
+			document.getElementById('class10_not_started').textContent = 'Error';
+		});
+	
+	// Load school data via AJAX
+	fetch('{{ url("topteenadminmanaged:studentlist_schools_api") }}')
+		.then(response => response.json())
+		.then(data => {
+			// Update Class 12 schools table
+			const class12Tbody = document.getElementById('class12_schools_tbody');
+			if (data.class12_schools && data.class12_schools.length > 0) {
+				class12Tbody.innerHTML = data.class12_schools.map(school => `
+					<tr>
+						<td>
+							<span class="text-gray-800 fw-bolder">${school.name || 'Unknown'}</span>
+						</td>
+						<td>
+							<span class="text-gray-800 fw-bolder">${school.total_students || 0}</span>
+						</td>
+						<td>
+							<span class="badge badge-success">${school.completed || 0}</span>
+						</td>
+						<td>
+							<span class="badge badge-warning">${school.pending || 0}</span>
+						</td>
+						<td>
+							<span class="badge badge-secondary">${school.not_started || 0}</span>
+						</td>
+					</tr>
+				`).join('');
+			} else {
+				class12Tbody.innerHTML = `
+					<tr>
+						<td colspan="5" class="text-center py-10">
+							<div class="text-gray-500">No Class 12 students found</div>
+						</td>
+					</tr>
+				`;
+			}
+			
+			// Update Class 10 schools table
+			const class10Tbody = document.getElementById('class10_schools_tbody');
+			if (data.class10_schools && data.class10_schools.length > 0) {
+				class10Tbody.innerHTML = data.class10_schools.map(school => `
+					<tr>
+						<td>
+							<span class="text-gray-800 fw-bolder">${school.name || 'Unknown'}</span>
+						</td>
+						<td>
+							<span class="text-gray-800 fw-bolder">${school.total_students || 0}</span>
+						</td>
+						<td>
+							<span class="badge badge-success">${school.completed || 0}</span>
+						</td>
+						<td>
+							<span class="badge badge-warning">${school.pending || 0}</span>
+						</td>
+						<td>
+							<span class="badge badge-secondary">${school.not_started || 0}</span>
+						</td>
+					</tr>
+				`).join('');
+			} else {
+				class10Tbody.innerHTML = `
+					<tr>
+						<td colspan="5" class="text-center py-10">
+							<div class="text-gray-500">No Class 10 students found</div>
+						</td>
+					</tr>
+				`;
+			}
+		})
+		.catch(error => {
+			console.error('Error loading school data:', error);
+			document.getElementById('class12_schools_tbody').innerHTML = `
+				<tr>
+					<td colspan="5" class="text-center py-10">
+						<div class="text-danger">Error loading school data</div>
+					</td>
+				</tr>
+			`;
+			document.getElementById('class10_schools_tbody').innerHTML = `
+				<tr>
+					<td colspan="5" class="text-center py-10">
+						<div class="text-danger">Error loading school data</div>
+					</td>
+				</tr>
+			`;
+		});
+});
+</script>
+{% endblock %}

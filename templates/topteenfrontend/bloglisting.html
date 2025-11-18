@@ -1,0 +1,397 @@
+  
+{% extends 'topteenfrontend/base.html' %}
+
+{% block main %}
+
+<style>
+  ul#pagination {
+    display: flex;
+    justify-content: start;
+    gap: 23px;
+
+  }
+
+
+  ul#pagination li {
+    float: left;
+    padding: 1px 4px;
+    display: flex;
+    align-items: center;
+  }
+
+  li.paginate_button.page-item.active, li.paginate_button.page-item:hover{
+    background: rgb(76 201 240);
+    color: #fff;
+    border-radius: 4px;
+  }
+
+  li.paginate_button.page-item:hover svg {
+    fill: #fff !important;
+}
+</style>
+
+<main class="w-full lg:max-w-[1280px] mx-auto lg:pt-[46px] relative">
+    
+  <!-- Most popular -->
+  {% if not (search_blogs or category or blogtag) %}
+  <div class="w-full lg:container px-[12px] lg:px-0 mx-auto">
+
+    <!-- Popular heading -->
+    <div class="border-b-[3px] border-[#4074fe] pb-[12px] max-w-[400px] lg:max-w-[248px] mt-[50px]">
+      <p class="text-[21px] leading-[20px] text-[#080808] mediumFont">Most Popular</p>
+    </div>
+    <!-- End of Popular heading -->
+
+    <!-- Popular Content -->
+    <div class="mt-[35px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-[32px] gap-y-[24px] ">
+      {% for blog in popular_blogs[:6] %}  
+      <div class="max-w-[340px] mx-auto md:mx-0">
+        <div class="relative">
+          
+          <a href="{{url('blog:blogdetail',args=[blog.slug])}}">
+          <img src="{{blog.image.url}}" class="w-[340px] h-[189px] relative" alt="">
+          </a>
+          <a href="{{url('core:home')}}">
+          <div class="bg-[#ffffff] w-[37px] h-[37px] rounded-full absolute top-[5px] right-[9px]">
+            <img src="{{ static("topteenfrontend/assets/images/graduation-hat 1.png")}}" class="w-[25px] h-[25px] mx-auto mt-[5.5px]" alt="">
+          </div>
+        </a>
+        </div>
+
+        <div class="border-b-[2px] border-solid pb-[8px] border-[#3f37c9]">
+          <a href="{{url('blog:blogdetail',args=[blog.slug])}}">
+          <p class="mt-[19px] text-[21px] leading-[28.35px] text-[#353535] mediumFont max-w-[325px] h-[56px] overflow-hidden">{{blog.title}}</p>
+          </a>
+          <!-- <div class="mt-[4px] flex gap-[11px] text-[#777777] text-[10px] leading-[16.5px] h-[17px] overflow-hidden "> -->
+            <!-- <p>{{blog.author}}</p>
+            <p>{{localtime(blog.created)}}</p> -->
+          <!-- </div> -->
+          <p class="text-[14px] leading-[21.12px] text-[#525252] regularFont mt-[11px] h-[67px] overflow-hidden"> {{blog.summary}}</p>
+        </div>
+
+        <div class="flex justify-between pr-[120px] hidden">
+          <div class="flex pt-[6px]">
+            <a href="http://www.facebook.com/sharer/sharer.php?u={{site_url}}{{url('blog:blogdetail',args=[blog.slug])}}" target="_blank" >
+            <img src="{{static("topteenfrontend/assets/images/Facebook.png")}}" class="w-[11px] h-[11px] my-[4px]" alt="">
+            </a>
+            <a href="https://www.instagram.com/sharer.php?u={{site_url}}{{url('blog:blogdetail',args=[blog.slug])}}" target="_blank">
+            <img src="{{static("topteenfrontend/assets/images/Instagram.png")}}" class="w-[11px] h-[11px] my-[4px]" alt="">
+            </a>
+            <a href="http://www.linkedin.com/sharing/share-offsite/?url={{site_url}}{{url('blog:blogdetail',args=[blog.slug])}}" target="_blank">
+            <img src="{{static("topteenfrontend/assets/images/Linkedin.png")}}" class="w-[11px] h-[11px] my-[4px] ml-[2px]" alt="">
+            </a>
+          </div>
+          <div class="pt-[6px]">
+            <p class="text-[14px] leading-[22.12px] font-normal text-[#333333]">89 </p>
+          </div>
+        </div>
+
+      </div>
+    {% endfor %}  
+    </div>
+    <!-- End of Popular Content -->
+
+  </div>
+  <!-- End of Most popular -->
+  {% endif %}
+  <!-- Left and Right -->
+
+  <div class="relative mt-[30px] lg:mt-[68px] w-full lg:flex lg:justify-between lg:container px-[12px] lg:px-0  mx-auto ">
+
+    <!-- Left content -->
+    <div class="relative col-start-1 col-span-3 bg-white p-5 rounded   lg:w-[802px]">
+
+      <!-- All articles heading -->
+      <div class="border-b-[3px] border-[#4074fe] pb-[12px] max-w-[400px] lg:max-w-[248px]">
+        <p class="text-[21px] leading-[20px] text-[#080808] mediumFont"> {% if heading %} {{heading}} {% else %} All Articles {% endif %}</p>
+      </div>
+      <!-- End of All Articles heading -->
+
+      <!-- All Articles content -->
+      <div id="addblogs" class=" blog-list pt-[21px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-x-[32px] gap-y-[21px] lg:gap-y-[46px] ">
+
+          {% include 'topteenfrontend/includes/blog_item.html' %}
+        
+      </div>
+
+      <div class="table-footer mt-8">
+        <div class="row">
+
+          <div class="flex flex-row justify-between items-center">
+            <div class="dataTables_info" id="basic-datatables_info" role="status" aria-live="polite">
+              {% if page_obj %}
+              Showing {{ page_obj.start_index() }} to {{ page_obj.end_index() }} of {{page_obj.paginator.count }} videos
+              {% else %}
+              No entries to display.
+              {% endif %}
+            </div>
+            <div class="dataTables_paginate paging_simple_numbers d-flex justify-content-end"
+              id="basic-datatables_paginate">
+              <ul class="pagination my-0" id="pagination">
+                
+              </ul>
+            </div>
+
+
+          </div>
+
+        </div>
+      </div>
+      <!-- {% if remaining_count %}
+          <div id="pagination" class="mx-auto"></div> 
+          <div id="remaining" class="mx-auto">{{remaining_count}} remaining</div>
+      {% endif %} -->
+
+      
+      <!-- {% if remaining_count %}
+        <button onclick="loadMoreBlogs()"  id="loadmore"
+        class=" uppercase px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">Load more
+        
+      </button>
+      <div id="remaining" class="mx-auto">{{remaining_count}} remaining</div>
+      {% endif %} -->
+      <!-- End of All Articles content -->
+
+
+      <!-- End of Load More News -->
+
+    </div>
+    <!-- End of Left content -->
+
+    <!-- Right Content -->
+    <div class="mt-[36px] lg:mt-0 lg:sticky lg:top-[100px] h-full">
+
+      <!-- Search -->
+      <div class=" mx-auto lg:mx-0">
+        <div class="border-b-[3px] border-[#4074fe] pb-[10px] max-w-[400px] lg:max-w-[248px]">
+          <p class="text-[21px] leading-[20px] text-[#080808] mediumFont">Search</p>
+        </div>
+
+        <div class="flex relative w-full inline-block mt-[21px]">
+          <form action="{{url('blog:blogs')}}" method="GET" class="w-full relative inline-block">
+
+          <input type="text" placeholder="Search" name ="search" id="search" required type="submit" value="{% if search_blogs %}{{search_blogs}}{% endif %}"
+            class="  max-h-[37px] pt-[14px] w-full sm:w-[400px] lg:max-w-[248px] border-[#939393] border-solid border-[1px] pr-[30px]">
+          <i class="fa fa-magnifying-glass absolute text-[22px] right-[12px] top-[50%] -translate-y-[50%]"></i>
+          </form>
+        </div>
+
+      </div>
+      <!-- End of Search -->
+
+      <!-- Latest Posts -->
+      <div class="mt-[36px] lg:mt-[50px]">
+
+        <!-- Latest Post heading -->
+        <div class="border-b-[3px] border-[#4074fe] pb-[10px] max-w-[400px] lg:max-w-[248px]">
+          <p class="text-[21px] leading-[20px] text-[#080808] mediumFont">Latest Blogs</p>
+        </div>
+        <!-- End of latest post heading -->
+
+        <!-- Latest Post content -->
+        <div
+          class=" grid-cols-1 mgridd:grid-cols-2 lg:grid-cols-1 gap-x-[32px] gap-y-[21px] lg:gap-y-[46px]  pt-[21px] lg:pt-[30px]">
+
+          {% for blog in latest_blogs %}
+          <div class="relative max-w-[340px] lg:max-w-[248px] mx-auto lg:mx-0">
+            <div class="relative max-w-[340px] lg:max-w-[248px]">
+              <a href="{{url('blog:blogdetail',args=[blog.slug])}}">
+              <img src="{{blog.image.url}}" class="w-[340px] lg:w-[248px] h-[162px]" alt="">
+              </a>
+              <a href="{{url('core:home')}}">
+              <div class="bg-[#ffffff] w-[37px] h-[37px] rounded-full absolute top-[10px] right-[7px]">
+                <img src="{{static("topteenfrontend/assets/images/graduation-hat 1.png")}}" class="w-[25px] h-[25px] mx-auto mt-[5.5px]" alt="">
+              </div>
+            </a>
+            </div>
+            <a href="{{url('blog:blogdetail',args=[blog.slug])}}">
+            <p class="text-[21px] leading-[28.35px] mediumFont text-[#333333] mt-[9px] max-h-[56px] overflow-hidden ">{{blog.title}}
+            </p>
+           </a>
+            <div class="mt-[4px] flex gap-[11px] text-[#777777] text-[10px] leading-[16.5px]  h-[17px] overflow-hidden ">
+              <!-- <p class="text-[#333333]">{{blog.author}}</p>
+              <p>{{localtime(blog.created)}}</p> -->
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- End of Latest Post Content -->
+
+
+      </div>
+
+      <!-- End of Latest posts -->
+
+      <!--  -->
+
+      <!-- End of Right Content -->
+
+    </div>
+    <!-- End of Right Content -->
+
+  </div>
+  <!-- End of Left and Right -->
+
+  <!-- Blue Banner -->
+  <div class="secondBlogDetailBlueBanner w-full lg:h-[115px] mt-[120px]">
+    <div class="lg:flex lg:container lg:justify-between py-[24px] lg:pt-[34px] my-auto  mx-auto">
+      <p class="text-[28px] leading-[37.8px] text-[#ffffff] semibold tracking-[0.035em] text-center pt-[5px]">Interested in getting latest updates?</p>
+    <div class="bg-[#eaeaea] rounded-[10px] w-[239px] h-[53px] mx-auto my-[6px] lg:my-auto ">
+      <button class="bg-[#ffffff] rounded-[10px] flex content-center justify-center gap-[3px] h-[48px] w-[239px]">
+        <img src="../assets/images/bookmark.png" class="max-w-[28px] max-h-[28px] my-auto" alt="">
+        <p class="text-[14px] leading-[18.9px] boldFont text-[#4f4f4f] my-auto">SUBSCRIBE NOW</p>
+      </button> 
+    </div>
+  </div>
+    
+  </div>
+  <!-- End of Blue Banner -->
+  
+  <!-- Subscription email PopUp -->
+  <div
+  class="hidden top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen flex flex-row justify-center items-center subscriptionpopup ">
+  <div class="lg:max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center">
+    <div
+      class="bg-[#ffffff] rounded-[10px] relative referDivs w-full md:max-w-[395px] lg:w-[395px] pb-[24px] pt-[48px] modalContent">
+      <button class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] subscriptionPopupClose">
+        <i class="fa fa-xmark"></i>
+      </button>
+
+      <p class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold ">
+        SUBSCRIBE
+      </p>
+      <form onsubmit="return false" id="subscribeform">
+        <div class="w-full flex justify-center mt-[22px] ">
+          <input type="text" id="subemail" name="email" placeholder="Enter email" class="mx-auto w-[80%] h-[53px] rounded-[10px]">
+        </div>
+        <div class="mx-auto w-[80%] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+          <button type="submit" onclick="subscriptionmailsubmit()"
+            class="w-full h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  </div>
+  <!-- End of Subscription Popup -->
+
+</main>
+
+
+{% endblock main %}
+
+{% block additionalfooter %}
+
+<script>
+  let totalcount = {{ page_obj.paginator.num_pages }};  // Total number of pages
+  let currentPage = {{ page_obj.number }} - 1;  // Current page (0-based for JS)
+  
+  // Set currentPage to 0 if the view loads initially with no page parameter
+  if (isNaN(currentPage) || currentPage < 0) {
+      currentPage = 0;
+  }
+  
+  function getPagination() {
+      // If we can fit all pages in our limit
+      if (totalcount < 9) {
+          return [...Array(totalcount).keys()];
+      }
+  
+      // Always include first and last pages
+      const result = Array(9).fill(null);
+      result[0] = 0;  // First page
+      result[8] = totalcount - 1;  // Last page
+  
+      // If currentPage is in the first few pages
+      if (currentPage < 4) {
+          for (let i = 1; i <= 6; i++) {
+              result[i] = i;
+          }
+          result[7] = '...';
+      }
+      // If currentPage is in the last few pages
+      else if (currentPage >= totalcount - 5) {
+          result[1] = '...';
+          for (let i = 2; i <= 7; i++) {
+              result[i] = totalcount - 9 + i;
+          }
+      }
+      // Otherwise, currentPage is in the middle
+      else {
+          result[1] = '...';
+          result[7] = '...';
+          for (let i = 2; i <= 6; i++) {
+              result[i] = currentPage - 4 + i;
+          }
+      }
+      return result;
+  }
+  
+  function renderPagination() {
+      const pagination = getPagination();
+      const paginationList = document.getElementById('pagination');
+      paginationList.innerHTML = '';  // Clear existing pagination
+  
+      // Add Previous button with SVG icon
+      const prevLi = document.createElement('li');
+      prevLi.className = 'paginate_button page-item';
+      if (currentPage === 0) {
+          prevLi.classList.add('disabled');
+      }
+      const prevA = document.createElement('a');
+      prevA.className = 'page-link';
+      prevA.href = currentPage > 0 ? '?page=' + currentPage : '#';
+      prevA.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;"><path d="m12.707 7.707-1.414-1.414L5.586 12l5.707 5.707 1.414-1.414L8.414 12z"></path><path d="M16.293 6.293 10.586 12l5.707 5.707 1.414-1.414L13.414 12l4.293-4.293z"></path></svg>';
+      prevLi.appendChild(prevA);
+      paginationList.appendChild(prevLi);
+  
+      // Render page numbers
+      pagination.forEach(page => {
+          const li = document.createElement('li');
+          li.className = 'paginate_button page-item';
+  
+          if (page === '...') {
+              li.classList.add('disabled');
+              li.innerHTML = '<span class="page-link">...</span>';
+          } else {
+              const a = document.createElement('a');
+              a.className = 'page-link';
+              a.href = '?page=' + (page + 1);  // Django pages are 1-based
+              a.textContent = page + 1;  // Display page number (1-based)
+  
+              // Highlight current page
+              if (page === currentPage) {
+                  li.classList.add('active');
+              }
+  
+              li.appendChild(a);
+          }
+          paginationList.appendChild(li);
+      });
+  
+      // Add Next button with SVG icon
+      const nextLi = document.createElement('li');
+      nextLi.className = 'paginate_button page-item';
+      if (currentPage === totalcount - 1) {
+          nextLi.classList.add('disabled');
+      }
+      const nextA = document.createElement('a');
+      nextA.className = 'page-link';
+      nextA.href = currentPage < totalcount - 1 ? '?page=' + (currentPage + 2) : '#';
+      nextA.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: rgba(74, 72, 72, 1);transform: ;msFilter:;"><path d="M10.296 7.71 14.621 12l-4.325 4.29 1.408 1.42L17.461 12l-5.757-5.71z"></path><path d="M6.704 6.29 5.296 7.71 9.621 12l-4.325 4.29 1.408 1.42L12.461 12z"></path></svg>';
+      nextLi.appendChild(nextA);
+      paginationList.appendChild(nextLi);
+  }
+  
+  renderPagination();
+  
+  
+  </script>
+
+
+
+
+
+  {% endblock %}

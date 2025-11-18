@@ -1,0 +1,2147 @@
+{% extends "base1.html" %}
+
+{% block main-content %}
+{% load static %}
+
+<div class="page-header pb-0">
+    <div class="container">
+        <div class="pt-3">
+            <button id="BackBtn" class="back mb-3"> <i class="fas fa-arrow-left"></i> </button>
+        </div>
+        <h1 id="section-title" style="color: rgb(63, 55, 201);">Section Test</h1>
+    </div>
+</div>
+
+<div class="container"> 
+<section id="introduction-test-{{ test_id }}" class="introduction" style="display: none;">
+    <div class="row">
+        <div class="col-md-4 d-flex align-items-center bg-light">
+            <div class="inimg  d-md-block d-none">
+                <img src="{% static 'images/giant-checklist.png' %}" alt="Giant Checklist" class="w-full h-auto">
+            </div>
+        </div>
+        <div class="col-md-8 inst-data py-4 px-5 bg-white">
+            <h3>Introduction</h3>
+
+            <div id="instruction-content" class="instruction-content">
+                <!-- Default instructions (will be replaced dynamically) -->
+                <div class="loading">Loading instructions...</div>
+            </div>
+
+            <div class="bg-white pt-3">
+                <button id="startBtn" class="btn purple-button px-md-6 fw-600 ms-1">Begin</button>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
+
+<div class="container">
+    <div class="question-container mb-11">
+        <div class="test-progress mb-4 sticky top-[0px] z-80 bg-white py-3">
+            <div class="">
+                <div class="tm d-flex justify-content-between">
+                    <div id="timer" class="timer mt-0"><i class="far fa-clock"></i> Time remaining: <span
+                            id="time-remaining">--:--</span></div>
+                    <div class="question-counter">
+                        Question <span id="current-question">1</span> of <span id="total-questions">0</span>
+                    </div>
+                </div>
+                <div class="progress">
+                    <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                        aria-valuenow="0">
+                        <span id="progress-percent" class="progress-text"></span>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="im-q-box">
+            <div class="custom-alert d-flex align-items-center">
+                <i aria-hidden="true" class="fa-solid fa-circle-info me-2"></i>
+                <div style="line-height: 15px;font-size: 13px;">Select the most effective option from the choices
+                    provided
+                    based on the given statement</div>
+            </div>
+
+            <!-- Alert for unanswered question -->
+            <div id="unanswered-alert" class="alert alert-warning mb-3" style="display: none;">
+                Please select an answer before proceeding to the next question.
+            </div>
+
+            <div id="questions-container" class="questions-container question-box">
+                <!-- Questions will be loaded here dynamically -->
+                <div class="loading">Loading questions...</div>
+            </div>
+
+            <div class="navigation-buttons d-flex justify-content-end">
+                <button id="prev-question" class="btn blue-button px-md-6 fw-600 ms-1 disabled-buttons d-none"
+                    disabled>Previous</button>
+                <button id="next-question" class="btn purple-button next-button px-md-6 fw-600 ms-1 ">Next</button>
+                <button id="submit-section" class="btn btn-success" style="display: none;">Submit Section</button>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<template id="question-template">
+    <div class="question-card">
+        <div class="question-header">
+            <span class="question-number"></span>
+            <span class="difficulty-badge d-none"></span>
+        </div>
+        <div class="question-layout">
+            <div class="question-content">
+                <p class="question-text"></p>
+                <div class="question-image"></div>
+            </div>
+            <div class="list-action">
+                <ul class="answers-container radio-buttons"></ul>
+            </div>
+
+        </div>
+    </div>
+</template>
+
+<!-- Templates for different instruction types -->
+<template id="personality-instructions">
+    <h4 class="fw-bold fs-21 mb-4">Personality Questionnaire (HEXACO)</h4>
+    <h5 style="color:#4f48d2; font-weight: 600;">Purpose</h5>
+    <p>This questionnaire helps you understand key dimensions of your personality. There are no right or wrong
+        answers—only statements that describe how you usually think, feel, or act.</p>
+    <h5 style="color:#4f48d2; font-weight: 600;">How to respond</h5>
+    <ol style="list-style:numeric; padding-left:18px;">
+        <li><strong>Read each statement carefully.</strong> Think about how well it describes you in general, not
+            just today.</li>
+        <li>
+            <strong>Select one response number</strong> for every item, using the 5-point scale below:
+            <table style="border: 1px solid #f6f6f6; margin-bottom:10px;">
+                <thead>
+                    <tr>
+                        <th>Response</th>
+                        <th>Meaning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Highly Disagree</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Disagree</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Neither Disagree nor Agree</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Agree</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>Strongly Agree</td>
+                    </tr>
+                </tbody>
+            </table>
+        </li>
+        <li><strong>Mark only one number per statement.</strong> Do not leave any items blank.</li>
+        <li><strong>Answer honestly and spontaneously.</strong> Your first reaction is usually the most accurate.</li>
+        <li><strong>Work at a steady pace.</strong> The 60 items typically take about 15-20 minutes to complete.</li>
+        <li><strong>Maintain confidentiality.</strong> Your responses are used solely for assessment and will be kept
+            private.</li>
+        <li><strong>Proceed in order.</strong> Do not return to change answers once you have moved on.</li>
+    </ol>
+    <p>When you are ready, click "Begin" to start the test.</p>
+</template>
+
+<template id="aptitude-instructions">
+    <h4 class="fw-bold fs-21 mb-4">Aptitude Assessment</h4>
+    <h5 style="color:#4f48d2; font-weight: 600;">Purpose</h5>
+    <p>This assessment evaluates your problem-solving abilities, logical reasoning, and cognitive skills. The results
+        will help identify your strengths and areas for development.</p>
+    <h5 style="color:#4f48d2; font-weight: 600;">How to respond</h5>
+    <ol style="list-style:numeric; padding-left:18px;">
+        <li><strong>Read each question carefully.</strong> Make sure you understand what is being asked before selecting
+            an answer.</li>
+        <li><strong>Select the most appropriate answer</strong> from the options provided.</li>
+        <li><strong>Manage your time wisely.</strong> Don't spend too long on any single question.</li>
+        <li><strong>Use scratch paper</strong> for calculations if needed.</li>
+        <li><strong>Answer all questions.</strong> There is no penalty for incorrect answers.</li>
+    </ol>
+    <p>When you are ready, click "Begin" to start the test.</p>
+</template>
+
+<template id="technical-instructions">
+    <h4 class="fw-bold fs-21 mb-4">Technical Knowledge Assessment</h4>
+    <h5 style="color:#4f48d2; font-weight: 600;">Purpose</h5>
+    <p>This assessment evaluates your understanding of key technical concepts and principles relevant to the role. It
+        helps identify areas of expertise and knowledge gaps.</p>
+    <h5 style="color:#4f48d2; font-weight: 600;">How to respond</h5>
+    <ol style="list-style:numeric; padding-left:18px;">
+        <li><strong>Read each question thoroughly.</strong> Pay attention to technical details that may impact your
+            answer.</li>
+        <li><strong>Consider all options</strong> before selecting your answer.</li>
+        <li><strong>Apply technical knowledge</strong> rather than guessing whenever possible.</li>
+        <li><strong>For code or technical problems,</strong> think about edge cases and potential issues.</li>
+        <li><strong>Pace yourself</strong> to ensure you have time to complete all questions.</li>
+    </ol>
+    <p>When you are ready, click "Begin" to start the test.</p>
+</template>
+
+<template id="situational-instructions">
+    <h4 class="fw-bold fs-21 mb-4">Situational Judgment Test</h4>
+    <h5 style="color:#4f48d2; font-weight: 600;">Purpose</h5>
+    <p>This assessment presents workplace scenarios to evaluate your decision-making skills, problem-solving approach,
+        and how you handle various professional situations.</p>
+    <h5 style="color:#4f48d2; font-weight: 600;">How to respond</h5>
+    <ol style="list-style:numeric; padding-left:18px;">
+        <li><strong>Read each scenario carefully.</strong> Consider the context and stakeholders involved.</li>
+        <li><strong>Evaluate all possible responses</strong> before selecting the most effective one.</li>
+        <li><strong>Choose the action</strong> that you believe would be most appropriate in the given situation.</li>
+        <li><strong>Consider organizational values</strong> and professional best practices in your decisions.</li>
+        <li><strong>Respond based on the information provided,</strong> not on assumptions beyond the scenario.</li>
+    </ol>
+    <p>When you are ready, click "Begin" to start the test.</p>
+</template>
+
+<template id="default-instructions">
+    <h4 class="fw-bold fs-21 mb-4" id="default-title">Assessment</h4>
+    <p id="default-description">Please complete the following assessment to the best of your ability.</p>
+    <h5 style="color:#4f48d2; font-weight: 600;">Instructions</h5>
+    <ol style="list-style:numeric; padding-left:18px;">
+        <li><strong>Read each question carefully</strong> before selecting your answer.</li>
+        <li><strong>Answer all questions</strong> to the best of your ability.</li>
+        <li><strong>Manage your time</strong> to ensure you complete all questions within the allocated time.</li>
+        <li><strong>Once submitted,</strong> you cannot change your answers.</li>
+    </ol>
+    <p>When you are ready, click "Begin" to start the test.</p>
+</template>
+
+
+<!-- Exit confirmation modal -->
+<div id="exitConfirmationModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-title">Exit Test</div>
+        <div class="modal-message">
+            Are you sure you want to leave this test? Your progress will not be saved.
+        </div>
+        <div class="modal-actions">
+            <button id="modalCancelBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+            <button id="modalExitBtn" class="modal-btn modal-btn-exit">Exit Test</button>
+        </div>
+    </div>
+</div>
+
+<!-- Submit confirmation modal -->
+<div id="submitConfirmationModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-title">Submit Section</div>
+        <div class="modal-message">
+            Are you sure you want to submit this section? You won't be able to change your answers after submission.
+        </div>
+        <div class="modal-actions">
+            <button id="submitCancelBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+            <button id="submitConfirmBtn" class="modal-btn modal-btn-submit">Submit</button>
+        </div>
+    </div>
+</div>
+
+<!-- Image modal -->
+<div id="imageModal" class="modal-overlay">
+    <div class="modal-content image-modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Image Preview</div>
+            <button id="closeImageModalBtn" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-image-container">
+            <img id="modalImage" src="" alt="Question Image" class="modal-image">
+        </div>
+    </div>
+</div>
+
+
+<style>
+
+      .introduction {
+	margin: 32px 0;
+	border: 1px solid #cecece;
+	border-radius: 10px;
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	overflow: hidden;
+}
+
+.inst-data h3 {
+	font-size: 32px;
+	font-weight: 600;
+	position: relative;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #dbd9d9;
+	margin-bottom: 23px;
+}
+
+.inst-data h3::before {
+	content: "";
+	background: #3f37c9;
+	width: 75px;
+	height: 2px;
+	position: absolute;
+	bottom: 0;
+}
+
+.instruction-content {
+	height: 350px;
+	overflow-y: auto;
+}
+
+.introduction table tr td, .introduction table tr th {
+	border: 1px solid #737373;
+	padding: 5px 9px;
+}
+
+
+    nav.navbar.navbar-expand-lg.bg-body-tertiary.py-0 {
+        display: none;
+    }
+
+    footer.footer-section.d-none.d-md-block {
+        display: none !important;
+    }
+
+
+
+    /* Modal styling */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.show {
+        display: flex;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 8px;
+        max-width: 400px;
+        width: 90%;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Image modal specific styling */
+    .image-modal-content {
+        max-width: 90%;
+        padding: 0;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .modal-image-container {
+        padding: 15px;
+        overflow: auto;
+        max-height: calc(90vh - 60px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-image {
+        max-width: 100%;
+        max-height: calc(90vh - 90px);
+        object-fit: contain;
+    }
+
+    .question-image img {
+        max-width: 100%;
+        height: auto;
+        margin: 1rem 0;
+        cursor: zoom-in;
+        transition: transform 0.3s ease;
+    }
+
+    .question-image img:hover {
+        transform: scale(1.05);
+    }
+
+    .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #3f37c9;
+    }
+
+    .modal-message {
+        margin-bottom: 20px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .modal-btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .modal-btn-cancel {
+        background-color: #e4e4e4;
+        color: #333;
+        border: none;
+    }
+
+    .modal-btn-exit {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+    }
+
+    .modal-btn-submit {
+        background-color: #28a745;
+        color: white;
+        border: none;
+    }
+
+    .modal-btn:hover {
+        opacity: 0.9;
+    }
+
+    /* Alert styling */
+    .alert {
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+
+    /* Back button styling */
+    .back {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f1f1;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        margin-bottom: 10px;
+    }
+
+    .back i {
+        color: #3f37c9;
+        font-size: 18px;
+    }
+
+    .back:hover {
+        background: #e6e6e6;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    @media (max-width: 768px) {
+        .back {
+            width: 36px;
+            height: 36px;
+        }
+
+        .back i {
+            font-size: 16px;
+        }
+    }
+
+    .progress-text {
+        display: block;
+        text-align: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+        line-height: 20px;
+    }
+
+
+    .progress-bar {
+        transition: width 0.4s ease-in-out;
+        box-shadow: 0 0 10px rgba(106, 17, 203, 0.4), 0 0 20px rgba(37, 117, 252, 0.4);
+    }
+
+    .progress {
+        background-color: #e9ecef;
+        border-radius: 20px;
+        height: 20px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(to right, #6a11cb, #2575fc);
+        /* Purple to blue */
+        border-radius: 20px;
+        transition: width 0.5s ease-in-out;
+    }
+
+    .page-header {
+        background: #f8f9fa;
+        padding: 1rem 0;
+
+    }
+
+    .answer-option.selected,
+    .answer-option:has(input:checked) {
+        border-color: none;
+        box-shadow: none;
+    }
+
+    .answer-option:hover {
+        box-shadow: none !important;
+    }
+
+    .answer-option {
+        background: no-repeat;
+        border: none;
+    }
+
+    #section-title {
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .timer {
+        font-size: 1rem;
+        color: rgb(63, 55, 201);
+        margin-top: 1rem;
+    }
+
+    .test-progress {
+        margin-bottom: 2rem;
+    }
+
+    .question-counter {
+        text-align: right;
+        margin-top: 0.5rem;
+        color: #666;
+    }
+
+    .questions-container {
+        margin-top: 2rem;
+    }
+
+    .question-box {
+        padding: 15px;
+        border-left: 4px solid #6e48aa;
+        background-color: #f9f7ff;
+        border-radius: 8px;
+    }
+
+    .question-box .question-card {
+        border: none;
+        box-shadow: none;
+        ;
+        /* Remove this line */
+        /* display: none; */
+    }
+
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .question-number {
+        font-weight: bold;
+        color: #495057;
+    }
+
+    .difficulty-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+
+    .difficulty-badge.easy {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .difficulty-badge.medium {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .difficulty-badge.hard {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .question-content {
+        margin-bottom: 1.5rem;
+    }
+
+    .question-image img {
+        max-width: 100%;
+        height: auto;
+        margin: 1rem 0;
+    }
+
+    .answers-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 0px;
+    }
+
+
+
+    .answer-option label {
+        margin: 0;
+        cursor: pointer;
+        flex: 1;
+    }
+
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+    }
+
+    .error {
+        color: #dc3545;
+        padding: 1rem;
+        border: 1px solid #dc3545;
+        border-radius: 4px;
+        margin: 1rem 0;
+    }
+
+
+    .answer-option input[type="radio"] {
+        margin-top: 0.25rem;
+    }
+
+    .answer-option label {
+        flex: 1;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .answer-option img {
+        max-width: 100%;
+        height: auto;
+        margin-top: 0.5rem;
+        cursor: zoom-in;
+    }
+
+    .question-container {
+        background-color: white;
+        border-radius: 0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+        margin-bottom: 20px;
+        border: 1px solid #cac7c7;
+    }
+
+    .btn.blue-button:disabled {
+        background: #e4e4e4;
+        color: #212529;
+        padding: 6px 0;
+        border-radius: 9px;
+        border-bottom: 5px solid #8698a8;
+    }
+
+    .custom-alert {
+        background: #efeff7;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 10px;
+        color: #282626;
+    }
+
+    .custom-alert .fa-circle-info {
+        color: #04a9dd;
+    }
+
+    .badge.badge-success {
+        padding: 7px 12px;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+
+    .question-layout {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .answers-container.radio-buttons {
+        list-style: lower-alpha;
+    }
+
+    .list-action {
+        margin-left: 36px;
+    }
+
+
+    .list-action .radio-buttons .custom-radio {
+        margin: 0 10px;
+    }
+
+    @media (max-width: 768px) {
+
+        .question-container {
+            padding: 12px;
+        }
+
+        .tm,
+        #timer {
+            font-size: 13px;
+        }
+
+        .question-counter {
+            margin-top: 0px;
+        }
+
+        .btn.blue-button:disabled {
+            padding: 6px 13px;
+        }
+
+        .question-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .question-text {
+            margin-bottom: 0;
+        }
+
+        .list-action {
+            margin-left: 0px;
+        }
+    }
+
+    /** header and footer  hide css **/
+    .mx-auto.hidden.lg\:flex.justify-between.py-\[16px\].border-b-\[2px\].border-\[\#EBEBEE\] {
+        display: none;
+    }
+
+    .hidden.lg\:block.bg-\[\#fdfcff\].mx-auto.py-\[60px\] {
+        display: none;
+    }
+</style>
+
+<!-- <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Extract both testId and sectionId from the URL path
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const sectionId = pathParts[pathParts.indexOf('section') + 1];
+
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let timer = null;
+
+        const testId = "{{test_id}}"
+        const sessionId = "{{session_id}}"; // Add this line to get session_id from context
+
+        let currentSession = sessionId || null;
+        let currentSectionSession = null;
+
+        // Modal elements
+        const exitModal = document.getElementById('exitConfirmationModal');
+        const submitModal = document.getElementById('submitConfirmationModal');
+        const imageModal = document.getElementById('imageModal');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalExitBtn = document.getElementById('modalExitBtn');
+        const submitCancelBtn = document.getElementById('submitCancelBtn');
+        const submitConfirmBtn = document.getElementById('submitConfirmBtn');
+        const closeImageModalBtn = document.getElementById('closeImageModalBtn');
+        const modalImage = document.getElementById('modalImage');
+
+        // Back button element
+        const backBtn = document.getElementById('BackBtn');
+
+        // Warning alert
+        const unansweredAlert = document.getElementById('unanswered-alert');
+
+        // Show introduction section
+        const introductionSection = document.getElementById('introduction-test-' + testId);
+        if (introductionSection) {
+            introductionSection.style.display = 'block';
+            document.querySelector('.question-container').style.display = 'none';
+        }
+
+        // Start button
+        const startBtn = document.getElementById('startBtn');
+        if (startBtn) {
+            startBtn.addEventListener('click', function () {
+                introductionSection.style.display = 'none';
+                document.querySelector('.question-container').style.display = 'block';
+            });
+        }
+
+        async function getOrCreateTestSession(testId) {
+            try {
+                // If we already have a session ID, try to get that session first
+                if (currentSession) {
+                    const getResponse = await fetch(`/api/sessions/${currentSession}/`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        credentials: 'same-origin'
+                    });
+
+                    if (getResponse.ok) {
+
+                        const session = await getResponse.json();
+                        if (!session.is_completed) {
+                            return session;
+                        }
+                    }
+                }
+
+                // If no valid session found, create new one
+                const response = await fetch('/api/sessions/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ test: testId })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('[ERROR] TestSession:', errorData);
+                    throw new Error('Failed to create/get test session');
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('[ERROR] getOrCreateTestSession:', error);
+                throw error;
+            }
+        }
+
+        async function getOrCreateSessionAndSectionSession(testId, sectionId) {
+            try {
+                const testSession = await getOrCreateTestSession(testId);
+
+                if (!testSession || !testSession.id) {
+                    throw new Error('Invalid test session');
+                }
+
+                currentSession = testSession.id;
+
+                // Try to get existing section session directly
+                try {
+                    const response = await fetch('/api/section-sessions/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({
+                            session: testSession.id,
+                            section: sectionId
+                        })
+                    });
+
+                    if (response.ok) {
+                        const sectionSession = await response.json();
+                        currentSectionSession = sectionSession;
+                        console.log('[DEBUG] Section session created/updated:', currentSectionSession);
+                    } else {
+                        console.error('[ERROR] Failed to create section session:', await response.json());
+                    }
+                } catch (err) {
+                    console.error('[ERROR] Error creating section session:', err);
+                }
+
+            } catch (error) {
+                console.error('[ERROR] getOrCreateSessionAndSectionSession:', error);
+                throw error;
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Function to load section-specific instructions
+        function loadSectionInstructions(sectionType, sectionTitle, sectionDescription) {
+            const instructionContent = document.getElementById('instruction-content');
+            let template;
+
+            // Map section_type to template id
+            switch (sectionType) {
+                case 'personality':
+                    template = document.getElementById('personality-instructions');
+                    break;
+                case 'aptitude':
+                    template = document.getElementById('aptitude-instructions');
+                    break;
+                case 'technical':
+                    template = document.getElementById('technical-instructions');
+                    break;
+                case 'situational':
+                    template = document.getElementById('situational-instructions');
+                    break;
+                default:
+                    template = document.getElementById('default-instructions');
+                    // Update default template with section title and description
+                    const defaultTemplate = template.content.cloneNode(true);
+                    if (sectionTitle) {
+                        defaultTemplate.getElementById('default-title').textContent = sectionTitle;
+                    }
+                    if (sectionDescription) {
+                        defaultTemplate.getElementById('default-description').textContent = sectionDescription;
+                    }
+                    instructionContent.innerHTML = '';
+                    instructionContent.appendChild(defaultTemplate);
+                    return;
+            }
+
+            if (template) {
+                instructionContent.innerHTML = '';
+                instructionContent.appendChild(template.content.cloneNode(true));
+            }
+        }
+
+        async function loadQuestions() {
+            try {
+                // Create or get session first
+                await getOrCreateSessionAndSectionSession(testId, sectionId);
+
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Accept': 'application/json'
+                };
+
+                const fetchConfig = {
+                    headers,
+                    credentials: 'same-origin'
+                };
+
+                // Load section details
+                const sectionUrl = `/api/sections/${sectionId}/`;
+
+                const sectionRes = await fetch(sectionUrl, fetchConfig);
+
+                if (!sectionRes.ok) {
+                    console.error('[ERROR] Failed to fetch section. Status:', sectionRes.status);
+                    const errorText = await sectionRes.text();
+                    console.error('[ERROR] Response text:', errorText);
+                    throw new Error('Failed to fetch section data');
+                }
+
+                const section = await sectionRes.json();
+
+                document.getElementById('section-title').textContent = section.title;
+
+                // Load appropriate instructions based on section type
+                loadSectionInstructions(section.section_type, section.title, section.description);
+
+                if (section.time_limit) {
+                    startTimer(section.time_limit * 60);
+                }
+
+                // Load questions
+                const questionsUrl = `/api/questions/?section=${sectionId}`;
+
+                const questionsRes = await fetch(questionsUrl, fetchConfig);
+
+                if (!questionsRes.ok) {
+                    console.error('[ERROR] Failed to fetch questions. Status:', questionsRes.status);
+                    const errorText = await questionsRes.text();
+                    console.error('[ERROR] Response text:', errorText);
+                    throw new Error('Failed to load questions');
+                }
+
+                const data = await questionsRes.json();
+
+                if (Array.isArray(data)) {
+                    questions = data;
+                } else if (Array.isArray(data.results)) {
+                    questions = data.results;
+                }
+
+                // Fetch answers for each question
+                for (let question of questions) {
+                    const answersUrl = `/api/answers/?question=${question.id}`;
+
+                    const answersRes = await fetch(answersUrl, fetchConfig);
+
+                    if (answersRes.ok) {
+                        const answersData = await answersRes.json();
+                        question.answers = answersData.results || answersData;
+                    } else {
+                        const errorText = await answersRes.text();
+                    }
+                }
+
+                questions.sort((a, b) => a.order - b.order);
+                document.getElementById('total-questions').textContent = questions.length;
+                document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+
+                if (questions.length === 0) {
+                    document.getElementById('questions-container').innerHTML =
+                        '<div class="alert alert-info">No questions available for this section.</div>';
+                    return;
+                }
+                renderCurrentQuestion();
+
+            } catch (error) {
+                document.getElementById('questions-container').innerHTML =
+                    '<div class="error">Failed to load questions. Please try refreshing the page.</div>';
+            }
+        }
+
+        function updateProgressBar() {
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercent = document.getElementById('progress-percent');
+            const currentQuestionElem = document.getElementById('current-question');
+
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressBar.setAttribute('aria-valuenow', progress.toFixed(0));
+            progressPercent.textContent = `${progress.toFixed(0)}%`;
+            currentQuestionElem.textContent = currentQuestionIndex + 1;
+        }
+
+        async function submitSection() {
+            try {
+                if (!currentSession || !currentSectionSession) {
+                    throw new Error('No active session found');
+                }
+
+                // Save the current question's answer before submitting
+                saveCurrentAnswer();
+
+                // Check if all questions are answered
+                const unansweredQuestions = [];
+                for (let i = 0; i < questions.length; i++) {
+                    const questionKey = `Question_${questions[i].order}`;
+                    if (!userAnswers[questionKey]) {
+                        unansweredQuestions.push(i + 1);
+                    }
+                }
+
+                if (unansweredQuestions.length > 0) {
+                    showNotification(`Please answer the following questions before submitting: ${unansweredQuestions.join(', ')}`, 'warning');
+                    return;
+                }
+
+                // Process all saved answers
+                let score = 0;
+                let totalQuestions = questions.length;
+                let categoryCounts = {};
+
+                // Count categories and calculate total score
+                Object.values(userAnswers).forEach(answer => {
+                    if (answer.category) {
+                        categoryCounts[answer.category] = (categoryCounts[answer.category] || 0) + 1;
+                    }
+                    score += answer.score;
+                });
+
+                // Save responses first
+                await fetch(`/api/responses/${currentSession}/save_responses/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        submitted_answers: userAnswers,
+                        category_counts: categoryCounts,
+                        score: score,
+                        total_questions: totalQuestions,
+                        section_session: currentSectionSession.id
+                    })
+                });
+
+                // Then submit the session
+                const resultRes = await fetch(`/api/sessions/${currentSession}/submit/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                if (!resultRes.ok) {
+                    const errorData = await resultRes.json();
+                    throw new Error(errorData.detail || 'Failed to submit test');
+                }
+
+                const result = await resultRes.json();
+
+                // Redirect to results page
+                window.location.href = `/api/web/test/${testId}/sections/`;
+
+            } catch (error) {
+                console.error('[ERROR] Error submitting section:', error);
+                showNotification('Error submitting section. Please try again.', 'error');
+            }
+        }
+
+        let userAnswers = {};
+
+        function renderCurrentQuestion() {
+            const question = questions[currentQuestionIndex];
+            const template = document.getElementById('question-template');
+            const questionCard = template.content.cloneNode(true);
+
+            // Hide unanswered alert
+            unansweredAlert.style.display = 'none';
+
+            // Make sure the card is visible
+            questionCard.querySelector('.question-card').style.display = 'block';
+
+            // Set question number and difficulty
+            questionCard.querySelector('.question-number').textContent = `Question ${currentQuestionIndex + 1}`;
+            if (question.question_level) {
+                const badge = questionCard.querySelector('.difficulty-badge');
+                badge.textContent = question.question_level;
+                badge.classList.add(question.question_level.toLowerCase());
+            }
+
+            // Set question text & image
+            questionCard.querySelector('.question-text').textContent = question.text;
+            if (question.image) {
+                const imgContainer = questionCard.querySelector('.question-image');
+                const img = document.createElement('img');
+                img.src = question.image;
+                img.alt = 'Question Image';
+                img.className = 'question-img';
+                img.setAttribute('data-src', question.image);
+                img.addEventListener('click', function () {
+                    openImageModal(this.getAttribute('data-src'));
+                });
+                imgContainer.appendChild(img);
+            }
+
+            // Create answer options
+            const answersContainer = questionCard.querySelector('.answers-container');
+            if (question.answers && question.answers.length > 0) {
+                question.answers.forEach(answer => {
+                    const answerDiv = document.createElement('li');
+                    answerDiv.className = 'answer-option';
+
+                    let answerHtml = `
+                     <label class="custom-radio" for="answer-${answer.id}">
+                            <input type="radio"
+                                name="question-${question.id}"
+                                id="answer-${answer.id}"
+                                value="${answer.id}"
+                                data-score="${answer.score || 0}"
+                                data-category="${answer.category || ''}"
+                                data-is-correct="${answer.is_correct}">
+                           <span class="radio-btn"> ${answer.text}</span>`;
+
+                    if (answer.image) {
+                        answerHtml += `<img src="${answer.image}" alt="Answer Image" class="answer-img" data-src="${answer.image}" onclick="event.preventDefault(); openImageModal('${answer.image}');">`;
+                    }
+
+                    answerHtml += `</label>`;
+
+                    answerDiv.innerHTML = answerHtml;
+                    answersContainer.appendChild(answerDiv);
+                });
+            } else {
+                console.warn(`No answers found for question ${question.id}`);
+                answersContainer.innerHTML = '<div class="alert alert-warning">No answers available for this question.</div>';
+            }
+
+            // Update container
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+            container.appendChild(questionCard);
+
+            // Restore previously selected answer if exists
+            const questionKey = `Question_${question.order}`;
+            if (userAnswers[questionKey]) {
+                const savedAnswerId = userAnswers[questionKey].answer_id;
+                const radioToCheck = document.querySelector(`input[value="${savedAnswerId}"]`);
+                if (radioToCheck) {
+                    radioToCheck.checked = true;
+                }
+            }
+
+            // Add event listeners to save answers when selected
+            const radioButtons = document.querySelectorAll(`input[name="question-${question.id}"]`);
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', saveCurrentAnswer);
+            });
+
+            // Add click event to all question images
+            document.querySelectorAll('.question-img, .answer-img').forEach(img => {
+                img.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    openImageModal(this.getAttribute('data-src'));
+                });
+            });
+
+            updateNavigationButtons();
+            updateProgressBar();
+
+            // Debug log
+            console.log('[DEBUG] Rendered question:', question);
+        }
+
+        // Function to open the image modal
+        function openImageModal(imageSrc) {
+            modalImage.src = imageSrc;
+            imageModal.classList.add('show');
+        }
+
+        // Function to close the image modal
+        function closeImageModal() {
+            imageModal.classList.remove('show');
+        }
+
+        // Add this new function to save the current answer
+        function saveCurrentAnswer() {
+            const question = questions[currentQuestionIndex];
+            const selectedInput = document.querySelector(
+                `input[name="question-${question.id}"]:checked`
+            );
+
+            if (selectedInput) {
+                const answerId = parseInt(selectedInput.value);
+                const answer = question.answers.find(a => a.id === answerId);
+
+                userAnswers[`Question_${question.order}`] = {
+                    question_id: question.id,
+                    answer_id: answerId,
+                    selected_answer: answer.text,
+                    correct_answer: answer.is_correct ? answer.text : null,
+                    score: parseInt(selectedInput.dataset.score) || 0,
+                    category: selectedInput.dataset.category || null
+                };
+            }
+        }
+
+        function updateNavigationButtons() {
+            const prevButton = document.getElementById('prev-question');
+            const nextButton = document.getElementById('next-question');
+            const submitButton = document.getElementById('submit-section');
+
+            prevButton.disabled = currentQuestionIndex === 0;
+            nextButton.style.display = currentQuestionIndex === questions.length - 1 ? 'none' : '';
+            submitButton.style.display = currentQuestionIndex === questions.length - 1 ? '' : 'none';
+        }
+
+        function startTimer(seconds) {
+            const timerDisplay = document.getElementById('time-remaining');
+            let timeLeft = seconds;
+
+            timer = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                timerDisplay.textContent = `${minutes}:${secs.toString().padStart(2, '0')}`;
+
+                if (timeLeft === 0) {
+                    clearInterval(timer);
+                    submitSection();
+                }
+                timeLeft--;
+            }, 1000);
+        }
+
+        function showNotification(message, type = 'info') {
+            if (type === 'warning') {
+                unansweredAlert.textContent = message;
+                unansweredAlert.style.display = 'block';
+                setTimeout(() => {
+                    unansweredAlert.style.display = 'none';
+                }, 5000);
+            } else {
+                alert(`${type.toUpperCase()}: ${message}`);
+            }
+        }
+
+        // Show and hide modal functions
+        function showExitConfirmationModal() {
+            exitModal.classList.add('show');
+        }
+
+        function hideExitConfirmationModal() {
+            exitModal.classList.remove('show');
+        }
+
+        function showSubmitConfirmationModal() {
+            submitModal.classList.add('show');
+        }
+
+        function hideSubmitConfirmationModal() {
+            submitModal.classList.remove('show');
+        }
+
+        // Check if an answer is selected before proceeding to next question
+        function checkAndProceedToNextQuestion() {
+            const question = questions[currentQuestionIndex];
+            const selectedInput = document.querySelector(
+                `input[name="question-${question.id}"]:checked`
+            );
+
+            if (!selectedInput) {
+                showNotification('Please select an answer before proceeding to the next question.', 'warning');
+                return false;
+            }
+
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderCurrentQuestion();
+                return true;
+            }
+
+            return false;
+        }
+
+        // Event Listeners
+        document.getElementById('prev-question').addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderCurrentQuestion();
+            }
+        });
+
+        document.getElementById('next-question').addEventListener('click', () => {
+            checkAndProceedToNextQuestion();
+        });
+
+        document.getElementById('submit-section').addEventListener('click', () => {
+            // First check if the current question has an answer
+            const question = questions[currentQuestionIndex];
+            const selectedInput = document.querySelector(
+                `input[name="question-${question.id}"]:checked`
+            );
+
+            if (!selectedInput) {
+                showNotification('Please select an answer before submitting.', 'warning');
+                return;
+            }
+
+            // Then show the submit confirmation modal
+            showSubmitConfirmationModal();
+        });
+
+        // Initialize modal buttons
+        if (modalCancelBtn) {
+            modalCancelBtn.addEventListener('click', hideExitConfirmationModal);
+        }
+
+        if (modalExitBtn) {
+            modalExitBtn.addEventListener('click', function () {
+                clearInterval(timer);  // Clear timer if running
+                window.location.href = `/api/web/test/${testId}/sections/`;
+            });
+        }
+
+        if (submitCancelBtn) {
+            submitCancelBtn.addEventListener('click', hideSubmitConfirmationModal);
+        }
+
+        if (submitConfirmBtn) {
+            submitConfirmBtn.addEventListener('click', function () {
+                hideSubmitConfirmationModal();
+                submitSection();
+            });
+        }
+
+        if (closeImageModalBtn) {
+            closeImageModalBtn.addEventListener('click', closeImageModal);
+        }
+
+        // Close image modal when clicking outside the image
+        imageModal.addEventListener('click', function (e) {
+            if (e.target === imageModal) {
+                closeImageModal();
+            }
+        });
+
+        if (backBtn) {
+            backBtn.addEventListener('click', function (e) {
+                // e.preventDefault();
+                showExitConfirmationModal();
+            });
+        }
+
+        // Expose the openImageModal function globally for inline event handlers
+        window.openImageModal = function (imageSrc) {
+            modalImage.src = imageSrc;
+            imageModal.classList.add('show');
+        };
+
+        // Initialize
+        loadQuestions();
+    });
+</script> -->
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    // Extract both testId and sectionId from the URL path
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const sectionId = pathParts[pathParts.indexOf('section') + 1];
+
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let timer = null;
+
+    const testId = "{{test_id}}"
+    const sessionId = "{{session_id}}"; // Add this line to get session_id from context
+
+    let currentSession = sessionId || null;
+    let currentSectionSession = null;
+
+    // Modal elements
+    const exitModal = document.getElementById('exitConfirmationModal');
+    const submitModal = document.getElementById('submitConfirmationModal');
+    const imageModal = document.getElementById('imageModal');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalExitBtn = document.getElementById('modalExitBtn');
+    const submitCancelBtn = document.getElementById('submitCancelBtn');
+    const submitConfirmBtn = document.getElementById('submitConfirmBtn');
+    const closeImageModalBtn = document.getElementById('closeImageModalBtn');
+    const modalImage = document.getElementById('modalImage');
+
+    // Back button element
+    const backBtn = document.getElementById('BackBtn');
+
+    // Warning alert
+    const unansweredAlert = document.getElementById('unanswered-alert');
+
+    // Show introduction section
+    const introductionSection = document.getElementById('introduction-test-' + testId);
+    if (introductionSection) {
+        introductionSection.style.display = 'block';
+        document.querySelector('.question-container').style.display = 'none';
+    }
+
+    // Start button
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) {
+        startBtn.addEventListener('click', function () {
+            introductionSection.style.display = 'none';
+            document.querySelector('.question-container').style.display = 'block';
+        });
+    }
+
+    async function getOrCreateTestSession(testId) {
+        try {
+            // If we already have a session ID, try to get that session first
+            if (currentSession) {
+                const getResponse = await fetch(`/api/sessions/${currentSession}/`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (getResponse.ok) {
+                    const session = await getResponse.json();
+                    if (!session.is_completed) {
+                        return session;
+                    }
+                }
+            }
+
+            // If no valid session found, create new one
+            const response = await fetch('/api/sessions/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ test: testId })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('[ERROR] TestSession:', errorData);
+                throw new Error('Failed to create/get test session');
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('[ERROR] getOrCreateTestSession:', error);
+            throw error;
+        }
+    }
+
+    async function getOrCreateSessionAndSectionSession(testId, sectionId) {
+        try {
+            const testSession = await getOrCreateTestSession(testId);
+
+            if (!testSession || !testSession.id) {
+                throw new Error('Invalid test session');
+            }
+
+            currentSession = testSession.id;
+
+            // Try to get existing section session directly
+            try {
+                const response = await fetch('/api/section-sessions/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        session: testSession.id,
+                        section: sectionId
+                    })
+                });
+
+                if (response.ok) {
+                    const sectionSession = await response.json();
+                    currentSectionSession = sectionSession;
+                    console.log('[DEBUG] Section session created/updated:', currentSectionSession);
+                } else {
+                    console.error('[ERROR] Failed to create section session:', await response.json());
+                }
+            } catch (err) {
+                console.error('[ERROR] Error creating section session:', err);
+            }
+
+        } catch (error) {
+            console.error('[ERROR] getOrCreateSessionAndSectionSession:', error);
+            throw error;
+        }
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Function to load section-specific instructions
+    function loadSectionInstructions(sectionType, sectionTitle, sectionDescription) {
+        const instructionContent = document.getElementById('instruction-content');
+        let template;
+
+        // Map section_type to template id
+        switch (sectionType) {
+            case 'personality':
+                template = document.getElementById('personality-instructions');
+                break;
+            case 'aptitude':
+                template = document.getElementById('aptitude-instructions');
+                break;
+            case 'technical':
+                template = document.getElementById('technical-instructions');
+                break;
+            case 'situational':
+                template = document.getElementById('situational-instructions');
+                break;
+            default:
+                template = document.getElementById('default-instructions');
+                // Update default template with section title and description
+                const defaultTemplate = template.content.cloneNode(true);
+                if (sectionTitle) {
+                    defaultTemplate.getElementById('default-title').textContent = sectionTitle;
+                }
+                if (sectionDescription) {
+                    defaultTemplate.getElementById('default-description').textContent = sectionDescription;
+                }
+                instructionContent.innerHTML = '';
+                instructionContent.appendChild(defaultTemplate);
+                return;
+        }
+
+        if (template) {
+            instructionContent.innerHTML = '';
+            instructionContent.appendChild(template.content.cloneNode(true));
+        }
+    }
+
+    async function loadQuestions() {
+        try {
+            // Create or get session first
+            await getOrCreateSessionAndSectionSession(testId, sectionId);
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Accept': 'application/json'
+            };
+
+            const fetchConfig = {
+                headers,
+                credentials: 'same-origin'
+            };
+
+            // Load section details
+            const sectionUrl = `/api/sections/${sectionId}/`;
+
+            const sectionRes = await fetch(sectionUrl, fetchConfig);
+
+            if (!sectionRes.ok) {
+                console.error('[ERROR] Failed to fetch section. Status:', sectionRes.status);
+                const errorText = await sectionRes.text();
+                console.error('[ERROR] Response text:', errorText);
+                throw new Error('Failed to fetch section data');
+            }
+
+            const section = await sectionRes.json();
+
+            document.getElementById('section-title').textContent = section.title;
+
+            // Load appropriate instructions based on section type
+            loadSectionInstructions(section.section_type, section.title, section.description);
+
+            if (section.time_limit) {
+                startTimer(section.time_limit * 60);
+            }
+
+            // Load questions
+            const questionsUrl = `/api/questions/?section=${sectionId}`;
+
+            const questionsRes = await fetch(questionsUrl, fetchConfig);
+
+            if (!questionsRes.ok) {
+                console.error('[ERROR] Failed to fetch questions. Status:', questionsRes.status);
+                const errorText = await questionsRes.text();
+                console.error('[ERROR] Response text:', errorText);
+                throw new Error('Failed to load questions');
+            }
+
+            const data = await questionsRes.json();
+
+            if (Array.isArray(data)) {
+                questions = data;
+            } else if (Array.isArray(data.results)) {
+                questions = data.results;
+            }
+
+            // Fetch answers for each question
+            for (let question of questions) {
+                const answersUrl = `/api/answers/?question=${question.id}`;
+
+                const answersRes = await fetch(answersUrl, fetchConfig);
+
+                if (answersRes.ok) {
+                    const answersData = await answersRes.json();
+                    question.answers = answersData.results || answersData;
+                } else {
+                    const errorText = await answersRes.text();
+                }
+            }
+
+            questions.sort((a, b) => a.order - b.order);
+            document.getElementById('total-questions').textContent = questions.length;
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+
+            if (questions.length === 0) {
+                document.getElementById('questions-container').innerHTML =
+                    '<div class="alert alert-info">No questions available for this section.</div>';
+                return;
+            }
+            renderCurrentQuestion();
+
+        } catch (error) {
+            document.getElementById('questions-container').innerHTML =
+                '<div class="error">Failed to load questions. Please try refreshing the page.</div>';
+        }
+    }
+
+    function updateProgressBar() {
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercent = document.getElementById('progress-percent');
+        const currentQuestionElem = document.getElementById('current-question');
+
+        const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressBar.setAttribute('aria-valuenow', progress.toFixed(0));
+        progressPercent.textContent = `${progress.toFixed(0)}%`;
+        currentQuestionElem.textContent = currentQuestionIndex + 1;
+    }
+
+    async function submitSection() {
+        try {
+            if (!currentSession || !currentSectionSession) {
+                throw new Error('No active session found');
+            }
+
+            // Save the current question's answer before submitting
+            saveCurrentAnswer();
+
+            // Check if all questions are answered
+            const unansweredQuestions = [];
+            for (let i = 0; i < questions.length; i++) {
+                const questionKey = `Question_${questions[i].order}`;
+                if (!userAnswers[questionKey]) {
+                    unansweredQuestions.push(i + 1);
+                }
+            }
+
+            if (unansweredQuestions.length > 0) {
+                showNotification(`Please answer the following questions before submitting: ${unansweredQuestions.join(', ')}`, 'warning');
+                return;
+            }
+
+            // Process all saved answers
+            let score = 0;
+            let totalQuestions = questions.length;
+            let categoryCounts = {};
+
+            // Count categories and calculate total score
+            Object.values(userAnswers).forEach(answer => {
+                if (answer.category) {
+                    categoryCounts[answer.category] = (categoryCounts[answer.category] || 0) + 1;
+                }
+                score += answer.score;
+            });
+
+            // Update section session end time before submitting
+            if (currentSectionSession && currentSectionSession.id) {
+                try {
+                    // Update the section session with the current time as end_time
+                    const updateResponse = await fetch(`/api/section-sessions/${currentSectionSession.id}/`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            end_time: new Date().toISOString(),
+                            is_completed: true
+                        })
+                    });
+                    
+                    if (!updateResponse.ok) {
+                        console.error('[ERROR] Failed to update section session end time:', await updateResponse.json());
+                    } else {
+                        console.log('[DEBUG] Successfully updated section session end time');
+                    }
+                } catch (err) {
+                    console.error('[ERROR] Error updating section session end time:', err);
+                }
+            }
+
+            // Save responses first
+            await fetch(`/api/responses/${currentSession}/save_responses/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    submitted_answers: userAnswers,
+                    category_counts: categoryCounts,
+                    score: score,
+                    total_questions: totalQuestions,
+                    section_session: currentSectionSession.id
+                })
+            });
+
+            // Then submit the session
+            const resultRes = await fetch(`/api/sessions/${currentSession}/submit/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (!resultRes.ok) {
+                const errorData = await resultRes.json();
+                throw new Error(errorData.detail || 'Failed to submit test');
+            }
+
+            const result = await resultRes.json();
+
+            // Redirect to results page
+            window.location.href = `/api/web/test/${testId}/sections/`;
+
+        } catch (error) {
+            console.error('[ERROR] Error submitting section:', error);
+            showNotification('Error submitting section. Please try again.', 'error');
+        }
+    }
+
+    let userAnswers = {};
+
+    function renderCurrentQuestion() {
+        const question = questions[currentQuestionIndex];
+        const template = document.getElementById('question-template');
+        const questionCard = template.content.cloneNode(true);
+
+        // Hide unanswered alert
+        unansweredAlert.style.display = 'none';
+
+        // Make sure the card is visible
+        questionCard.querySelector('.question-card').style.display = 'block';
+
+        // Set question number and difficulty
+        questionCard.querySelector('.question-number').textContent = `Question ${currentQuestionIndex + 1}`;
+        if (question.question_level) {
+            const badge = questionCard.querySelector('.difficulty-badge');
+            badge.textContent = question.question_level;
+            badge.classList.add(question.question_level.toLowerCase());
+        }
+
+        // Set question text & image
+        questionCard.querySelector('.question-text').textContent = question.text;
+        if (question.image) {
+            const imgContainer = questionCard.querySelector('.question-image');
+            const img = document.createElement('img');
+            img.src = question.image;
+            img.alt = 'Question Image';
+            img.className = 'question-img';
+            img.setAttribute('data-src', question.image);
+            img.addEventListener('click', function () {
+                openImageModal(this.getAttribute('data-src'));
+            });
+            imgContainer.appendChild(img);
+        }
+
+        // Create answer options
+        const answersContainer = questionCard.querySelector('.answers-container');
+        if (question.answers && question.answers.length > 0) {
+            question.answers.forEach(answer => {
+                const answerDiv = document.createElement('li');
+                answerDiv.className = 'answer-option';
+
+                let answerHtml = `
+                 <label class="custom-radio" for="answer-${answer.id}">
+                        <input type="radio"
+                            name="question-${question.id}"
+                            id="answer-${answer.id}"
+                            value="${answer.id}"
+                            data-score="${answer.score || 0}"
+                            data-category="${answer.category || ''}"
+                            data-is-correct="${answer.is_correct}">
+                       <span class="radio-btn"> ${answer.text}</span>`;
+
+                if (answer.image) {
+                    answerHtml += `<img src="${answer.image}" alt="Answer Image" class="answer-img" data-src="${answer.image}" onclick="event.preventDefault(); openImageModal('${answer.image}');">`;
+                }
+
+                answerHtml += `</label>`;
+
+                answerDiv.innerHTML = answerHtml;
+                answersContainer.appendChild(answerDiv);
+            });
+        } else {
+            console.warn(`No answers found for question ${question.id}`);
+            answersContainer.innerHTML = '<div class="alert alert-warning">No answers available for this question.</div>';
+        }
+
+        // Update container
+        const container = document.getElementById('questions-container');
+        container.innerHTML = '';
+        container.appendChild(questionCard);
+
+        // Restore previously selected answer if exists
+        const questionKey = `Question_${question.order}`;
+        if (userAnswers[questionKey]) {
+            const savedAnswerId = userAnswers[questionKey].answer_id;
+            const radioToCheck = document.querySelector(`input[value="${savedAnswerId}"]`);
+            if (radioToCheck) {
+                radioToCheck.checked = true;
+            }
+        }
+
+        // Add event listeners to save answers when selected
+        const radioButtons = document.querySelectorAll(`input[name="question-${question.id}"]`);
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', saveCurrentAnswer);
+        });
+
+        // Add click event to all question images
+        document.querySelectorAll('.question-img, .answer-img').forEach(img => {
+            img.addEventListener('click', function (e) {
+                e.preventDefault();
+                openImageModal(this.getAttribute('data-src'));
+            });
+        });
+
+        updateNavigationButtons();
+        updateProgressBar();
+
+        // Debug log
+        console.log('[DEBUG] Rendered question:', question);
+    }
+
+    // Function to open the image modal
+    function openImageModal(imageSrc) {
+        modalImage.src = imageSrc;
+        imageModal.classList.add('show');
+    }
+
+    // Function to close the image modal
+    function closeImageModal() {
+        imageModal.classList.remove('show');
+    }
+
+    // Add this new function to save the current answer
+    function saveCurrentAnswer() {
+        const question = questions[currentQuestionIndex];
+        const selectedInput = document.querySelector(
+            `input[name="question-${question.id}"]:checked`
+        );
+
+        if (selectedInput) {
+            const answerId = parseInt(selectedInput.value);
+            const answer = question.answers.find(a => a.id === answerId);
+
+            userAnswers[`Question_${question.order}`] = {
+                question_id: question.id,
+                answer_id: answerId,
+                selected_answer: answer.text,
+                correct_answer: answer.is_correct ? answer.text : null,
+                score: parseInt(selectedInput.dataset.score) || 0,
+                category: selectedInput.dataset.category || null
+            };
+        }
+    }
+
+    function updateNavigationButtons() {
+        const prevButton = document.getElementById('prev-question');
+        const nextButton = document.getElementById('next-question');
+        const submitButton = document.getElementById('submit-section');
+
+        prevButton.disabled = currentQuestionIndex === 0;
+        nextButton.style.display = currentQuestionIndex === questions.length - 1 ? 'none' : '';
+        submitButton.style.display = currentQuestionIndex === questions.length - 1 ? '' : 'none';
+    }
+
+    function startTimer(seconds) {
+        const timerDisplay = document.getElementById('time-remaining');
+        let timeLeft = seconds;
+
+        timer = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerDisplay.textContent = `${minutes}:${secs.toString().padStart(2, '0')}`;
+
+            if (timeLeft === 0) {
+                clearInterval(timer);
+                submitSection();
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    function showNotification(message, type = 'info') {
+        if (type === 'warning') {
+            unansweredAlert.textContent = message;
+            unansweredAlert.style.display = 'block';
+            setTimeout(() => {
+                unansweredAlert.style.display = 'none';
+            }, 5000);
+        } else {
+            alert(`${type.toUpperCase()}: ${message}`);
+        }
+    }
+
+    // Show and hide modal functions
+    function showExitConfirmationModal() {
+        exitModal.classList.add('show');
+    }
+
+    function hideExitConfirmationModal() {
+        exitModal.classList.remove('show');
+    }
+
+    function showSubmitConfirmationModal() {
+        submitModal.classList.add('show');
+    }
+
+    function hideSubmitConfirmationModal() {
+        submitModal.classList.remove('show');
+    }
+
+    // Check if an answer is selected before proceeding to next question
+    function checkAndProceedToNextQuestion() {
+        const question = questions[currentQuestionIndex];
+        const selectedInput = document.querySelector(
+            `input[name="question-${question.id}"]:checked`
+        );
+
+        if (!selectedInput) {
+            showNotification('Please select an answer before proceeding to the next question.', 'warning');
+            return false;
+        }
+
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderCurrentQuestion();
+            return true;
+        }
+
+        return false;
+    }
+
+    // Event Listeners
+    document.getElementById('prev-question').addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderCurrentQuestion();
+        }
+    });
+
+    document.getElementById('next-question').addEventListener('click', () => {
+        checkAndProceedToNextQuestion();
+    });
+
+    document.getElementById('submit-section').addEventListener('click', () => {
+        // First check if the current question has an answer
+        const question = questions[currentQuestionIndex];
+        const selectedInput = document.querySelector(
+            `input[name="question-${question.id}"]:checked`
+        );
+
+        if (!selectedInput) {
+            showNotification('Please select an answer before submitting.', 'warning');
+            return;
+        }
+
+        // Then show the submit confirmation modal
+        showSubmitConfirmationModal();
+    });
+
+    // Initialize modal buttons
+    if (modalCancelBtn) {
+        modalCancelBtn.addEventListener('click', hideExitConfirmationModal);
+    }
+
+    if (modalExitBtn) {
+        modalExitBtn.addEventListener('click', function () {
+            clearInterval(timer);  // Clear timer if running
+            window.location.href = `/api/web/test/${testId}/sections/`;
+        });
+    }
+
+    if (submitCancelBtn) {
+        submitCancelBtn.addEventListener('click', hideSubmitConfirmationModal);
+    }
+
+    if (submitConfirmBtn) {
+        submitConfirmBtn.addEventListener('click', function () {
+            hideSubmitConfirmationModal();
+            submitSection();
+        });
+    }
+
+    if (closeImageModalBtn) {
+        closeImageModalBtn.addEventListener('click', closeImageModal);
+    }
+
+    // Close image modal when clicking outside the image
+    imageModal.addEventListener('click', function (e) {
+        if (e.target === imageModal) {
+            closeImageModal();
+        }
+    });
+
+    if (backBtn) {
+        backBtn.addEventListener('click', function (e) {
+            // e.preventDefault();
+            showExitConfirmationModal();
+        });
+    }
+
+    // Expose the openImageModal function globally for inline event handlers
+    window.openImageModal = function (imageSrc) {
+        modalImage.src = imageSrc;
+        imageModal.classList.add('show');
+    };
+
+    // Initialize
+    loadQuestions();
+});
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,504 @@
+{% extends "template20/base.html" %}
+
+{% block title_content %}Login Signup | Top Teen{% endblock %}
+{% block description_content %}Login or sign up to TopTeen to access your career guidance dashboard and personalized resources.{% endblock %}
+
+{% block bodyclass %}login-page{% endblock %}
+
+{% block additionalhead %}
+<style>
+  /* Hide modal popups by default */
+  .hideModal {
+    display: none !important;
+  }
+  
+  /* Show modal popups when hideModal class is removed */
+  .modalPopup:not(.hideModal) {
+    display: flex !important;
+  }
+  
+  /* Ensure modals are properly styled and positioned */
+  .modalPopup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Modal content styling */
+  .modalContent {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 24px;
+    max-width: 395px;
+    width: 96%;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  /* Modal close button */
+  .modalCloser {
+    position: absolute;
+    top: 16px;
+    right: 22px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #333;
+    padding: 5px;
+    z-index: 10;
+  }
+  
+  .modalCloser:hover {
+    color: #3f37c9;
+  }
+  
+  /* Ensure form inputs are styled correctly */
+  .modalContent input[type="text"],
+  .modalContent input[type="email"],
+  .modalContent input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #DCDCDC;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  
+  .modalContent input[type="text"]:focus,
+  .modalContent input[type="email"]:focus,
+  .modalContent input[type="password"]:focus {
+    outline: none;
+    border-color: #3f37c9;
+  }
+  
+  /* OTP input styling */
+  .oinputs {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  /* Button styling in modals */
+  .modalContent button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    background-color: #3f37c9;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .modalContent button[type="submit"]:hover {
+    background-color: #2e289d;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .modalContent {
+      width: 95%;
+      padding: 20px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="login-home d-flex align-items-center">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-5 mx-auto">
+        <div class="login-center">
+          <form class="start-form" id="loginSignupForm">
+            <div class="login-screen text-center p-5">
+              <!-- Get Started Form -->
+              <div class="get-started-form">
+                <div class="logo-header text-center my-4">
+                  <img src="{{ static('images_new/topteen-haticon.svg') }}" alt="Logo" />
+                </div>
+                <h2 class="fs-22 mt-2 mb-2 fw-700 text-purple">Enter your details</h2>
+                <p class="text-gray fs-15">Make a new doc to bring your word, data, and teams together. For free</p>
+                
+                <div id="errorMsg" class="text-danger fs-12 mb-2" style="display: none;"></div>
+                <div id="errorMsgSinguplogin" class="text-danger fs-12 mb-2" style="display: none;"></div>
+                
+                <div class="form-row">
+                  <div class="col mb-4 icon-input email-icon">
+                    <input type="text" 
+                           class="form-control custom-input" 
+                           id="mobileEmail"
+                           name="user_name"
+                           placeholder="Enter Email Id"
+                           required>
+                    <div class="invalid-feedback float-start text-start mt-0 py-1" style="display: none;">
+                      Please Enter Correct Email Id.
+                    </div>
+                  </div>
+                  
+                  <div class="setting-button d-flex flex-column w-100">
+                    <button type="button"
+                            class="btn custom-button purple-button mb-3 fw-600"
+                            id="continueBtn"
+                            onclick="return loginsingup()">
+                      Continue
+                    </button>
+                  </div>
+                  
+                  <div class="divider-section position-relative mb-3">
+                    <div class="tor">OR</div>
+                  </div>
+                  
+                  <div class="social-button">
+                    <button type="button"
+                            class="btn custom-button google-btn mb-3 fw-600"
+                            onclick="window.location='{{ url('social:begin', args=['google-oauth2']) }}'">
+                      <img class="me-1" src="{{ static('images_new/google-icon.svg') }}" alt="google icon">
+                      Continue with Google
+                    </button>
+                    <button type="button"
+                            class="btn custom-button google-btn mb-3 fw-600"
+                            onclick="window.location='{{ url('social:begin', args=['facebook']) }}'">
+                      <img class="me-1" src="{{ static('images_new/fb-icon.svg') }}" alt="google icon">
+                      Contiune with Facebook
+                    </button>
+                  </div>
+
+                  <div class="privacy-test">
+                    <p class="text-gray fs-12 mt-2">
+                      By signing up for TopTeen, you agree to the
+                      <a href="{{ url('core:terms&condition') }}" class="text-purple">Terms and Conditions</a>
+                      and
+                      <a href="{{ url('core:privacypolicy') }}" class="text-purple">Privacy Policy</a>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Include OTP and Password Forms -->
+<!-- Using existing templates temporarily - will convert to template20 style later -->
+{% include 'topteenfrontend/user/signupotp.html' %}
+{% include 'topteenfrontend/user/signuppassword.html' %}
+{% include 'topteenfrontend/user/loginpassword.html' %}
+{% include 'topteenfrontend/user/forgotpasswordform.html' %}
+{% include 'topteenfrontend/user/forgotpasswordotp.html' %}
+
+{% endblock %}
+
+{% block additionaljs %}
+<!-- Include AJAX helper functions -->
+{% include 'topteenfrontend/includes/ajaxjs.html' %}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // Sweet Alert Helper - Must be defined before loginsignup.js
+  const fireAlert = async function (
+    title,
+    icon = "success",
+    showConfirmButton = false,
+    showCloseButton = false,
+    isPrompt = false
+  ) {
+    const canDo = Swal.fire({
+      title,
+      icon: icon,
+      position: "top-end",
+      showCloseButton,
+      showConfirmButton,
+      toast: true,
+      showCancelButton: false,
+      ...(isPrompt ? {} : { timer: 2000 }),
+    });
+
+    if (isPrompt) {
+      return canDo?.isConfirmed;
+    } else {
+      return -1;
+    }
+  };
+
+  // URL variables for AJAX calls - Must be defined before loginsignup.js
+  var usersloginsignup = "{{ url('users:loginsingup') }}";
+  var userssignupotpverify = "{{ url('users:signupotpverify') }}";
+  var usersloginsignuppwd = "{{ url('users:signuppwd') }}";
+  var usersloginpwd = "{{ url('users:loginpwd') }}";
+  var usersforgotpassword = "{{ url('users:forgotpassword') }}";
+  var usersforgotpasswordotp = "{{ url('users:forgotpasswordotp') }}";
+  var usersresendotp = "{{ url('users:resendotp') }}";
+</script>
+
+<!-- Load external JavaScript for login/signup functionality -->
+<script type="text/javascript" src="{{ static('topteenfrontend/assets/js/loginsignup.js') }}"></script>
+
+<script>
+
+  // Submit form on Enter key and handle modal interactions
+  document.addEventListener('DOMContentLoaded', function() {
+    // Email input enter key
+    const emailInput = document.getElementById('mobileEmail');
+    if (emailInput) {
+      emailInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (typeof loginsingup === 'function') {
+            loginsingup();
+          }
+        }
+      });
+    }
+    
+    // Password input enter key (login password modal)
+    const loginPasswordInput = document.querySelector('#loginpwd input[name="password"]');
+    if (loginPasswordInput) {
+      loginPasswordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (typeof loginpwd === 'function') {
+            loginpwd();
+          }
+        }
+      });
+    }
+    
+    // Forgot password email input enter key
+    const forgotEmailInput = document.getElementById('forgotmobileEmail');
+    if (forgotEmailInput) {
+      forgotEmailInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (typeof forgotpassword === 'function') {
+            forgotpassword();
+          }
+        }
+      });
+    }
+    
+    // OTP inputs auto-tab and enter key (signup OTP)
+    const signupOtpInputs = document.querySelectorAll('#singupotp input[name="otp"]');
+    signupOtpInputs.forEach(function(input, index) {
+      // Auto-tab to next input
+      input.addEventListener('input', function(e) {
+        if (this.value.length === 1 && index < signupOtpInputs.length - 1) {
+          signupOtpInputs[index + 1].focus();
+        }
+      });
+      // Backspace to previous input
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && this.value === '' && index > 0) {
+          signupOtpInputs[index - 1].focus();
+        }
+        // Enter key on last OTP input
+        if (e.key === 'Enter' && index === signupOtpInputs.length - 1) {
+          e.preventDefault();
+          if (typeof loginsingupotp === 'function') {
+            loginsingupotp();
+          }
+        }
+      });
+    });
+    
+    // OTP inputs auto-tab and enter key (forgot password OTP)
+    const forgotOtpInputs = document.querySelectorAll('#forgototppwd input[name="otp"]');
+    forgotOtpInputs.forEach(function(input, index) {
+      // Auto-tab to next input
+      input.addEventListener('input', function(e) {
+        if (this.value.length === 1 && index < forgotOtpInputs.length - 1) {
+          forgotOtpInputs[index + 1].focus();
+        }
+      });
+      // Backspace to previous input
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && this.value === '' && index > 0) {
+          forgotOtpInputs[index - 1].focus();
+        }
+      });
+    });
+    
+    // New password and confirm password fields enter key (forgot password OTP form)
+    const forgotNewPasswordInput = document.querySelector('#forgototppwd input[name="password"]');
+    if (forgotNewPasswordInput) {
+      forgotNewPasswordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          // Focus on confirm password field
+          const confirmPasswordInput = document.querySelector('#forgototppwd input[name="confirm_password"]');
+          if (confirmPasswordInput) {
+            confirmPasswordInput.focus();
+          }
+        }
+      });
+    }
+    
+    const forgotConfirmPasswordInput = document.querySelector('#forgototppwd input[name="confirm_password"]');
+    if (forgotConfirmPasswordInput) {
+      forgotConfirmPasswordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (typeof forgotpasswordotp === 'function') {
+            forgotpasswordotp();
+          }
+        }
+      });
+    }
+    
+    // Signup password fields enter key
+    const signupPasswordInput = document.getElementById('signupPassword');
+    if (signupPasswordInput) {
+      signupPasswordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const confirmPasswordInput = document.getElementById('signupConfirmPassword');
+          if (confirmPasswordInput) {
+            confirmPasswordInput.focus();
+          }
+        }
+      });
+    }
+    
+    const signupConfirmPasswordInput = document.getElementById('signupConfirmPassword');
+    if (signupConfirmPasswordInput) {
+      signupConfirmPasswordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (typeof loginsinguppwd === 'function') {
+            loginsinguppwd();
+          }
+        }
+      });
+    }
+    
+    // Auto-focus password input when login password modal opens
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const loginPwdDiv = document.getElementById('loginpwdDiv');
+          if (loginPwdDiv && !loginPwdDiv.classList.contains('hideModal')) {
+            setTimeout(function() {
+              const passwordInput = document.querySelector('#loginpwd input[name="password"]');
+              if (passwordInput) {
+                passwordInput.focus();
+              }
+            }, 100);
+          }
+        }
+      });
+    });
+    
+    const loginPwdDiv = document.getElementById('loginpwdDiv');
+    if (loginPwdDiv) {
+      observer.observe(loginPwdDiv, { attributes: true });
+    }
+    
+    // Override loginpwd to ensure proper redirect after login
+    const originalLoginpwd = window.loginpwd;
+    if (originalLoginpwd) {
+      window.loginpwd = function() {
+        var formData = new FormData(document.getElementById("loginpwd"));
+        if (validateloginpwd(formData) == false) {
+          return false;
+        }
+        $.ajax({
+          type: "POST",
+          url: usersloginpwd,
+          data: formData,
+          success: function (data) {
+            if (data.success) {
+              // Hide modal
+              document.getElementById("loginpwdDiv").classList.add("hideModal");
+              // Redirect to dashboard
+              if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+              } else {
+                window.location.href = "{{ url('app:test_buttons') }}";
+              }
+            }
+            if (data.success == false) {
+              var otperrtag = document.getElementById("errorMsgloginpwd");
+              if (otperrtag) {
+                otperrtag.textContent = data.errMsg || "Password doesn't match. Please try again.";
+                otperrtag.style.display = 'block';
+              }
+            }
+          },
+          error: function (xhr, status, error) {
+            try {
+              if (xhr.status === 403) {
+                setTimeout(function() {
+                  window.location.href = '/user/login';
+                }, 100);
+              } else if (xhr.status === 400) {
+                fireAlert("Invalid request. Please check your input and try again", "error");
+              } else if (xhr.status === 401) {
+                fireAlert("Authentication failed. Please check your credentials", "error");
+              } else if (xhr.status === 500) {
+                fireAlert("Server error. Please try again later", "error");
+              } else if (xhr.status === 0) {
+                fireAlert("Network error. Please check your connection", "error");
+              } else {
+                fireAlert("Something went wrong. Please try again", "error");
+              }
+            } catch (e) {
+              fireAlert("An unexpected error occurred. Please try again", "error");
+            }
+          },
+          cache: false,
+          contentType: false,
+          processData: false,
+        });
+        return false;
+      };
+    }
+  });
+
+  // Check if user is already logged in and redirect
+  {% if request.user.is_authenticated %}
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  
+  fetch("{{ url('users:getdashboardurl') }}", {
+    method: 'GET',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken')
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.redirect_url) {
+      window.location.href = data.redirect_url;
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    window.location.href = "{{ url('app:test_buttons') }}";
+  });
+  {% endif %}
+</script>
+{% endblock %}
+

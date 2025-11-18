@@ -1,0 +1,85 @@
+{% extends 'topteenfrontend/user/user_base.html' %}
+ 
+{% block main %}
+<main class="lg:pt-[30px] lg:max-w-[1280px] mx-auto bg-[#ffffff] pb-[200px] lg:pb-0">
+
+    {% if breadcrumb  %}
+    <!-- BreadCrumb -->
+    <section class="px-[20px] lg:px-[100px] gap-[16px] hidden lg:flex">
+        {% for brd in breadcrumb %}
+        {% if not loop.last and loop.first %}
+        <a href="{{brd.url}}" class="">
+            <img src="{{static("topteenfrontend/assets/images/home.svg")}}" class=" my-auto" alt="">
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if not loop.last and not loop.first  %}
+        <a href="{{brd.url}}" class="my-auto">
+            <p class="text-[12px] my-auto">{{brd.title}}</p>
+        </a>
+        <i class="fa-solid fa-arrow-right my-auto text-[12px]"></i>
+        {% endif %}
+        {% if loop.last%}
+        <a href="#" class="my-auto">
+            <p class="text-[12px]">{{brd.title}}</p>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </section>
+    <!-- End of Breadcrumb -->
+    {% endif %}
+
+    <!-- Notepad Heading -->
+    <section class="lg:pt-[21px] fixed lg:relative top-0 pt-[12px] lg:pt-0 z-30 w-full bg-[#ffffff]">
+        <div class="py-[24px] border-b-[2px] border-solid border-[#ebebee] lg:hidden relative px-[20px] lg:px-[100px] ">
+            <p class="text-[16px] leading-[21px] regularFont text-[#0f0f0f] text-center">My Notepad</p>
+            <button type="button" class="absolute bottom-[18px] right-[24px]" onclick="window.location='{{url('users:scrapbook')}}'">
+                <i class="fa-solid fa-xmark text-[#828282] text-[24px] leading-[50px]"></i>
+            </button>
+        </div>
+  
+        <div class="hidden lg:flex justify-between px-[20px] lg:px-[100px] ">
+            <p class="text-[24px] leading-[32px] semibold text-[#0f0f0f] my-auto">My Notepad</p>
+            <button onclick="window.location='{{url('users:createnote')}}'" class="w-[144px] h-[53px] bg-[#2e289d] rounded-[100px] relative my-auto">
+                <div class="w-[144px] flex justify-center items-center gap-[8px] h-[48px] rounded-[100px] bg-[#3f37c9] absolute top-0">
+                    <i class="fa-solid fa-plus text-[#ffffff] boldFont text-[14px] leading-[19px]"></i>
+                    <p class="text-[#ffffff] text-[14px] leading-[19px] boldFont">New Note</p>
+                </div>
+            </button>
+        </div>
+    </section>
+    <!-- End of Notepad Heading -->
+
+    <section class="pt-[110px] lg:pt-[50px] flex flex-wrap lg:flex-row gap-[15px] lg:gap-x-[30px] lg:gap-y-[20px] px-[20px] lg:pl-[100px] lg:pr-[90px] overflow-y-auto">
+        {% for note in notes %}
+        <a href="{{url('users:updatenote',args=[note.id])}}" class="w-full rounded-[10px] w-full lg:w-[248px] lg:h-[200px]  ">
+            <div class="bg-[#f7f7fa] rounded-[10px] w-full lg:w-[248px] lg:h-[200px] py-[14px] px-[14px] lg:px-[24px] overflow-hidden">
+                <img src="{{static("topteenfrontend/assets/images/pin.svg")}}" class="w-[24px] h-[34px] object-contain" alt="">
+                <p class="text-[14px] leading-[20px] lg:text-[16px] lg:leading-[22px] semibold text-[#494949]">{% if note.title %}{{note.title}}{% endif %}</p>
+                <p class="mt-[3px] lg:mt-0 text-[10px] leading-[14px] lg:text-[12px] lg:leading-[16px] text-[#bdbdbd]">{{note.modified.strftime("%d %b, %Y")}}</p>
+
+                <div class="mt-[10px] lg:mt-[7px] lg:max-w-[201px] lg:h-[82px] overflow-hidden lg:mb-[14px]"> 
+                    <p class="text-[12px] leading-[16px] regularFont text-[#494949] text-opacity-80 lg:max-w-[201px] lg:max-h-[109px] overflow-x-hidden overflow-y-hidden">{% if note.content %}{{note.content}}{% endif %}</p>
+                </div>
+
+            </div>
+        </a>
+        {% endfor %}
+
+        <div class="flex justify-center lg:hidden fixed bottom-[120px] left-[50%] -translate-x-[50%] z-30">
+
+            <button onclick="window.location='{{url('users:createnote')}}'" class="w-[144px] h-[53px] bg-[#2e289d] rounded-[100px] relative my-auto">
+                <div class="w-[144px] flex justify-center items-center gap-[8px] h-[48px] rounded-[100px] bg-[#3f37c9] absolute top-0">
+                    <i class="fa-solid fa-plus text-[#ffffff] boldFont text-[14px] leading-[19px]"></i>
+                    <p class="text-[#ffffff] text-[14px] leading-[19px] boldFont">New Note</p>
+                </div>
+            </button>
+    
+        </div>
+
+    </section> 
+
+
+
+</main>
+{% endblock %}

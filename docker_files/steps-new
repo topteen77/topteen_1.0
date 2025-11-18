@@ -1,0 +1,46 @@
+step 1. create network
+docker network ls
+docker network create --driver overlay canam-network
+step 2 create images using build
+docker build -t developertopteen/demotopteen:topteens_django_env . -f docker_files/DockerfileEnv
+docker build -t developertopteen/demotopteen:topteens_django_dev . -f Dockerfile
+#docker build -t developertopteen/demotopteen:topteens_django_env . -f DockerfileEnv
+#cd ..
+#docker build -t developertopteen/demotopteen:topteens_django_prod . -f Dockerfile
+step 3 deploy images to list services
+docker stack deploy --compose-file docker-compose-services.yaml services --resolve-image always --with-registry-auth
+docker stack deploy --compose-file docker-compose.yaml tt_dev --resolve-image always --with-registry-auth
+
+docker service ls
+docker stack deploy
+
+
+cd docker_files
+
+using docker-compose:
+docker network ls
+docker network create --driver overlay canam-network
+
+#step 1 docker images run
+#docker run -d -p 8000:8000 developertopteen/demotopteen:topteens_django_env
+#docker run -d -p 8001:8000  developertopteen/demotopteen:topteens_django_prod
+
+#docker-compose -f docker-compose-services.yaml up -d
+#docker-compose -f docker-compose-local.yaml up -d
+#docker-compose  exec django python manage.py migrate
+
+
+docker ps
+docker network connect canam-network mariadb 
+docker exec -it 04c4864baa111b7028dc5f112ffdb970b45095b985abdd3fd4bf95013b7e7e4e mariadb -uroot -p
+docker exec -e MYSQL_PWD=root mariadb  mysqldump -u root <database_name> > /backup/mydatabase_dump.sql
+
+docker run --name mariadb -p 8887:3306 -e MARIADB_ROOT_PASSWORD=root -d mariadb
+docker exec -it mariadb mariadb -uroot -p
+
+docker run --name mariadb --network canam-network -e MYSQL_ROOT_PASSWORD=root -d mariadb
+step 2 import database
+docker run -d --name mariadb-latest -e MYSQL_ROOT_PASSWORD=root mysql
+
+step 3 docker images run 
+docker-compose -f docker-compose-services.yaml up --build

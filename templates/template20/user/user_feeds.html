@@ -1,0 +1,426 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}User Feeds | Top Teen{% endblock %}
+{% block description_content %}Discover personalized content including careers, videos, courses, exams, and blogs tailored to your interests.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} user-feeds{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .user-feeds {
+    padding-top: 80px;
+  }
+  .feed-card {
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s;
+  }
+  .feed-card:hover {
+    transform: translateY(-5px);
+  }
+  .story-item {
+    min-width: 155px;
+    height: 127px;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .story-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    overflow: hidden;
+    margin: 0 auto 10px;
+  }
+  .career-tab {
+    border-radius: 100px;
+    padding: 11px 16px;
+    background: #F8F8F8;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+  }
+  .career-tab.active {
+    background: #3f37c9;
+    color: white;
+  }
+  .career-tab.active img {
+    filter: brightness(0) invert(1);
+  }
+  .scrollable-section {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .scrollable-section::-webkit-scrollbar {
+    display: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="user-feeds pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <!-- Left Sidebar -->
+      <div class="col-lg-3 d-none d-lg-block">
+        <!-- Checklist -->
+        <div class="border rounded p-3 mb-4">
+          <h5 class="fs-16 fw-semibold mb-3">Your Checklist</h5>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex align-items-center">
+              <input type="checkbox" class="form-check-input me-2">
+              <label class="form-check-label fs-12 text-gray">Take psychometric test</label>
+            </div>
+            <div class="d-flex align-items-center gap-1 bg-light rounded-pill px-2 py-1">
+              <i class='bx bx-star text-warning fs-12'></i>
+              <span class="fs-10 fw-semibold text-gray">300</span>
+            </div>
+          </div>
+        </div>
+        <!-- End Checklist -->
+
+        <!-- Scrapbook -->
+        <div class="border rounded p-3">
+          <div class="d-flex align-items-center mb-3">
+            <i class='bx bx-book fs-16 me-2 text-purple'></i>
+            <h5 class="fs-12 fw-semibold mb-0">My Scrapbook</h5>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mb-3" id="addfolder">
+            {% if folders %}
+              {% for folder in folders[:3] %}
+              <a href="{{ url('users:userfolder', args=[folder.id]) }}" class="badge bg-light text-dark px-3 py-2">
+                {{ folder.name }}
+              </a>
+              {% endfor %}
+            {% endif %}
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-sm btn-outline-secondary addFolderPopBtn">
+              <i class='bx bx-plus me-1'></i> Add Folder
+            </button>
+            <a href="{{ url('users:userfolders') }}" class="btn btn-sm btn-outline-secondary">
+              View All
+            </a>
+          </div>
+        </div>
+        <!-- End Scrapbook -->
+      </div>
+      <!-- End Left Sidebar -->
+
+      <!-- Main Feed Content -->
+      <div class="col-lg-9">
+        <!-- Story Updates -->
+        {% if story_subject and is_story %}
+        <div class="mb-4">
+          <h2 class="fs-24 fw-semibold mb-3 d-none d-lg-block">Story Updates</h2>
+          <h2 class="fs-15 fw-semibold mb-3 d-lg-none">Career Highlights</h2>
+          <div class="scrollable-section d-flex gap-3 pb-2">
+            {% for sbj in story_subject %}
+              {% if sbj.is_story %}
+              <div class="story-item text-center" onclick="openStory('{{ sbj.slug }}')">
+                <div class="position-relative h-100">
+                  {% if sbj.get_first_story %}
+                  <img src="{{ sbj.get_first_story.file.url }}" class="position-absolute top-0 start-0 w-100 h-100 object-cover" style="filter: brightness(0.75);" alt="{{ sbj.name }}">
+                  {% endif %}
+                  <div class="position-relative h-100 d-flex flex-column justify-content-center align-items-center p-3">
+                    <div class="story-circle">
+                      {% if sbj.image %}
+                      <img src="{{ sbj.image.url }}" class="w-100 h-100 object-cover" alt="{{ sbj.name }}">
+                      {% else %}
+                      <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                        <i class='bx bx-book fs-24'></i>
+                      </div>
+                      {% endif %}
+                    </div>
+                    <p class="text-white fs-12 fw-semibold mb-0">{{ sbj.name }}</p>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <!-- End Story Updates -->
+
+        <!-- Top Career Choices -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="fs-24 fw-semibold mb-0 d-none d-lg-block">Top Career Choices</h2>
+            <h2 class="fs-15 fw-semibold mb-0 d-lg-none">Career Picks</h2>
+            <a href="{{ url('careers:career') }}" class="text-purple fs-12 fw-semibold">View All</a>
+          </div>
+
+          <!-- Career Tabs -->
+          <div class="scrollable-section d-flex gap-2 mb-3 pb-2">
+            {% for tag in tags %}
+            <button onclick="openCareer('{{ tag.slug }}')" class="career-tab {% if loop.first %}active{% endif %} d-flex align-items-center gap-2" data-tag="{{ tag.slug }}">
+              {% if tag.icon %}
+              <img src="{{ tag.icon.url }}" class="w-24 h-24" alt="{{ tag.name }}">
+              {% else %}
+              <i class='bx bx-tag fs-18'></i>
+              {% endif %}
+              <span class="fs-12 fw-semibold">{{ tag.name }}</span>
+            </button>
+            {% endfor %}
+          </div>
+          <!-- End Career Tabs -->
+
+          <!-- Career Content -->
+          <div class="position-relative">
+            {% for tag in tags %}
+            <div id="career-{{ tag.slug }}" class="career-content {% if not loop.first %}d-none{% endif %}">
+              <div class="scrollable-section d-flex gap-3 pb-2">
+                {% for career in tag.career_set.all()[:8] %}
+                <div class="feed-card" style="min-width: 157px; max-width: 248px;">
+                  <a href="{{ career.url() }}" class="text-decoration-none">
+                    <div class="position-relative">
+                      {% if career.image and career.image.name %}
+                      <img src="{{ career.image.url }}" class="w-100" style="height: 192px; object-fit: cover;" alt="{{ career.name }}">
+                      {% else %}
+                      <img src="{{ static('images/career-icon.png') }}" class="w-100" style="height: 192px; object-fit: cover;" alt="{{ career.name }}">
+                      {% endif %}
+                      <div class="position-absolute top-0 end-0 m-2">
+                        <div class="bg-white rounded-circle p-2" style="width: 27px; height: 27px;">
+                          <i class='bx bx-bookmark fs-14 text-gray'></i>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="p-2">
+                      <h6 class="fs-14 fw-semibold text-dark mb-1">{{ career.name }}</h6>
+                      <div class="d-flex align-items-center gap-2">
+                        <span class="text-gray fs-13">{{ career.get_max_salary() }}</span>
+                        <i class='bx bx-star text-warning fs-14'></i>
+                        <span class="text-gray fs-13">4.4</span>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <!-- End Career Content -->
+        </div>
+        <!-- End Top Career Choices -->
+
+        <!-- Psychometric Test Banner -->
+        <div class="bg-purple rounded p-4 mb-4 text-white position-relative overflow-hidden">
+          <div class="row align-items-center">
+            <div class="col-lg-8">
+              <h3 class="fs-24 fw-bold mb-3">Confused about which career track suits you best?</h3>
+              <p class="fs-14 mb-3 d-none d-lg-block">Take a quick psychometric quiz and understand your inclinations better.</p>
+              <a href="{{ url('psychometrictests:psychometrictest') }}" class="btn btn-light text-dark fw-bold">
+                TAKE PSYCHOMETRIC TEST
+              </a>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-end">
+              <img src="{{ static('images_new/general/cardboard.png') }}" class="img-fluid" alt="Career Guidance" style="max-height: 200px;">
+            </div>
+          </div>
+        </div>
+        <!-- End Psychometric Test Banner -->
+
+        <!-- Trending Videos -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="fs-24 fw-semibold mb-0">Trending Videos</h2>
+            <a href="{{ url('careers:careervideos') }}" class="text-purple fs-12 fw-semibold">View All</a>
+          </div>
+          <div class="scrollable-section d-flex gap-3 pb-2">
+            {% for video in videos[:6] %}
+            <div class="feed-card" style="min-width: 200px; max-width: 300px;">
+              <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="text-decoration-none">
+                <div class="position-relative">
+                  {% if video.video_image %}
+                  <img src="{{ video.video_image.url }}" class="w-100" style="height: 150px; object-fit: cover;" alt="{{ video.name }}">
+                  {% else %}
+                  <div class="bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
+                    <i class='bx bx-play-circle fs-48 text-gray'></i>
+                  </div>
+                  {% endif %}
+                  <div class="position-absolute top-50 start-50 translate-middle">
+                    <i class='bx bx-play-circle fs-48 text-white'></i>
+                  </div>
+                </div>
+                <div class="p-2">
+                  <h6 class="fs-14 fw-semibold text-dark mb-1">{{ video.name|truncate(50) }}</h6>
+                  <p class="text-gray fs-12 mb-0">{{ date_format(video.created) }}</p>
+                </div>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <!-- End Trending Videos -->
+
+        <!-- SkillLab Courses -->
+        {% if skilllab_courses %}
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="fs-24 fw-semibold mb-0">SkillLab Courses</h2>
+            <a href="{{ url('skilllab:skilllab_course_list') }}" class="text-purple fs-12 fw-semibold">View All</a>
+          </div>
+          <div class="scrollable-section d-flex gap-3 pb-2">
+            {% for course in skilllab_courses[:6] %}
+            <div class="feed-card border" style="min-width: 200px; max-width: 300px;">
+              <a href="{{ course.url() if course.url else '#' }}" class="text-decoration-none">
+                {% if course.image %}
+                <img src="{{ course.image.url }}" class="w-100" style="height: 150px; object-fit: cover;" alt="{{ course.name }}">
+                {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
+                  <i class='bx bx-book fs-48 text-gray'></i>
+                </div>
+                {% endif %}
+                <div class="p-2">
+                  <h6 class="fs-14 fw-semibold text-dark mb-1">{{ course.name|truncate(50) }}</h6>
+                  {% if course.summary %}
+                  <p class="text-gray fs-12 mb-0">{{ course.summary|truncate(80) }}</p>
+                  {% endif %}
+                </div>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <!-- End SkillLab Courses -->
+
+        <!-- Entrance Exams -->
+        {% if exams %}
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="fs-24 fw-semibold mb-0">Entrance Exams</h2>
+            <a href="{{ url('testprep:testprep_list') }}" class="text-purple fs-12 fw-semibold">View All</a>
+          </div>
+          <div class="row g-3">
+            {% for exam in exams[:6] %}
+            <div class="col-md-4">
+              <div class="feed-card border p-3">
+                <a href="{{ exam.url() if exam.url else '#' }}" class="text-decoration-none">
+                  <h6 class="fs-14 fw-semibold text-dark mb-2">{{ exam.name|truncate(50) }}</h6>
+                  {% if exam.description %}
+                  <p class="text-gray fs-12 mb-0">{{ exam.description|truncate(100) }}</p>
+                  {% endif %}
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <!-- End Entrance Exams -->
+
+        <!-- Trending Content (Blogs) -->
+        {% if blogs %}
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="fs-24 fw-semibold mb-0">Trending Content</h2>
+            <a href="{{ url('blog:blogs') }}" class="text-purple fs-12 fw-semibold">View All</a>
+          </div>
+          <div class="row g-3">
+            {% for blog in blogs[:9] %}
+            <div class="col-md-4">
+              <div class="d-flex gap-3">
+                <a href="{{ blog.url() }}" class="text-decoration-none">
+                  <div class="flex-shrink-0">
+                    {% if blog.image %}
+                    <img src="{{ blog.image.url }}" class="rounded" style="width: 69px; height: 69px; object-fit: cover;" alt="{{ blog.title }}">
+                    {% else %}
+                    <img src="{{ static('images_new/blogs/main-blog.png') }}" class="rounded" style="width: 69px; height: 69px; object-fit: cover;" alt="{{ blog.title }}">
+                    {% endif %}
+                  </div>
+                </a>
+                <div class="flex-grow-1">
+                  <a href="{{ blog.url() }}" class="text-decoration-none">
+                    <h6 class="fs-13 fw-semibold text-dark mb-2">{{ blog.title|truncate(60) }}</h6>
+                  </a>
+                  {% if blog.category %}
+                  <a href="{{ blog.category.url() }}" class="badge rounded-pill px-3 py-2" style="background-color: #{{ blog.category.color }}; color: white;">
+                    {{ blog.category.name }}
+                  </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <!-- End Trending Content -->
+      </div>
+      <!-- End Main Feed Content -->
+    </div>
+  </div>
+</section>
+
+<!-- Story Modal -->
+{% if story_subject and is_story %}
+<div class="modal fade storyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content bg-dark">
+      <div class="modal-header border-0">
+        <button type="button" class="btn-close btn-close-white storyCloseBtn" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div id="storyContent" class="h-100">
+          <!-- Story content will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+<!-- End Story Modal -->
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+<script>
+  // Career tab switching
+  function openCareer(tagSlug) {
+    // Hide all career content
+    document.querySelectorAll('.career-content').forEach(el => {
+      el.classList.add('d-none');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.career-tab').forEach(el => {
+      el.classList.remove('active');
+    });
+    
+    // Show selected career content
+    const content = document.getElementById('career-' + tagSlug);
+    if (content) {
+      content.classList.remove('d-none');
+    }
+    
+    // Add active class to selected tab
+    const tab = document.querySelector(`[data-tag="${tagSlug}"]`);
+    if (tab) {
+      tab.classList.add('active');
+    }
+  }
+
+  // Story functionality
+  function openStory(slug) {
+    // This would open the story modal
+    // For now, just log it
+    console.log('Opening story:', slug);
+    // You can implement the full story viewer here
+  }
+
+  // Add folder popup (placeholder)
+  document.querySelectorAll('.addFolderPopBtn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      // Implement add folder functionality
+      alert('Add folder functionality to be implemented');
+    });
+  });
+</script>
+{% endblock %}
+

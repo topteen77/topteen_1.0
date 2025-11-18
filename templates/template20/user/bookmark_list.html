@@ -1,0 +1,98 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}My Bookmarks | Top Teen{% endblock %}
+{% block description_content %}Access your bookmarked videos, exams, and colleges.{% endblock %}
+
+{% block bodyclass %}{{ block.super }} bookmark-list-page{% endblock %}
+
+{% block additionalhead %}
+{{ block.super }}
+<style>
+  .bookmark-list-page {
+    padding-top: 80px;
+  }
+  .bookmark-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 151px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .bookmark-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: inherit;
+  }
+  .bookmark-icon {
+    width: 41px;
+    height: 41px;
+    margin-bottom: 14px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="bookmark-list-page pb-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    {% if breadcrumb %}
+    {% include 'template20/includes/breadcrumb.html' %}
+    {% endif %}
+
+    <!-- Bookmark Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <h1 class="fs-24 fw-semibold mb-0">My Bookmarks</h1>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+      <button type="button" class="btn btn-link position-absolute end-0 top-0" onclick="window.location='{{ url('users:userdashboard') }}'">
+        <i class='bx bx-x fs-24 text-gray'></i>
+      </button>
+      <h2 class="fs-16 fw-normal text-center mb-0">My Bookmarks</h2>
+    </div>
+
+    <!-- Bookmark Cards -->
+    <div class="row g-3 g-lg-4">
+      <!-- My Videos -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url('users:bookmarkvideo') }}" class="bookmark-card">
+          <img src="{{ static('images_new/icons/video-play.svg') }}" class="bookmark-icon" alt="Videos" />
+          <h5 class="fs-16 fw-semibold text-dark mb-2 text-center">My Videos</h5>
+          <p class="fs-12 text-gray mb-0 text-center">Bookmark Videos</p>
+        </a>
+      </div>
+
+      <!-- My Exams -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url('users:bookmarkexam') }}" class="bookmark-card">
+          <img src="{{ static('images_new/icons/test-tube.svg') }}" class="bookmark-icon" alt="Exams" />
+          <h5 class="fs-16 fw-semibold text-dark mb-2 text-center">My Exams</h5>
+          <p class="fs-12 text-gray mb-0 text-center">Bookmark Exams</p>
+        </a>
+      </div>
+
+      <!-- My Colleges -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <a href="{{ url('users:bookmarkcollege') }}" class="bookmark-card">
+          <img src="{{ static('images_new/icons/school.svg') }}" class="bookmark-icon" alt="Colleges" />
+          <h5 class="fs-16 fw-semibold text-dark mb-2 text-center">My Colleges</h5>
+          <p class="fs-12 text-gray mb-0 text-center">Bookmark Colleges</p>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ block.super }}
+{% endblock %}
+

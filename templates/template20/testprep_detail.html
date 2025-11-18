@@ -1,0 +1,283 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}
+{{ exam.name }} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+{{ exam.about|striptags|truncate(160) if exam.about else exam.name }}
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="exam-detail-hero pt-md-18 pt-14 pb-8">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8">
+        <!-- Exam Header -->
+        <div class="exam-header d-flex align-items-center mb-4">
+          <div class="exam-logo me-4" style="width: 100px; height: 80px;">
+            <img src="{{ exam.logo_url }}" alt="{{ exam.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+          </div>
+          <div>
+            <h1 class="exam-title mb-2">{{ exam.name }}</h1>
+            {% if exam.exam_date %}
+            <p class="text-gray mb-0">
+              <i class='bx bx-calendar'></i> Exam Date: {{ date_format(exam.exam_date) }}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- About Section -->
+        {% if exam.about %}
+        <section class="exam-section mb-5">
+          <h2 class="section-title mb-3">About</h2>
+          <div class="exam-content">
+            {{ exam.about|safe }}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- Eligibility Section -->
+        {% if exam.eligibility %}
+        <section class="exam-section mb-5">
+          <h2 class="section-title mb-3">Eligibility</h2>
+          <div class="exam-content">
+            {{ exam.eligibility|safe }}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- Exam Pattern Section -->
+        {% if exam.exam_pattern %}
+        <section class="exam-section mb-5">
+          <h2 class="section-title mb-3">Exam Pattern</h2>
+          <div class="exam-content">
+            {{ exam.exam_pattern|safe }}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- More Information Section -->
+        {% if exam.more_info %}
+        <section class="exam-section mb-5">
+          <h2 class="section-title mb-3">More Information</h2>
+          <div class="exam-content">
+            {{ exam.more_info|safe }}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- CTA Section -->
+        <section class="cta-section mb-5">
+          <div class="bg-primary text-white p-4 rounded">
+            <div class="row align-items-center">
+              <div class="col-md-8 mb-3 mb-md-0">
+                <h4 class="text-white mb-2">Have a question? Connect with Alumni.</h4>
+                <p class="text-white-50 mb-0">Our counsellors guide you on all the steps of the way from application to your job interview, connect now!</p>
+              </div>
+              <div class="col-md-4 text-center text-md-end">
+                <a href="{{ url('core:contactus') }}" class="btn btn-light">Connect Now</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Related Exams Section -->
+        {% if related_exam %}
+        <section class="related-exams-section mb-5">
+          <h3 class="section-title mb-4">Related Exams</h3>
+          <div class="row">
+            {% for rel_exam in related_exam[:3] %}
+            <div class="col-md-4 col-sm-6 mb-4">
+              <div class="exam-card h-100 p-3 rounded shadow-sm">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="exam-logo me-3" style="width: 50px; height: 50px;">
+                    <img src="{{ rel_exam.logo_url }}" alt="{{ rel_exam.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+                  </div>
+                  <div class="flex-grow-1">
+                    <h5 class="mb-1">
+                      <a href="{{ url('entrance_exams:testprepdetail', args=[rel_exam.slug]) }}" class="text-decoration-none">{{ rel_exam.name }}</a>
+                    </h5>
+                  </div>
+                </div>
+                <a href="{{ url('entrance_exams:testprepdetail', args=[rel_exam.slug]) }}" class="btn btn-sm btn-outline-primary w-100">View Details</a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- Random Exams Section -->
+        {% if random_exam %}
+        <section class="random-exams-section mb-5">
+          <h3 class="section-title mb-4">Explore More Exams</h3>
+          <div class="row">
+            {% for rand_exam in random_exam %}
+            <div class="col-md-4 col-sm-6 mb-4">
+              <div class="exam-card h-100 p-3 rounded shadow-sm">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="exam-logo me-3" style="width: 50px; height: 50px;">
+                    <img src="{{ rand_exam.logo_url }}" alt="{{ rand_exam.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">
+                      <a href="{{ url('entrance_exams:testprepdetail', args=[rand_exam.slug]) }}" class="text-decoration-none">{{ rand_exam.name }}</a>
+                    </h6>
+                  </div>
+                </div>
+                <a href="{{ url('entrance_exams:testprepdetail', args=[rand_exam.slug]) }}" class="btn btn-sm btn-outline-primary w-100">View Details</a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="col-lg-4">
+        <div class="exam-sidebar">
+          <!-- Exam Info Card -->
+          <div class="sidebar-card mb-4">
+            <h4 class="sidebar-title mb-3">Exam Information</h4>
+            
+            {% if exam.category %}
+            <div class="info-item mb-3">
+              <div class="d-flex align-items-center mb-1">
+                <i class='bx bx-category me-2 text-primary'></i>
+                <span class="fw-semibold">Category:</span>
+              </div>
+              <span class="badge bg-primary">{{ exam.get_category_display() if exam.get_category_display else exam.category }}</span>
+            </div>
+            {% endif %}
+
+            {% if exam.exam_date %}
+            <div class="info-item mb-3">
+              <div class="d-flex align-items-center mb-1">
+                <i class='bx bx-calendar me-2 text-primary'></i>
+                <span class="fw-semibold">Exam Date:</span>
+              </div>
+              <span class="fs-16">{{ date_format(exam.exam_date) }}</span>
+            </div>
+            {% endif %}
+
+            {% if exam.stream.all() %}
+            <div class="info-item mb-3">
+              <div class="d-flex align-items-center mb-1">
+                <i class='bx bx-book me-2 text-primary'></i>
+                <span class="fw-semibold">Streams:</span>
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                {% for stream in exam.stream.all() %}
+                <span class="badge bg-primary bg-opacity-10 text-primary">{{ stream.name }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            {% if exam.examtags.all() %}
+            <div class="info-item mb-3">
+              <div class="d-flex align-items-center mb-1">
+                <i class='bx bx-tag me-2 text-primary'></i>
+                <span class="fw-semibold">Tags:</span>
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                {% for tag in exam.examtags.all() %}
+                <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ tag.name }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Shortlist Card -->
+          <div class="sidebar-card mb-4">
+            <button type="button" class="btn btn-primary w-100 shortlist-exam" data-exam-id="{{ exam.id }}">
+              <i class='bx bx-bookmark me-2'></i>
+              <span class="shortlist-text">
+                {% if exam.shortlist.filter(id=request.user.id).exists() %}Remove from Shortlist{% else %}Shortlist Exam{% endif %}
+              </span>
+            </button>
+          </div>
+
+          <!-- Share Section -->
+          <div class="sidebar-card">
+            <h4 class="sidebar-title mb-3">Share Exam</h4>
+            <div class="blog-share-icons">
+              <a href="#" class="blog-share-icon" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank'); return false;"><i class="bx bxl-facebook"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent('{{ exam.name }}'), '_blank'); return false;"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://www.linkedin.com/shareArticle?url=' + encodeURIComponent(window.location.href) + '&title=' + encodeURIComponent('{{ exam.name }}'), '_blank'); return false;"><i class="bx bxl-linkedin"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('{{ exam.name }} ' + window.location.href), '_blank'); return false;"><i class="bx bxl-whatsapp"></i></a>
+              <a href="#" class="blog-share-icon copy-link" data-url="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}"><i class="bx bx-link"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+// Copy Link Functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const copyLinks = document.querySelectorAll('.copy-link');
+  copyLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const url = this.getAttribute('data-url');
+      const fullUrl = window.location.origin + url;
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        alert('Link copied to clipboard!');
+      });
+    });
+  });
+
+  // Shortlist Exam
+  const shortlistButton = document.querySelector('.shortlist-exam');
+  if (shortlistButton) {
+    shortlistButton.addEventListener('click', function() {
+      const examId = this.getAttribute('data-exam-id');
+      const shortlistText = this.querySelector('.shortlist-text');
+      
+      fetch('{{ url("entrance_exams:shortlist_exam") }}?id=' + examId, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          if (data.shortlisted) {
+            shortlistText.textContent = 'Remove from Shortlist';
+            this.classList.add('active');
+          } else {
+            shortlistText.textContent = 'Shortlist Exam';
+            this.classList.remove('active');
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    });
+  }
+});
+</script>
+{% endblock %}
+

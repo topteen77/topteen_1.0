@@ -1,0 +1,706 @@
+  {% extends 'topteenfrontend/loggedin-base.html' %}
+
+{% block main %}
+<main
+      class="grid lg:grid-cols-4 grid-cols-1 gap-x-[27px] container mt-8 px-3 mx-auto"
+    >
+      <!-- LEFT DIV -->
+      <div class="lg:col-start-1 lg:col-span-3">
+        <!-- CLASS TABS -->
+        <div
+          class="flex flex-row justify-center items-center gap-x-7 mb-4 allTabs"
+          data-tabs-toggle="#panels"
+          data-active="activeClass"
+        >
+          <button
+            class="w-[247px] h-[65px] text-center align-middle border-2 rounded-[10px] border-[#BDBDBD] lg:text-xl text-lg text-[#333333] font-semibold tab activeClass"
+            data-tabs-target="#tenth"
+            role="tab"
+          >
+            After 10th
+          </button>
+          <button
+            class="w-[247px] h-[65px] text-center align-middle border-2 rounded-[10px] border-[#BDBDBD] lg:text-xl text-[#333333] font-semibold text-lg tab"
+            data-tabs-target="#twelfth"
+            role="tab"
+          >
+            After 12th
+          </button>
+          <button
+            class="w-[247px] h-[65px] text-center align-middle border-2 rounded-[10px] border-[#BDBDBD] lg:text-xl text-[#333333] font-semibold text-lg tab"
+            data-tabs-target="#College"
+            role="tab"
+          >
+            After College
+          </button>
+        </div>
+
+        <!-- PANELS -->
+
+        <div id="panels">
+          <!-- PANEL 10 -->
+          <div id="tenth">
+            <!-- FILTER TABS -->
+            <ul
+              class="flex flex-row justify-start items-center gap-x-4 w-full overflow-x-scroll no-scrollbar lg:overflow-x-visible mb-[45px]"
+            >
+            
+              <!-- TAB -->
+              {%for tag in tenthexamtag[:4] %}
+              <li
+                class="flex flex-row justify-start items-center gap-x-[3px] cursor-pointer px-4 py-2.5 rounded-[100px] border-[#3F37C9] border-2 bg-[#3F37C9] bg-opacity-5 shrink-0"
+              >
+                <img
+                  src="{{static('topteenfrontend/assets/images/flame.png')}}"
+                  class="h-[24px] w-[24px]"
+                />
+                <p class="text-xs text-[#3F37CE] font-semibold">
+                  <a href="{{url('entrance_exams:testprepfilter')}}?category=After+10th&tags={{tag.slug}}">{{tag.name}}</a>
+                  
+                </p>
+              </li>
+              {%endfor%}
+              
+            </ul>
+
+            <!-- CARDS LIST -->
+            {%for stm in tenthstream%}
+            <section class="mb-[30px]">
+              <div class="flex flex-row justify-between items-center">
+                
+                <h3 class="text-xl font-semibold text-[#333333] mb-[17px]">
+                  {{stm.name}}
+                </h3>
+                <a href="{{url('entrance_exams:testprepfilter')}}?category={{entrance_exam_category.after10}}&stream={{stm.slug}}" class="text-[#3f37c9] font-semibold text-xs"
+                  >
+                  View All
+                </a>
+              </div>
+
+              <div
+              class="lg:grid lg:grid-cols-3 gap-x-[30px] flex flex-row justify-start items-center w-full overflow-x-auto lg:overflow-x-visible pb-3"
+             >
+              <!-- CARD -->
+              {%for exam in tenthexam.filter(stream__name=stm.name)[:3]%}
+              <div>
+              <div
+                class="px-[14px] pt-3 pb-[18px] rounded-[12px] shadow-[0_7px_32px_rgba(0,0,0,0.07)] relative w-[248px] lg:w-full lg:min-w-[248px] shrink-0"
+               >
+                <div
+                  class="flex flex-row justify-start gap-x-2.5 items-center mb-4"
+                  >
+                  <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="flex flex-row justify-start gap-x-2.5 items-center"
+                  >
+                  <div class="w-[57px] h-[63px] shrink-0">
+                    <img
+                      src="{{exam.logo_url}}"
+                      class="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div class="pr-[16px]">
+                    <h3
+                      class="font-semibold text-[#131415] h-[48px] overflow-hidden mb-[5px] text-[14px] leading-4"
+                    >
+                      {{exam.name}}
+                    </h3>
+                    <p
+                      class="text-[10px] leading-[11px] font-normal text-black text-opacity-[0.25]"
+                    >
+                      {{stm}} 
+                    </p>
+                    </div>
+                  </a>
+                  </div>
+                <!-- DIVIDER -->
+                <div
+                  class="h-[0.8px] w-full bg-black bg-opacity-10 mb-[8.5px]"
+                ></div>
+                <!-- BOTTOM PART -->
+                <div
+                  class="flex flex-row justify-between items-center mb-[14px]"
+                >
+                {#
+                  <div class="text-xs font-normal text-[#131415]">
+                    <h6
+                      class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                    >
+                      Fees
+                    </h6>
+                    <p class="font-medium">&#8377; 800</p>
+                  </div>
+
+                  <div class="text-xs font-normal text-[#131415]">
+                    <h6
+                      class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                    >
+                      Prep Time
+                    </h6>
+                    <p class="font-medium">8 Months</p>
+                  </div>
+                  #}
+
+                  {% if exam.exam_date %}
+                  <div class="text-xs font-normal text-[#131415]">
+                    <h6
+                      class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                    >
+                      Next Exam Date
+                    </h6>
+                    <p class="font-medium">{{exam.exam_date.strftime("%d-%b-%Y")}}</p>
+                  </div>
+                  {% endif %}
+                  
+                </div>
+
+                <div class="flex flex-row justify-center items-center">
+                  <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="text-[#3f37c9] font-semibold text-xs"
+                >
+                  <button
+                    class="px-5 py-[9px] text-[10px] leading-[14px] text-[#141414] font-normal border-[0.8px] border-[#E0E0E0] rounded-[39px]"
+                  >
+                    View Details
+                  </button>
+                  </a>
+                  {#
+                  <button
+                    class="px-5 py-[9px] text-[11px] leading-[15px] text-white font-normal rounded-[39px] bg-[#3F37C9]"
+                  >
+                    Apply Now &nbsp; &rarr;
+                  </button>#}
+                </div>
+
+                <div class="absolute top-3 right-3">
+                  <div
+                    id="exam_{{exam.id}}"
+                    class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]"
+                    onclick="examshortlist('{{exam.id}}')"
+                    {% if exam.shortlist.filter(id=request.user.id).exists() %}
+                    style="background-color: blue;"
+                    {% endif %}
+                  >
+                    <img
+                      src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                      class="w-[12px] h-[16px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+                
+              {%endfor%}
+            
+            </section>
+            {%if loop.index%3==0%}
+            
+            <!-- BLUE BANNER -->
+            <div
+              class="lg:py-[25px] lg:pl-[45px] lg:pr-[33px] p-3 blue-banner justify-between items-center flex flex-row rounded-[10px] mb-7"
+            >
+              <div
+                class="lg:h-[224px] lg:w-[224px] h-[112px] w-[112px] shrink-0"
+              >
+                <img
+                  src="{{static('topteenfrontend/assets/images/box.png')}}"
+                  class="h-full w-full object-contain"
+                />
+              </div>
+              <div class="max-w-[432px] text-white font-semibold">
+                <h6 class="lg:text-[28px] lg:leading-[38px] text-xl mb-2">
+                  Level up by learning new skills on the go
+                </h6>
+                <p class="lg:text-[16px] lg:leading-[27px] text-sm mb-6">
+                  Answer a few questions for us to learn more about your
+                  interests and get better course recommendations
+                </p>
+                <a href="{{url('core:contactus')}}">
+                  <button
+                    class="uppercase px-[64px] pt-4 pb-[13px] text-sm font-bold text-[#4F4F4F] bg-white rounded-[10px] border-b-[6px] border-[#EAEAEA] lg:block hidden"
+                  >
+                    CONTACT US
+                  </button>
+                </a>
+              </div>
+            </div>
+            {%endif%}
+            {%endfor%}
+            
+          </div>
+          <!-- PANEL 12-->
+          <div id="twelfth">
+            <!-- FILTER TABS -->
+            <ul
+              class="flex flex-row justify-start items-center gap-x-4 w-full overflow-x-scroll no-scrollbar lg:overflow-x-visible mb-[45px]"
+            >
+              <!-- TAB -->
+              {%for tag in twelthexamtag[:4] %}
+              <li
+                class="flex flex-row justify-start items-center gap-x-[3px] cursor-pointer px-4 py-2.5 rounded-[100px] border-[#3F37C9] border-2 bg-[#3F37C9] bg-opacity-5 shrink-0"
+              >
+                <img
+                  src="{{static('topteenfrontend/assets/images/flame.png')}}"
+                  class="h-[24px] w-[24px]"
+                />
+                <p class="text-xs text-[#3F37CE] font-semibold">
+                  <a href="{{url('entrance_exams:testprepfilter')}}?category=After+12th&tags={{tag.slug}}">{{tag}}</a>
+                </p>
+              </li>
+              {%endfor%}
+              
+            </ul>
+
+            <!-- CARDS LIST -->
+            {%for stm in twelthstreams%}
+            <section class="mb-[30px]">
+              <div class="flex flex-row justify-between items-center">
+                <h3 class="text-xl font-semibold text-[#333333] mb-[17px]">
+                  {{stm.name}}
+                </h3>
+                <a href="{{url('entrance_exams:testprepfilter')}}?category={{entrance_exam_category.after12}}&stream={{stm.slug}}" class="text-[#3f37c9] font-semibold text-xs"
+                  >
+                <button class="text-[#3f37c9] font-semibold text-xs">
+                  View All
+                </a>
+                </div>
+                <div
+                class="lg:grid lg:grid-cols-3 gap-x-[30px] flex flex-row justify-start items-center w-full overflow-x-auto lg:overflow-x-visible pb-3"
+                >
+                <!-- CARD -->
+                {%for exam in twelthexams.filter(stream__name=stm.name)[:3]%}
+                
+                <div
+                  class="px-[14px] pt-3 pb-[18px] rounded-[12px] shadow-[0_7px_32px_rgba(0,0,0,0.07)] relative w-[248px] lg:w-full lg:min-w-[248px] shrink-0"
+                  >
+                  <!-- <div
+                    class="flex flex-row justify-start gap-x-2.5 items-center mb-4"
+                  > -->
+                  <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="flex flex-row justify-start gap-x-2.5 items-center mb-4 w-full"
+                  >
+                    <div class="w-[57px] h-[63px] shrink-0">
+                      <img
+                        src="{{exam.logo_url}}"
+                        class="h-full w-full object-cover shrink-0"
+                      />
+                    </div>
+                    <div class="pr-[16px] overflow-hidden">
+                      <h3
+                        class="font-semibold text-[#131415] h-[48px] overflow-hidden mb-[5px] text-[14px] leading-4"
+                      >
+                        {{exam.name}}
+                      </h3>
+                      <p
+                        class="text-[10px] leading-[11px] font-normal text-black text-opacity-[0.25]"
+                      >
+                        {{stm}} 
+                      </p>
+                      </div>
+                    </a>
+                    <!-- </div> -->
+                  <!-- DIVIDER -->
+                  <div
+                    class="h-[0.8px] w-full bg-black bg-opacity-10 mb-[8.5px]"
+                  ></div>
+                  <!-- BOTTOM PART -->
+                  <div
+                    class="flex flex-row justify-between items-center mb-[14px]"
+                  >
+                  {#
+                    <div class="text-xs font-normal text-[#131415]">
+                      <h6
+                        class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                      >
+                        Fees
+                      </h6>
+                      <p class="font-medium">&#8377; 800</p>
+                    </div>
+
+                    <div class="text-xs font-normal text-[#131415]">
+                      <h6
+                        class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                      >
+                        Prep Time
+                      </h6>
+                      <p class="font-medium">8 Months</p>
+                    </div>
+                    #}
+
+                    {% if exam.exam_date %}
+                    <div class="text-xs font-normal text-[#131415]">
+                      <h6
+                        class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                      >
+                        Next Exam Date
+                      </h6>
+                      <p class="font-medium">{{exam.exam_date.strftime("%d-%b-%Y")}}</p>
+                    </div>
+                    {% endif %}
+
+                  </div>
+
+                  <div class="flex flex-row justify-center items-center">
+                    <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="text-[#3f37c9] font-semibold text-xs"
+                  >
+                    <button
+                      class="px-5 py-[9px] text-[10px] leading-[14px] text-[#141414] font-normal border-[0.8px] border-[#E0E0E0] rounded-[39px]"
+                    >
+                      View Details
+                    </button>
+                    </a>
+
+                    <!-- <button
+                      class="px-5 py-[9px] text-[11px] leading-[15px] text-white font-normal rounded-[39px] bg-[#3F37C9]"
+                    >
+                      Apply Now &nbsp; &rarr;
+                    </button> -->
+                  </div>
+
+                  <div class="absolute top-3 right-3">
+                    <div
+                      id="exam_{{exam.id}}"
+                      class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]"
+                      onclick="examshortlist('{{exam.id}}')"
+                      {% if exam.shortlist.filter(id=request.user.id).exists() %}
+                      style="background-color: blue;"
+                      {% endif %}
+                    >
+                      <img
+                        src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                        class="w-[12px] h-[16px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                {%endfor%}
+              
+                
+              </section>
+              
+            
+            <!-- BLUE BANNER  -->
+            {%if loop.index%3==0%}
+            <div
+              class="lg:py-[25px] lg:pl-[45px] lg:pr-[33px] p-3 blue-banner justify-between items-center flex flex-row rounded-[10px] mb-7"
+            >
+              <div
+                class="lg:h-[224px] lg:w-[224px] h-[112px] w-[112px] shrink-0"
+              >
+                <img
+                  src="{{static('topteenfrontend/assets/images/box.png')}}"
+                  class="h-full w-full object-contain"
+                />
+              </div>
+              <div class="max-w-[432px] text-white font-semibold">
+                <h6 class="lg:text-[28px] lg:leading-[38px] text-xl mb-2">
+                  Level up by learning new skills on the go
+                </h6>
+                <p class="lg:text-[16px] lg:leading-[27px] text-sm mb-6">
+                  Answer a few questions for us to learn more about your
+                  interests and get better course recommendations
+                </p>
+                <a href="{{url('core:contactus')}}">
+                  <button
+                    class="uppercase px-[64px] pt-4 pb-[13px] text-sm font-bold text-[#4F4F4F] bg-white rounded-[10px] border-b-[6px] border-[#EAEAEA] lg:block"
+                  >
+                    CONTACT US
+                  </button>
+                </a>
+              </div>
+            </div>
+            {%endif%}
+            {%endfor%}
+            
+          </div>
+          <div id="College">
+            <!-- FILTER TABS -->
+            <ul
+              class="flex flex-row justify-start items-center gap-x-4 w-full overflow-x-scroll no-scrollbar lg:overflow-x-visible mb-[45px]"
+            >
+              <!-- TAB -->
+              {%for tag in collegeexamtag[:4] %}
+              <li
+                class="flex flex-row justify-start items-center gap-x-[3px] cursor-pointer px-4 py-2.5 rounded-[100px] border-[#3F37C9] border-2 bg-[#3F37C9] bg-opacity-5 shrink-0"
+              >
+                <img
+                  src="{{static('topteenfrontend/assets/images/flame.png')}}"
+                  class="h-[24px] w-[24px]"
+                />
+                <p class="text-xs text-[#3F37CE] font-semibold">
+                  <a href="{{url('entrance_exams:testprepfilter')}}?category=After+College&tags={{tag.slug}}">{{tag}}</a>
+                </p>
+              </li>
+              {%endfor%}
+              
+            </ul>
+
+            <!-- CARDS LIST -->
+            {%for stm in collegestreams%}
+            <section class="mb-[30px]">
+              <div class="flex flex-row justify-between items-center">
+                <h3 class="text-xl font-semibold text-[#333333] mb-[17px]">
+                  {{stm.name}}
+                </h3>
+                <a href="{{url('entrance_exams:testprepfilter')}}?category={{entrance_exam_category.aftercollge}}&stream={{stm.slug}}" class="text-[#3f37c9] font-semibold text-xs"
+                  >
+                <button class="text-[#3f37c9] font-semibold text-xs">
+                  View All
+                </a>
+                </div>
+                <div
+                class="lg:grid lg:grid-cols-3 gap-x-[30px] flex flex-row justify-start items-center w-full overflow-x-auto lg:overflow-x-visible pb-3"
+                >
+                <!-- CARD -->
+                {%for exam in collegeexams.filter(stream__name=stm.name)[:3]%}
+                
+                <div
+                  class="px-[14px] pt-3 pb-[18px] rounded-[12px] shadow-[0_7px_32px_rgba(0,0,0,0.07)] relative w-[248px] lg:w-full lg:min-w-[248px] shrink-0"
+                  >
+                  <!-- <div
+                    class="flex flex-row justify-start gap-x-2.5 items-center mb-4"
+                  > -->
+                  <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="flex flex-row justify-start gap-x-2.5 items-center mb-4 w-full"
+                  >
+                    <div class="w-[57px] h-[63px] shrink-0">
+                      <img
+                        src="{{exam.logo_url}}"
+                        class="h-full w-full object-cover "
+                      />
+                    </div>
+                    <div class="pr-[16px]">
+                      <h3
+                        class="font-semibold text-[#131415] h-[48px] overflow-hidden mb-[5px] text-[14px] leading-4"
+                      >
+                        {{exam.name}}
+                      </h3>
+                      <p
+                        class="text-[10px] leading-[11px] font-normal text-black text-opacity-[0.25]"
+                      >
+                        {{stm}} 
+                      </p>
+                      </div>
+                    </a>
+                    <!-- </div> -->
+                  <!-- DIVIDER -->
+                  <div
+                    class="h-[0.8px] w-full bg-black bg-opacity-10 mb-[8.5px]"
+                  ></div>
+                  <!-- BOTTOM PART -->
+                  <div
+                    class="flex flex-row justify-between items-center mb-[14px]"
+                  >
+                  {#
+                    <div class="text-xs font-normal text-[#131415]">
+                      <h6
+                        class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                      >
+                        Fees
+                      </h6>
+                      <p class="font-medium">&#8377; 800</p>
+                    </div>
+
+                    <div class="text-xs font-normal text-[#131415]">
+                      <h6
+                        class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                      >
+                        Prep Time
+                      </h6>
+                      <p class="font-medium">8 Months</p>
+                    </div>
+                    #}
+
+                    {% if exam.exam_date %}
+                    <div class="text-xs font-normal text-[#131415]">
+                      <h6
+                        class="text-[10px] leading-[11px] tracking-[-0.23px] text-black text-opacity-[0.25] mb-[3px]"
+                      >
+                        Next Exam Date
+                      </h6>
+                      <p class="font-medium">{{exam.exam_date.strftime("%d-%b-%Y")}}</p>
+                    </div>
+                  </div>
+                  {% endif %}
+
+                  <div class="flex flex-row justify-center items-center">
+                    <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="text-[#3f37c9] font-semibold text-xs"
+                  >
+                    <button
+                      class="px-5 py-[9px] text-[10px] leading-[14px] text-[#141414] font-normal border-[0.8px] border-[#E0E0E0] rounded-[39px]"
+                    >
+                      View Details
+                    </button>
+                    </a>
+
+                    <!-- <button
+                      class="px-5 py-[9px] text-[11px] leading-[15px] text-white font-normal rounded-[39px] bg-[#3F37C9]"
+                    >
+                      Apply Now &nbsp; &rarr;
+                    </button> -->
+                  </div>
+
+                  <div class="absolute top-3 right-3">
+                    <div
+                      id="exam_{{exam.id}}"
+                      class="bg-black bg-opacity-[0.03] rounded-full px-[7px] py-[6px]"
+                      onclick="examshortlist('{{exam.id}}')"
+                      {% if exam.shortlist.filter(id=request.user.id).exists() %}
+                      style="background-color: blue;"
+                      {% endif %}
+                    >
+                      <img
+                        src="{{static('topteenfrontend/assets/images/bookmark.png')}}"
+                        class="w-[12px] h-[16px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                {%endfor%}
+              
+                
+              </section>
+              
+            
+            <!-- BLUE BANNER  -->
+            {%if loop.index%3==0%}
+            <div
+              class="lg:py-[25px] lg:pl-[45px] lg:pr-[33px] p-3 blue-banner justify-between items-center flex flex-row rounded-[10px] mb-7"
+            >
+              <div
+                class="lg:h-[224px] lg:w-[224px] h-[112px] w-[112px] shrink-0"
+              >
+                <img
+                  src="{{static('topteenfrontend/assets/images/box.png')}}"
+                  class="h-full w-full object-contain"
+                />
+              </div>
+              <div class="max-w-[432px] text-white font-semibold">
+                <h6 class="lg:text-[28px] lg:leading-[38px] text-xl mb-2">
+                  Level up by learning new skills on the go
+                </h6>
+                <p class="lg:text-[16px] lg:leading-[27px] text-sm mb-6">
+                  Answer a few questions for us to learn more about your
+                  interests and get better course recommendations
+                </p>
+                <a href="{{url('core:contactus')}}">
+                  <button
+                    class="uppercase px-[64px] pt-4 pb-[13px] text-sm font-bold text-[#4F4F4F] bg-white rounded-[10px] border-b-[6px] border-[#EAEAEA] lg:block"
+                  >
+                    CONTACT US
+                  </button>
+                </a>
+              </div>
+            </div>
+            {%endif%}
+            {%endfor%}
+            
+          </div>
+        <!-- HAVE A QUESTIONS -->
+        <div
+          class="lg:py-[25px] py-[18px] rounded-[10px] flex flex-row justify-start items-center lg:gap-x-[46px] gap-x-[10px] blue-banner mb-[40px] lg:mb-[96px] mt-[36px] lg:mt-[200px]"
+        >
+          <div class="w-[110px] h-[152px]">
+            <img src="{{static('topteenfrontend/assets/images/student.png')}}" class="h-full w-full" />
+          </div>
+
+          <div class="lg:w-[491px] w-[75%]">
+            <h5
+              class="lg:text-xl text-[22px] font-bold tracking-[0.035em] text-white lg:mb-1.5 mb-[11px]"
+            >
+              Have a question? Connect with Us!
+            </h5>
+            <p class="text-[13px] leading-[19px] font-normal text-white mb-4">
+              Our counsellors guide you on all the steps of the way from
+              application to your job interview, connect now!
+            </p>
+
+            <button onclick-"window.location.href=''" onclick="window.location='{{url('core:contactus')}}'"
+              class="uppercase px-[64px] pt-4 pb-[13px] text-sm font-bold text-[#4F4F4F] bg-white rounded-[10px] border-b-[6px] border-[#EAEAEA] lg:block hidden"
+            >
+              Connect Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+      <!-- RIGHT DIV -->
+      <div>
+        <div
+          class="bg-white px-[9px] py-[3px] min-h-[377px] border border-[#DEDEDE] rounded-[10px] mb-[36px]"
+        >
+          <h4 class="text-[20px] leading-[26px] font-semibold mb-4">
+            Upcoming Exams
+          </h4>
+          <ul class="space-y-3.5">
+            {%for exam in related_exam[:4]%}
+            <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="">
+      
+            <!-- CARD -->
+            <li
+              class="px-3 py-3.5 flex flex-row justify-start items-center gap-x-[8px] rounded-[10px] border border-[#F3F3F3]"
+            >
+              <div class="w-[33px] h-[39px] shrink-0">
+                <img src="{{exam.logo_url}}" class="h-full w-full object-cover" />
+              </div>
+              <div>
+                <h6 class="text-sm font-semibold text-[#333333]">
+                  {{exam.name}}
+                </h6>
+                {% if exam.exam_date %}
+                <p
+                  class="text-[11px] leading-[15px] font-medium text-[#828282]"
+                >
+                  {{exam.exam_date.strftime("%d-%b-%Y")}}
+                </p>
+                {% endif %}
+              </div>
+            </li>
+            </a>
+            {%endfor%}
+            
+          </ul>
+        </div>
+        <!-- STREAMS -->
+        <div class="lg:mb-[30px] mb-[40px]">
+          <h4 class="font-semibold text-lg mb-3.5">Streams</h4>
+          <!-- CONTENT -->
+          <div class="flex flex-row flex-wrap gap-x-[8px] gap-y-[8px]">
+            {%for strem in strm%}
+            <div
+              class="bg-[#3F37C9] bg-opacity-[0.15] text-xs text-[#3F37C9] lg:py-[11px] lg:px-4 py-[11px] px-[9px] font-semibold rounded-[100px] tracking-[1%]"
+            ><a href="{{url('entrance_exams:testprepfilter')}}?stream={{strem.slug}}"> {{strem.name}}</a>
+              
+            </div>
+            {%endfor%}
+            
+          </div>
+        </div>
+
+        <!-- Exams and Tests -->
+        <div class="mb-10">
+          <h4 class="font-semibold text-lg mb-2">Exams and Tests</h4>
+          <!-- Content -->
+          <div class="flex flex-col gap-3.5">
+            {%for exam in related_exam[:3]%}
+            <a href="{{url('entrance_exams:testprepdetail',args=[exam.slug])}}" class="">
+      
+            <div
+              class="border border-[#F3F3F3] rounded-[10px] flex flex-row gap-x-2.5 py-3.5 pr-[20px] pl-[17px] items-center bg-gradient-to-b from-gray-100 to-transparent"
+            >
+              <div class="w-[35px] h-[39px] shrink-0">
+                <img
+                  src="{{exam.logo_url}}"
+                class="h-full w-full object-cover"
+                  />
+              </div>
+              <div>
+                <p class="font-semibold text-sm">{{exam.name}}</p>
+                <!-- <p class="text-[#828282] text-xs font-normal">28 June, 2023</p> -->
+              </div>
+            </div>
+            </a>
+            {%endfor%}
+            
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+{%endblock%}

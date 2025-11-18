@@ -1,0 +1,174 @@
+/* Search Icon and Search Container Styles */
+.menu-item.search-icon {
+  position: relative;
+}
+
+/* Make search icon more visible and tappable on mobile */
+.menu-item.search-icon .menu-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.menu-item.search-icon .bx-search {
+  font-size: 20px;
+}
+
+.search-container {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 300px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+.search-container.active {
+  display: block;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 40px 10px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  font-size: 14px;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #7b68ee;
+  box-shadow: 0 0 0 2px rgba(123, 104, 238, 0.2);
+}
+
+.search-btn {
+  position: absolute;
+  right: 40px;
+  background: none;
+  border: none;
+  color: #7b68ee;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 18px;
+}
+
+.search-close {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 18px;
+}
+
+.search-results {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.search-result-item {
+  padding: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-result-item:hover {
+  background-color: #f9f9f9;
+}
+
+.search-result-item h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.search-result-item p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #666;
+}
+
+/* Mobile Search Styles */
+@media (max-width: 768px) {
+  .search-container {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    z-index: 1050; /* Higher z-index to appear above other elements */
+  }
+  
+  /* Make sure the search icon is visible in mobile menu */
+  .menu-item.search-icon {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px 15px;
+    width: 100%;
+  }
+  
+  /* Adjust for mobile menu structure */
+  .navbar-collapse .menu-item.search-icon {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Make search icon more prominent on mobile */
+  .menu-item.search-icon .bx-search {
+    font-size: 22px;
+    margin-right: 10px;
+  }
+  
+  /* Add text label next to search icon on mobile */
+  .menu-item.search-icon .menu-link:after {
+    content: "Search Careers";
+    margin-left: 8px;
+  }
+  
+  /* Improve tap target size */
+  .search-btn, .search-close {
+    padding: 8px;
+    font-size: 20px;
+  }
+  
+  /* Make input field larger and easier to tap */
+  .search-input {
+    padding: 12px 45px 12px 15px;
+    font-size: 16px; /* Larger font size for mobile */
+  }
+}
+
+/* Animation for search container */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-container.active {
+  animation: fadeIn 0.3s ease;
+}

@@ -1,0 +1,417 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Career Tracks | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Explore our comprehensive collection of career paths organized by industry and interest. Discover educational requirements, job prospects, and growth opportunities for each career track to make informed decisions about your future.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Exploration
+        </span>
+        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+          Career Tracks
+        </h1>
+        <p class="text-gray fs-16">Explore our comprehensive collection of career paths organized by industry and
+          interest. Discover educational requirements, job prospects, and growth opportunities for each career track
+          to make informed decisions about your future.</p>
+      </div>
+
+      <div class="col-lg-4 col-md-12">
+        <div class="right-banner d-md-flex  justify-content-end ">
+          <img class="img-fluid" src="{{ static('images_new/careers/career-track.svg') }}" alt="Career Tracks Banner" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Hero Section -->
+
+<!-- Career Search and Filter Section -->
+<section class="pb-10">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 custom-faq">
+
+        <ul class="nav nav-pills mb-3 d-flex justify-content-center my-3 gap-2" id="pills-tab" role="tablist">
+          <li class="nav-item" role="traditional">
+            <button class="nav-link active" id="pills-traditional-tab" data-bs-toggle="pill"
+              data-bs-target="#pills-traditional" type="button" role="tab" aria-controls="pills-traditional"
+              aria-selected="true">All Career Categories</button>
+          </li>
+          <li class="nav-item" role="emerging">
+            <button class="nav-link" id="pills-emerging-tab" data-bs-toggle="pill" data-bs-target="#pills-emerging"
+              type="button" role="tab" aria-controls="pills-emerging" aria-selected="false">Emerging
+              Careers</button>
+          </li>
+        </ul>
+
+        <div class="row">
+          <div class="col-md-8 mx-auto">
+            <div class="d-flex flex-column justify-content-center align-items-center">
+              <h5 class="mt-3 text-center">Get started by selecting your preferred career category</h5>
+              <p>or</p>
+            </div>
+            <form method="GET" action="{{ url('careers:career') }}" id="career-search-form">
+              <div class="blog-search">
+                <input type="text" name="search" placeholder="Search for careers..." value="{{ request.GET.search if request.GET.search else '' }}" />
+                <button type="submit"><i class='bx bx-search'></i></button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="row mt-4">
+          <div class="col-md-12">
+            <form method="GET" action="{{ url('careers:career') }}" id="career-filter-form" class="filter-form">
+              <input type="hidden" name="search" value="{{ request.GET.search if request.GET.search else '' }}">
+              
+              <div class="row g-3">
+                <!-- Profession Filter -->
+                {% if professions %}
+                <div class="col-md-4 col-sm-6">
+                  <label class="form-label fw-semibold">Professions</label>
+                  <select name="professions" class="form-select" multiple size="5" id="professionsFilter">
+                    {% for prof in professions %}
+                    <option value="{{ prof.name }}" {% if prof.name in selected_professions %}selected{% endif %}>{{ prof.name }}</option>
+                    {% endfor %}
+                  </select>
+                  <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                </div>
+                {% endif %}
+
+                <!-- Skills Filter -->
+                {% if facets_filter and facets_filter.skill %}
+                <div class="col-md-4 col-sm-6">
+                  <label class="form-label fw-semibold">Skills</label>
+                  <div class="position-relative">
+                    <input type="text" class="form-control mb-2" id="skillSearchInput" placeholder="Search skills..." onkeyup="filterSkillOptions(this.value)">
+                    <select name="skills" class="form-select" multiple size="5" id="skillsFilter">
+                      {% for skill_name, count, selected in facets_filter.skill %}
+                      <option value="{{ skill_name }}" {% if selected %}selected{% endif %} data-name="{{ skill_name.lower() }}">{{ skill_name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                </div>
+                {% endif %}
+
+                <!-- Cluster Filter -->
+                {% if clusters %}
+                <div class="col-md-4 col-sm-6">
+                  <label class="form-label fw-semibold">Career Cluster</label>
+                  <select name="cluster" class="form-select" id="clusterFilter">
+                    <option value="">All Clusters</option>
+                    {% for cluster in clusters %}
+                    <option value="{{ cluster.id }}" {% if request.GET.cluster == cluster.id|string %}selected{% endif %}>{{ cluster.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                {% endif %}
+              </div>
+
+              <!-- Active Filters Display -->
+              {% if selected_professions or selected_skills or request.GET.cluster %}
+              <div class="row mt-3">
+                <div class="col-md-12">
+                  <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="fw-semibold">Active Filters:</span>
+                    {% if request.GET.cluster %}
+                      {% for cluster in clusters %}
+                        {% if cluster.id|string == request.GET.cluster %}
+                        <span class="badge bg-primary">
+                          Cluster: {{ cluster.name }}
+                          <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if selected_professions %}{% for prof in selected_professions %}professions={{ prof }}&{% endfor %}{% endif %}{% if selected_skills %}{% for skill in selected_skills %}skills={{ skill }}&{% endfor %}{% endif %}" class="text-white ms-2" onclick="return false;" style="text-decoration: none;">×</a>
+                        </span>
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
+                    {% for prof in selected_professions %}
+                    <span class="badge bg-info">
+                      Profession: {{ prof }}
+                      <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.cluster %}cluster={{ request.GET.cluster }}&{% endif %}{% for p in selected_professions %}{% if p != prof %}professions={{ p }}&{% endif %}{% endfor %}{% if selected_skills %}{% for skill in selected_skills %}skills={{ skill }}&{% endfor %}{% endif %}" class="text-white ms-2" style="text-decoration: none;">×</a>
+                    </span>
+                    {% endfor %}
+                    {% for skill in selected_skills %}
+                    <span class="badge bg-success">
+                      Skill: {{ skill }}
+                      <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.cluster %}cluster={{ request.GET.cluster }}&{% endif %}{% if selected_professions %}{% for prof in selected_professions %}professions={{ prof }}&{% endfor %}{% endif %}{% for s in selected_skills %}{% if s != skill %}skills={{ s }}&{% endif %}{% endfor %}" class="text-white ms-2" style="text-decoration: none;">×</a>
+                    </span>
+                    {% endfor %}
+                    <a href="{{ url('careers:career') }}{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}" class="btn btn-sm btn-outline-danger">Clear All</a>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+
+              <!-- Filter Buttons -->
+              <div class="row mt-3">
+                <div class="col-md-12 text-center">
+                  <button type="submit" class="btn custom-button purple-button me-2">Apply Filters</button>
+                  <a href="{{ url('careers:career') }}{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}" class="btn btn-outline-secondary">Reset</a>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <!-- End Filter Section -->
+
+        <div class="tab-content mt-4" id="pills-tabContent">
+
+          <!-- Career Categories -->
+          <div class="tab-pane fade show active" id="pills-traditional" role="tabpanel"
+            aria-labelledby="pills-traditional-tab">
+
+            {% if careers %}
+            <div class="row mt-4">
+              {% for career in careers %}
+              <div class="col-md-4 col-sm-6 mb-4">
+                <div class="blog-card">
+                  <div class="blog-image">
+                    <div class="cat-header">
+                      {% if career.career_cluster.exists() %}
+                        <a href="{{ url('careers:careerlibrary', args=[career.career_cluster.first().slug, career.career_cluster.first().id]) }}" class="blog-category category-parent">
+                          {{ career.career_cluster.first().name }}
+                        </a>
+                      {% else %}
+                        <span class="blog-category category-parent">Career</span>
+                      {% endif %}
+                      <button class="career-bookmark-btn" title="Bookmark this career">
+                        <i class='bx bx-bookmark'></i>
+                      </button>
+                    </div>
+                    <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">
+                      {% if career.image and career.image.name %}
+                        <img src="{{ career.image.url }}" alt="{{ career.name }}">
+                      {% else %}
+                        <img src="{{ static('images/career-icon.png') }}" alt="{{ career.name }}">
+                      {% endif %}
+                    </a>
+                  </div>
+                  <div class="blog-content">
+                    <h3 class="blog-title mt-0">
+                      <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">{{ career.name }}</a>
+                    </h3>
+                    {% if career.get_max_salary() %}
+                    <div class="salary-range">
+                      <i class='bx bx-rupee'></i>
+                      <span>{{ career.get_max_salary() }}</span>
+                    </div>
+                    {% endif %}
+                    {% if career.summary %}
+                    <p class="blog-excerpt">{{ career.summary|truncate(120) }}</p>
+                    {% endif %}
+                    <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if careers and careers.paginator.num_pages > 1 %}
+            <div class="row mt-4">
+              <div class="col-12">
+                <nav aria-label="Career pagination">
+                  <ul class="pagination career-pagination justify-content-center">
+                    {% if careers.has_previous() %}
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{ careers.previous_page_number() }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.professions %}{% for prof in request.GET.getlist('professions') %}&professions={{ prof }}{% endfor %}{% endif %}{% if request.GET.skills %}{% for skill in request.GET.getlist('skills') %}&skills={{ skill }}{% endfor %}{% endif %}{% if request.GET.cluster %}&cluster={{ request.GET.cluster }}{% endif %}" aria-label="Previous">
+                        <i class='bx bx-chevron-left'></i>
+                      </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                      <a class="page-link" href="#" aria-label="Previous">
+                        <i class='bx bx-chevron-left'></i>
+                      </a>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in careers.paginator.page_range %}
+                      {% if page_num == careers.number %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
+                      {% elif page_num > (careers.number - 3) and page_num < (careers.number + 3) %}
+                        <li class="page-item">
+                          <a class="page-link" href="?page={{ page_num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.professions %}{% for prof in request.GET.getlist('professions') %}&professions={{ prof }}{% endfor %}{% endif %}{% if request.GET.skills %}{% for skill in request.GET.getlist('skills') %}&skills={{ skill }}{% endfor %}{% endif %}{% if request.GET.cluster %}&cluster={{ request.GET.cluster }}{% endif %}">{{ page_num }}</a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+
+                    {% if careers.has_next() %}
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{ careers.next_page_number() }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.professions %}{% for prof in request.GET.getlist('professions') %}&professions={{ prof }}{% endfor %}{% endif %}{% if request.GET.skills %}{% for skill in request.GET.getlist('skills') %}&skills={{ skill }}{% endfor %}{% endif %}{% if request.GET.cluster %}&cluster={{ request.GET.cluster }}{% endif %}" aria-label="Next">
+                        <i class='bx bx-chevron-right'></i>
+                      </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                      <a class="page-link" href="#" aria-label="Next">
+                        <i class='bx bx-chevron-right'></i>
+                      </a>
+                    </li>
+                    {% endif %}
+                  </ul>
+                </nav>
+              </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <!-- No Results Found -->
+            <div class="row mt-4">
+              <div class="col-12">
+                <div class="text-center py-16">
+                  <svg class="mx-auto h-20 w-20 text-gray-400 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  <h3 class="text-xl font-semibold text-gray-900 mb-3">No careers found</h3>
+                  <p class="text-gray-500 mb-8 text-lg">Try adjusting your search criteria to find more careers.</p>
+                  <a href="{{ url('careers:career') }}" class="btn custom-button purple-button">View All Careers</a>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Emerging Careers -->
+          <div class="tab-pane fade emerging-card" id="pills-emerging" role="tabpanel"
+            aria-labelledby="pills-emerging-tab">
+            <div class="row">
+              {% if careers %}
+                {% for career in careers %}
+                  {% if career.career_tags.exists() %}
+                    {% for tag in career.career_tags.all() %}
+                      {% if 'emerging' in tag.name|lower or 'new' in tag.name|lower %}
+                        <div class="col-md-4 mb-4">
+                          <div class="blog-card">
+                            <div class="blog-image">
+                              <div class="cat-header">
+                                {% if career.career_cluster.exists() %}
+                                  <a href="{{ url('careers:careerlibrary', args=[career.career_cluster.first().slug, career.career_cluster.first().id]) }}" class="blog-category category-parent">
+                                    {{ career.career_cluster.first().name }}
+                                  </a>
+                                {% else %}
+                                  <span class="blog-category category-parent">Career</span>
+                                {% endif %}
+                                <button class="career-bookmark-btn" title="Bookmark this career">
+                                  <i class='bx bx-bookmark'></i>
+                                </button>
+                              </div>
+                              <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">
+                                {% if career.image and career.image.name %}
+                                  <img src="{{ career.image.url }}" alt="{{ career.name }}">
+                                {% else %}
+                                  <img src="{{ static('images_new/careers/career-icon.png') }}" alt="{{ career.name }}">
+                                {% endif %}
+                              </a>
+                            </div>
+                            <div class="blog-content">
+                              <h3 class="blog-title mt-0">
+                                <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">{{ career.name }}</a>
+                              </h3>
+                              {% if career.get_max_salary() %}
+                              <div class="salary-range">
+                                <i class='bx bx-rupee'></i>
+                                <span>{{ career.get_max_salary() }}</span>
+                              </div>
+                              {% endif %}
+                              {% if career.summary %}
+                              <p class="blog-excerpt">{{ career.summary|truncate(120) }}</p>
+                              {% endif %}
+                              <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
+                            </div>
+                          </div>
+                        </div>
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Career Tracks Section -->
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+  // Bookmark functionality
+  const bookmarkButtons = document.querySelectorAll('.career-bookmark-btn');
+
+  bookmarkButtons.forEach(function (button) {
+    button.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Toggle bookmark active state
+      this.classList.toggle('active');
+
+      // Change icon based on state
+      const icon = this.querySelector('i');
+      if (this.classList.contains('active')) {
+        icon.classList.remove('bx-bookmark');
+        icon.classList.add('bxs-bookmark');
+        icon.style.color = '#ff4757';
+      } else {
+        icon.classList.remove('bxs-bookmark');
+        icon.classList.add('bx-bookmark');
+        icon.style.color = '#5046e5';
+      }
+    });
+  });
+</script>
+
+<script>
+// Filter skill options based on search
+function filterSkillOptions(searchTerm) {
+  const skillSelect = document.getElementById('skillsFilter');
+  if (!skillSelect) return;
+  const options = skillSelect.getElementsByTagName('option');
+  const searchLower = searchTerm.toLowerCase();
+  
+  for (let i = 0; i < options.length; i++) {
+    const option = options[i];
+    const skillName = option.getAttribute('data-name') || option.textContent.toLowerCase();
+    if (skillName.includes(searchLower)) {
+      option.style.display = '';
+    } else {
+      option.style.display = 'none';
+    }
+  }
+}
+
+// Auto-submit form when cluster changes
+document.addEventListener('DOMContentLoaded', function() {
+  const clusterFilter = document.getElementById('clusterFilter');
+  if (clusterFilter) {
+    clusterFilter.addEventListener('change', function() {
+      document.getElementById('career-filter-form').submit();
+    });
+  }
+});
+</script>
+{% endblock %}
+
