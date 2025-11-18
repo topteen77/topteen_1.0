@@ -62,9 +62,13 @@ coverage.xml
 
 # Django stuff:
 *.log
+# Local settings override files (should be ignored for security)
 local_settings.py
+**/local_settings.py
+# Database files
 db.sqlite3
 db.sqlite3-journal
+# Note: settings.py should be tracked in version control - it's required for the application
 
 # Flask stuff:
 instance/
@@ -106,16 +110,25 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Environment Variables - NEVER commit sensitive data
+# All .env files should be ignored for security
+.env
 .env.*
+.env.local
+.env.production
+.env.development
+.env.staging
+.env.test
+*.env
 env.local
 env.production
 env.development
 env.staging
-.env
+
+# Virtual Environments
 .venv
-env/
 venv/
+env/
 myenv/
 ENV/
 env.bak/
@@ -223,15 +236,6 @@ celerybeat-schedule.*
 # SageMath parsed files 
 *.sage.py 
 
-# Environments 
-.env 
-.venv 
-env/ 
-venv/ 
-ENV/ 
-env.bak/ 
-venv.bak/ 
-
 # mkdocs documentation 
 /site 
 
@@ -266,7 +270,8 @@ node_modules/
 css/brijes.css
 css/blobal.css
 staging_etherpad
-topteens/settings.py
+# Note: settings.py should be tracked in version control
+# Only local_settings.py and environment-specific settings should be ignored
 career_html_output/
 
 # Security & Credentials - Service Account Keys and Certificates
