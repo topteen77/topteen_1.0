@@ -3,10 +3,17 @@
 {% block title_content %}Numerical Reasoning Test | Top Teen{% endblock %}
 {% block description_content %}Take the Numerical Reasoning test to assess your quantitative abilities.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} test-view-page{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} test-view-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .test-view-page {
     padding-top: 80px;
@@ -192,14 +199,100 @@
 {% endblock %}
 
 {% block content %}
-<section class="main-content-wrapper">
-  <div class="container-fluid">
+<section class="test-view-page pb-5">
+  <div class="container">
     <div class="row">
-      <!-- Left Sidebar (User Profile) -->
-      {% include 'template20/includes/user_profile_sidebar.html' %}
+      <!-- Left Sidebar (Desktop) -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
+          <div class="profile-header text-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="profile-img rounded-circle mb-3" style="width: 104px; height: 104px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 104px; height: 104px;">
+              <i class='bx bx-user fs-48 text-gray'></i>
+            </div>
+            {% endif %}
+            <h5 class="profile-name">{{ request.user.name|default(request.user.username) }}</h5>
+            <div class="profile-meta text-gray fs-14">
+              <p class="mb-1">
+                <i class='bx bx-calendar me-1'></i>
+                Joined {{ date_format(request.user.created) }}
+              </p>
+              {% if request.user.user_profile %}
+              <p class="mb-0">
+                <i class='bx bx-book me-1'></i>
+                {% if request.user.user_profile.schoolname %}{{ request.user.user_profile.schoolname }}{% endif %}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Test Stats -->
+          <div class="test-stats-box mt-4">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-time fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="totalTime">00:00</p>
+                <p class="stat-label">Total Time</p>
+              </div>
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-list-check fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="questionProgress">1/{{ questions|length }}</p>
+                <p class="stat-label">Question</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Main Content Area -->
-      <div class="col-lg-9 col-md-8 col-12 pt-md-18 pt-14 ps-lg-5">
+      <div class="col-lg-8">
+        <!-- Mobile Header -->
+        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex align-items-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px;">
+              <i class='bx bx-user fs-24 text-gray'></i>
+            </div>
+            {% endif %}
+            <div>
+              <h5 class="mb-0">{{ request.user.name|default(request.user.username) }}</h5>
+              <p class="text-gray fs-12 mb-0">Joined {{ date_format(request.user.created) }}</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
+            <i class='bx bx-cog'></i>
+          </button>
+        </div>
+
+        <!-- Mobile Test Stats -->
+        <div class="d-lg-none mb-4">
+          <div class="test-stats-box">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-time fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="totalTimeMobile">00:00</p>
+                <p class="stat-label">Total Time</p>
+              </div>
+              <div class="col-6">
+                <div class="st-m-icon mb-2">
+                  <i class='bx bx-list-check fs-32 text-purple'></i>
+                </div>
+                <p class="stat-value" id="questionProgressMobile">1/{{ questions|length }}</p>
+                <p class="stat-label">Question</p>
+              </div>
+            </div>
+          </div>
+        </div>
         <!-- Desktop Test Stats -->
         <div class="d-none d-lg-block mb-4">
           <div class="test-stats-box">
@@ -215,7 +308,7 @@
                 <div class="st-m-icon mb-2">
                   <i class='bx bx-list-check fs-32 text-purple'></i>
                 </div>
-                <p class="stat-value" id="questionProgress">1/{{ questions.count() }}</p>
+                <p class="stat-value" id="questionProgress">1/{{ questions|length }}</p>
                 <p class="stat-label">Question</p>
               </div>
             </div>
@@ -245,7 +338,7 @@
                 <div class="st-m-icon mb-2">
                   <i class='bx bx-list-check fs-32 text-purple'></i>
                 </div>
-                <p class="stat-value" id="questionProgressMobile">1/{{ questions.count() }}</p>
+                <p class="stat-value" id="questionProgressMobile">1/{{ questions|length }}</p>
                 <p class="stat-label">Question</p>
               </div>
             </div>
@@ -403,7 +496,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 

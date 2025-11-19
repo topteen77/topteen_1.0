@@ -423,12 +423,19 @@ def upload_file(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test_buttons(request):
+    # Import redirect and reverse at the top
+    from django.shortcuts import redirect
+    from django.urls import reverse
+    from psychometric_tests.models import PsychometricTestPayment
+    from core import choices
+    
     # Initialize variables with default values
     user_profile = None
     created_date = None
     gender = None
     schoolname = None
     grade = None
+    student_class = None  # Will be "10" or "12"
 
     if request.user.is_authenticated:
         user = request.user
@@ -447,14 +454,79 @@ def test_buttons(request):
             gender = user_profile.gender if user_profile else None
             schoolname = user_profile.schoolname if user_profile else None
             student_name = user.email  # Assuming email is used as student name
-            grade = user_profile.grade if user_profile else None
+            
+            # Determine student class: First check StudentManagement (for institute students)
+            # Then fallback to UserProfile.grade (for direct signups)
+            from institute.models import StudentManagement
+            student_management = StudentManagement.objects.filter(student=user).first()
+            
+            if student_management and student_management.class_and_section:
+                # Get class from StudentManagement (institute students)
+                class_name = student_management.class_and_section.class_and_section
+                if class_name:
+                    # Extract first 2 characters to get class number
+                    import re
+                    numbers = re.findall(r'\d+', class_name)
+                    if numbers:
+                        class_number = int(numbers[0])
+                        if class_number >= 11:
+                            student_class = "12"  # Class 11-12
+                        else:
+                            student_class = "10"  # Class 10 and below
+                    grade = class_name  # Use full class name for display
+            elif user_profile and user_profile.grade:
+                # Fallback to UserProfile.grade (direct signups)
+                student_class = str(user_profile.grade)
+                grade = f"Class {user_profile.grade}"
+            else:
+                # Default to class 10 if nothing is set
+                student_class = "10"
+                grade = "Class 10"
 
         except (UserProfile.DoesNotExist, AttributeError):
             print("UserProfile does not exist.")
             user_profile = None
+            student_class = "10"  # Default
+            grade = "Class 10"
 
     else:
         print("User is not authenticated.")
+        # Redirect to login if not authenticated
+        return redirect(reverse('users:login'))
+    
+    # Check if user has purchased test for their class - protect test dashboard access
+    
+    has_payment = False
+    if student_class == "10":
+        # Class 10 should have BASIC test (Stream Sorter)
+        has_payment = PsychometricTestPayment.objects.filter(
+            user=request.user,
+            test_type=choices.PsychometricTestType.BASIC,
+            is_success=choices.YesNoChoices.YES
+        ).exists()
+        if not has_payment:
+            # Redirect to Stream Sorter buy page
+            return redirect(reverse('psychometrictests:psychometrictest'))
+    elif student_class == "12":
+        # Class 12 should have ADVANCED test (Career Direction)
+        has_payment = PsychometricTestPayment.objects.filter(
+            user=request.user,
+            test_type=choices.PsychometricTestType.ADVANCED,
+            is_success=choices.YesNoChoices.YES
+        ).exists()
+        if not has_payment:
+            # Redirect to Career Direction buy page
+            return redirect(reverse('psychometrictests:PsychometricTest12'))
+    else:
+        # Default to class 10 if class not determined
+        has_payment = PsychometricTestPayment.objects.filter(
+            user=request.user,
+            test_type=choices.PsychometricTestType.BASIC,
+            is_success=choices.YesNoChoices.YES
+        ).exists()
+        if not has_payment:
+            # Redirect to Stream Sorter buy page
+            return redirect(reverse('psychometrictests:psychometrictest'))
 
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
@@ -477,7 +549,8 @@ def test_buttons(request):
         "School_Name:": schoolname,
         'created_date': created_date,
         "Gender:": gender,
-        "Grade:": grade
+        "Grade:": grade,
+        'student_class': student_class,  # "10" or "12" for filtering tests
     }
     return render(request, 'topteenfrontend/user/app/psychometric-test-view.html', context)
 
@@ -555,7 +628,7 @@ def test1_view(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test2_view(request):
-    questions = Question.objects.filter(test_paper='test2')
+    questions = list(Question.objects.filter(test_paper='test2'))
     csrf_token = get_token(request)
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
@@ -739,7 +812,7 @@ def test3_view(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_numerical(request):
-    questions = Question.objects.filter(test_paper='test3', category='Numerical')
+    questions = list(Question.objects.filter(test_paper='test3', category='Numerical'))
     user = 'unique_identifier_for_test11'  # This should be dynamically determined
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
@@ -765,7 +838,7 @@ def test3_numerical(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_logical(request):
-    questions = Question.objects.filter(test_paper='test3', category ='Logical')
+    questions = list(Question.objects.filter(test_paper='test3', category ='Logical'))
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
         test_completion.logical_complete = True
@@ -791,7 +864,7 @@ def test3_logical(request):
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_verbal(request):
     
-    questions = Question.objects.filter(test_paper='test3', category ='Verbal')
+    questions = list(Question.objects.filter(test_paper='test3', category ='Verbal'))
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
         test_completion.verbal_complete = True
@@ -1172,7 +1245,7 @@ def app_submit(request):
         'all_test3_subtests_complete': all_subtests_complete,  # Add this for template check
     }
     generate_pdf(request)
-    return render(request, 'topteenfrontend/user/app/psychometric-test-view.html', context)
+    return render(request, 'template20/psychometric/test_submit.html', context)
 
 @login_required(login_url=reverse_lazy('users:login'))
 def gernate_graph(request):

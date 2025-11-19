@@ -3,10 +3,17 @@
 {% block title_content %}Career Interest Assessment Test | Top Teen{% endblock %}
 {% block description_content %}Take the Career Interest Assessment test to discover your career interests.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} test-view-page{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} test-view-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .test-view-page {
     padding-top: 80px;
@@ -192,7 +199,7 @@
                 <div class="st-m-icon mb-2">
                   <i class='bx bx-list-check fs-32 text-purple'></i>
                 </div>
-                <p class="stat-value" id="questionProgress">1/{{ questions.count() }}</p>
+                <p class="stat-value" id="questionProgress">1/{{ questions|length }}</p>
                 <p class="stat-label">Question</p>
               </div>
             </div>
@@ -237,7 +244,7 @@
                 <div class="st-m-icon mb-2">
                   <i class='bx bx-list-check fs-32 text-purple'></i>
                 </div>
-                <p class="stat-value" id="questionProgressMobile">1/{{ questions.count() }}</p>
+                <p class="stat-value" id="questionProgressMobile">1/{{ questions|length }}</p>
                 <p class="stat-label">Question</p>
               </div>
             </div>
@@ -251,12 +258,11 @@
           <div class="fs-14">Select all the careers that interest you. You can select multiple options for each question.</div>
         </div>
 
-        <form id="multiStepForm" method="post" action="{{ url('app:app_submit') }}">
+        <form id="multiStepForm">
           <div class="alert alert-danger" id="error-message" style="display: none;">
             <i class='bx bx-error-circle me-2'></i> Please select at least one option for all questions before submitting.
           </div>
           
-          <input type="hidden" name="test_paper" value="{{ test_paper }}">
           <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
           
           {% for question in questions %}
@@ -276,15 +282,15 @@
               
               <!-- Career Options Grid -->
               <div class="career-grid">
-                {% if question.answers.all() %}
-                  {% for answer in question.answers.all() %}
+                {% if question.answer_set.all() %}
+                  {% for answer in question.answer_set.all() %}
                   <div class="career-checkbox">
                     <input type="checkbox" 
-                           name="question_{{ loop.parent.loop.index }}_careers" 
+                           name="question{{ loop.parent.loop.index }}" 
                            id="career-{{ loop.parent.loop.index }}-{{ loop.index }}" 
-                           value="{{ answer.text }}">
+                           value="{{ answer.answer_text if answer.answer_text else answer.text }}">
                     <label for="career-{{ loop.parent.loop.index }}-{{ loop.index }}">
-                      {{ answer.text }}
+                      {{ answer.answer_text if answer.answer_text else answer.text }}
                     </label>
                   </div>
                   {% endfor %}
@@ -348,9 +354,11 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
   $(document).ready(function () {
@@ -358,6 +366,7 @@
     const totalQuestions = $('.question').length;
     let startTime, timerInterval;
     let totalSeconds = 10 * 60; // 10 minutes in seconds (as per intro instructions)
+    const clicks = {}; // Collect clicks data
 
     // Timer functionality
     function startTimer() {
@@ -397,14 +406,18 @@
       $('.submit-button').toggle(number === totalQuestions);
     }
 
-    // Next button
-    $('.next-button').on('click', function () {
+    // Next button - updated to collect data
+    $('.next-button').off('click').on('click', function () {
       const currentQuestionBox = $('#question' + currentQuestion);
-      const checkedBoxes = currentQuestionBox.find('input[type="checkbox"]:checked').length;
+      const checkedBoxes = currentQuestionBox.find('input[type="checkbox"]:checked');
+      
+      // Collect data for current question
+      clicks['question' + currentQuestion] = Array.from(checkedBoxes).map(checkbox => checkbox.value);
+      console.log('Collected data for question' + currentQuestion + ':', clicks['question' + currentQuestion]);
       
       // For test2, at least one checkbox should be selected (optional validation)
       // You can remove this if multiple selections are not required
-      if (checkedBoxes > 0 || true) { // Allow proceeding even if none selected
+      if (checkedBoxes.length > 0 || true) { // Allow proceeding even if none selected
         if (currentQuestion < totalQuestions) {
           currentQuestion++;
           showQuestion(currentQuestion);
@@ -459,39 +472,59 @@
       return true;
     }
 
+    // Collect clicks data - moved before next button handler
+
     // Form submit handler
     $('#multiStepForm').on('submit', function(e) {
       e.preventDefault();
-      const testPaper = $('input[name="test_paper"]').val();
-      const formData = $(this).serialize();
       
+      // Collect data from last question
+      const lastQuestionBox = $('#question' + totalQuestions);
+      const checkedBoxes = lastQuestionBox.find('input[type="checkbox"]:checked');
+      clicks['question' + totalQuestions] = Array.from(checkedBoxes).map(checkbox => checkbox.value);
+      
+      console.log('Data being sent:', { clicks });
+
       // Validate all questions have at least one selection (optional)
       let allAnswered = true;
       $('.question').each(function () {
-        const checkedBoxes = $(this).find('input[type="checkbox"]:checked').length;
-        // Uncomment if at least one selection is required per question
-        // if (checkedBoxes === 0) {
-        //   allAnswered = false;
-        // }
+        const questionNum = $(this).attr('id').replace('question', '');
+        const questionClicks = clicks['question' + questionNum];
+        if (!questionClicks || questionClicks.length === 0) {
+          allAnswered = false;
+        }
       });
 
       if (allAnswered) {
         $('#loader').show();
         
-        // AJAX call to submit the form
+        // Get CSRF token
+        const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+        
+        // AJAX call to submit_clicks endpoint
         $.ajax({
           type: 'POST',
-          url: $(this).attr('action'),
-          data: formData,
+          url: '{{ url("app:submit_clicks") }}',
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+          },
+          data: JSON.stringify({ clicks: clicks }),
           success: function (response) {
             $('#loader').show();
             // Redirect after successful submission
-            window.location.href = '/app/submit/';
+            window.location.href = '/psychometric/submit/';
           },
           error: function (error) {
             $('#loader').hide();
             console.error("Error:", error);
-            alert('An error occurred while processing your request.');
+            Swal.fire({
+              title: 'Error',
+              text: 'An error occurred while processing your request. Please try again.',
+              icon: 'error',
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#3f37c9'
+            });
           }
         });
       } else {
@@ -502,8 +535,8 @@
         // Scroll to first unanswered question
         $('.question').each(function () {
           const questionNum = $(this).attr('id').replace('question', '');
-          const checkedBoxes = $(this).find('input[type="checkbox"]:checked').length;
-          if (checkedBoxes === 0) {
+          const questionClicks = clicks['question' + questionNum];
+          if (!questionClicks || questionClicks.length === 0) {
             showQuestion(parseInt(questionNum));
             return false;
           }

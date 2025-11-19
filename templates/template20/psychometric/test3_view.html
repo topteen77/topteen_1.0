@@ -1,12 +1,19 @@
 {% extends 'template20/logged-in-base.html' %}
 
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
 {% block title_content %}Comprehensive Aptitude Assessment | Top Teen{% endblock %}
 {% block description_content %}Select a sub-test to begin your comprehensive aptitude assessment.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} test-view-page{% endblock %}
+{% block bodyclass %}{{ super() }} test-view-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .test-view-page {
     padding-top: 80px;
@@ -116,13 +123,12 @@
             <div class="profile-meta text-gray fs-14">
               <p class="mb-1">
                 <i class='bx bx-calendar me-1'></i>
-                Joined {{ date_format(request.user.created) }}
+                {% if request.user.created %}Joined {{ date_format(request.user.created) }}{% endif %}
               </p>
               {% if request.user.user_profile %}
               <p class="mb-0">
                 <i class='bx bx-book me-1'></i>
-                {% if request.user.student_management.last().class_and_section %}{{ request.user.student_management.last().class_and_section }}{% endif %}
-                {% if request.user.user_profile.schoolname %} • {{ request.user.user_profile.schoolname }}{% endif %}
+                {% if request.user.user_profile.schoolname %}{{ request.user.user_profile.schoolname }}{% endif %}
               </p>
               {% endif %}
             </div>
@@ -324,7 +330,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Drawer functionality for mobile

@@ -22,7 +22,7 @@
         {% if request.user.created %}
         <p class="mb-1">
           <i class='bx bx-calendar me-1'></i>
-          Joined {{ request.user.created|date:"M d, Y" }}
+          Joined {{ date_format(request.user.created) }}
         </p>
         {% endif %}
         {% if user_profile and user_profile.schoolname %}

@@ -20,7 +20,13 @@ def globals(request):
     input=request.GET.get('search')
     login_user=request.user
     if login_user.is_authenticated:
-        usersearch,_=UserSearchHistory.objects.get_or_create(user=login_user,search=input)
+        try:
+            usersearch,_=UserSearchHistory.objects.get_or_create(user=login_user,search=input)
+        except UserSearchHistory.MultipleObjectsReturned:
+            # If multiple objects exist, get the first one
+            usersearch = UserSearchHistory.objects.filter(user=login_user,search=input).first()
+            if not usersearch:
+                usersearch = UserSearchHistory.objects.create(user=login_user,search=input)
 
         user_search_hisotry=UserSearchHistory.objects.filter(user=login_user.id,search__isnull=False).order_by('-modified').values_list('search',flat=True)
         if user_search_hisotry.exists():

@@ -51,6 +51,7 @@ class PsychometricTest(TemplateView):
         ctx['psychometric_cross_test_amount']=2999
         ctx['user'] = request.user  # Add user to context for template
         ctx['breadcrumb'] = {'text': 'Stream Sorter Psychometric Test', 'url': reverse('psychometrictests:psychometrictest')}
+        ctx['payment_update_url'] = reverse('psychometrictests:psychomerticttestpaymentupdate')
         
         # Check if user is authenticated before accessing user attributes
         if request.user.is_authenticated:

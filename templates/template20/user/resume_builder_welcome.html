@@ -3,10 +3,10 @@
 {% block title_content %}Resume Builder Welcome | Top Teen{% endblock %}
 {% block description_content %}Welcome to the Resume Builder! Create your professional resume in just a few steps.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} resume-builder-welcome-page{% endblock %}
+{% block bodyclass %}{{ super() }} resume-builder-welcome-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .resume-builder-welcome-page {
     min-height: 100vh;
@@ -101,6 +101,6 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 {% endblock %}
 

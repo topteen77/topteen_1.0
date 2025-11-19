@@ -1,0 +1,325 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Psychometric Assessment | Top Teen{% endblock %}
+{% block description_content %}View and manage your psychometric test results and assessments.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} test-submit-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .test-submit-page {
+    padding-top: 80px;
+  }
+  .test-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s;
+  }
+  .test-card:hover {
+    box-shadow: 0 4px 12px rgba(63, 55, 201, 0.1);
+  }
+  .test-card-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+  }
+  .test-icon {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+  }
+  .test-info h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+  }
+  .test-info p {
+    font-size: 14px;
+    color: #828282;
+    margin: 0;
+  }
+  .test-actions {
+    display: flex;
+    gap: 12px;
+  }
+  .btn-test-action {
+    min-width: 133px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-test-action.purple-button {
+    background: #3f37c9;
+    color: #fff;
+  }
+  .btn-test-action.purple-button:hover {
+    background: #2e289d;
+  }
+  .btn-test-action.blue-button {
+    background: #4cc9f0;
+    color: #fff;
+  }
+  .btn-test-action.blue-button:hover {
+    background: #3aa8c4;
+  }
+  @media (max-width: 767.98px) {
+    .test-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .test-card-content {
+      width: 100%;
+    }
+    .test-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+    .btn-test-action {
+      flex: 1;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="test-submit-page pb-5">
+  <div class="container">
+    <div class="row">
+      <!-- Left Sidebar (Desktop) -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
+          <div class="profile-header text-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="profile-img rounded-circle mb-3" style="width: 104px; height: 104px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 104px; height: 104px;">
+              <i class='bx bx-user fs-48 text-gray'></i>
+            </div>
+            {% endif %}
+            <h5 class="profile-name">{{ request.user.name|default(request.user.username) }}</h5>
+            <div class="profile-meta text-gray fs-14">
+              <p class="mb-1">
+                <i class='bx bx-calendar me-1'></i>
+                Joined {{ request.user.created.strftime("%B, %Y") if request.user.created else "" }}
+              </p>
+              {% if request.user.user_profile %}
+              <p class="mb-0">
+                <i class='bx bx-book me-1'></i>
+                {% if request.user.user_profile.schoolname %}{{ request.user.user_profile.schoolname }}{% endif %}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Profile Progress -->
+          <div class="profile-progress mt-4">
+            <h6 class="fs-14 fw-semibold">Complete your profile</h6>
+            <p class="text-gray fs-12">A complete profile helps us cater the best content to you</p>
+            <div class="progress mt-2">
+              <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+            </div>
+            <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">Settings</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="col-lg-8">
+        <!-- Mobile Header -->
+        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex align-items-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px;">
+              <i class='bx bx-user fs-24 text-gray'></i>
+            </div>
+            {% endif %}
+            <div>
+              <h5 class="mb-0">{{ request.user.name|default(request.user.username) }}</h5>
+              <p class="text-gray fs-12 mb-0">Joined {{ request.user.created.strftime("%B, %Y") if request.user.created else "" }}</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
+            <i class='bx bx-cog'></i>
+          </button>
+        </div>
+
+        <!-- Mobile Profile Progress -->
+        <div class="d-lg-none mb-4">
+          <div class="bg-light rounded p-3">
+            <h6 class="fs-14 fw-semibold mb-2">Complete your profile</h6>
+            <p class="text-gray fs-12 mb-2">A complete profile helps us cater the best content to you</p>
+            <div class="progress mb-2">
+              <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+            </div>
+            <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 btn-sm">Settings</a>
+          </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-4">
+          {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default('danger') }}" role="alert">
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <h2 class="fs-24 fw-semibold mb-4">Psychometric Assessment</h2>
+
+        <div class="test-list">
+          <!-- Test 1: Personality Assessment -->
+          <div class="test-card">
+            <div class="test-card-content">
+              <img src="{{ static('images_new/icons/interest-icon.svg') }}" alt="Personality Assessment" class="test-icon">
+              <div class="test-info">
+                <h3>Personality Assessment</h3>
+                <p>Discover your personality traits and career preferences</p>
+              </div>
+            </div>
+            <div class="test-actions">
+              {% if test_completion.test1_complete %}
+              <form id="downloadForm1" action="{{ url('app:test_1', args=['test1']) }}" method="GET" target="_blank">
+                <button type="submit" class="btn btn-test-action blue-button">View Report</button>
+              </form>
+              {% else %}
+              <form action="{{ url('app:test1-intro') }}" method="GET">
+                <button type="submit" class="btn btn-test-action purple-button">Start Test</button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Test 2: Career Interest Assessment -->
+          <div class="test-card">
+            <div class="test-card-content">
+              <img src="{{ static('images_new/icons/personality-icon.svg') }}" alt="Career Interest Assessment" class="test-icon">
+              <div class="test-info">
+                <h3>Career Interest Assessment</h3>
+                <p>Explore careers that match your interests and values</p>
+              </div>
+            </div>
+            <div class="test-actions">
+              {% if test_completion.test2_complete %}
+              <form id="downloadForm2" action="{{ url('app:test_1', args=['test2']) }}" method="GET" target="_blank">
+                <button type="submit" class="btn btn-test-action blue-button">View Report</button>
+              </form>
+              {% else %}
+              <form action="{{ url('app:test2-intro') }}" method="GET">
+                <button type="submit" class="btn btn-test-action purple-button">
+                  {% if test_started_status.test2_started %}Resume Test{% else %}Start Test{% endif %}
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Test 3: Comprehensive Aptitude Assessment -->
+          <div class="test-card">
+            <div class="test-card-content">
+              <img src="{{ static('images_new/icons/aptitute-icon.svg') }}" alt="Aptitude Assessment" class="test-icon">
+              <div class="test-info">
+                <h3>Comprehensive Aptitude Assessment</h3>
+                <p>Assess your cognitive abilities across multiple dimensions</p>
+              </div>
+            </div>
+            <div class="test-actions">
+              {% if test_completion and test_completion.test3_complete and all_test3_subtests_complete %}
+              <form id="downloadForm3" action="{{ url('app:test_1', args=['test3']) }}" method="GET" target="_blank">
+                <button type="submit" class="btn btn-test-action blue-button">View Report</button>
+              </form>
+              {% else %}
+              <form action="{{ url('app:test3-intro') }}" method="GET">
+                <button type="submit" class="btn btn-test-action purple-button">
+                  {% if test_started_status.test3_started %}Resume Test{% else %}Start Test{% endif %}
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Mobile Drawer -->
+<div class="drawerModal d-md-none" style="display: none;">
+  <div class="drawerContent">
+    <div class="drawerHeader">
+      <h5>Menu</h5>
+      <button type="button" class="drawerClose">
+        <i class='bx bx-x fs-24'></i>
+      </button>
+    </div>
+    <div class="drawerBody">
+      <a href="{{ url('users:userdashboard') }}" class="drawerItem">
+        <i class='bx bx-home me-2'></i> Dashboard
+      </a>
+      <a href="{{ url('users:profiledetails') }}" class="drawerItem">
+        <i class='bx bx-user me-2'></i> Edit Profile
+      </a>
+      <a href="{{ url('users:logout') }}" class="drawerItem">
+        <i class='bx bx-log-out me-2'></i> Sign Out
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  // Drawer functionality for mobile
+  document.addEventListener('DOMContentLoaded', function() {
+    const drawerTrigger = document.querySelector('.drawerTrigger');
+    const drawerModal = document.querySelector('.drawerModal');
+    const drawerClose = document.querySelector('.drawerClose');
+
+    if (drawerTrigger) {
+      drawerTrigger.addEventListener('click', function() {
+        if (drawerModal) {
+          drawerModal.style.display = 'block';
+        }
+      });
+    }
+
+    if (drawerClose) {
+      drawerClose.addEventListener('click', function() {
+        if (drawerModal) {
+          drawerModal.style.display = 'none';
+        }
+      });
+    }
+
+    // Close drawer when clicking outside
+    if (drawerModal) {
+      drawerModal.addEventListener('click', function(e) {
+        if (e.target === drawerModal) {
+          drawerModal.style.display = 'none';
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
+

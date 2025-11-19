@@ -3,10 +3,10 @@
 {% block title_content %}User Dashboard | Top Teen{% endblock %}
 {% block description_content %}Access your personalized dashboard with statistics, quick links, and recent activity.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} user-dashboard{% endblock %}
+{% block bodyclass %}logged-in user-dashboard{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .user-dashboard {
     padding-top: 80px;
@@ -60,6 +60,10 @@
     height: 100%;
     background: #4cc9f0;
     border-radius: 100px;
+  }
+  .hover-bg-light:hover {
+    background: #e9ecef !important;
+    transition: all 0.3s;
   }
 </style>
 {% endblock %}
@@ -141,7 +145,7 @@
               <div class="d-flex flex-column gap-1">
                 <div class="d-flex align-items-center gap-1">
                   <i class='bx bx-time-five fs-12 text-gray'></i>
-                  <p class="text-gray fs-10 mb-0">Joined {{ date_format(request.user.date_joined) }}</p>
+                  <p class="text-gray fs-10 mb-0">Joined {{ date_format(request.user.created) }}</p>
                 </div>
                 <div class="d-flex align-items-center gap-1">
                   <i class='bx bx-book fs-12 text-gray'></i>
@@ -203,7 +207,7 @@
             <div class="d-flex flex-column gap-2">
               <div class="d-flex align-items-center justify-content-center gap-2">
                 <i class='bx bx-time-five fs-18 text-gray'></i>
-                <p class="text-gray fs-16 mb-0">Joined {{ date_format(request.user.date_joined) }}</p>
+                <p class="text-gray fs-16 mb-0">Joined {{ date_format(request.user.created) }}</p>
               </div>
               <div class="d-flex align-items-center justify-content-center gap-2">
                 <i class='bx bx-book fs-18 text-gray'></i>
@@ -226,8 +230,8 @@
 
           <!-- Complete Profile -->
           <div class="profile-complete-card">
-            <div class="d-flex gap-3">
-              <div>
+            <div class="d-flex">
+              <div class="me-3">
                 <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 45px;" alt="Verified" />
               </div>
               <div class="flex-grow-1">
@@ -243,6 +247,38 @@
             </a>
           </div>
           <!-- End of Complete Profile -->
+
+          <!-- Settings Links -->
+          <div class="mt-4">
+            <a href="{{ url('users:profiledetails') }}" class="d-block text-decoration-none mb-3">
+              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+                <div>
+                  <p class="fs-14 fw-semibold mb-1">Edit Profile</p>
+                  <p class="text-gray fs-12 mb-0">Update your profile information</p>
+                </div>
+                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+              </div>
+            </a>
+            <a href="{{ url('users:userhistory') }}" class="d-block text-decoration-none mb-3">
+              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+                <div>
+                  <p class="fs-14 fw-semibold mb-1">Manage payment history</p>
+                  <p class="text-gray fs-12 mb-0">View and manage your payments</p>
+                </div>
+                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+              </div>
+            </a>
+            <a href="{{ url('users:logout') }}" class="d-block text-decoration-none">
+              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+                <div>
+                  <p class="fs-14 fw-semibold mb-1 text-danger">Sign Out</p>
+                  <p class="text-danger text-opacity-60 fs-12 mb-0">Logout from your account</p>
+                </div>
+                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+              </div>
+            </a>
+          </div>
+          <!-- End of Settings Links -->
         </div>
       </div>
       <!-- End of Left part Desktop -->
@@ -308,7 +344,7 @@
           <h2 class="fs-24 fw-semibold mb-3">Quick Links</h2>
           <div class="border rounded p-3">
             <!-- Psychometric Test Reports -->
-            {% if psychometric_test_payment and test_dashboard_url %}
+            {% if has_test_payment and test_dashboard_url %}
             <div class="quick-link-card" onclick="window.location='{{ test_dashboard_url }}'">
               <div class="d-flex align-items-center gap-3">
                 <div>
@@ -339,14 +375,40 @@
               </div>
               <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
             </div>
-            {% else %}
-            <div class="quick-link-card" onclick="window.location='{{ url('psychometrictests:psychometrictest') }}'">
+            {% elif user_grade == "10" %}
+            <div class="quick-link-card" onclick="window.location='{{ test_buy_url_class10 }}'">
               <div class="d-flex align-items-center gap-3">
                 <div>
                   <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 35px;" alt="Planning" />
                 </div>
                 <div>
-                  <p class="fs-13 fw-semibold text-danger mb-1">Psychometric Test Reports</p>
+                  <p class="fs-13 fw-semibold text-purple mb-1">Buy Stream Sorter Test</p>
+                  <p class="text-purple text-opacity-70 fs-10 mb-0">Take the psychometric test for Class 10</p>
+                </div>
+              </div>
+              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+            </div>
+            {% elif user_grade == "12" %}
+            <div class="quick-link-card" onclick="window.location='{{ test_buy_url_class12 }}'">
+              <div class="d-flex align-items-center gap-3">
+                <div>
+                  <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 35px;" alt="Planning" />
+                </div>
+                <div>
+                  <p class="fs-13 fw-semibold text-purple mb-1">Buy Career Direction Test</p>
+                  <p class="text-purple text-opacity-70 fs-10 mb-0">Take the psychometric test for Class 12</p>
+                </div>
+              </div>
+              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+            </div>
+            {% else %}
+            <div class="quick-link-card" onclick="window.location='{{ test_buy_url_class10 }}'">
+              <div class="d-flex align-items-center gap-3">
+                <div>
+                  <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 35px;" alt="Planning" />
+                </div>
+                <div>
+                  <p class="fs-13 fw-semibold text-danger mb-1">Psychometric Test</p>
                   <p class="text-danger text-opacity-70 fs-10 mb-0">Take a new Test</p>
                 </div>
               </div>
@@ -457,7 +519,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <script>
   // Drawer modal functionality
   const drawerTrigger = document.querySelector('.drawerTrigger');
@@ -502,7 +564,13 @@
   function refersubmit() {
     const email = document.getElementById('remail').value;
     if (!email) {
-      alert('Please enter an email address');
+      Swal.fire({
+        title: 'Email Required',
+        text: 'Please enter an email address',
+        icon: 'warning',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#3f37c9'
+      });
       return false;
     }
 

@@ -10,6 +10,11 @@ Discover your strengths and unlock your true potential with our scientifically d
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
 
+{% block additionalhead %}
+{{ super() }}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endblock %}
+
 {% block content %}
 
 <!-- Hero Section -->
@@ -53,7 +58,7 @@ Discover your strengths and unlock your true potential with our scientifically d
         <div class="scroller" data-direction="left" data-speed="slow">
           <ul class="tag-list scroller__inner">
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Agriculture & Environmental Sciences">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Agriculture & Environmental Sciences">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/agriculture-icon.svg') }}" alt="Agriculture & Natural Resources" />
                 </div>
@@ -63,7 +68,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Architecture & Constructions">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Architecture & Constructions">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/architecture-icon.svg') }}" alt="Architecture & Constructions" />
                 </div>
@@ -73,7 +78,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Arts, Media & Mass Communication">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Arts, Media & Mass Communication">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/avtechnology.svg') }}" alt="Art, AV Technology & Design" />
                 </div>
@@ -83,7 +88,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Business, Management & Administration">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Business, Management & Administration">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/businessmanage-icon.svg') }}" alt="Business Management & Administration" />
                 </div>
@@ -93,7 +98,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Finance, Economics and Statistics">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Finance, Economics and Statistics">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/finance-icon.svg') }}" alt="Finance" />
                 </div>
@@ -103,7 +108,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Education And Training">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Education And Training">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/educationtraining.svg') }}" alt="Education And Training" />
                 </div>
@@ -113,7 +118,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Government Sector, Pub Adm. & Int. Relations">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Government Sector, Pub Adm. & Int. Relations">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/government-services.svg') }}" alt="Engineering & Technology" />
                 </div>
@@ -123,7 +128,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Engineering & Technology">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Engineering & Technology">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/eit-icon.svg') }}" alt="Engineering & Technology" />
                 </div>
@@ -133,7 +138,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Information Technology (IT)">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Information Technology (IT)">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/it-icon.svg') }}" alt="Information Technology (IT)" />
                 </div>
@@ -143,7 +148,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="STEM">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="STEM">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/stem-icon.svg') }}" alt="STEM" />
                 </div>
@@ -153,7 +158,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Health Science & Medical Services">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Health Science & Medical Services">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/health-services.svg') }}" alt="Health Science & Medical Services" />
                 </div>
@@ -163,7 +168,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Hospitality and Tourism">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Hospitality and Tourism">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/tourism-icon.svg') }}" alt="Hospitality and Tourism" />
                 </div>
@@ -173,7 +178,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Humanities, Social Work & Psychology">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Humanities, Social Work & Psychology">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/humanities-icon.svg') }}" alt="Humanities" />
                 </div>
@@ -183,7 +188,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Law and Public Safety">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Law and Public Safety">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/law-icon.svg') }}" alt="Law and Public Safety" />
                 </div>
@@ -193,7 +198,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Distribution, Transportation & Logistics">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Distribution, Transportation & Logistics">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/transport.svg') }}" alt="Distribution, Transportation & Logistics" />
                 </div>
@@ -203,7 +208,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Marketing & Sales">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Marketing & Sales">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/marketing-icon.svg') }}" alt="Marketing & Sales" />
                 </div>
@@ -213,7 +218,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Scientific Research, R&D">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Scientific Research, R&D">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/scientific-research.svg') }}" alt="Scientific Research, R&D" />
                 </div>
@@ -223,7 +228,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Sports, Fitness & Wellness">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Sports, Fitness & Wellness">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/sports-icon.svg') }}" alt="Sports, Fitness & Wellness" />
                 </div>
@@ -233,7 +238,7 @@ Discover your strengths and unlock your true potential with our scientifically d
               </a>
             </li>
             <li>
-              <a class="career-t-box" href="{{ url('careers:careerlibrary') }}" title="Fashion, Design & Creativity">
+              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Fashion, Design & Creativity">
                 <div class="c-m-image">
                   <img src="{{ static('images_new/careers/career-tracks/faishion-icon.svg') }}" alt="Fashion, Design & Creativity" />
                 </div>
@@ -361,45 +366,49 @@ Discover your strengths and unlock your true potential with our scientifically d
   <div class="container">
     <div class="row">
       <div class="col-md-12 text-center mb-5">
-        <p class="mb-3 semibold text-20 text-24 text-131415">Choose the best option for you</p>
+        <h2 class="mb-3 fw-semibold fs-20 fs-md-24 text-dark">Choose the best option for you</h2>
       </div>
     </div>
     <div class="row justify-content-center">
-      <div class="col-md-4">
+      <div class="col-lg-5 col-md-6 col-12">
         {% if not is_student %}
-        <div class="flex gap-12 bg-f7f7fa pt-13 pb-10 pb-22 rounded-10 mb-3">
-          <img src="{{ static('images_new/icons/advancedCube.svg') }}" class="my-auto w-36 h-36 w-55 h-55 object-cover" alt="">
-          <div class="my-auto">
-            <p class="text-12 text-16 semibold text-333333">Advanced</p>
-            <p class="text-20 text-24 semibold text-333333">₹ {{ currency_format(pyschometric_test_amount) }} <del>{{ currency_format(psychometric_cross_test_amount) }}</del></p>
-            <p class="text-12 text-16-2 text-828282 mediumFont">Career guidance • 1 year validity</p>
+        <div class="d-flex bg-light p-3 rounded mb-3">
+          <img src="{{ static('topteenfrontend/assets/images/advancedCube.svg') }}" class="align-self-center me-3" style="width: 55px; height: 55px; object-fit: cover;" alt="">
+          <div class="align-self-center">
+            <p class="fs-16 fw-semibold text-dark mb-1">Advanced</p>
+            <p class="fs-24 fw-semibold text-dark mb-1">₹ {{ currency_format(pyschometric_test_amount) }} <del class="text-muted">{{ currency_format(psychometric_cross_test_amount) }}</del></p>
+            <p class="fs-12 text-muted mb-0">Career guidance • 1 year validity</p>
           </div>
         </div>
         {% endif %}
-        <div class="px-46 px-60 py-14 py-21 mt-4 bg-f7f7fa rounded-10">
-          <div class="flex flex-col gap-8">
-            <div class="flex gap-10 gap-16">
-              <img src="{{ static('images_new/icons/greenCheck.png') }}" class="my-auto w-12 h-12 w-16 h-16 object-cover" alt="">
-              <p class="text-12 text-16 mediumFont text-777777">Detailed Career</p>
+        <div class="p-4 p-md-5 mt-3 bg-light rounded">
+          <div class="mb-4">
+            <div class="d-flex align-items-center mb-3">
+              <img src="{{ static('topteenfrontend/assets/images/greenCheck.png') }}" class="me-3" style="width: 20px; height: 20px; object-fit: cover; flex-shrink: 0;" alt="">
+              <p class="fs-14 text-secondary mb-0">Detailed Career</p>
             </div>
-            <div class="flex gap-10 gap-16">
-              <img src="{{ static('images_new/icons/greenCheck.png') }}" class="my-auto w-12 h-12 w-16 h-16 object-cover" alt="">
-              <p class="text-12 text-16 mediumFont text-777777">Interest Analysis</p>
+            <div class="d-flex align-items-center mb-3">
+              <img src="{{ static('topteenfrontend/assets/images/greenCheck.png') }}" class="me-3" style="width: 20px; height: 20px; object-fit: cover; flex-shrink: 0;" alt="">
+              <p class="fs-14 text-secondary mb-0">Interest Analysis</p>
             </div>
-            <div class="flex gap-10 gap-16">
-              <img src="{{ static('images_new/icons/greenCheck.png') }}" class="my-auto w-12 h-12 w-16 h-16 object-cover" alt="">
-              <p class="text-12 text-16 mediumFont text-777777">Access to Career</p>
+            <div class="d-flex align-items-center mb-3">
+              <img src="{{ static('topteenfrontend/assets/images/greenCheck.png') }}" class="me-3" style="width: 20px; height: 20px; object-fit: cover; flex-shrink: 0;" alt="">
+              <p class="fs-14 text-secondary mb-0">Access to Career</p>
             </div>
-            <div class="flex gap-10 gap-16">
-              <img src="{{ static('images_new/icons/greenCheck.png') }}" class="my-auto w-12 h-12 w-16 h-16 object-cover" alt="">
-              <p class="text-12 text-16 mediumFont text-777777">Library & Colleges</p>
+            <div class="d-flex align-items-center mb-3">
+              <img src="{{ static('topteenfrontend/assets/images/greenCheck.png') }}" class="me-3" style="width: 20px; height: 20px; object-fit: cover; flex-shrink: 0;" alt="">
+              <p class="fs-14 text-secondary mb-0">Library & Colleges</p>
             </div>
-            <div class="flex gap-10 gap-16 w-160 w-214">
-              <img src="{{ static('images_new/icons/greenCheck.png') }}" class="my-auto w-12 h-12 w-16 h-16 object-cover" alt="">
-              <p class="text-12 text-16 mediumFont text-777777">Personalised Career Counselling Session</p>
+            <div class="d-flex align-items-start">
+              <img src="{{ static('topteenfrontend/assets/images/greenCheck.png') }}" class="me-3 mt-1" style="width: 20px; height: 20px; object-fit: cover; flex-shrink: 0;" alt="">
+              <p class="fs-14 text-secondary mb-0">Personalised Career Counselling Session</p>
             </div>
           </div>
-          <a href="{{ psychometric_test_payment_url }}" class="btn btn-primary w-100 mt-3">Proceed{% if not is_student %} to Buy{% endif %}</a>
+          <form id="paymentForm" onsubmit="handlePaymentSubmit(event); return false;">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <input type="hidden" name="test_type" value="{{ test_type_id }}">
+            <button type="submit" id="proceedToBuyBtn" class="btn btn-primary w-100 mt-3">Proceed{% if not is_student %} to Buy{% endif %}</button>
+          </form>
           {% if delete_demo_payment_url %}
           <button onclick="delete_demo_payment()" class="btn btn-secondary w-100 mt-2">Clear Demo Test</button>
           {% endif %}
@@ -450,8 +459,21 @@ Discover your strengths and unlock your true potential with our scientifically d
 
 {% block additionaljs %}
 <script>
-// Owl Carousel initialization for psychometric test benefits
+// Store class selection for signup when coming from stream-sorter
 document.addEventListener('DOMContentLoaded', function() {
+  // Set class 10 for stream-sorter page
+  sessionStorage.setItem('signup_class', '10');
+  
+  // Intercept signup/login button clicks to preserve class selection
+  document.addEventListener('click', function(e) {
+    const target = e.target.closest('a[href*="login"], a[href*="welcome"], button[onclick*="login"], button[onclick*="welcome"]');
+    if (target) {
+      // Ensure class is set before navigation
+      sessionStorage.setItem('signup_class', '10');
+    }
+  });
+  
+  // Owl Carousel initialization for psychometric test benefits
   if (jQuery('.psy-carousel').length) {
     jQuery('.psy-carousel').owlCarousel({
       loop: true,
@@ -473,8 +495,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Delete demo payment function
-  {% if delete_demo_payment_url %}
+  // Payment form submission handler
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -489,6 +510,131 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     return cookieValue;
   }
+
+  window.handlePaymentSubmit = function(event) {
+    event.preventDefault();
+    const form = document.getElementById('paymentForm');
+    const button = document.getElementById('proceedToBuyBtn');
+    const originalText = button.textContent;
+    
+    // Disable button and show loading state
+    button.disabled = true;
+    button.textContent = 'Processing...';
+    
+    const formData = new FormData(form);
+    const csrftoken = getCookie('csrftoken');
+    
+    // Convert FormData to JSON
+    const data = {
+      test_type: formData.get('test_type')
+    };
+    
+    fetch('{{ psychometric_test_payment_url }}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrftoken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(errorData => {
+          throw new Error(errorData.error || 'Payment request failed');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Check for error in response
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      // Check which gateway was used
+      // GatewayChoices: RAZORPAY=1, ICICIEAZYPAY=2
+      if (data.gateway === 1 || data.payment_info) {
+        // Razorpay gateway - open Razorpay checkout
+        if (typeof Razorpay === 'undefined') {
+          // Load Razorpay script if not already loaded
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = function() {
+            openRazorpay(data);
+          };
+          document.head.appendChild(script);
+        } else {
+          openRazorpay(data);
+        }
+      } else if (data.gateway === 2 || data.payment_url) {
+        // ICICI Eazypay gateway - redirect to payment URL
+        window.location.href = data.payment_url;
+      } else {
+        throw new Error('Unable to process payment. Invalid response format.');
+      }
+    })
+    .catch(error => {
+      console.error('Payment error:', error);
+      button.disabled = false;
+      button.textContent = originalText;
+      alert('Error: ' + (error.message || 'Unable to process payment. Please try again.'));
+    });
+  };
+
+  function openRazorpay(data) {
+    if (typeof Razorpay === 'undefined') {
+      alert('Razorpay is loading. Please wait a moment and try again.');
+      return;
+    }
+
+    data.payment_info['handler'] = function (response) {
+      updatePayment(data.test_id, data.pay_id, data.test_type, response, data.success_url, data.fail_url);
+    };
+    data.payment_info['modal'] = {
+      'ondismiss': function() {
+        window.location.href = data.fail_url;
+      }
+    };
+    var rzp1 = new Razorpay(data.payment_info);
+    rzp1.open();
+    rzp1.on('payment.failed', function (response) {
+      alert('Payment failed: ' + (response.error.description || response.error.code));
+      window.location.href = data.fail_url;
+    });
+  }
+
+  function updatePayment(test_id, pay_id, test_type, response, success_url, fail_url) {
+    const data = {
+      gateway_order_id: response.razorpay_order_id,
+      gateway_payment_id: response.razorpay_payment_id,
+      gateway_signature: response.razorpay_signature,
+      test_id: test_id,
+      payment_id: pay_id,
+      test_type: test_type
+    };
+
+    fetch('{{ payment_update_url }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify(data),
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      window.location.href = success_url;
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      window.location.href = fail_url;
+    });
+  }
+
+  // Delete demo payment function
+  {% if delete_demo_payment_url %}
   window.delete_demo_payment = function() {
     if (confirm('Are you sure you want to clear the demo test?')) {
       const csrftoken = getCookie('csrftoken');

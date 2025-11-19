@@ -3,10 +3,10 @@
 {% block title_content %}{% if note.id %}Edit Note{% else %}Create Note{% endif %} | Top Teen{% endblock %}
 {% block description_content %}Create or edit your note to keep track of your thoughts and reminders.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} create-note-page{% endblock %}
+{% block bodyclass %}{{ super() }} create-note-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .create-note-page {
     padding-top: 80px;
@@ -97,7 +97,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->

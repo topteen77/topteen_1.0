@@ -3,10 +3,10 @@
 {% block title_content %}Saved Media | Top Teen{% endblock %}
 {% block description_content %}View and organize your saved videos, articles, and courses.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} save-media-page{% endblock %}
+{% block bodyclass %}{{ super() }} save-media-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .save-media-page {
     padding-top: 80px;
@@ -161,7 +161,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <script>
   // Tab switching functionality
   document.addEventListener('DOMContentLoaded', function() {

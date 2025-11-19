@@ -3,10 +3,17 @@
 {% block title_content %}Personality Assessment Test | Top Teen{% endblock %}
 {% block description_content %}Take the Personality Assessment test to discover your career interests.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} test-view-page{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} test-view-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .test-view-page {
     padding-top: 80px;
@@ -320,9 +327,11 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
   $(document).ready(function () {
@@ -455,12 +464,18 @@
           success: function (response) {
             $('#loader').show();
             // Redirect after successful submission
-            window.location.href = '/app/submit/';
+            window.location.href = '/psychometric/submit/';
           },
           error: function (error) {
             $('#loader').hide();
             console.error("Error:", error);
-            alert('An error occurred while processing your request.');
+            Swal.fire({
+              title: 'Error',
+              text: 'An error occurred while processing your request. Please try again.',
+              icon: 'error',
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#3f37c9'
+            });
           }
         });
       } else {

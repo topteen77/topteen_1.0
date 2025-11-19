@@ -145,15 +145,80 @@ function loginsingupotp() {
       }
 
       if (data.otp_verify == true) {
-        loginsingupotpremoveunusetag();
-        var x = document.createElement("input");
-        x.setAttribute("type", "hidden");
-        x.setAttribute("value", data.enc_user_name);
-        x.setAttribute("id", "encsignupusername");
-        x.setAttribute("name", "enc_user_name");
-        document.getElementById("singuppwd").appendChild(x);
-        document.getElementById("signuppwdname").textContent = data.user_name;
-        document.getElementById("signUpPwdDiv").classList.remove("hideModal");
+        // Check if user already exists (returning user)
+        if (data.user_exists === true && data.success === true) {
+          // User exists and is logged in - redirect to dashboard
+          loginsingupotpremoveunusetag();
+          if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+          } else {
+            window.location.href = '/user/dashboard';
+          }
+        } else {
+          // New user (user_exists is false or undefined) - proceed to password form
+          // This handles both explicit false and cases where user_exists might be undefined
+          if (data.enc_user_name) {
+            loginsingupotpremoveunusetag();
+            
+            // Remove any existing enc_user_name input
+            var existingInput = document.getElementById("encsignupusername");
+            if (existingInput) {
+              existingInput.remove();
+            }
+            
+            // Add encrypted username to password form
+            var x = document.createElement("input");
+            x.setAttribute("type", "hidden");
+            x.setAttribute("value", data.enc_user_name);
+            x.setAttribute("id", "encsignupusername");
+            x.setAttribute("name", "enc_user_name");
+            
+            var signupPwdForm = document.getElementById("singuppwd");
+            if (signupPwdForm) {
+              signupPwdForm.appendChild(x);
+            } else {
+              console.error("Signup password form not found!");
+            }
+            
+            // Update email display
+            var signupPwdName = document.getElementById("signuppwdname");
+            if (signupPwdName && data.user_name) {
+              signupPwdName.textContent = data.user_name;
+            }
+            
+            // Show password modal
+            var signUpPwdDiv = document.getElementById("signUpPwdDiv");
+            if (signUpPwdDiv) {
+              signUpPwdDiv.classList.remove("hideModal");
+              
+              // Auto-select class based on sessionStorage
+              setTimeout(function() {
+                const classDropdown = document.getElementById("signupGrade");
+                if (classDropdown) {
+                  // Check sessionStorage for signup_class
+                  const signupClass = sessionStorage.getItem('signup_class');
+                  if (signupClass === '10' || signupClass === '12') {
+                    classDropdown.value = signupClass;
+                    // Clear sessionStorage after use
+                    sessionStorage.removeItem('signup_class');
+                  } else {
+                    // Default to class 10 if not set
+                    classDropdown.value = '10';
+                  }
+                  classDropdown.focus();
+                }
+              }, 200);
+            } else {
+              console.error("Signup password modal div not found!");
+            }
+          } else {
+            console.error("No enc_user_name in response for new user signup");
+            var otperrtag = document.getElementById("errorMsgOtpSinguplogin");
+            if (otperrtag) {
+              otperrtag.textContent = "Error: Missing user information. Please try again.";
+            }
+          }
+        }
       }
     },
     error: function (xhr, status, error) {
@@ -212,28 +277,69 @@ function loginsinguppwd() {
   if (validatepwd(formData) == false) {
     return false;
   }
+  
+  // Clear any previous error messages
+  var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
+  if (otperrtag) {
+    otperrtag.textContent = "";
+  }
+  
   $.ajax({
     type: "POST",
     url: usersloginsignuppwd,
     data: formData,
     success: async function (data) {
       if (data.success) {
-        // alert("Account created succefully");
+        // Account created successfully
         await fireAlert("Account created successfully", "success");
         setTimeout(() => {
-          window.location.reload();
-        }, 10);
+          if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+          } else {
+            window.location.href = '/user/dashboard';
+          }
+        }, 1000);
+      } else {
+        // Show error message from server
+        var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
+        if (otperrtag && data.message) {
+          otperrtag.textContent = data.message;
+        } else if (otperrtag) {
+          otperrtag.textContent = "Something went wrong. Please try again.";
+        }
       }
     },
     error: function (xhr, status, error) {
       try {
+        // Try to parse error response
+        var errorMessage = "Something went wrong. Please try again.";
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+          errorMessage = xhr.responseJSON.message;
+        } else if (xhr.responseText) {
+          try {
+            var errorData = JSON.parse(xhr.responseText);
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          } catch (e) {
+            // If parsing fails, use default message
+          }
+        }
+        
+        // Show error in the password form error message area
+        var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
+        if (otperrtag) {
+          otperrtag.textContent = errorMessage;
+        }
+        
         if (xhr.status === 403) {
           // Don't show message, just redirect silently
           setTimeout(function() {
             window.location.href = '/user/login';
           }, 100);
         } else if (xhr.status === 400) {
-          fireAlert("Invalid request. Please check your input and try again", "error");
+          // Error message already shown above
+          fireAlert(errorMessage, "error");
         } else if (xhr.status === 401) {
           fireAlert("Authentication failed. Please check your credentials", "error");
         } else if (xhr.status === 500) {
@@ -241,7 +347,7 @@ function loginsinguppwd() {
         } else if (xhr.status === 0) {
           fireAlert("Network error. Please check your connection", "error");
         } else {
-          fireAlert("Something went wrong. Please try again", "error");
+          fireAlert(errorMessage, "error");
         }
       } catch (e) {
         fireAlert("An unexpected error occurred. Please try again", "error");
@@ -255,11 +361,22 @@ function loginsinguppwd() {
 }
 
 function validatepwd(formData) {
+  // Validate class/grade selection
+  var grade = formData.get("grade");
+  if (!grade || grade === "") {
+    var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
+    otperrtag.textContent = "Please select your class. Try Again";
+    return false;
+  }
+  
+  // Validate password
   if (formData.get("password") == "") {
     var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
     otperrtag.textContent = "All fields required. Try Again";
     return false;
   }
+  
+  // Validate password match
   if (formData.get("password") != formData.get("confirm_password")) {
     var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
     otperrtag.textContent = "Password does not match. Try Again";
@@ -584,7 +701,7 @@ const closeModals = function () {
 
 // Autotab
 
-// Enhanced OTP handling with backspace support
+// Enhanced OTP handling with backspace support and auto-submit
 $(".oinputs").keyup(function (e) {
   // Handle backspace - move to previous input and clear current
   if (e.keyCode === 8 && this.value === '') { // Backspace key
@@ -597,6 +714,25 @@ $(".oinputs").keyup(function (e) {
   // Handle normal input - move to next input
   else if (this.value.length == this.maxLength) {
     $(this).next(".oinputs").focus();
+    
+    // Check if all OTP inputs in the current form are filled
+    const form = $(this).closest('form');
+    if (form.length) {
+      const allOtpInputs = form.find('input[name="otp"]');
+      const allFilled = allOtpInputs.toArray().every(inp => $(inp).val().length === 1);
+      
+      if (allFilled && allOtpInputs.length === 6) {
+        // All 6 digits entered - auto-submit the form
+        setTimeout(function() {
+          const formId = form.attr('id');
+          if (formId === 'singupotp' && typeof loginsingupotp === 'function') {
+            loginsingupotp();
+          } else if (formId === 'forgototppwd' && typeof forgotpasswordotp === 'function') {
+            forgotpasswordotp();
+          }
+        }, 100);
+      }
+    }
   }
 });
 // ///////////
@@ -613,6 +749,18 @@ function otpHandler() {
     for (i = 0; i < otpData.length; i++) {
       otpIp[i].value = otpData[i];
     }
+    // Auto-submit when OTP is pasted
+    setTimeout(function() {
+      const form = otpSource.closest('form');
+      if (form) {
+        const formId = form.id;
+        if (formId === 'singupotp' && typeof loginsingupotp === 'function') {
+          loginsingupotp();
+        } else if (formId === 'forgototppwd' && typeof forgotpasswordotp === 'function') {
+          forgotpasswordotp();
+        }
+      }
+    }, 100);
   } else if (otpData.length == 1) {
     otpSource.maxLength = 1;
   }

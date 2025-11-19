@@ -3,10 +3,10 @@
 {% block title_content %}Welcome | Top Teen{% endblock %}
 {% block description_content %}Welcome to TopTeen! Join a community of 10k+ students and discover your true passion.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} welcome-page{% endblock %}
+{% block bodyclass %}{{ super() }} welcome-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .welcome-page {
     min-height: 100vh;
@@ -147,7 +147,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <script>
   // Add any welcome page specific JavaScript here
   // For example, tracking onboarding completion, animations, etc.

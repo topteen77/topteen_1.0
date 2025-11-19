@@ -3,10 +3,10 @@
 {% block title_content %}My Scrapbook | Top Teen{% endblock %}
 {% block description_content %}Access your saved content including notes, resume, bookmarks, and more.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} scrapbook-page{% endblock %}
+{% block bodyclass %}{{ super() }} scrapbook-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .scrapbook-page {
     padding-top: 80px;
@@ -214,8 +214,36 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+  // Sweet Alert Helper
+  const fireAlert = async function (
+    title,
+    icon = "success",
+    showConfirmButton = false,
+    showCloseButton = false,
+    isPrompt = false
+  ) {
+    const canDo = Swal.fire({
+      title,
+      icon: icon,
+      position: "top-end",
+      showCloseButton,
+      showConfirmButton,
+      toast: true,
+      showCancelButton: false,
+      ...(isPrompt ? {} : { timer: 2000 }),
+    });
+
+    if (isPrompt) {
+      return canDo?.isConfirmed;
+    } else {
+      return -1;
+    }
+  };
+
   // Add folder functionality
   document.querySelectorAll('.addFolderPopBtn').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -229,15 +257,45 @@
     e.preventDefault();
     const folderName = document.getElementById('folderName').value;
     
-    // TODO: Implement AJAX call to create folder
-    // For now, just show an alert
-    alert('Folder creation functionality to be implemented');
-    
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('addFolderModal'));
-    if (modal) {
-      modal.hide();
+    if (!folderName || folderName.trim() === '') {
+      fireAlert("Please enter a folder name", "error");
+      return;
     }
+    
+    const formData = new FormData();
+    formData.append('foldername', folderName.trim());
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    $.ajax({
+      url: "/api/v1/user/create-folder",
+      type: 'POST',
+      data: formData,
+      success: function (data) {
+        fireAlert(data.message || "Folder created successfully", "success");
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addFolderModal'));
+        if (modal) {
+          modal.hide();
+        }
+        // Reset form
+        document.getElementById('addFolderForm').reset();
+        // Reload page after a short delay to show the new folder
+        setTimeout(function() {
+          window.location.reload();
+        }, 1000);
+      },
+      error: function(xhr) {
+        try {
+          const errorMsg = xhr.responseJSON?.message || "Error creating folder";
+          fireAlert(errorMsg, "error");
+        } catch(e) {
+          fireAlert("Internal Server Error", "error");
+        }
+      },
+      cache: false,
+      contentType: false,
+      processData: false
+    });
   });
 </script>
 {% endblock %}

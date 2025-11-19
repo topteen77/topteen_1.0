@@ -3,10 +3,10 @@
 {% block title_content %}My Folders | Top Teen{% endblock %}
 {% block description_content %}View and manage your folders to organize your saved content.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} user-folder-page{% endblock %}
+{% block bodyclass %}{{ super() }} user-folder-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .user-folder-page {
     padding-top: 80px;
@@ -161,7 +161,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->

@@ -3,10 +3,10 @@
 {% block title_content %}My Notepad | Top Teen{% endblock %}
 {% block description_content %}View and manage your notes, reminders, and post-its.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} notepad-page{% endblock %}
+{% block bodyclass %}{{ super() }} notepad-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .notepad-page {
     padding-top: 80px;
@@ -115,7 +115,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <script>
   // Any notepad-specific JavaScript can be added here
 </script>

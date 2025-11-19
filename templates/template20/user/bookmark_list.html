@@ -3,10 +3,10 @@
 {% block title_content %}My Bookmarks | Top Teen{% endblock %}
 {% block description_content %}Access your bookmarked videos, exams, and colleges.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} bookmark-list-page{% endblock %}
+{% block bodyclass %}{{ super() }} bookmark-list-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .bookmark-list-page {
     padding-top: 80px;
@@ -93,6 +93,6 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 {% endblock %}
 

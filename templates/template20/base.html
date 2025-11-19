@@ -34,7 +34,9 @@
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="{{ static('css_new/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}" type="text/css" media="all" />
+  {% block chatbot_css %}
   <link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />
+  {% endblock %}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
@@ -50,14 +52,20 @@
 
 </head>
 
-<body class="{% block bodyclass %}{% endblock %}">
+<body class="{% block bodyclass %} {% endblock %}">
+  {% block header %}
   {% include 'template20/includes/header.html' %}
+  {% endblock %}
 
   {% block content %}
   {% endblock %}
 
+  {% block footer %}
   {% include 'template20/includes/footer.html' %}
+  {% endblock %}
+  {% block chatbot %}
   {% include 'template20/includes/chatbot.html' %}
+  {% endblock %}
 
   {% block modals %}
   {% endblock %}
@@ -71,7 +79,9 @@
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="{{ static('js_new/bootstrap.min.js') }}"></script>
   <script src="{{ static('js_new/main.js') }}"></script>
+  {% block chatbot_js %}
   <script src="{{ static('js_new/chatbot.js') }}"></script>
+  {% endblock %}
   <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
   {% block additionaljs %}

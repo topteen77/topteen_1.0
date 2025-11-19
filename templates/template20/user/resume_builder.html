@@ -3,10 +3,10 @@
 {% block title_content %}Resume Builder | Top Teen{% endblock %}
 {% block description_content %}Build your professional resume by adding your skills, certifications, internships, and more.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} resume-builder-page{% endblock %}
+{% block bodyclass %}{{ super() }} resume-builder-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .resume-builder-page {
     padding-top: 80px;
@@ -808,7 +808,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->

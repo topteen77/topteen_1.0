@@ -15,14 +15,25 @@ class CustomUserBackend(ModelBackend):
         #     email=str(username)
         email=username
         try:
-             user = User.objects.get(
+             user = User.objects.filter(
                  Q(email=email) 
-             )
-             pwd_valid = user.check_password(password) 
-             if user and pwd_valid:            
-                return user
+             ).first()
+             if user:
+                 pwd_valid = user.check_password(password) 
+                 if user and pwd_valid:            
+                    return user
              return None
         except User.DoesNotExist:
+            return None
+        except User.MultipleObjectsReturned:
+            # If multiple users exist, get the first one
+            user = User.objects.filter(
+                Q(email=email) 
+            ).first()
+            if user:
+                pwd_valid = user.check_password(password) 
+                if user and pwd_valid:            
+                    return user
             return None
 
     def get_user(self, user_id):

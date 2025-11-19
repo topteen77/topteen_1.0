@@ -455,12 +455,26 @@ class SignUpVerifyOTP(APIView):
             otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
             is_otp_verified=otp and cs.verify_otp(username,''.join(otp),otp_type,delete=False)
             if is_otp_verified:
-                sign = Signer()
-                enc_user_name=sign.sign_object(({"enc_user_name":username}))
-                data['enc_user_name']=enc_user_name  
-                data["otp_verify"]=True  
-                data['user_name']=username
-                return  Response(data, status=status.HTTP_200_OK)
+                # Check if user already exists (returning user trying to login)
+                user = User.objects.filter(Q(mobile=mobile) | Q(email=email)).last()
+                if user:
+                    # User exists - log them in directly
+                    from django.contrib.auth import login
+                    login(request, user)
+                    data["otp_verify"]=True
+                    data["user_exists"]=True
+                    data["success"]=True
+                    data['redirect_url'] = reverse('users:userdashboard')
+                    return Response(data, status=status.HTTP_200_OK)
+                else:
+                    # New user - proceed to password form
+                    sign = Signer()
+                    enc_user_name=sign.sign_object(({"enc_user_name":username}))
+                    data['enc_user_name']=enc_user_name  
+                    data["otp_verify"]=True
+                    data["user_exists"]=False
+                    data['user_name']=username
+                    return  Response(data, status=status.HTTP_200_OK)
             else:
                 data["message"]="Invalid OTP"
                 data['user_name']=username
@@ -478,6 +492,13 @@ class SignUpPassword(APIView):
         pwd = request.POST.get('password') 
         username=request.POST.get("enc_user_name")
         refer_user_enc=request.POST.get('enc_referral_user')
+        grade = request.POST.get('grade')  # Get class/grade from form
+        
+        # Validate grade for direct signups (must be 10 or 12)
+        if grade and grade not in ['10', '12']:
+            data['message'] = "Please select a valid class (10 or 12)"
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        
         sign=Signer()
         if refer_user_enc:
             refer_user=sign.unsign_object(refer_user_enc)
@@ -485,26 +506,89 @@ class SignUpPassword(APIView):
         else:
             refer_user_id=None
         if pwd and username:
-            signobj=sign.unsign_object(username)
-            username=signobj.get('enc_user_name')
             try:
-                mobile = int(username)
-                email=None
-                username=mobile
-            except:
-                mobile=None
-                email=str(username)
-                username=email
-            if mobile and email is None:
-                # user_dict={'mobile':username,'password': pwd}
-                user_dict={'mobile':username,'password': pwd,'referral':refer_user_id}
-            else:
-                # user_dict={'email':username,'password': pwd}
-                user_dict={'email':username,'password': pwd,'referral':refer_user_id}
-            user=User.create_user(**user_dict)
-            if user:
-                data['success']=True
-            return  Response(data, status=status.HTTP_200_OK)
+                signobj=sign.unsign_object(username)
+                username=signobj.get('enc_user_name')
+                try:
+                    mobile = int(username)
+                    email=None
+                    username=mobile
+                except:
+                    mobile=None
+                    email=str(username)
+                    username=email
+                if mobile and email is None:
+                    # user_dict={'mobile':username,'password': pwd}
+                    user_dict={'mobile':username,'password': pwd,'referral':refer_user_id}
+                else:
+                    # user_dict={'email':username,'password': pwd}
+                    user_dict={'email':username,'password': pwd,'referral':refer_user_id}
+                
+                # Check if user already exists
+                if mobile:
+                    existing_user = User.objects.filter(mobile=mobile).first()
+                else:
+                    existing_user = User.objects.filter(email=email).first()
+                
+                if existing_user:
+                    data['message'] = "User with this email/mobile already exists. Please login instead."
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                
+                try:
+                    user=User.create_user(**user_dict)
+                except Exception as create_error:
+                    # Handle duplicate email/mobile or other creation errors
+                    import traceback
+                    print(f"Error creating user: {str(create_error)}")
+                    print(traceback.format_exc())
+                    if 'email' in str(create_error).lower() or 'mobile' in str(create_error).lower() or 'unique' in str(create_error).lower():
+                        data['message'] = "User with this email/mobile already exists. Please login instead."
+                    else:
+                        data['message'] = "An error occurred while creating your account. Please try again."
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                
+                if user:
+                    try:
+                        # Create or update UserProfile with grade
+                        user_profile, created = UserProfile.objects.get_or_create(user=user)
+                        # Set default to "10" if not provided
+                        if grade:
+                            user_profile.grade = grade
+                        else:
+                            user_profile.grade = "10"  # Default to class 10
+                        user_profile.save()
+                    except Exception as profile_error:
+                        # Log but don't fail - user is already created
+                        import traceback
+                        print(f"Warning: Error updating user profile: {str(profile_error)}")
+                        print(traceback.format_exc())
+                    
+                    try:
+                        # Auto-login the user
+                        from django.contrib.auth import login
+                        login(request, user)
+                    except Exception as login_error:
+                        # Log but don't fail - user is already created
+                        import traceback
+                        print(f"Warning: Error logging in user: {str(login_error)}")
+                        print(traceback.format_exc())
+                    
+                    # Return redirect URL to dashboard after signup
+                    # User is created successfully, so return success even if profile/login had minor issues
+                    data['success'] = True
+                    data['message'] = "Account created successfully"
+                    data['redirect_url'] = reverse('users:userdashboard')
+                    return Response(data, status=status.HTTP_200_OK)
+                else:
+                    data['success'] = False
+                    data['message'] = "Failed to create user. Please try again."
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                import traceback
+                print(f"Error in signup password: {str(e)}")
+                print(traceback.format_exc())
+                data['message'] = "An error occurred while creating your account. Please try again."
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -544,8 +628,9 @@ class LoginPassword(APIView):
                 login(request, user)
                 data['success'] = True
                 
-                # Default redirect
-                data['redirect_url'] = reverse('app:test_buttons')
+                # Default redirect to user dashboard instead of test buttons
+                # Test buttons now requires payment, so redirect to dashboard first
+                data['redirect_url'] = reverse('users:userdashboard')
                 
                 # Get student class information if available
                 student_info = None
@@ -874,6 +959,40 @@ class UserDashboard(TemplateView):
         ctx['countries']=country
         ctx['exams']=EntranceExam.objects.all().order_by('?')[:3]
         
+        # Determine user's class (10 or 12)
+        from institute.models import StudentManagement
+        user_grade = None
+        try:
+            user_profile = request.user.user_profile
+            if user_profile and user_profile.grade:
+                user_grade = str(user_profile.grade)
+        except:
+            pass
+        
+        # If no grade from UserProfile, check StudentManagement
+        if not user_grade:
+            try:
+                student_management = StudentManagement.objects.filter(student=request.user).first()
+                if student_management and student_management.class_and_section:
+                    class_name = student_management.class_and_section.class_and_section
+                    if class_name:
+                        import re
+                        numbers = re.findall(r'\d+', class_name)
+                        if numbers:
+                            class_number = int(numbers[0])
+                            if class_number >= 11:
+                                user_grade = "12"
+                            else:
+                                user_grade = "10"
+            except:
+                pass
+        
+        # Default to class 10 if still not determined
+        if not user_grade:
+            user_grade = "10"
+        
+        ctx['user_grade'] = user_grade
+        
         # Check for successful psychometric test payments
         successful_test_payment = PsychometricTestPayment.objects.filter(
             user=request.user,
@@ -882,17 +1001,46 @@ class UserDashboard(TemplateView):
         
         ctx['psychometric_test_payment'] = successful_test_payment
         ctx['test_dashboard_url'] = None
+        ctx['test_name'] = None
+        ctx['has_test_payment'] = False
         
-        if successful_test_payment:
-            # Determine dashboard URL based on test type
+        # Check if user has purchased test for their class
+        if user_grade == "10":
+            # Class 10 should have BASIC test (Stream Sorter)
+            class_test_payment = PsychometricTestPayment.objects.filter(
+                user=request.user,
+                test_type=choices.PsychometricTestType.BASIC,
+                is_success=choices.YesNoChoices.YES
+            ).first()
+            if class_test_payment:
+                ctx['has_test_payment'] = True
+                ctx['test_dashboard_url'] = '/psychometric/home'
+                ctx['test_name'] = 'Stream Sorter'
+        elif user_grade == "12":
+            # Class 12 should have ADVANCED test (Career Direction)
+            class_test_payment = PsychometricTestPayment.objects.filter(
+                user=request.user,
+                test_type=choices.PsychometricTestType.ADVANCED,
+                is_success=choices.YesNoChoices.YES
+            ).first()
+            if class_test_payment:
+                ctx['has_test_payment'] = True
+                ctx['test_dashboard_url'] = '/psychometric/home'
+                ctx['test_name'] = 'Career Direction'
+        
+        # Also check for any successful payment (for backward compatibility)
+        if successful_test_payment and not ctx['has_test_payment']:
             if successful_test_payment.test_type == choices.PsychometricTestType.BASIC:
-                # Stream Sorter - redirect to psychometric dashboard
-                ctx['test_dashboard_url'] = '/psychometric/dashboard/'
+                ctx['test_dashboard_url'] = '/psychometric/home'
                 ctx['test_name'] = 'Stream Sorter'
             elif successful_test_payment.test_type == choices.PsychometricTestType.ADVANCED:
-                # Career Direction - redirect to tests page
-                ctx['test_dashboard_url'] = '/api/web/tests/'
+                ctx['test_dashboard_url'] = '/psychometric/home'
                 ctx['test_name'] = 'Career Direction'
+        
+        # Add buy URLs
+        from django.urls import reverse
+        ctx['test_buy_url_class10'] = reverse('psychometrictests:psychometrictest')
+        ctx['test_buy_url_class12'] = reverse('psychometrictests:PsychometricTest12')
         
         # ctc=CentralTestCandidate.objects.filter(user=request.user).last()
         ctc=CentralTestCandidate.objects.filter(user=request.user).last()

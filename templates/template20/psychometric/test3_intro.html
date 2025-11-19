@@ -3,10 +3,17 @@
 {% block title_content %}Aptitude Assessment - Test Instructions | Top Teen{% endblock %}
 {% block description_content %}Read the instructions for the Aptitude Assessment test before you begin.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} test-intro-page{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} test-intro-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .test-intro-page {
     padding-top: 80px;
@@ -69,8 +76,7 @@
               {% if request.user.user_profile %}
               <p class="mb-0">
                 <i class='bx bx-book me-1'></i>
-                {% if request.user.student_management.last().class_and_section %}{{ request.user.student_management.last().class_and_section }}{% endif %}
-                {% if request.user.user_profile.schoolname %} • {{ request.user.user_profile.schoolname }}{% endif %}
+                {% if request.user.user_profile.schoolname %}{{ request.user.user_profile.schoolname }}{% endif %}
               </p>
               {% endif %}
             </div>
@@ -112,7 +118,7 @@
 
         <div class="instruction-box">
           <div class="d-flex align-items-start mb-4">
-            <img src="{{ static('images/info-tree.svg') }}" alt="Test Icon" class="instruction-icon">
+            <img src="{{ static('images_new/icons/info-tree.svg') }}" alt="Test Icon" class="instruction-icon">
             <div>
               <h5 class="mb-2">Test Instructions!</h5>
               <h4 class="section-title mb-0">Part 3 - Aptitude Assessment</h4>
@@ -224,7 +230,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Drawer functionality for mobile

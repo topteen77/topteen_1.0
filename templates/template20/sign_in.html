@@ -83,6 +83,27 @@
     text-align: center;
     font-size: 18px;
     font-weight: 600;
+    border: 2px solid #DCDCDC;
+    border-radius: 10px;
+  }
+  
+  .oinputs:focus {
+    border-color: #3f37c9;
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(63, 55, 201, 0.25);
+  }
+  
+  .otp-inputs-container {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  @media (max-width: 576px) {
+    .otp-inputs-container input {
+      width: 45px !important;
+      height: 45px !important;
+      font-size: 18px !important;
+    }
   }
   
   /* Button styling in modals */
@@ -123,7 +144,7 @@
               <!-- Get Started Form -->
               <div class="get-started-form">
                 <div class="logo-header text-center my-4">
-                  <img src="{{ static('images_new/topteen-haticon.svg') }}" alt="Logo" />
+                  <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
                 </div>
                 <h2 class="fs-22 mt-2 mb-2 fw-700 text-purple">Enter your details</h2>
                 <p class="text-gray fs-15">Make a new doc to bring your word, data, and teams together. For free</p>
@@ -161,14 +182,14 @@
                     <button type="button"
                             class="btn custom-button google-btn mb-3 fw-600"
                             onclick="window.location='{{ url('social:begin', args=['google-oauth2']) }}'">
-                      <img class="me-1" src="{{ static('images_new/google-icon.svg') }}" alt="google icon">
+                      <img class="me-1" src="{{ static('images_new/icons/google-icon.svg') }}" alt="google icon">
                       Continue with Google
                     </button>
                     <button type="button"
                             class="btn custom-button google-btn mb-3 fw-600"
                             onclick="window.location='{{ url('social:begin', args=['facebook']) }}'">
-                      <img class="me-1" src="{{ static('images_new/fb-icon.svg') }}" alt="google icon">
-                      Contiune with Facebook
+                      <img class="me-1" src="{{ static('images_new/icons/fb-icon.svg') }}" alt="facebook icon">
+                      Continue with Facebook
                     </button>
                   </div>
 
@@ -288,13 +309,25 @@
       });
     }
     
-    // OTP inputs auto-tab and enter key (signup OTP)
+    // OTP inputs auto-tab and auto-submit (signup OTP)
     const signupOtpInputs = document.querySelectorAll('#singupotp input[name="otp"]');
     signupOtpInputs.forEach(function(input, index) {
-      // Auto-tab to next input
+      // Auto-tab to next input and auto-submit when all filled
       input.addEventListener('input', function(e) {
-        if (this.value.length === 1 && index < signupOtpInputs.length - 1) {
-          signupOtpInputs[index + 1].focus();
+        if (this.value.length === 1) {
+          // Check if all OTP inputs are filled
+          const allFilled = Array.from(signupOtpInputs).every(inp => inp.value.length === 1);
+          if (allFilled) {
+            // All 6 digits entered - auto-submit
+            setTimeout(function() {
+              if (typeof loginsingupotp === 'function') {
+                loginsingupotp();
+              }
+            }, 100);
+          } else if (index < signupOtpInputs.length - 1) {
+            // Move to next input
+            signupOtpInputs[index + 1].focus();
+          }
         }
       });
       // Backspace to previous input
@@ -312,19 +345,38 @@
       });
     });
     
-    // OTP inputs auto-tab and enter key (forgot password OTP)
+    // OTP inputs auto-tab and auto-submit (forgot password OTP)
     const forgotOtpInputs = document.querySelectorAll('#forgototppwd input[name="otp"]');
     forgotOtpInputs.forEach(function(input, index) {
-      // Auto-tab to next input
+      // Auto-tab to next input and auto-submit when all filled
       input.addEventListener('input', function(e) {
-        if (this.value.length === 1 && index < forgotOtpInputs.length - 1) {
-          forgotOtpInputs[index + 1].focus();
+        if (this.value.length === 1) {
+          // Check if all OTP inputs are filled
+          const allFilled = Array.from(forgotOtpInputs).every(inp => inp.value.length === 1);
+          if (allFilled) {
+            // All 6 digits entered - auto-submit
+            setTimeout(function() {
+              if (typeof forgotpasswordotp === 'function') {
+                forgotpasswordotp();
+              }
+            }, 100);
+          } else if (index < forgotOtpInputs.length - 1) {
+            // Move to next input
+            forgotOtpInputs[index + 1].focus();
+          }
         }
       });
       // Backspace to previous input
       input.addEventListener('keydown', function(e) {
         if (e.key === 'Backspace' && this.value === '' && index > 0) {
           forgotOtpInputs[index - 1].focus();
+        }
+        // Enter key on last OTP input
+        if (e.key === 'Enter' && index === forgotOtpInputs.length - 1) {
+          e.preventDefault();
+          if (typeof forgotpasswordotp === 'function') {
+            forgotpasswordotp();
+          }
         }
       });
     });
@@ -404,65 +456,78 @@
       observer.observe(loginPwdDiv, { attributes: true });
     }
     
-    // Override loginpwd to ensure proper redirect after login
-    const originalLoginpwd = window.loginpwd;
-    if (originalLoginpwd) {
-      window.loginpwd = function() {
-        var formData = new FormData(document.getElementById("loginpwd"));
-        if (validateloginpwd(formData) == false) {
-          return false;
-        }
-        $.ajax({
-          type: "POST",
-          url: usersloginpwd,
-          data: formData,
-          success: function (data) {
-            if (data.success) {
-              // Hide modal
-              document.getElementById("loginpwdDiv").classList.add("hideModal");
-              // Redirect to dashboard
-              if (data.redirect_url) {
-                window.location.href = data.redirect_url;
-              } else {
-                window.location.href = "{{ url('app:test_buttons') }}";
-              }
-            }
-            if (data.success == false) {
-              var otperrtag = document.getElementById("errorMsgloginpwd");
-              if (otperrtag) {
-                otperrtag.textContent = data.errMsg || "Password doesn't match. Please try again.";
-                otperrtag.style.display = 'block';
-              }
-            }
-          },
-          error: function (xhr, status, error) {
-            try {
-              if (xhr.status === 403) {
-                setTimeout(function() {
-                  window.location.href = '/user/login';
-                }, 100);
-              } else if (xhr.status === 400) {
-                fireAlert("Invalid request. Please check your input and try again", "error");
-              } else if (xhr.status === 401) {
-                fireAlert("Authentication failed. Please check your credentials", "error");
-              } else if (xhr.status === 500) {
-                fireAlert("Server error. Please try again later", "error");
-              } else if (xhr.status === 0) {
-                fireAlert("Network error. Please check your connection", "error");
-              } else {
-                fireAlert("Something went wrong. Please try again", "error");
-              }
-            } catch (e) {
-              fireAlert("An unexpected error occurred. Please try again", "error");
-            }
-          },
-          cache: false,
-          contentType: false,
-          processData: false,
-        });
+    // Ensure loginpwd function is always available
+    // Override or define loginpwd to ensure proper redirect after login
+    window.loginpwd = function() {
+      var formData = new FormData(document.getElementById("loginpwd"));
+      if (typeof validateloginpwd === 'function' && validateloginpwd(formData) == false) {
         return false;
-      };
-    }
+      }
+      $.ajax({
+        type: "POST",
+        url: usersloginpwd,
+        data: formData,
+        success: function (data) {
+          if (data.success) {
+            // Hide modal
+            var loginPwdDiv = document.getElementById("loginpwdDiv");
+            if (loginPwdDiv) {
+              loginPwdDiv.classList.add("hideModal");
+            }
+            // Redirect to dashboard
+            if (data.redirect_url) {
+              window.location.href = data.redirect_url;
+            } else {
+              window.location.href = "{{ url('users:userdashboard') }}";
+            }
+          }
+          if (data.success == false) {
+            var otperrtag = document.getElementById("errorMsgloginpwd");
+            if (otperrtag) {
+              otperrtag.textContent = data.errMsg || data.message || "Password doesn't match. Please try again.";
+              otperrtag.style.display = 'block';
+            }
+          }
+        },
+        error: function (xhr, status, error) {
+          try {
+            var otperrtag = document.getElementById("errorMsgloginpwd");
+            if (otperrtag) {
+              if (xhr.responseJSON && xhr.responseJSON.message) {
+                otperrtag.textContent = xhr.responseJSON.message;
+              } else if (xhr.responseJSON && xhr.responseJSON.errMsg) {
+                otperrtag.textContent = xhr.responseJSON.errMsg;
+              } else {
+                otperrtag.textContent = "An error occurred. Please try again.";
+              }
+              otperrtag.style.display = 'block';
+            }
+            
+            if (xhr.status === 403) {
+              setTimeout(function() {
+                window.location.href = '/user/login';
+              }, 100);
+            } else if (xhr.status === 400) {
+              fireAlert("Invalid request. Please check your input and try again", "error");
+            } else if (xhr.status === 401) {
+              fireAlert("Authentication failed. Please check your credentials", "error");
+            } else if (xhr.status === 500) {
+              fireAlert("Server error. Please try again later", "error");
+            } else if (xhr.status === 0) {
+              fireAlert("Network error. Please check your connection", "error");
+            } else {
+              fireAlert("Something went wrong. Please try again", "error");
+            }
+          } catch (e) {
+            fireAlert("An unexpected error occurred. Please try again", "error");
+          }
+        },
+        cache: false,
+        contentType: false,
+        processData: false,
+      });
+      return false;
+    };
   });
 
   // Check if user is already logged in and redirect

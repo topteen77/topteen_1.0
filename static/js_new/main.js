@@ -374,6 +374,7 @@ function addAnimation() {
     scroller.setAttribute("data-animated", true);
 
     const scrollerInner = scroller.querySelector('.scroller__inner');
+    if (!scrollerInner) return;
     const scrollerContent = Array.from(scrollerInner.children);
 
     scrollerContent.forEach(item => {
@@ -610,122 +611,123 @@ $(document).ready(function ($) {
 
 // Testimonial Script //
 'use strict'
-var testim = document.getElementById("testim"),
-  testimDots = Array.prototype.slice.call(document.getElementById("testim-dots").children),
-  testimContent = Array.prototype.slice.call(document.getElementById("testim-content").children),
-  testimDemo = Array.prototype.slice.call(document.getElementById("testim-background").children),
-  testimLeftArrow = document.querySelector(".left-arrow"),
-  testimRightArrow = document.querySelector(".right-arrow"),
-  testimSpeed = 7500,
-  currentSlide = 0,
-  currentActive = 0,
-  testimTimer,
-  testimTimerD,
-  touchStartPos,
-  touchEndPos,
-  touchPosDiff,
-  ignoreTouch = 30;
-;
+// Initialize testimonial script only when DOM is ready
+function initTestimonialScript() {
+  var testim = document.getElementById("testim");
+  if (!testim) return; // Exit early if testim element doesn't exist
+  
+  var testimDotsEl = document.getElementById("testim-dots"),
+    testimContentEl = document.getElementById("testim-content"),
+    testimDemoEl = document.getElementById("testim-background"),
+    testimDots = (testimDotsEl && testimDotsEl.children) ? Array.prototype.slice.call(testimDotsEl.children) : [],
+    testimContent = (testimContentEl && testimContentEl.children) ? Array.prototype.slice.call(testimContentEl.children) : [],
+    testimDemo = (testimDemoEl && testimDemoEl.children) ? Array.prototype.slice.call(testimDemoEl.children) : [],
+    testimLeftArrow = document.querySelector(".left-arrow"),
+    testimRightArrow = document.querySelector(".right-arrow"),
+    testimSpeed = 7500,
+    currentSlide = 0,
+    currentActive = 0,
+    testimTimer,
+    testimTimerD,
+    touchStartPos,
+    touchEndPos,
+    touchPosDiff,
+    ignoreTouch = 30;
 
-window.onload = function () {
+  // Testim Script - only run if testimonial elements exist
+  if (testim && testimDots.length > 0 && testimContent.length > 0) {
+    function playSlide(slide) {
+      if (testimDemo.length >= 2) {
+        testimDemo[0].classList.add("active");
+        testimDemo[1].classList.add("active");
+      }
 
-  // Testim Script
-  function playSlide(slide) {
-    testimDemo[0].classList.add("active");
-    testimDemo[1].classList.add("active");
+      for (var k = 0; k < testimDots.length; k++) {
+        testimContent[k].classList.remove("active");
+        testimContent[k].classList.add(`inactive`);
+        testimDots[k].classList.remove("active");
+      }
 
-    for (var k = 0; k < testimDots.length; k++) {
-      testimContent[k].classList.remove("active");
-      testimContent[k].classList.add(`inactive`);
-      testimDots[k].classList.remove("active");
+
+      if (slide < 0) {
+        slide = currentSlide = testimContent.length - 1;
+      }
+
+      if (slide > testimContent.length - 1) {
+        slide = currentSlide = 0;
+      }
+
+      testimContent[slide].classList.remove("inactive");
+      testimContent[slide].classList.add("active");
+      testimDots[slide].classList.add("active");
+
+      currentActive = currentSlide;
+
+      clearTimeout(testimTimerD);
+      if (testimDemo.length >= 2) {
+        testimTimerD = setTimeout(function () {
+          testimDemo[0].classList.remove("active");
+          testimDemo[1].classList.remove("active");
+        }, testimSpeed / 2);
+      }
+
+      clearTimeout(testimTimer);
+      testimTimer = setTimeout(function () {
+        playSlide(currentSlide += 1);
+      }, testimSpeed);
     }
 
-
-    if (slide < 0) {
-      slide = currentSlide = testimContent.length - 1;
+    if (testimLeftArrow) {
+      testimLeftArrow.addEventListener("click", function () {
+        playSlide(currentSlide -= 1);
+      });
     }
 
-    if (slide > testimContent.length - 1) {
-      slide = currentSlide = 0;
+    if (testimRightArrow) {
+      testimRightArrow.addEventListener("click", function () {
+        playSlide(currentSlide += 1);
+      });
     }
 
-    testimContent[slide].classList.remove("inactive");
-    testimContent[slide].classList.add("active");
-    testimDots[slide].classList.add("active");
+    for (var l = 0; l < testimDots.length; l++) {
+      testimDots[l].addEventListener("click", function () {
+        playSlide(currentSlide = testimDots.indexOf(this));
+      });
+    }
 
-    currentActive = currentSlide;
+    if (testim) {
+      testim.addEventListener("touchstart", function (e) {
+        touchStartPos = e.changedTouches[0].clientX;
+      });
 
-    clearTimeout(testimTimerD);
-    testimTimerD = setTimeout(function () {
+      testim.addEventListener("touchend", function (e) {
+        touchEndPos = e.changedTouches[0].clientX;
 
-      testimDemo[0].classList.remove("active");
-      testimDemo[1].classList.remove("active");
-    }, testimSpeed / 2)
+        touchPosDiff = touchStartPos - touchEndPos;
 
-    clearTimeout(testimTimer);
-    testimTimer = setTimeout(function () {
+        console.log(touchPosDiff);
+        console.log(touchStartPos);
+        console.log(touchEndPos);
 
-      playSlide(currentSlide += 1);
-    }, testimSpeed)
+
+        if (touchPosDiff > 0 + ignoreTouch && testimLeftArrow) {
+          testimLeftArrow.click();
+        } else if (touchPosDiff < 0 - ignoreTouch && testimRightArrow) {
+          testimRightArrow.click();
+        } else {
+          return;
+        }
+
+      });
+    }
   }
+}
 
-  testimLeftArrow.addEventListener("click", function () {
-    playSlide(currentSlide -= 1);
-  })
-
-  testimRightArrow.addEventListener("click", function () {
-    playSlide(currentSlide += 1);
-  })
-
-  for (var l = 0; l < testimDots.length; l++) {
-    testimDots[l].addEventListener("click", function () {
-      playSlide(currentSlide = testimDots.indexOf(this));
-    })
-  }
-
-  function playSlide(slide) {
-    // Ensure slide index stays between 0 and 1 (since we now have only two slides)
-    if (slide < 0) slide = currentSlide = 1;
-    if (slide > 1) slide = currentSlide = 0;
-
-    // Remove active class from all slides
-    testimContent.forEach(slide => slide.classList.remove("active", "inactive"));
-
-    // Add active class to the current slide
-    testimContent[slide].classList.add("active");
-
-    currentActive = currentSlide;
-
-    // Reset and restart the timer
-    clearTimeout(testimTimer);
-    testimTimer = setTimeout(() => {
-      playSlide(currentSlide += 1);
-    }, testimSpeed);
-  }
-
-  testim.addEventListener("touchstart", function (e) {
-    touchStartPos = e.changedTouches[0].clientX;
-  })
-
-  testim.addEventListener("touchend", function (e) {
-    touchEndPos = e.changedTouches[0].clientX;
-
-    touchPosDiff = touchStartPos - touchEndPos;
-
-    console.log(touchPosDiff);
-    console.log(touchStartPos);
-    console.log(touchEndPos);
-
-
-    if (touchPosDiff > 0 + ignoreTouch) {
-      testimLeftArrow.click();
-    } else if (touchPosDiff < 0 - ignoreTouch) {
-      testimRightArrow.click();
-    } else {
-      return;
-    }
-
-  })
+// Initialize testimonial script when DOM is ready or immediately if already loaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initTestimonialScript);
+} else {
+  initTestimonialScript();
 }
 
 

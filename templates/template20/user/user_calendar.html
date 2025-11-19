@@ -3,10 +3,10 @@
 {% block title_content %}Your Calendar | Top Teen{% endblock %}
 {% block description_content %}Manage your events and calendar. Create and organize your important dates.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} user-calendar-page{% endblock %}
+{% block bodyclass %}{{ super() }} user-calendar-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <!-- FullCalendar CSS -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css" rel="stylesheet" />
 <style>
@@ -125,7 +125,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <!-- FullCalendar JS -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js"></script>
 <!-- jQuery -->

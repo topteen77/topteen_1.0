@@ -1,9 +1,9 @@
 {% extends 'template20/base.html' %}
 
-{% block bodyclass %}{{ block.super }} admin{% endblock %}
+{% block bodyclass %}{{ super() }} admin{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .admin .header {
     /* Admin-specific header styles */

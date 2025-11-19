@@ -3,10 +3,10 @@
 {% block title_content %}My Colleges | Top Teen{% endblock %}
 {% block description_content %}View your bookmarked colleges.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} bookmark-college-page{% endblock %}
+{% block bodyclass %}{{ super() }} bookmark-college-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .bookmark-college-page {
     padding-top: 80px;
@@ -120,7 +120,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->

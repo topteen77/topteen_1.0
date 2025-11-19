@@ -3,10 +3,10 @@
 {% block title_content %}Payment History | Top Teen{% endblock %}
 {% block description_content %}View your payment and transaction history.{% endblock %}
 
-{% block bodyclass %}{{ block.super }} user-history-page{% endblock %}
+{% block bodyclass %}{{ super() }} user-history-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .user-history-page {
     padding-top: 80px;
@@ -147,7 +147,7 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 <script>
   // Filter functionality
   const filterStatus = document.getElementById('filterStatus');
