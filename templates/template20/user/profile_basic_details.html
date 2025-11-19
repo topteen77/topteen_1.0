@@ -134,10 +134,10 @@
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     
     <!-- Validation Error Display Area -->
-    <div id="validationErrorAlert" class="alert alert-danger d-none" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; max-width: 90%; min-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <div id="validationErrorAlert" class="alert alert-danger d-none" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; max-width: 90%; min-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 8px; padding: 12px 16px;">
       <div class="d-flex align-items-center">
         <i class="bx bx-error-circle me-2 fs-20"></i>
-        <span id="validationErrorText"></span>
+        <span id="validationErrorText" class="fw-semibold"></span>
       </div>
     </div>
     
@@ -149,8 +149,8 @@
     <!-- Step 1: Choose Motive -->
     <div class="motive page">
       <div class="w-100" data-index="1">
-        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3">What are you here for?</h2>
-        <p class="text-center text-gray fs-16 mb-4" style="max-width: 344px;">
+        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3" style="color: #333;">What are you here for?</h2>
+        <p class="text-center text-gray fs-16 mb-4 mx-auto" style="max-width: 344px; color: #666;">
           This will help the app prepare a guided path for you to take
         </p>
 
@@ -182,8 +182,8 @@
     <!-- Step 2: Basic Details -->
     <div class="basicDetails page">
       <div class="w-100" data-index="2">
-        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3">Tell us more about yourself</h2>
-        <p class="text-center text-gray fs-16 mb-4" style="max-width: 344px;">
+        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3" style="color: #333;">Tell us more about yourself</h2>
+        <p class="text-center text-gray fs-16 mb-4 mx-auto" style="max-width: 344px; color: #666;">
           Let's get the essentials out of the way
         </p>
 
@@ -286,7 +286,7 @@
     <div class="photo page">
       <div class="w-100" data-index="3">
         <h2 class="fs-24 fw-semibold text-center mt-5 mb-3">Show us how you look</h2>
-        <p class="text-center text-gray fs-16 mb-4" style="max-width: 344px;">
+        <p class="text-center text-gray fs-16 mb-4" style="">
           Join a community of 10k+ students and discover your true passion.
         </p>
 
@@ -312,12 +312,12 @@
     <!-- Step 4: Subjects -->
     <div class="subjects page">
       <div class="w-100" data-index="4">
-        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3">What do you enjoy learning?</h2>
-        <p class="text-center text-gray fs-16 mb-4" style="max-width: 344px;">
+        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3" style="color: #333;">What do you enjoy learning?</h2>
+        <p class="text-center text-gray fs-16 mb-4 mx-auto" style="max-width: 344px; color: #666;">
           Drag right for subjects you like and left for subjects you don't
         </p>
 
-        <div class="row g-2 mt-4" style="max-width: 804px;">
+        <div class="row g-2 w-100 d-flex align-items-center mb-3" style="max-width: 804px;">
           {% for sb in subjects %}
           <div class="col-12 col-lg-4">
             <label class="hobbiesTab d-flex align-items-center p-3 rounded-3 bg-light" style="min-height: 60px; cursor: pointer;">
@@ -342,12 +342,12 @@
     <!-- Step 5: Hobbies -->
     <div class="hobbies page">
       <div class="w-100" data-index="5">
-        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3">What are your hobbies?</h2>
-        <p class="text-center text-gray fs-16 mb-4" style="max-width: 344px;">
+        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3" style="color: #333;">What are your hobbies?</h2>
+        <p class="text-center text-gray fs-16 mb-4 mx-auto" style="max-width: 344px; color: #666;">
           Swipe right for subjects you like and left for subjects you don't
         </p>
 
-        <div class="row g-2 mt-4" style="max-width: 804px;">
+        <div class="row g-2 w-100 d-flex align-items-center mb-3" style="max-width: 804px;">
           {% for hb in hobbies %}
           <div class="col-12 col-lg-4">
             <label class="hobbiesTab d-flex align-items-center p-3 rounded-3 bg-light" style="min-height: 60px; cursor: pointer;">
@@ -595,8 +595,8 @@
       showValidationError("Please enter your school name", $('input[name="userschool"]'));
       return false;
     }
-    if ($('input[name="usergrade"]').val() == "" || $('input[name="usergrade"]').val().trim() == "") {
-      showValidationError("Please enter your grade/class", $('input[name="usergrade"]'));
+    if ($('select[name="usergrade"]').val() == "" || $('select[name="usergrade"]').val() == null) {
+      showValidationError("Please select your grade/class", $('select[name="usergrade"]'));
       return false;
     }
     return true;
