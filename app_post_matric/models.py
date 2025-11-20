@@ -334,17 +334,42 @@ class UserResponse(TimeStampedModel):
             existing_score = existing_data.get('score', 0)
 
             # Merge new answers and compute score/category_counts
+            # Answer is defined in the same file, so we can reference it directly
+            
             for q_key, q_data in new_answers.items():
                 # Overwrite or add new question
                 existing_submitted[q_key] = q_data
 
-                # Add category count
-                category = q_data.get('category')
-                if category:
-                    existing_category_counts[category] = existing_category_counts.get(category, 0) + 1
-
-                # Add score
-                existing_score += q_data.get('score', 0)
+                # Handle different data formats
+                # If q_data is a list of answer IDs, fetch answer objects
+                if isinstance(q_data, list):
+                    # q_data is a list of answer IDs
+                    answer_ids = q_data
+                    for answer_id in answer_ids:
+                        try:
+                            answer = Answer.objects.get(id=answer_id)
+                            # Add category count
+                            if answer.category:
+                                existing_category_counts[answer.category] = existing_category_counts.get(answer.category, 0) + 1
+                            # Add score
+                            existing_score += answer.score or 0
+                        except Answer.DoesNotExist:
+                            pass
+                elif isinstance(q_data, dict):
+                    # q_data is already a dictionary with category/score
+                    category = q_data.get('category')
+                    if category:
+                        existing_category_counts[category] = existing_category_counts.get(category, 0) + 1
+                    existing_score += q_data.get('score', 0)
+                else:
+                    # Single answer ID (integer)
+                    try:
+                        answer = Answer.objects.get(id=q_data)
+                        if answer.category:
+                            existing_category_counts[answer.category] = existing_category_counts.get(answer.category, 0) + 1
+                        existing_score += answer.score or 0
+                    except (Answer.DoesNotExist, ValueError):
+                        pass
 
             # Final update
             response.selected_answer = {

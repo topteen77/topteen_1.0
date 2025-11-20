@@ -5,6 +5,7 @@ app_name="psychometrictests"
 urlpatterns = [    
     path("stream-sorter",views.PsychometricTest.as_view(),name="psychometrictest"),
     path("career-direction",views.PsychometricTest12.as_view(),name="PsychometricTest12"),
+    path("test-template/preview/",views.ModernTestTemplatePreview.as_view(),name="test_template_preview"),
     path("create-psychometric-test-payment",views.CreatePsychometricTestPayment.as_view(),name="createpsychomerticttestpayment"),
     path("create-psychometric-test-payment-eazypay",views.CreatePsychometricTestPaymentWithEazyPay.as_view(),name="createpsychomerticttestpaymenteazypay"),
     path("create-demo-psychometric-test-payment-eazypay",views.CreateDemoPsychometricTestPaymentWithEazyPay.as_view(),name="createdemopsychomerticttestpaymenteazypay"),

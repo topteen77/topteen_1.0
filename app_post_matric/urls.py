@@ -28,6 +28,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('web/tests/', views.Tests, name='tests'),
     path('web/results/', views.Results, name='results'),
+    path('web/results_list/', views.Results_list, name='results_list'),
     path('web/take_test/<int:id>/', views.Take_test, name='take_test'),
     path('web/test_details/<int:id>/', views.Test_details, name='test_details'),
     path('web/test_results/<int:id>/', views.Test_results, name='test_results'),

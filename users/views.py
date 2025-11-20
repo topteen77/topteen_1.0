@@ -1025,7 +1025,7 @@ class UserDashboard(TemplateView):
             ).first()
             if class_test_payment:
                 ctx['has_test_payment'] = True
-                ctx['test_dashboard_url'] = '/psychometric/home'
+                ctx['test_dashboard_url'] = '/api/web/tests/'
                 ctx['test_name'] = 'Career Direction'
         
         # Also check for any successful payment (for backward compatibility)
@@ -1040,7 +1040,8 @@ class UserDashboard(TemplateView):
         # Add buy URLs
         from django.urls import reverse
         ctx['test_buy_url_class10'] = reverse('psychometrictests:psychometrictest')
-        ctx['test_buy_url_class12'] = reverse('psychometrictests:PsychometricTest12')
+        # Class 12 students should redirect to /api/web/tests/ instead of PsychometricTest12
+        ctx['test_buy_url_class12'] = '/api/web/tests/'
         
         # ctc=CentralTestCandidate.objects.filter(user=request.user).last()
         ctc=CentralTestCandidate.objects.filter(user=request.user).last()

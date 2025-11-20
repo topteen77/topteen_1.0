@@ -27,33 +27,66 @@
   .question-box {
     background: #f7f7fa;
     border-radius: 10px;
-    padding: 30px;
-    margin-bottom: 30px;
+    padding: 20px;
+    margin-bottom: 20px;
   }
   .custom-radio {
-    display: block;
-    margin-bottom: 12px;
-    padding: 12px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    padding: 6px 10px;
     border: 2px solid #efefee;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s;
+    position: relative;
   }
   .custom-radio:hover {
     border-color: #8a2be2;
     background: rgba(138, 43, 226, 0.05);
   }
   .custom-radio input[type="radio"] {
-    margin-right: 12px;
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    width: 0;
+    height: 0;
   }
-  .custom-radio input[type="radio"]:checked + .radio-btn {
+  .custom-radio .radio-checkmark {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s;
+    background: #fff;
+  }
+  .custom-radio input[type="radio"]:checked ~ .radio-checkmark {
+    background: #8a2be2;
+    border-color: #8a2be2;
+  }
+  .custom-radio input[type="radio"]:checked ~ .radio-checkmark::after {
+    content: '\2713';
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .custom-radio input[type="radio"]:checked ~ .radio-btn {
     color: #8a2be2;
     font-weight: 600;
   }
-  .custom-radio input[type="radio"]:checked ~ .radio-btn,
   .custom-radio:has(input[type="radio"]:checked) {
     border-color: #8a2be2;
     background: rgba(138, 43, 226, 0.1);
+  }
+  .custom-radio .radio-btn {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.4;
   }
   .test-stats-box {
     background: #f7f7fa;
@@ -120,7 +153,14 @@
   }
   .radio-buttons.image-box .custom-radio {
     text-align: center;
-    padding: 15px;
+    padding: 8px;
+    flex-direction: column;
+  }
+  .radio-buttons.image-box .radio-checkmark {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    margin-right: 0;
   }
   .radio-buttons.image-box .radio-btn img {
     max-width: 100%;
@@ -195,73 +235,302 @@
       grid-template-columns: repeat(1, 1fr);
     }
   }
+  /* Internet Speed Meter Styles */
+  .internet-speed-meter {
+    background: #f7f7fa;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+  }
+  .speed-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .speed-status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .speed-status-indicator.status-stable {
+    background-color: #28a745;
+    box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
+  }
+  .speed-status-indicator.status-unstable {
+    background-color: #dc3545;
+    box-shadow: 0 0 4px rgba(220, 53, 69, 0.5);
+  }
+  .speed-status-text {
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .speed-status-text.status-stable {
+    color: #28a745;
+  }
+  .speed-status-text.status-unstable {
+    color: #dc3545;
+  }
+  .speed-values {
+    display: flex;
+    gap: 12px;
+    color: #666;
+  }
+  .speed-download, .speed-upload {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+  }
+  .speed-download-value, .speed-upload-value {
+    font-weight: 600;
+    color: #333;
+  }
+  /* Answer Quality Widget Styles */
+  .answer-quality-widget {
+    background: #fff3cd !important;
+    border: 2px solid #ffc107 !important;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    margin-top: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-height: 40px;
+    width: 100%;
+    z-index: 1000;
+  }
+  .answer-quality-widget.warning {
+    background: #fff3cd;
+    border-color: #ffc107;
+  }
+  .answer-quality-widget.careful {
+    background: #d4edda;
+    border-color: #28a745;
+  }
+  .quality-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .quality-status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .quality-status-indicator.status-warning {
+    background-color: #ffc107;
+    box-shadow: 0 0 4px rgba(255, 193, 7, 0.5);
+    animation: pulse-warning 2s infinite;
+  }
+  .quality-status-indicator.status-careful {
+    background-color: #28a745;
+    box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
+  }
+  @keyframes pulse-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .quality-status-text {
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .quality-status-text.status-warning {
+    color: #856404;
+  }
+  .quality-status-text.status-careful {
+    color: #155724;
+  }
+  .quality-value {
+    font-size: 11px;
+    color: #666;
+    font-weight: 600;
+  }
+  /* Desktop widget container - hidden on mobile, visible on desktop */
+  .answer-quality-widget-desktop-container {
+    display: none;
+  }
+  @media (min-width: 992px) {
+    .answer-quality-widget-desktop-container {
+      display: block;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="main-content-wrapper">
-  <div class="container-fluid">
+<section class="test-view-page pb-5">
+  <div class="container">
     <div class="row">
-      <!-- Left Sidebar (User Profile) -->
-      {% include 'template20/includes/user_profile_sidebar.html' %}
+      <!-- Left Sidebar (Desktop) -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
+          <div class="profile-header text-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="profile-img rounded-circle mb-3" style="width: 104px; height: 104px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 104px; height: 104px;">
+              <i class='bx bx-user fs-48 text-gray'></i>
+            </div>
+            {% endif %}
+            <h5 class="profile-name">{{ request.user.name|default(request.user.username) }}</h5>
+            <div class="profile-meta text-gray fs-14">
+              <p class="mb-1">
+                <i class='bx bx-calendar me-1'></i>
+                Joined {{ date_format(request.user.created) }}
+              </p>
+              {% if request.user.user_profile %}
+              <p class="mb-0">
+                <i class='bx bx-book me-1'></i>
+                {% if request.user.user_profile.schoolname %}{{ request.user.user_profile.schoolname }}{% endif %}
+              </p>
+              {% endif %}
+            </div>
+          </div>
 
-      <!-- Main Content Area -->
-      <div class="col-lg-9 col-md-8 col-12 pt-md-18 pt-14 ps-lg-5">
-        <!-- Desktop Test Stats -->
-        <div class="d-none d-lg-block mb-4">
-          <div class="test-stats-box">
+          <!-- Test Stats -->
+          <div class="mt-4">
             <div class="row g-3">
               <div class="col-6">
-                <div class="st-m-icon mb-2">
-                  <i class='bx bx-time fs-32 text-purple'></i>
+                <div class="test-stats-box">
+                  <div class="st-m-icon mb-2">
+                    <i class='bx bx-time fs-32 text-purple'></i>
+                  </div>
+                  <p class="stat-value" id="totalTime">00:00</p>
+                  <p class="stat-label">Total Time</p>
                 </div>
-                <p class="stat-value" id="totalTime">00:00</p>
-                <p class="stat-label">Total Time</p>
               </div>
               <div class="col-6">
-                <div class="st-m-icon mb-2">
-                  <i class='bx bx-list-check fs-32 text-purple'></i>
+                <div class="test-stats-box">
+                  <div class="st-m-icon mb-2">
+                    <i class='bx bx-show fs-32 text-purple'></i>
+                  </div>
+                  <p class="stat-value" id="questionProgress">1/{{ questions|length }}</p>
+                  <p class="stat-label">Question<br>Displayed</p>
                 </div>
-                <p class="stat-value" id="questionProgress">1/{{ questions|length }}</p>
-                <p class="stat-label">Question</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Internet Speed Meter (Desktop) -->
+          <div class="mt-4">
+            <div class="internet-speed-meter d-none d-lg-flex mb-3">
+              <div class="speed-status-badge">
+                <span class="speed-status-indicator status-stable"></span>
+                <span class="speed-status-text status-stable">Internet Stable</span>
+              </div>
+              <div class="speed-values">
+                <div class="speed-download">
+                  <span>↓</span>
+                  <span class="speed-download-value">0.0 Mbps</span>
+                </div>
+                <div class="speed-upload">
+                  <span>↑</span>
+                  <span class="speed-upload-value">0.0 Mbps</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Answer Quality Widget (Desktop) -->
+          <div class="mt-3 answer-quality-widget-desktop-container">
+            <div class="answer-quality-widget careful mb-3" id="answerQualityWidgetDesktop" style="display: flex !important;">
+              <div class="quality-status-badge">
+                <span class="quality-status-indicator status-careful"></span>
+                <span class="quality-status-text status-careful">Answering Carefully</span>
+              </div>
+              <div class="quality-value">
+                <span id="avgTimeDesktop">-- sec/q</span>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
+      <!-- Main Content Area -->
+      <div class="col-lg-8">
         <!-- Mobile Header -->
         <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fs-20 fw-semibold mb-0">Logical Reasoning</h2>
+          <div class="d-flex align-items-center">
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px;">
+              <i class='bx bx-user fs-24 text-gray'></i>
+            </div>
+            {% endif %}
+            <div>
+              <h5 class="mb-0">{{ request.user.name|default(request.user.username) }}</h5>
+              <p class="text-gray fs-12 mb-0">Joined {{ date_format(request.user.created) }}</p>
+            </div>
+          </div>
           <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
             <i class='bx bx-cog'></i>
           </button>
         </div>
 
+        <!-- Internet Speed Meter -->
+        <div class="internet-speed-meter d-lg-none mb-3">
+          <div class="speed-status-badge">
+            <span class="speed-status-indicator status-stable"></span>
+            <span class="speed-status-text status-stable">Internet Stable</span>
+          </div>
+          <div class="speed-values">
+            <div class="speed-download">
+              <span>↓</span>
+              <span class="speed-download-value">0.0 Mbps</span>
+            </div>
+            <div class="speed-upload">
+              <span>↑</span>
+              <span class="speed-upload-value">0.0 Mbps</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Answer Quality Widget (Mobile) -->
+        <div class="answer-quality-widget careful d-lg-none mb-3" id="answerQualityWidgetMobile" style="display: flex !important;">
+          <div class="quality-status-badge">
+            <span class="quality-status-indicator status-careful"></span>
+            <span class="quality-status-text status-careful">Answering Carefully</span>
+          </div>
+          <div class="quality-value">
+            <span id="avgTimeMobile">-- sec/q</span>
+          </div>
+        </div>
+
         <!-- Mobile Test Stats -->
         <div class="d-lg-none mb-4">
-          <div class="test-stats-box">
-            <div class="row g-3">
-              <div class="col-6">
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="test-stats-box">
                 <div class="st-m-icon mb-2">
                   <i class='bx bx-time fs-32 text-purple'></i>
                 </div>
                 <p class="stat-value" id="totalTimeMobile">00:00</p>
                 <p class="stat-label">Total Time</p>
               </div>
-              <div class="col-6">
+            </div>
+            <div class="col-6">
+              <div class="test-stats-box">
                 <div class="st-m-icon mb-2">
-                  <i class='bx bx-list-check fs-32 text-purple'></i>
+                  <i class='bx bx-show fs-32 text-purple'></i>
                 </div>
                 <p class="stat-value" id="questionProgressMobile">1/{{ questions|length }}</p>
-                <p class="stat-label">Question</p>
+                <p class="stat-label">Question<br>Displayed</p>
               </div>
             </div>
           </div>
         </div>
 
-        <h2 class="fs-24 fw-semibold mb-3 d-none d-lg-block">Logical Reasoning</h2>
+        <h2 class="fs-20 fw-semibold mb-2">Logical Reasoning</h2>
         
-        <div class="alert alert-info d-flex align-items-center mb-4">
+        <div class="alert alert-info d-flex align-items-center mb-3 fs-13">
           <i class='bx bx-info-circle me-2 fs-20'></i>
           <div class="fs-14">Select the most appropriate answer from the choices provided based on the given information.</div>
         </div>
@@ -281,17 +550,18 @@
 
               {% if question.question_text and question.question_image %}
               <!-- Case where both text and image are present -->
-              <div class="question-label fs-18 fw-semibold mb-3">
+              <div class="question-label fs-16 fw-semibold mb-2">
                 <span class="text-purple me-2">Q{{ loop.index }}:</span>
                 {{ question.question_text }}
               </div>
-              <div class="img-tags mb-3">
+              <div class="img-tags mb-2">
                 <img class="question-image modal-trigger" src="{{ question.question_image.url }}" alt="Question Image">
               </div>
               <div class="radio-buttons">
                 {% for answer in question.answer_set.all() %}
                 <label class="custom-radio" for="answer_{{ answer.id }}">
                   <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}">
+                  <span class="radio-checkmark"></span>
                   <span class="radio-btn">{{ answer.answer_text }}</span>
                 </label>
                 {% endfor %}
@@ -299,7 +569,7 @@
 
               {% elif question.question_text %}
               <!-- Case where only text is present -->
-              <div class="question-label fs-18 fw-semibold mb-4">
+              <div class="question-label fs-16 fw-semibold mb-2">
                 <span class="text-purple me-2">Q{{ loop.index }}:</span>
                 {{ question.question_text }}
               </div>
@@ -307,6 +577,7 @@
                 {% for answer in question.answer_set.all() %}
                 <label class="custom-radio" for="answer_{{ answer.id }}">
                   <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}">
+                  <span class="radio-checkmark"></span>
                   <span class="radio-btn">{{ answer.answer_text }}</span>
                 </label>
                 {% endfor %}
@@ -314,8 +585,8 @@
 
               {% elif question.question_image %}
               <!-- Case where only image is present -->
-              <div class="question-label mb-3">
-                <span class="text-purple me-2 fs-18 fw-semibold">Q{{ loop.index }}:</span>
+              <div class="question-label mb-2">
+                <span class="text-purple me-2 fs-16 fw-semibold">Q{{ loop.index }}:</span>
                 <img class="question-image modal-trigger" src="{{ question.question_image.url }}" alt="Question Image">
               </div>
               <div class="radio-buttons image-box">
@@ -326,6 +597,7 @@
                   {% endif %}
                   <label class="custom-radio" for="answer_{{ answer.id }}">
                     <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}">
+                    <span class="radio-checkmark"></span>
                     <div class="radio-btn">
                       {% if answer.answer_image %}
                       <img src="{{ answer.answer_image.url }}" alt="Answer Image">
@@ -338,13 +610,14 @@
 
               {% else %}
               <!-- Case where neither text nor image is present -->
-              <div class="question-label fs-18 fw-semibold mb-4">
+              <div class="question-label fs-16 fw-semibold mb-2">
                 <span class="text-purple me-2">Q{{ loop.index }}:</span>
               </div>
               <div class="radio-buttons">
                 {% for answer in question.answer_set.all() %}
                 <label class="custom-radio" for="answer_{{ answer.id }}">
                   <input type="radio" name="question_{{ question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}">
+                  <span class="radio-checkmark"></span>
                   <span class="radio-btn">{{ answer.answer_text }}</span>
                 </label>
                 {% endfor %}
@@ -353,7 +626,7 @@
               {% endif %}
             </div>
 
-            <div class="d-flex justify-content-center gap-3 my-4">
+            <div class="d-flex justify-content-center gap-3 my-3">
               {% if not loop.first %}
               <button type="button" class="btn custom-button blue-button prev-button">Back</button>
               {% endif %}
@@ -413,6 +686,8 @@
 {{ super() }}
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- Internet Speed Meter -->
+<script src="{{ static('topteenfrontend/assets/js/internet-speed-meter.js') }}"></script>
 
 <script>
   $(document).ready(function () {
@@ -420,6 +695,11 @@
     const totalQuestions = $('.question').length;
     let startTime, timerInterval;
     let totalSeconds = 20 * 60; // 20 minutes in seconds
+    
+    // Answer quality tracking
+    let questionStartTimes = {};
+    let answerTimes = [];
+    const MIN_TIME_PER_QUESTION = 3; // Minimum 3 seconds per question to be considered careful
 
     // Timer functionality
     function startTimer() {
@@ -447,6 +727,11 @@
 
     // Question navigation
     function showQuestion(number) {
+      // Start timing for new question (if not already started by answer selection)
+      if (!questionStartTimes[number]) {
+        questionStartTimes[number] = Date.now();
+      }
+      
       $('.question').removeClass('active');
       $('#question' + number).addClass('active');
       
@@ -458,6 +743,46 @@
       $('.prev-button').toggle(number > 1);
       $('.submit-button').toggle(number === totalQuestions);
     }
+    
+    // Update answer quality widget
+    function updateAnswerQualityWidget() {
+      const mobileWidget = $('#answerQualityWidgetMobile');
+      const desktopWidget = $('#answerQualityWidgetDesktop');
+      
+      console.log('Answer Quality Widget - Mobile found:', mobileWidget.length, 'Desktop found:', desktopWidget.length);
+      
+      if (answerTimes.length === 0) {
+        // Show default state when no answers yet
+        mobileWidget.show();
+        desktopWidget.show();
+        $('#avgTimeMobile').text('-- sec/q');
+        $('#avgTimeDesktop').text('-- sec/q');
+        console.log('Answer Quality Widget - Showing default state');
+        return;
+      }
+      
+      const avgTime = answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length;
+      const isRushing = avgTime < MIN_TIME_PER_QUESTION;
+      
+      if (isRushing) {
+        mobileWidget.removeClass('careful').addClass('warning').show();
+        desktopWidget.removeClass('careful').addClass('warning').show();
+        mobileWidget.find('.quality-status-indicator').removeClass('status-careful').addClass('status-warning');
+        desktopWidget.find('.quality-status-indicator').removeClass('status-careful').addClass('status-warning');
+        mobileWidget.find('.quality-status-text').removeClass('status-careful').addClass('status-warning').text('Rushing Through');
+        desktopWidget.find('.quality-status-text').removeClass('status-careful').addClass('status-warning').text('Rushing Through');
+      } else {
+        mobileWidget.removeClass('warning').addClass('careful').show();
+        desktopWidget.removeClass('warning').addClass('careful').show();
+        mobileWidget.find('.quality-status-indicator').removeClass('status-warning').addClass('status-careful');
+        desktopWidget.find('.quality-status-indicator').removeClass('status-warning').addClass('status-careful');
+        mobileWidget.find('.quality-status-text').removeClass('status-warning').addClass('status-careful').text('Answering Carefully');
+        desktopWidget.find('.quality-status-text').removeClass('status-warning').addClass('status-careful').text('Answering Carefully');
+      }
+      
+      $('#avgTimeMobile').text(avgTime.toFixed(1) + ' sec/q');
+      $('#avgTimeDesktop').text(avgTime.toFixed(1) + ' sec/q');
+    }
 
     // Next button
     $('.next-button').on('click', function () {
@@ -465,6 +790,13 @@
       const radioChecked = $('input[name="question_' + questionId + '"]:checked').length > 0;
       
       if (radioChecked) {
+        // Record time spent on current question when manually clicking next
+        if (questionStartTimes[currentQuestion] && answerTimes.length < currentQuestion) {
+          const timeSpent = (Date.now() - questionStartTimes[currentQuestion]) / 1000; // in seconds
+          answerTimes.push(timeSpent);
+          updateAnswerQualityWidget();
+        }
+        
         if (currentQuestion < totalQuestions) {
           currentQuestion++;
           showQuestion(currentQuestion);
@@ -483,6 +815,29 @@
       if (currentQuestion > 1) {
         currentQuestion--;
         showQuestion(currentQuestion);
+      }
+    });
+
+    // Auto-advance to next question when option is selected
+    $(document).on('change', 'input[type="radio"]', function () {
+      const questionId = $(this).closest('.question').find('.question-box').data('question-id');
+      const radioName = 'question_' + questionId;
+      const isChecked = $('input[name="' + radioName + '"]:checked').length > 0;
+      
+      // Record time spent on current question when answer is selected
+      if (questionStartTimes[currentQuestion]) {
+        const timeSpent = (Date.now() - questionStartTimes[currentQuestion]) / 1000; // in seconds
+        answerTimes.push(timeSpent);
+        updateAnswerQualityWidget();
+      }
+      
+      if (isChecked && currentQuestion < totalQuestions) {
+        // Small delay to show the selection before advancing
+        setTimeout(function () {
+          currentQuestion++;
+          showQuestion(currentQuestion);
+          $('#error-message').hide();
+        }, 300); // 300ms delay for better UX
       }
     });
 
@@ -545,6 +900,12 @@
 
     // Start timer
     startTimer();
+    
+    // Initialize timing for first question
+    questionStartTimes[1] = Date.now();
+    
+    // Initialize answer quality widget
+    updateAnswerQualityWidget();
   });
 </script>
 {% endblock %}

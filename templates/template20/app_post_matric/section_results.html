@@ -1,0 +1,535 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Section Results - Assessment Dashboard | Top Teen{% endblock %}
+{% block description_content %}View your section test results and detailed analysis.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} section-results-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .section-results-page {
+    padding-top: 80px;
+  }
+  .hero-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 60px 0;
+    color: white;
+  }
+  .results-card {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+  }
+  .results-header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid #e9ecef;
+  }
+  .section-name-badge {
+    display: inline-block;
+    background: #d9d4ff;
+    color: #3f37c9;
+    font-size: 14px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .results-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 12px;
+  }
+  .completion-info {
+    color: #666;
+    font-size: 14px;
+  }
+  .score-section {
+    text-align: center;
+    padding: 32px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+    margin-bottom: 32px;
+  }
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .score-card {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .score-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #3f37c9;
+    margin-bottom: 8px;
+  }
+  .score-label {
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .score-card.correct .score-value {
+    color: #28a745;
+  }
+  .score-card.incorrect .score-value {
+    color: #dc3545;
+  }
+  .score-card.accuracy .score-value {
+    color: #3f37c9;
+  }
+  .questions-section {
+    margin-bottom: 32px;
+  }
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e9ecef;
+  }
+  .question-item {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border-left: 4px solid #e9ecef;
+  }
+  .question-item.correct {
+    border-left-color: #28a745;
+    background: #d4edda;
+  }
+  .question-item.incorrect {
+    border-left-color: #dc3545;
+    background: #f8d7da;
+  }
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .question-number {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+  }
+  .question-status {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .question-status.correct {
+    background: #28a745;
+    color: white;
+  }
+  .question-status.incorrect {
+    background: #dc3545;
+    color: white;
+  }
+  .question-text {
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .answer-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .answer-box {
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+  }
+  .answer-box.correct {
+    background: #d4edda;
+    border-color: #28a745;
+  }
+  .answer-box.selected {
+    background: #fff3cd;
+    border-color: #ffc107;
+  }
+  .answer-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .answer-text {
+    font-size: 14px;
+    color: #333;
+  }
+  .actions-section {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid #e9ecef;
+  }
+  .btn-primary {
+    background: #3f37c9;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary:hover {
+    background: #2d28a0;
+    color: white;
+    transform: translateY(-2px);
+  }
+  .btn-secondary {
+    background: #e9ecef;
+    color: #333;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-secondary:hover {
+    background: #dee2e6;
+    color: #333;
+    transform: translateY(-2px);
+  }
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+  }
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.3em;
+  }
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .no-results-icon {
+    font-size: 4rem;
+    color: #ccc;
+    margin-bottom: 20px;
+  }
+  .no-results h3 {
+    color: #666;
+    margin-bottom: 12px;
+  }
+  .no-results p {
+    color: #999;
+  }
+  @media (max-width: 768px) {
+    .answer-section {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section-results-page">
+  <!-- Hero Section -->
+  <section class="hero-gradient">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center text-white">
+          <h2 class="mb-3">Section Results</h2>
+          <p class="text-white fs-18">View your section test results and detailed analysis</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Breadcrumb -->
+  <div class="container mt-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url('post_matric:home') }}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url('post_matric:tests') }}">Tests</a></li>
+        <li class="breadcrumb-item"><a href="{{ url('post_matric:results_list') }}">Results</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Section Results</li>
+      </ol>
+    </nav>
+  </div>
+
+  <!-- Results Container -->
+  <main class="container py-4">
+    <div id="results-container">
+      <div class="loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">Loading section results...</p>
+      </div>
+    </div>
+  </main>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+$(document).ready(function() {
+  const testId = {{ testId }};
+  const resultId = {{ result_id }};
+  
+  // Fetch section result data
+  fetch(`/api/section-sessions/${resultId}/`, {
+    headers: {
+      'Accept': 'application/json',
+    },
+    credentials: 'same-origin'
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to load section results');
+    }
+    return response.json();
+  })
+  .then(sectionSession => {
+    // Fetch section details
+    return fetch(`/api/sections/${sectionSession.section}/`, {
+      headers: {
+        'Accept': 'application/json',
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(section => {
+      // Fetch responses for this section
+      return fetch(`/api/responses/?session=${sectionSession.session}`, {
+        headers: {
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(responsesData => {
+        const responses = Array.isArray(responsesData) ? responsesData : (responsesData.results || []);
+        
+        // Fetch questions and answers
+        return fetch(`/api/questions/?section=${section.id}`, {
+          headers: {
+            'Accept': 'application/json',
+          },
+          credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(questionsData => {
+          const questions = Array.isArray(questionsData) ? questionsData : (questionsData.results || []);
+          
+          // Process results
+          renderSectionResults(section, sectionSession, questions, responses);
+        });
+      });
+    });
+  })
+  .catch(error => {
+    console.error('Error loading section results:', error);
+    $('#results-container').html(`
+      <div class="no-results">
+        <div class="no-results-icon">
+          <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h3>Error Loading Results</h3>
+        <p>Failed to load section results. Please try again later.</p>
+        <a href="{{ url('post_matric:results_list') }}" class="btn-primary mt-4">
+          <i class="fas fa-arrow-left"></i>
+          Back to Results
+        </a>
+      </div>
+    `);
+  });
+  
+  function renderSectionResults(section, sectionSession, questions, responses) {
+    const container = $('#results-container');
+    
+    // Calculate statistics
+    let correctCount = 0;
+    let incorrectCount = 0;
+    const questionResults = [];
+    
+    // Create a map of responses by question ID
+    const responseMap = {};
+    responses.forEach(response => {
+      if (response.question) {
+        if (!responseMap[response.question]) {
+          responseMap[response.question] = [];
+        }
+        responseMap[response.question].push(response);
+      }
+    });
+    
+    // Process each question
+    questions.forEach((question, index) => {
+      const questionResponses = responseMap[question.id] || [];
+      let isCorrect = false;
+      let selectedAnswer = null;
+      let correctAnswer = null;
+      
+      // Get correct answer
+      if (question.correct_answer) {
+        correctAnswer = question.correct_answer;
+      }
+      
+      // Get selected answer
+      if (questionResponses.length > 0) {
+        selectedAnswer = questionResponses[0].answer;
+      }
+      
+      // Check if correct
+      if (correctAnswer && selectedAnswer) {
+        isCorrect = correctAnswer === selectedAnswer;
+      }
+      
+      if (isCorrect) {
+        correctCount++;
+      } else {
+        incorrectCount++;
+      }
+      
+      questionResults.push({
+        question: question,
+        isCorrect: isCorrect,
+        selectedAnswer: selectedAnswer,
+        correctAnswer: correctAnswer,
+        responses: questionResponses
+      });
+    });
+    
+    const totalQuestions = questions.length;
+    const accuracy = totalQuestions > 0 ? ((correctCount / totalQuestions) * 100).toFixed(1) : 0;
+    
+    // Format completion date
+    const completedDate = sectionSession.end_time ? new Date(sectionSession.end_time) : new Date(sectionSession.created_at);
+    const formattedDate = completedDate.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    const formattedTime = completedDate.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+    
+    // Calculate duration
+    let duration = 0;
+    if (sectionSession.start_time && sectionSession.end_time) {
+      const start = new Date(sectionSession.start_time);
+      const end = new Date(sectionSession.end_time);
+      duration = Math.round((end - start) / 1000 / 60); // minutes
+    }
+    
+    const resultsHtml = `
+      <div class="results-card">
+        <div class="results-header">
+          <div class="section-name-badge">${section.title || 'Section'}</div>
+          <h1>Your Section Results</h1>
+          <p class="completion-info">
+            <i class="fas fa-calendar me-2"></i>
+            Completed on ${formattedDate} at ${formattedTime}
+            ${duration > 0 ? ` • <i class="fas fa-clock me-2"></i>Duration: ${duration} minutes` : ''}
+          </p>
+        </div>
+        
+        <div class="score-grid">
+          <div class="score-card correct">
+            <div class="score-value">${correctCount}</div>
+            <div class="score-label">Correct</div>
+          </div>
+          <div class="score-card incorrect">
+            <div class="score-value">${incorrectCount}</div>
+            <div class="score-label">Incorrect</div>
+          </div>
+          <div class="score-card accuracy">
+            <div class="score-value">${accuracy}%</div>
+            <div class="score-label">Accuracy</div>
+          </div>
+          <div class="score-card">
+            <div class="score-value">${totalQuestions}</div>
+            <div class="score-label">Total Questions</div>
+          </div>
+        </div>
+        
+        <div class="questions-section">
+          <h3 class="section-title">Question Review</h3>
+          ${questionResults.map((result, index) => {
+            const statusClass = result.isCorrect ? 'correct' : 'incorrect';
+            const statusText = result.isCorrect ? 'Correct' : 'Incorrect';
+            
+            return `
+              <div class="question-item ${statusClass}">
+                <div class="question-header">
+                  <div class="question-number">Question ${index + 1}</div>
+                  <span class="question-status ${statusClass}">${statusText}</span>
+                </div>
+                <div class="question-text">${result.question.text || result.question.question_text || ''}</div>
+                <div class="answer-section">
+                  <div class="answer-box ${result.isCorrect ? 'correct' : 'selected'}">
+                    <div class="answer-label">Your Answer</div>
+                    <div class="answer-text">${result.selectedAnswer ? (result.selectedAnswer.text || result.selectedAnswer.answer_text || 'Not answered') : 'Not answered'}</div>
+                  </div>
+                  ${!result.isCorrect && result.correctAnswer ? `
+                  <div class="answer-box correct">
+                    <div class="answer-label">Correct Answer</div>
+                    <div class="answer-text">${result.correctAnswer.text || result.correctAnswer.answer_text || result.correctAnswer}</div>
+                  </div>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        
+        <div class="actions-section">
+          <a href="/api/web/test/${testId}/sections/" class="btn-secondary">
+            <i class="fas fa-arrow-left"></i>
+            Back to Sections
+          </a>
+          <a href="{{ url('post_matric:results_list') }}" class="btn-primary">
+            <i class="fas fa-list"></i>
+            View All Results
+          </a>
+        </div>
+      </div>
+    `;
+    
+    container.html(resultsHtml);
+  }
+});
+</script>
+{% endblock %}
+

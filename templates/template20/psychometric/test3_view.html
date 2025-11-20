@@ -101,6 +101,60 @@
       grid-column: 1 / span 2;
     }
   }
+  /* Internet Speed Meter Styles */
+  .internet-speed-meter {
+    background: #f7f7fa;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+  }
+  .speed-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .speed-status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .speed-status-indicator.status-stable {
+    background-color: #28a745;
+    box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
+  }
+  .speed-status-indicator.status-unstable {
+    background-color: #dc3545;
+    box-shadow: 0 0 4px rgba(220, 53, 69, 0.5);
+  }
+  .speed-status-text {
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .speed-status-text.status-stable {
+    color: #28a745;
+  }
+  .speed-status-text.status-unstable {
+    color: #dc3545;
+  }
+  .speed-values {
+    display: flex;
+    gap: 12px;
+    color: #666;
+  }
+  .speed-download, .speed-upload {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+  }
+  .speed-download-value, .speed-upload-value {
+    font-weight: 600;
+    color: #333;
+  }
 </style>
 {% endblock %}
 
@@ -164,6 +218,24 @@
           <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
             <i class='bx bx-cog'></i>
           </button>
+        </div>
+
+        <!-- Internet Speed Meter -->
+        <div class="internet-speed-meter d-lg-none mb-3">
+          <div class="speed-status-badge">
+            <span class="speed-status-indicator status-stable"></span>
+            <span class="speed-status-text status-stable">Internet Stable</span>
+          </div>
+          <div class="speed-values">
+            <div class="speed-download">
+              <span>↓</span>
+              <span class="speed-download-value">0.0 Mbps</span>
+            </div>
+            <div class="speed-upload">
+              <span>↑</span>
+              <span class="speed-upload-value">0.0 Mbps</span>
+            </div>
+          </div>
         </div>
 
         <h2 class="fs-24 fw-semibold mb-4">Comprehensive Aptitude Assessment</h2>
@@ -331,6 +403,8 @@
 
 {% block additionaljs %}
 {{ super() }}
+<!-- Internet Speed Meter -->
+<script src="{{ static('topteenfrontend/assets/js/internet-speed-meter.js') }}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Drawer functionality for mobile

@@ -69,41 +69,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Edit Profile PopUp -->
-<div data-direction="translate-y-full" class="h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto translate-y-full transition-all duration-500">
-  <div class="inline-block bg-white w-full rounded-t-3 position-absolute bottom-0 drawerContent">
-    <div class="p-4">
-      <a href="{{ url('users:profiledetails') }}" class="d-block text-decoration-none mb-3">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <p class="fs-16 fw-semibold mb-1">Edit Profile</p>
-            <p class="text-gray fs-12">Update your profile information</p>
-          </div>
-          <i class="bx bx-right-arrow-alt text-gray"></i>
-        </div>
-      </a>
-      <a href="{{ url('users:userhistory') }}" class="d-block text-decoration-none mb-3">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <p class="fs-16 fw-semibold mb-1">Manage payment history</p>
-            <p class="text-gray fs-12">View and manage your payments</p>
-          </div>
-          <i class="bx bx-right-arrow-alt text-gray"></i>
-        </div>
-      </a>
-      <a href="{{ url('users:logout') }}" class="d-block text-decoration-none">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <p class="fs-16 fw-semibold mb-1 text-danger">Sign Out</p>
-            <p class="text-danger text-opacity-60 fs-12">Logout from your account</p>
-          </div>
-          <i class="bx bx-right-arrow-alt text-gray"></i>
-        </div>
-      </a>
-    </div>
-  </div>
-</div>
-<!--End of Edit Profile PopUp -->
 
 <!-- Refer friends PopUp -->
 <div class="modal fade referFriendsPopup" tabindex="-1" aria-hidden="true">
@@ -142,6 +107,7 @@
             </div>
             <div class="d-flex flex-column">
               <p class="fs-15 fw-semibold mb-1">{{ request.user.name|default(request.user.username) }}</p>
+              
               <div class="d-flex flex-column gap-1">
                 <div class="d-flex align-items-center gap-1">
                   <i class='bx bx-time-five fs-12 text-gray'></i>
@@ -156,6 +122,9 @@
                       {% endif %}
                       {% if request.user.user_profile.schoolname %}
                         • {{ request.user.user_profile.schoolname }}
+                      {% endif %}
+                      {% if user_grade %}
+                      Class {{ user_grade }}
                       {% endif %}
                     {% else %}
                       - • -
@@ -203,7 +172,8 @@
               <img src="{{ static('images_new/icons/user-icon.svg') }}" class="profile-image mx-auto" alt="User" />
               {% endif %}
             </div>
-            <p class="fs-16 fw-semibold mb-3">{{ request.user.name|default(request.user.username) }}</p>
+            <p class="fs-16 fw-semibold mb-1">{{ request.user.name|default(request.user.username) }}</p>
+            
             <div class="d-flex flex-column gap-2">
               <div class="d-flex align-items-center justify-content-center gap-2">
                 <i class='bx bx-time-five fs-18 text-gray'></i>
@@ -218,6 +188,9 @@
                     {% endif %}
                     {% if request.user.user_profile.schoolname %}
                       • {{ request.user.user_profile.schoolname }}
+                    {% endif %}
+                    {% if user_grade %}
+                    Class {{ user_grade }}
                     {% endif %}
                   {% else %}
                     - • -

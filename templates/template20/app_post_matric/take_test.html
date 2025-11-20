@@ -1,0 +1,911 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Take Test - Assessment Dashboard | Top Teen{% endblock %}
+{% block description_content %}Take your assessment test.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} take-test-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .take-test-page {
+    padding-top: 0;
+    min-height: 100vh;
+    background: #f5f7fa;
+  }
+  .test-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 15px;
+  }
+  .test-header {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  .test-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  .test-info-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e9ecef;
+  }
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 14px;
+  }
+  .info-item i {
+    color: #3f37c9;
+  }
+  .timer-display {
+    font-size: 18px;
+    font-weight: 600;
+    color: #3f37c9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .timer-display.warning {
+    color: #ffc107;
+  }
+  .timer-display.danger {
+    color: #dc3545;
+  }
+  .question-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  .question {
+    display: none;
+  }
+  .question.active {
+    display: block;
+  }
+  .question-number {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 12px;
+  }
+  .question-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .question-image {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-bottom: 24px;
+  }
+  .options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .custom-radio {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    padding: 8px 12px;
+    border: 2px solid #efefee;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    background: white;
+  }
+  .custom-radio:hover {
+    border-color: #3f37c9;
+    background: rgba(63, 55, 201, 0.05);
+  }
+  .custom-radio input[type="radio"],
+  .custom-radio input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    width: 0;
+    height: 0;
+  }
+  .custom-radio .radio-checkmark {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s;
+    background: #fff;
+  }
+  .custom-radio input[type="radio"]:checked ~ .radio-checkmark,
+  .custom-radio input[type="checkbox"]:checked ~ .radio-checkmark {
+    background: #3f37c9;
+    border-color: #3f37c9;
+  }
+  .custom-radio input[type="radio"]:checked ~ .radio-checkmark::after,
+  .custom-radio input[type="checkbox"]:checked ~ .radio-checkmark::after {
+    content: '\2713';
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .custom-radio input[type="radio"]:checked ~ .radio-btn,
+  .custom-radio input[type="checkbox"]:checked ~ .radio-btn {
+    color: #3f37c9;
+    font-weight: 600;
+  }
+  .custom-radio:has(input[type="radio"]:checked),
+  .custom-radio:has(input[type="checkbox"]:checked) {
+    border-color: #3f37c9;
+    background: rgba(63, 55, 201, 0.1);
+  }
+  .custom-radio .radio-btn {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #333;
+  }
+  .option-image {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 4px;
+    margin-left: 12px;
+  }
+  .progress-bar-container {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #666;
+  }
+  .progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #3f37c9;
+    transition: width 0.3s;
+  }
+  .test-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  .btn-submit {
+    background: #3f37c9;
+    color: white;
+    padding: 12px 32px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-submit:hover {
+    background: #2d28a0;
+    transform: translateY(-2px);
+  }
+  .btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .instructions-section {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  .instructions-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+  }
+  .instructions-list {
+    list-style: none;
+    padding: 0;
+  }
+  .instructions-list li {
+    padding: 12px 0;
+    padding-left: 32px;
+    position: relative;
+    color: #666;
+    line-height: 1.6;
+  }
+  .instructions-list li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #3f37c9;
+    font-weight: bold;
+    font-size: 18px;
+  }
+  .btn-start {
+    background: #3f37c9;
+    color: white;
+    padding: 14px 40px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: block;
+    margin: 32px auto 0;
+  }
+  .btn-start:hover {
+    background: #2d28a0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(63, 55, 201, 0.3);
+  }
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+  }
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.3em;
+  }
+  /* Internet Speed Meter */
+  .speed-meter {
+    background: white;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .speed-meter.mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-radius: 0;
+    padding: 8px 16px;
+  }
+  .speed-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .speed-status.stable {
+    color: #28a745;
+  }
+  .speed-status.unstable {
+    color: #dc3545;
+  }
+  .speed-status i {
+    font-size: 12px;
+  }
+  .speed-values {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #666;
+  }
+  /* Answer Quality Widget */
+  .answer-quality-widget {
+    background: white;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .answer-quality-widget.mobile {
+    position: fixed;
+    top: 50px;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    border-radius: 0;
+    padding: 8px 16px;
+  }
+  .quality-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .quality-status.careful {
+    color: #28a745;
+  }
+  .quality-status.rushing {
+    color: #ffc107;
+  }
+  .quality-status i {
+    font-size: 12px;
+  }
+  @media (min-width: 992px) {
+    .speed-meter.mobile,
+    .answer-quality-widget.mobile {
+      display: none !important;
+    }
+  }
+  @media (max-width: 991px) {
+    .speed-meter.desktop,
+    .answer-quality-widget.desktop {
+      display: none !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="take-test-page">
+  <div class="test-container">
+    <!-- Mobile Speed Meter (Top Bar) -->
+    <div class="speed-meter mobile" id="speedMeterMobile">
+      <div class="speed-status stable" id="speedStatusMobile">
+        <i class="fas fa-circle"></i>
+        <span>Internet Stable</span>
+      </div>
+      <div class="speed-values">
+        <span>↓ <span id="downloadSpeedMobile">0.0</span> Mbps</span>
+        <span>↑ <span id="uploadSpeedMobile">0.0</span> Mbps</span>
+      </div>
+    </div>
+
+    <!-- Mobile Answer Quality Widget (Top Bar) -->
+    <div class="answer-quality-widget mobile" id="answerQualityMobile" style="display: none;">
+      <div class="quality-status careful" id="qualityStatusMobile">
+        <i class="fas fa-check-circle"></i>
+        <span>Answering Carefully</span>
+      </div>
+    </div>
+
+    <!-- Instructions Section (shown initially) -->
+    <div id="instructionsSection" class="instructions-section">
+      <h3>Test Instructions</h3>
+      <ul class="instructions-list">
+        <li>Read each question carefully before answering</li>
+        <li>You have a limited time to complete this test</li>
+        <li>Answer all questions to the best of your ability</li>
+        <li>Once you select an answer, the next question will appear automatically</li>
+        <li>Make sure you have a stable internet connection</li>
+        <li>Do not refresh the page during the test</li>
+        <li>You cannot go back to previous questions once answered</li>
+      </ul>
+      <button id="startTestBtn" class="btn-start">
+        <i class="fas fa-play me-2"></i>
+        Begin Test
+      </button>
+    </div>
+
+    <!-- Test Content (hidden initially) -->
+    <div id="testContent" style="display: none;">
+      <!-- Test Header -->
+      <div class="test-header">
+        <h1 class="test-title" id="testTitle">Loading Test...</h1>
+        <div class="test-info-bar">
+          <div class="info-item">
+            <i class="fas fa-question-circle"></i>
+            <span>Question <span id="currentQuestionNum">1</span> of <span id="totalQuestions">0</span></span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-clock"></i>
+            <div class="timer-display" id="timerDisplay">
+              <i class="fas fa-clock"></i>
+              <span>Time Remaining: <span id="timerValue">00:00</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop Sidebar (for speed meter and answer quality) -->
+      <div class="d-none d-lg-block mb-3">
+        <div class="speed-meter desktop" id="speedMeterDesktop">
+          <div class="speed-status stable" id="speedStatusDesktop">
+            <i class="fas fa-circle"></i>
+            <span>Internet Stable</span>
+          </div>
+          <div class="speed-values">
+            <span>↓ <span id="downloadSpeedDesktop">0.0</span> Mbps</span>
+            <span>↑ <span id="uploadSpeedDesktop">0.0</span> Mbps</span>
+          </div>
+        </div>
+        <div class="answer-quality-widget desktop mt-3" id="answerQualityDesktop" style="display: none;">
+          <div class="quality-status careful" id="qualityStatusDesktop">
+            <i class="fas fa-check-circle"></i>
+            <span>Answering Carefully</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-bar-container">
+        <div class="progress-info">
+          <span>Progress</span>
+          <span id="progressText">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Questions Container -->
+      <div id="questionsContainer"></div>
+
+      <!-- Test Actions -->
+      <div class="test-actions">
+        <div></div>
+        <button id="submitTestBtn" class="btn-submit" disabled>
+          <i class="fas fa-check me-2"></i>
+          Submit Test
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading" style="display: none;">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3">Loading test...</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+$(document).ready(function() {
+  const testId = {{ test_id }};
+  let currentSession = null;
+  let questions = [];
+  let currentQuestionIndex = 0;
+  let answers = {};
+  let timerInterval = null;
+  let timeRemaining = 0;
+  
+  // Internet Speed Meter
+  let downloadSpeed = 0;
+  let uploadSpeed = 0;
+  let isStable = true;
+  
+  // Answer Quality Tracking
+  let answerTimes = [];
+  let questionStartTime = null;
+  const RUSHING_THRESHOLD = 3000; // 3 seconds per question
+  
+  // Initialize
+  init();
+  
+  function init() {
+    // Start internet speed monitoring
+    startSpeedMonitoring();
+    
+    // Start answer quality widget
+    updateAnswerQualityWidget();
+    
+    // Handle start test button
+    $('#startTestBtn').on('click', function() {
+      startTest();
+    });
+    
+    // Handle submit button
+    $('#submitTestBtn').on('click', function() {
+      if (confirm('Are you sure you want to submit your test? You cannot change your answers after submission.')) {
+        submitTest();
+      }
+    });
+  }
+  
+  async function startTest() {
+    $('#instructionsSection').hide();
+    $('#loadingState').show();
+    
+    try {
+      // Start or get test session
+      const sessionResponse = await fetch(`/api/tests/${testId}/start/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        credentials: 'same-origin'
+      });
+      
+      if (!sessionResponse.ok) {
+        const errorData = await sessionResponse.json();
+        throw new Error(errorData.detail || 'Failed to start test');
+      }
+      
+      const sessionData = await sessionResponse.json();
+      currentSession = sessionData;
+      
+      // Load test details
+      const testResponse = await fetch(`/api/tests/${testId}/`, {
+        headers: {
+          'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
+      });
+      
+      const testData = await testResponse.json();
+      $('#testTitle').text(testData.title);
+      
+      // Load questions
+      const questionsResponse = await fetch(`/api/questions/?test=${testId}`, {
+        headers: {
+          'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
+      });
+      
+      const questionsData = await questionsResponse.json();
+      questions = Array.isArray(questionsData) ? questionsData : (questionsData.results || []);
+      
+      if (questions.length === 0) {
+        throw new Error('No questions found for this test');
+      }
+      
+      $('#totalQuestions').text(questions.length);
+      
+      // Start timer if time limit exists
+      if (testData.time_limit) {
+        timeRemaining = testData.time_limit * 60; // Convert to seconds
+        startTimer();
+      }
+      
+      // Show test content
+      $('#loadingState').hide();
+      $('#testContent').show();
+      
+      // Render first question
+      renderQuestion(0);
+      
+    } catch (error) {
+      console.error('Error starting test:', error);
+      alert('Failed to start test: ' + error.message);
+      $('#loadingState').hide();
+      $('#instructionsSection').show();
+    }
+  }
+  
+  function renderQuestion(index) {
+    if (index < 0 || index >= questions.length) return;
+    
+    currentQuestionIndex = index;
+    const question = questions[index];
+    
+    // Track question start time for answer quality
+    questionStartTime = Date.now();
+    
+    // Update progress
+    const progress = ((index + 1) / questions.length) * 100;
+    $('#progressText').text(Math.round(progress) + '%');
+    $('#progressFill').css('width', progress + '%');
+    $('#currentQuestionNum').text(index + 1);
+    
+    // Load answers for this question
+    loadAnswers(question.id).then(answersData => {
+      const questionHtml = `
+        <div class="question-container question active" data-question-id="${question.id}">
+          <div class="question-number">Question ${index + 1} of ${questions.length}</div>
+          <div class="question-text">${question.text || question.question_text || ''}</div>
+          ${question.image ? `<img src="${question.image}" alt="Question Image" class="question-image">` : ''}
+              <div class="options-container">
+                ${answersData.map((answer, idx) => `
+                  <label class="custom-radio" for="answer_${question.id}_${answer.id}">
+                    <input type="${question.input_type === 'checkbox' ? 'checkbox' : 'radio'}" 
+                           name="question_${question.id}" 
+                           value="${answer.id}" 
+                           id="answer_${question.id}_${answer.id}">
+                    <span class="radio-checkmark"></span>
+                    <span class="radio-btn">
+                      ${answer.text || answer.answer_text || ''}
+                      ${answer.image ? `<img src="${answer.image}" alt="Answer" class="option-image" style="max-width: 80px; max-height: 80px; margin-left: 8px; border-radius: 4px;">` : ''}
+                    </span>
+                  </label>
+                `).join('')}
+              </div>
+        </div>
+      `;
+      
+      $('#questionsContainer').html(questionHtml);
+      
+      // Set selected answer if already answered
+      if (answers[question.id]) {
+        const selectedAnswers = Array.isArray(answers[question.id]) ? answers[question.id] : [answers[question.id]];
+        selectedAnswers.forEach(answerId => {
+          $(`input[value="${answerId}"]`).prop('checked', true);
+        });
+      }
+      
+      // Auto-advance on answer selection
+      $('input[type="radio"], input[type="checkbox"]').on('change', function() {
+        const answerId = $(this).val();
+        const questionId = question.id;
+        
+        // Track answer time
+        if (questionStartTime) {
+          const timeSpent = Date.now() - questionStartTime;
+          answerTimes.push(timeSpent);
+          updateAnswerQualityWidget();
+        }
+        
+        // Save answer
+        if (question.input_type === 'checkbox') {
+          if (!answers[questionId]) answers[questionId] = [];
+          if ($(this).is(':checked')) {
+            if (!answers[questionId].includes(answerId)) {
+              answers[questionId].push(answerId);
+            }
+          } else {
+            answers[questionId] = answers[questionId].filter(id => id !== answerId);
+          }
+        } else {
+          answers[questionId] = answerId;
+        }
+        
+        // UI update is handled by CSS :checked selector
+        
+        // Auto-advance after 300ms
+        setTimeout(() => {
+          if (currentQuestionIndex < questions.length - 1) {
+            renderQuestion(currentQuestionIndex + 1);
+          } else {
+            // Last question - enable submit button
+            $('#submitTestBtn').prop('disabled', false);
+          }
+        }, 300);
+      });
+      
+      // Enable submit if all questions answered
+      if (Object.keys(answers).length === questions.length) {
+        $('#submitTestBtn').prop('disabled', false);
+      }
+    });
+  }
+  
+  async function loadAnswers(questionId) {
+    try {
+      const response = await fetch(`/api/answers/?question=${questionId}`, {
+        headers: {
+          'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
+      });
+      const data = await response.json();
+      return Array.isArray(data) ? data : (data.results || []);
+    } catch (error) {
+      console.error('Error loading answers:', error);
+      return [];
+    }
+  }
+  
+  function startTimer() {
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      timeRemaining--;
+      updateTimerDisplay();
+      
+      if (timeRemaining <= 0) {
+        clearInterval(timerInterval);
+        alert('Time is up! Submitting your test...');
+        submitTest();
+      } else if (timeRemaining <= 60) {
+        $('#timerDisplay').addClass('danger');
+      } else if (timeRemaining <= 300) {
+        $('#timerDisplay').addClass('warning');
+      }
+    }, 1000);
+  }
+  
+  function updateTimerDisplay() {
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    $('#timerValue').text(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+  }
+  
+  async function submitTest() {
+    if (!currentSession) {
+      alert('No active test session found');
+      return;
+    }
+    
+    // Validate all questions answered
+    const unanswered = questions.filter(q => !answers[q.id] || (Array.isArray(answers[q.id]) && answers[q.id].length === 0));
+    if (unanswered.length > 0) {
+      if (!confirm(`You have ${unanswered.length} unanswered question(s). Are you sure you want to submit?`)) {
+        return;
+      }
+    }
+    
+    $('#submitTestBtn').prop('disabled', true).text('Submitting...');
+    
+    try {
+      // Convert answers to submitted_answers format
+      // Backend will calculate score and category counts
+      const submitted_answers = {};
+      
+      for (const [questionId, answerIds] of Object.entries(answers)) {
+        const answerIdArray = Array.isArray(answerIds) ? answerIds : [answerIds];
+        submitted_answers[questionId] = answerIdArray.map(id => parseInt(id));
+      }
+      
+      const saveResponse = await fetch(`/api/responses/${currentSession.id}/save_responses/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          submitted_answers: submitted_answers,
+          total_questions: questions.length
+        }),
+        credentials: 'same-origin'
+      });
+      
+      if (!saveResponse.ok) {
+        const errorData = await saveResponse.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.error || 'Failed to save responses');
+      }
+      
+      // Submit session
+      const submitResponse = await fetch(`/api/sessions/${currentSession.id}/submit/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        credentials: 'same-origin'
+      });
+      
+      if (!submitResponse.ok) {
+        const errorData = await submitResponse.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.error || 'Failed to submit test');
+      }
+      
+      const resultData = await submitResponse.json().catch(() => ({}));
+      
+      // Redirect to results page
+      if (resultData.id) {
+        window.location.href = `/api/web/test_results/${testId}/`;
+      } else {
+        window.location.href = `/api/web/results/?test_id=${testId}`;
+      }
+      
+    } catch (error) {
+      console.error('Error submitting test:', error);
+      Swal.fire({
+        title: 'Submission Error',
+        text: error.message || 'Failed to submit test. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      $('#submitTestBtn').prop('disabled', false).html('<i class="fas fa-check me-2"></i>Submit Test');
+    }
+  }
+  
+  // Internet Speed Monitoring
+  async function startSpeedMonitoring() {
+    setInterval(async () => {
+      await measureInternetSpeed();
+      updateSpeedMeter();
+    }, 5000);
+    measureInternetSpeed();
+  }
+  
+  async function measureInternetSpeed() {
+    try {
+      const startTime = performance.now();
+      const response = await fetch('/static/css_new/bootstrap.min.css?' + Date.now(), {
+        cache: 'no-cache'
+      });
+      const endTime = performance.now();
+      const duration = (endTime - startTime) / 1000; // seconds
+      const fileSize = 200000; // Approximate file size in bytes
+      downloadSpeed = ((fileSize * 8) / duration / 1000000).toFixed(1); // Mbps
+      
+      isStable = downloadSpeed >= 1.0;
+    } catch (error) {
+      downloadSpeed = 0;
+      isStable = false;
+    }
+    uploadSpeed = downloadSpeed * 0.1; // Approximate upload speed
+  }
+  
+  function updateSpeedMeter() {
+    $('#downloadSpeedDesktop, #downloadSpeedMobile').text(downloadSpeed);
+    $('#uploadSpeedDesktop, #uploadSpeedMobile').text(uploadSpeed);
+    
+    const statusClass = isStable ? 'stable' : 'unstable';
+    const statusText = isStable ? 'Internet Stable' : 'Internet Unstable';
+    
+    $('#speedStatusDesktop, #speedStatusMobile')
+      .removeClass('stable unstable')
+      .addClass(statusClass)
+      .find('span').last().text(statusText);
+  }
+  
+  // Answer Quality Widget
+  function updateAnswerQualityWidget() {
+    if (answerTimes.length === 0) {
+      $('#answerQualityDesktop, #answerQualityMobile').show();
+      return;
+    }
+    
+    const avgTime = answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length;
+    const isRushing = avgTime < RUSHING_THRESHOLD;
+    
+    const statusClass = isRushing ? 'rushing' : 'careful';
+    const statusText = isRushing ? 'Rushing Through' : 'Answering Carefully';
+    const icon = isRushing ? 'fa-exclamation-triangle' : 'fa-check-circle';
+    
+    $('#qualityStatusDesktop, #qualityStatusMobile')
+      .removeClass('rushing careful')
+      .addClass(statusClass)
+      .html(`<i class="fas ${icon}"></i><span>${statusText}</span>`);
+    
+    $('#answerQualityDesktop, #answerQualityMobile').show();
+  }
+  
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+});
+</script>
+{% endblock %}
+

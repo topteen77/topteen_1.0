@@ -100,6 +100,7 @@ class PsychometricTest12(TemplateView):
         ctx['psychometric_cross_test_amount']=2999
         ctx['user'] = request.user  # Add user to context for template
         ctx['breadcrumb'] = {'text': 'Career Direction Psychometric Test', 'url': reverse('psychometrictests:PsychometricTest12')}
+        ctx['payment_update_url'] = reverse('psychometrictests:psychomerticttestpaymentupdate')
         
         # Check if user is authenticated before accessing user attributes
         if request.user.is_authenticated:
@@ -554,7 +555,7 @@ class UserPyschometricTestPaymentFail(TemplateView):
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class PyschometricTestResult(TemplateView):
-    template_name ="topteenfrontend/pyschometrictestresult.html"
+    template_name ="template20/psychometric/pyschometrictestresult.html"
 
     def html_head(self):
         name='Psychometric Test Report'
@@ -577,6 +578,79 @@ class PyschometricTestResult(TemplateView):
     def get(self, request,id,*args, **kwargs):
         return render(request, self.template_name, self.get_context(request,id,*args, **kwargs))
     
+@method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
+class ModernTestTemplatePreview(TemplateView):
+    template_name = "template20/psychometric/test_modern_template.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+
+        sample_questions = [
+            {
+                "id": 101,
+                "title": "Visual matching puzzle",
+                "description": "Choose the figure that completes the series by rotating the base cube mentally.",
+                "category": "Spatial Visualization",
+                "difficulty": "Medium",
+                "estimated_time": "45 sec",
+                "input_type": "radio",
+                "option_layout": "two-column",
+                "options": [
+                    {"value": "A", "label": "Rotate shape A", "hint": "45° clockwise"},
+                    {"value": "B", "label": "Rotate shape B", "hint": "Mirror along Y"},
+                    {"value": "C", "label": "Shift depth", "hint": "Move to front"},
+                    {"value": "D", "label": "Flip horizontal", "hint": "Mirror along X"},
+                ],
+            },
+            {
+                "id": 102,
+                "title": "Choose the unfolded net",
+                "description": "Which net forms the 3D object shown here?",
+                "category": "Mental Rotation",
+                "difficulty": "Easy",
+                "estimated_time": "35 sec",
+                "input_type": "radio",
+                "option_layout": "two-column",
+                "image": "images_new/icons/info-tree.svg",
+                "options": [
+                    {"value": "A", "label": "Net A", "hint": "Opposite faces match"},
+                    {"value": "B", "label": "Net B", "hint": "Adjacent faces differ"},
+                    {"value": "C", "label": "Net C", "hint": "Symmetry mismatch"},
+                    {"value": "D", "label": "Net D", "hint": "Edge sequence correct"},
+                ],
+            },
+            {
+                "id": 103,
+                "title": "Logical sequencing",
+                "description": "Arrange the segments so that arrows align and form a continuous path.",
+                "category": "Critical Reasoning",
+                "difficulty": "Medium",
+                "estimated_time": "50 sec",
+                "input_type": "radio",
+                "option_layout": "two-column",
+                "options": [
+                    {"value": "A", "label": "Segment order 1-3-2-4"},
+                    {"value": "B", "label": "Segment order 2-4-1-3"},
+                    {"value": "C", "label": "Segment order 3-1-4-2"},
+                    {"value": "D", "label": "Segment order 4-2-3-1"},
+                ],
+            },
+        ]
+
+        ctx["questions"] = sample_questions
+        ctx["total_questions"] = len(sample_questions)
+        ctx["time_limit_seconds"] = 20 * 60
+        ctx["submit_url"] = "#"
+        ctx["test_meta"] = {
+            "pill": "Preview Mode",
+            "title": "Stream Sorter • Modern Test Template",
+            "subtitle": "Experience the refreshed interface with all existing capabilities intact.",
+            "class_label": "Class 10",
+            "estimated_time": "20 min",
+            "attempts_allowed": "01",
+        }
+        return ctx
+
 class UpdateCentralTest(APIView):
     permission_classes = [permissions.AllowAny]
 

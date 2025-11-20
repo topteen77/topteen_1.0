@@ -494,39 +494,43 @@ def test_buttons(request):
         # Redirect to login if not authenticated
         return redirect(reverse('users:login'))
     
-    # Check if user has purchased test for their class - protect test dashboard access
+    # Check if user is an institute-registered student (exempt from payment check)
+    is_institute_student = StudentManagement.objects.filter(student=request.user).exists()
     
-    has_payment = False
-    if student_class == "10":
-        # Class 10 should have BASIC test (Stream Sorter)
-        has_payment = PsychometricTestPayment.objects.filter(
-            user=request.user,
-            test_type=choices.PsychometricTestType.BASIC,
-            is_success=choices.YesNoChoices.YES
-        ).exists()
-        if not has_payment:
-            # Redirect to Stream Sorter buy page
-            return redirect(reverse('psychometrictests:psychometrictest'))
-    elif student_class == "12":
-        # Class 12 should have ADVANCED test (Career Direction)
-        has_payment = PsychometricTestPayment.objects.filter(
-            user=request.user,
-            test_type=choices.PsychometricTestType.ADVANCED,
-            is_success=choices.YesNoChoices.YES
-        ).exists()
-        if not has_payment:
-            # Redirect to Career Direction buy page
-            return redirect(reverse('psychometrictests:PsychometricTest12'))
-    else:
-        # Default to class 10 if class not determined
-        has_payment = PsychometricTestPayment.objects.filter(
-            user=request.user,
-            test_type=choices.PsychometricTestType.BASIC,
-            is_success=choices.YesNoChoices.YES
-        ).exists()
-        if not has_payment:
-            # Redirect to Stream Sorter buy page
-            return redirect(reverse('psychometrictests:psychometrictest'))
+    # Only check payment for non-institute students
+    if not is_institute_student:
+        # Check if user has purchased test for their class - protect test dashboard access
+        has_payment = False
+        if student_class == "10":
+            # Class 10 should have BASIC test (Stream Sorter)
+            has_payment = PsychometricTestPayment.objects.filter(
+                user=request.user,
+                test_type=choices.PsychometricTestType.BASIC,
+                is_success=choices.YesNoChoices.YES
+            ).exists()
+            if not has_payment:
+                # Redirect to Stream Sorter buy page
+                return redirect(reverse('psychometrictests:psychometrictest'))
+        elif student_class == "12":
+            # Class 12 should have ADVANCED test (Career Direction)
+            has_payment = PsychometricTestPayment.objects.filter(
+                user=request.user,
+                test_type=choices.PsychometricTestType.ADVANCED,
+                is_success=choices.YesNoChoices.YES
+            ).exists()
+            if not has_payment:
+                # Redirect to Career Direction buy page
+                return redirect(reverse('psychometrictests:PsychometricTest12'))
+        else:
+            # Default to class 10 if class not determined
+            has_payment = PsychometricTestPayment.objects.filter(
+                user=request.user,
+                test_type=choices.PsychometricTestType.BASIC,
+                is_success=choices.YesNoChoices.YES
+            ).exists()
+            if not has_payment:
+                # Redirect to Stream Sorter buy page
+                return redirect(reverse('psychometrictests:psychometrictest'))
 
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
@@ -910,7 +914,7 @@ def test3_emotional(request):
         'user_profile': user_profile
     }
     
-    return render(request, 'topteenfrontend/user/app/Intelligence-test3-logical.html', context)
+    return render(request, 'template20/psychometric/test3_emotional.html', context)
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_language(request):
@@ -935,7 +939,7 @@ def test3_language(request):
         'user_profile': user_profile
     }
 
-    return render(request, 'topteenfrontend/user/app/Intelligence-test3-logical.html', context)
+    return render(request, 'template20/psychometric/test3_language.html', context)
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_machanical(request):
@@ -960,7 +964,7 @@ def test3_machanical(request):
         'user_profile': user_profile
     }
     
-    return render(request, 'topteenfrontend/user/app/Intelligence-test3-logical.html', context)
+    return render(request, 'template20/psychometric/test3_machanical.html', context)
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_spatial(request):
@@ -985,7 +989,7 @@ def test3_spatial(request):
         'user_profile': user_profile
     }
     
-    return render(request, 'topteenfrontend/user/app/Intelligence-test3-logical.html', context)
+    return render(request, 'template20/psychometric/test3_spatial.html', context)
 
 @login_required(login_url=reverse_lazy('users:login'))
 def generate_pdf(request):

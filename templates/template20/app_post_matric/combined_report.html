@@ -1,0 +1,460 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Combined Report - Assessment Dashboard | Top Teen{% endblock %}
+{% block description_content %}View your comprehensive assessment report combining all test results.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} combined-report-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .combined-report-page {
+    padding-top: 80px;
+  }
+  .hero-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 60px 0;
+    color: white;
+  }
+  .report-card {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+  }
+  .report-header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid #e9ecef;
+  }
+  .report-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 12px;
+  }
+  .student-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+  }
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .info-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .info-value {
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+  }
+  .test-summary-section {
+    margin-bottom: 32px;
+  }
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e9ecef;
+  }
+  .test-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border-left: 4px solid #3f37c9;
+  }
+  .test-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .test-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+  }
+  .test-date {
+    font-size: 14px;
+    color: #666;
+  }
+  .test-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .detail-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+  }
+  .detail-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #3f37c9;
+  }
+  .careers-section {
+    margin-bottom: 32px;
+  }
+  .career-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .career-item {
+    background: #f8f9fa;
+    padding: 12px 16px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    color: #333;
+    transition: all 0.3s;
+  }
+  .career-item:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+  }
+  .career-item.recommended {
+    background: #d4edda;
+    color: #155724;
+  }
+  .actions-section {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid #e9ecef;
+    flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: #3f37c9;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary:hover {
+    background: #2d28a0;
+    color: white;
+    transform: translateY(-2px);
+  }
+  .btn-secondary {
+    background: #e9ecef;
+    color: #333;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-secondary:hover {
+    background: #dee2e6;
+    color: #333;
+    transform: translateY(-2px);
+  }
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .no-results-icon {
+    font-size: 4rem;
+    color: #ccc;
+    margin-bottom: 20px;
+  }
+  .no-results h3 {
+    color: #666;
+    margin-bottom: 12px;
+  }
+  .no-results p {
+    color: #999;
+  }
+  .chart-container {
+    margin: 24px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="combined-report-page">
+  <!-- Hero Section -->
+  <section class="hero-gradient">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center text-white">
+          <h2 class="mb-3">Combined Assessment Report</h2>
+          <p class="text-white fs-18">Comprehensive overview of all your test results</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Breadcrumb -->
+  <div class="container mt-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url('post_matric:home') }}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url('post_matric:tests') }}">Tests</a></li>
+        <li class="breadcrumb-item"><a href="{{ url('post_matric:results_list') }}">Results</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Combined Report</li>
+      </ol>
+    </nav>
+  </div>
+
+  <!-- Report Container -->
+  <main class="container py-4">
+    {% if no_results %}
+    <div class="report-card">
+      <div class="no-results">
+        <div class="no-results-icon">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <h3>No Results Found</h3>
+        <p>{{ error|default:"You need to complete all tests to generate a combined report." }}</p>
+        <a href="{{ url('post_matric:tests') }}" class="btn-primary mt-4">
+          <i class="fas fa-arrow-right"></i>
+          Take Tests
+        </a>
+      </div>
+    </div>
+    {% else %}
+    <div class="report-card">
+      <div class="report-header">
+        <h1>Comprehensive Assessment Report</h1>
+        <p class="text-muted">Comprehensive Assessment Report</p>
+      </div>
+
+      <!-- Student Information -->
+      {% if student_name or grade or schoolname %}
+      <div class="student-info">
+        {% if student_name %}
+        <div class="info-item">
+          <span class="info-label">Student Name</span>
+          <span class="info-value">{{ student_name }}</span>
+        </div>
+        {% endif %}
+        {% if grade %}
+        <div class="info-item">
+          <span class="info-label">Grade/Class</span>
+          <span class="info-value">{{ grade }}</span>
+        </div>
+        {% endif %}
+        {% if schoolname %}
+        <div class="info-item">
+          <span class="info-label">School</span>
+          <span class="info-value">{{ schoolname }}</span>
+        </div>
+        {% endif %}
+        {% if gender %}
+        <div class="info-item">
+          <span class="info-label">Gender</span>
+          <span class="info-value">{{ gender }}</span>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Test Summary -->
+      <div class="test-summary-section">
+        <h3 class="section-title">Test Summary</h3>
+        {% if completed_tests %}
+        {% for test in completed_tests %}
+        <div class="test-card">
+          <div class="test-card-header">
+            <div class="test-title">{{ test.title }}</div>
+            <div class="test-date">
+              <i class="fas fa-calendar me-2"></i>
+              {% if test.completed_at %}{{ test.completed_at }}{% endif %}
+            </div>
+          </div>
+          <div class="test-details">
+            <div class="detail-item">
+              <span class="detail-label">Status</span>
+              <span class="detail-value" style="color: #28a745; font-size: 14px;">Completed</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Test ID</span>
+              <span class="detail-value" style="font-size: 14px;">{{ test.test_id }}</span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-muted">No tests completed yet.</p>
+        {% endif %}
+      </div>
+
+      <!-- Recommended Careers -->
+      {% if riasec_careers_to_opt %}
+      <div class="careers-section">
+        <h3 class="section-title">Recommended Career Paths</h3>
+        <div class="career-grid">
+          {% for career in riasec_careers_to_opt %}
+          <div class="career-item recommended">{{ career }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      {% if careers_to_opt %}
+      <div class="careers-section">
+        <h3 class="section-title">Recommended Career Paths</h3>
+        <div class="career-grid">
+          {% for career in careers_to_opt %}
+          <div class="career-item recommended">{{ career }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      {% if motivation_careers_to_opt %}
+      <div class="careers-section">
+        <h3 class="section-title">Recommended Career Paths</h3>
+        <div class="career-grid">
+          {% for career in motivation_careers_to_opt %}
+          <div class="career-item recommended">{{ career }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      {% if aptitude_Recommended_College_Courses %}
+      <div class="careers-section">
+        <h3 class="section-title">Recommended College Courses</h3>
+        <div class="career-grid">
+          {% for course in aptitude_Recommended_College_Courses %}
+          <div class="career-item recommended">{{ course }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Aptitude Analysis -->
+      {% if above_list or average_list or below_list %}
+      <div class="test-summary-section">
+        <h3 class="section-title">Aptitude Analysis</h3>
+        {% if above_list %}
+        <div class="test-card" style="border-left-color: #28a745;">
+          <div class="test-card-header">
+            <div class="test-title" style="color: #28a745;">Above Average</div>
+          </div>
+          <div class="career-grid">
+            {% for item in above_list %}
+            <div class="career-item recommended">{{ item }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if average_list %}
+        <div class="test-card" style="border-left-color: #ffc107;">
+          <div class="test-card-header">
+            <div class="test-title" style="color: #ffc107;">Average</div>
+          </div>
+          <div class="career-grid">
+            {% for item in average_list %}
+            <div class="career-item">{{ item }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if below_list %}
+        <div class="test-card" style="border-left-color: #dc3545;">
+          <div class="test-card-header">
+            <div class="test-title" style="color: #dc3545;">Below Average</div>
+          </div>
+          <div class="career-grid">
+            {% for item in below_list %}
+            <div class="career-item" style="background: #f8d7da; color: #721c24;">{{ item }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Additional Insights -->
+      {% if aptitude_strength_narrative or aptitude_improvement_plan or career_code_discription %}
+      <div class="test-summary-section">
+        <h3 class="section-title">Additional Insights</h3>
+        {% if aptitude_strength_narrative %}
+        <div class="test-card">
+          <div class="test-card-header">
+            <div class="test-title">Your Strengths</div>
+          </div>
+          <p style="color: #666; line-height: 1.8;">{{ aptitude_strength_narrative }}</p>
+        </div>
+        {% endif %}
+        {% if aptitude_improvement_plan %}
+        <div class="test-card">
+          <div class="test-card-header">
+            <div class="test-title">Improvement Plan</div>
+          </div>
+          <p style="color: #666; line-height: 1.8;">{{ aptitude_improvement_plan }}</p>
+        </div>
+        {% endif %}
+        {% if career_code_discription %}
+        <div class="test-card">
+          <div class="test-card-header">
+            <div class="test-title">Career Interest Profile</div>
+          </div>
+          <p style="color: #666; line-height: 1.8;">{{ career_code_discription }}</p>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <div class="actions-section">
+        <a href="{{ url('post_matric:results_list') }}" class="btn-secondary">
+          <i class="fas fa-arrow-left"></i>
+          Back to Results
+        </a>
+        <a href="{{ url('post_matric:tests') }}" class="btn-primary">
+          <i class="fas fa-list"></i>
+          View All Tests
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </main>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+{% endblock %}
+

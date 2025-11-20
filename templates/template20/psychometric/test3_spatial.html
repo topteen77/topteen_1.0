@@ -1,14 +1,14 @@
 {% extends 'template20/logged-in-base.html' %}
 
-{% block title_content %}Numerical Reasoning Test | Top Teen{% endblock %}
-{% block description_content %}Take the Numerical Reasoning test to assess your quantitative abilities.{% endblock %}
-
 {% block chatbot %}{% endblock %}
 {% block chatbot_css %}{% endblock %}
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 {% block header %}{% endblock %}
 {% block footer %}{% endblock %}
+
+{% block title_content %}Spatial Reasoning Test | Top Teen{% endblock %}
+{% block description_content %}Take the Spatial Reasoning test to assess your spatial visualization and mental rotation abilities.{% endblock %}
 
 {% block bodyclass %}{{ super() }} test-view-page{% endblock %}
 
@@ -354,11 +354,23 @@
   }
   /* Desktop widget container - hidden on mobile, visible on desktop */
   .answer-quality-widget-desktop-container {
-    display: none;
+    display: none !important;
   }
   @media (min-width: 992px) {
     .answer-quality-widget-desktop-container {
-      display: block;
+      display: block !important;
+    }
+  }
+  /* Ensure mobile widget is hidden on desktop */
+  @media (min-width: 992px) {
+    #answerQualityWidgetMobile {
+      display: none !important;
+    }
+  }
+  /* Ensure mobile widget is visible on mobile */
+  @media (max-width: 991.98px) {
+    #answerQualityWidgetMobile {
+      display: flex !important;
     }
   }
 </style>
@@ -440,7 +452,7 @@
 
           <!-- Answer Quality Widget (Desktop) -->
           <div class="mt-3 answer-quality-widget-desktop-container">
-            <div class="answer-quality-widget careful mb-3" id="answerQualityWidgetDesktop" style="display: flex !important;">
+            <div class="answer-quality-widget careful mb-3" id="answerQualityWidgetDesktop">
               <div class="quality-status-badge">
                 <span class="quality-status-indicator status-careful"></span>
                 <span class="quality-status-text status-careful">Answering Carefully</span>
@@ -494,7 +506,7 @@
         </div>
 
         <!-- Answer Quality Widget (Mobile) -->
-        <div class="answer-quality-widget careful d-lg-none mb-3" id="answerQualityWidgetMobile" style="display: flex !important;">
+        <div class="answer-quality-widget careful d-lg-none mb-3" id="answerQualityWidgetMobile">
           <div class="quality-status-badge">
             <span class="quality-status-indicator status-careful"></span>
             <span class="quality-status-text status-careful">Answering Carefully</span>
@@ -528,11 +540,11 @@
           </div>
         </div>
 
-        <h2 class="fs-20 fw-semibold mb-2">Numerical Reasoning</h2>
+        <h2 class="fs-20 fw-semibold mb-2">Spatial Reasoning</h2>
         
         <div class="alert alert-info d-flex align-items-center mb-3 fs-13">
-          <i class='bx bx-info-circle me-2 fs-18'></i>
-          <div>Select the most appropriate answer from the choices provided based on the given information.</div>
+          <i class='bx bx-info-circle me-2 fs-20'></i>
+          <div class="fs-14">Select the most appropriate answer from the choices provided based on the given information.</div>
         </div>
 
         <form id="multiStepForm" method="post" action="{{ url('app:test3_view') }}">
@@ -695,8 +707,10 @@
     const totalQuestions = $('.question').length;
     let startTime, timerInterval;
     let totalSeconds = 20 * 60; // 20 minutes in seconds
-    let questionStartTimes = {};
-    let answerTimes = [];
+    
+    // Answer quality tracking
+    let questionStartTimes = {}; // Store start time for each question
+    let answerTimes = []; // Store time taken for each answer
     const MIN_TIME_PER_QUESTION = 3; // Minimum 3 seconds per question to be considered careful
 
     // Timer functionality
@@ -725,6 +739,11 @@
 
     // Question navigation
     function showQuestion(number) {
+      // Start timing for new question (if not already started by answer selection)
+      if (!questionStartTimes[number]) {
+        questionStartTimes[number] = Date.now();
+      }
+      
       $('.question').removeClass('active');
       $('#question' + number).addClass('active');
       
@@ -735,46 +754,43 @@
       $('.next-button').toggle(number < totalQuestions);
       $('.prev-button').toggle(number > 1);
       $('.submit-button').toggle(number === totalQuestions);
-      
-      // Track time for answer quality widget
-      if (!questionStartTimes[number]) {
-        questionStartTimes[number] = Date.now();
-      }
     }
     
     // Update answer quality widget
     function updateAnswerQualityWidget() {
       const mobileWidget = $('#answerQualityWidgetMobile');
       const desktopWidget = $('#answerQualityWidgetDesktop');
-      
+
       if (answerTimes.length === 0) {
         // Show default state when no answers yet
-        mobileWidget.show();
-        desktopWidget.show();
+        mobileWidget.find('.quality-status-indicator').removeClass('status-warning').addClass('status-careful');
+        desktopWidget.find('.quality-status-indicator').removeClass('status-warning').addClass('status-careful');
+        mobileWidget.find('.quality-status-text').removeClass('status-warning').addClass('status-careful').text('Answering Carefully');
+        desktopWidget.find('.quality-status-text').removeClass('status-warning').addClass('status-careful').text('Answering Carefully');
         $('#avgTimeMobile').text('-- sec/q');
         $('#avgTimeDesktop').text('-- sec/q');
         return;
       }
-      
-      const avgTime = answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length;
+
+      const avgTime = answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length; // in seconds
       const isRushing = avgTime < MIN_TIME_PER_QUESTION;
-      
+
       if (isRushing) {
-        mobileWidget.removeClass('careful').addClass('warning').show();
-        desktopWidget.removeClass('careful').addClass('warning').show();
+        mobileWidget.removeClass('careful').addClass('warning');
+        desktopWidget.removeClass('careful').addClass('warning');
         mobileWidget.find('.quality-status-indicator').removeClass('status-careful').addClass('status-warning');
         desktopWidget.find('.quality-status-indicator').removeClass('status-careful').addClass('status-warning');
         mobileWidget.find('.quality-status-text').removeClass('status-careful').addClass('status-warning').text('Rushing Through');
         desktopWidget.find('.quality-status-text').removeClass('status-careful').addClass('status-warning').text('Rushing Through');
       } else {
-        mobileWidget.removeClass('warning').addClass('careful').show();
-        desktopWidget.removeClass('warning').addClass('careful').show();
+        mobileWidget.removeClass('warning').addClass('careful');
+        desktopWidget.removeClass('warning').addClass('careful');
         mobileWidget.find('.quality-status-indicator').removeClass('status-warning').addClass('status-careful');
         desktopWidget.find('.quality-status-indicator').removeClass('status-warning').addClass('status-careful');
         mobileWidget.find('.quality-status-text').removeClass('status-warning').addClass('status-careful').text('Answering Carefully');
         desktopWidget.find('.quality-status-text').removeClass('status-warning').addClass('status-careful').text('Answering Carefully');
       }
-      
+
       $('#avgTimeMobile').text(avgTime.toFixed(1) + ' sec/q');
       $('#avgTimeDesktop').text(avgTime.toFixed(1) + ' sec/q');
     }
@@ -783,7 +799,7 @@
     $('.next-button').on('click', function () {
       const questionId = $('.question.active').find('.question-box').data('question-id');
       const radioChecked = $('input[name="question_' + questionId + '"]:checked').length > 0;
-      
+
       if (radioChecked) {
         // Record time spent on current question when manually clicking next
         if (questionStartTimes[currentQuestion] && answerTimes.length < currentQuestion) {
@@ -791,7 +807,7 @@
           answerTimes.push(timeSpent);
           updateAnswerQualityWidget();
         }
-        
+
         if (currentQuestion < totalQuestions) {
           currentQuestion++;
           showQuestion(currentQuestion);
@@ -818,16 +834,15 @@
       const questionId = $(this).closest('.question').find('.question-box').data('question-id');
       const radioName = 'question_' + questionId;
       const isChecked = $('input[name="' + radioName + '"]:checked').length > 0;
-      
+
       // Record time spent on current question when answer is selected
       if (questionStartTimes[currentQuestion]) {
         const timeSpent = (Date.now() - questionStartTimes[currentQuestion]) / 1000; // in seconds
         answerTimes.push(timeSpent);
         updateAnswerQualityWidget();
       }
-      
+
       if (isChecked && currentQuestion < totalQuestions) {
-        // Small delay to show the selection before advancing
         setTimeout(function () {
           currentQuestion++;
           showQuestion(currentQuestion);
@@ -895,12 +910,6 @@
 
     // Start timer
     startTimer();
-    
-    // Initialize timing for first question
-    questionStartTimes[1] = Date.now();
-    
-    // Initialize answer quality widget
-    updateAnswerQualityWidget();
   });
 </script>
 {% endblock %}

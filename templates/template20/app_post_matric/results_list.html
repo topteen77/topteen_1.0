@@ -1,0 +1,416 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Test Results - Assessment Dashboard | Top Teen{% endblock %}
+{% block description_content %}View all your test results and assessment history.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} results-list-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .results-list-page {
+    padding-top: 80px;
+  }
+  .hero-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 60px 0;
+    color: white;
+  }
+  .result-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+    transition: all 0.3s;
+    border-left: 4px solid #3f37c9;
+  }
+  .result-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .result-title-section {
+    flex: 1;
+    min-width: 200px;
+  }
+  .test-category-badge {
+    display: inline-block;
+    background: #d9d4ff;
+    color: #3f37c9;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .result-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  .result-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 14px;
+    color: #666;
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .meta-item i {
+    color: #3f37c9;
+  }
+  .result-score-section {
+    text-align: center;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 8px;
+    min-width: 120px;
+  }
+  .score-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #3f37c9;
+    margin-bottom: 4px;
+  }
+  .score-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+  }
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+  }
+  .btn-view-result {
+    background: #3f37c9;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-view-result:hover {
+    background: #2d28a0;
+    color: white;
+    transform: translateY(-2px);
+  }
+  .btn-view-details {
+    background: #e9ecef;
+    color: #333;
+    padding: 10px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-view-details:hover {
+    background: #dee2e6;
+    color: #333;
+    transform: translateY(-2px);
+  }
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  .no-results-icon {
+    font-size: 4rem;
+    color: #ccc;
+    margin-bottom: 20px;
+  }
+  .no-results h3 {
+    color: #666;
+    margin-bottom: 12px;
+  }
+  .no-results p {
+    color: #999;
+    margin-bottom: 24px;
+  }
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+  }
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.3em;
+  }
+  .filter-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  .filter-controls {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-controls label {
+    font-weight: 600;
+    color: #333;
+    margin-right: 8px;
+  }
+  .filter-controls select {
+    padding: 8px 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  .filter-controls select:focus {
+    outline: none;
+    border-color: #3f37c9;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="results-list-page">
+  <!-- Hero Section -->
+  <section class="hero-gradient">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center text-white">
+          <h2 class="mb-3">Test Results</h2>
+          <p class="text-white fs-18">View all your completed assessments and track your progress</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Breadcrumb -->
+  <div class="container mt-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url('post_matric:home') }}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url('post_matric:tests') }}">Tests</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Results</li>
+      </ol>
+    </nav>
+  </div>
+
+  <!-- Results Container -->
+  <main class="container py-4">
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <div class="filter-controls">
+        <label for="testFilter">Filter by Test:</label>
+        <select id="testFilter">
+          <option value="">All Tests</option>
+        </select>
+        <label for="sortFilter">Sort by:</label>
+        <select id="sortFilter">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="score">Highest Score</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Results List -->
+    <div id="results-container">
+      <div class="loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">Loading results...</p>
+      </div>
+    </div>
+  </main>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+$(document).ready(function() {
+  let allResults = [];
+  let filteredResults = [];
+  
+  // Fetch all test results
+  fetch('/api/results/', {
+    headers: {
+      'Accept': 'application/json',
+    },
+    credentials: 'same-origin'
+  })
+  .then(response => response.json())
+  .then(data => {
+    allResults = Array.isArray(data) ? data : (data.results || []);
+    filteredResults = [...allResults];
+    
+    // Populate test filter
+    const uniqueTests = [...new Set(allResults.map(r => r.test_title))];
+    const testFilter = $('#testFilter');
+    uniqueTests.forEach(testTitle => {
+      testFilter.append(`<option value="${testTitle}">${testTitle}</option>`);
+    });
+    
+    // Render results
+    renderResults();
+  })
+  .catch(error => {
+    console.error('Error loading results:', error);
+    $('#results-container').html(`
+      <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        Failed to load results. Please try refreshing the page.
+      </div>
+    `);
+  });
+  
+  // Filter and sort handlers
+  $('#testFilter, #sortFilter').on('change', function() {
+    applyFilters();
+  });
+  
+  function applyFilters() {
+    const testFilter = $('#testFilter').val();
+    const sortFilter = $('#sortFilter').val();
+    
+    // Filter by test
+    filteredResults = testFilter 
+      ? allResults.filter(r => r.test_title === testFilter)
+      : [...allResults];
+    
+    // Sort results
+    filteredResults.sort((a, b) => {
+      if (sortFilter === 'newest') {
+        return new Date(b.completed_at) - new Date(a.completed_at);
+      } else if (sortFilter === 'oldest') {
+        return new Date(a.completed_at) - new Date(b.completed_at);
+      } else if (sortFilter === 'score') {
+        return (b.score || 0) - (a.score || 0);
+      }
+      return 0;
+    });
+    
+    renderResults();
+  }
+  
+  function renderResults() {
+    const container = $('#results-container');
+    
+    if (filteredResults.length === 0) {
+      container.html(`
+        <div class="no-results">
+          <div class="no-results-icon">
+            <i class="fas fa-clipboard-list"></i>
+          </div>
+          <h3>No Results Found</h3>
+          <p>You haven't completed any tests yet. Start taking assessments to see your results here.</p>
+          <a href="{{ url('post_matric:tests') }}" class="btn-view-result">
+            <i class="fas fa-arrow-right"></i>
+            Take a Test
+          </a>
+        </div>
+      `);
+      return;
+    }
+    
+    container.empty();
+    
+    filteredResults.forEach(result => {
+      const completedDate = new Date(result.completed_at);
+      const formattedDate = completedDate.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      const formattedTime = completedDate.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      const resultCard = `
+        <div class="result-card">
+          <div class="result-header">
+            <div class="result-title-section">
+              <div class="test-category-badge">${result.category_name || 'Assessment'}</div>
+              <h3 class="result-title">${result.test_title || 'Test Result'}</h3>
+              <div class="result-meta">
+                <div class="meta-item">
+                  <i class="fas fa-calendar"></i>
+                  <span>${formattedDate} at ${formattedTime}</span>
+                </div>
+                <div class="meta-item">
+                  <i class="fas fa-clock"></i>
+                  <span>${result.duration_minutes || 0} minutes</span>
+                </div>
+                ${result.score !== null ? `
+                <div class="meta-item">
+                  <i class="fas fa-trophy"></i>
+                  <span>Score: ${result.score}</span>
+                </div>
+                ` : ''}
+              </div>
+            </div>
+            ${result.score !== null ? `
+            <div class="result-score-section">
+              <div class="score-value">${result.score}</div>
+              <div class="score-label">Score</div>
+            </div>
+            ` : ''}
+          </div>
+          
+          ${result.feedback ? `
+          <div class="result-feedback" style="margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; color: #666; font-size: 14px;">
+            ${result.feedback}
+          </div>
+          ` : ''}
+          
+          <div class="result-actions">
+            <a href="/api/web/results/?test_id=${result.session}" class="btn-view-result">
+              <i class="fas fa-eye"></i>
+              View Details
+            </a>
+            <a href="/api/web/test_details/${result.session}/" class="btn-view-details">
+              <i class="fas fa-info-circle"></i>
+              Test Info
+            </a>
+          </div>
+        </div>
+      `;
+      
+      container.append(resultCard);
+    });
+  }
+});
+</script>
+{% endblock %}
+

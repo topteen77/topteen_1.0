@@ -1,14 +1,14 @@
 {% extends 'template20/logged-in-base.html' %}
 
-{% block title_content %}Numerical Reasoning Test | Top Teen{% endblock %}
-{% block description_content %}Take the Numerical Reasoning test to assess your quantitative abilities.{% endblock %}
-
 {% block chatbot %}{% endblock %}
 {% block chatbot_css %}{% endblock %}
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 {% block header %}{% endblock %}
 {% block footer %}{% endblock %}
+
+{% block title_content %}Language Usage and Spelling Test | Top Teen{% endblock %}
+{% block description_content %}Take the Language Usage and Spelling test to assess your language skills and spelling abilities.{% endblock %}
 
 {% block bodyclass %}{{ super() }} test-view-page{% endblock %}
 
@@ -528,11 +528,11 @@
           </div>
         </div>
 
-        <h2 class="fs-20 fw-semibold mb-2">Numerical Reasoning</h2>
+        <h2 class="fs-20 fw-semibold mb-2">Language Usage and Spelling</h2>
         
         <div class="alert alert-info d-flex align-items-center mb-3 fs-13">
-          <i class='bx bx-info-circle me-2 fs-18'></i>
-          <div>Select the most appropriate answer from the choices provided based on the given information.</div>
+          <i class='bx bx-info-circle me-2 fs-20'></i>
+          <div class="fs-14">Select the most appropriate answer from the choices provided based on the given information.</div>
         </div>
 
         <form id="multiStepForm" method="post" action="{{ url('app:test3_view') }}">

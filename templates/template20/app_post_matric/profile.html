@@ -1,0 +1,390 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Your Profile - Assessment Dashboard | Top Teen{% endblock %}
+{% block description_content %}View and manage your profile, test history, and assessment insights.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} profile-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .profile-page {
+    padding-top: 80px;
+  }
+  .profile-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 60px 0;
+    color: white;
+  }
+  .profile-hero-content {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+  .profile-avatar-wrapper {
+    flex-shrink: 0;
+  }
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 700;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .profile-hero-info {
+    flex: 1;
+    min-width: 250px;
+  }
+  .profile-hero-info h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: white;
+  }
+  .profile-hero-info p {
+    font-size: 1.125rem;
+    opacity: 0.9;
+    margin-bottom: 20px;
+  }
+  .profile-quick-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .stat-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .quick-actions {
+    display: flex;
+    gap: 12px;
+  }
+  .action-btn {
+    background: white;
+    color: #667eea;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: #764ba2;
+  }
+  .profile-container {
+    padding: 40px 0;
+  }
+  .profile-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 30px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 12px 24px;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .tab-btn:hover {
+    color: #3F37C9;
+  }
+  .tab-btn.active {
+    color: #3F37C9;
+    border-bottom-color: #3F37C9;
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  .dashboard-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+  }
+  .card-header {
+    margin-bottom: 20px;
+  }
+  .card-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .test-history-item {
+    padding: 16px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    transition: all 0.3s;
+  }
+  .test-history-item:hover {
+    border-color: #3F37C9;
+    box-shadow: 0 2px 8px rgba(63, 55, 201, 0.1);
+  }
+  .test-history-item h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  .test-history-item p {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-bottom: 4px;
+  }
+  .test-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .test-status.completed {
+    background: #d4edda;
+    color: #155724;
+  }
+  .test-status.in-progress {
+    background: #fff3cd;
+    color: #856404;
+  }
+  @media (max-width: 768px) {
+    .profile-hero-content {
+      flex-direction: column;
+      text-align: center;
+    }
+    .profile-quick-stats {
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+  <!-- Profile Hero Section -->
+  <section class="profile-hero">
+    <div class="container">
+      <div class="profile-hero-content">
+        <div class="profile-avatar-wrapper">
+          <div class="profile-avatar">
+            {% if user.name %}
+              {{ user.name|first|upper }}
+            {% else %}
+              {{ user.email|first|upper }}
+            {% endif %}
+          </div>
+        </div>
+        <div class="profile-hero-info">
+          <h1>Welcome back, {% if user.name %}{{ user.name }}{% else %}{{ user.email }}{% endif %}!</h1>
+          <p>{{ user.email }}</p>
+          <div class="profile-quick-stats">
+            <div class="stat-badge">
+              <i class="fas fa-clipboard-check"></i>
+              <span>{{ tests_completed }}</span> Tests Completed
+            </div>
+            <div class="stat-badge">
+              <i class="fas fa-star"></i>
+              <span>{{ avg_score }}%</span> Avg. Score
+            </div>
+            <div class="stat-badge">
+              <i class="fas fa-calendar-alt"></i>
+              Member since {{ user.date_joined.strftime('%b %Y') if user.date_joined else '' }}
+            </div>
+          </div>
+        </div>
+        <div class="quick-actions">
+          <a href="{{ url('post_matric:tests') }}" class="action-btn">
+            <i class="fas fa-clipboard-list"></i>
+            Browse Tests
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <div class="profile-container">
+    <div class="container">
+      <div class="profile-tabs-wrapper">
+        <!-- Tabs Navigation -->
+        <div class="profile-tabs">
+          <button class="tab-btn active" data-tab="dashboard">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </button>
+          <button class="tab-btn" data-tab="history">
+            <i class="fas fa-history"></i>
+            <span>Test History</span>
+          </button>
+          <button class="tab-btn" data-tab="settings">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+          </button>
+        </div>
+
+        <!-- Tab Contents -->
+        <div class="tab-content-wrapper">
+          <!-- Dashboard Tab -->
+          <div class="tab-content active" id="dashboard-tab">
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h3><i class="fas fa-chart-line"></i> Your Progress</h3>
+              </div>
+              <div class="card-body">
+                <p>You've completed <strong>{{ tests_completed }}</strong> test{% if tests_completed != 1 %}s{% endif %}.</p>
+                {% if test_sessions %}
+                <p>Keep up the great work! Continue taking assessments to unlock more insights.</p>
+                {% else %}
+                <p>Start your assessment journey by taking your first test!</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h3><i class="fas fa-trophy"></i> Recent Activity</h3>
+              </div>
+              <div class="card-body">
+                {% if test_sessions %}
+                  {% for session in test_sessions[:5] %}
+                  <div class="test-history-item">
+                    <h4>{{ session.test.title }}</h4>
+                    <p>Completed on {{ date_format(session.end_time) if session.end_time else '' }}</p>
+                    <span class="test-status completed">Completed</span>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <p>No tests completed yet. <a href="{{ url('post_matric:tests') }}">Start your first test</a>!</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- History Tab -->
+          <div class="tab-content" id="history-tab">
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h3><i class="fas fa-history"></i> Test History</h3>
+              </div>
+              <div class="card-body">
+                {% if test_sessions %}
+                  {% for session in test_sessions %}
+                  <div class="test-history-item">
+                    <h4>{{ session.test.title }}</h4>
+                    <p>Started: {{ session.start_time.strftime('%B %d, %Y %I:%M %p') if session.start_time else '' }}</p>
+                    {% if session.end_time %}
+                    <p>Completed: {{ session.end_time.strftime('%B %d, %Y %I:%M %p') if session.end_time else '' }}</p>
+                    {% endif %}
+                    <span class="test-status {% if session.is_completed %}completed{% else %}in-progress{% endif %}">
+                      {% if session.is_completed %}Completed{% else %}In Progress{% endif %}
+                    </span>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <p>No test history available. <a href="{{ url('post_matric:tests') }}">Take your first test</a>!</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings Tab -->
+          <div class="tab-content" id="settings-tab">
+            <div class="dashboard-card">
+              <div class="card-header">
+                <h3><i class="fas fa-cog"></i> Account Settings</h3>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <strong>Email:</strong> {{ user.email }}
+                </div>
+                {% if user_profile %}
+                <div class="mb-3">
+                  <strong>Name:</strong> {% if user.name %}{{ user.name }}{% else %}Not set{% endif %}
+                </div>
+                {% if user_profile.grade %}
+                <div class="mb-3">
+                  <strong>Grade:</strong> Class {{ user_profile.grade }}
+                </div>
+                {% endif %}
+                {% if user_profile.schoolname %}
+                <div class="mb-3">
+                  <strong>School:</strong> {{ user_profile.schoolname }}
+                </div>
+                {% endif %}
+                {% endif %}
+                <div class="mb-3">
+                  <strong>Member Since:</strong> {{ date_format(user.date_joined) if user.date_joined else '' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  $(document).ready(function() {
+    // Tab switching
+    $('.tab-btn').on('click', function() {
+      const tabId = $(this).data('tab');
+      
+      // Remove active class from all tabs and contents
+      $('.tab-btn').removeClass('active');
+      $('.tab-content').removeClass('active');
+      
+      // Add active class to clicked tab and corresponding content
+      $(this).addClass('active');
+      $('#' + tabId + '-tab').addClass('active');
+    });
+  });
+</script>
+{% endblock %}
+

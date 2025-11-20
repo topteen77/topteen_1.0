@@ -1,0 +1,835 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Modern Psychometric Test Experience | Top Teen{% endblock %}
+{% block description_content %}Preview the upcoming modern test interface that keeps all current features while refreshing the layout.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} modern-test-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  :root {
+    --tt-purple: #6c2bd9;
+    --tt-purple-dark: #4a1fa7;
+    --tt-cyan: #1fb6ff;
+    --tt-gray-900: #1f1f2b;
+    --tt-gray-700: #4f4f5a;
+    --tt-gray-400: #a0a0b2;
+    --tt-surface: #f5f5fb;
+  }
+
+  .modern-test-page {
+    background: linear-gradient(180deg, #f6f0ff 0%, #fdfbff 40%, #ffffff 100%);
+    min-height: 100vh;
+    padding-top: 80px;
+  }
+
+  .test-hero-card {
+    background: radial-gradient(circle at top right, rgba(111, 66, 193, 0.12), rgba(111, 66, 193, 0)) #ffffff;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 15px 40px rgba(82, 67, 194, 0.08);
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .test-hero-card h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--tt-gray-900);
+    margin-bottom: 8px;
+  }
+
+  .test-hero-meta {
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--tt-purple);
+    background: rgba(108, 43, 217, 0.1);
+  }
+
+  .hero-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .hero-stat-chip {
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px 16px;
+    border: 1px solid #ece8ff;
+  }
+
+  .hero-stat-chip p {
+    margin: 0;
+  }
+
+  .hero-stat-label {
+    font-size: 12px;
+    color: var(--tt-gray-400);
+    letter-spacing: 0.4px;
+  }
+
+  .hero-stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--tt-gray-900);
+  }
+
+  .hero-illustration {
+    min-width: 220px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+  }
+
+  .test-shell {
+    margin-top: 32px;
+  }
+
+  .sticky-lg-top {
+    top: 96px;
+  }
+
+  .side-panel {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 20px 45px rgba(82, 67, 194, 0.08);
+  }
+
+  .side-heading {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--tt-gray-900);
+    margin-bottom: 12px;
+  }
+
+  .progress-wrapper {
+    background: #f5f2ff;
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--tt-gray-700);
+    margin-bottom: 6px;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 10px;
+    background: #ebe7ff;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--tt-purple) 0%, var(--tt-cyan) 100%);
+    transition: width 0.4s ease;
+  }
+
+  .question-nav-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+    gap: 10px;
+  }
+
+  .question-nav-item {
+    border: none;
+    border-radius: 12px;
+    padding: 8px 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tt-gray-700);
+    background: #f4f4fb;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .question-nav-item.active {
+    color: #fff;
+    background: var(--tt-purple);
+  }
+
+  .question-nav-item.completed {
+    color: var(--tt-purple);
+    background: rgba(108, 43, 217, 0.15);
+  }
+
+  .question-card {
+    background: #fff;
+    border-radius: 22px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 12px 32px rgba(31, 31, 43, 0.08);
+    display: none;
+  }
+
+  .question-card.active {
+    display: block;
+  }
+
+  .question-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .question-pill {
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(31, 182, 255, 0.12);
+    color: var(--tt-cyan);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .question-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--tt-gray-900);
+    margin-bottom: 12px;
+  }
+
+  .question-text {
+    color: #5b5b6b;
+    font-size: 15px;
+    margin-bottom: 18px;
+  }
+
+  .question-image {
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: #f5f5fc;
+    display: inline-block;
+  }
+
+  .question-image img {
+    width: 100%;
+    max-height: 260px;
+    object-fit: cover;
+  }
+
+  .options-grid {
+    display: grid;
+    gap: 14px;
+  }
+
+  .options-grid[data-layout="two-column"] {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .option-chip {
+    border: 1.5px solid #ece8ff;
+    border-radius: 18px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    background: #fff;
+  }
+
+  .option-chip:hover {
+    border-color: rgba(108, 43, 217, 0.5);
+    box-shadow: 0 8px 20px rgba(108, 43, 217, 0.08);
+  }
+
+  .option-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .chip-indicator {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid #c9c3f5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #fff;
+    transition: all 0.25s ease;
+  }
+
+  .option-chip.selected {
+    border-color: var(--tt-purple);
+    background: rgba(108, 43, 217, 0.08);
+  }
+
+  .option-chip.selected .chip-indicator {
+    background: var(--tt-purple);
+    border-color: var(--tt-purple);
+  }
+
+  .chip-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .chip-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--tt-gray-900);
+  }
+
+  .chip-hint {
+    font-size: 13px;
+    color: var(--tt-gray-400);
+  }
+
+  .question-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .question-actions .btn {
+    padding: 10px 22px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+
+  .btn-skip {
+    border: 1px solid #d7d2f5;
+    color: var(--tt-gray-700);
+    background: transparent;
+  }
+
+  .btn-next {
+    background: var(--tt-purple);
+    color: #fff;
+    border: none;
+  }
+
+  .btn-submit {
+    background: #22c55e;
+    color: #fff;
+    border: none;
+    display: none;
+  }
+
+  .btn-submit.show {
+    display: inline-flex;
+  }
+
+  .answer-quality-widget {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    margin-bottom: 18px;
+    gap: 12px;
+  }
+
+  .answer-quality-widget.careful {
+    background: #ecffef;
+    border-color: #16a34a;
+  }
+
+  .answer-quality-widget.warning {
+    background: #fff1f2;
+    border-color: #f43f5e;
+  }
+
+  .quality-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .quality-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .quality-dot.careful {
+    background: #16a34a;
+  }
+
+  .quality-dot.warning {
+    background: #f43f5e;
+    animation: pulse 1.6s infinite;
+  }
+
+  .quality-value {
+    font-weight: 700;
+    color: var(--tt-gray-900);
+    min-width: 90px;
+    text-align: right;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .internet-speed-meter {
+    border-radius: 18px;
+    background: #101828;
+    color: #fff;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .internet-speed-meter .status {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    opacity: 0.8;
+  }
+
+  .speed-values {
+    display: flex;
+    gap: 16px;
+  }
+
+  .speed-block span {
+    display: block;
+  }
+
+  .speed-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  .speed-value {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .mobile-floating-info {
+    position: sticky;
+    top: 64px;
+    z-index: 10;
+  }
+
+  .mobile-answer-quality {
+    display: none;
+  }
+
+  @media (max-width: 991.98px) {
+    .test-hero-card {
+      padding: 24px;
+    }
+    .side-panel {
+      position: static;
+      padding: 20px;
+    }
+    .mobile-answer-quality {
+      display: flex;
+      margin-bottom: 16px;
+    }
+    .desktop-only {
+      display: none !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="modern-test-page pb-5">
+  <div class="container-xxl">
+    <div class="test-hero-card">
+      <div class="test-hero-meta">
+        <span class="hero-pill">{{ test_meta.pill|default:"Preview Mode" }}</span>
+        <h1>{{ test_meta.title|default:"Psychometric Test Template" }}</h1>
+        <p class="text-muted mb-0">{{ test_meta.subtitle|default:"All core features remain intact—only the visual experience is refreshed." }}</p>
+        <div class="hero-meta-grid">
+          <div class="hero-stat-chip">
+            <p class="hero-stat-label">Class</p>
+            <p class="hero-stat-value">{{ test_meta.class_label|default:"Class 10" }}</p>
+          </div>
+          <div class="hero-stat-chip">
+            <p class="hero-stat-label">Total Questions</p>
+            <p class="hero-stat-value">{{ total_questions|default:questions|length }}</p>
+          </div>
+          <div class="hero-stat-chip">
+            <p class="hero-stat-label">Time Limit</p>
+            <p class="hero-stat-value">{{ test_meta.estimated_time|default:"20 min" }}</p>
+          </div>
+          <div class="hero-stat-chip">
+            <p class="hero-stat-label">Attempts</p>
+            <p class="hero-stat-value">{{ test_meta.attempts_allowed|default:"01" }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="hero-illustration">
+        <img src="{{ static('topteenfrontend/assets/images/discover2.svg') }}" alt="Test Illustration" class="img-fluid" style="max-height: 180px;">
+      </div>
+    </div>
+
+    <div class="test-shell row g-4 mt-2">
+      <div class="col-lg-8 order-2 order-lg-1">
+        <div class="mobile-floating-info d-lg-none mb-3">
+          <div class="internet-speed-meter mb-2">
+            <div>
+              <div class="status">Internet Status</div>
+              <div class="speed-status-text status-stable">Internet Stable</div>
+            </div>
+            <div class="speed-values">
+              <div class="speed-block">
+                <span class="speed-label">Download</span>
+                <span class="speed-value speed-download-value">0.0 Mbps</span>
+              </div>
+              <div class="speed-block">
+                <span class="speed-label">Upload</span>
+                <span class="speed-value speed-upload-value">0.0 Mbps</span>
+              </div>
+            </div>
+          </div>
+          <div class="answer-quality-widget careful mobile-answer-quality" id="answerQualityWidgetMobile">
+            <div class="quality-status">
+              <span class="quality-dot careful"></span>
+              <div>
+                <p class="mb-0 fw-semibold quality-status-text">Answering Carefully</p>
+                <small class="text-muted">Keep up the pace</small>
+              </div>
+            </div>
+            <div class="quality-value" id="avgTimeMobile">-- sec/q</div>
+          </div>
+        </div>
+
+        <form id="modernTestForm" action="{{ submit_url|default:'#' }}" method="post">
+          {% csrf_token %}
+          {% for question in questions %}
+          <div class="question-card {% if forloop.first %}active{% endif %}" id="question{{ forloop.counter }}" data-question-number="{{ forloop.counter }}" data-question-type="{{ question.input_type|default:'radio' }}">
+            <div class="question-meta">
+              <span class="question-pill">{{ question.category|default:"Core Skill" }}</span>
+              <span class="text-muted fw-semibold">{{ question.difficulty|default:"Medium" }} • {{ question.estimated_time|default:"45 sec" }}</span>
+            </div>
+            <div class="question-title">Q{{ forloop.counter }}. {{ question.title|default:question.text|default:"Question title" }}</div>
+            <p class="question-text">{{ question.description|default:question.text|default:"Question description comes here." }}</p>
+
+            {% if question.image %}
+            <div class="question-image">
+              <img src="{% if question.image|startswith:'http' %}{{ question.image }}{% else %}{{ static(question.image) }}{% endif %}" alt="Question Image">
+            </div>
+            {% endif %}
+
+            <div class="options-grid" data-layout="{{ question.option_layout|default:'two-column' }}">
+              {% for option in question.options %}
+              <label class="option-chip {% if option.image %}option-with-image{% endif %}">
+                <input type="{{ question.input_type|default:'radio' }}" class="option-input" name="question_{{ question.id }}" value="{{ option.value }}">
+                <span class="chip-indicator">✓</span>
+                <div class="chip-content">
+                  <span class="chip-label">{{ option.label }}</span>
+                  {% if option.hint %}
+                  <span class="chip-hint">{{ option.hint }}</span>
+                  {% endif %}
+                </div>
+                {% if option.image %}
+                <div class="ms-auto">
+                  <img src="{% if option.image|startswith:'http' %}{{ option.image }}{% else %}{{ static(option.image) }}{% endif %}" alt="{{ option.label }}" style="width: 80px; border-radius: 12px;">
+                </div>
+                {% endif %}
+              </label>
+              {% endfor %}
+            </div>
+
+            <div class="question-actions">
+              <button type="button" class="btn btn-skip" data-action="skip">Skip</button>
+              <button type="button" class="btn btn-next next-button">Save &amp; Continue</button>
+              <button type="submit" class="btn btn-submit submit-button">Submit Test</button>
+            </div>
+          </div>
+          {% endfor %}
+        </form>
+      </div>
+
+      <div class="col-lg-4 order-1 order-lg-2">
+        <div class="side-panel sticky-lg-top">
+          <div class="internet-speed-meter desktop-only mb-3">
+            <div>
+              <div class="status">Internet Status</div>
+              <div class="speed-status-text status-stable">Internet Stable</div>
+            </div>
+            <div class="speed-values">
+              <div class="speed-block">
+                <span class="speed-label">Download</span>
+                <span class="speed-value speed-download-value">0.0 Mbps</span>
+              </div>
+              <div class="speed-block">
+                <span class="speed-label">Upload</span>
+                <span class="speed-value speed-upload-value">0.0 Mbps</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="answer-quality-widget careful desktop-only mb-3" id="answerQualityWidgetDesktop">
+            <div class="quality-status">
+              <span class="quality-dot careful"></span>
+              <div>
+                <p class="mb-0 fw-semibold quality-status-text">Answering Carefully</p>
+                <small class="text-muted">Average response time</small>
+              </div>
+            </div>
+            <div class="quality-value" id="avgTimeDesktop">-- sec/q</div>
+          </div>
+
+          <div class="progress-wrapper">
+            <div class="progress-label">
+              <span>Question Progress</span>
+              <span id="questionProgress">{{ total_questions|default:questions|length }} Questions</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" id="questionProgressBar"></div>
+            </div>
+            <p class="mb-0 mt-2 text-muted" id="questionProgressHelper">Question 1 of {{ total_questions|default:questions|length }}</p>
+          </div>
+
+          <div class="progress-wrapper mb-3">
+            <div class="progress-label">
+              <span>Time Remaining</span>
+              <span id="timeRemaining">20:00</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" id="timeProgressBar"></div>
+            </div>
+            <p class="mb-0 mt-2 text-muted">Auto submit when timer ends</p>
+          </div>
+
+          <p class="side-heading mb-2">Quick Navigation</p>
+          <div class="question-nav-grid mb-4" id="questionNavGrid">
+            {% for question in questions %}
+            <button type="button" class="question-nav-item {% if forloop.first %}active{% endif %}" data-target="{{ forloop.counter }}">{{ forloop.counter }}</button>
+            {% endfor %}
+          </div>
+
+          <div class="border rounded-4 p-3 bg-light mb-3">
+            <p class="fw-semibold mb-1">Need help?</p>
+            <p class="text-muted small mb-2">Reach our proctor if you face any technical issues during the test.</p>
+            <a href="#" class="btn btn-sm btn-outline-primary w-100">Chat with Support</a>
+          </div>
+
+          <div class="border rounded-4 p-3 bg-white">
+            <p class="fw-semibold mb-1">Test Summary</p>
+            <ul class="list-unstyled mb-0 small text-muted">
+              <li>• Stream Sorter | Spatial Reasoning</li>
+              <li>• Auto-save after every answer</li>
+              <li>• Consistent experience on desktop &amp; mobile</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="{{ static('topteenfrontend/assets/js/internet-speed-meter.js') }}"></script>
+<script>
+  $(document).ready(function () {
+    const totalQuestions = $('.question-card').length;
+    let currentQuestion = 1;
+    let questionStartTimes = {};
+    let answerTimes = [];
+    const MIN_TIME_PER_QUESTION = 3;
+    const totalSeconds = {{ time_limit_seconds|default:1200 }};
+    let timerInterval = null;
+    let timerStart = null;
+
+    // Initialize
+    questionStartTimes[1] = Date.now();
+    updateProgress();
+    updateQuestionNav();
+    updateAnswerQualityWidget();
+    startTimer();
+
+    function startTimer() {
+      timerStart = Date.now();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      const elapsedSeconds = Math.floor((Date.now() - timerStart) / 1000);
+      const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+      const minutes = Math.floor(remainingSeconds / 60);
+      const seconds = remainingSeconds % 60;
+      const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      $('#timeRemaining').text(timeString);
+      const progress = ((totalSeconds - remainingSeconds) / totalSeconds) * 100;
+      $('#timeProgressBar').css('width', `${progress}%`);
+
+      if (remainingSeconds === 0) {
+        clearInterval(timerInterval);
+        $('#modernTestForm').submit();
+      }
+    }
+
+    function showQuestion(target) {
+      if (!questionStartTimes[target]) {
+        questionStartTimes[target] = Date.now();
+      }
+      $('.question-card').removeClass('active');
+      $(`#question${target}`).addClass('active');
+      currentQuestion = target;
+      updateProgress();
+      updateQuestionNav();
+    }
+
+    function updateProgress() {
+      const answered = $('.option-chip.selected').length;
+      const progressPercent = (answered / totalQuestions) * 100;
+      $('#questionProgressBar').css('width', `${progressPercent}%`);
+      $('#questionProgress').text(`${answered}/${totalQuestions} answered`);
+      $('#questionProgressHelper').text(`Question ${currentQuestion} of ${totalQuestions}`);
+      toggleSubmitButton();
+    }
+
+    function updateQuestionNav() {
+      $('.question-nav-item').each(function () {
+        const target = parseInt($(this).data('target'), 10);
+        $(this).toggleClass('active', target === currentQuestion);
+        const hasAnswer = $(`#question${target} input[type="radio"]:checked, #question${target} input[type="checkbox"]:checked`).length > 0;
+        $(this).toggleClass('completed', hasAnswer);
+      });
+    }
+
+    function toggleSubmitButton() {
+      const answered = $('.question-card').filter(function () {
+        return $(this).find('input[type="radio"]:checked, input[type="checkbox"]:checked').length > 0;
+      }).length;
+      const submitBtn = $('.submit-button');
+      if (answered === totalQuestions) {
+        submitBtn.addClass('show');
+      } else {
+        submitBtn.removeClass('show');
+      }
+    }
+
+    function updateAnswerQualityWidget() {
+      const mobileWidget = $('#answerQualityWidgetMobile');
+      const desktopWidget = $('#answerQualityWidgetDesktop');
+
+      if (answerTimes.length === 0) {
+        mobileWidget.removeClass('warning').addClass('careful');
+        desktopWidget.removeClass('warning').addClass('careful');
+        mobileWidget.find('.quality-status-text').text('Answering Carefully');
+        desktopWidget.find('.quality-status-text').text('Answering Carefully');
+        $('#avgTimeMobile').text('-- sec/q');
+        $('#avgTimeDesktop').text('-- sec/q');
+        mobileWidget.find('.quality-dot').removeClass('warning').addClass('careful');
+        desktopWidget.find('.quality-dot').removeClass('warning').addClass('careful');
+        return;
+      }
+
+      const avgTime = answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length;
+      const isRushing = avgTime < MIN_TIME_PER_QUESTION;
+      const stateClass = isRushing ? 'warning' : 'careful';
+      const statusText = isRushing ? 'Rushing Through' : 'Answering Carefully';
+
+      [mobileWidget, desktopWidget].forEach(widget => {
+        widget.removeClass('careful warning').addClass(stateClass);
+        widget.find('.quality-status-text').text(statusText);
+        widget.find('.quality-dot').removeClass('careful warning').addClass(stateClass);
+      });
+
+      $('#avgTimeMobile').text(`${avgTime.toFixed(1)} sec/q`);
+      $('#avgTimeDesktop').text(`${avgTime.toFixed(1)} sec/q`);
+    }
+
+    function recordTime() {
+      if (questionStartTimes[currentQuestion]) {
+        const timeSpent = (Date.now() - questionStartTimes[currentQuestion]) / 1000;
+        answerTimes.push(timeSpent);
+        updateAnswerQualityWidget();
+      }
+    }
+
+    $('.next-button').on('click', function () {
+      const hasAnswer = $(`#question${currentQuestion}`).find('input[type="radio"]:checked, input[type="checkbox"]:checked').length > 0;
+      if (!hasAnswer) {
+        showToast('Please select an option before continuing.');
+        return;
+      }
+      recordTime();
+      if (currentQuestion < totalQuestions) {
+        showQuestion(currentQuestion + 1);
+      }
+    });
+
+    $('.question-nav-item').on('click', function () {
+      const target = parseInt($(this).data('target'), 10);
+      recordTime();
+      showQuestion(target);
+    });
+
+    $(document).on('change', '.option-input', function () {
+      const optionType = $(this).attr('type');
+      const chip = $(this).closest('.option-chip');
+      if (optionType === 'radio') {
+        chip.closest('.options-grid').find('.option-chip').removeClass('selected');
+      }
+      chip.toggleClass('selected', $(this).is(':checked'));
+      updateProgress();
+      updateQuestionNav();
+
+      if (optionType === 'radio') {
+        recordTime();
+        if (currentQuestion < totalQuestions) {
+          setTimeout(() => showQuestion(currentQuestion + 1), 250);
+        }
+      }
+    });
+
+    function showToast(message) {
+      const toast = $('<div class="position-fixed top-0 start-50 translate-middle-x mt-3 alert alert-warning shadow"></div>').text(message);
+      $('body').append(toast);
+      setTimeout(() => toast.fadeOut(400, () => toast.remove()), 2200);
+    }
+  });
+</script>
+{% endblock %}
+

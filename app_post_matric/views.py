@@ -75,23 +75,177 @@ def Index(request):
 
 # @login_required
 def Home(request):
-    return render(request, "home.html")
+    import json
+    from .models import TestSession, SectionSession
+    from django.shortcuts import redirect
+    from django.urls import reverse
+    from psychometric_tests.models import PsychometricTestPayment
+    from core import choices
+    from institute.models import StudentManagement
+    
+    # Check if user is authenticated and is an institute-registered student (exempt from payment check)
+    if request.user.is_authenticated:
+        is_institute_student = StudentManagement.objects.filter(student=request.user).exists()
+        
+        # Only check payment for non-institute students
+        if not is_institute_student:
+            # Determine student class from UserProfile
+            student_class = None
+            try:
+                user_profile = request.user.user_profile
+                if user_profile and user_profile.grade:
+                    student_class = str(user_profile.grade)
+            except (AttributeError, UserProfile.DoesNotExist):
+                pass
+            
+            # Check if user has purchased test for their class
+            if student_class == "12":
+                # Class 12 should have ADVANCED test (Career Direction)
+                has_payment = PsychometricTestPayment.objects.filter(
+                    user=request.user,
+                    test_type=choices.PsychometricTestType.ADVANCED,
+                    is_success=choices.YesNoChoices.YES
+                ).exists()
+                if not has_payment:
+                    # Redirect to Career Direction buy page
+                    return redirect(reverse('psychometrictests:PsychometricTest12'))
+    
+    context = {}
+    
+    # If user is authenticated, get test sessions and status
+    if request.user.is_authenticated:
+        try:
+            # Get all test sessions for the current user
+            test_sessions = TestSession.objects.filter(user=request.user)
+            
+            # Initialize test status dictionary with default values for all tests
+            test_status = {
+                1: {'completed': False},
+                2: {'completed': False},
+                3: {'completed': False},
+                4: {
+                    'completed': False,
+                    'total_sections': 0,
+                    'completed_sections': 0,
+                    'sections_status': {}
+                }
+            }
+            
+            # Update with actual data if it exists
+            for session in test_sessions:
+                test_id = session.test.id
+                if test_id == 4:
+                    section_sessions = SectionSession.objects.filter(session=session)
+                    sections_status = {}
+                    
+                    for section_session in section_sessions:
+                        sections_status[section_session.section.title] = {
+                            'completed': section_session.is_completed,
+                            'session_id': section_session.id
+                        }
+                    
+                    test_status[4].update({
+                        'completed': session.is_completed,
+                        'session_id': session.id,
+                        'total_sections': section_sessions.count(),
+                        'completed_sections': section_sessions.filter(is_completed=True).count(),
+                        'sections_status': sections_status
+                    })
+                else:
+                    test_status[test_id] = {
+                        'completed': session.is_completed,
+                        'session_id': session.id
+                    }
+            
+            context['test_status'] = json.dumps(test_status)
+        except Exception as e:
+            print(f"Error in Home view: {str(e)}")
+            context['test_status'] = json.dumps({
+                1: {'completed': False},
+                2: {'completed': False},
+                3: {'completed': False},
+                4: {
+                    'completed': False,
+                    'total_sections': 0,
+                    'completed_sections': 0,
+                    'sections_status': {}
+                }
+            })
+    
+    return render(request, "template20/app_post_matric/home.html", context)
 
 @login_required
 def Profile(request):
-
-    user = request.user
-    user_fields = dir(user)
-    print(user.get_full_name)
+    from .models import TestSession, TestResult
+    from users.models import UserProfile
     
-    return render(request, "profile.html")
+    user = request.user
+    context = {
+        'user': user,
+    }
+    
+    # Get user profile data
+    try:
+        user_profile = user.user_profile
+        context['user_profile'] = user_profile
+    except UserProfile.DoesNotExist:
+        context['user_profile'] = None
+    
+    # Get test statistics
+    test_sessions = TestSession.objects.filter(user=user, is_completed=True)
+    context['tests_completed'] = test_sessions.count()
+    context['test_sessions'] = test_sessions
+    
+    # Calculate average score if results exist
+    results = TestResult.objects.filter(session__user=user)
+    if results.exists():
+        total_score = sum(r.score or 0 for r in results)
+        avg_score = total_score / results.count() if results.count() > 0 else 0
+        context['avg_score'] = round(avg_score, 1)
+    else:
+        context['avg_score'] = 0
+    
+    return render(request, "template20/app_post_matric/profile.html", context)
 
 @login_required
 def Report(request):
     return render(request, "pdf_template_final.html")
 
-# @login_required
+@login_required
 def Tests(request):
+    import json
+    from django.shortcuts import redirect
+    from django.urls import reverse
+    from psychometric_tests.models import PsychometricTestPayment
+    from core import choices
+    from institute.models import StudentManagement
+    
+    # Check if user is an institute-registered student (exempt from payment check)
+    is_institute_student = StudentManagement.objects.filter(student=request.user).exists()
+    
+    # Only check payment for non-institute students
+    if not is_institute_student:
+        # Determine student class from UserProfile
+        student_class = None
+        try:
+            user_profile = request.user.user_profile
+            if user_profile and user_profile.grade:
+                student_class = str(user_profile.grade)
+        except (AttributeError, UserProfile.DoesNotExist):
+            pass
+        
+        # Check if user has purchased test for their class
+        if student_class == "12":
+            # Class 12 should have ADVANCED test (Career Direction)
+            has_payment = PsychometricTestPayment.objects.filter(
+                user=request.user,
+                test_type=choices.PsychometricTestType.ADVANCED,
+                is_success=choices.YesNoChoices.YES
+            ).exists()
+            if not has_payment:
+                # Redirect to Career Direction buy page
+                return redirect(reverse('psychometrictests:PsychometricTest12'))
+    
     try:
         # Get all test sessions for the current user
         test_sessions = TestSession.objects.filter(user=request.user)
@@ -139,10 +293,10 @@ def Tests(request):
             'test_status': json.dumps(test_status)
         }
         
-        return render(request, "tests.html", context)
+        return render(request, "template20/app_post_matric/tests.html", context)
     except Exception as e:
         print(f"Error in Tests view: {str(e)}")
-        return render(request, "tests.html", {
+        return render(request, "template20/app_post_matric/tests.html", {
             'error': 'An error occurred while loading test status.',
             'test_status': json.dumps({
                 1: {'completed': False},
@@ -577,6 +731,11 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
     
     return result
 
+
+@login_required
+def Results_list(request):
+    """Display list of all test results"""
+    return render(request, "results_list.html")
 
 @login_required
 def Results(request):
@@ -1547,7 +1706,7 @@ def Take_test(request, id):
 
 def Test_details(request, id):
     
-    return render(request, "test-details.html", {"test_id": id})
+    return render(request, "test_details.html", {"test_id": id})
 
 def Test_results(request, id):
     return render(request, "results.html", {"result_id": id})
@@ -1560,14 +1719,36 @@ def test_sections(request, test_id):
         'test': test_id,
     })
 
-# @login_required
+@login_required
 def section_details(request,testId, section_id, session_id):
+    from .models import Sections, TestSession, SectionSession
+    from django.urls import reverse
+    
     section = get_object_or_404(Sections, id=section_id)
+    test_session = get_object_or_404(TestSession, id=session_id, user=request.user)
+    
+    # Get or create section session
+    try:
+        section_session = SectionSession.objects.get(
+            session=test_session,
+            section=section
+        )
+    except SectionSession.DoesNotExist:
+        section_session = SectionSession.objects.create(
+            session=test_session,
+            section=section,
+            start_time=timezone.now(),
+            is_completed=False
+        )
     
     context = {
+        'section': section,
         'section_id': section_id,
         'session_id': session_id,
-        'test_id': testId,  # Add this
+        'test_id': testId,
+        'test_session': test_session,
+        'section_session': section_session,
+        'time_limit': section.time_limit or 20,  # Default 20 minutes if not set
     }
     
     return render(request, 'section_details.html', context)
@@ -1577,6 +1758,7 @@ def section_results(request,testId,result_id):
     # Add this new view for handling results
     
     return render(request, 'section_results.html', {
+        'testId': testId,
         'result_id': result_id,
     })
 
@@ -1614,9 +1796,6 @@ def register_view(request):
         username = request.POST.get("username")
         email = request.POST.get("email")
         password = request.POST.get("password")
-        
-        # Remove the breakpoint
-        # breakpoint()
         
         if User.objects.filter(email=email).exists():
             return render(request, "register.html", {"error": "Email already exists"})
@@ -1947,20 +2126,54 @@ class TestSessionViewSet(viewsets.ModelViewSet):
     def _process_personality_test(self, submitted_answers, session):
         result_data = {}
         total_score = 0
+        from .models import Answer
+        
         for question_key, answer_obj in submitted_answers.items():
-            question = session.test.questions.filter(order=int(question_key.split('_')[1])).first()
+            # Handle different question_key formats: "1" or "Question_1"
+            try:
+                if '_' in str(question_key):
+                    question_order = int(str(question_key).split('_')[1])
+                else:
+                    # question_key is just the question ID
+                    question = session.test.questions.filter(id=int(question_key)).first()
+                    if question:
+                        question_order = question.order
+                    else:
+                        continue
+            except (ValueError, IndexError):
+                # Try to get question by ID directly
+                question = session.test.questions.filter(id=int(question_key)).first()
+                if not question:
+                    continue
+                question_order = question.order
+            
+            question = session.test.questions.filter(order=question_order).first()
             if not question:
                 continue
 
             dimension = question.question_dimension
             pattern = question.parttern
             
-            if isinstance(answer_obj, dict):
+            # Handle different answer formats: list of answer IDs, dict, or single value
+            if isinstance(answer_obj, list):
+                # List of answer IDs - fetch Answer objects and sum scores
+                score = 0
+                for answer_id in answer_obj:
+                    try:
+                        answer = Answer.objects.get(id=int(answer_id), question=question)
+                        score += answer.score or 0
+                    except (Answer.DoesNotExist, ValueError):
+                        pass
+            elif isinstance(answer_obj, dict):
                 raw_score = answer_obj.get('score', 0)
+                score = raw_score
             else:
-                raw_score = answer_obj
-
-            score = raw_score
+                # Single answer ID or score value
+                try:
+                    answer = Answer.objects.get(id=int(answer_obj), question=question)
+                    score = answer.score or 0
+                except (Answer.DoesNotExist, ValueError):
+                    score = int(answer_obj) if isinstance(answer_obj, (int, str)) and str(answer_obj).isdigit() else 0
             
             if dimension not in result_data:
                 result_data[dimension] = {'score': 0, 'count': 0}
@@ -2013,12 +2226,31 @@ class TestSessionViewSet(viewsets.ModelViewSet):
     def _process_motivation_test(self, submitted_answers, session):
         category_counts = {}
         result_data = {}
+        from .models import Answer
         
         for question_key, answer_obj in submitted_answers.items():
-            if isinstance(answer_obj, dict):
+            # Handle different answer formats: list of answer IDs, dict, or single value
+            if isinstance(answer_obj, list):
+                # List of answer IDs - fetch Answer objects and get categories
+                for answer_id in answer_obj:
+                    try:
+                        answer = Answer.objects.get(id=int(answer_id))
+                        if answer.category:
+                            category_counts[answer.category] = category_counts.get(answer.category, 0) + 1
+                    except (Answer.DoesNotExist, ValueError):
+                        pass
+            elif isinstance(answer_obj, dict):
                 category = answer_obj.get('category')
                 if category:
                     category_counts[category] = category_counts.get(category, 0) + 1
+            else:
+                # Single answer ID
+                try:
+                    answer = Answer.objects.get(id=int(answer_obj))
+                    if answer.category:
+                        category_counts[answer.category] = category_counts.get(answer.category, 0) + 1
+                except (Answer.DoesNotExist, ValueError):
+                    pass
                     
         result_data['category_distribution'] = category_counts
 
@@ -2053,8 +2285,26 @@ class TestSessionViewSet(viewsets.ModelViewSet):
         
         # Process each answer
         for question_key, answer_obj in submitted_answers.items():
+            # Handle different question_key formats: "1" or "Question_1"
+            try:
+                if '_' in str(question_key):
+                    question_order = int(str(question_key).split('_')[1])
+                else:
+                    # question_key is just the question ID
+                    question = session.test.questions.filter(id=int(question_key)).first()
+                    if question:
+                        question_order = question.order
+                    else:
+                        continue
+            except (ValueError, IndexError):
+                # Try to get question by ID directly
+                question = session.test.questions.filter(id=int(question_key)).first()
+                if not question:
+                    continue
+                question_order = question.order
+            
             # Get the question
-            question = session.test.questions.filter(order=int(question_key.split('_')[1])).first()
+            question = session.test.questions.filter(order=question_order).first()
             if not question:
                 continue
 
@@ -2064,11 +2314,25 @@ class TestSessionViewSet(viewsets.ModelViewSet):
                 # Remove trailing numbers (like IRE2 -> IRE)
                 dimension = re.sub(r'\d+$', '', dimension)
             
-            # Get score from answer
-            if isinstance(answer_obj, dict):
+            # Handle different answer formats: list of answer IDs, dict, or single value
+            if isinstance(answer_obj, list):
+                # List of answer IDs - fetch Answer objects and sum scores
+                score = 0.0
+                for answer_id in answer_obj:
+                    try:
+                        answer = Answer.objects.get(id=int(answer_id), question=question)
+                        score += float(answer.score or 0)
+                    except (Answer.DoesNotExist, ValueError):
+                        pass
+            elif isinstance(answer_obj, dict):
                 score = float(answer_obj.get('score', 0))
             else:
-                score = float(answer_obj)
+                # Single answer ID or score value
+                try:
+                    answer = Answer.objects.get(id=int(answer_obj), question=question)
+                    score = float(answer.score or 0)
+                except (Answer.DoesNotExist, ValueError):
+                    score = float(answer_obj) if isinstance(answer_obj, (int, float, str)) and (isinstance(answer_obj, (int, float)) or str(answer_obj).replace('.', '').isdigit()) else 0.0
 
             # Initialize dimension in result_data if not exists
             if dimension not in result_data:
