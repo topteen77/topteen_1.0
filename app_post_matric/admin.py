@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     TestCategory, Test, Question, Answer, Sections,SectionSession,
-    TestSession, UserResponse, TestResult, TestTopCategories
+    TestSession, UserResponse, TestResult, TestTopCategories, TestCompletionPopup
 )
 
 
@@ -123,3 +123,12 @@ class TestResultAdmin(admin.ModelAdmin):
             return ", ".join([f"{key}: {value}" for key, value in obj.category_counts.items()])
         return "No category counts"
     get_category_counts.short_description = 'Category Counts'
+
+
+@admin.register(TestCompletionPopup)
+class TestCompletionPopupAdmin(admin.ModelAdmin):
+    list_display = ('user', 'test_type', 'answer', 'country', 'created_at', 'updated_at')
+    list_filter = ('test_type', 'created_at', 'updated_at')
+    search_fields = ('user__email', 'user__name', 'user__username', 'answer', 'country')
+    ordering = ('-created_at',)
+    readonly_fields = ('created_at', 'updated_at')

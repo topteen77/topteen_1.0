@@ -17,7 +17,11 @@ router.register(r'section-sessions', views.SectionSessionViewSet, basename='sect
 
 
 urlpatterns = [
+    # Custom API endpoints (place before router to ensure they're matched first)
+    # Note: 'api/' prefix is already included in main urls.py, so we use 'web/popup-answer/' here
+    path('web/popup-answer/', views.save_popup_answer, name='save_popup_answer'),
 
+    # Router URLs
     path('', include(router.urls)),
 
     path('web/home/', views.Home, name='home'),
@@ -32,6 +36,7 @@ urlpatterns = [
     path('web/take_test/<int:id>/', views.Take_test, name='take_test'),
     path('web/test_details/<int:id>/', views.Test_details, name='test_details'),
     path('web/test_results/<int:id>/', views.Test_results, name='test_results'),
+    path('web/test_results/<int:id>/download-pdf/', views.download_test_results_pdf, name='download_test_results_pdf'),
     # path('register/', views.register_view, name='register'),
     path("web/download-users/", views.download_users_excel, name="download_users"),
     path('web/combined_report/<int:user_id>/', views.CombinedReport, name='combined_report'),

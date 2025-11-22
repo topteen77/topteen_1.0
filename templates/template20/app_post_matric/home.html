@@ -3,6 +3,8 @@
 {% block title_content %}Test Assessment Platform | Top Teen{% endblock %}
 {% block description_content %}Transform your future with profound insights into your personality traits, career interests, motivation factors, and aptitude through our cutting-edge assessment tools.{% endblock %}
 
+{% block footer_cta %}{% endblock %}
+
 {% block additionalhead %}
 {{ super() }}
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
@@ -670,10 +672,20 @@
         } else {
           categoryList.innerHTML = '<div class="no-content">No categories found. Check back soon for new assessments!</div>';
         }
+        
+        // Show footer after content loads
+        if (typeof window.showFooterAfterContent === 'function') {
+          window.showFooterAfterContent();
+        }
       })
       .catch(error => {
         document.getElementById('category-list').innerHTML = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Unable to load categories. Please try again later.</div>';
         console.error(error);
+        
+        // Show footer even on error
+        if (typeof window.showFooterAfterContent === 'function') {
+          window.showFooterAfterContent();
+        }
       });
 
     // Helper function to assign icons based on category name

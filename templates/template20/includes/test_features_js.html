@@ -1,0 +1,388 @@
+{# 
+  Centralized Test Features JavaScript Component
+  
+  Usage:
+  {% include 'template20/includes/test_features_js.html' 
+     with enable_internet_speed_meter=true 
+          enable_answer_quality_widget=true 
+          enable_auto_advance=true %}
+  
+  Required JavaScript Variables (must exist in parent template):
+  - questions: Array of question objects
+  - currentQuestionIndex: Current question index
+  - questionStartTimes: Object tracking start times {index: timestamp}
+  - answerTimes: Array of answer times in seconds
+  - MIN_TIME_PER_QUESTION: Minimum time constant (default: 3)
+  - saveCurrentAnswer(): Function to save current answer
+  - renderCurrentQuestion(): Function to render question
+  - updateProgress(): Function to update progress
+#}
+
+{# Variables are set in parent template before include #}
+{# Set defaults if not defined #}
+{% set enable_internet_speed_meter = enable_internet_speed_meter|default(true) %}
+{% set enable_answer_quality_widget = enable_answer_quality_widget|default(true) %}
+{% set enable_auto_advance = enable_auto_advance|default(true) %}
+
+{# Internet Speed Meter Script #}
+{% if enable_internet_speed_meter %}
+<script src="{{ static('topteenfrontend/assets/js/internet-speed-meter.js') }}"></script>
+{% endif %}
+
+<script>
+// Test Features JavaScript
+(function() {
+  'use strict';
+
+  // Ensure MIN_TIME_PER_QUESTION is defined
+  if (typeof MIN_TIME_PER_QUESTION === 'undefined') {
+    window.MIN_TIME_PER_QUESTION = 3;
+  }
+
+  {% if enable_answer_quality_widget %}
+  /**
+   * Update Answer Quality Widget
+   * Updates both mobile and desktop widgets based on average answer time
+   */
+  window.updateAnswerQualityWidget = function() {
+    const mobileWidget = $('#answerQualityWidgetMobile');
+    const desktopWidget = $('#answerQualityWidgetDesktop');
+    
+    // Check if widgets exist
+    if (mobileWidget.length === 0 && desktopWidget.length === 0) {
+      return; // Widgets not present
+    }
+    
+    if (typeof window.answerTimes === 'undefined' || window.answerTimes.length === 0) {
+      if (mobileWidget.length > 0) {
+        mobileWidget.show();
+        $('#avgTimeMobile').text('-- sec/q');
+      }
+      if (desktopWidget.length > 0) {
+        desktopWidget.show();
+        $('#avgTimeDesktop').text('-- sec/q');
+      }
+      return;
+    }
+    
+    const avgTime = window.answerTimes.reduce((a, b) => a + b, 0) / window.answerTimes.length;
+    const isRushing = avgTime < (window.MIN_TIME_PER_QUESTION || 3);
+    
+    if (isRushing) {
+      // Rushing through - show warning
+      if (mobileWidget.length > 0) {
+        mobileWidget.removeClass('careful').addClass('warning').show();
+        mobileWidget.find('.quality-status-indicator').removeClass('status-careful').addClass('status-warning');
+        mobileWidget.find('.quality-status-text').removeClass('status-careful').addClass('status-warning').text('Rushing Through');
+      }
+      if (desktopWidget.length > 0) {
+        desktopWidget.removeClass('careful').addClass('warning').show();
+        desktopWidget.find('.quality-status-indicator').removeClass('status-careful').addClass('status-warning');
+        desktopWidget.find('.quality-status-text').removeClass('status-careful').addClass('status-warning').text('Rushing Through');
+      }
+    } else {
+      // Answering carefully - show success
+      if (mobileWidget.length > 0) {
+        mobileWidget.removeClass('warning').addClass('careful').show();
+        mobileWidget.find('.quality-status-indicator').removeClass('status-warning').addClass('status-careful');
+        mobileWidget.find('.quality-status-text').removeClass('status-warning').addClass('status-careful').text('Answering Carefully');
+      }
+      if (desktopWidget.length > 0) {
+        desktopWidget.removeClass('warning').addClass('careful').show();
+        desktopWidget.find('.quality-status-indicator').removeClass('status-warning').addClass('status-careful');
+        desktopWidget.find('.quality-status-text').removeClass('status-warning').addClass('status-careful').text('Answering Carefully');
+      }
+    }
+    
+    // Update average time
+    if (mobileWidget.length > 0) {
+      $('#avgTimeMobile').text(avgTime.toFixed(1) + ' sec/q');
+    }
+    if (desktopWidget.length > 0) {
+      $('#avgTimeDesktop').text(avgTime.toFixed(1) + ' sec/q');
+    }
+  };
+  {% endif %}
+
+  {% if enable_auto_advance %}
+  /**
+   * Initialize Auto-Advance Feature
+   * Automatically advances to next question 300ms after option selection
+   */
+  window.initAutoAdvance = function() {
+    console.log('Initializing auto-advance...');
+    // Auto-advance for radio buttons (single choice)
+    // Use event delegation on document to catch dynamically created elements
+    $(document).off('change.autoAdvance', '#questions-container input[type="radio"]').on('change.autoAdvance', '#questions-container input[type="radio"]', function() {
+      console.log('Radio button changed, auto-advancing...', this);
+      const questionNum = $(this).closest('.question-box').find('input[type="radio"]').first().attr('name');
+      const isChecked = $(`input[name="${questionNum}"]:checked`).length > 0;
+      console.log('Question num:', questionNum, 'isChecked:', isChecked, 'currentIndex:', typeof window.currentQuestionIndex !== 'undefined' ? window.currentQuestionIndex : 'undefined', 'questions length:', typeof window.questions !== 'undefined' ? window.questions.length : 'undefined');
+      
+      // Save answer if function exists
+      if (typeof window.saveCurrentAnswer === 'function' && window.saveCurrentAnswer !== null) {
+        window.saveCurrentAnswer();
+      } else if (typeof saveCurrentAnswer === 'function') {
+        saveCurrentAnswer();
+      }
+      
+      // Record time spent if tracking is enabled
+      if (typeof window.questionStartTimes !== 'undefined' && typeof window.currentQuestionIndex !== 'undefined' && typeof window.answerTimes !== 'undefined') {
+        if (window.questionStartTimes[window.currentQuestionIndex]) {
+          const timeSpent = (Date.now() - window.questionStartTimes[window.currentQuestionIndex]) / 1000;
+          window.answerTimes.push(timeSpent);
+          if (typeof updateAnswerQualityWidget === 'function') {
+            updateAnswerQualityWidget();
+          }
+        }
+      }
+      
+      // Auto-advance after 300ms delay
+      if (isChecked && typeof window.questions !== 'undefined' && typeof window.currentQuestionIndex !== 'undefined') {
+        if (window.currentQuestionIndex < window.questions.length - 1) {
+          console.log('Auto-advancing to next question (radio)...');
+          setTimeout(function() {
+            if (typeof window.currentQuestionIndex !== 'undefined' && typeof window.questions !== 'undefined') {
+              const oldIndex = window.currentQuestionIndex;
+              
+              // Update answer times before advancing
+              if (typeof window.questionStartTimes !== 'undefined' && window.questionStartTimes[oldIndex]) {
+                const timeSpent = (Date.now() - window.questionStartTimes[oldIndex]) / 1000;
+                if (typeof window.answerTimes !== 'undefined') {
+                  window.answerTimes.push(timeSpent);
+                }
+                if (typeof answerTimes !== 'undefined') {
+                  answerTimes.push(timeSpent);
+                }
+                // Update answer quality widget
+                if (typeof window.updateAnswerQualityWidget === 'function') {
+                  window.updateAnswerQualityWidget();
+                }
+              }
+              
+              // Save current answer before advancing
+              if (typeof window.saveCurrentAnswer === 'function' && window.saveCurrentAnswer !== null) {
+                window.saveCurrentAnswer();
+              } else if (typeof saveCurrentAnswer === 'function') {
+                saveCurrentAnswer();
+              }
+              
+              // Advance to next question
+              window.currentQuestionIndex = oldIndex + 1;
+              
+              // Update local variable if it exists in the scope
+              try {
+                if (typeof currentQuestionIndex !== 'undefined') {
+                  currentQuestionIndex = window.currentQuestionIndex;
+                }
+              } catch(e) {
+                console.log('Could not update local currentQuestionIndex:', e);
+              }
+              
+              console.log('Advancing from question', oldIndex, 'to', window.currentQuestionIndex);
+              
+              // Update local variables if they exist in the closure
+              if (window._testFunctions) {
+                window._testFunctions.currentQuestionIndex = window.currentQuestionIndex;
+                window._testFunctions.questionStartTimes = window.questionStartTimes;
+                window._testFunctions.answerTimes = window.answerTimes;
+              }
+              
+              // Call functions to render next question
+              if (typeof window.renderCurrentQuestion === 'function' && window.renderCurrentQuestion !== null) {
+                console.log('Calling window.renderCurrentQuestion() with index', window.currentQuestionIndex);
+                try {
+                  window.renderCurrentQuestion();
+                } catch(e) {
+                  console.error('Error calling renderCurrentQuestion:', e);
+                }
+              } else if (typeof renderCurrentQuestion === 'function') {
+                console.log('Calling local renderCurrentQuestion()');
+                try {
+                renderCurrentQuestion();
+                } catch(e) {
+                  console.error('Error calling local renderCurrentQuestion:', e);
+                }
+              } else {
+                console.error('renderCurrentQuestion function not found. Available:', {
+                  windowRender: typeof window.renderCurrentQuestion,
+                  localRender: typeof renderCurrentQuestion,
+                  testFunctions: typeof window._testFunctions
+                });
+              }
+              
+              if (typeof window.updateProgress === 'function' && window.updateProgress !== null) {
+                window.updateProgress();
+              } else if (typeof updateProgress === 'function') {
+                updateProgress();
+              }
+              
+              // Update question start time for new question
+              if (typeof window.questionStartTimes !== 'undefined') {
+                window.questionStartTimes[window.currentQuestionIndex] = Date.now();
+              }
+              if (typeof questionStartTimes !== 'undefined') {
+                questionStartTimes[window.currentQuestionIndex] = Date.now();
+              }
+              
+              $('#error-message').hide();
+              
+              // Re-initialize auto-advance for new question after a short delay
+              if (typeof window.initAutoAdvance === 'function') {
+                setTimeout(function() {
+                  window.initAutoAdvance();
+                }, 200);
+              }
+            } else {
+              console.error('Cannot advance: missing required variables', {
+                hasIndex: typeof window.currentQuestionIndex !== 'undefined',
+                hasQuestions: typeof window.questions !== 'undefined'
+              });
+            }
+          }, 300);
+        } else {
+          console.log('Already on last question, cannot auto-advance');
+        }
+      } else {
+        console.log('Cannot auto-advance:', {
+          isChecked: isChecked,
+          hasQuestions: typeof window.questions !== 'undefined',
+          hasIndex: typeof window.currentQuestionIndex !== 'undefined'
+        });
+      }
+    });
+
+    // Auto-advance for checkboxes (multiple choice)
+    // Use event delegation on document to catch dynamically created elements
+    $(document).off('change.autoAdvance', '#questions-container input[type="checkbox"]').on('change.autoAdvance', '#questions-container input[type="checkbox"]', function() {
+      console.log('Checkbox changed, auto-advancing...', this);
+      const questionBox = $(this).closest('.question-box');
+      const hasChecked = questionBox.find('input[type="checkbox"]:checked').length > 0;
+      
+      // Save answer if function exists
+      if (typeof window.saveCurrentAnswer === 'function' && window.saveCurrentAnswer !== null) {
+        window.saveCurrentAnswer();
+      } else if (typeof saveCurrentAnswer === 'function') {
+        saveCurrentAnswer();
+      }
+      
+      // Record time spent if tracking is enabled
+      if (typeof window.questionStartTimes !== 'undefined' && typeof window.currentQuestionIndex !== 'undefined' && typeof window.answerTimes !== 'undefined') {
+        if (window.questionStartTimes[window.currentQuestionIndex]) {
+          const timeSpent = (Date.now() - window.questionStartTimes[window.currentQuestionIndex]) / 1000;
+          window.answerTimes.push(timeSpent);
+          if (typeof updateAnswerQualityWidget === 'function') {
+            updateAnswerQualityWidget();
+          }
+        }
+      }
+      
+      // Auto-advance after 300ms delay if at least one checkbox is checked
+      if (hasChecked && typeof window.questions !== 'undefined' && typeof window.currentQuestionIndex !== 'undefined') {
+        if (window.currentQuestionIndex < window.questions.length - 1) {
+          console.log('Auto-advancing to next question (checkbox)...');
+          setTimeout(function() {
+            if (typeof window.currentQuestionIndex !== 'undefined' && typeof window.questions !== 'undefined') {
+              // Update local variable first if it exists
+              if (typeof currentQuestionIndex !== 'undefined') {
+                currentQuestionIndex = window.currentQuestionIndex + 1;
+              }
+              
+              // Update answer times before advancing
+              if (typeof window.questionStartTimes !== 'undefined' && window.questionStartTimes[window.currentQuestionIndex]) {
+                const timeSpent = (Date.now() - window.questionStartTimes[window.currentQuestionIndex]) / 1000;
+                if (typeof window.answerTimes !== 'undefined') {
+                  window.answerTimes.push(timeSpent);
+                }
+                if (typeof answerTimes !== 'undefined') {
+                  answerTimes.push(timeSpent);
+                }
+                // Update answer quality widget
+                if (typeof window.updateAnswerQualityWidget === 'function') {
+                  window.updateAnswerQualityWidget();
+                }
+              }
+              
+              // Advance to next question
+              window.currentQuestionIndex++;
+              
+              // Call functions to render next question
+              if (typeof window.renderCurrentQuestion === 'function' && window.renderCurrentQuestion !== null) {
+                window.renderCurrentQuestion();
+              } else if (typeof renderCurrentQuestion === 'function') {
+                renderCurrentQuestion();
+              }
+              
+              if (typeof window.updateProgress === 'function' && window.updateProgress !== null) {
+                window.updateProgress();
+              } else if (typeof updateProgress === 'function') {
+                updateProgress();
+              }
+              
+              // Update question start time for new question
+              if (typeof window.questionStartTimes !== 'undefined') {
+                window.questionStartTimes[window.currentQuestionIndex] = Date.now();
+              }
+              if (typeof questionStartTimes !== 'undefined') {
+                questionStartTimes[window.currentQuestionIndex] = Date.now();
+              }
+              
+              $('#error-message').hide();
+              
+              // Re-initialize auto-advance for new question after a short delay
+              if (typeof window.initAutoAdvance === 'function') {
+                setTimeout(function() {
+                  window.initAutoAdvance();
+                }, 200);
+              }
+            }
+          }, 300);
+        }
+      }
+    });
+  };
+
+  // Initialize auto-advance - will be called after questions load
+  // Also initialize immediately if DOM is ready
+  (function initAutoAdvanceNow() {
+    if (typeof jQuery !== 'undefined' && typeof initAutoAdvance === 'function') {
+      // jQuery is available, initialize immediately
+      initAutoAdvance();
+    } else if (document.readyState === 'loading') {
+      // Wait for DOM and jQuery
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          if (typeof jQuery !== 'undefined' && typeof initAutoAdvance === 'function') {
+            initAutoAdvance();
+          }
+        }, 100);
+      });
+    } else {
+      // DOM already loaded, wait a bit for jQuery
+      setTimeout(function() {
+        if (typeof jQuery !== 'undefined' && typeof initAutoAdvance === 'function') {
+          initAutoAdvance();
+        }
+      }, 100);
+    }
+  })();
+  {% endif %}
+
+  {% if enable_answer_quality_widget %}
+  // Initialize answer quality widget when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof updateAnswerQualityWidget === 'function') {
+        updateAnswerQualityWidget();
+      }
+    });
+  } else {
+    if (typeof updateAnswerQualityWidget === 'function') {
+      updateAnswerQualityWidget();
+    }
+  }
+  {% endif %}
+
+})();
+</script>
+

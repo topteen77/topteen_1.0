@@ -10,7 +10,8 @@ from users.models import UserProfile
 # from .models import User
 from .models import (
     TestCategory, Test, Question, Answer,
-    TestSession, UserResponse, TestResult, Sections, SectionSession, TestTopCategories
+    TestSession, UserResponse, TestResult, Sections, SectionSession, TestTopCategories,
+    TestCompletionPopup
 )
 from .serializers import (
     TestCategorySerializer, TestCategoryDetailSerializer,
@@ -21,11 +22,13 @@ from .serializers import (
     UserSerializer, ResponseDetailSerializer, SectionsSerializer, SectionSessionSerializer
 )
 import re
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout, get_user_model
 # from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.template.loader import get_template
+from django.conf import settings
 User = get_user_model()
 def logout_view(request):
     logout(request)
@@ -115,9 +118,6 @@ def Home(request):
     # If user is authenticated, get test sessions and status
     if request.user.is_authenticated:
         try:
-            # Get all test sessions for the current user
-            test_sessions = TestSession.objects.filter(user=request.user)
-            
             # Initialize test status dictionary with default values for all tests
             test_status = {
                 1: {'completed': False},
@@ -131,31 +131,40 @@ def Home(request):
                 }
             }
             
-            # Update with actual data if it exists
-            for session in test_sessions:
-                test_id = session.test.id
-                if test_id == 4:
-                    section_sessions = SectionSession.objects.filter(session=session)
-                    sections_status = {}
-                    
-                    for section_session in section_sessions:
-                        sections_status[section_session.section.title] = {
-                            'completed': section_session.is_completed,
-                            'session_id': section_session.id
+            # Check for latest completed session for each test (1, 2, 3, 4)
+            for test_id in [1, 2, 3, 4]:
+                # Get the latest completed session for this test
+                latest_session = TestSession.objects.filter(
+                    user=request.user,
+                    test_id=test_id,
+                    is_completed=True
+                ).order_by('-end_time').first()
+                
+                if latest_session:
+                    if test_id == 4:
+                        # For test 4 (Aptitude), check section sessions
+                        section_sessions = SectionSession.objects.filter(session=latest_session)
+                        sections_status = {}
+                        
+                        for section_session in section_sessions:
+                            sections_status[section_session.section.title] = {
+                                'completed': section_session.is_completed,
+                                'session_id': section_session.id
+                            }
+                        
+                        test_status[4].update({
+                            'completed': latest_session.is_completed,
+                            'session_id': latest_session.id,
+                            'total_sections': section_sessions.count(),
+                            'completed_sections': section_sessions.filter(is_completed=True).count(),
+                            'sections_status': sections_status
+                        })
+                    else:
+                        # For tests 1, 2, 3
+                        test_status[test_id] = {
+                            'completed': latest_session.is_completed,
+                            'session_id': latest_session.id
                         }
-                    
-                    test_status[4].update({
-                        'completed': session.is_completed,
-                        'session_id': session.id,
-                        'total_sections': section_sessions.count(),
-                        'completed_sections': section_sessions.filter(is_completed=True).count(),
-                        'sections_status': sections_status
-                    })
-                else:
-                    test_status[test_id] = {
-                        'completed': session.is_completed,
-                        'session_id': session.id
-                    }
             
             context['test_status'] = json.dumps(test_status)
         except Exception as e:
@@ -247,10 +256,10 @@ def Tests(request):
                 return redirect(reverse('psychometrictests:PsychometricTest12'))
     
     try:
-        # Get all test sessions for the current user
+        # Get all test sessions for the current user (same as old code)
         test_sessions = TestSession.objects.filter(user=request.user)
         
-        # Initialize test status dictionary with default values for all tests
+        # Initialize test status dictionary with default values for all tests (same as old code)
         test_status = {
             1: {'completed': False},
             2: {'completed': False},
@@ -263,9 +272,24 @@ def Tests(request):
             }
         }
         
-        # Update with actual data if it exists
+        # Map test IDs to test types for popup identification
+        test_type_map = {}  # Will store {test_id: test_type}
+        
+        # Update with actual data if it exists (same as old code logic)
         for session in test_sessions:
             test_id = session.test.id
+            test_title = session.test.title.lower().strip()
+            
+            # Identify test type for popup mapping
+            if 'personality assessment' in test_title:
+                test_type_map[test_id] = 'personality'
+            elif 'motivation assessment' in test_title:
+                test_type_map[test_id] = 'motivation'
+            elif 'career interest inventory' in test_title or str(test_id) == '3':
+                test_type_map[test_id] = 'career_interest'
+            elif 'aptitude assessment' in test_title:
+                test_type_map[test_id] = 'aptitude'
+            
             if test_id == 4:
                 section_sessions = SectionSession.objects.filter(session=session)
                 sections_status = {}
@@ -289,8 +313,30 @@ def Tests(request):
                     'session_id': session.id
                 }
         
+        # Check which popups have been answered
+        popup_answers = TestCompletionPopup.objects.filter(user=request.user)
+        answered_popups = {popup.test_type for popup in popup_answers}
+        
+        # Determine which popups need to be shown
+        # Popup should be shown if: test is completed AND popup hasn't been answered
+        popup_status = {
+            'personality': False,
+            'motivation': False,
+            'career_interest': False,
+            'aptitude': False
+        }
+        
+        # Check each completed test to see if popup needs to be shown
+        for test_id, status_info in test_status.items():
+            if status_info.get('completed', False):
+                test_type = test_type_map.get(test_id)
+                if test_type and test_type not in answered_popups:
+                    popup_status[test_type] = True
+        
         context = {
-            'test_status': json.dumps(test_status)
+            'test_status': json.dumps(test_status),
+            'popup_status': json.dumps(popup_status),
+            'test_type_map': json.dumps(test_type_map)
         }
         
         return render(request, "template20/app_post_matric/tests.html", context)
@@ -308,8 +354,81 @@ def Tests(request):
                     'completed_sections': 0,
                     'sections_status': {}
                 }
-            })
+            }),
+            'popup_status': json.dumps({
+                'personality': False,
+                'motivation': False,
+                'career_interest': False,
+                'aptitude': False
+            }),
+            'test_type_map': json.dumps({})
         })
+
+
+@login_required
+def save_popup_answer(request):
+    """Save popup answer and send email after 3rd popup (career_interest)"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Only POST method allowed'}, status=405)
+    
+    try:
+        test_type = request.POST.get('test_type')
+        answer = request.POST.get('answer')
+        country = request.POST.get('country', None)
+        
+        if not test_type or not answer:
+            return JsonResponse({'error': 'test_type and answer are required'}, status=400)
+        
+        # Validate test_type
+        valid_test_types = ['personality', 'motivation', 'career_interest', 'aptitude']
+        if test_type not in valid_test_types:
+            return JsonResponse({'error': f'Invalid test_type. Must be one of: {", ".join(valid_test_types)}'}, status=400)
+        
+        # Save or update the popup answer
+        popup_answer, created = TestCompletionPopup.objects.update_or_create(
+            user=request.user,
+            test_type=test_type,
+            defaults={
+                'answer': answer,
+                'country': country
+            }
+        )
+        
+        # If this is the 3rd popup (career_interest), send email to admins
+        if test_type == 'career_interest':
+            try:
+                from communication.com_service import ComService
+                cs = ComService()
+                
+                # Get all 3 popup answers (personality, motivation, career_interest)
+                popup_answers = TestCompletionPopup.objects.filter(
+                    user=request.user,
+                    test_type__in=['personality', 'motivation', 'career_interest']
+                ).order_by('test_type')
+                
+                # Prepare data for email
+                answers_data = {}
+                for popup in popup_answers:
+                    answers_data[popup.test_type] = {
+                        'answer': popup.answer,
+                        'country': popup.country
+                    }
+                
+                # Send email
+                cs.send_test_popup_answers_email(request.user, answers_data)
+            except Exception as e:
+                print(f"Error sending email after career_interest popup: {str(e)}")
+                # Don't fail the request if email fails
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Popup answer saved successfully',
+            'created': created
+        })
+    
+    except Exception as e:
+        print(f"Error in save_popup_answer: {str(e)}")
+        return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
 
 
 import json
@@ -918,6 +1037,132 @@ def Results(request):
                 'aptitude_roles_guidance': hexaco_recommendations['aptitude_roles_guidance'],
                 'career_guidance_selected': hexaco_recommendations['career_guidance_selected'],
             })
+        
+        # Build test_results_data for JavaScript (pdf-results.js)
+        test_results_data = []
+        title = latest_session.test.title
+        duration_minutes = 0
+        if latest_session.start_time and latest_session.end_time:
+            duration = latest_session.end_time - latest_session.start_time
+            duration_minutes = int(duration.total_seconds() / 60)
+
+        test_data = {
+            'test_id': latest_session.test.id,
+            'test_title': title,
+            'duration_minutes': duration_minutes,
+            'result_data': {},
+            'responses': []
+        }
+
+        # Try to use stored TestResult first (most accurate)
+        try:
+            from .models import TestResult
+            test_result = TestResult.objects.filter(session=latest_session).first()
+            if test_result and test_result.result_data:
+                stored_data = test_result.result_data
+                if isinstance(stored_data, dict):
+                    if 'Aptitude' in title:
+                        test_data['result_data'] = stored_data.copy()
+                    else:
+                        normalized_data = {}
+                        for key, value in stored_data.items():
+                            if isinstance(value, dict):
+                                if 'score' in value:
+                                    normalized_data[key] = {'score': value['score']}
+                                elif isinstance(value, (int, float)):
+                                    normalized_data[key] = {'score': value}
+                                else:
+                                    normalized_data[key] = value
+                            elif isinstance(value, (int, float)):
+                                normalized_data[key] = {'score': value}
+                            else:
+                                normalized_data[key] = {'score': 0}
+                        test_data['result_data'] = normalized_data
+                if test_result.category_counts:
+                    test_data['category_counts'] = test_result.category_counts.copy()
+            else:
+                # Fallback: Aggregate results from stored responses
+                responses = []
+                try:
+                    responses_obj = getattr(latest_session, 'responses', None)
+                    if responses_obj is not None:
+                        responses = list(responses_obj.all())
+                        # Convert responses to serializable format
+                        test_data['responses'] = []
+                        for resp in responses:
+                            if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                                test_data['responses'].append({
+                                    'selected_answer': resp.selected_answer
+                                })
+                except Exception:
+                    pass
+
+                if 'Personality' in title:
+                    test_data['result_data'] = {
+                        'H': {'score': 0}, 'E': {'score': 0}, 'X': {'score': 0},
+                        'A': {'score': 0}, 'C': {'score': 0}, 'O': {'score': 0}
+                    }
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'dimension' in ans:
+                                dim = ans['dimension']
+                                if dim in test_data['result_data']:
+                                    try:
+                                        test_data['result_data'][dim]['score'] += int(ans.get('score', 0))
+                                    except Exception:
+                                        pass
+
+                elif 'Career' in title or 'Interest' in title:
+                    test_data['result_data'] = {
+                        'R': {'score': 0}, 'I': {'score': 0}, 'A': {'score': 0},
+                        'S': {'score': 0}, 'E': {'score': 0}, 'C': {'score': 0}
+                    }
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'dimension' in ans:
+                                dim = ans['dimension']
+                                if dim in test_data['result_data']:
+                                    try:
+                                        test_data['result_data'][dim]['score'] += int(ans.get('score', 0))
+                                    except Exception:
+                                        pass
+
+                elif 'Motivation' in title:
+                    test_data['category_counts'] = {'Achievement': 0, 'Power': 0, 'Affiliation': 0}
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'category' in ans:
+                                cat = ans['category']
+                                if cat in test_data['category_counts']:
+                                    test_data['category_counts'][cat] += 1
+
+                elif 'Aptitude' in title:
+                    test_data['result_data'] = {}
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'sections' in ans:
+                                sections = ans['sections']
+                                for section_name, section_data in sections.items():
+                                    if section_name not in test_data['result_data']:
+                                        test_data['result_data'][section_name] = 0
+                                    if 'submitted_answers' in section_data:
+                                        for _qid, qdata in section_data['submitted_answers'].items():
+                                            if qdata.get('correct_answer') == qdata.get('selected_answer'):
+                                                test_data['result_data'][section_name] += 1
+        except Exception as e:
+            print(f"Error getting test result data: {e}")
+            import traceback
+            traceback.print_exc()
+
+        test_results_data.append(test_data)
+
+        # Attach JSON for client scripts (pdf-results.js will prefer this over API fetch)
+        import json as _json
+        context['test_results_json'] = _json.dumps(test_results_data)
         
         return render(request, "results.html", context)    
         
@@ -1702,20 +1947,481 @@ def Results_details(request):
 
 def Take_test(request, id):
     
-    return render(request, "take-test.html", {"test_id": id})
+    return render(request, "template20/app_post_matric/take_test.html", {"test_id": id})
 
 def Test_details(request, id):
     
     return render(request, "test_details.html", {"test_id": id})
 
+@login_required
 def Test_results(request, id):
-    return render(request, "results.html", {"result_id": id})
+    try:
+        # Use id from URL as test_id
+        test_id = id
+        
+        # Build the query
+        query = {
+            'user': request.user,
+            'is_completed': True
+        }
+        
+        if test_id:
+            query['test_id'] = test_id
+        # Get the test session
+        latest_session = TestSession.objects.filter(**query).order_by('-end_time').first()
+        
+        if not latest_session:
+            return render(request, "results.html", {
+                'error': 'No completed test found',
+                'no_results': True
+            })
+        
+        
+        # Get categories record
+        categories_record = TestTopCategories.objects.filter(
+            user=request.user,
+            test_paper=latest_session.test
+        ).first()
+        import ast
+        # Extract high and low categories
+        high_categories = []
+        low_category = None
+
+        
+        if categories_record:
+            if latest_session.test.title == 'Personality Assessment':
+                high_categories = [cat.strip() for cat in ast.literal_eval(categories_record.high_category)]
+            elif latest_session.test.title == 'Aptitude Assessment':
+                high_categories = categories_record.high_category
+                try:
+                    if high_categories:
+                        high_categories = json.loads(high_categories)
+                    else:
+                        high_categories = {}
+                except (json.JSONDecodeError, TypeError) as e:
+                    print(f"Error parsing high_categories JSON: {e}")
+                    high_categories = {}
+            else:
+                high_categories = categories_record.high_category
+                high_categories = high_categories.strip("[]").strip()
+
+            low_category = categories_record.low_category
+
+        all_tests_completed = False
+
+        # Check if all 4 tests are completed
+        all_tests_completed = False
+        
+        # Check for completed sessions for each test type
+        test1_completed = TestSession.objects.filter(
+            user=request.user, 
+            test__id=1,
+            is_completed=True
+        ).exists()
+        
+        test2_completed = TestSession.objects.filter(
+            user=request.user, 
+            test__id=2,
+            is_completed=True
+        ).exists()
+        
+        test3_completed = TestSession.objects.filter(
+            user=request.user, 
+            test__id=3,
+            is_completed=True
+        ).exists()
+        
+        test4_completed = TestSession.objects.filter(
+            user=request.user, 
+            test__id=4,
+            is_completed=True
+        ).exists()
+        
+        if test1_completed and test2_completed and test3_completed and test4_completed:
+            all_tests_completed = True
+
+        user = request.user
+        try:
+            # Retrieve the UserProfile for the logged-in user (create if not exists)
+            user_profile, created = UserProfile.objects.get_or_create(user=user)
+        except UserProfile.DoesNotExist:
+            user_profile = None
+
+        try:
+            # Retrieve the UserProfile for the logged-in user
+            user_profile = user.user_profile
+            # Access attributes from the User object
+            created_date = latest_session.created_at
+            gender_value = user_profile.gender
+            if gender_value == 10:  # GenderChoices.UNKNOWN
+                gender_display = "Unknown"
+            elif gender_value == 20:  # GenderChoices.MALE
+                gender_display = "Male"
+            elif gender_value == 30:  # GenderChoices.FEMALE
+                gender_display = "Female"
+            else:
+                gender_display = "Unknown"  # Default fallback
+            schoolname = user_profile.schoolname
+            student_name = user.email  # Assuming email is used as student name
+            grade = user_profile.grade
+
+        except UserProfile.DoesNotExist:
+            print("UserProfile does not exist.")
+
+    
+        
+        
+        context = {
+            'user': request.user,
+            'test_id': test_id,
+            'all_tests_completed': all_tests_completed,
+            'high_categories': high_categories,
+            'low_category': low_category,
+            'test_name': latest_session.test.title,
+            'test_type': latest_session.test.title,
+            'completed_at': latest_session.end_time,
+            'result_data': latest_session.result or {},
+            'no_results': False,
+            # Add user profile information
+            'created_date': created_date if 'created_date' in locals() else None,
+            'gender': gender_display if 'gender_display' in locals() else None,
+            'schoolname': schoolname if 'schoolname' in locals() else None,
+            'student_name': student_name if 'student_name' in locals() else None,
+            'grade': grade if 'grade' in locals() else None
+        }
+        
+
+        if test_id == 4:
+            # Ensure high_categories is a dictionary for aptitude tests
+            if isinstance(high_categories, dict):
+                context['above_list'] = high_categories.get("Above Average", [])
+                context['average_list'] = high_categories.get("Average", [])
+                context['below_list'] = high_categories.get("Below Average", [])
+            else:
+                # If high_categories is not a dict, set empty lists
+                context['above_list'] = []
+                context['average_list'] = []
+                context['below_list'] = []
+                print(f"Warning: high_categories is not a dict for test_id=4. Type: {type(high_categories)}, Value: {high_categories}")
+        else:
+            pass
+        
+        # If it's a personality test (HEXACO), get career recommendations
+        if latest_session.test.title == 'Personality Assessment' and high_categories:
+            hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
+            # breakpoint()
+            context.update({
+                'careers_to_opt': hexaco_recommendations['careers_to_opt'],
+                'careers_to_avoid': hexaco_recommendations['careers_to_avoid'],
+                'high_trait_descriptions': hexaco_recommendations['high_trait_descriptions'],
+                'low_trait_descriptions': hexaco_recommendations['low_trait_descriptions'],
+                'high_traits': [map_hexaco_code_to_trait(cat) for cat in high_categories],
+                'low_trait': map_hexaco_code_to_trait(low_category) if low_category else None
+            })
+
+        elif latest_session.test.title == 'Career Interest Inventory' and high_categories:
+            
+            hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
+            context.update({
+                'riasec_careers_to_opt': hexaco_recommendations['riasec_careers_to_opt'],
+                'career_code_discription': hexaco_recommendations['career_code_discription'],
+            })
+        elif latest_session.test.title == 'Motivation Assessment' and high_categories:
+            hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
+            
+            context.update({
+                'motivation_careers_to_opt': hexaco_recommendations['motivation_careers_to_opt'],
+            })
+        elif latest_session.test.title == 'Aptitude Assessment' and high_categories:
+            
+            hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
+            # breakpoint()
+            context.update({
+                'aptitude_improvement_plan': hexaco_recommendations['aptitude_improvement_plan'],
+                'aptitude_strength_narrative': hexaco_recommendations['aptitude_strength_narrative'],
+                'aptitude_Recommended_College_Courses': hexaco_recommendations['aptitude_Recommended_College_Courses'],
+                'aptitude_roles_guidance': hexaco_recommendations['aptitude_roles_guidance'],
+                'career_guidance_selected': hexaco_recommendations['career_guidance_selected'],
+            })
+        
+        # Build test_results_data for JavaScript (pdf-results.js)
+        test_results_data = []
+        title = latest_session.test.title
+        duration_minutes = 0
+        if latest_session.start_time and latest_session.end_time:
+            duration = latest_session.end_time - latest_session.start_time
+            duration_minutes = int(duration.total_seconds() / 60)
+
+        test_data = {
+            'test_id': latest_session.test.id,
+            'test_title': title,
+            'duration_minutes': duration_minutes,
+            'result_data': {},
+            'responses': []
+        }
+
+        # Try to use stored TestResult first (most accurate)
+        try:
+            from .models import TestResult
+            test_result = TestResult.objects.filter(session=latest_session).first()
+            if test_result and test_result.result_data:
+                stored_data = test_result.result_data
+                if isinstance(stored_data, dict):
+                    if 'Aptitude' in title:
+                        test_data['result_data'] = stored_data.copy()
+                    else:
+                        normalized_data = {}
+                        for key, value in stored_data.items():
+                            if isinstance(value, dict):
+                                if 'score' in value:
+                                    normalized_data[key] = {'score': value['score']}
+                                elif isinstance(value, (int, float)):
+                                    normalized_data[key] = {'score': value}
+                                else:
+                                    normalized_data[key] = value
+                            elif isinstance(value, (int, float)):
+                                normalized_data[key] = {'score': value}
+                            else:
+                                normalized_data[key] = {'score': 0}
+                        test_data['result_data'] = normalized_data
+                if test_result.category_counts:
+                    test_data['category_counts'] = test_result.category_counts.copy()
+            else:
+                # Fallback: Aggregate results from stored responses
+                responses = []
+                try:
+                    responses_obj = getattr(latest_session, 'responses', None)
+                    if responses_obj is not None:
+                        responses = list(responses_obj.all())
+                        # Convert responses to serializable format
+                        test_data['responses'] = []
+                        for resp in responses:
+                            if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                                test_data['responses'].append({
+                                    'selected_answer': resp.selected_answer
+                                })
+                except Exception:
+                    pass
+
+                if 'Personality' in title:
+                    test_data['result_data'] = {
+                        'H': {'score': 0}, 'E': {'score': 0}, 'X': {'score': 0},
+                        'A': {'score': 0}, 'C': {'score': 0}, 'O': {'score': 0}
+                    }
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'dimension' in ans:
+                                dim = ans['dimension']
+                                if dim in test_data['result_data']:
+                                    try:
+                                        test_data['result_data'][dim]['score'] += int(ans.get('score', 0))
+                                    except Exception:
+                                        pass
+
+                elif 'Career' in title or 'Interest' in title:
+                    test_data['result_data'] = {
+                        'R': {'score': 0}, 'I': {'score': 0}, 'A': {'score': 0},
+                        'S': {'score': 0}, 'E': {'score': 0}, 'C': {'score': 0}
+                    }
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'dimension' in ans:
+                                dim = ans['dimension']
+                                if dim in test_data['result_data']:
+                                    try:
+                                        test_data['result_data'][dim]['score'] += int(ans.get('score', 0))
+                                    except Exception:
+                                        pass
+
+                elif 'Motivation' in title:
+                    test_data['category_counts'] = {'Achievement': 0, 'Power': 0, 'Affiliation': 0}
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'category' in ans:
+                                cat = ans['category']
+                                if cat in test_data['category_counts']:
+                                    test_data['category_counts'][cat] += 1
+
+                elif 'Aptitude' in title:
+                    test_data['result_data'] = {}
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'sections' in ans:
+                                sections = ans['sections']
+                                for section_name, section_data in sections.items():
+                                    if section_name not in test_data['result_data']:
+                                        test_data['result_data'][section_name] = 0
+                                    if 'submitted_answers' in section_data:
+                                        for _qid, qdata in section_data['submitted_answers'].items():
+                                            if qdata.get('correct_answer') == qdata.get('selected_answer'):
+                                                test_data['result_data'][section_name] += 1
+        except Exception as e:
+            print(f"Error getting test result data: {e}")
+            import traceback
+            traceback.print_exc()
+
+        test_results_data.append(test_data)
+
+        # Attach JSON for client scripts (pdf-results.js will prefer this over API fetch)
+        import json as _json
+        context['test_results_json'] = _json.dumps(test_results_data)
+        
+        # Use the new template for results display
+        return render(request, "template20/app_post_matric/test_results.html", context)    
+        
+    except Exception as e:
+        import json as _json
+        return render(request, "template20/app_post_matric/test_results.html", {
+            'error': f'An error occurred: {str(e)}',
+            'no_results': True,
+            'test_results_json': _json.dumps([])
+        })
+
+
+@login_required
+def download_test_results_pdf(request, id):
+    """Generate and download PDF for test results"""
+    try:
+        import weasyprint
+        import ssl
+        
+        # Use id from URL as test_id
+        test_id = id
+        
+        # Build the query
+        query = {
+            'user': request.user,
+            'is_completed': True
+        }
+        
+        if test_id:
+            query['test_id'] = test_id
+        
+        # Get the test session
+        latest_session = TestSession.objects.filter(**query).order_by('-end_time').first()
+        
+        if not latest_session:
+            return HttpResponse('No completed test found', status=404)
+        
+        # Reuse the same context building logic from Test_results
+        # (Copy the context building code from Test_results view)
+        # For now, we'll build a simplified context for PDF
+        from datetime import datetime
+        context = {
+            'test_name': latest_session.test.title,
+            'test_type': latest_session.test.title,
+            'completed_at': latest_session.end_time,
+            'user': request.user,
+            'test_id': test_id,
+            'now': datetime.now(),
+        }
+        
+        # Get categories record and build context similar to Test_results
+        categories_record = TestTopCategories.objects.filter(
+            user=request.user,
+            test_paper=latest_session.test
+        ).first()
+        
+        import ast
+        import json
+        high_categories = []
+        low_category = None
+        
+        if categories_record:
+            if latest_session.test.title == 'Personality Assessment':
+                high_categories = [cat.strip() for cat in ast.literal_eval(categories_record.high_category)]
+            elif latest_session.test.title == 'Aptitude Assessment':
+                high_categories = categories_record.high_category
+                try:
+                    if high_categories:
+                        high_categories = json.loads(high_categories)
+                    else:
+                        high_categories = {}
+                except (json.JSONDecodeError, TypeError) as e:
+                    print(f"Error parsing high_categories JSON: {e}")
+                    high_categories = {}
+            else:
+                high_categories = categories_record.high_category
+                high_categories = high_categories.strip("[]").strip()
+            
+            low_category = categories_record.low_category
+        
+        # Add test-specific context based on test type
+        if latest_session.test.title == 'Personality Assessment' and high_categories:
+            # Use the function that generates recommendations (defined in this file)
+            hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
+            context.update({
+                'high_traits': [cat for cat in high_categories] if isinstance(high_categories, list) else [],
+                'low_trait': low_category,
+                'careers_to_opt': list(hexaco_recommendations.get('careers_to_opt', {}).values())[0] if hexaco_recommendations.get('careers_to_opt') else [],
+                'careers_to_avoid': list(hexaco_recommendations.get('careers_to_avoid', {}).values())[0] if hexaco_recommendations.get('careers_to_avoid') else [],
+                'high_trait_descriptions': hexaco_recommendations.get('high_trait_descriptions', {}),
+                'low_trait_descriptions': hexaco_recommendations.get('low_trait_descriptions', {}),
+            })
+        elif latest_session.test.title == 'Career Interest Inventory' and high_categories:
+            hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
+            context.update({
+                'riasec_careers_to_opt': list(hexaco_recommendations.get('riasec_careers_to_opt', {}).values())[0] if hexaco_recommendations.get('riasec_careers_to_opt') else [],
+                'career_code_discription': hexaco_recommendations.get('career_code_discription', ''),
+            })
+        elif latest_session.test.title == 'Motivation Assessment' and high_categories:
+            hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
+            context.update({
+                'motivation_careers_to_opt': list(hexaco_recommendations.get('motivation_careers_to_opt', {}).values())[0] if hexaco_recommendations.get('motivation_careers_to_opt') else [],
+            })
+        elif latest_session.test.title == 'Aptitude Assessment' and high_categories:
+            hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
+            context.update({
+                'aptitude_improvement_plan': hexaco_recommendations.get('aptitude_improvement_plan', []),
+                'aptitude_strength_narrative': hexaco_recommendations.get('aptitude_strength_narrative', []),
+                'aptitude_Recommended_College_Courses': hexaco_recommendations.get('aptitude_Recommended_College_Courses', []),
+                'aptitude_roles_guidance': hexaco_recommendations.get('aptitude_roles_guidance', []),
+                'above_list': high_categories.get("Above Average", []) if isinstance(high_categories, dict) else [],
+                'average_list': high_categories.get("Average", []) if isinstance(high_categories, dict) else [],
+                'below_list': high_categories.get("Below Average", []) if isinstance(high_categories, dict) else [],
+            })
+        
+        # Render PDF template
+        template = get_template('template20/app_post_matric/test_results_pdf.html')
+        html = template.render(context)
+        
+        # Configure SSL to disable verification for WeasyPrint image loading
+        original_ssl_context = ssl._create_default_https_context
+        ssl._create_default_https_context = ssl._create_unverified_context
+        
+        try:
+            pdf_file = weasyprint.HTML(
+                string=html,
+                base_url=request.build_absolute_uri('/')
+            ).write_pdf()
+        finally:
+            # Restore original SSL context
+            ssl._create_default_https_context = original_ssl_context
+        
+        # Create HTTP response with PDF
+        response = HttpResponse(content_type='application/pdf')
+        user_name = request.user.username or f"user_{request.user.id}"
+        test_name_slug = latest_session.test.title.replace(' ', '_')
+        filename = f"{user_name}-{test_name_slug}_Results.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response.write(pdf_file)
+        
+        return response
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return HttpResponse(f'Error generating PDF: {str(e)}', status=500)
 
 
 def test_sections(request, test_id):
     
     # Implementation for viewing test sections
-    return render(request, 'test_sections.html', {
+    return render(request, 'template20/app_post_matric/test_sections.html', {
         'test': test_id,
     })
 
@@ -1751,7 +2457,8 @@ def section_details(request,testId, section_id, session_id):
         'time_limit': section.time_limit or 20,  # Default 20 minutes if not set
     }
     
-    return render(request, 'section_details.html', context)
+    return render(request, 'template20/app_post_matric/section_details.html', context)
+    # return render(request, 'section_details.html', context)
 
 @login_required
 def section_results(request,testId,result_id):
@@ -2032,7 +2739,16 @@ class TestSessionViewSet(viewsets.ModelViewSet):
                 )
 
             # Get user responses
-            user_response = session.responses.last()  # Use last() instead of first()
+            # For aptitude tests, get the response without section_section (the main response that contains all sections)
+            # For other tests, get any response
+            if 'aptitude assessment' in session.test.title.lower().strip():
+                user_response = session.responses.filter(session_section__isnull=True).first()
+                if not user_response:
+                    # Fallback to last response if no main response found
+                    user_response = session.responses.last()
+            else:
+                user_response = session.responses.last()
+            
             if not user_response:
                 return Response(
                     {"detail": "No responses found for this session."},
@@ -2043,16 +2759,33 @@ class TestSessionViewSet(viewsets.ModelViewSet):
             response_data = user_response.selected_answer
             if not response_data:
                 return Response(
-                    {"detail": "Invalid response data format."},
+                    {"detail": f"Invalid response data format. No response data found. Response ID: {user_response.id}, selected_answer: {response_data}"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             # For aptitude test, handle section-based structure
             if 'aptitude assessment' in session.test.title.lower().strip():
-                if 'sections' not in response_data:
+                if not isinstance(response_data, dict):
                     return Response(
-                        {"detail": "Invalid response data format for aptitude test."},
+                        {"detail": f"Invalid response data format for aptitude test. Expected dict, got {type(response_data).__name__}."},
                         status=status.HTTP_400_BAD_REQUEST
                     )
+                # Check if it's the new format (with sections) or old format (with submitted_answers directly)
+                if 'sections' not in response_data:
+                    # Old format detected - this shouldn't happen if save_responses is working correctly
+                    # But if it does, we need to handle it or provide a clear error
+                    if 'submitted_answers' in response_data:
+                        # This is old format - delete this response and ask user to re-save
+                        # Delete the old format response to force recreation with new format
+                        user_response.delete()
+                        return Response(
+                            {"detail": f"Found old response format. Please re-save your section responses. The old response has been cleared. Available keys in old format: {list(response_data.keys())}"},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                    else:
+                        return Response(
+                            {"detail": f"Invalid response data format for aptitude test. Missing 'sections' key. Available keys: {list(response_data.keys())}"},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
                 submitted_answers = response_data.get('sections', {})
             else:
                 # For other tests, use the standard format
@@ -2079,14 +2812,10 @@ class TestSessionViewSet(viewsets.ModelViewSet):
                 result_data = self._process_career_test(submitted_answers, session)
             elif 'aptitude assessment' in test_title:
                 result_data, total_score, completed_count = self._process_aptitude_test(session)
+                # Check all section sessions to see if they're all completed
                 section_sessions = session.section_sessions.all()
-                # breakpoint()
-                for section_session in section_sessions:
-                    section_name = section_session.section.title
-                    if section_session:
-                        pass                  
-                else:
-                    session.is_completed = False
+                total_sections = section_sessions.count()
+                completed_sections = section_sessions.filter(is_completed=True).count()
 
             # Create or update test result
             test_result, created = TestResult.objects.update_or_create(
@@ -2101,12 +2830,13 @@ class TestSessionViewSet(viewsets.ModelViewSet):
 
             # Mark session as completed
             if 'aptitude assessment' in test_title:
-                if completed_count == 7:
+                # Check if all section sessions are completed
+                if total_sections > 0 and completed_sections == total_sections:
                     session.is_completed = True
                     session.end_time = timezone.now()
                     session.save()
-                else:
-                    session.is_completed = False
+                # Don't mark as incomplete if we're still in progress
+                # The session will remain incomplete until all sections are done
             else:
                 session.is_completed = True
                 session.end_time = timezone.now()
@@ -2466,8 +3196,15 @@ class TestSessionViewSet(viewsets.ModelViewSet):
             else:
                 performance_levels['Below Average'].append(section_name)
 
-            if section_score > 0:
+            # Count as completed if section has score OR if section_session is marked as completed
+            if section_score > 0 or section_session.is_completed:
                 completed_count += 1
+                # Ensure section_session is marked as completed if it has a score
+                if section_score > 0 and not section_session.is_completed:
+                    section_session.is_completed = True
+                    if not section_session.end_time:
+                        section_session.end_time = timezone.now()
+                    section_session.save()
 
             result_data[section_name] = section_score
 
@@ -2563,26 +3300,33 @@ class UserResponseViewSet(viewsets.ModelViewSet):
                 # MULTI-SECTION LOGIC (for test4 and similar tests)
                 section_identifier = section_session.section.title
                 
-                # Get existing response or create new one
+                # Get existing response or create new one (must have session_section=None for multi-section tests)
                 try:
                     response = UserResponse.objects.get(
                         session=session,
                         test=test,
-                        attempt_number=session.attempt_count
+                        attempt_number=session.attempt_count,
+                        session_section=None  # Must be None for multi-section tests
                     )
                     existing_data = response.selected_answer or {"sections": {}, "metadata": {}}
                 except UserResponse.DoesNotExist:
                     existing_data = {"sections": {}, "metadata": {}}
 
                 # Ensure proper structure for multi-section
+                # If old format exists (with submitted_answers directly), convert to new format
                 if "sections" not in existing_data:
-                    existing_data["sections"] = {}
+                    if "submitted_answers" in existing_data:
+                        # This is old format - we can't migrate it without section info, so start fresh
+                        existing_data = {"sections": {}, "metadata": {}}
+                    else:
+                        existing_data["sections"] = {}
                 if "metadata" not in existing_data:
                     existing_data["metadata"] = {}
 
                 # Add the new section data
                 existing_data["sections"][section_identifier] = {
                     "submitted_answers": submitted_answers,
+                    "category_counts": category_counts,
                     "score": score,
                     "section_session_id": section_session_id,
                 }
@@ -2594,13 +3338,13 @@ class UserResponseViewSet(viewsets.ModelViewSet):
                     section.get("score", 0) for section in existing_data["sections"].values()
                 )
 
-                # Update or create the response
+                # Update or create the response (for multi-section tests, use session_section=None to store all sections in one response)
                 response, created = UserResponse.objects.update_or_create(
                     session=session,
                     test=test,
                     attempt_number=session.attempt_count,
+                    session_section=None,  # Main response that contains all sections
                     defaults={
-                        'session_section': section_session,
                         'selected_answer': existing_data
                     }
                 )

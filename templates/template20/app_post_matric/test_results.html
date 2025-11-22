@@ -8,10 +8,10 @@
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 
-{% block bodyclass %}{{ block.super }} test-results-page{% endblock %}
+{% block bodyclass %}{{ super() }} test-results-page{% endblock %}
 
 {% block additionalhead %}
-{{ block.super }}
+{{ super() }}
 <style>
   .test-results-page {
     padding-top: 80px;
@@ -247,7 +247,7 @@
           <i class="fas fa-clipboard-list"></i>
         </div>
         <h3>No Results Found</h3>
-        <p>{{ error|default:"You haven't completed any tests yet." }}</p>
+        <p>{{ error|default('You haven\'t completed any tests yet.') }}</p>
         <a href="{{ url('post_matric:tests') }}" class="btn-primary mt-4">
           <i class="fas fa-arrow-right"></i>
           Take a Test
@@ -274,16 +274,20 @@
             {% for trait in high_traits %}
             <div class="category-card high">
               <div class="category-name">{{ trait }}</div>
-              {% if high_trait_descriptions and high_trait_descriptions[trait] %}
+              {% if high_trait_descriptions %}
+                {% if trait in high_trait_descriptions %}
               <div class="category-description">{{ high_trait_descriptions[trait] }}</div>
+                {% endif %}
               {% endif %}
             </div>
             {% endfor %}
             {% if low_trait %}
             <div class="category-card low">
               <div class="category-name">{{ low_trait }} (Low)</div>
-              {% if low_trait_descriptions and low_trait_descriptions[low_trait] %}
+              {% if low_trait_descriptions %}
+                {% if low_trait in low_trait_descriptions %}
               <div class="category-description">{{ low_trait_descriptions[low_trait] }}</div>
+                {% endif %}
               {% endif %}
             </div>
             {% endif %}
@@ -371,28 +375,164 @@
         </div>
         {% endif %}
 
-        {% if aptitude_Recommended_College_Courses %}
-        <div class="careers-section">
-          <h3 class="section-title">Recommended College Courses</h3>
-          <div class="career-list">
-            {% for course in aptitude_Recommended_College_Courses %}
-            <div class="career-item recommended">{{ course }}</div>
+        {% if aptitude_strength_narrative %}
+        <div class="categories-section">
+          <h3 class="section-title">Strength Narrative</h3>
+          <div class="category-grid">
+            {% for strength in aptitude_strength_narrative %}
+            {% if strength.Area in above_list %}
+            <div class="category-card high">
+              <div class="category-name">{{ strength.Area }}</div>
+              <ul style="list-style: none; padding-left: 0; margin-top: 12px;">
+                {% for remark in strength.Major_points %}
+                <li style="margin-bottom: 8px; color: #666;">
+                  <i class="fas fa-briefcase me-2" style="color: #3f37c9;"></i> {{ remark }}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% elif strength.Area in average_list %}
+            <div class="category-card">
+              <div class="category-name">{{ strength.Area }}</div>
+              <ul style="list-style: none; padding-left: 0; margin-top: 12px;">
+                {% for remark in strength.Major_points %}
+                <li style="margin-bottom: 8px; color: #666;">
+                  <i class="fas fa-briefcase me-2" style="color: rgb(46, 138, 166);"></i> {{ remark }}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% else %}
+            <div class="category-card">
+              <div class="category-name">{{ strength.Area }}</div>
+              <ul style="list-style: none; padding-left: 0; margin-top: 12px;">
+                {% for remark in strength.Major_points %}
+                <li style="margin-bottom: 8px; color: #666;">
+                  <i class="fas fa-briefcase me-2" style="color: rgb(46, 138, 166);"></i> {{ remark }}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
             {% endfor %}
           </div>
         </div>
         {% endif %}
 
-        {% if aptitude_strength_narrative %}
-        <div class="categories-section">
-          <h3 class="section-title">Your Strengths</h3>
-          <div class="category-description">{{ aptitude_strength_narrative }}</div>
+        {% if aptitude_Recommended_College_Courses %}
+        <div class="careers-section">
+          <h3 class="section-title">Recommended College Courses</h3>
+          <p style="text-align: center; margin-bottom: 20px; color: #666;">
+            Based on your strongest domains, here are programme options after Class 12.
+          </p>
+          <div class="category-grid">
+            {% for college in aptitude_Recommended_College_Courses %}
+            {% if college.Area in above_list %}
+            <div class="category-card high">
+              <div class="category-name">{{ college.Area }}</div>
+              <ul style="list-style: none; padding-left: 0; margin-top: 12px;">
+                {% for course in college.Recommended_College %}
+                <li style="margin-bottom: 8px; color: #666;">
+                  <i class="fas fa-briefcase me-2" style="color: #3f37c9;"></i> {{ course }}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% elif college.Area in average_list %}
+            <div class="category-card">
+              <div class="category-name">{{ college.Area }}</div>
+              <ul style="list-style: none; padding-left: 0; margin-top: 12px;">
+                {% for course in college.Recommended_College %}
+                <li style="margin-bottom: 8px; color: #666;">
+                  <i class="fas fa-briefcase me-2" style="color: rgb(46, 138, 166);"></i> {{ course }}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% else %}
+            <div class="category-card">
+              <div class="category-name">{{ college.Area }}</div>
+              <ul style="list-style: none; padding-left: 0; margin-top: 12px;">
+                {% for course in college.Recommended_College %}
+                <li style="margin-bottom: 8px; color: #666;">
+                  <i class="fas fa-briefcase me-2" style="color: rgb(46, 138, 166);"></i> {{ course }}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if aptitude_roles_guidance %}
+        <div class="careers-section">
+          <h3 class="section-title">Career Recommendations — Aptitude Report</h3>
+          <div class="category-grid">
+            {% for item in aptitude_roles_guidance %}
+            {% if item.Area in above_list %}
+            <div class="category-card high">
+              <div class="category-name">{{ item.Area }}</div>
+              <p style="font-weight: 600; margin-top: 12px; margin-bottom: 12px;">{{ item.Guidance }}</p>
+              <ul style="list-style: none; padding-left: 0;">
+                {% for rec in item.Recommendations %}
+                <li style="margin-bottom: 8px; color: #666;">
+                  <i class="fas fa-briefcase me-2" style="color: #3f37c9;"></i> {{ rec.Role }}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% elif item.Area in average_list %}
+            <div class="category-card">
+              <div class="category-name">{{ item.Area }}</div>
+              <p style="font-weight: 600; margin-top: 12px; margin-bottom: 12px;">{{ item.Guidance }}</p>
+              <ul style="list-style: none; padding-left: 0;">
+                {% for rec in item.Recommendations %}
+                <li style="margin-bottom: 8px; color: #666;">
+                  <i class="fas fa-briefcase me-2" style="color: rgb(46, 138, 166);"></i> {{ rec.Role }}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% else %}
+            <div class="category-card">
+              <div class="category-name">{{ item.Area }}</div>
+              <p style="font-weight: 600; margin-top: 12px; margin-bottom: 12px;">{{ item.Guidance }}</p>
+              <ul style="list-style: none; padding-left: 0;">
+                {% for rec in item.Recommendations %}
+                <li style="margin-bottom: 8px; color: #666;">
+                  <i class="fas fa-briefcase me-2" style="color: rgb(46, 138, 166);"></i> <strong>{{ rec.Role }}</strong>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
         </div>
         {% endif %}
 
         {% if aptitude_improvement_plan %}
         <div class="categories-section">
-          <h3 class="section-title">Improvement Plan</h3>
-          <div class="category-description">{{ aptitude_improvement_plan }}</div>
+          <h3 class="section-title">Improvement Plan for Weaker Areas</h3>
+          <div class="category-grid">
+            {% for plan in aptitude_improvement_plan %}
+            <div class="category-card {% if plan.Category == 'Below Average' %}low{% endif %}">
+              <div class="category-name">{{ plan.Area }}</div>
+              <p style="margin-top: 12px; margin-bottom: 12px;">
+                <strong>Duration:</strong> {{ plan.Duration }}
+              </p>
+              <ul style="list-style: none; padding-left: 0;">
+                {% for remark in plan.Remarks %}
+                <li style="margin-bottom: 8px; color: #666;">
+                  <i class="fas fa-briefcase me-2" style="color: #C24E4E;"></i> {{ remark }}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endfor %}
+          </div>
         </div>
         {% endif %}
 
@@ -415,6 +555,10 @@
           <i class="fas fa-list"></i>
           View All Tests
         </a>
+        <a href="{{ url('post_matric:download_test_results_pdf', args=[test_id]) }}" class="btn-secondary" target="_blank">
+          <i class="fas fa-download"></i>
+          Download PDF
+        </a>
         {% if all_tests_completed %}
         <a href="{{ url('post_matric:combined_report') }}" class="btn-secondary">
           <i class="fas fa-file-alt"></i>
@@ -429,6 +573,6 @@
 {% endblock %}
 
 {% block additionaljs %}
-{{ block.super }}
+{{ super() }}
 {% endblock %}
 

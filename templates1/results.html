@@ -1293,7 +1293,7 @@
                     <div class="info-box">
                         <div class="dt-i-info" style="color:#fff;">School Name</div>
                         <div class="output">
-                            <p>{{ schoolname|default:"" }}</p>
+                            <p>{{ schoolname|default:"-" }}</p>
                         </div>
                     </div>
                 </div>
@@ -3066,6 +3066,19 @@
         document.getElementById('downloadPDF').addEventListener('click', downloadPDF);
     </script>
 
+    <!-- Set testResults from Django context BEFORE loading pdf-results.js -->
+    <script>
+        // Set testResults from Django context if available
+        {% if test_results_json %}
+        window.testResults = {{ test_results_json|safe }};
+        {% else %}
+        window.testResults = [];
+        {% endif %}
+    </script>
+
+    <!-- Include the JavaScript functionality -->
+    <script src="{% static 'js/pdf-results.js' %}"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
             // Load results when page loads
@@ -3073,9 +3086,6 @@
             document.getElementById('downloadPDF').disabled = false; // Enable button after loading
         });
     </script>
-
-    <!-- Include the JavaScript functionality -->
-    <script src="{% static 'js/pdf-results.js' %}"></script>
 </body>
 
 <style>

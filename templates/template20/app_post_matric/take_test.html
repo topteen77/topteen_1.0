@@ -230,6 +230,10 @@
     opacity: 0.6;
     cursor: not-allowed;
   }
+  .instruction-content {
+    overflow-y: scroll;
+    height: 450px;
+  }
   .instructions-section {
     background: white;
     border-radius: 12px;
@@ -279,6 +283,129 @@
     background: #2d28a0;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(63, 55, 201, 0.3);
+  }
+  /* Intro Section Styling */
+  .introduction {
+    background: white;
+    border-radius: 12px;
+    padding: 0;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+  .intro-row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .intro-image-col {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .intro-image-col img {
+    max-width: 100%;
+    height: auto;
+  }
+  .intro-content-col {
+    flex: 0 0 66.666667%;
+    max-width: 66.666667%;
+    padding: 40px;
+  }
+  .intro-content-col h3 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 24px;
+    border-bottom: 3px solid #3f37c9;
+    padding-bottom: 8px;
+  }
+  .intro-content-col h4 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  .intro-content-col h5 {
+    color: #3f37c9;
+    font-weight: 600;
+    margin-top: 20px;
+    margin-bottom: 12px;
+  }
+  .intro-content-col p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .intro-content-col ol {
+    padding-left: 24px;
+    color: #666;
+    line-height: 1.8;
+  }
+  .intro-content-col ol li {
+    margin-bottom: 12px;
+  }
+  .intro-content-col ol li strong {
+    color: #333;
+  }
+  .intro-content-col table {
+    width: 100%;
+    border: 1px solid #e9ecef;
+    border-collapse: collapse;
+    margin: 16px 0;
+  }
+  .intro-content-col table thead {
+    background: #f8f9fa;
+  }
+  .intro-content-col table th,
+  .intro-content-col table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #e9ecef;
+  }
+  .intro-content-col table th {
+    font-weight: 600;
+    color: #333;
+  }
+  .intro-content-col ul {
+    padding-left: 20px;
+    margin-top: 8px;
+  }
+  .intro-content-col ul li {
+    margin-bottom: 8px;
+  }
+  .intro-button-container {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e9ecef;
+  }
+  .btn-begin {
+    background: #3f37c9;
+    color: white;
+    padding: 12px 32px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-begin:hover {
+    background: #2d28a0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(63, 55, 201, 0.3);
+  }
+  @media (max-width: 991px) {
+    .intro-image-col {
+      display: none;
+    }
+    .intro-content-col {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
   }
   .loading {
     text-align: center;
@@ -402,7 +529,131 @@
       </div>
     </div>
 
-    <!-- Instructions Section (shown initially) -->
+    <!-- Test-Specific Introduction Sections -->
+    {% if test_id == 1 %}
+    <section id="instructionsSection" class="introduction" style="display: none;">
+      <div class="intro-row">
+        <div class="intro-image-col d-none d-md-flex">
+          <img src="{{ static('images/giant-checklist.png') }}" alt="Giant Checklist" class="w-full h-auto">
+        </div>
+        <div class="intro-content-col">
+          <h3>Introduction</h3>
+          <div class="instruction-content">
+            <h4>Personality Questionnaire (HEXACO)</h4>
+            <h5>Purpose</h5>
+            <p>This questionnaire helps you understand key dimensions of your personality. There are no right or wrong answers—only statements that describe how you usually think, feel, or act.</p>
+            <h5>How to respond</h5>
+            <ol>
+              <li><strong>Read each statement carefully.</strong> Think about how well it describes you in general, not just today.</li>
+              <li>
+                <strong>Select one response number</strong> for every item, using the 5-point scale below:
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Response</th>
+                      <th>Meaning</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>1</td><td>Highly Disagree</td></tr>
+                    <tr><td>2</td><td>Disagree</td></tr>
+                    <tr><td>3</td><td>Neither Disagree nor Agree</td></tr>
+                    <tr><td>4</td><td>Agree</td></tr>
+                    <tr><td>5</td><td>Strongly Agree</td></tr>
+                  </tbody>
+                </table>
+              </li>
+            </ol>
+          </div>
+          <div class="intro-button-container">
+            <button id="startTestBtn" class="btn-begin">Begin</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    {% elif test_id == 2 %}
+    <section id="instructionsSection" class="introduction" style="display: none;">
+      <div class="intro-row">
+        <div class="intro-image-col d-none d-md-flex">
+          <img src="{{ static('images/giant-checklist.png') }}" alt="Giant Checklist" class="w-full h-auto">
+        </div>
+        <div class="intro-content-col">
+          <h3>Introduction</h3>
+          <div class="instruction-content">
+            <h4>Extrinsic & Intrinsic Motivation Model</h4>
+            <h5>Purpose</h5>
+            <p>This test explores <strong>what truly drives you</strong>—inner satisfaction (intrinsic motivation) or external rewards and recognition (extrinsic motivation). Understanding your dominant drivers can help you choose study paths and careers that keep you energized.</p>
+            <h5>How to respond</h5>
+            <ol>
+              <li><strong>Read each of the 13 items carefully.</strong> Each item presents four options labelled a – d.</li>
+              <li>
+                <strong>Select the single option that best reflects your genuine preference or excitement.</strong>
+                <ul>
+                  <li>Think of what you naturally enjoy or value, not what you feel you should choose.</li>
+                </ul>
+              </li>
+              <li><strong>Mark only one letter per question and do not leave any item blank.</strong></li>
+              <li><strong>Answer spontaneously and honestly.</strong> Your first instinct usually captures your true motivation.</li>
+              <li><strong>Work steadily—about 5-6 minutes</strong> is enough for most people.</li>
+              <li><strong>Keep your answers confidential.</strong> Results are used solely for personal guidance.</li>
+            </ol>
+            <p>When you are ready, click "Begin" to start the test.</p>
+          </div>
+          <div class="intro-button-container">
+            <button id="startTestBtn" class="btn-begin">Begin</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    {% elif test_id == 3 %}
+    <section id="instructionsSection" class="introduction" style="display: none;">
+      <div class="intro-row">
+        <div class="intro-image-col d-none d-md-flex">
+          <img src="{{ static('images/giant-checklist.png') }}" alt="Giant Checklist" class="w-full h-auto">
+        </div>
+        <div class="intro-content-col">
+          <h3>Introduction</h3>
+          <div class="instruction-content">
+            <h4>Interest Inventory (RIASEC Model)</h4>
+            <h5>Purpose</h5>
+            <p>This inventory identifies the types of activities you naturally enjoy, helping you explore career fields aligned with your interests across the six RIASEC domains (Realistic, Investigative, Artistic, Social, Enterprising, Conventional).</p>
+            <h5>How to respond</h5>
+            <ol>
+              <li><strong>Read each of the 30 statements carefully.</strong> Think about how much you would genuinely enjoy or prefer the activity described—not whether you can do it, but whether you like the idea of doing it.</li>
+              <li>
+                <strong>Choose one response number</strong> for every statement, using the 5-point scale below:
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Response</th>
+                      <th>Meaning</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>1</td><td>Highly Disagree — "I would really dislike doing this."</td></tr>
+                    <tr><td>2</td><td>Disagree — "I would probably not enjoy this."</td></tr>
+                    <tr><td>3</td><td>Neither Disagree nor Agree — "I'm neutral or unsure."</td></tr>
+                    <tr><td>4</td><td>Agree — "I would probably enjoy this."</td></tr>
+                    <tr><td>5</td><td>Strongly Agree — "I would really enjoy doing this."</td></tr>
+                  </tbody>
+                </table>
+              </li>
+              <li><strong>Mark only one number per statement</strong> and do not leave any items blank.</li>
+              <li><strong>Answer quickly and honestly.</strong> Your first impression usually reflects your true interest.</li>
+              <li><strong>Work straight through.</strong> The inventory typically takes <strong>9-10 minutes</strong> to finish.</li>
+              <li><strong>Do not overthink skills or experience.</strong> Focus on interest, not ability.</li>
+              <li><strong>Keep your responses private.</strong> They will be used solely for guidance and will remain confidential.</li>
+            </ol>
+            <p>When you are ready, click "Begin" to start the test.</p>
+          </div>
+          <div class="intro-button-container">
+            <button id="startTestBtn" class="btn-begin">Begin</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    {% else %}
+    <!-- Default Instructions Section -->
     <div id="instructionsSection" class="instructions-section">
       <h3>Test Instructions</h3>
       <ul class="instructions-list">
@@ -419,8 +670,9 @@
         Begin Test
       </button>
     </div>
+    {% endif %}
 
-    <!-- Test Content (hidden initially) -->
+    <!-- Test Content (hidden initially, or if test is completed) -->
     <div id="testContent" style="display: none;">
       <!-- Test Header -->
       <div class="test-header">
@@ -521,6 +773,11 @@ $(document).ready(function() {
   init();
   
   function init() {
+    // Show instructions section on page load
+    $('#instructionsSection').show();
+    $('#testContent').hide();
+    $('#loadingState').hide();
+    
     // Start internet speed monitoring
     startSpeedMonitoring();
     
@@ -535,7 +792,7 @@ $(document).ready(function() {
     // Handle submit button
     $('#submitTestBtn').on('click', function() {
       if (confirm('Are you sure you want to submit your test? You cannot change your answers after submission.')) {
-        submitTest();
+submitTest();
       }
     });
   }
@@ -809,12 +1066,8 @@ $(document).ready(function() {
       
       const resultData = await submitResponse.json().catch(() => ({}));
       
-      // Redirect to results page
-      if (resultData.id) {
-        window.location.href = `/api/web/test_results/${testId}/`;
-      } else {
-        window.location.href = `/api/web/results/?test_id=${testId}`;
-      }
+      // Redirect to tests page after submission
+      window.location.href = `/api/web/tests/`;
       
     } catch (error) {
       console.error('Error submitting test:', error);

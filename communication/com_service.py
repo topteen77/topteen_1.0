@@ -298,5 +298,43 @@ class ComService:
 
         self.make_log_entry(user,payload,choices.CommunicationTypeChooices.SMS,response)
         
+    def send_test_popup_answers_email(self, user, answers_data):
+        """Send email to admins with test completion popup answers"""
+        try:
+            # Get admin emails from settings
+            admin_emails = []
+            if hasattr(settings, 'ADMINS') and settings.ADMINS:
+                admin_emails = [email for _, email in settings.ADMINS]
+            if hasattr(settings, 'EXCEPTION_EMAIL_TO') and settings.EXCEPTION_EMAIL_TO:
+                admin_emails.extend(settings.EXCEPTION_EMAIL_TO)
+            
+            # Remove duplicates
+            admin_emails = list(set(admin_emails))
+            
+            if not admin_emails:
+                print("No admin emails configured for test popup answers notification")
+                return False
+            
+            subject = f"Test Completion Popup Answers - {user.username or user.email}"
+            
+            # Prepare context for email template
+            context = {
+                'user': user,
+                'answers_data': answers_data,
+                'personality_answer': answers_data.get('personality', {}).get('answer', 'Not answered'),
+                'motivation_answer': answers_data.get('motivation', {}).get('answer', 'Not answered'),
+                'career_answer': answers_data.get('career_interest', {}).get('answer', 'Not answered'),
+                'career_country': answers_data.get('career_interest', {}).get('country', ''),
+            }
+            
+            html_content = render_to_string('mail/admin/test_popup_answers.html', context)
+            text_content = html_content
+            
+            # Send to all admin emails
+            return self.send_mail(subject, admin_emails, text_content, html_content)
+        except Exception as e:
+            print(f"Error sending test popup answers email: {str(e)}")
+            return False
+        
     
 

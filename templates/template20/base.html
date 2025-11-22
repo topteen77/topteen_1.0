@@ -46,6 +46,27 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
+  
+  <style>
+    /* Critical CSS to hide footer immediately on logged-in pages to prevent FOUC */
+    body.logged-in .footer-cta {
+      display: none !important;
+      visibility: hidden !important;
+      /* opacity: 0 !important;
+      height: 0 !important;
+      max-height: 0 !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      position: absolute !important;
+      width: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      pointer-events: none !important;
+      line-height: 0 !important;
+      font-size: 0 !important;
+      border: 0 !important; */
+    }
+  </style>
 
   {% block additionalhead %}
   {% endblock %}

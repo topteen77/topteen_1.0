@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ test_name }} - Results</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3f37c9;
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            color: #3f37c9;
+            margin: 0;
+            font-size: 24px;
+        }
+        .header .test-badge {
+            display: inline-block;
+            background: #d9d4ff;
+            color: #3f37c9;
+            padding: 5px 15px;
+            border-radius: 15px;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        .student-info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .student-info p {
+            margin: 5px 0;
+        }
+        .section {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #3f37c9;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .category-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3f37c9;
+        }
+        .category-card.high {
+            border-left-color: #28a745;
+        }
+        .category-card.low {
+            border-left-color: #dc3545;
+        }
+        .category-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .category-description {
+            color: #666;
+            font-size: 11px;
+        }
+        .career-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .career-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        .career-item.recommended {
+            background: #d4edda;
+            color: #155724;
+        }
+        .career-item.avoid {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Test Results Report</h1>
+        <div class="test-badge">{{ test_name }}</div>
+        {% if completed_at %}
+        <p style="margin-top: 10px; color: #666;">Completed on: {{ completed_at.strftime('%B %d, %Y') if completed_at else '' }}</p>
+        {% endif %}
+    </div>
+
+    <div class="student-info">
+        <p><strong>Student Name:</strong> {{ user.username }} ({{ user.email }})</p>
+        {% if student_name %}<p><strong>Name:</strong> {{ student_name }}</p>{% endif %}
+        {% if grade %}<p><strong>Grade:</strong> {{ grade }}</p>{% endif %}
+        <p><strong>School:</strong> {{ schoolname|default:"-" }}</p>
+    </div>
+
+    {% if test_type == 'Personality Assessment' %}
+        <!-- Personality Assessment Results -->
+        {% if high_traits %}
+        <div class="section">
+            <h3 class="section-title">Your Personality Traits</h3>
+            <div class="category-grid">
+                {% for trait in high_traits %}
+                <div class="category-card high">
+                    <div class="category-name">{{ trait }}</div>
+                    {% if high_trait_descriptions %}
+                        {% if trait in high_trait_descriptions %}
+                        <div class="category-description">{{ high_trait_descriptions[trait] }}</div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% if low_trait %}
+                <div class="category-card low">
+                    <div class="category-name">{{ low_trait }} (Low)</div>
+                    {% if low_trait_descriptions %}
+                        {% if low_trait in low_trait_descriptions %}
+                        <div class="category-description">{{ low_trait_descriptions[low_trait] }}</div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if careers_to_opt %}
+        <div class="section">
+            <h3 class="section-title">Recommended Careers</h3>
+            <div class="career-list">
+                {% for career in careers_to_opt %}
+                <div class="career-item recommended">{{ career }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if careers_to_avoid %}
+        <div class="section">
+            <h3 class="section-title">Careers to Avoid</h3>
+            <div class="career-list">
+                {% for career in careers_to_avoid %}
+                <div class="career-item avoid">{{ career }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    {% elif test_type == 'Career Interest Inventory' %}
+        <!-- Career Interest Results -->
+        {% if riasec_careers_to_opt %}
+        <div class="section">
+            <h3 class="section-title">Recommended Careers Based on Your Interests</h3>
+            <div class="career-list">
+                {% for career in riasec_careers_to_opt %}
+                <div class="career-item recommended">{{ career }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if career_code_discription %}
+        <div class="section">
+            <h3 class="section-title">Your Interest Profile</h3>
+            <p>{{ career_code_discription }}</p>
+        </div>
+        {% endif %}
+
+    {% elif test_type == 'Aptitude Assessment' %}
+        <!-- Aptitude Assessment Results -->
+        {% if above_list or average_list or below_list %}
+        <div class="section">
+            <h3 class="section-title">Your Aptitude Scores</h3>
+            {% if above_list %}
+            <div class="category-card high" style="margin-bottom: 15px;">
+                <div class="category-name">Above Average</div>
+                <div class="career-list" style="margin-top: 10px;">
+                    {% for item in above_list %}
+                    <div class="career-item recommended">{{ item }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% if average_list %}
+            <div class="category-card" style="margin-bottom: 15px;">
+                <div class="category-name">Average</div>
+                <div class="career-list" style="margin-top: 10px;">
+                    {% for item in average_list %}
+                    <div class="career-item">{{ item }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% if below_list %}
+            <div class="category-card low" style="margin-bottom: 15px;">
+                <div class="category-name">Below Average</div>
+                <div class="career-list" style="margin-top: 10px;">
+                    {% for item in below_list %}
+                    <div class="career-item avoid">{{ item }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if aptitude_strength_narrative %}
+        <div class="section">
+            <h3 class="section-title">Strength Narrative</h3>
+            <div class="category-grid">
+                {% for strength in aptitude_strength_narrative %}
+                <div class="category-card {% if strength.Area in above_list %}high{% endif %}">
+                    <div class="category-name">{{ strength.Area }}</div>
+                    <ul style="list-style: none; padding-left: 0; margin-top: 10px;">
+                        {% for remark in strength.Major_points %}
+                        <li style="margin-bottom: 5px; color: #666; font-size: 11px;">• {{ remark }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    {% elif test_type == 'Motivation Assessment' %}
+        <!-- Motivation Assessment Results -->
+        {% if motivation_careers_to_opt %}
+        <div class="section">
+            <h3 class="section-title">Recommended Careers Based on Your Motivation</h3>
+            <div class="career-list">
+                {% for career in motivation_careers_to_opt %}
+                <div class="career-item recommended">{{ career }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <div class="footer">
+        <p>Generated on {{ now.strftime('%B %d, %Y') if now else '' }} | Top Teen Assessment Platform</p>
+    </div>
+</body>
+</html>
+

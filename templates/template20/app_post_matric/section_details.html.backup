@@ -164,6 +164,7 @@
     align-items: center;
     flex-direction: column;
   }
+  {# Test Features CSS is included in test_features.html #}
   .introduction {
     margin: 32px 0;
     border: 1px solid #cecece;
@@ -222,13 +223,6 @@
     object-fit: contain;
   }
 </style>
-
-{# Test Features CSS #}
-{% set mode = 'css' %}
-{% set enable_internet_speed_meter = true %}
-{% set enable_answer_quality_widget = true %}
-{% set enable_auto_advance = true %}
-{% include 'template20/includes/test_features.html' %}
 {% endblock %}
 
 {% block content %}
@@ -295,13 +289,6 @@
               </div>
             </div>
 
-            {# Test Features - Desktop (Sidebar) #}
-            {% set mode = 'desktop' %}
-            {% set enable_internet_speed_meter = true %}
-            {% set enable_answer_quality_widget = true %}
-            {% set enable_auto_advance = true %}
-            {% include 'template20/includes/test_features.html' %}
-
           </div>
         </div>
 
@@ -323,14 +310,6 @@
             </div>
           </div>
 
-          {# Test Features - Mobile (Header) #}
-          <div class="d-lg-none mb-3">
-            {% set mode = 'mobile' %}
-            {% set enable_internet_speed_meter = true %}
-            {% set enable_answer_quality_widget = true %}
-            {% set enable_auto_advance = true %}
-            {% include 'template20/includes/test_features.html' %}
-          </div>
 
           <!-- Mobile Test Stats -->
           <div class="d-lg-none mb-4">
@@ -432,12 +411,6 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-{# Test Features JavaScript #}
-{% set enable_internet_speed_meter = true %}
-{% set enable_answer_quality_widget = true %}
-{% set enable_auto_advance = true %}
-{% include 'template20/includes/test_features_js.html' %}
-
 <script>
 $(document).ready(function() {
   const sectionId = {{ section_id }};
@@ -456,28 +429,6 @@ $(document).ready(function() {
   let currentSession = sessionId;
   // Initialize section session from context
   let currentSectionSession = {% if section_session %}{ id: {{ section_session.id }}, session: {{ section_session.session.id }}, section: {{ section_session.section.id }} }{% else %}null{% endif %};
-
-  // Expose variables to window for test features component
-  window.questions = questions;
-  window.currentQuestionIndex = currentQuestionIndex;
-  window.questionStartTimes = questionStartTimes;
-  window.answerTimes = answerTimes;
-  window.MIN_TIME_PER_QUESTION = MIN_TIME_PER_QUESTION;
-  window.userAnswers = userAnswers; // Initialize window.userAnswers
-  
-  // Create a closure to maintain access to local variables
-  // This will be updated when functions are defined
-  window._testFunctions = {
-    get questions() { return questions; },
-    get currentQuestionIndex() { return currentQuestionIndex; },
-    set currentQuestionIndex(val) { currentQuestionIndex = val; },
-    get questionStartTimes() { return questionStartTimes; },
-    set questionStartTimes(val) { questionStartTimes = val; },
-    get answerTimes() { return answerTimes; },
-    set answerTimes(val) { answerTimes = val; },
-    get userAnswers() { return userAnswers; },
-    set userAnswers(val) { userAnswers = val; }
-  };
 
   // Get CSRF token
   function getCookie(name) {
@@ -560,18 +511,6 @@ $(document).ready(function() {
         return;
       }
 
-      // Sync questions array with window object
-      window.questions = questions;
-      window._testFunctions.questions = questions;
-      // Ensure window.userAnswers is initialized and synced
-      if (typeof window.userAnswers === 'undefined' || window.userAnswers === null) {
-        window.userAnswers = userAnswers;
-      } else {
-        // Merge any existing answers
-        userAnswers = Object.assign({}, userAnswers, window.userAnswers);
-        window.userAnswers = userAnswers;
-      }
-
       renderCurrentQuestion();
       updateProgress();
       
@@ -582,32 +521,6 @@ $(document).ready(function() {
 
       // Initialize timing for first question
       questionStartTimes[0] = Date.now();
-      window.questionStartTimes = questionStartTimes;
-      
-      // Initialize auto-advance after questions are loaded
-      if (typeof window.initAutoAdvance === 'function') {
-        window.initAutoAdvance();
-      }
-
-      // Show footer after content loads
-      if (typeof window.showFooterAfterContent === 'function') {
-        window.showFooterAfterContent();
-      }
-
-    } catch (error) {
-      console.error('Error loading questions:', error);
-      $('#questions-container').html('<div class="alert alert-danger">Failed to load questions. Please try refreshing the page.</div>');
-      
-      // Show footer even on error
-      if (typeof window.showFooterAfterContent === 'function') {
-        window.showFooterAfterContent();
-      }
-      
-      // Show footer even on error
-      if (typeof window.showFooterCTA === 'function') {
-        window.showFooterCTA();
-      }
-    }
 
     } catch (error) {
       console.error('Error loading questions:', error);
@@ -617,35 +530,14 @@ $(document).ready(function() {
 
   // Render current question
   function renderCurrentQuestion() {
-    // Always use window.currentQuestionIndex if available, fallback to local
-    let qIndex;
-    if (typeof window.currentQuestionIndex !== 'undefined' && window.currentQuestionIndex !== null) {
-      qIndex = window.currentQuestionIndex;
-      currentQuestionIndex = qIndex; // Sync local variable
-    } else {
-      qIndex = currentQuestionIndex;
-      window.currentQuestionIndex = qIndex; // Sync window variable
-    }
-    
-    // Always use window.questions if available
-    const qArray = (typeof window.questions !== 'undefined' && window.questions.length > 0) ? window.questions : questions;
-    const question = qArray[qIndex];
-    
-    if (!question) {
-      console.error('No question found at index', qIndex, 'Total questions:', qArray.length);
-      return;
-    }
-    
-    console.log('Rendering question', qIndex + 1, 'of', qArray.length, 'Question ID:', question.id);
-    
-    // Expose function to window for auto-advance
-    window.renderCurrentQuestion = renderCurrentQuestion;
+    const question = questions[currentQuestionIndex];
+    if (!question) return;
 
     const questionHtml = `
       <div class="question-box">
         <div class="question-header mb-3">
           <h4 class="fs-18 fw-semibold">
-            <span class="text-purple me-2">Question ${qIndex + 1}:</span>
+            <span class="text-purple me-2">Question ${currentQuestionIndex + 1}:</span>
             ${question.text}
           </h4>
         </div>
@@ -673,34 +565,15 @@ $(document).ready(function() {
     }
 
     // Set question start time
-    questionStartTimes[qIndex] = Date.now();
-    // Sync with window object for test features component
-    window.questionStartTimes = questionStartTimes;
-    window.currentQuestionIndex = qIndex;
-    
-    // Re-initialize auto-advance after rendering new question
-    if (typeof window.initAutoAdvance === 'function') {
-      setTimeout(function() {
-        window.initAutoAdvance();
-      }, 100);
-    }
+    questionStartTimes[currentQuestionIndex] = Date.now();
 
     updateNavigationButtons();
   }
 
   // Save current answer
   function saveCurrentAnswer() {
-    // Sync currentQuestionIndex from window if available (for auto-advance compatibility)
-    if (typeof window.currentQuestionIndex !== 'undefined' && window.currentQuestionIndex !== null) {
-      currentQuestionIndex = window.currentQuestionIndex;
-    }
-    
-    // Use local questions array (like backup template)
     const question = questions[currentQuestionIndex];
     if (!question) return;
-    
-    // Expose function to window for auto-advance
-    window.saveCurrentAnswer = saveCurrentAnswer;
     
     const selectedInput = $(`input[name="question-${question.id}"]:checked`);
     
@@ -719,49 +592,19 @@ $(document).ready(function() {
     } else {
       delete userAnswers[`Question_${question.order}`];
     }
-    
-    // Always sync userAnswers to window (for test features component)
-    window.userAnswers = userAnswers;
   }
 
   // Update progress
   function updateProgress() {
-    // Always use window.currentQuestionIndex if available, fallback to local
-    let qIndex;
-    if (typeof window.currentQuestionIndex !== 'undefined' && window.currentQuestionIndex !== null) {
-      qIndex = window.currentQuestionIndex;
-      currentQuestionIndex = qIndex; // Sync local variable
-    } else {
-      qIndex = currentQuestionIndex;
-      window.currentQuestionIndex = qIndex; // Sync window variable
-    }
-    
-    // Always use window.questions if available
-    const qArray = (typeof window.questions !== 'undefined' && window.questions.length > 0) ? window.questions : questions;
-    const progressText = `${qIndex + 1} / ${qArray.length}`;
+    const progressText = `${currentQuestionIndex + 1} / ${questions.length}`;
     $('#questionProgress, #questionProgressMobile').text(progressText);
-    
-    // Expose function to window for auto-advance
-    window.updateProgress = updateProgress;
   }
 
   // Update navigation buttons
   function updateNavigationButtons() {
-    // Always use window.currentQuestionIndex if available, fallback to local
-    let qIndex;
-    if (typeof window.currentQuestionIndex !== 'undefined' && window.currentQuestionIndex !== null) {
-      qIndex = window.currentQuestionIndex;
-      currentQuestionIndex = qIndex; // Sync local variable
-    } else {
-      qIndex = currentQuestionIndex;
-      window.currentQuestionIndex = qIndex; // Sync window variable
-    }
-    
-    // Always use window.questions if available
-    const qArray = (typeof window.questions !== 'undefined' && window.questions.length > 0) ? window.questions : questions;
-    $('#prev-question').toggle(qIndex > 0);
-    $('#next-question').toggle(qIndex < qArray.length - 1);
-    $('#submit-section').toggle(qIndex === qArray.length - 1);
+    $('#prev-question').toggle(currentQuestionIndex > 0);
+    $('#next-question').toggle(currentQuestionIndex < questions.length - 1);
+    $('#submit-section').toggle(currentQuestionIndex === questions.length - 1);
   }
 
   // Submit section
@@ -770,18 +613,7 @@ $(document).ready(function() {
       // Save current answer
       saveCurrentAnswer();
 
-      // Sync from window variables to local variables before validation (like backup template)
-      if (typeof window.questions !== 'undefined' && window.questions.length > 0) {
-        questions = window.questions;
-      }
-      if (typeof window.userAnswers !== 'undefined' && window.userAnswers !== null) {
-        // Merge window answers into local (window takes precedence for latest answers)
-        userAnswers = Object.assign({}, userAnswers, window.userAnswers);
-        // Sync back to window to keep them in sync
-        window.userAnswers = userAnswers;
-      }
-
-      // Check if all questions are answered (using local variables like backup template)
+      // Check if all questions are answered
       const unansweredQuestions = [];
       for (let i = 0; i < questions.length; i++) {
         const questionKey = `Question_${questions[i].order}`;
@@ -805,7 +637,7 @@ $(document).ready(function() {
         throw new Error('No active session found');
       }
 
-      // Calculate score (using local variables like backup template)
+      // Calculate score
       let score = 0;
       let totalQuestions = questions.length;
       let categoryCounts = {};
@@ -842,7 +674,7 @@ $(document).ready(function() {
       }
 
       // Save responses first
-      const responseRes = await fetch(`/api/responses/${currentSession}/save_responses/`, {
+      await fetch(`/api/responses/${currentSession}/save_responses/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -856,11 +688,6 @@ $(document).ready(function() {
           section_session: currentSectionSession.id
         })
       });
-
-      if (!responseRes.ok) {
-        const errorData = await responseRes.json().catch(() => ({}));
-        throw new Error(errorData.detail || errorData.error || 'Failed to save responses');
-      }
 
       // Then submit the session
       const resultRes = await fetch(`/api/sessions/${currentSession}/submit/`, {
@@ -904,11 +731,9 @@ $(document).ready(function() {
     if (currentQuestionIndex > 0) {
       saveCurrentAnswer();
       currentQuestionIndex--;
-      window.currentQuestionIndex = currentQuestionIndex; // Sync with window
       renderCurrentQuestion();
       updateProgress();
       questionStartTimes[currentQuestionIndex] = Date.now();
-      window.questionStartTimes = questionStartTimes; // Sync with window
     }
   });
 
@@ -927,61 +752,26 @@ $(document).ready(function() {
     if (questionStartTimes[currentQuestionIndex]) {
       const timeSpent = (Date.now() - questionStartTimes[currentQuestionIndex]) / 1000;
       answerTimes.push(timeSpent);
-      window.answerTimes = answerTimes; // Sync with window
-      
-      // Update answer quality widget
-      if (typeof updateAnswerQualityWidget === 'function') {
-        updateAnswerQualityWidget();
-      }
     }
 
     if (currentQuestionIndex < questions.length - 1) {
       currentQuestionIndex++;
-      window.currentQuestionIndex = currentQuestionIndex; // Sync with window
       renderCurrentQuestion();
       updateProgress();
       questionStartTimes[currentQuestionIndex] = Date.now();
-      window.questionStartTimes = questionStartTimes; // Sync with window
     }
   });
 
   $('#submit-section').on('click', function() {
-    // Sync from window variables first
-    if (typeof window.currentQuestionIndex !== 'undefined' && window.currentQuestionIndex !== null) {
-      currentQuestionIndex = window.currentQuestionIndex;
-    }
-    if (typeof window.questions !== 'undefined' && window.questions.length > 0) {
-      questions = window.questions;
-    }
-    
-    // Check if current question has an answer (like working template)
     const question = questions[currentQuestionIndex];
-    if (!question) {
-      Swal.fire({
-        title: 'Error',
-        text: 'No question found. Please refresh the page.',
-        icon: 'error',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
-    
     const selectedInput = $(`input[name="question-${question.id}"]:checked`);
     
     if (selectedInput.length === 0) {
-      Swal.fire({
-        title: 'Incomplete',
-        text: 'Please select an answer for the current question before submitting.',
-        icon: 'warning',
-        confirmButtonText: 'OK'
-      });
+      $('#error-message').show();
+      setTimeout(() => $('#error-message').hide(), 3000);
       return;
     }
-    
-    // Save current answer before submitting
-    saveCurrentAnswer();
-    
-    // Open confirmation modal
+
     $('#submitConfirmationModal').addClass('show');
   });
 

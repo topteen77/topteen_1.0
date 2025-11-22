@@ -3,11 +3,150 @@
 {% block bodyclass %}logged-in{% endblock %}
 
 {% block additionalhead %}
-{{ super() }}
 <style>
+  /* CRITICAL: Hide footer immediately for logged-in pages - must be first to prevent any flash */
+  body.logged-in .footer-cta,
+  .logged-in .footer-cta,
+  footer.footer-cta {
+    display: none !important;
+    visibility: hidden !important;
+    /* opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    pointer-events: none !important;
+    max-height: 0 !important;
+    min-height: 0 !important;
+    line-height: 0 !important;
+    font-size: 0 !important; */
+  }
+  body.logged-in .footer-cta.content-loaded,
+  .logged-in .footer-cta.content-loaded,
+  footer.footer-cta.content-loaded {
+    display: block !important;
+    visibility: visible !important;
+    /* opacity: 1 !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: relative !important;
+    width: 100% !important;
+    margin: initial !important;
+    padding: initial !important;
+    pointer-events: auto !important;
+    max-height: none !important;
+    min-height: initial !important;
+    line-height: initial !important;
+    font-size: initial !important; */
+  }
   .logged-in .header {
     /* Add any logged-in specific header styles if needed */
   }
 </style>
+{{ super() }}
+<script>
+  // Hide footer immediately - run before DOM is ready to prevent any flash
+  (function() {
+    var style = document.createElement('style');
+    style.textContent = 'body.logged-in .footer-cta, .logged-in .footer-cta, footer.footer-cta { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; overflow: hidden !important; position: absolute !important; width: 0 !important; margin: 0 !important; padding: 0 !important; pointer-events: none !important; max-height: 0 !important; min-height: 0 !important; line-height: 0 !important; font-size: 0 !important; }';
+    if (document.head) {
+      document.head.insertBefore(style, document.head.firstChild);
+    } else {
+      document.addEventListener('DOMContentLoaded', function() {
+        document.head.insertBefore(style, document.head.firstChild);
+      });
+    }
+  })();
+</script>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  // Hide footer immediately when DOM is ready - double check
+  (function() {
+    function hideFooter() {
+      if (document.body && document.body.classList.contains('logged-in')) {
+        const footer = document.querySelector('body.logged-in .footer-cta');
+        if (footer) {
+          footer.style.setProperty('display', 'none', 'important');
+          footer.style.setProperty('visibility', 'hidden', 'important');
+          // footer.style.setProperty('opacity', '0', 'important');
+          // footer.style.setProperty('height', '0', 'important');
+          // footer.style.setProperty('max-height', '0', 'important');
+          // footer.style.setProperty('min-height', '0', 'important');
+          // footer.style.setProperty('overflow', 'hidden', 'important');
+          // footer.style.setProperty('position', 'absolute', 'important');
+          // footer.style.setProperty('width', '0', 'important');
+          // footer.style.setProperty('margin', '0', 'important');
+          // footer.style.setProperty('padding', '0', 'important');
+          // footer.style.setProperty('pointer-events', 'none', 'important');
+          // footer.style.setProperty('line-height', '0', 'important');
+          // footer.style.setProperty('font-size', '0', 'important');
+          // footer.style.setProperty('border', '0', 'important');
+        }
+      }
+    }
+    
+    // Try to hide footer immediately if body is already loaded
+    if (document.body) {
+      hideFooter();
+      // Also use MutationObserver to catch footer if added later
+      var observer = new MutationObserver(function(mutations) {
+        hideFooter();
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    } else {
+      // If body not ready, wait for DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', function() {
+        hideFooter();
+        // Also use MutationObserver to catch footer if added later
+        var observer = new MutationObserver(function(mutations) {
+          hideFooter();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      });
+    }
+  })();
+  
+  // Utility function to show footer after API content loads
+  // Call this function after your API content has loaded successfully
+  window.showFooterAfterContent = function() {
+    const footer = document.querySelector('body.logged-in .footer-cta');
+    if (footer) {
+      // Add class first to trigger CSS
+      footer.classList.add('content-loaded');
+      // Remove the entire style attribute after a delay to ensure CSS is applied
+      // This is necessary because inline styles with !important cannot be overridden
+      setTimeout(function() {
+        footer.removeAttribute('style');
+      }, 50);
+      console.log('Footer shown after content loaded');
+    } else {
+      console.warn('Footer element not found');
+    }
+  };
+  
+  // For pages without API loading, show footer immediately
+  document.addEventListener('DOMContentLoaded', function() {
+    // Check if page has API loading indicators or API-driven content containers
+    const hasApiLoader = document.querySelector('.loading, #loadingState, .api-loading, #tests-container .loading, #tests-container');
+    const hasApiContent = document.querySelector('#tests-container, #category-list, #test-details-container, #results-container, #questions-container');
+    
+    // Only show footer immediately if there's no API loading and no API content containers
+    if (!hasApiLoader && !hasApiContent) {
+      // No API loading detected, show footer immediately
+      setTimeout(function() {
+        if (typeof window.showFooterAfterContent === 'function') {
+          window.showFooterAfterContent();
+        }
+      }, 100);
+    } else {
+      console.log('API content detected, footer will be shown after content loads');
+    }
+  });
+</script>
 {% endblock %}
 

@@ -372,6 +372,11 @@ $(document).ready(function() {
         </a>
       </div>
     `);
+    
+    // Show footer even on error
+    if (typeof window.showFooterAfterContent === 'function') {
+      window.showFooterAfterContent();
+    }
   });
   
   function renderSectionResults(section, sectionSession, questions, responses) {
@@ -528,6 +533,11 @@ $(document).ready(function() {
     `;
     
     container.html(resultsHtml);
+    
+    // Show footer after content loads
+    if (typeof window.showFooterAfterContent === 'function') {
+      window.showFooterAfterContent();
+    }
   }
 });
 </script>

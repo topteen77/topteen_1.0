@@ -250,6 +250,11 @@ $(document).ready(function() {
         Failed to load test details. Please try refreshing the page.
       </div>
     `);
+    
+    // Show footer even on error
+    if (typeof window.showFooterAfterContent === 'function') {
+      window.showFooterAfterContent();
+    }
   });
 
   function renderTestDetails(test) {
@@ -338,6 +343,11 @@ $(document).ready(function() {
     `;
     
     container.html(testDetails);
+    
+    // Show footer after content loads
+    if (typeof window.showFooterAfterContent === 'function') {
+      window.showFooterAfterContent();
+    }
   }
 });
 </script>

@@ -6,20 +6,50 @@
 {% block chatbot %}{% endblock %}
 {% block chatbot_css %}{% endblock %}
 {% block chatbot_js %}{% endblock %}
-{% block footer_cta %}{% endblock %}
+
 
 {% block bodyclass %}{{ super() }} tests-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
 <style>
-  .tests-page {
+.modal-backdrop.fade.show {
+    z-index: 1;
+}
+.tests-page {
     padding-top: 80px;
   }
   .hero-gradient {
     background: linear-gradient(135deg, #3F37C9 0%, #534a9a 100%);
     padding: 60px 0;
     color: white;
+  }
+  /* Container width fixes for desktop and mobile */
+  .tests-page main {
+    max-width: 1320px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (min-width: 992px) {
+    .tests-page main {
+      max-width: 1320px;
+      padding-left: 15px;
+      padding-right: 15px;
+    }
+  }
+  @media (max-width: 991.98px) {
+    .tests-page main {
+      max-width: 100%;
+      padding-left: 15px;
+      padding-right: 15px;
+    }
+  }
+  @media (max-width: 767.98px) {
+    .tests-page main {
+      padding-left: 15px;
+      padding-right: 15px;
+    }
   }
   /* Test Card Styling */
   #tests-container.row {
@@ -250,6 +280,294 @@
       max-height: 120px;
     }
   }
+  
+  /* Modal Base Styles */
+  .personality-questionnaire-modal .modal-content {
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: none;
+    overflow: inherit;
+    transform: translateY(0);
+    animation: modal-appear 0.4s ease-out;
+  }
+
+  @keyframes modal-appear {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  .personality-questionnaire-modal .modal-dialog {
+    transform: none;
+    max-width: 595px;
+    transition: all 0.3s ease;
+  }
+
+  /* Modal Header */
+  .personality-questionnaire-modal .modal-header {
+    background: linear-gradient(135deg, #3F37C9 0%, #6A5ACD 100%);
+    color: white;
+    border-radius: 20px 20px 0 0;
+    padding: 1.8rem;
+    padding-left: 182px;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-bottom: none;
+  }
+
+  .personality-questionnaire-modal .modal-title {
+    font-weight: 700;
+    font-size: 1.5rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .header-img {
+    position: absolute;
+    left: 18px;
+    bottom: -15px;
+    width: 150px;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+    transform: translateY(0);
+    animation: float 3s ease-in-out infinite;
+    z-index: 1;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0); }
+  }
+
+  /* Modal Body */
+  .personality-questionnaire-modal .modal-body {
+    padding: 2.5rem 2rem;
+    background: linear-gradient(to bottom, #ffffff 0%, #f9f9ff 100%);
+  }
+
+  .personality-questionnaire-modal h4.mb-4 {
+    font-weight: 600;
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 1.5rem !important;
+    position: relative;
+    padding-left: 10px;
+    border-left: 4px solid #3F37C9;
+  }
+
+  .personality-questionnaire-modal .form-check {
+    padding-left: 2rem;
+    pointer-events: none; /* Allow clicks to pass through to parent */
+  }
+
+  .personality-questionnaire-modal .form-check-input {
+    margin-top: 0.5rem;
+    margin-left: -2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    pointer-events: auto !important; /* Enable clicks on radio */
+    position: relative;
+    z-index: 10;
+  }
+
+  .personality-questionnaire-modal .form-check-input:checked {
+    background-color: #3F37C9;
+    border-color: #3F37C9;
+    box-shadow: 0 0 0 2px rgba(63, 55, 201, 0.2);
+  }
+
+  .personality-questionnaire-modal .form-check-label {
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 4px 0;
+    pointer-events: auto !important; /* Enable clicks on label */
+    position: relative;
+    z-index: 10;
+  }
+
+  .personality-questionnaire-modal .form-check-input:checked+.form-check-label {
+    color: #3F37C9;
+    font-weight: 600;
+  }
+
+  /* Continue Button */
+  .personality-questionnaire-modal .btn-continue {
+    background: linear-gradient(to right, #3F37C9, #5145E5);
+    color: white;
+    padding: 0.85rem 2.5rem;
+    border-radius: 30px;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s;
+    box-shadow: 0 4px 10px rgba(63, 55, 201, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .personality-questionnaire-modal .btn-continue:hover {
+    background: linear-gradient(to right, #372db3, #4238c7);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(63, 55, 201, 0.4);
+  }
+
+  .personality-questionnaire-modal .btn-continue:active {
+    transform: translateY(-1px);
+  }
+
+  .personality-questionnaire-modal .btn-continue:disabled {
+    background: linear-gradient(to right, #a9a9a9, #c0c0c0);
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .personality-questionnaire-modal .btn-continue::after {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 30px;
+    height: 100%;
+    top: 0;
+    left: -40px;
+    background: rgba(255, 255, 255, 0.3);
+    transform: skewX(-20deg);
+    transition: all 0.3s;
+  }
+
+  .personality-questionnaire-modal .btn-continue:hover::after {
+    left: 110%;
+    transition: all 0.7s;
+  }
+
+  /* Note Text */
+  .personality-questionnaire-modal .note-text {
+    font-style: italic;
+    color: #666;
+    margin-top: 1.5rem;
+    background: linear-gradient(to right, #e9e8ff, #f5f4ff);
+    font-size: 13px;
+    padding: 12px 18px;
+    line-height: 1.3;
+    border-radius: 10px;
+    border-left: 3px solid #3F37C9;
+  }
+
+  /* Personality Options */
+  .personality-option {
+    display: flex;
+    align-items: center;
+    padding: 7px 16px;
+    border-radius: 12px;
+    margin-bottom: 0.9rem;
+    transition: all 0.3s;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Ensure form-check inside personality-option doesn't block clicks */
+  .personality-option .form-check {
+    width: 100%;
+    pointer-events: none;
+  }
+  
+  .personality-option .form-check-input,
+  .personality-option .form-check-label {
+    pointer-events: auto;
+  }
+
+  .personality-option:hover {
+    background-color: #f8f9ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(63, 55, 201, 0.08);
+    border-color: #c5c1f3;
+  }
+
+  .personality-option.selected {
+    background: linear-gradient(to right, #f5f4ff, #edeeff);
+    border-color: #3F37C9;
+    box-shadow: 0 5px 15px rgba(63, 55, 201, 0.12);
+    transform: translateY(-3px);
+    position: relative;
+  }
+
+  .personality-option.selected::before {
+    content: '';
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background-color: #3F37C9;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: translateY(-50%) scale(1); opacity: 1; }
+    50% { transform: translateY(-50%) scale(1.5); opacity: 0.7; }
+    100% { transform: translateY(-50%) scale(1); opacity: 1; }
+  }
+
+  .text-gray-id {
+    color: #777;
+    font-style: italic;
+    margin-left: 5px;
+    font-size: 0.9rem;
+    transition: color 0.3s;
+  }
+
+  .personality-option.selected .text-gray-id {
+    color: #555;
+  }
+
+  /* Country Options */
+  .country-options {
+    display: none;
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(to bottom right, #f8f9fa, #f1f2f6);
+    border-radius: 12px;
+    border: 1px dashed #c5c1f3;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.03);
+    animation: fade-in 0.5s ease;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .country-options.visible {
+    display: block;
+  }
+
+  .country-options h5 {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 1rem;
+    position: relative;
+    padding-left: 8px;
+    border-left: 3px solid #3F37C9;
+  }
+
+  .country-checkbox {
+    margin-bottom: 12px;
+    transition: all 0.2s;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+
+  .country-checkbox:hover {
+    background-color: #f0f0ff;
+  }
+ 
 </style>
 {% endblock %}
 
@@ -358,14 +676,242 @@
       </div>
     </div>
   </template>
+  
+  <!-- Popup Modals -->
+  <!-- Popup 1: Personality Test -->
+  <div class="modal fade personality-questionnaire-modal" id="popup-personality" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="personalityModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="header-img">
+            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/student-flying-on-rocket-3d-icon-png-download-4644800.png" alt="Question" />
+          </div>
+          <h5 class="modal-title" id="personalityModalLabel">Before we continue…</h5>
+        </div>
+        <div class="modal-body">
+          <h4 class="mb-4 fs-20">Q: How would you describe your personality?</h4>
+          <div class="personality-options">
+            <div class="personality-option">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="personalityType" id="extrovertOption" value="Extrovert (outgoing)">
+                <label class="form-check-label" for="extrovertOption">
+                  <strong>Extrovert</strong> <span class="text-gray-id">(outgoing)</span>
+                </label>
+              </div>
+            </div>
+            <div class="personality-option">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="personalityType" id="introvertOption" value="Introvert (reserved)">
+                <label class="form-check-label" for="introvertOption">
+                  <strong>Introvert</strong> <span class="text-gray-id">(reserved)</span>
+                </label>
+              </div>
+            </div>
+            <div class="personality-option">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="personalityType" id="ambivertOption" value="Ambivert (mix of above two)">
+                <label class="form-check-label" for="ambivertOption">
+                  <strong>Ambivert</strong> <span class="text-gray-id">(mix of above two)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <p class="note-text">Note: Choose the option that feels closest to your everyday behaviour.</p>
+          <div class="text-center mt-4">
+            <button type="button" class="btn btn-continue" id="personalityContinueBtn" disabled>Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Popup 2: Motivation Test -->
+  <div class="modal fade personality-questionnaire-modal" id="popup-motivation" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="motivationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="header-img">
+            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/student-raises-his-hand-3d-icon-png-download-4652812.png" alt="Question" />
+          </div>
+          <h5 class="modal-title" id="motivationModalLabel">A quick check!</h5>
+        </div>
+        <div class="modal-body">
+          <h4 class="mb-4 fs-20">Q: What motivates you the most?</h4>
+          <div class="personality-options">
+            <div class="personality-option">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="motivationType" id="positiveOption" value="Positive Encouragement (Rewards, praise, certificates)">
+                <label class="form-check-label" for="positiveOption">
+                  <strong>Positive Encouragement</strong> <span class="text-gray-id">(Rewards, praise, certificates)</span>
+                </label>
+              </div>
+            </div>
+            <div class="personality-option">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="motivationType" id="correctiveOption" value="Corrective Feedback (Penalties, extra tasks)">
+                <label class="form-check-label" for="correctiveOption">
+                  <strong>Corrective Feedback</strong> <span class="text-gray-id">(Penalties, extra tasks)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="text-center mt-4">
+            <button type="button" class="btn btn-continue" id="motivationContinueBtn" disabled>Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Popup 3: Career Interest Test -->
+  <div class="modal fade personality-questionnaire-modal" id="popup-career_interest" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="studyPreferenceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="header-img">
+            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/cute-student-having-doubt-3d-icon-png-download-4779536.png" alt="Question" />
+          </div>
+          <h5 class="modal-title" id="studyPreferenceModalLabel">Your study preference</h5>
+        </div>
+        <div class="modal-body">
+          <h4 class="mb-4 fs-20">Q: Where do you see yourself studying in the future?</h4>
+          <div class="personality-options">
+            <div class="personality-option">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="studyLocation" id="indiaOption" value="Within India">
+                <label class="form-check-label" for="indiaOption">
+                  <strong>Within India</strong> 🇮🇳
+                </label>
+              </div>
+            </div>
+            <div class="personality-option">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="studyLocation" id="outsideIndiaOption" value="Outside India">
+                <label class="form-check-label" for="outsideIndiaOption">
+                  <strong>Outside India</strong> <span class="text-gray-id">(Choose your preferred country in the next step)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <!-- Country options that appear when "Outside India" is selected -->
+          <div class="country-options" id="career-country-container">
+            <h5 class="mb-3">Select your preferred country:</h5>
+            <select class="form-select" id="career-country-select">
+              <option value="">Select a country</option>
+              <option value="Canada">Canada 🇨🇦</option>
+              <option value="Australia">Australia 🇦🇺</option>
+              <option value="New Zealand">New Zealand 🇳🇿</option>
+              <option value="United States">United States 🇺🇸</option>
+              <option value="United Kingdom">United Kingdom 🇬🇧</option>
+              <option value="Germany">Germany 🇩🇪</option>
+              <option value="France">France 🇫🇷</option>
+              <option value="Singapore">Singapore 🇸🇬</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="text-center mt-4">
+            <button type="button" class="btn btn-continue" id="careerInterestContinueBtn" disabled>Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Popup 4: Aptitude Test -->
+  <div class="modal fade personality-questionnaire-modal" id="popup-aptitude" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="learningStyleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="header-img">
+            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/student-is-having-an-idea-3d-icon-png-download-4823210.png" alt="Question" />
+          </div>
+          <h5 class="modal-title" id="learningStyleModalLabel">Last quick question!</h5>
+        </div>
+        <div class="modal-body">
+          <h4 class="mb-4">Q: What kind of tasks do you usually find the easiest to understand?</h4>
+          <div class="personality-options">
+            <div class="personality-option">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="learningStyle" id="numberOption" value="Numbers & Calculations">
+                <label class="form-check-label" for="numberOption">
+                  <strong>Numbers & Calculations</strong>
+                </label>
+              </div>
+            </div>
+            <div class="personality-option">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="learningStyle" id="visualOption" value="Diagrams / Visual Patterns">
+                <label class="form-check-label" for="visualOption">
+                  <strong>Diagrams / Visual Patterns</strong>
+                </label>
+              </div>
+            </div>
+            <div class="personality-option">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="learningStyle" id="mechanicalOption" value="Mechanical / Practical Tasks">
+                <label class="form-check-label" for="mechanicalOption">
+                  <strong>Mechanical / Practical Tasks</strong>
+                </label>
+              </div>
+            </div>
+            <div class="personality-option">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="learningStyle" id="languageOption" value="Language-based Tasks">
+                <label class="form-check-label" for="languageOption">
+                  <strong>Language-based Tasks</strong>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="text-center mt-4">
+            <button type="button" class="btn btn-continue" id="aptitudeContinueBtn" disabled>Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 {% endblock %}
 
 {% block additionaljs %}
 {{ super() }}
 <script>
+    // Set CSRF token for AJAX requests
+    window.csrfToken = '{{ csrf_token }}';
+    
     // Parse the JSON data from Django context
-    window.testStatus = {{ test_status|tojson }};
+    // test_status is already a JSON string from Django, so parse it
+    (function() {
+        try {
+            const testStatusStr = {{ test_status|tojson }};
+            if (typeof testStatusStr === 'string') {
+                window.testStatus = JSON.parse(testStatusStr);
+            } else {
+                window.testStatus = testStatusStr;
+            }
+        } catch(e) {
+            console.error('Error parsing test_status:', e);
+            window.testStatus = {};
+        }
+        
+        // Parse popup_status
+        try {
+            const popupStatusStr = {{ popup_status|tojson }};
+            if (typeof popupStatusStr === 'string') {
+                window.popupStatus = JSON.parse(popupStatusStr);
+            } else {
+                window.popupStatus = popupStatusStr;
+            }
+        } catch(e) {
+            console.error('Error parsing popup_status:', e);
+            window.popupStatus = {
+                'personality': false,
+                'motivation': false,
+                'career_interest': false,
+                'aptitude': false
+            };
+        }
+    })();
 </script>
 
 <script>
@@ -424,8 +970,16 @@
     const startButton = card.querySelector('.take-test-btn');
     const viewButton = card.querySelector('.details-btn');
 
-    // Get test status from the database info with default values
-    const testInfo = testStatus[test.id] || { completed: false };
+    // Ensure elements exist
+    if (!statusElement || !startButton || !viewButton) {
+        console.error(`Missing elements for test ${test.id}:`, { statusElement, startButton, viewButton });
+        return card;
+    }
+
+    // Get test status from the database info with default values (similar to old code)
+    // Try both string and number keys since test.id might be a string or number
+    const testIdKey = String(test.id);
+    const testInfo = testStatus[test.id] || testStatus[testIdKey] || { completed: false };
     const isCompleted = testInfo.completed || false;
 
     if (isCompleted) {
@@ -467,18 +1021,14 @@
                 });
         }
 
-        // Set href only if not completed
-        if (!isCompleted) {
-            startButton.href = `/api/web/test/${test.id}/sections/`;
-        }
+        // Set href for sections page (always allow access to continue or start)
+        startButton.href = `/api/web/test/${test.id}/sections/`;
     } else {
         // For all other tests
         card.querySelector('.questions-count').textContent = `${test.questions_count} questions`;
         
-        // Set href only if not completed
-        if (!isCompleted) {
-            startButton.href = `/api/web/take_test/${test.id}/`;
-        }
+        // Set href for take test page (always allow access to continue or start)
+        startButton.href = `/api/web/take_test/${test.id}/`;
     }
 
     card.querySelector('.time-limit').textContent = `${test.time_limit} minutes`;
@@ -504,7 +1054,6 @@
     }
     // Get test status from the context
     const testStatus = window.testStatus || {}; // This should be populated from Django context
-    console.log("All Test Status:", testStatus);
     tests.forEach(test => {
       test.category_name = categoryMap[test.category] || 'Uncategorized';
       testsContainer.appendChild(createTestCard(test, testStatus));
@@ -560,10 +1109,27 @@
         });
 
         renderTests(tests, categoryMap);
+
+        // Show footer after content loads (with delay to ensure DOM is fully updated)
+        setTimeout(function() {
+          if (typeof window.showFooterAfterContent === 'function') {
+            console.log('Calling showFooterAfterContent after tests render');
+            window.showFooterAfterContent();
+          }
+        }, 200);
+
       })
       .catch(error => {
         console.error('Error loading tests or categories:', error);
         showError();
+        
+        // Show footer even on error
+        setTimeout(function() {
+          if (typeof window.showFooterAfterContent === 'function') {
+            console.log('Calling showFooterAfterContent after error');
+            window.showFooterAfterContent();
+          }
+        }, 100);
       });
   }
 
@@ -594,6 +1160,466 @@
 
   // Initial load
   loadTestsAndCategories();
+  
+  // Popup Management
+  (function() {
+    const popupOrder = ['personality', 'motivation', 'career_interest', 'aptitude'];
+    let currentPopupIndex = -1;
+    const initializedPopups = new Set(); // Track which popups have been initialized
+    const selectedValues = {}; // Store selected values per popup type
+    const modalInstances = {}; // Store Bootstrap modal instances
+    
+    // Show popup by test type using Bootstrap modal
+    function showPopup(testType) {
+      console.log('showPopup called for:', testType);
+      const popupId = `popup-${testType}`;
+      const popupElement = document.getElementById(popupId);
+      console.log('Popup element found:', popupElement ? 'yes' : 'no', 'ID:', popupId);
+      
+      if (!popupElement) {
+        console.error('Popup element not found:', popupId);
+        return;
+      }
+      
+      // Check if Bootstrap is available
+      if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap is not loaded');
+        return;
+      }
+      
+      // Get or create Bootstrap modal instance
+      if (!modalInstances[testType]) {
+        try {
+          modalInstances[testType] = new bootstrap.Modal(popupElement, {
+            backdrop: 'static',
+            keyboard: false
+          });
+          console.log('Modal instance created for:', testType);
+        } catch (e) {
+          console.error('Error creating modal instance:', e);
+          return;
+        }
+      }
+      
+      try {
+        modalInstances[testType].show();
+        console.log('Modal shown for:', testType);
+      } catch (e) {
+        console.error('Error showing modal:', e);
+      }
+    }
+    
+    // Hide popup by test type using Bootstrap modal
+    function hidePopup(testType) {
+      const popupId = `popup-${testType}`;
+      const popupElement = document.getElementById(popupId);
+      if (popupElement && modalInstances[testType]) {
+        modalInstances[testType].hide();
+      }
+    }
+    
+    // Initialize popup option buttons (only once per popup)
+    function initPopupButtons(testType) {
+      // Skip if already initialized
+      if (initializedPopups.has(testType)) {
+        return;
+      }
+      
+      const popupId = `popup-${testType}`;
+      const popup = document.getElementById(popupId);
+      if (!popup) return;
+      
+      // Get option containers and radio buttons
+      const personalityOptions = popup.querySelectorAll('.personality-option');
+      let submitBtn;
+      
+      // Map test types to their continue button IDs
+      const buttonMap = {
+        'personality': 'personalityContinueBtn',
+        'motivation': 'motivationContinueBtn',
+        'career_interest': 'careerInterestContinueBtn',
+        'aptitude': 'aptitudeContinueBtn'
+      };
+      
+      submitBtn = document.getElementById(buttonMap[testType]);
+      console.log('Submit button for', testType, ':', submitBtn ? 'found' : 'NOT FOUND', 'ID:', buttonMap[testType]);
+      if (!submitBtn) {
+        console.error('Submit button not found for testType:', testType, 'Expected ID:', buttonMap[testType]);
+      }
+      selectedValues[testType] = null; // Initialize selected value for this popup
+      
+      // Make each option clickable - ensure it works on both mobile and desktop
+      personalityOptions.forEach((option, index) => {
+        option.style.cursor = 'pointer';
+        option.style.userSelect = 'none'; // Prevent text selection on click
+        
+        // Get the radio and label for this option
+        const radio = option.querySelector('input[type="radio"]');
+        const label = option.querySelector('label');
+        const formCheck = option.querySelector('.form-check');
+        
+        if (!radio) {
+          console.error('Radio button not found in option', index);
+          return;
+        }
+        
+        // Ensure radio is enabled and clickable
+        radio.disabled = false;
+        radio.removeAttribute('disabled');
+        radio.style.pointerEvents = 'auto';
+        radio.style.cursor = 'pointer';
+        
+        // Ensure label is clickable
+        if (label) {
+          label.style.cursor = 'pointer';
+          label.style.pointerEvents = 'auto';
+        }
+        
+        // Handle clicks on the entire option container (works for desktop)
+        option.addEventListener('click', function(e) {
+          console.log('Option container clicked:', testType, 'index:', index, 'target:', e.target.tagName, e.target.className);
+          
+          // If clicking directly on radio or label, let native behavior handle it
+          if (e.target === radio || e.target === label || e.target.closest('label') || e.target.closest('input[type="radio"]')) {
+            // Let native behavior work, but ensure change event fires
+            setTimeout(() => {
+              if (radio.checked) {
+                console.log('Radio was checked by native behavior, dispatching change');
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+            }, 10);
+            return;
+          }
+          
+          // For clicks on the container itself (not radio/label), manually check
+          e.preventDefault();
+          e.stopPropagation();
+          
+          console.log('Manually checking radio from container click');
+          radio.checked = true;
+          
+          // Immediately trigger change event
+          console.log('Dispatching change event');
+          const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+          radio.dispatchEvent(changeEvent);
+          
+          // Direct backup: enable button immediately and set selected value
+          selectedValues[testType] = radio.value;
+          
+          // Get button reference again to ensure it's current
+          const currentSubmitBtn = document.getElementById(buttonMap[testType]);
+          if (currentSubmitBtn) {
+            currentSubmitBtn.disabled = false;
+            currentSubmitBtn.removeAttribute('disabled');
+            console.log('Submit button enabled directly, disabled state:', currentSubmitBtn.disabled);
+          } else {
+            console.error('Submit button not found! ID:', buttonMap[testType]);
+          }
+        });
+        
+        // Also handle label clicks specifically (backup for desktop)
+        if (label) {
+          label.addEventListener('click', function(e) {
+            console.log('Label clicked for', testType);
+            // Don't prevent default - let label's native behavior work
+            // Just ensure change event fires
+            setTimeout(() => {
+              if (radio.checked) {
+                console.log('Radio checked via label click');
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+            }, 10);
+          });
+        }
+        
+        // Handle radio clicks directly (backup for desktop)
+        radio.addEventListener('click', function(e) {
+          console.log('Radio clicked directly for', testType);
+          // Let native behavior work
+          setTimeout(() => {
+            if (this.checked) {
+              console.log('Radio checked via direct click');
+              this.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          }, 10);
+        });
+      });
+      
+      // Handle radio button changes directly (primary handler - all logic here)
+      const radioButtons = popup.querySelectorAll('input[type="radio"]');
+      console.log('Found', radioButtons.length, 'radio buttons for', testType);
+      radioButtons.forEach((radio, index) => {
+        // Ensure radio is enabled
+        radio.disabled = false;
+        radio.removeAttribute('disabled');
+        radio.style.pointerEvents = 'auto';
+        
+        radio.addEventListener('change', function() {
+          console.log('Radio change event fired for', testType, 'radio index:', index, 'checked:', this.checked, 'value:', this.value);
+          if (this.checked) {
+            selectedValues[testType] = this.value;
+            console.log('Selected value set to:', selectedValues[testType]);
+            // Find parent option and select it
+            const parentOption = this.closest('.personality-option');
+            if (parentOption) {
+              personalityOptions.forEach(opt => opt.classList.remove('selected'));
+              parentOption.classList.add('selected');
+              console.log('Added selected class to option');
+            }
+            
+            // Enable submit button - get fresh reference to ensure it's current
+            const currentSubmitBtn = document.getElementById(buttonMap[testType]);
+            if (currentSubmitBtn) {
+              currentSubmitBtn.disabled = false;
+              currentSubmitBtn.removeAttribute('disabled');
+              console.log('Submit button enabled for', testType, 'disabled state:', currentSubmitBtn.disabled);
+            } else {
+              console.error('Submit button not found when trying to enable for', testType, 'ID:', buttonMap[testType]);
+            }
+            
+            // Special handling for career_interest
+            if (testType === 'career_interest') {
+              const countryContainer = document.getElementById('career-country-container');
+              const countrySelect = document.getElementById('career-country-select');
+              
+              if (this.value === 'Outside India') {
+                if (countryContainer) {
+                  countryContainer.classList.add('visible');
+                }
+                // Disable submit button until country is selected
+                if (currentSubmitBtn) {
+                  currentSubmitBtn.disabled = true;
+                }
+                // Add change listener for country select
+                if (countrySelect && !countrySelect.dataset.listenerAttached) {
+                  countrySelect.disabled = false;
+                  countrySelect.removeAttribute('disabled');
+                  countrySelect.addEventListener('change', function() {
+                    const btn = document.getElementById(buttonMap[testType]);
+                    if (this.value) {
+                      if (btn) {
+                        btn.disabled = false;
+                        btn.removeAttribute('disabled');
+                      }
+                    } else {
+                      if (btn) {
+                        btn.disabled = true;
+                      }
+                    }
+                  });
+                  countrySelect.dataset.listenerAttached = 'true';
+                }
+              } else {
+                if (countryContainer) {
+                  countryContainer.classList.remove('visible');
+                }
+                if (countrySelect) {
+                  countrySelect.value = '';
+                }
+                if (currentSubmitBtn) {
+                  currentSubmitBtn.disabled = false;
+                  currentSubmitBtn.removeAttribute('disabled');
+                }
+              }
+            }
+          }
+        });
+      });
+      
+      // Handle submit button click
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+          const currentSelectedValue = selectedValues[testType];
+          if (!currentSelectedValue) {
+            console.log('No option selected for', testType);
+            return;
+          }
+          
+          // Get country if applicable
+          let country = null;
+          if (testType === 'career_interest' && currentSelectedValue === 'Outside India') {
+            const countrySelect = document.getElementById('career-country-select');
+            country = countrySelect ? countrySelect.value : null;
+            if (!country) {
+              alert('Please select a country');
+              return;
+            }
+          }
+          
+          // Disable submit button during submission
+          submitBtn.disabled = true;
+          const originalText = submitBtn.textContent;
+          submitBtn.textContent = 'Submitting...';
+          
+          // Get CSRF token (try multiple methods)
+          let csrftoken = getCookie('csrftoken');
+          if (!csrftoken && window.csrfToken) {
+            csrftoken = window.csrfToken;
+          }
+          if (!csrftoken) {
+            console.error('CSRF token not found');
+            alert('CSRF token not found. Please refresh the page and try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+            return;
+          }
+          
+          // Prepare form data
+          const formData = new FormData();
+          formData.append('test_type', testType);
+          formData.append('answer', currentSelectedValue);
+          formData.append('csrfmiddlewaretoken', csrftoken); // Add CSRF to form data
+          if (country) {
+            formData.append('country', country);
+          }
+          
+          // Debug logging
+          console.log('Submitting popup answer:', { testType, answer: currentSelectedValue, country, csrftoken: csrftoken ? 'found' : 'not found' });
+          
+          // Send AJAX request
+          fetch('/api/web/popup-answer/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-CSRFToken': csrftoken
+            },
+            credentials: 'same-origin'
+          })
+          .then(response => {
+            console.log('Response status:', response.status, response.statusText);
+            // Check if response is ok
+            if (!response.ok) {
+              // Try to get error message from response
+              return response.text().then(text => {
+                console.log('Error response text:', text);
+                try {
+                  const json = JSON.parse(text);
+                  throw new Error(json.error || `Server error: ${response.status}`);
+                } catch (e) {
+                  if (e instanceof Error && e.message) {
+                    throw e;
+                  }
+                  throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+              });
+            }
+            // Parse JSON response
+            return response.json();
+          })
+          .then(data => {
+            console.log('Success response:', data);
+            if (data.success) {
+              // Reset selected value for this popup
+              selectedValues[testType] = null;
+              // Reset button states
+              personalityOptions.forEach(opt => opt.classList.remove('selected'));
+              const radioButtons = popup.querySelectorAll('input[type="radio"]');
+              radioButtons.forEach(radio => radio.checked = false);
+              
+              // Hide current popup
+              hidePopup(testType);
+              
+              // Show next popup if available
+              setTimeout(() => {
+                showNextPopup();
+              }, 300); // Small delay to allow modal to close
+            } else {
+              alert('Error: ' + (data.error || 'Failed to save answer'));
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalText;
+            }
+          })
+          .catch(error => {
+            console.error('Error details:', error);
+            const errorMessage = error.message || 'An error occurred while saving your answer. Please try again.';
+            alert(errorMessage);
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          });
+        });
+      }
+      
+      // Mark this popup as initialized
+      initializedPopups.add(testType);
+    }
+    
+    // Show next popup in order
+    function showNextPopup() {
+      console.log('showNextPopup called, currentPopupIndex:', currentPopupIndex);
+      console.log('window.popupStatus:', window.popupStatus);
+      currentPopupIndex++;
+      
+      // Check if there are more popups to show
+      for (let i = currentPopupIndex; i < popupOrder.length; i++) {
+        const testType = popupOrder[i];
+        console.log('Checking popup:', testType, 'status:', window.popupStatus && window.popupStatus[testType]);
+        if (window.popupStatus && window.popupStatus[testType]) {
+          currentPopupIndex = i;
+          console.log('Showing popup:', testType);
+          // Initialize buttons if not already done (should already be initialized, but just in case)
+          if (!initializedPopups.has(testType)) {
+            initPopupButtons(testType);
+          }
+          showPopup(testType);
+          return;
+        }
+      }
+      
+      // No more popups to show
+      console.log('No more popups to show');
+      currentPopupIndex = -1;
+    }
+    
+    // Initialize all popups once when page loads
+    popupOrder.forEach(testType => {
+      initPopupButtons(testType);
+    });
+    
+    // Show first popup when page loads
+    function tryShowNextPopup() {
+      // Small delay to ensure page is fully loaded
+      setTimeout(() => {
+        console.log('Attempting to show next popup, popupStatus:', window.popupStatus);
+        showNextPopup();
+      }, 500);
+    }
+    
+    // Check if DOM is already loaded
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', tryShowNextPopup);
+    } else {
+      // DOM is already loaded
+      tryShowNextPopup();
+    }
+    
+    // Helper function to get CSRF token
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      // Fallback: try to get from meta tag if available
+      if (!cookieValue) {
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+          cookieValue = metaTag.getAttribute('content');
+        }
+      }
+      // Fallback: try to get from Django template variable if available
+      if (!cookieValue && typeof window.csrfToken !== 'undefined') {
+        cookieValue = window.csrfToken;
+      }
+      return cookieValue;
+    }
+  })();
 </script>
 {% endblock %}
+
 

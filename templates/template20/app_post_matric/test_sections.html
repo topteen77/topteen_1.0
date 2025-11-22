@@ -1,0 +1,642 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Test Sections - Assessment Dashboard | Top Teen{% endblock %}
+{% block description_content %}View and start test sections.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} test-sections-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+    .test-sections-page {
+        padding-top: 0;
+    }
+
+    .purple-button.disabled {
+        background: #28a745 !important;
+        border-color: #19682b !important;
+    }
+
+    .hero-gradient {
+        background: linear-gradient(135deg, #3F37C9 0%, #534a9a 100%);
+    }
+
+    .sections-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin: 20px 0;
+    }
+
+    .section-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        background: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .section-header {
+        margin-bottom: 15px;
+    }
+
+    .section-order {
+        color: #3c3232;
+        font-size: 0.9em;
+        background: #c1c7ff;
+        padding: 0px 17px;
+        border-radius: 17px;
+    }
+
+    .h-bottom {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 7px;
+    }
+
+    .section-status {
+        margin-left: 10px;
+    }
+
+    .section-meta {
+        margin-top: 15px;
+        color: #666;
+    }
+
+    .badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        font-weight: bold;
+    }
+
+    .badge-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .section-title.mb-0 {
+        font-size: 21px;
+        font-weight: 600;
+        margin-top: 17px;
+        min-height: 54px;
+    }
+
+    .section-description {
+        font-size: 14px;
+        line-height: 21px;
+        color: #3c3f46;
+        min-height: 190px;
+        height: 190px;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+
+    .section-status .badge-secondary {
+        background: #dddd;
+        color: #514d4d;
+        font-weight: 500;
+        border-radius: 15px;
+        padding: 7px 15px;
+    }
+
+    .badge.badge-success {
+        padding: 7px 12px;
+        font-weight: 500;
+        text-transform: capitalize;
+        border-radius: 17px;
+    }
+
+    .introduction {
+        margin: 32px 0;
+        border: 1px solid #cecece;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
+
+    .inst-data h3 {
+        font-size: 32px;
+        font-weight: 600;
+        position: relative;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #dbd9d9;
+        margin-bottom: 23px;
+    }
+
+    .inst-data h3::before {
+        content: "";
+        background: #3f37c9;
+        width: 75px;
+        height: 2px;
+        position: absolute;
+        bottom: 0;
+    }
+
+    .instruction-content {
+        height: 450px;
+        overflow-y: scroll;
+    }
+
+    .introduction table tr td,
+    .introduction table tr th {
+        border: 1px solid #737373;
+        padding: 5px 9px;
+    }
+
+    @media (max-width: 768px) {
+        .sections-container {
+            grid-template-columns: 1fr;
+            margin-bottom: 80px;
+        }
+
+        .section-description {
+            min-height: auto;
+            height: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-gradient py-8 mb-4" style="display: none;" id="hero-gradient">
+    <div class="container mx-auto ">
+        <div class="row text-center">
+            <h1 id="test-title" class="text-white fs-28 fw-bold mb-3 fs-sm-20">Test Sections</h1>
+            <p id="test-description" class="text-white fw-normal"></p>
+        </div>
+    </div>
+</section>
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
+
+    <section id="introduction-test-4" class="introduction">
+
+        <div class="row">
+            <div class="col-md-4 d-flex align-items-center bg-light">
+                <div class="inimg d-md-block d-none">
+                    <img src="{{ static('images/giant-checklist.png') }}" alt="Giant Checklist" class="w-full h-auto">
+                </div>
+            </div>
+            <div class="col-md-8 inst-data py-4 px-5 bg-white">
+                <h3>Introduction</h3>
+                <div class="instruction-content">
+                    <h4 class="fw-bold fs-21 mb-4"> Aptitude Test </h4>
+                    <h6 class="fw-bold fs-21 mb-4"> Welcome to the Aptitude Assessment! </h6>
+                    <h5 class="fs-18 mb-3" style="color:#4f48d2; font-weight: 600;">Purpose</h5>
+
+                    <p>This timed assessment measures seven core ability areas: Abstract, Numerical, Logical, Verbal,
+                        Clerical, Mechanical, and Spatial Reasoning. Your performance will highlight natural strengths
+                        and help you choose roles that fit your skill set.
+                    </p>
+                    <h5 class="fs-18 my-3" style="color:#4f48d2; font-weight: 600;">General Rules</h5>
+
+                    <ol style="list-style:numeric; padding-left:18px;">
+                        <li><strong>Environment -</strong>Sit in a quiet, interruption-free space. </li>
+
+                        <li> <strong>Timing -</strong> The entire test lasts 65 minutes; each section has its own timer
+                            shown on-screen.</li>
+                        <li> <strong>Completion -</strong> Attempt every question for the most accurate profile.</li>
+
+                        <li> <strong>Resources -</strong> No calculators, internet searches, or outside help. Keep one
+                            blank sheet for notes.</li>
+
+                        <li> <strong>Focus -</strong> Read carefully; answer honestly. The goal is insight, not
+                            perfection.</li>
+
+                        <li> <strong>Section Guidance -</strong> Review the brief on-screen instructions before each
+                            part.</li>
+
+                        <table style="border: 1px solid #f6f6f6; margin-bottom:10px;">
+                            <thead>
+                                <tr>
+                                    <th>Section</th>
+                                    <th>Time</th>
+                                    <th>What to Expect</th>
+                                    <th>Quick Tips</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr>
+                                    <td>Abstract Reasoning</td>
+                                    <td>10 min</td>
+                                    <td>Patterns, sequences, mirror images, odd-one-out</td>
+                                    <td>Eliminate options quickly; trust visual instincts.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Numerical Reasoning</td>
+                                    <td>10 min</td>
+                                    <td>Arithmetic, percentages, ratios, algebra, speed-distance, probability</td>
+                                    <td>Work fast; move on if stuck. Mental math or rough paper only.</td>
+                                </tr>
+                                <tr>
+                                    <td>Logical Reasoning</td>
+                                    <td>10 min</td>
+                                    <td>Analogies, direction sense, syllogisms, number puzzles</td>
+                                    <td>Base answers strictly on given facts; spot underlying rules.</td>
+                                </tr>
+                                <tr>
+                                    <td>Verbal Reasoning</td>
+                                    <td>10 min</td>
+                                    <td>Synonyms & antonyms, sentence correction, idioms, grammar</td>
+                                    <td>Identify tone and context before choosing.
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>Clerical Accuracy</td>
+                                    <td>5 min</td>
+                                    <td>Pattern matching, character sequences, visual discrimination</td>
+                                    <td>Scan for subtle differences in letters, numbers, symbols.</td>
+                                </tr>
+                                <tr>
+                                    <td>Mechanical Reasoning</td>
+                                    <td>10 min</td>
+                                    <td>Force, motion, energy, levers, gears, magnetism</td>
+                                    <td>Apply basic physics and common-sense cause-and-effect.</td>
+
+                                </tr>
+                                <tr>
+                                    <td>Spatial Reasoning</td>
+                                    <td>10 min</td>
+                                    <td>2D/3D rotation, folding, shape matching, mirror views </td>
+                                    <td>Visualize rotations; sketch quickly if needed.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+
+                        <h5 class="fs-18 my-3" style="color:#4f48d2; font-weight: 600; position: relative;
+  left: -16px;">Final Advice</h5>
+
+                        <li> <strong>Pace yourself -</strong> Section clocks run continuously—keep one eye on the timer.
+                        </li>
+
+                        <li> <strong>Stay calm -</strong> Breathe, think clearly, and trust your first instinct if
+                            unsure.</li>
+
+                        <li> <strong>Review -</strong> If time allows, re-check flagged items before the section closes.
+                        </li>
+
+
+                    </ol>
+
+
+
+                    <h4 class="fw-bold fs-20 my-4"> Good luck! Approach each question with confidence and clarity—you've
+                        got this. </h4>
+
+
+                </div>
+
+                <div class="bg-white pt-3">
+                    <button id="startBtn" class="btn purple-button px-md-6 fw-600 ms-1">Get Sections</button>
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+
+    <section id="sections-list" class="sections-list" style="display: none;">
+
+        <div class="container">
+
+            <nav aria-label="breadcrumb pt-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/api/web/home/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/api/web/tests/">Tests</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Aptitude Assessment</li>
+                </ol>
+            </nav>
+
+        </div>
+
+        <div class="container">
+            <div class="sections-container" id="sections-container">
+                <!-- Sections will be loaded here dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <template id="section-card-template" class="test-sections">
+        <div class="section-card">
+            <div class="section-header">
+                <div class="h-bottom">
+                    <span class="section-order">Section <span class="order-num"></span></span>
+                    <span class="section-status"></span>
+                </div>
+                <h3 class="section-title mb-0"></h3>
+            </div>
+            <div class="section-body">
+                <p class="section-description"></p>
+                <div class="section-meta border-top d-flex justify-content-between align-items-center">
+
+                    <span class="time-limit fs-14"><i class="fas fa-clock"></i> <span class="minutes"></span>
+                        minutes</span>
+
+                    <button
+                        class="start-section-btn btn btn-primary btn-sm mt-2 custom-start btn purple-button next-button ">Start
+                        Section</button>
+
+
+
+
+                </div>
+            </div>
+        </div>
+    </template>
+
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sectionsContainer = document.getElementById('sections-container');
+        const testId = window.location.pathname.split('/').filter(Boolean).slice(-2)[0];
+        const introductionSection = document.getElementById('introduction-test-4');
+        const heroGradient = document.getElementById('hero-gradient');
+        const sectionsListSection = document.getElementById('sections-list');
+        const startBtn = document.getElementById('startBtn');
+
+        console.log("testId", testId);
+
+        // Add event listener for the Begin button
+        startBtn.addEventListener('click', function () {
+            // Hide introduction section
+            introductionSection.style.display = 'none';
+            // Show hero gradient and sections list
+            heroGradient.style.display = 'block';
+            sectionsListSection.style.display = 'block';
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // Function to create completion popup
+        function createCompletionPopup() {
+            // Create popup HTML
+            const popupHTML = `
+                <div id="completion-popup" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 9999;
+                ">
+                    <div style="
+                        background: white;
+                        padding: 30px;
+                        border-radius: 10px;
+                        text-align: center;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        max-width: 400px;
+                        width: 90%;
+                    ">
+                        <h3 style="color: #28a745; margin-bottom: 20px;">🎉 Congratulations!</h3>
+                        <p style="margin-bottom: 25px; color: #333;">
+                            You have successfully completed all sections of this test!
+                        </p>
+                        <button id="complete-test-btn" style="
+                            background-color: #28a745;
+                            color: white;
+                            border: none;
+                            padding: 12px 30px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            font-weight: bold;
+                        ">
+                            Complete Test & Return to Tests
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Add popup to body
+            document.body.insertAdjacentHTML('beforeend', popupHTML);
+
+            // Add click event to complete button
+            document.getElementById('complete-test-btn').addEventListener('click', () => {
+                // Store completion status in localStorage
+                if (testId) {
+                    localStorage.setItem(`test_${testId}_completed`, 'true');
+                    localStorage.setItem(`test_${testId}_completed_at`, new Date().toISOString());
+                }
+
+                // Redirect to tests page
+                window.location.href = `/api/web/tests/`;
+            });
+        }
+
+        // Function to check if all sections are completed
+        function checkAllSectionsCompleted(sectionSessions, totalSections) {
+            const completedSessions = sectionSessions.filter(session => session.is_completed);
+            return completedSessions.length === totalSections;
+        }
+
+        // Function to get section sessions for the current test
+        async function getSectionSessions() {
+            try {
+                const response = await fetch(`/api/section-sessions/?test=${testId}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.results || [];
+                }
+                return [];
+            } catch (error) {
+                console.error('Error fetching section sessions:', error);
+                return [];
+            }
+        }
+
+        async function createSectionCard(section, sectionSessions) {
+            const template = document.getElementById('section-card-template');
+            const card = template.content.cloneNode(true);
+
+            // Find if this section has a completed session
+            const sectionSession = sectionSessions.find(session =>
+                session.section === section.id && session.is_completed
+            );
+
+            card.querySelector('.section-title').textContent = section.title;
+            card.querySelector('.order-num').textContent = section.order;
+            card.querySelector('.section-description').textContent = section.description;
+            card.querySelector('.minutes').textContent = section.time_limit || 'N/A';
+
+            const statusElement = card.querySelector('.section-status');
+            const startButton = card.querySelector('.start-section-btn');
+
+            if (sectionSession) {
+                // Section is completed
+                statusElement.innerHTML = '<span class="badge badge-success">Completed</span>';
+                startButton.textContent = 'Already Taken';
+                startButton.classList.remove('btn-primary');
+                startButton.classList.add('btn-success');
+                startButton.classList.add('disabled'); // Add the disabled class
+                startButton.setAttribute('disabled', 'disabled'); // Also add the disabled attribute for better accessibility
+
+                startButton.addEventListener('click', () => {
+                    // Redirect to results or review page
+                    window.location.href = `/api/web/test_results/${sectionSession.id}/`;
+                });
+            } else {
+                // Section is not completed
+                statusElement.innerHTML = '<span class="badge badge-secondary">Not Started</span>';
+                startButton.textContent = 'Start Section';
+
+                startButton.addEventListener('click', async () => {
+                    try {
+                        // Create or get test session
+                        const sessionRes = await fetch('/api/sessions/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken
+                            },
+                            body: JSON.stringify({ test: testId })
+                        });
+
+                        const session = await sessionRes.json();
+                        console.log("Parsed session:", session);
+
+                        // Create section session
+                        const sectionSessionRes = await fetch('/api/section-sessions/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken
+                            },
+                            body: JSON.stringify({ session: session.id, section: section.id })
+                        });
+
+                        if (!sectionSessionRes.ok) {
+                            const errorData = await sectionSessionRes.json();
+                            console.error('Section session creation failed:', errorData);
+                            throw new Error('Failed to create section session.');
+                        }
+
+                        const newSectionSession = await sectionSessionRes.json();
+                        console.log("Parsed section session:", newSectionSession);
+
+                        // Redirect to section question page
+                        window.location.href = `/api/web/test/${testId}/section/${section.id}/${session.id}/starttest/`;
+
+                    } catch (err) {
+                        console.error('Error starting section:', err);
+                        alert('Could not start section. Try again.');
+                    }
+                });
+            }
+
+            return card;
+        }
+
+        async function loadTestAndSections() {
+            try {
+                // Get test details
+                const testRes = await fetch(`/api/tests/${testId}/`);
+                const test = await testRes.json();
+                document.getElementById('test-title').textContent = test.title;
+                document.getElementById('test-description').textContent = test.description;
+
+                // Get section sessions to check completion status
+                const sectionSessions = await getSectionSessions();
+                console.log("Section sessions:", sectionSessions);
+
+                // Get sections
+                const sectionRes = await fetch(`/api/sections/?test=${testId}&page_size=100`);
+                const sectionData = await sectionRes.json();
+                console.log("sectionData", sectionData);
+
+                const totalSections = sectionData.count;
+
+                // Load sections into container
+                sectionsContainer.innerHTML = '';
+                for (const section of sectionData.results.sort((a, b) => a.order - b.order)) {
+                    const card = await createSectionCard(section, sectionSessions);
+                    sectionsContainer.appendChild(card);
+                }
+
+                // Check if all sections are completed and show popup
+                if (checkAllSectionsCompleted(sectionSessions, totalSections)) {
+                    // Add a small delay to ensure the page is fully loaded
+                    setTimeout(() => {
+                        createCompletionPopup();
+                    }, 500);
+                }
+
+                // Check if user has any completed sections
+                const hasCompletedSections = sectionSessions.some(session => session.is_completed);
+                console.log("Has completed sections:", hasCompletedSections);
+
+                // If user has completed sections, skip introduction
+                if (hasCompletedSections) {
+                    introductionSection.style.display = 'none';
+                    heroGradient.style.display = 'block';
+                    sectionsListSection.style.display = 'block';
+                }
+
+                // Show footer after content loads
+                if (typeof window.showFooterAfterContent === 'function') {
+                    window.showFooterAfterContent();
+                }
+
+            } catch (err) {
+                console.error('Error loading data:', err);
+                sectionsContainer.innerHTML = '<div class="error">Failed to load test data.</div>';
+                
+                // Show footer even on error
+                if (typeof window.showFooterAfterContent === 'function') {
+                    window.showFooterAfterContent();
+                }
+            }
+        }
+
+        // Start loading the test and sections
+        loadTestAndSections();
+    });
+</script>
+{% endblock %}
+

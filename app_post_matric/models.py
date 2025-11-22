@@ -406,3 +406,26 @@ class TestTopCategories(TimeStampedModel):
     test_paper = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='top_categories')
     high_category = models.TextField(null=True, blank=True)  # Changed from CharField to TextField
     low_category = models.CharField(max_length=100, null=True, blank=True)
+
+
+class TestCompletionPopup(TimeStampedModel):
+    """Stores answers from popup questions shown after test completion"""
+    TEST_TYPE_CHOICES = [
+        ('personality', 'Personality Assessment'),
+        ('motivation', 'Motivation Assessment'),
+        ('career_interest', 'Career Interest Inventory'),
+        ('aptitude', 'Aptitude Assessment'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='test_completion_popups')
+    test_type = models.CharField(max_length=20, choices=TEST_TYPE_CHOICES)
+    answer = models.CharField(max_length=200, help_text="Selected answer option")
+    country = models.CharField(max_length=100, null=True, blank=True, help_text="Country selection for career interest 'Outside India' option")
+    
+    class Meta:
+        unique_together = ['user', 'test_type']
+        verbose_name = "Test Completion Popup Answer"
+        verbose_name_plural = "Test Completion Popup Answers"
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.get_test_type_display()}: {self.answer}"

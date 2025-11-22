@@ -1,7 +1,11 @@
 <!-- Footer Section -->
 <footer class="footer-area">
   {% block footer_cta %}
-  <div class="footer-cta border-bottom-t pb-md-8 pb-5">
+  {# Debug: has_payment = {{ has_payment|default:"NOT_SET" }} #}
+  
+  {% if not has_payment %}
+  <div class="footer-cta border-bottom-t pb-md-8 pb-5" style="display: none !important; visibility: hidden !important; 
+  /*opacity: 0 !important; height: 0 !important; max-height: 0 !important; min-height: 0 !important; overflow: hidden !important; position: absolute !important; width: 0 !important; margin: 0 !important; padding: 0 !important; pointer-events: none !important; line-height: 0 !important; font-size: 0 !important; border-bottom: 1 !important;*/">
     <div class="container">
       <div class="row">
         <div class="col-md-9 mx-auto mt-md-6 text-center">
@@ -19,6 +23,7 @@
       </div>
     </div>
   </div>
+  {% endif %}
   {% endblock %}
 
   <div class="footer-main border-bottom-t pt-md-8 pb-md-4 pt-5">
