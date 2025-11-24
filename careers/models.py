@@ -129,7 +129,7 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
     career_cluster=models.ManyToManyField(CareerCluster,related_name="career_clusters", blank=True)
     career_paths = models.ManyToManyField(CareerPath, blank=True)
     video_url=models.URLField(max_length=250,blank=True)
-    videos = models.ManyToManyField("Videos",null=True,blank=True)
+    videos = models.ManyToManyField("Videos", blank=True)
 
     
     class Meta(BaseModel.Meta):

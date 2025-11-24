@@ -160,11 +160,11 @@
                 }
               }
               
-              // Save current answer before advancing
+              // Save current answer before advancing - use oldIndex to save the answer for the question we're leaving
               if (typeof window.saveCurrentAnswer === 'function' && window.saveCurrentAnswer !== null) {
-                window.saveCurrentAnswer();
+                window.saveCurrentAnswer(oldIndex); // Pass explicit index for the question we're leaving
               } else if (typeof saveCurrentAnswer === 'function') {
-                saveCurrentAnswer();
+                saveCurrentAnswer(oldIndex);
               }
               
               // Advance to next question
@@ -259,7 +259,7 @@
       const questionBox = $(this).closest('.question-box');
       const hasChecked = questionBox.find('input[type="checkbox"]:checked').length > 0;
       
-      // Save answer if function exists
+      // Save answer if function exists (like production code - simple call)
       if (typeof window.saveCurrentAnswer === 'function' && window.saveCurrentAnswer !== null) {
         window.saveCurrentAnswer();
       } else if (typeof saveCurrentAnswer === 'function') {
@@ -283,14 +283,11 @@
           console.log('Auto-advancing to next question (checkbox)...');
           setTimeout(function() {
             if (typeof window.currentQuestionIndex !== 'undefined' && typeof window.questions !== 'undefined') {
-              // Update local variable first if it exists
-              if (typeof currentQuestionIndex !== 'undefined') {
-                currentQuestionIndex = window.currentQuestionIndex + 1;
-              }
+              const oldIndex = window.currentQuestionIndex;
               
               // Update answer times before advancing
-              if (typeof window.questionStartTimes !== 'undefined' && window.questionStartTimes[window.currentQuestionIndex]) {
-                const timeSpent = (Date.now() - window.questionStartTimes[window.currentQuestionIndex]) / 1000;
+              if (typeof window.questionStartTimes !== 'undefined' && window.questionStartTimes[oldIndex]) {
+                const timeSpent = (Date.now() - window.questionStartTimes[oldIndex]) / 1000;
                 if (typeof window.answerTimes !== 'undefined') {
                   window.answerTimes.push(timeSpent);
                 }
@@ -303,8 +300,20 @@
                 }
               }
               
+              // Save current answer before advancing - use oldIndex to save the answer for the question we're leaving
+              if (typeof window.saveCurrentAnswer === 'function' && window.saveCurrentAnswer !== null) {
+                window.saveCurrentAnswer(oldIndex); // Pass explicit index for the question we're leaving
+              } else if (typeof saveCurrentAnswer === 'function') {
+                saveCurrentAnswer(oldIndex);
+              }
+              
               // Advance to next question
-              window.currentQuestionIndex++;
+              window.currentQuestionIndex = oldIndex + 1;
+              
+              // Update local variable if it exists
+              if (typeof currentQuestionIndex !== 'undefined') {
+                currentQuestionIndex = window.currentQuestionIndex;
+              }
               
               // Call functions to render next question
               if (typeof window.renderCurrentQuestion === 'function' && window.renderCurrentQuestion !== null) {

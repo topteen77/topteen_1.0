@@ -20,5 +20,3 @@ python manage.py fix_career_table_tags
 # Fix <li> tags with numbers/bullets in both description and description_en  
 python manage.py fix_li_tags_with_numbers_bullets --dry-run
 python manage.py fix_li_tags_with_numbers_bullets
-
-..

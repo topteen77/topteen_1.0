@@ -15,6 +15,13 @@
 <style>
     .test-sections-page {
         padding-top: 0;
+        background-color: #f5f5f5;
+        min-height: 100vh;
+    }
+
+    .test-sections-page main {
+        background-color: #f5f5f5;
+        padding: 40px 15px;
     }
 
     .purple-button.disabled {
@@ -115,7 +122,6 @@
         color: #514d4d;
         font-weight: 500;
         border-radius: 15px;
-        padding: 7px 15px;
     }
 
     .badge.badge-success {
@@ -126,43 +132,146 @@
     }
 
     .introduction {
-        margin: 32px 0;
-        border: 1px solid #cecece;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        max-width: 1200px;
+        margin: 40px auto;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         overflow: hidden;
+    }
+
+    .introduction .row {
+        margin: 0;
+    }
+
+    .introduction .col-md-4 {
+        padding: 0;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .introduction .col-md-8 {
+        padding: 0;
+    }
+
+    .inst-data {
+        padding: 40px;
     }
 
     .inst-data h3 {
         font-size: 32px;
         font-weight: 600;
+        color: #333;
         position: relative;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #dbd9d9;
-        margin-bottom: 23px;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
     }
 
-    .inst-data h3::before {
+    .inst-data h3::after {
         content: "";
         background: #3f37c9;
         width: 75px;
-        height: 2px;
+        height: 3px;
         position: absolute;
         bottom: 0;
+        left: 0;
     }
 
     .instruction-content {
-        height: 450px;
-        overflow-y: scroll;
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    .instruction-content::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .instruction-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .instruction-content::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+    .instruction-content::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .introduction table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
     }
 
     .introduction table tr td,
     .introduction table tr th {
-        border: 1px solid #737373;
-        padding: 5px 9px;
+        border: 1px solid #e0e0e0;
+        padding: 10px;
+        text-align: left;
+    }
+
+    .introduction table thead tr th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .introduction .inimg img {
+        max-width: 100%;
+        height: auto;
+        padding: 20px;
+    }
+
+    .introduction .bg-white.pt-3 {
+        padding-top: 20px !important;
+        margin-top: 20px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .introduction .purple-button {
+        background: #3f37c9;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .introduction .purple-button:hover {
+        background: #534a9a;
     }
 
     @media (max-width: 768px) {
+        .test-sections-page main {
+            padding: 20px 10px;
+        }
+
+        .introduction {
+            margin: 20px auto;
+            border-radius: 12px;
+        }
+
+        .inst-data {
+            padding: 25px 20px;
+        }
+
+        .introduction .col-md-4 {
+            display: none;
+        }
+
+        .introduction .col-md-8 {
+            width: 100%;
+        }
+
         .sections-container {
             grid-template-columns: 1fr;
             margin-bottom: 80px;
@@ -171,6 +280,10 @@
         .section-description {
             min-height: auto;
             height: auto;
+        }
+
+        .instruction-content {
+            max-height: 400px;
         }
     }
 </style>

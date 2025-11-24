@@ -201,6 +201,7 @@
   }
   .modal-overlay.show {
     display: flex;
+    z-index: 1020;
   }
   .modal-content {
     background-color: white;
@@ -252,7 +253,7 @@
             {% endif %}
           </div>
           <div class="bg-white pt-3">
-            <button id="startBtn" class="btn btn-primary px-md-6 fw-600">Begin</button>
+            <button type="button" id="startBtn" class="btn btn-primary px-md-6 fw-600">Begin</button>
           </div>
         </div>
       </div>
@@ -439,7 +440,16 @@
 {% include 'template20/includes/test_features_js.html' %}
 
 <script>
+// Ensure jQuery is loaded before proceeding
+if (typeof jQuery === 'undefined') {
+  console.error('jQuery is not loaded!');
+} else {
+  console.log('jQuery version:', jQuery.fn.jquery);
+}
+
 $(document).ready(function() {
+  console.log('Document ready - initializing section details');
+  
   const sectionId = {{ section_id }};
   const testId = {{ test_id }};
   const sessionId = {{ session_id }};
@@ -593,6 +603,11 @@ $(document).ready(function() {
       if (typeof window.showFooterAfterContent === 'function') {
         window.showFooterAfterContent();
       }
+      
+      // Show footer CTA if available
+      if (typeof window.showFooterCTA === 'function') {
+        window.showFooterCTA();
+      }
 
     } catch (error) {
       console.error('Error loading questions:', error);
@@ -603,15 +618,10 @@ $(document).ready(function() {
         window.showFooterAfterContent();
       }
       
-      // Show footer even on error
+      // Show footer CTA even on error
       if (typeof window.showFooterCTA === 'function') {
         window.showFooterCTA();
       }
-    }
-
-    } catch (error) {
-      console.error('Error loading questions:', error);
-      $('#questions-container').html('<div class="alert alert-danger">Failed to load questions. Please try refreshing the page.</div>');
     }
   }
 
@@ -671,6 +681,11 @@ $(document).ready(function() {
       const savedAnswerId = userAnswers[questionKey].answer_id;
       $(`input[value="${savedAnswerId}"]`).prop('checked', true);
     }
+    
+    // Add event listeners to save answers when selected (like production code)
+    $(`input[name="question-${question.id}"]`).on('change', function() {
+      saveCurrentAnswer();
+    });
 
     // Set question start time
     questionStartTimes[qIndex] = Date.now();
@@ -688,25 +703,30 @@ $(document).ready(function() {
     updateNavigationButtons();
   }
 
-  // Save current answer
+  // Save current answer - simplified to match production code
   function saveCurrentAnswer() {
-    // Sync currentQuestionIndex from window if available (for auto-advance compatibility)
+    // Use current question index - sync from window if available
+    let qIndex = currentQuestionIndex;
     if (typeof window.currentQuestionIndex !== 'undefined' && window.currentQuestionIndex !== null) {
-      currentQuestionIndex = window.currentQuestionIndex;
+      qIndex = window.currentQuestionIndex;
+      currentQuestionIndex = qIndex; // Keep in sync
+    } else {
+      window.currentQuestionIndex = qIndex;
     }
     
-    // Use local questions array (like backup template)
-    const question = questions[currentQuestionIndex];
-    if (!question) return;
+    // Use local questions array (like production code)
+    const question = questions[qIndex];
+    if (!question) {
+      console.warn('saveCurrentAnswer: No question found at index', qIndex);
+      return;
+    }
     
-    // Expose function to window for auto-advance
-    window.saveCurrentAnswer = saveCurrentAnswer;
-    
+    // Find selected input using jQuery (like production uses querySelector)
     const selectedInput = $(`input[name="question-${question.id}"]:checked`);
     
     if (selectedInput.length > 0) {
       const answerId = parseInt(selectedInput.val());
-      const answer = question.answers.find(a => a.id === answerId);
+      const answer = question.answers ? question.answers.find(a => a.id === answerId) : null;
       
       userAnswers[`Question_${question.order}`] = {
         question_id: question.id,
@@ -716,11 +736,12 @@ $(document).ready(function() {
         score: parseInt(selectedInput.data('score')) || 0,
         category: selectedInput.data('category') || null
       };
-    } else {
-      delete userAnswers[`Question_${question.order}`];
+      
+      console.log('Saved answer for question', question.order, ':', `Question_${question.order}`);
     }
     
-    // Always sync userAnswers to window (for test features component)
+    // Sync to window for auto-advance compatibility
+    window.saveCurrentAnswer = saveCurrentAnswer;
     window.userAnswers = userAnswers;
   }
 
@@ -764,24 +785,18 @@ $(document).ready(function() {
     $('#submit-section').toggle(qIndex === qArray.length - 1);
   }
 
-  // Submit section
+  // Submit section - simplified to match production code
   async function submitSection() {
     try {
-      // Save current answer
+      // Save the current question's answer before submitting (like production code)
       saveCurrentAnswer();
 
-      // Sync from window variables to local variables before validation (like backup template)
-      if (typeof window.questions !== 'undefined' && window.questions.length > 0) {
-        questions = window.questions;
-      }
+      // Merge answers from window if available (for auto-advance compatibility)
       if (typeof window.userAnswers !== 'undefined' && window.userAnswers !== null) {
-        // Merge window answers into local (window takes precedence for latest answers)
         userAnswers = Object.assign({}, userAnswers, window.userAnswers);
-        // Sync back to window to keep them in sync
-        window.userAnswers = userAnswers;
       }
 
-      // Check if all questions are answered (using local variables like backup template)
+      // Check if all questions are answered (like production code)
       const unansweredQuestions = [];
       for (let i = 0; i < questions.length; i++) {
         const questionKey = `Question_${questions[i].order}`;
@@ -805,10 +820,12 @@ $(document).ready(function() {
         throw new Error('No active session found');
       }
 
-      // Calculate score (using local variables like backup template)
+      // Process all saved answers (like production code)
       let score = 0;
       let totalQuestions = questions.length;
       let categoryCounts = {};
+      
+      // Count categories and calculate total score
       Object.values(userAnswers).forEach(answer => {
         if (answer.category) {
           categoryCounts[answer.category] = (categoryCounts[answer.category] || 0) + 1;
@@ -894,11 +911,36 @@ $(document).ready(function() {
   }
 
   // Event listeners
-  $('#startBtn').on('click', function() {
+  // Use event delegation for reliability (works even if button is added dynamically)
+  $(document).on('click', '#startBtn', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Begin button clicked - hiding introduction, showing questions');
+    
+    // Hide introduction section
     $('#introduction-section').hide();
+    
+    // Show question container
     $('.question-container').show();
+    
+    // Load questions
     loadQuestions();
   });
+  
+  // Verify button exists and log for debugging
+  setTimeout(function() {
+    const btn = $('#startBtn');
+    if (btn.length > 0) {
+      console.log('Begin button found in DOM, handler ready');
+      console.log('Button element:', btn[0]);
+      // Test if button is visible and clickable
+      console.log('Button visible:', btn.is(':visible'));
+      console.log('Button disabled:', btn.prop('disabled'));
+      console.log('Button CSS pointer-events:', btn.css('pointer-events'));
+    } else {
+      console.error('Begin button not found in DOM after 100ms');
+    }
+  }, 100);
 
   $('#prev-question').on('click', function() {
     if (currentQuestionIndex > 0) {

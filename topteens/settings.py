@@ -309,6 +309,10 @@ CKEDITOR_CONFIGS = {
     },
 }
 
+# Suppress CKEditor 4 deprecation warning
+# Note: CKEditor 4 is deprecated but still in use. Consider migrating to django-ckeditor-5 in the future.
+SILENCED_SYSTEM_CHECKS = ['ckeditor.W001']
+
 gettext = lambda s: s
 LANGUAGES = (
     ('en', gettext('English')),

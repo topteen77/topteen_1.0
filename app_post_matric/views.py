@@ -1971,7 +1971,7 @@ def Test_results(request, id):
         latest_session = TestSession.objects.filter(**query).order_by('-end_time').first()
         
         if not latest_session:
-            return render(request, "results.html", {
+            return render(request, "template20/app_post_matric/test_results.html", {
                 'error': 'No completed test found',
                 'no_results': True
             })

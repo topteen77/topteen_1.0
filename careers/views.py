@@ -220,7 +220,314 @@ class CareerDetail(TemplateView):
         
         ctx['related_careers'] = related_careers
 
+        # Generate mindmap data (career clusters)
+        ctx['mindmap_data'] = self._get_mindmap_data(career)
+        
+        # Generate career aspect mindmap data (like HIPPOLOGY example)
+        ctx['career_aspect_mindmap'] = self._get_career_aspect_mindmap(career)
+
         return ctx
+    
+    def _get_mindmap_data(self, current_career):
+        """Generate mindmap data structure from database"""
+        import json
+        from .models import CareerCluster
+        
+        # Get all top-level clusters (no parent)
+        top_clusters = CareerCluster.objects.filter(parent__isnull=True)
+        
+        mindmap_data = {
+            "name": "Career Paths",
+            "children": []
+        }
+        
+        # Limit to 10 clusters for performance
+        for cluster in top_clusters[:10]:
+            # Get careers in this cluster (published only)
+            careers = Career.objects.filter(
+                career_cluster=cluster,
+                publish_status=choices.PublishStatus.PUBLISHED
+            ).distinct()[:8]  # Limit to 8 careers per cluster
+            
+            if careers.exists():
+                cluster_data = {
+                    "name": cluster.name,
+                    "children": []
+                }
+                
+                for career in careers:
+                    # Generate full URL for the career
+                    career_url = reverse('careers:careerdetail', args=[career.slug, career.id])
+                    career_data = {
+                        "name": career.name,
+                        "slug": career.slug,
+                        "id": career.id,
+                        "url": career_url,
+                        "is_current": (career.id == current_career.id)
+                    }
+                    cluster_data["children"].append(career_data)
+                
+                mindmap_data["children"].append(cluster_data)
+        
+        return json.dumps(mindmap_data)
+    
+    def _get_career_aspect_mindmap(self, career):
+        """Generate career aspect mindmap data from description field (H1, H2, H3 structure)"""
+        import json
+        import re
+        from django.utils.html import strip_tags
+        from bs4 import BeautifulSoup
+        
+        def summarize_content(html_content, max_length=200):
+            """Summarize HTML content to make it concise for mindmap"""
+            if not html_content:
+                return ""
+            
+            # Strip HTML tags and get plain text
+            text = strip_tags(html_content)
+            
+            # Remove extra whitespace
+            text = ' '.join(text.split())
+            
+            # If content is short, return as is
+            if len(text) <= max_length:
+                return text
+            
+            # Find first sentence or paragraph break
+            sentences = text.split('. ')
+            summary = ""
+            for sentence in sentences:
+                if len(summary + sentence) <= max_length:
+                    summary += sentence + ". "
+                else:
+                    break
+            
+            # If no sentences found, truncate
+            if not summary:
+                summary = text[:max_length] + "..."
+            else:
+                summary = summary.strip()
+                if len(summary) < len(text):
+                    summary += "..."
+            
+            return summary
+        
+        # Parse description HTML to extract H1, H2, H3 structure
+        mindmap_data = {
+            "name": career.name,
+            "summary": career.summary or "",
+            "children": []
+        }
+        
+        if not career.description:
+            return json.dumps(mindmap_data)
+        
+        try:
+            soup = BeautifulSoup(career.description, 'html.parser')
+            
+            # Extract body content if it's a full HTML document
+            body = soup.find('body')
+            if body:
+                soup = body
+            
+            # Find H1 as root title (or first strong paragraph)
+            h1_tag = soup.find('h1')
+            if h1_tag:
+                mindmap_data["name"] = h1_tag.get_text().strip()
+            else:
+                # Try to find first <p><strong> as title
+                first_strong_p = soup.find('p')
+                if first_strong_p and first_strong_p.find('strong'):
+                    mindmap_data["name"] = first_strong_p.find('strong').get_text().strip()
+            
+            # Find all H2 tags (main children) or <p><strong> patterns
+            h2_tags = soup.find_all('h2')
+            current_h2 = None
+            current_h2_data = None
+            
+            # If no H2 tags, look for <p><strong> patterns as potential H2
+            if not h2_tags:
+                # Get all elements in order
+                all_elements = soup.find_all(['p', 'ul', 'ol'])
+                potential_h2s = []
+                
+                # Find all paragraphs with strong tags that could be H2
+                # H2 sections are typically longer titles, not sub-items starting with a), b), c) or single words
+                for elem in all_elements:
+                    if elem.name == 'p':
+                        strong = elem.find('strong')
+                        if strong:
+                            text = strong.get_text().strip()
+                            # Skip if it's the title we already found
+                            if text != mindmap_data["name"]:
+                                # Skip sub-sections (starting with a), b), c), d) or single short words like "Level", "Eligibility")
+                                if not (text.startswith(('a)', 'b)', 'c)', 'd)', 'e)', 'f)', 'g)', 'h)', 'i)', 'j)')) or 
+                                        len(text.split()) <= 2):
+                                    potential_h2s.append((elem, all_elements.index(elem)))
+                
+                # Use first few strong paragraphs as H2 sections
+                for idx, (p, p_idx) in enumerate(potential_h2s[:10]):  # Limit to 10 sections
+                    strong = p.find('strong')
+                    if strong:
+                        # Save previous H2 if exists
+                        if current_h2_data:
+                            mindmap_data["children"].append(current_h2_data)
+                        
+                        # Start new H2
+                        h2_name = strong.get_text().strip()
+                        current_h2_data = {
+                            "name": h2_name,
+                            "summary": "",
+                            "content": "",
+                            "children": []
+                        }
+                        
+                        # Get content after this paragraph until next main H2 section
+                        content_parts = []
+                        next_idx = p_idx + 1
+                        while next_idx < len(all_elements):
+                            next_elem = all_elements[next_idx]
+                            # Stop if we hit another main H2 section (strong paragraph that's not a sub-section)
+                            if next_elem.name == 'p':
+                                next_strong = next_elem.find('strong')
+                                if next_strong:
+                                    next_text = next_strong.get_text().strip()
+                                    # Check if it's a main section (not a sub-section)
+                                    if not (next_text.startswith(('a)', 'b)', 'c)', 'd)', 'e)', 'f)', 'g)', 'h)', 'i)', 'j)')) or 
+                                            len(next_text.split()) <= 2):
+                                        # This is the next H2, stop here
+                                        break
+                                    else:
+                                        # This is an H3 sub-section, add it as child
+                                        h3_data = {
+                                            "name": next_text,
+                                            "summary": "",
+                                            "content": ""
+                                        }
+                                        # Get content for this H3
+                                        h3_content_parts = []
+                                        h3_idx = next_idx + 1
+                                        while h3_idx < len(all_elements):
+                                            h3_elem = all_elements[h3_idx]
+                                            if h3_elem.name == 'p' and h3_elem.find('strong'):
+                                                break
+                                            if h3_elem.name in ['p', 'ul', 'ol']:
+                                                h3_content_parts.append(str(h3_elem))
+                                            h3_idx += 1
+                                        h3_data["content"] = "".join(h3_content_parts)
+                                        h3_data["summary"] = summarize_content(h3_data["content"], max_length=100)
+                                        current_h2_data["children"].append(h3_data)
+                                        next_idx = h3_idx - 1  # Continue from after H3 content
+                            # Collect regular paragraphs and lists
+                            elif next_elem.name in ['ul', 'ol']:
+                                content_parts.append(str(next_elem))
+                            elif next_elem.name == 'p' and not next_elem.find('strong'):
+                                content_parts.append(str(next_elem))
+                            next_idx += 1
+                        
+                        full_content = "".join(content_parts)
+                        current_h2_data["content"] = full_content
+                        current_h2_data["summary"] = summarize_content(full_content, max_length=150)
+                        
+                        # Look for H3 sub-sections within this H2 content
+                        if full_content:
+                            content_soup = BeautifulSoup(full_content, 'html.parser')
+                            sub_strongs = content_soup.find_all(['p', 'li'])
+                            current_h3 = None
+                            for elem in sub_strongs:
+                                strong_tag = elem.find('strong')
+                                if strong_tag:
+                                    # This might be an H3 equivalent
+                                    if current_h3:
+                                        current_h2_data["children"].append(current_h3)
+                                    current_h3 = {
+                                        "name": strong_tag.get_text().strip(),
+                                        "summary": "",
+                                        "content": str(elem)
+                                    }
+                                    current_h3["summary"] = summarize_content(current_h3["content"], max_length=100)
+                                elif current_h3:
+                                    current_h3["content"] += str(elem)
+                            
+                            if current_h3:
+                                current_h2_data["children"].append(current_h3)
+            else:
+                # Original H2/H3 parsing logic
+                for element in soup.find_all(['h2', 'h3', 'p', 'ul', 'ol']):
+                    if element.name == 'h2':
+                        # Save previous H2 if exists
+                        if current_h2_data:
+                            mindmap_data["children"].append(current_h2_data)
+                        
+                        # Start new H2
+                        current_h2 = element
+                        current_h2_data = {
+                            "name": element.get_text().strip(),
+                            "summary": "",
+                            "content": "",
+                            "children": []
+                        }
+                        
+                    elif element.name == 'h3' and current_h2_data:
+                        # H3 is a subchild of current H2
+                        h3_data = {
+                            "name": element.get_text().strip(),
+                            "summary": "",
+                            "content": ""
+                        }
+                        
+                        # Get content after H3 until next heading
+                        content_parts = []
+                        next_sibling = element.next_sibling
+                        while next_sibling:
+                            if next_sibling.name in ['h2', 'h3']:
+                                break
+                            if next_sibling.name in ['p', 'ul', 'ol']:
+                                content_parts.append(str(next_sibling))
+                            next_sibling = next_sibling.next_sibling
+                        
+                        if content_parts:
+                            full_content = "".join(content_parts)
+                            h3_data["content"] = full_content
+                            h3_data["summary"] = summarize_content(full_content, max_length=100)
+                        
+                        current_h2_data["children"].append(h3_data)
+                        
+                    elif element.name in ['p', 'ul', 'ol'] and current_h2_data:
+                        # Add content to current H2 (if no H3 children yet or content before first H3)
+                        if not current_h2_data["children"]:
+                            current_h2_data["content"] += str(element)
+            
+            # Summarize H2 content and add last H2 if exists
+            if current_h2_data:
+                if current_h2_data["content"] and not current_h2_data["summary"]:
+                    current_h2_data["summary"] = summarize_content(current_h2_data["content"], max_length=150)
+                mindmap_data["children"].append(current_h2_data)
+            
+            # If still no children, create a simple overview
+            if not mindmap_data["children"]:
+                # Get first few paragraphs as overview
+                paragraphs = soup.find_all('p')[:5]
+                if paragraphs:
+                    content = "".join([str(p) for p in paragraphs if not (p.find('strong') and p.find('strong').get_text().strip() == mindmap_data["name"])])
+                    if content:
+                        mindmap_data["children"].append({
+                            "name": "Overview",
+                            "summary": summarize_content(content, max_length=150),
+                            "content": content,
+                            "children": []
+                        })
+        
+        except Exception as e:
+            # Fallback: create simple structure
+            mindmap_data["children"] = [{
+                "name": "Career Description",
+                "summary": summarize_content(career.description, max_length=150),
+                "content": career.description,
+                "children": []
+            }]
+        
+        return json.dumps(mindmap_data)
 
     @classmethod
     def _breadcrumb(self,career):
