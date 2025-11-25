@@ -278,7 +278,17 @@ class CareerDetail(TemplateView):
         from django.utils.html import strip_tags
         from bs4 import BeautifulSoup
         
-        def summarize_content(html_content, max_length=200):
+        # Parse description HTML to extract H1, H2, H3 structure
+        mindmap_data = {
+            "name": career.name,
+            "summary": career.summary or "",
+            "children": []
+        }
+        
+        if not career.description:
+            return json.dumps(mindmap_data)
+        
+        def summarize_content(html_content, max_length=150):
             """Summarize HTML content to make it concise for mindmap"""
             if not html_content:
                 return ""
@@ -312,16 +322,6 @@ class CareerDetail(TemplateView):
             
             return summary
         
-        # Parse description HTML to extract H1, H2, H3 structure
-        mindmap_data = {
-            "name": career.name,
-            "summary": career.summary or "",
-            "children": []
-        }
-        
-        if not career.description:
-            return json.dumps(mindmap_data)
-        
         try:
             soup = BeautifulSoup(career.description, 'html.parser')
             
@@ -347,26 +347,19 @@ class CareerDetail(TemplateView):
             
             # If no H2 tags, look for <p><strong> patterns as potential H2
             if not h2_tags:
-                # Get all elements in order
-                all_elements = soup.find_all(['p', 'ul', 'ol'])
+                # Find all paragraphs with strong tags
+                strong_paragraphs = soup.find_all('p')
                 potential_h2s = []
-                
-                # Find all paragraphs with strong tags that could be H2
-                # H2 sections are typically longer titles, not sub-items starting with a), b), c) or single words
-                for elem in all_elements:
-                    if elem.name == 'p':
-                        strong = elem.find('strong')
-                        if strong:
-                            text = strong.get_text().strip()
-                            # Skip if it's the title we already found
-                            if text != mindmap_data["name"]:
-                                # Skip sub-sections (starting with a), b), c), d) or single short words like "Level", "Eligibility")
-                                if not (text.startswith(('a)', 'b)', 'c)', 'd)', 'e)', 'f)', 'g)', 'h)', 'i)', 'j)')) or 
-                                        len(text.split()) <= 2):
-                                    potential_h2s.append((elem, all_elements.index(elem)))
+                for p in strong_paragraphs:
+                    strong = p.find('strong')
+                    if strong:
+                        text = strong.get_text().strip()
+                        # Skip if it's the title we already found
+                        if text != mindmap_data["name"]:
+                            potential_h2s.append(p)
                 
                 # Use first few strong paragraphs as H2 sections
-                for idx, (p, p_idx) in enumerate(potential_h2s[:10]):  # Limit to 10 sections
+                for p in potential_h2s[:12]:  # Limit to 12 sections
                     strong = p.find('strong')
                     if strong:
                         # Save previous H2 if exists
@@ -382,75 +375,22 @@ class CareerDetail(TemplateView):
                             "children": []
                         }
                         
-                        # Get content after this paragraph until next main H2 section
+                        # Get content after this paragraph until next strong paragraph
                         content_parts = []
-                        next_idx = p_idx + 1
-                        while next_idx < len(all_elements):
-                            next_elem = all_elements[next_idx]
-                            # Stop if we hit another main H2 section (strong paragraph that's not a sub-section)
-                            if next_elem.name == 'p':
-                                next_strong = next_elem.find('strong')
-                                if next_strong:
-                                    next_text = next_strong.get_text().strip()
-                                    # Check if it's a main section (not a sub-section)
-                                    if not (next_text.startswith(('a)', 'b)', 'c)', 'd)', 'e)', 'f)', 'g)', 'h)', 'i)', 'j)')) or 
-                                            len(next_text.split()) <= 2):
-                                        # This is the next H2, stop here
-                                        break
-                                    else:
-                                        # This is an H3 sub-section, add it as child
-                                        h3_data = {
-                                            "name": next_text,
-                                            "summary": "",
-                                            "content": ""
-                                        }
-                                        # Get content for this H3
-                                        h3_content_parts = []
-                                        h3_idx = next_idx + 1
-                                        while h3_idx < len(all_elements):
-                                            h3_elem = all_elements[h3_idx]
-                                            if h3_elem.name == 'p' and h3_elem.find('strong'):
-                                                break
-                                            if h3_elem.name in ['p', 'ul', 'ol']:
-                                                h3_content_parts.append(str(h3_elem))
-                                            h3_idx += 1
-                                        h3_data["content"] = "".join(h3_content_parts)
-                                        h3_data["summary"] = summarize_content(h3_data["content"], max_length=100)
-                                        current_h2_data["children"].append(h3_data)
-                                        next_idx = h3_idx - 1  # Continue from after H3 content
-                            # Collect regular paragraphs and lists
-                            elif next_elem.name in ['ul', 'ol']:
-                                content_parts.append(str(next_elem))
-                            elif next_elem.name == 'p' and not next_elem.find('strong'):
-                                content_parts.append(str(next_elem))
-                            next_idx += 1
+                        # Find all paragraphs after this one
+                        all_paragraphs = soup.find_all('p')
+                        current_index = all_paragraphs.index(p) if p in all_paragraphs else -1
+                        
+                        if current_index >= 0:
+                            # Get paragraphs after current one until we hit another strong paragraph
+                            for next_p in all_paragraphs[current_index + 1:]:
+                                if next_p.find('strong'):
+                                    break
+                                content_parts.append(str(next_p))
                         
                         full_content = "".join(content_parts)
                         current_h2_data["content"] = full_content
-                        current_h2_data["summary"] = summarize_content(full_content, max_length=150)
-                        
-                        # Look for H3 sub-sections within this H2 content
-                        if full_content:
-                            content_soup = BeautifulSoup(full_content, 'html.parser')
-                            sub_strongs = content_soup.find_all(['p', 'li'])
-                            current_h3 = None
-                            for elem in sub_strongs:
-                                strong_tag = elem.find('strong')
-                                if strong_tag:
-                                    # This might be an H3 equivalent
-                                    if current_h3:
-                                        current_h2_data["children"].append(current_h3)
-                                    current_h3 = {
-                                        "name": strong_tag.get_text().strip(),
-                                        "summary": "",
-                                        "content": str(elem)
-                                    }
-                                    current_h3["summary"] = summarize_content(current_h3["content"], max_length=100)
-                                elif current_h3:
-                                    current_h3["content"] += str(elem)
-                            
-                            if current_h3:
-                                current_h2_data["children"].append(current_h3)
+                        current_h2_data["summary"] = summarize_content(full_content, max_length=120)
             else:
                 # Original H2/H3 parsing logic
                 for element in soup.find_all(['h2', 'h3', 'p', 'ul', 'ol']):
@@ -486,10 +426,9 @@ class CareerDetail(TemplateView):
                                 content_parts.append(str(next_sibling))
                             next_sibling = next_sibling.next_sibling
                         
-                        if content_parts:
-                            full_content = "".join(content_parts)
-                            h3_data["content"] = full_content
-                            h3_data["summary"] = summarize_content(full_content, max_length=100)
+                        full_content = "".join(content_parts)
+                        h3_data["content"] = full_content
+                        h3_data["summary"] = summarize_content(full_content, max_length=100)
                         
                         current_h2_data["children"].append(h3_data)
                         
@@ -498,10 +437,12 @@ class CareerDetail(TemplateView):
                         if not current_h2_data["children"]:
                             current_h2_data["content"] += str(element)
             
-            # Summarize H2 content and add last H2 if exists
+            # Summarize H2 content
+            if current_h2_data and current_h2_data["content"]:
+                current_h2_data["summary"] = summarize_content(current_h2_data["content"], max_length=120)
+            
+            # Add last H2 if exists
             if current_h2_data:
-                if current_h2_data["content"] and not current_h2_data["summary"]:
-                    current_h2_data["summary"] = summarize_content(current_h2_data["content"], max_length=150)
                 mindmap_data["children"].append(current_h2_data)
             
             # If still no children, create a simple overview
@@ -513,19 +454,213 @@ class CareerDetail(TemplateView):
                     if content:
                         mindmap_data["children"].append({
                             "name": "Overview",
-                            "summary": summarize_content(content, max_length=150),
+                            "summary": summarize_content(content, max_length=120),
                             "content": content,
                             "children": []
                         })
-        
+            
         except Exception as e:
             # Fallback: create simple structure
-            mindmap_data["children"] = [{
-                "name": "Career Description",
-                "summary": summarize_content(career.description, max_length=150),
-                "content": career.description,
-                "children": []
-            }]
+            if career.description:
+                mindmap_data["children"] = [{
+                    "name": "Career Description",
+                    "summary": summarize_content(career.description, max_length=120),
+                    "content": career.description,
+                    "children": []
+                }]
+        
+        return json.dumps(mindmap_data)
+        
+        # Roles & Responsibilities
+        if career.role_description:
+            aspects.append({
+                "id": "roles",
+                "name": "Roles & Responsibilities",
+                "icon": "tasks",
+                "color": "#fa709a,#fee140",
+                "hasContent": True,
+                "modalContent": {
+                    "title": "Roles and Responsibilities",
+                    "body": career.role_description
+                }
+            })
+        
+        # Study Route & Eligibility
+        if career.eligibility:
+            aspects.append({
+                "id": "study-route",
+                "name": "Study Route",
+                "icon": "graduation-cap",
+                "color": "#30cfd0,#330867",
+                "hasContent": True,
+                "modalContent": {
+                    "title": "Study Route & Eligibility",
+                    "body": career.eligibility
+                }
+            })
+        
+        # Courses
+        if career.courses.exists():
+            courses_list = "\n".join([f"<li>{course.name}</li>" for course in career.courses.all()[:10]])
+            aspects.append({
+                "id": "courses",
+                "name": "Courses",
+                "icon": "book-open",
+                "color": "#81fbb8,#28c76f",
+                "hasContent": True,
+                "modalContent": {
+                    "title": "Related Courses",
+                    "body": f"<ul class='list-styled'>{courses_list}</ul>"
+                }
+            })
+        
+        # Career Path
+        if career.career_paths.exists():
+            paths_html = ""
+            for path in career.career_paths.all():
+                steps = path.get_sorted_priority()
+                if steps:
+                    steps_list = "\n".join([f"<li>{step.name}</li>" for step in steps])
+                    paths_html += f"<h5>{path.name}</h5><ul class='list-styled'>{steps_list}</ul>"
+            if paths_html:
+                aspects.append({
+                    "id": "career-path",
+                    "name": "Career Path",
+                    "icon": "route",
+                    "color": "#6a11cb,#2575fc",
+                    "hasContent": True,
+                    "modalContent": {
+                        "title": "Career Path",
+                        "body": paths_html
+                    }
+                })
+        
+        # Pros & Cons
+        if career.pros_cons:
+            aspects.append({
+                "id": "pros-cons",
+                "name": "Pros & Cons",
+                "icon": "balance-scale",
+                "color": "#ffecd2,#fcb69f",
+                "hasContent": True,
+                "modalContent": {
+                    "title": "Pros and Cons",
+                    "body": career.pros_cons
+                }
+            })
+        
+        # Skills
+        if career.skills.exists():
+            skills_list = "\n".join([f"<span class='badge-custom'>{skill.name}</span>" for skill in career.skills.all()[:20]])
+            aspects.append({
+                "id": "skills",
+                "name": "Skills",
+                "icon": "star",
+                "color": "#a8edea,#fed6e3",
+                "hasContent": True,
+                "modalContent": {
+                    "title": "Required Skills",
+                    "body": f"<div class='d-flex flex-wrap mt-3'>{skills_list}</div>"
+                }
+            })
+        
+        # Employment Areas
+        if career.prospective_employment_areas.exists():
+            areas_list = "\n".join([f"<li>{area.name}</li>" for area in career.prospective_employment_areas.all()[:15]])
+            aspects.append({
+                "id": "employment-areas",
+                "name": "Employment Areas",
+                "icon": "building",
+                "color": "#ff9a56,#ff6a88",
+                "hasContent": True,
+                "modalContent": {
+                    "title": "Employment Areas",
+                    "body": f"<ul class='list-styled'>{areas_list}</ul>"
+                }
+            })
+        
+        # Top Recruiters
+        if career.prospective_recruiters.exists():
+            recruiters_list = "\n".join([f"<li>{recruiter.name}</li>" for recruiter in career.prospective_recruiters.all()[:15]])
+            aspects.append({
+                "id": "recruiters",
+                "name": "Top Recruiters",
+                "icon": "users",
+                "color": "#f857a6,#ff5858",
+                "hasContent": True,
+                "modalContent": {
+                    "title": "Top Recruiters",
+                    "body": f"<ul class='list-styled'>{recruiters_list}</ul>"
+                }
+            })
+        
+        # Salary
+        salary = career.get_max_salary()
+        if salary and salary != "N/A":
+            # Get profession salary details if available
+            from .models import Profession
+            professions = Profession.objects.filter(career=career).order_by('-salary')[:5]
+            salary_html = f"<p><strong>Maximum Salary Range:</strong> {salary}</p>"
+            if professions.exists():
+                salary_html += "<h5>Salary by Profession:</h5><ul class='list-styled'>"
+                for prof in professions:
+                    salary_html += f"<li><strong>{prof.name}:</strong> {prof.get_salary_display()}</li>"
+                salary_html += "</ul>"
+            aspects.append({
+                "id": "salary",
+                "name": "Salary Range",
+                "icon": "rupee-sign",
+                "color": "#ff6e7f,#bfe9ff",
+                "hasContent": True,
+                "modalContent": {
+                    "title": "Salary Expectations",
+                    "body": salary_html
+                }
+            })
+        
+        # Videos
+        if career.videos.exists():
+            videos_list = ""
+            for video in career.videos.all()[:5]:
+                videos_list += f"<li><strong>{video.name}</strong>"
+                if video.description:
+                    desc = strip_tags(video.description)[:100]
+                    videos_list += f"<br><small>{desc}...</small>"
+                videos_list += "</li>"
+            aspects.append({
+                "id": "videos",
+                "name": "Career Videos",
+                "icon": "video",
+                "color": "#e0c3fc,#8ec5fc",
+                "hasContent": True,
+                "modalContent": {
+                    "title": "Career Videos",
+                    "body": f"<ul class='list-styled'>{videos_list}</ul>"
+                }
+            })
+        
+        # FAQs
+        if career.careerFAQ.exists():
+            faqs_html = ""
+            for faq in career.careerFAQ.all()[:10]:
+                faqs_html += f"<h5>{faq.question}</h5><p>{faq.answer}</p>"
+            aspects.append({
+                "id": "faqs",
+                "name": "FAQs",
+                "icon": "question-circle",
+                "color": "#ffecd2,#fcb69f",
+                "hasContent": True,
+                "modalContent": {
+                    "title": "Frequently Asked Questions",
+                    "body": faqs_html
+                }
+            })
+        
+        mindmap_data = {
+            "name": career.name,
+            "summary": career.summary or "",
+            "aspects": aspects
+        }
         
         return json.dumps(mindmap_data)
 

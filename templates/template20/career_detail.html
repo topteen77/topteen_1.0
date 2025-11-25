@@ -61,22 +61,8 @@
               
               <!-- Desktop Mind Map -->
               <div class="desktop-mind-map">
-                <div class="mind-map-container" id="career-mindmap-container" style="position: relative; min-height: 1000px; margin: 0 auto; max-width: 1100px; overflow: hidden; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
-                  <div style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 4px; font-size: 12px; color: #666; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <i class="fas fa-info-circle"></i> Drag to pan | Scroll to zoom | Click +/- to expand/collapse
-                  </div>
-                  <!-- SVG for connector lines -->
-                  <svg class="connector-container" id="connector-svg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;"></svg>
-                  
-                  <!-- Central Node -->
-                  <div class="central-node" id="career-central-node" onclick="showCareerAspectPanel('central')" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; box-shadow: 0 15px 50px rgba(102, 126, 234, 0.4); z-index: 10; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 20px;">
-                    <i class="fas fa-briefcase" style="font-size: 3.5rem; margin-bottom: 12px;"></i>
-                    <h2 style="font-size: 1.6rem; margin-bottom: 8px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;">{{ career.name|upper|truncate(15) }}</h2>
-                    <p style="font-size: 0.95rem; opacity: 0.95; font-weight: 300;">Career Map</p>
-                  </div>
-                  
-                  <!-- Aspect Nodes will be inserted here by JavaScript -->
-                  <div id="career-aspect-nodes"></div>
+                <div class="mind-map-container" id="career-mindmap-container" style="position: relative; min-height: 800px; margin: 0 auto; max-width: 1200px; overflow: visible;">
+                  <!-- Tree will be rendered here by D3.js -->
                 </div>
               </div>
               
@@ -762,10 +748,7 @@
     }
   });
 
-  // Career Aspect Mindmap functions (Vertical Tree Structure - Top to Bottom with Expand/Collapse and Drag/Zoom)
-  // Global variables for mindmap
-  let careerMindmapRoot, careerMindmapTree, careerMindmapSvg, careerMindmapG, careerMindmapWidth, careerMindmapHeight, careerMindmapZoom;
-  
+  // Career Aspect Mindmap functions (Vertical Tree Structure - Top to Bottom)
   function initializeCareerAspectMindmap() {
     if (!careerAspectMindmap || !careerAspectMindmap.children || careerAspectMindmap.children.length === 0) {
       return;
@@ -778,273 +761,151 @@
       return;
     }
     
-    // Calculate dimensions
-    careerMindmapWidth = container.offsetWidth || 1100;
-    careerMindmapHeight = Math.max(1000, 1200);
-    
     // Clear previous content
     container.innerHTML = '';
-    container.style.height = careerMindmapHeight + 'px';
-    container.style.overflow = 'hidden';
-    container.style.cursor = 'grab';
     
-    // Create SVG with zoom and pan functionality
-    careerMindmapSvg = d3.select("#career-mindmap-container")
+    const width = container.offsetWidth || 1100;
+    const height = Math.max(800, careerAspectMindmap.children.length * 200 + 300);
+    
+    container.style.height = height + 'px';
+    
+    // Create SVG for the tree
+    const svg = d3.select("#career-mindmap-container")
       .append("svg")
-      .attr("width", careerMindmapWidth)
-      .attr("height", careerMindmapHeight)
+      .attr("width", width)
+      .attr("height", height)
       .style("background", "transparent");
     
-    // Set up zoom behavior
-    careerMindmapZoom = d3.zoom()
-      .scaleExtent([0.3, 3])  // Allow zoom from 30% to 300%
-      .on("zoom", function(event) {
-        careerMindmapG.attr("transform", event.transform);
-      });
+    const g = svg.append("g")
+      .attr("transform", "translate(60, 80)");
     
-    // Apply zoom to SVG
-    careerMindmapSvg.call(careerMindmapZoom)
-      .on("mousedown.zoom", function() {
-        container.style.cursor = 'grabbing';
-      })
-      .on("mouseup.zoom", function() {
-        container.style.cursor = 'grab';
-      });
+    // Create tree layout (top to bottom)
+    const tree = d3.tree()
+      .size([height - 160, width - 300])
+      .nodeSize([140, 280]);
     
-    // Create main group with initial transform
-    careerMindmapG = careerMindmapSvg.append("g")
-      .attr("transform", "translate(100, 40)");
-    
-    // Create tree layout (vertical - top to bottom)
-    // For vertical: size([width, height]) where width is horizontal space, height is vertical space
-    careerMindmapTree = d3.tree()
-      .size([careerMindmapWidth - 300, careerMindmapHeight - 100])  // [width, height] = [x, y]
-      .nodeSize([300, 120]);  // [horizontal spacing, vertical spacing]
-    
-    // Build hierarchy
-    careerMindmapRoot = d3.hierarchy({
+    // Build hierarchy from H1 -> H2 -> H3 structure
+    const root = d3.hierarchy({
       name: careerAspectMindmap.name,
       summary: careerAspectMindmap.summary || "",
       content: "",
       children: careerAspectMindmap.children
     }, d => d.children);
     
-    // Initialize all nodes as expanded
-    careerMindmapRoot.each(d => {
-      if (d.children) {
-        d._children = null;  // All expanded by default
-      }
-    });
+    tree(root);
     
-    // Initial layout
-    updateMindmapTree();
-    
-    // Create central panel
-    const centralPanel = document.createElement('div');
-    centralPanel.className = 'detail-panel';
-    centralPanel.id = 'central-panel';
-    centralPanel.innerHTML = `
-      <div class="modal-header-custom">
-        <h3><i class="fas fa-briefcase"></i> ${careerAspectMindmap.name}</h3>
-        <button class="close-btn" onclick="closeCareerAspectPanels()"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal-body-custom">
-        <p>${careerAspectMindmap.summary || 'This comprehensive mind map outlines the various aspects of this career path.'}</p>
-        <p>Click on any node in the mind map to view detailed information. Click + or - to expand/collapse nodes.</p>
-      </div>
-    `;
-    panelsContainer.appendChild(centralPanel);
-  }
-  
-  function updateMindmapTree() {
-    // Update tree layout
-    careerMindmapTree(careerMindmapRoot);
-    
-    // Color scheme
+    // Color scheme for different levels
     const nodeColors = {
-      root: "#667eea",
-      h2: "#4facfe",
-      h3: "#81fbb8"
+      root: "#667eea",      // Purple for root (H1)
+      h2: "#4facfe",        // Blue for H2 (main branches)
+      h3: "#81fbb8"         // Green for H3 (sub-branches)
     };
     
-    // Update links
-    const links = careerMindmapG.selectAll(".link")
-      .data(careerMindmapRoot.links(), d => d.target.data.name);
-    
-    // Remove old links
-    links.exit().remove();
-    
-    // Add new links
-    const linksEnter = links.enter()
+    // Draw links (curved lines)
+    const links = g.selectAll(".link")
+      .data(root.links())
+      .enter()
       .append("path")
       .attr("class", "link")
+      .attr("d", d3.linkHorizontal()
+        .x(d => d.y)
+        .y(d => d.x))
       .style("fill", "none")
       .style("stroke", "#999")
-      .style("stroke-width", "2px")
+      .style("stroke-width", "2.5px")
       .style("opacity", 0.6);
     
-    // Update all links (vertical layout: x is horizontal, y is vertical)
-    const linksUpdate = linksEnter.merge(links);
-    linksUpdate.attr("d", d3.linkVertical()  // Use linkVertical for top-to-bottom layout
-      .x(d => d.x)  // x is horizontal position
-      .y(d => d.y));  // y is vertical position (top to bottom)
-    
-    // Update nodes
-    const nodes = careerMindmapG.selectAll(".node")
-      .data(careerMindmapRoot.descendants(), d => d.data.name);
-    
-    // Remove old nodes
-    nodes.exit().remove();
-    
-    // Add new nodes
-    const nodesEnter = nodes.enter()
+    // Draw nodes
+    const nodes = g.selectAll(".node")
+      .data(root.descendants())
+      .enter()
       .append("g")
       .attr("class", d => "node " + (d.depth === 0 ? "root" : d.depth === 1 ? "h2" : "h3"))
-      .attr("transform", d => `translate(${d.x},${d.y})`)
-      .style("cursor", "pointer");
+      .attr("transform", d => `translate(${d.y},${d.x})`)
+      .style("cursor", d => (d.data.content && d.data.content.length > 0) ? "pointer" : "default");
     
-    // Add node rectangles
-    nodesEnter.append("rect")
-      .attr("x", -100)
-      .attr("y", -30)
-      .attr("width", 200)
-      .attr("height", 60)
-      .attr("rx", 10)
-      .attr("ry", 10)
+    // Add node rectangles with rounded corners
+    nodes.append("rect")
+      .attr("x", -120)
+      .attr("y", -35)
+      .attr("width", 240)
+      .attr("height", d => {
+        // Adjust height based on whether there's summary text or children
+        if (d.data.summary && d.data.summary.length > 0 && !d.children) {
+          return 80; // Leaf nodes with summary
+        }
+        if (d.children && d.children.length > 0) {
+          return 60; // Parent nodes
+        }
+        return 50; // Simple nodes
+      })
+      .attr("rx", 12)
+      .attr("ry", 12)
       .style("fill", d => {
         if (d.depth === 0) return nodeColors.root;
         if (d.depth === 1) return nodeColors.h2;
         return nodeColors.h3;
       })
       .style("stroke", "#fff")
-      .style("stroke-width", "2px")
-      .style("filter", "drop-shadow(0 4px 6px rgba(0,0,0,0.1))");
+      .style("stroke-width", "2.5px")
+      .style("filter", "drop-shadow(0 4px 8px rgba(0,0,0,0.15))");
     
-    // Add expand/collapse icon for nodes with children
-    nodesEnter.filter(d => d.children || d._children)
-      .append("circle")
-      .attr("r", 12)
-      .attr("cx", 90)
-      .attr("cy", 0)
-      .style("fill", "white")
-      .style("stroke", "#667eea")
-      .style("stroke-width", "2px")
-      .style("cursor", "pointer");
-    
-    nodesEnter.filter(d => d.children || d._children)
+    // Add arrow icons for parent nodes
+    nodes.filter(d => d.children && d.children.length > 0)
       .append("text")
-      .attr("x", 90)
-      .attr("y", 5)
       .attr("text-anchor", "middle")
-      .style("fill", "#667eea")
-      .style("font-size", "16px")
-      .style("font-weight", "bold")
-      .text(d => d.children ? "−" : "+");
+      .attr("x", 100)
+      .attr("y", 5)
+      .style("font-size", "18px")
+      .style("fill", "#fff")
+      .text("→");
     
     // Add node text (name)
-    nodesEnter.append("text")
+    nodes.append("text")
       .attr("text-anchor", "middle")
-      .attr("dy", -10)
+      .attr("dy", -5)
       .style("fill", "white")
-      .style("font-size", d => d.depth === 0 ? "16px" : "14px")
+      .style("font-size", d => d.depth === 0 ? "16px" : d.depth === 1 ? "14px" : "13px")
       .style("font-weight", "bold")
-      .style("pointer-events", "none")
       .text(d => {
         const name = d.data.name || "";
-        return name.length > 25 ? name.substring(0, 22) + "..." : name;
+        // Truncate long names
+        const maxLength = d.depth === 0 ? 35 : d.depth === 1 ? 30 : 25;
+        return name.length > maxLength ? name.substring(0, maxLength - 3) + "..." : name;
       });
     
-    // Add summary text for nodes with content
-    nodesEnter.filter(d => d.data.summary && d.data.summary.length > 0)
+    // Add summary text for leaf nodes (final nodes with content)
+    nodes.filter(d => !d.children && d.data.summary && d.data.summary.length > 0)
       .append("text")
       .attr("text-anchor", "middle")
-      .attr("dy", 10)
+      .attr("dy", 15)
       .style("fill", "white")
       .style("font-size", "11px")
-      .style("opacity", 0.9)
-      .style("pointer-events", "none")
+      .style("opacity", 0.95)
+      .style("font-weight", "normal")
       .text(d => {
         const summary = d.data.summary || "";
-        return summary.length > 35 ? summary.substring(0, 32) + "..." : summary;
+        return summary.length > 50 ? summary.substring(0, 47) + "..." : summary;
       });
-    
-    // Add icons
-    nodesEnter.append("text")
-      .attr("text-anchor", "middle")
-      .attr("dy", -45)
-      .style("font-size", "20px")
-      .style("pointer-events", "none")
-      .text(d => {
-        if (d.depth === 0) return "💼";
-        if (d.depth === 1) return "📋";
-        return "📌";
-      });
-    
-    // Update node positions (vertical layout: x is horizontal, y is vertical)
-    const nodesUpdate = nodesEnter.merge(nodes);
-    nodesUpdate.transition()
-      .duration(300)
-      .attr("transform", d => `translate(${d.x},${d.y})`);  // x is horizontal, y is vertical
-    
-    // Update expand/collapse icons
-    nodesUpdate.selectAll("circle")
-      .style("display", d => (d.children || d._children) ? "block" : "none");
-    
-    nodesUpdate.selectAll("text")
-      .filter((d, i, nodes) => {
-        const text = d3.select(nodes[i]).text();
-        return text === "−" || text === "+";
-      })
-      .text(d => d.children ? "−" : "+");
     
     // Hover effects
-    nodesUpdate.on("mouseover", function(event, d) {
+    nodes.on("mouseover", function(event, d) {
       d3.select(this).select("rect")
-        .style("stroke-width", "3px")
-        .style("filter", "drop-shadow(0 6px 12px rgba(0,0,0,0.2))")
+        .style("stroke-width", "3.5px")
+        .style("filter", "drop-shadow(0 6px 15px rgba(0,0,0,0.25))")
         .style("transform", "scale(1.05)");
     })
     .on("mouseout", function(event, d) {
       d3.select(this).select("rect")
-        .style("stroke-width", "2px")
-        .style("filter", "drop-shadow(0 4px 6px rgba(0,0,0,0.1))")
+        .style("stroke-width", "2.5px")
+        .style("filter", "drop-shadow(0 4px 8px rgba(0,0,0,0.15))")
         .style("transform", "scale(1)");
     });
     
-    // Add expand/collapse button click handler (separate from node click)
-    nodesUpdate.selectAll("circle")
+    // Click handler - show modal for nodes with content (especially leaf nodes)
+    nodes.filter(d => d.data.content && d.data.content.length > 0)
       .on("click", function(event, d) {
-        event.stopPropagation();
-        event.preventDefault();
-        const nodeData = d3.select(this.parentNode).datum();
-        toggleNode(nodeData);
-      });
-    
-    nodesUpdate.selectAll("text")
-      .filter((d, i, nodes) => {
-        const text = d3.select(nodes[i]).text();
-        return text === "−" || text === "+";
-      })
-      .on("click", function(event, d) {
-        event.stopPropagation();
-        event.preventDefault();
-        const nodeData = d3.select(this.parentNode).datum();
-        toggleNode(nodeData);
-      });
-    
-    // Click handler for node body (show modal) - but prevent zoom on click
-    nodesUpdate.on("click", function(event, d) {
-      // Don't trigger if clicking on expand/collapse button
-      if (event.target.tagName === 'circle' || event.target.textContent === "−" || event.target.textContent === "+") {
-        return;
-      }
-      
-      // Prevent zoom behavior on node click
-      event.stopPropagation();
-      
-      // Show modal for nodes with content
-      if (d.data.content && d.data.content.length > 0) {
-        const nodeId = `node-${d.data.name.replace(/\s+/g, '-').toLowerCase()}`;
+        const nodeId = `node-${d.data.name.replace(/\s+/g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '')}`;
         
         // Create or update modal panel
         let panel = document.getElementById(`${nodeId}-panel`);
@@ -1052,21 +913,23 @@
           panel = document.createElement('div');
           panel.className = 'detail-panel';
           panel.id = `${nodeId}-panel`;
-          document.getElementById('career-aspect-panels').appendChild(panel);
+          panelsContainer.appendChild(panel);
         }
         
-        // Build panel content
+        // Build content: include H3 children if they exist
         let panelContent = '';
         if (d.data.content) {
           panelContent += d.data.content;
         }
         
-        // Add children content if they exist
+        // Add H3 children if they exist
         if (d.data.children && d.data.children.length > 0) {
-          d.data.children.forEach((child) => {
-            panelContent += `<h5 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">${child.name}</h5>`;
-            if (child.content) {
-              panelContent += child.content;
+          d.data.children.forEach((h3Child) => {
+            panelContent += `<h5 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">${h3Child.name}</h5>`;
+            if (h3Child.content) {
+              panelContent += h3Child.content;
+            } else if (h3Child.summary) {
+              panelContent += `<p>${h3Child.summary}</p>`;
             }
           });
         }
@@ -1082,92 +945,23 @@
         `;
         
         showCareerAspectPanel(nodeId);
-      }
-    });
-  }
-  
-  function toggleNode(d) {
-    if (d.children) {
-      d._children = d.children;
-      d.children = null;
-    } else if (d._children) {
-      d.children = d._children;
-      d._children = null;
-    }
-    updateMindmapTree();
-  }
-  
-  function drawSVGConnectors() {
-    if (window.innerWidth <= 768) return;
-    
-    const svg = document.getElementById('connector-svg');
-    if (!svg) return;
-    
-    svg.innerHTML = '';
-    
-    const container = document.querySelector('.mind-map-container');
-    if (!container) return;
-    
-    svg.setAttribute('width', container.offsetWidth);
-    svg.setAttribute('height', container.offsetHeight);
-    
-    const centralNode = document.getElementById('career-central-node');
-    if (!centralNode) return;
-    
-    const centralRect = centralNode.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-    
-    const centralX = centralRect.left - containerRect.left + centralRect.width / 2;
-    const centralY = centralRect.top - containerRect.top + centralRect.height / 2;
-    
-    let defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    svg.appendChild(defs);
-    
-    // Draw lines to all H2 nodes
-    if (careerAspectMindmap && careerAspectMindmap.children) {
-      careerAspectMindmap.children.forEach((h2Child, i) => {
-        const node = document.getElementById(`node-h2-${i}`);
-        if (!node) return;
-        
-        const nodeRect = node.getBoundingClientRect();
-        const nodeX = nodeRect.left - containerRect.left + nodeRect.width / 2;
-        const nodeY = nodeRect.top - containerRect.top + nodeRect.height / 2;
-        
-        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-        gradient.id = `gradient-${i}`;
-        gradient.setAttribute('x1', '0%');
-        gradient.setAttribute('y1', '0%');
-        gradient.setAttribute('x2', '100%');
-        gradient.setAttribute('y2', '100%');
-        
-        const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        stop1.setAttribute('offset', '0%');
-        stop1.setAttribute('stop-color', '#667eea');
-        stop1.setAttribute('stop-opacity', '0.6');
-        
-        const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        stop2.setAttribute('offset', '100%');
-        stop2.setAttribute('stop-color', '#764ba2');
-        stop2.setAttribute('stop-opacity', '0.4');
-        
-        gradient.appendChild(stop1);
-        gradient.appendChild(stop2);
-        defs.appendChild(gradient);
-        
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', centralX);
-        line.setAttribute('y1', centralY);
-        line.setAttribute('x2', nodeX);
-        line.setAttribute('y2', nodeY);
-        line.setAttribute('stroke', `url(#gradient-${i})`);
-        line.setAttribute('stroke-width', '3');
-        line.setAttribute('stroke-linecap', 'round');
-        line.classList.add('connector-line');
-        line.style.animationDelay = `${i * 0.1}s`;
-        
-        svg.appendChild(line);
       });
-    }
+    
+    // Create central panel
+    const centralPanel = document.createElement('div');
+    centralPanel.className = 'detail-panel';
+    centralPanel.id = 'central-panel';
+    centralPanel.innerHTML = `
+      <div class="modal-header-custom">
+        <h3><i class="fas fa-briefcase"></i> ${careerAspectMindmap.name}</h3>
+        <button class="close-btn" onclick="closeCareerAspectPanels()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body-custom">
+        <p>${careerAspectMindmap.summary || 'This comprehensive mind map outlines the various aspects of this career path.'}</p>
+        <p>Click on any node in the mind map to view detailed information.</p>
+      </div>
+    `;
+    panelsContainer.appendChild(centralPanel);
   }
   
   function showCareerAspectPanel(panelId) {
@@ -1208,7 +1002,7 @@
   });
 
   // Old mindmap functions (kept for reference, can be removed if not needed)
-  // Variables are now declared in initializeCareerAspectMindmap function
+  let mindmapSvg, mindmapG, mindmapZoom, mindmapRoot, mindmapTree;
   
   function initializeMindmap() {
     if (!mindmapData || !mindmapData.children || mindmapData.children.length === 0) {

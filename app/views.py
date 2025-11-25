@@ -546,6 +546,16 @@ def test_buttons(request):
         'test3_started': Results.objects.filter(user=request.user, test_paper='test3').exists(),
     }
 
+    # Check if all test3 subtests are complete
+    all_test3_subtests_complete = False
+    if test_completion:
+        # Check if all subtests (test3_numerical, test3_logical, test3_verbal) are complete
+        all_test3_subtests_complete = (
+            Results.objects.filter(user=request.user, test_paper='test3_numerical').exists() and
+            Results.objects.filter(user=request.user, test_paper='test3_logical').exists() and
+            Results.objects.filter(user=request.user, test_paper='test3_verbal').exists()
+        )
+    
     context = {
         'user_profile': user_profile,
         'test_completion': test_completion,
@@ -555,8 +565,9 @@ def test_buttons(request):
         "Gender:": gender,
         "Grade:": grade,
         'student_class': student_class,  # "10" or "12" for filtering tests
+        'all_test3_subtests_complete': all_test3_subtests_complete,
     }
-    return render(request, 'topteenfrontend/user/app/psychometric-test-view.html', context)
+    return render(request, 'template20/psychometric/home.html', context)
 
 def handle_uploaded_file(file):
     decoded_file = file.read().decode('utf-8').splitlines()
