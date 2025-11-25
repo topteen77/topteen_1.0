@@ -90,9 +90,9 @@
                           <tr>
                             <td style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
                               <p style="font-family: sans-serif; font-size: 14px; font-weight: 600; margin: 0; Margin-bottom: 5px; color: #3F37C9;">Student Information:</p>
-                              <p style="font-family: sans-serif; font-size: 14px; margin: 0; Margin-bottom: 5px;"><strong>Username:</strong> {{ user.username|default:"N/A" }}</p>
-                              <p style="font-family: sans-serif; font-size: 14px; margin: 0; Margin-bottom: 5px;"><strong>Email:</strong> {{ user.email|default:"N/A" }}</p>
-                              <p style="font-family: sans-serif; font-size: 14px; margin: 0;"><strong>Name:</strong> {{ user.name|default:"N/A" }}</p>
+                              <p style="font-family: sans-serif; font-size: 14px; margin: 0; Margin-bottom: 5px;"><strong>Username:</strong> {{ user.username|default('N/A') }}</p>
+                              <p style="font-family: sans-serif; font-size: 14px; margin: 0; Margin-bottom: 5px;"><strong>Email:</strong> {{ user.email|default('N/A') }}</p>
+                              <p style="font-family: sans-serif; font-size: 14px; margin: 0;"><strong>Name:</strong> {{ user.name|default('N/A') }}</p>
                             </td>
                           </tr>
                         </table>
