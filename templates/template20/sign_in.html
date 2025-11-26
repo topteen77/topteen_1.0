@@ -144,7 +144,7 @@
           <form class="start-form" id="loginSignupForm">
             <div class="login-screen text-center p-5">
               <!-- Get Started Form -->
-              <div class="get-started-form">
+              <div class="get-started-form" id="loginSignupFormSection">
                 <div class="logo-header text-center my-4">
                   <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
                 </div>
@@ -174,6 +174,12 @@
                             onclick="return loginsingup()">
                       Continue
                     </button>
+                    <button type="button"
+                            class="btn custom-button outline-button mb-3 fw-600"
+                            id="loginWithOtpBtn"
+                            onclick="return showLoginWithOtp()">
+                      Login with OTP
+                    </button>
                   </div>
                   
                   <div class="divider-section position-relative mb-3">
@@ -202,6 +208,76 @@
                       and
                       <a href="{{ url('core:privacypolicy') }}" class="text-purple">Privacy Policy</a>
                     </p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Login with OTP Form (Hidden by default) -->
+              <div class="login-otp-form" id="loginOtpFormSection" style="display: none;">
+                <div class="logo-header text-center my-4">
+                  <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
+                </div>
+                <h2 class="fs-22 mt-2 mb-2 fw-700 text-purple">Login with OTP</h2>
+                <p class="text-gray fs-15">Enter your email/mobile to receive OTP</p>
+                
+                <div id="errorMsgLoginOtp" class="text-danger fs-12 mb-2" style="display: none;"></div>
+                
+                <div class="form-row">
+                  <!-- Step 1: Email/Mobile Input -->
+                  <div id="loginOtpEmailStep">
+                    <div class="col mb-4 icon-input email-icon">
+                      <input type="text" 
+                             class="form-control custom-input" 
+                             id="loginOtpEmail"
+                             name="user_name"
+                             placeholder="Enter Email or Mobile"
+                             required>
+                    </div>
+                    <div class="setting-button d-flex flex-column w-100">
+                      <button type="button"
+                              class="btn custom-button purple-button mb-3 fw-600"
+                              onclick="return sendLoginOtp()">
+                        Send OTP
+                      </button>
+                      <button type="button"
+                              class="btn custom-button outline-button mb-3 fw-600"
+                              onclick="return backToLoginSignup()">
+                        Back
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Step 2: OTP Input -->
+                  <div id="loginOtpInputStep" style="display: none;">
+                    <p class="text-gray fs-15 mb-3">
+                      OTP sent to <span class="text-purple fw-600" id="loginOtpEmailDisplay"></span>
+                    </p>
+                    <div class="d-flex justify-content-between gap-2 mb-4 otp-inputs-container" style="max-width: 400px; margin: 0 auto;">
+                      <input name="otp" class="form-control otpSource oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
+                      <input name="otp" class="form-control oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
+                      <input name="otp" class="form-control oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
+                      <input name="otp" class="form-control oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
+                      <input name="otp" class="form-control oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
+                      <input name="otp" class="form-control oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
+                    </div>
+                    <p class="text-gray fs-14 text-center mb-4">
+                      Didn't receive it?
+                      <button type="button" class="btn btn-link p-0 text-purple fw-600 text-decoration-none" onclick="return resendLoginOtp()">
+                        Resend code
+                      </button>
+                    </p>
+                    <div class="setting-button d-flex flex-column w-100">
+                      <button type="button"
+                              class="btn custom-button purple-button mb-3 fw-600"
+                              onclick="return verifyLoginOtp()">
+                        Verify OTP
+                      </button>
+                      <button type="button"
+                              class="btn custom-button outline-button mb-3 fw-600"
+                              onclick="return backToOtpEmail()">
+                        Back
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -260,6 +336,7 @@
   var userssignupotpverify = "{{ url('users:signupotpverify') }}";
   var usersloginsignuppwd = "{{ url('users:signuppwd') }}";
   var usersloginpwd = "{{ url('users:loginpwd') }}";
+  var usersloginotp = "{{ url('users:loginotp') }}";
   var usersforgotpassword = "{{ url('users:forgotpassword') }}";
   var usersforgotpasswordotp = "{{ url('users:forgotpasswordotp') }}";
   var usersresendotp = "{{ url('users:resendotp') }}";
@@ -269,6 +346,175 @@
 <script type="text/javascript" src="{{ static('topteenfrontend/assets/js/loginsignup.js') }}"></script>
 
 <script>
+  // Login with OTP functions
+  var loginOtpEmailValue = '';
+  
+  function showLoginWithOtp() {
+    document.getElementById('loginSignupFormSection').style.display = 'none';
+    document.getElementById('loginOtpFormSection').style.display = 'block';
+    document.getElementById('loginOtpEmailStep').style.display = 'block';
+    document.getElementById('loginOtpInputStep').style.display = 'none';
+    var emailInput = document.getElementById('loginOtpEmail');
+    if (emailInput) {
+      emailInput.focus();
+    }
+    return false;
+  }
+  
+  function backToLoginSignup() {
+    document.getElementById('loginSignupFormSection').style.display = 'block';
+    document.getElementById('loginOtpFormSection').style.display = 'none';
+    return false;
+  }
+  
+  function backToOtpEmail() {
+    document.getElementById('loginOtpEmailStep').style.display = 'block';
+    document.getElementById('loginOtpInputStep').style.display = 'none';
+    return false;
+  }
+  
+  function sendLoginOtp() {
+    var email = document.getElementById('loginOtpEmail').value.trim();
+    if (!email) {
+      var errorMsg = document.getElementById('errorMsgLoginOtp');
+      errorMsg.textContent = 'Please enter your email or mobile number';
+      errorMsg.style.display = 'block';
+      return false;
+    }
+    
+    loginOtpEmailValue = email;
+    var formData = new FormData();
+    formData.append('user_name', email);
+    
+    // Clear error message
+    document.getElementById('errorMsgLoginOtp').style.display = 'none';
+    
+    $.ajax({
+      type: 'POST',
+      url: usersresendotp,
+      data: formData,
+      success: function(data) {
+        // Show OTP input step
+        document.getElementById('loginOtpEmailStep').style.display = 'none';
+        document.getElementById('loginOtpInputStep').style.display = 'block';
+        document.getElementById('loginOtpEmailDisplay').textContent = email;
+        
+        // Reset OTP inputs
+        var otpInputs = document.querySelectorAll('#loginOtpInputStep input[name="otp"]');
+        otpInputs.forEach(function(input) {
+          input.value = '';
+        });
+        
+        // Auto-focus on first OTP input
+        setTimeout(function() {
+          const firstOtpInput = document.querySelector('#loginOtpInputStep .otpSource');
+          if (firstOtpInput) {
+            firstOtpInput.focus();
+          }
+        }, 100);
+      },
+      error: function(xhr, status, error) {
+        var errorMsg = document.getElementById('errorMsgLoginOtp');
+        errorMsg.textContent = 'Unable to send OTP. Please check your email/mobile and try again';
+        errorMsg.style.display = 'block';
+      },
+      cache: false,
+      contentType: false,
+      processData: false
+    });
+    return false;
+  }
+  
+  function resendLoginOtp() {
+    if (!loginOtpEmailValue) {
+      fireAlert('Please enter your email/mobile first', 'error');
+      return false;
+    }
+    sendLoginOtp();
+    return false;
+  }
+  
+  function verifyLoginOtp() {
+    var formData = new FormData();
+    formData.append('user_name', loginOtpEmailValue);
+    
+    // Get OTP values
+    var otpInputs = document.querySelectorAll('#loginOtpInputStep input[name="otp"]');
+    var otpValues = [];
+    var allFilled = true;
+    
+    otpInputs.forEach(function(input) {
+      var value = input.value.trim();
+      if (value) {
+        otpValues.push(value);
+        formData.append('otp', value);
+      } else {
+        allFilled = false;
+      }
+    });
+    
+    if (!allFilled || otpValues.length !== 6) {
+      var errorMsg = document.getElementById('errorMsgLoginOtp');
+      errorMsg.textContent = 'Please enter all 6 digits of OTP';
+      errorMsg.style.display = 'block';
+      return false;
+    }
+    
+    // Clear error message
+    document.getElementById('errorMsgLoginOtp').style.display = 'none';
+    
+    $.ajax({
+      type: 'POST',
+      url: usersloginotp,
+      data: formData,
+      success: function(data) {
+        if (data.otp_verify == true && data.success == true) {
+          // OTP verified and user logged in - redirect to dashboard
+          if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+          } else {
+            window.location.href = '/user/dashboard';
+          }
+        } else {
+          var errorMsg = document.getElementById('errorMsgLoginOtp');
+          errorMsg.textContent = data.message || 'Invalid OTP. Please try again';
+          errorMsg.style.display = 'block';
+          
+          // Reset OTP inputs
+          otpInputs.forEach(function(input) {
+            input.value = '';
+          });
+        }
+      },
+      error: function(xhr, status, error) {
+        var errorMsg = document.getElementById('errorMsgLoginOtp');
+        var errorMessage = 'Unable to verify OTP. Please try again';
+        try {
+          if (xhr.responseJSON && xhr.responseJSON.message) {
+            errorMessage = xhr.responseJSON.message;
+          } else if (xhr.responseText) {
+            var errorData = JSON.parse(xhr.responseText);
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          }
+        } catch (e) {
+          // Use default message
+        }
+        errorMsg.textContent = errorMessage;
+        errorMsg.style.display = 'block';
+        
+        // Reset OTP inputs
+        otpInputs.forEach(function(input) {
+          input.value = '';
+        });
+      },
+      cache: false,
+      contentType: false,
+      processData: false
+    });
+    return false;
+  }
 
   // Submit form on Enter key and handle modal interactions
   document.addEventListener('DOMContentLoaded', function() {
@@ -518,10 +764,24 @@
             } else if (xhr.status === 0) {
               fireAlert("Network error. Please check your connection", "error");
             } else {
-              fireAlert("Something went wrong. Please try again", "error");
+              // Try to get specific error message from response
+              var errorMsg = "Unable to process your request. Please try again";
+              try {
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                  errorMsg = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                  var errorData = JSON.parse(xhr.responseText);
+                  if (errorData.message) {
+                    errorMsg = errorData.message;
+                  }
+                }
+              } catch (e) {
+                // Use default message if parsing fails
+              }
+              fireAlert(errorMsg, "error");
             }
           } catch (e) {
-            fireAlert("An unexpected error occurred. Please try again", "error");
+            fireAlert("Unable to process your request. Please refresh the page and try again", "error");
           }
         },
         cache: false,

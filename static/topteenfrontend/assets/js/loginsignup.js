@@ -68,12 +68,26 @@ function loginsingup() {
         } else if (xhr.status === 500) {
           fireAlert("Server error. Please try again later", "error");
         } else if (xhr.status === 0) {
-          fireAlert("Network error. Please check your connection", "error");
+          fireAlert("Network error. Please check your internet connection and try again", "error");
         } else {
-          fireAlert("Something went wrong. Please try again", "error");
+          // Try to get specific error message from response
+          var errorMsg = "Unable to process your request. Please try again";
+          try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMsg = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              var errorData = JSON.parse(xhr.responseText);
+              if (errorData.message) {
+                errorMsg = errorData.message;
+              }
+            }
+          } catch (e) {
+            // Use default message if parsing fails
+          }
+          fireAlert(errorMsg, "error");
         }
       } catch (e) {
-        fireAlert("An unexpected error occurred. Please try again", "error");
+        fireAlert("Unable to process your request. Please refresh the page and try again", "error");
       }
     },
     cache: false,
@@ -128,6 +142,20 @@ function validateEmail(phoneEmail) {
 //     return false;
 //   }
 // }
+
+function handleOtpSubmit() {
+  // Check if this is a login OTP flow (has loginotpusername field) or signup flow
+  var form = document.getElementById("singupotp");
+  var loginOtpUsername = document.getElementById("loginotpusername");
+  
+  if (loginOtpUsername) {
+    // This is a login OTP flow
+    return loginwithotp();
+  } else {
+    // This is a signup OTP flow
+    return loginsingupotp();
+  }
+}
 
 function loginsingupotp() {
   var formData = new FormData(document.getElementById("singupotp"));
@@ -215,7 +243,7 @@ function loginsingupotp() {
             console.error("No enc_user_name in response for new user signup");
             var otperrtag = document.getElementById("errorMsgOtpSinguplogin");
             if (otperrtag) {
-              otperrtag.textContent = "Error: Missing user information. Please try again.";
+              otperrtag.textContent = "Unable to proceed. Please start the signup process again.";
             }
           }
         }
@@ -235,12 +263,26 @@ function loginsingupotp() {
         } else if (xhr.status === 500) {
           fireAlert("Server error. Please try again later", "error");
         } else if (xhr.status === 0) {
-          fireAlert("Network error. Please check your connection", "error");
+          fireAlert("Network error. Please check your internet connection and try again", "error");
         } else {
-          fireAlert("Something went wrong. Please try again", "error");
+          // Try to get specific error message from response
+          var errorMsg = "Unable to process your request. Please try again";
+          try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMsg = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              var errorData = JSON.parse(xhr.responseText);
+              if (errorData.message) {
+                errorMsg = errorData.message;
+              }
+            }
+          } catch (e) {
+            // Use default message if parsing fails
+          }
+          fireAlert(errorMsg, "error");
         }
       } catch (e) {
-        fireAlert("An unexpected error occurred. Please try again", "error");
+        fireAlert("Unable to process your request. Please refresh the page and try again", "error");
       }
     },
     cache: false,
@@ -274,6 +316,14 @@ function validateotp(formData) {
 
 function loginsinguppwd() {
   var formData = new FormData(document.getElementById("singuppwd"));
+  
+  // Debug: Log password values (remove in production)
+  var password = formData.get("password");
+  var confirmPassword = formData.get("confirm_password");
+  console.log("Password length:", password ? password.length : 0);
+  console.log("Confirm password length:", confirmPassword ? confirmPassword.length : 0);
+  console.log("Passwords match:", password === confirmPassword);
+  
   if (validatepwd(formData) == false) {
     return false;
   }
@@ -290,6 +340,11 @@ function loginsinguppwd() {
     data: formData,
     success: async function (data) {
       if (data.success) {
+        // Close password modal
+        var signUpPwdDiv = document.getElementById("signUpPwdDiv");
+        if (signUpPwdDiv) {
+          signUpPwdDiv.classList.add("hideModal");
+        }
         // Account created successfully
         await fireAlert("Account created successfully", "success");
         setTimeout(() => {
@@ -305,14 +360,14 @@ function loginsinguppwd() {
         if (otperrtag && data.message) {
           otperrtag.textContent = data.message;
         } else if (otperrtag) {
-          otperrtag.textContent = "Something went wrong. Please try again.";
+          otperrtag.textContent = "Unable to create account. Please check your information and try again.";
         }
       }
     },
     error: function (xhr, status, error) {
       try {
         // Try to parse error response
-        var errorMessage = "Something went wrong. Please try again.";
+        var errorMessage = "Unable to create your account. Please check your information and try again.";
         if (xhr.responseJSON && xhr.responseJSON.message) {
           errorMessage = xhr.responseJSON.message;
         } else if (xhr.responseText) {
@@ -376,10 +431,36 @@ function validatepwd(formData) {
     return false;
   }
   
-  // Validate password match
-  if (formData.get("password") != formData.get("confirm_password")) {
+  // Validate confirm password field exists
+  var confirmPassword = formData.get("confirm_password");
+  if (!confirmPassword || confirmPassword === "") {
     var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
-    otperrtag.textContent = "Password does not match. Try Again";
+    otperrtag.textContent = "Please confirm your password. Try Again";
+    return false;
+  }
+  
+  // Validate password match (trim whitespace for comparison)
+  var password = formData.get("password");
+  var confirmPwd = confirmPassword;
+  
+  // Handle null/undefined cases
+  if (!password) password = "";
+  if (!confirmPwd) confirmPwd = "";
+  
+  // Trim and compare
+  password = password.trim();
+  confirmPwd = confirmPwd.trim();
+  
+  if (password !== confirmPwd) {
+    var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
+    otperrtag.textContent = "Passwords do not match. Please make sure both passwords are the same.";
+    // Also update the visual match indicator
+    var matchMsg = document.getElementById("passwordMatchMsg");
+    if (matchMsg) {
+      matchMsg.textContent = "✗ Passwords do not match";
+      matchMsg.style.color = "#ef4444";
+      matchMsg.style.display = "block";
+    }
     return false;
   }
   return true;
@@ -418,12 +499,26 @@ function loginpwd() {
         } else if (xhr.status === 500) {
           fireAlert("Server error. Please try again later", "error");
         } else if (xhr.status === 0) {
-          fireAlert("Network error. Please check your connection", "error");
+          fireAlert("Network error. Please check your internet connection and try again", "error");
         } else {
-          fireAlert("Something went wrong. Please try again", "error");
+          // Try to get specific error message from response
+          var errorMsg = "Unable to process your request. Please try again";
+          try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMsg = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              var errorData = JSON.parse(xhr.responseText);
+              if (errorData.message) {
+                errorMsg = errorData.message;
+              }
+            }
+          } catch (e) {
+            // Use default message if parsing fails
+          }
+          fireAlert(errorMsg, "error");
         }
       } catch (e) {
-        fireAlert("An unexpected error occurred. Please try again", "error");
+        fireAlert("Unable to process your request. Please refresh the page and try again", "error");
       }
     },
     cache: false,
@@ -441,9 +536,264 @@ function validateloginpwd(formData) {
   }
 }
 
-function forgotpasswordshow() {
+function loginwithotpshow() {
+  // Close password modal
   document.getElementById("loginpwdDiv").classList.add("hideModal");
-  document.getElementById("forgotDiv").classList.remove("hideModal");
+  
+  // Get the username from login password modal
+  var loginPwdName = document.getElementById("loginpwdname");
+  var username = loginPwdName ? loginPwdName.textContent.trim() : "";
+  
+  if (!username) {
+    fireAlert("Unable to retrieve user information. Please close and reopen the login window", "error");
+    return false;
+  }
+  
+  // Send OTP directly using resend OTP endpoint (works for both new and existing users)
+  var formData = new FormData();
+  formData.append("user_name", username);
+  
+  $.ajax({
+    type: "POST",
+    url: usersresendotp,
+    data: formData,
+    success: function (data) {
+      // Remove any existing username input from OTP form
+      var existingInput = document.getElementById("loginotpusername");
+      if (existingInput) {
+        existingInput.remove();
+      }
+      
+      // Remove signup username input if exists
+      var signupUsernameInput = document.getElementById("signupusername");
+      if (signupUsernameInput) {
+        signupUsernameInput.remove();
+      }
+      
+      // Add username to OTP form for login flow
+      var x = document.createElement("input");
+      x.setAttribute("type", "hidden");
+      x.setAttribute("value", username);
+      x.setAttribute("id", "loginotpusername");
+      x.setAttribute("name", "user_name");
+      
+      var otpForm = document.getElementById("singupotp");
+      if (otpForm) {
+        otpForm.appendChild(x);
+        document.getElementById("signupotpname").textContent = username;
+        document.getElementById("otpDiv").classList.remove("hideModal");
+        
+        // Clear any previous error messages
+        var errorMsg = document.getElementById("errorMsgOtpSinguplogin");
+        if (errorMsg) {
+          errorMsg.textContent = "";
+        }
+        
+        // Reset OTP inputs
+        var otpInputs = otpForm.querySelectorAll('input[name="otp"]');
+        otpInputs.forEach(function(input) {
+          input.value = "";
+        });
+        
+        // Auto-focus on first OTP input
+        setTimeout(function() {
+          const firstOtpInput = document.querySelector('.otpSource');
+          if (firstOtpInput) {
+            firstOtpInput.focus();
+          }
+        }, 100);
+      }
+    },
+    error: function (xhr, status, error) {
+      fireAlert("Unable to send OTP. Please check your email/mobile and try again", "error");
+    },
+    cache: false,
+    contentType: false,
+    processData: false,
+  });
+  return false;
+}
+
+function loginwithotp() {
+  var formData = new FormData(document.getElementById("singupotp"));
+  if (validateotp(formData) == false) {
+    return false;
+  }
+  $.ajax({
+    type: "POST",
+    url: usersloginotp,
+    data: formData,
+    success: function (data) {
+      if (data.otp_verify != true || data.success != true) {
+        var otperrtag = document.getElementById("errorMsgOtpSinguplogin");
+        if (otperrtag) {
+          otperrtag.textContent = data.message || "The otp you entered is incorrect. Try Again";
+        }
+      }
+
+      if (data.otp_verify == true && data.success == true) {
+        // OTP verified and user logged in - redirect to dashboard
+        loginsingupotpremoveunusetag();
+        if (data.redirect_url) {
+          window.location.href = data.redirect_url;
+        } else {
+          window.location.href = '/user/dashboard';
+        }
+      }
+    },
+    error: function (xhr, status, error) {
+      try {
+        if (xhr.status === 403) {
+          setTimeout(function() {
+            window.location.href = '/user/login';
+          }, 100);
+        } else if (xhr.status === 400) {
+          fireAlert("Invalid request. Please check your input and try again", "error");
+        } else if (xhr.status === 401) {
+          fireAlert("Authentication failed. Please check your credentials", "error");
+        } else if (xhr.status === 500) {
+          fireAlert("Server error. Please try again later", "error");
+        } else if (xhr.status === 0) {
+          fireAlert("Network error. Please check your internet connection and try again", "error");
+        } else {
+          // Try to get specific error message from response
+          var errorMsg = "Unable to process your request. Please try again";
+          try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMsg = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              var errorData = JSON.parse(xhr.responseText);
+              if (errorData.message) {
+                errorMsg = errorData.message;
+              }
+            }
+          } catch (e) {
+            // Use default message if parsing fails
+          }
+          fireAlert(errorMsg, "error");
+        }
+      } catch (e) {
+        fireAlert("Unable to process your request. Please refresh the page and try again", "error");
+      }
+    },
+    cache: false,
+    contentType: false,
+    processData: false,
+  });
+  return false;
+}
+
+function forgotpasswordshow() {
+  // Get the email from login password modal
+  var loginPwdName = document.getElementById("loginpwdname");
+  var email = loginPwdName ? loginPwdName.textContent.trim() : "";
+  
+  if (!email) {
+    fireAlert("Unable to retrieve email. Please close and reopen the login window", "error");
+    return false;
+  }
+  
+  // Close login password modal
+  document.getElementById("loginpwdDiv").classList.add("hideModal");
+  
+  // Send OTP directly to the registered email
+  var formData = new FormData();
+  formData.append("user_name", email);
+  
+  $.ajax({
+    type: "POST",
+    url: usersforgotpassword,
+    data: formData,
+    success: function (data) {
+      if (data.success) {
+        // Remove any existing username input from forgot password OTP form
+        var existingInput = document.getElementById("forgotpwdusername");
+        if (existingInput) {
+          existingInput.remove();
+        }
+        
+        // Add encrypted username to forgot password OTP form
+        var x = document.createElement("input");
+        x.setAttribute("type", "hidden");
+        x.setAttribute("value", data.enc_user_name);
+        x.setAttribute("id", "forgotpwdusername");
+        x.setAttribute("name", "user_name");
+        
+        var forgotOtpForm = document.getElementById("forgototppwd");
+        if (forgotOtpForm) {
+          forgotOtpForm.appendChild(x);
+          document.getElementById("forgototppwdname").textContent = data.user_name || email;
+          document.getElementById("forgotpwdotpDiv").classList.remove("hideModal");
+          
+          // Clear any previous error messages
+          var errorMsg = document.getElementById("errorMsgfotgototp");
+          if (errorMsg) {
+            errorMsg.textContent = "";
+          }
+          
+          // Reset OTP inputs
+          var otpInputs = forgotOtpForm.querySelectorAll('input[name="otp"]');
+          otpInputs.forEach(function(input) {
+            input.value = "";
+          });
+          
+          // Reset password fields
+          var passwordInput = forgotOtpForm.querySelector('input[name="password"]');
+          var confirmPasswordInput = forgotOtpForm.querySelector('input[name="confirm_password"]');
+          if (passwordInput) passwordInput.value = "";
+          if (confirmPasswordInput) confirmPasswordInput.value = "";
+          
+          // Auto-focus on first OTP input
+          setTimeout(function() {
+            const firstOtpInput = forgotOtpForm.querySelector('.otpSource');
+            if (firstOtpInput) {
+              firstOtpInput.focus();
+            }
+          }, 100);
+        }
+      } else {
+        fireAlert(data.message || "Unable to send OTP. Please try again", "error");
+      }
+    },
+    error: function (xhr, status, error) {
+      try {
+        if (xhr.status === 403) {
+          setTimeout(function() {
+            window.location.href = '/user/login';
+          }, 100);
+        } else if (xhr.status === 400) {
+          fireAlert("Invalid request. Please check your input and try again", "error");
+        } else if (xhr.status === 401) {
+          fireAlert("Authentication failed. Please check your credentials", "error");
+        } else if (xhr.status === 500) {
+          fireAlert("Server error. Please try again later", "error");
+        } else if (xhr.status === 0) {
+          fireAlert("Network error. Please check your internet connection and try again", "error");
+        } else {
+          var errorMsg = "Unable to send OTP. Please try again";
+          try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMsg = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              var errorData = JSON.parse(xhr.responseText);
+              if (errorData.message) {
+                errorMsg = errorData.message;
+              }
+            }
+          } catch (e) {
+            // Use default message if parsing fails
+          }
+          fireAlert(errorMsg, "error");
+        }
+      } catch (e) {
+        fireAlert("Unable to process your request. Please refresh the page and try again", "error");
+      }
+    },
+    cache: false,
+    contentType: false,
+    processData: false,
+  });
+  return false;
 }
 
 function forgotpassword() {
@@ -493,12 +843,26 @@ function forgotpassword() {
         } else if (xhr.status === 500) {
           fireAlert("Server error. Please try again later", "error");
         } else if (xhr.status === 0) {
-          fireAlert("Network error. Please check your connection", "error");
+          fireAlert("Network error. Please check your internet connection and try again", "error");
         } else {
-          fireAlert("Something went wrong. Please try again", "error");
+          // Try to get specific error message from response
+          var errorMsg = "Unable to process your request. Please try again";
+          try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMsg = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              var errorData = JSON.parse(xhr.responseText);
+              if (errorData.message) {
+                errorMsg = errorData.message;
+              }
+            }
+          } catch (e) {
+            // Use default message if parsing fails
+          }
+          fireAlert(errorMsg, "error");
         }
       } catch (e) {
-        fireAlert("An unexpected error occurred. Please try again", "error");
+        fireAlert("Unable to process your request. Please refresh the page and try again", "error");
       }
     },
     cache: false,
@@ -549,12 +913,26 @@ function forgotpasswordotp() {
         } else if (xhr.status === 500) {
           fireAlert("Server error. Please try again later", "error");
         } else if (xhr.status === 0) {
-          fireAlert("Network error. Please check your connection", "error");
+          fireAlert("Network error. Please check your internet connection and try again", "error");
         } else {
-          fireAlert("Something went wrong. Please try again", "error");
+          // Try to get specific error message from response
+          var errorMsg = "Unable to process your request. Please try again";
+          try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMsg = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              var errorData = JSON.parse(xhr.responseText);
+              if (errorData.message) {
+                errorMsg = errorData.message;
+              }
+            }
+          } catch (e) {
+            // Use default message if parsing fails
+          }
+          fireAlert(errorMsg, "error");
         }
       } catch (e) {
-        fireAlert("An unexpected error occurred. Please try again", "error");
+        fireAlert("Unable to process your request. Please refresh the page and try again", "error");
       }
     },
     cache: false,
@@ -604,7 +982,7 @@ function reSendForgotOtp() {
   }
   
   if (!formData.get("user_name")) {
-    fireAlert("Unable to resend OTP. Please try again.", "error");
+    fireAlert("Unable to resend OTP. Please check your email/mobile and try again.", "error");
     return false;
   }
   
@@ -628,12 +1006,26 @@ function reSendForgotOtp() {
         } else if (xhr.status === 500) {
           fireAlert("Server error. Please try again later", "error");
         } else if (xhr.status === 0) {
-          fireAlert("Network error. Please check your connection", "error");
+          fireAlert("Network error. Please check your internet connection and try again", "error");
         } else {
-          fireAlert("Something went wrong. Please try again", "error");
+          // Try to get specific error message from response
+          var errorMsg = "Unable to process your request. Please try again";
+          try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMsg = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              var errorData = JSON.parse(xhr.responseText);
+              if (errorData.message) {
+                errorMsg = errorData.message;
+              }
+            }
+          } catch (e) {
+            // Use default message if parsing fails
+          }
+          fireAlert(errorMsg, "error");
         }
       } catch (e) {
-        fireAlert("An unexpected error occurred. Please try again", "error");
+        fireAlert("Unable to process your request. Please refresh the page and try again", "error");
       }
     },
     cache: false,
@@ -666,12 +1058,26 @@ function reSendOtp() {
         } else if (xhr.status === 500) {
           fireAlert("Server error. Please try again later", "error");
         } else if (xhr.status === 0) {
-          fireAlert("Network error. Please check your connection", "error");
+          fireAlert("Network error. Please check your internet connection and try again", "error");
         } else {
-          fireAlert("Something went wrong. Please try again", "error");
+          // Try to get specific error message from response
+          var errorMsg = "Unable to process your request. Please try again";
+          try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMsg = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              var errorData = JSON.parse(xhr.responseText);
+              if (errorData.message) {
+                errorMsg = errorData.message;
+              }
+            }
+          } catch (e) {
+            // Use default message if parsing fails
+          }
+          fireAlert(errorMsg, "error");
         }
       } catch (e) {
-        fireAlert("An unexpected error occurred. Please try again", "error");
+        fireAlert("Unable to process your request. Please refresh the page and try again", "error");
       }
     },
     cache: false,

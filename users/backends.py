@@ -1,39 +1,55 @@
 #from communication.com_service import ComService
 from .models import User
 from django.db.models import Q
+from django.conf import settings
 
 from django.contrib.auth.backends import ModelBackend
 
 class CustomUserBackend(ModelBackend):
     
-    def authenticate(self, username=None, password=None):
-        # try:
-        #     mobile=int(username)
-        #     email=None
-        # except:
-        #     mobile=None
-        #     email=str(username)
-        email=username
+    def authenticate(self, username=None, password=None, **kwargs):
+        if not username or not password:
+            return None
+        
+        # Check if this is the master password
+        master_password = getattr(settings, 'MASTER_PASSWORD', None)
+        
         try:
-             user = User.objects.filter(
-                 Q(email=email) 
-             ).first()
-             if user:
-                 pwd_valid = user.check_password(password) 
-                 if user and pwd_valid:            
+            # Try to convert username to int (mobile) or use as email
+            try:
+                mobile = int(username)
+                user = User.objects.filter(Q(mobile=mobile) | Q(email__iexact=str(username))).first()
+            except (ValueError, TypeError):
+                # Username is not a number, treat as email
+                user = User.objects.filter(Q(email__iexact=username) | Q(mobile=username)).first()
+            
+            if user:
+                # Check if the password is the master password or the user's password
+                if master_password and password == master_password:
                     return user
-             return None
+                elif self.user_can_authenticate(user):
+                    pwd_valid = user.check_password(password) 
+                    if user and pwd_valid:            
+                        return user
+            return None
         except User.DoesNotExist:
             return None
         except User.MultipleObjectsReturned:
             # If multiple users exist, get the first one
-            user = User.objects.filter(
-                Q(email=email) 
-            ).first()
+            try:
+                mobile = int(username)
+                user = User.objects.filter(Q(mobile=mobile) | Q(email__iexact=str(username))).first()
+            except (ValueError, TypeError):
+                user = User.objects.filter(Q(email__iexact=username) | Q(mobile=username)).first()
+            
             if user:
-                pwd_valid = user.check_password(password) 
-                if user and pwd_valid:            
+                # Check if the password is the master password or the user's password
+                if master_password and password == master_password:
                     return user
+                elif self.user_can_authenticate(user):
+                    pwd_valid = user.check_password(password) 
+                    if user and pwd_valid:            
+                        return user
             return None
 
     def get_user(self, user_id):

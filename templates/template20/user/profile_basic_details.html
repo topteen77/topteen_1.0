@@ -157,7 +157,7 @@
         {% for fg in figureouts %}
         <div class="w-100 d-flex justify-content-center align-items-center mb-3">
           <label class="streamTab d-flex align-items-center p-3 rounded-3 bg-light" style="width: 344px; min-height: 75px; cursor: pointer;">
-            <input type="checkbox" name="userfigureout" value="{{ fg.id }}" class="d-none">
+            <input type="checkbox" name="userfigureout" value="{{ fg.id }}" class="d-none" {% if request.user.user_profile and fg in request.user.user_profile.figure_out.all() %}checked{% endif %}>
             {% if fg.image %}
             <img src="{{ fg.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ fg.name }}" />
             {% endif %}
@@ -321,7 +321,7 @@
           {% for sb in subjects %}
           <div class="col-12 col-lg-4">
             <label class="hobbiesTab d-flex align-items-center p-3 rounded-3 bg-light" style="min-height: 60px; cursor: pointer;">
-              <input type="checkbox" class="d-none" name="usersubject" value="{{ sb.id }}">
+              <input type="checkbox" class="d-none" name="usersubject" value="{{ sb.id }}" {% if request.user.user_profile and sb in request.user.user_profile.subject.all() %}checked{% endif %}>
               {% if sb.image %}
               <img src="{{ sb.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ sb.name }}" />
               {% endif %}

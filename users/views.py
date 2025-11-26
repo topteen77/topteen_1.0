@@ -424,6 +424,15 @@ class LoginSignUp(APIView):
                 print()
                 print(f"From Views",">"*30,username)
                 print()
+                # Create OTP synchronously first to ensure it's available immediately
+                cs = ComService()
+                otp = cs.get_otp(username, otp_type)
+                # Print OTP to terminal for debugging
+                if otp_type == choices.CommunicationTypeChooices.EMAIL:
+                    print(f"Email OTP for {username}: {otp}")
+                else:
+                    print(f"SMS OTP for {username}: {otp}")
+                # Then send email asynchronously
                 send_otp_mail.delay(username,otp_type)
                 
                 data['user_name']=username
@@ -460,7 +469,8 @@ class SignUpVerifyOTP(APIView):
                 if user:
                     # User exists - log them in directly
                     from django.contrib.auth import login
-                    login(request, user)
+                    # Use CustomUserBackend for login
+                    login(request, user, backend='users.backends.CustomUserBackend')
                     data["otp_verify"]=True
                     data["user_exists"]=True
                     data["success"]=True
@@ -490,9 +500,15 @@ class SignUpPassword(APIView):
         data={}
         data['message']="All fields required"
         pwd = request.POST.get('password') 
+        confirm_pwd = request.POST.get('confirm_password')
         username=request.POST.get("enc_user_name")
         refer_user_enc=request.POST.get('enc_referral_user')
         grade = request.POST.get('grade')  # Get class/grade from form
+        
+        # Validate password and confirm password match
+        if pwd and confirm_pwd and pwd != confirm_pwd:
+            data['message'] = "Passwords do not match. Please make sure both passwords are the same."
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
         
         # Validate grade for direct signups (must be 10 or 12)
         if grade and grade not in ['10', '12']:
@@ -566,7 +582,8 @@ class SignUpPassword(APIView):
                     try:
                         # Auto-login the user
                         from django.contrib.auth import login
-                        login(request, user)
+                        # Specify backend since multiple backends are configured
+                        login(request, user, backend='users.backends.CustomUserBackend')
                     except Exception as login_error:
                         # Log but don't fail - user is already created
                         import traceback
@@ -589,6 +606,52 @@ class SignUpPassword(APIView):
                 print(traceback.format_exc())
                 data['message'] = "An error occurred while creating your account. Please try again."
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LoginOTP(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        data={}
+        data['message']="All fields required"
+        cs=ComService()
+        otp = request.POST.getlist('otp',[]) 
+        username=request.POST.get("user_name")
+        if username and len(otp)==6:
+            try:
+                mobile = int(username)
+                email=str(username)
+                username=mobile
+            except:
+                mobile=0
+                email=str(username)
+                username=email
+            otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
+            is_otp_verified=otp and cs.verify_otp(username,''.join(otp),otp_type,delete=False)
+            if is_otp_verified:
+                # Find user by email or mobile
+                user = User.objects.filter(Q(mobile=mobile) | Q(email=email)).last()
+                if user and user.get_user_status():
+                    # User exists and is active - log them in
+                    from django.contrib.auth import login
+                    # Use CustomUserBackend for login
+                    login(request, user, backend='users.backends.CustomUserBackend')
+                    data["otp_verify"]=True
+                    data["success"]=True
+                    data['redirect_url'] = reverse('users:userdashboard')
+                    return Response(data, status=status.HTTP_200_OK)
+                else:
+                    data["message"]="User not found or inactive"
+                    data["otp_verify"]=False
+                    data["success"]=False
+                    return Response(data, status=status.HTTP_200_OK)
+            else:
+                data["message"]="Invalid OTP"
+                data['user_name']=username
+                data["otp_verify"]=False
+                data["success"]=False
+                return Response(data, status=status.HTTP_200_OK)
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -625,7 +688,8 @@ class LoginPassword(APIView):
                     # Use default session expiry (browser session)
                     request.session.set_expiry(0)
                 
-                login(request, user)
+                # Use CustomUserBackend for login
+                login(request, user, backend='users.backends.CustomUserBackend')
                 data['success'] = True
                 
                 # Default redirect to user dashboard instead of test buttons
@@ -790,6 +854,14 @@ class ForgotPassword(APIView):
 
             if user:
                 otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
+                # Get OTP and print it before sending
+                cs = ComService()
+                otp = cs.get_otp(username, otp_type)
+                # Print OTP to terminal for debugging
+                if otp_type == choices.CommunicationTypeChooices.EMAIL:
+                    print(f"Forgot Password - Email OTP for {username}: {otp}")
+                else:
+                    print(f"Forgot Password - SMS OTP for {username}: {otp}")
                 send_otp_mail(username,otp_type)
                 sign = Signer()
                 enc_user_name=sign.sign_object(({"enc_user_name":username}))
@@ -862,6 +934,13 @@ class ResendOtp(APIView):
                 email=str(username)
                 username=email    
             otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
+            # Get OTP and print it before sending
+            otp = cs.get_otp(username, otp_type)
+            # Print OTP to terminal for debugging
+            if otp_type == choices.CommunicationTypeChooices.EMAIL:
+                print(f"Resend - Email OTP for {username}: {otp}")
+            else:
+                print(f"Resend - SMS OTP for {username}: {otp}")
             send_otp_mail(username,otp_type)
             data['message']="Otp Send Successfully"
             return Response(data, status=status.HTTP_200_OK)
