@@ -7,6 +7,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .bookmark-list-page {
     padding-top: 80px;
@@ -41,13 +42,22 @@
 {% block content %}
 <section class="bookmark-list-page pb-5">
   <div class="container">
-    <!-- Breadcrumb -->
-    {% if breadcrumb %}
-    {% include 'template20/includes/breadcrumb.html' %}
-    {% endif %}
+    <div class="row g-4 pt-4">
+      <!-- Left part Desktop - Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
+      </div>
+      <!-- End of Left part Desktop -->
 
-    <!-- Bookmark Heading -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+      <!-- Right Part - Bookmark List Content -->
+      <div class="col-lg-8">
+        <!-- Breadcrumb -->
+        {% if breadcrumb %}
+        {% include 'template20/includes/breadcrumb.html' %}
+        {% endif %}
+
+        <!-- Bookmark Heading -->
+        <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
       <h1 class="fs-24 fw-semibold mb-0">My Bookmarks</h1>
     </div>
 

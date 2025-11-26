@@ -263,7 +263,7 @@
         <div class="mb-4">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="fs-24 fw-semibold mb-0">SkillLab Courses</h2>
-            <a href="{{ url('skilllab:skilllab_course_list') }}" class="text-purple fs-12 fw-semibold">View All</a>
+            <a href="{{ url('skilllabcourse:skilllabcourselist') }}" class="text-purple fs-12 fw-semibold">View All</a>
           </div>
           <div class="scrollable-section d-flex gap-3 pb-2">
             {% for course in skilllab_courses[:6] %}
@@ -295,7 +295,7 @@
         <div class="mb-4">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="fs-24 fw-semibold mb-0">Entrance Exams</h2>
-            <a href="{{ url('testprep:testprep_list') }}" class="text-purple fs-12 fw-semibold">View All</a>
+            <a href="{{ url('entrance_exams:testpreptenth') }}" class="text-purple fs-12 fw-semibold">View All</a>
           </div>
           <div class="row g-3">
             {% for exam in exams[:6] %}
@@ -368,7 +368,7 @@
       </div>
       <div class="modal-body">
         <form id="addFolderForm">
-          {% csrf_token %}
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
           <div class="mb-3">
             <label for="folderName" class="form-label">Folder Name</label>
             <input type="text" class="form-control custom-input" id="folderName" name="folder_name" placeholder="Enter folder name" required>
@@ -425,7 +425,7 @@
     {% if sbj.is_story %}
     <div class="story-data" data-slug="{{ sbj.slug }}" data-name="{{ sbj.name }}">
       {% for story in sbj.get_story %}
-      <div class="story-item-data" data-file="{{ story.file.url }}" data-title="{{ story.title|default:'' }}" data-summary="{{ story.summary|default:'' }}"></div>
+      <div class="story-item-data" data-file="{{ story.file.url }}" data-title="{{ story.title|default('') }}" data-summary="{{ story.summary|default('') }}"></div>
       {% endfor %}
     </div>
     {% endif %}

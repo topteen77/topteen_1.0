@@ -9,6 +9,7 @@
 {{ super() }}
 <!-- FullCalendar CSS -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css" rel="stylesheet" />
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .user-calendar-page {
     padding-top: 80px;
@@ -29,32 +30,58 @@
     background-color: #2e289d;
     border-color: #2e289d;
   }
+  /* Fix modal z-index to ensure it appears above backdrop */
+  .modal {
+    z-index: 1055 !important;
+  }
+  .modal-backdrop {
+    z-index: 1050 !important;
+  }
+  /* Ensure modal content is clickable */
+  .modal.show {
+    display: block !important;
+  }
+  .modal-dialog {
+    z-index: 1056 !important;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <section class="user-calendar-page pb-5">
   <div class="container">
-    <!-- Breadcrumb -->
-    {% if breadcrumb %}
-    {% include 'template20/includes/breadcrumb.html' %}
-    {% endif %}
+    <div class="row g-4 pt-4">
+      <!-- Left part Desktop - Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
+      </div>
+      <!-- End of Left part Desktop -->
 
-    <!-- Calendar Heading -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
-      <h1 class="fs-24 fw-semibold mb-0">Your Calendar</h1>
+      <!-- Right Part - Calendar Content -->
+      <div class="col-lg-8">
+        <!-- Breadcrumb -->
+        {% if breadcrumb %}
+        {% include 'template20/includes/breadcrumb.html' %}
+        {% endif %}
+
+        <!-- Calendar Heading -->
+        <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+          <h1 class="fs-24 fw-semibold mb-0">Your Calendar</h1>
+        </div>
+
+        <!-- Mobile Header -->
+        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+          <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.location='{{ url('users:userdashboard') }}'">
+            <i class='bx bx-arrow-left fs-18 text-gray'></i>
+          </button>
+          <h2 class="fs-16 fw-normal text-center mb-0">Your Calendar</h2>
+        </div>
+
+        <!-- Calendar Container -->
+        <div id="calendar" class="mb-4"></div>
+      </div>
+      <!-- End of Right Part -->
     </div>
-
-    <!-- Mobile Header -->
-    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.location='{{ url('users:userdashboard') }}'">
-        <i class='bx bx-arrow-left fs-18 text-gray'></i>
-      </button>
-      <h2 class="fs-16 fw-normal text-center mb-0">Your Calendar</h2>
-    </div>
-
-    <!-- Calendar Container -->
-    <div id="calendar" class="mb-4"></div>
   </div>
 </section>
 
@@ -68,7 +95,7 @@
       </div>
       <div class="modal-body">
         <form id="eventForm" method="POST" action="{{ url('users:usercalender') }}">
-          {% csrf_token %}
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
           <div class="mb-3">
             <label for="eventName" class="form-label">Event Name</label>
             <input type="text" 
@@ -128,8 +155,6 @@
 {{ super() }}
 <!-- FullCalendar JS -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js"></script>
-<!-- jQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -148,10 +173,37 @@
     {% endif %}
   ];
 
-  document.addEventListener('DOMContentLoaded', function() {
+  // Wait for all dependencies to be loaded
+  function initCalendar() {
+    // Check if all required libraries are loaded
+    if (typeof FullCalendar === 'undefined') {
+      console.log('Waiting for FullCalendar...');
+      setTimeout(initCalendar, 100);
+      return;
+    }
+    
+    if (typeof bootstrap === 'undefined' && typeof $ === 'undefined') {
+      console.log('Waiting for Bootstrap...');
+      setTimeout(initCalendar, 100);
+      return;
+    }
+
     const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) {
+      console.error('Calendar element not found');
+      return;
+    }
+
     const startDateInput = document.getElementById('eventStart');
     const endDateInput = document.getElementById('eventEnd');
+    const addEventModal = document.getElementById('addEventModal');
+    const deleteEventModal = document.getElementById('deleteEventModal');
+    
+    if (!startDateInput || !endDateInput || !addEventModal || !deleteEventModal) {
+      console.error('Required modal elements not found');
+      return;
+    }
+
     let eventToDelete = null;
 
     // Initialize FullCalendar
@@ -185,34 +237,113 @@
         // Set start date and open modal
         startDateInput.value = info.dateStr;
         endDateInput.value = info.dateStr;
-        const modal = new bootstrap.Modal(document.getElementById('addEventModal'));
-        modal.show();
+        
+        // Try Bootstrap 5 first, then fallback to jQuery/Bootstrap 4
+        try {
+          if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const modal = new bootstrap.Modal(addEventModal, {
+              backdrop: true,
+              keyboard: true,
+              focus: true
+            });
+            modal.show();
+            // Ensure modal is above backdrop
+            setTimeout(function() {
+              addEventModal.style.zIndex = '1055';
+              const backdrop = document.querySelector('.modal-backdrop');
+              if (backdrop) {
+                backdrop.style.zIndex = '1050';
+              }
+            }, 10);
+          } else if (typeof $ !== 'undefined' && $.fn.modal) {
+            $(addEventModal).modal({
+              backdrop: true,
+              keyboard: true,
+              show: true
+            });
+          } else {
+            console.error('Bootstrap modal not available');
+            Swal.fire({
+              title: 'Error',
+              text: 'Unable to open event form. Please refresh the page.',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          }
+        } catch (e) {
+          console.error('Error opening modal:', e);
+          // Fallback to jQuery/Bootstrap 4
+          if (typeof $ !== 'undefined' && $.fn.modal) {
+            try {
+              $(addEventModal).modal('show');
+            } catch (e2) {
+              console.error('Error with jQuery modal:', e2);
+              Swal.fire({
+                title: 'Error',
+                text: 'Unable to open event form. Please refresh the page.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+              });
+            }
+          }
+        }
       },
       eventClick: function(info) {
         eventToDelete = info.event.id;
-        const modal = new bootstrap.Modal(document.getElementById('deleteEventModal'));
-        modal.show();
+        
+        // Try Bootstrap 5 first, then fallback to jQuery/Bootstrap 4
+        try {
+          if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const modal = new bootstrap.Modal(deleteEventModal);
+            modal.show();
+          } else if (typeof $ !== 'undefined' && $.fn.modal) {
+            $(deleteEventModal).modal('show');
+          } else {
+            console.error('Bootstrap modal not available');
+          }
+        } catch (e) {
+          console.error('Error opening delete modal:', e);
+          // Fallback to jQuery/Bootstrap 4
+          if (typeof $ !== 'undefined' && $.fn.modal) {
+            try {
+              $(deleteEventModal).modal('show');
+            } catch (e2) {
+              console.error('Error with jQuery delete modal:', e2);
+            }
+          }
+        }
       }
     });
 
     calendar.render();
 
-    // Set delete link
-    document.getElementById('confirmDeleteEventLink').href = "{{ url('users:eventdelete', args=[0]) }}".replace('0', eventToDelete);
-
+    // Set delete link - will be updated when event is clicked
+    let deleteEventUrl = "{{ url('users:eventdelete', args=[0]) }}";
+    
     // Update delete link when event is clicked
     document.getElementById('deleteEventModal').addEventListener('show.bs.modal', function() {
       if (eventToDelete) {
-        document.getElementById('confirmDeleteEventLink').href = "{{ url('users:eventdelete', args=[0]) }}".replace('0', eventToDelete);
+        document.getElementById('confirmDeleteEventLink').href = deleteEventUrl.replace('0', eventToDelete);
       }
     });
 
     // Handle form submission
-    document.getElementById('eventForm').addEventListener('submit', function(e) {
-      // Form will submit normally to create the event
-      // Calendar will refresh on page reload
-    });
-  });
+    const eventForm = document.getElementById('eventForm');
+    if (eventForm) {
+      eventForm.addEventListener('submit', function(e) {
+        // Form will submit normally to create the event
+        // Calendar will refresh on page reload
+      });
+    }
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCalendar);
+  } else {
+    // DOM is already ready
+    initCalendar();
+  }
 </script>
 {% endblock %}
 

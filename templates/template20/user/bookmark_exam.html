@@ -7,6 +7,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .bookmark-exam-page {
     padding-top: 80px;
@@ -104,6 +105,9 @@
       </a>
     </div>
     {% endif %}
+      </div>
+      <!-- End of Right Part -->
+    </div>
   </div>
 </section>
 {% endblock %}

@@ -65,6 +65,22 @@
     background: #e9ecef !important;
     transition: all 0.3s;
   }
+  /* Fix modal z-index to ensure it appears above backdrop */
+  .modal {
+    z-index: 1055 !important;
+  }
+  .modal-backdrop {
+    z-index: 1050 !important;
+  }
+  .modal-dialog {
+    z-index: 1056 !important;
+  }
+  .referFriendsPopup {
+    z-index: 1055 !important;
+  }
+  .referFriendsPopup .modal-dialog {
+    z-index: 1056 !important;
+  }
 </style>
 {% endblock %}
 
@@ -74,7 +90,7 @@
 <div class="modal fade referFriendsPopup" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content position-relative">
-      <button type="button" class="btn-close position-absolute top-0 end-0 m-3 referPopupClose" aria-label="Close"></button>
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-3 referPopupClose" data-bs-dismiss="modal" aria-label="Close"></button>
       <div class="modal-body p-4 text-center">
         <h5 class="fs-24 fw-semibold mb-4">Refer/Invite friends</h5>
         <form onsubmit="return false" id="referform">
@@ -483,7 +499,7 @@
             {% for note in notes %}
             <div class="mb-3 pb-3 border-bottom">
               <h5 class="fs-16 fw-semibold mb-1">{{ note.title|default('Untitled') }}</h5>
-              <p class="text-gray fs-14 mb-2">{{ note.content|truncate(150) }}</p>
+              <p class="text-gray fs-14 mb-2">{{ (note.content or '')|truncate(150) }}</p>
               <p class="text-gray fs-12 mb-0">{{ date_format(note.created) }}</p>
             </div>
             {% endfor %}
@@ -527,19 +543,33 @@
   referTriggers.forEach(elem => {
     elem.addEventListener('click', function() {
       if (referPopup) {
-        const modal = new bootstrap.Modal(referPopup);
+        const modal = new bootstrap.Modal(referPopup, {
+          backdrop: true,
+          keyboard: true,
+          focus: true
+        });
         modal.show();
+        // Ensure modal is above backdrop
+        setTimeout(function() {
+          referPopup.style.zIndex = '1055';
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) {
+            backdrop.style.zIndex = '1050';
+          }
+        }, 10);
       }
     });
   });
 
   if (referClose && referPopup) {
-    referClose.addEventListener('click', function() {
-      const modal = bootstrap.Modal.getInstance(referPopup);
-      if (modal) {
-        modal.hide();
-      }
+    referClose.addEventListener('click', function(e) {
+      e.preventDefault();
+      const modal = bootstrap.Modal.getInstance(referPopup) || new bootstrap.Modal(referPopup);
+      modal.hide();
     });
+    
+    // Also handle data-bs-dismiss attribute
+    referClose.setAttribute('data-bs-dismiss', 'modal');
   }
 
   // Refer form submission

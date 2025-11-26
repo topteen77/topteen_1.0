@@ -9,9 +9,9 @@
         {# If breadcrumb is a list/array (not a dict) #}
         {% for item in breadcrumb %}
           {% if item is mapping %}
-            {# item is a dict - use .get() method #}
-            {% set item_text = item.get('text', '') or item.get('title', '') %}
-            {% set item_url = item.get('url', '#') %}
+            {# item is a dict - use bracket notation for Jinja2 #}
+            {% set item_text = item['text'] if 'text' in item else (item['title'] if 'title' in item else '') %}
+            {% set item_url = item['url'] if 'url' in item else '#' %}
           {% else %}
             {# item is an object - access as dict using bracket notation #}
             {% set item_text = item['text'] if 'text' in item else (item['title'] if 'title' in item else '') %}
@@ -28,9 +28,9 @@
       {% else %}
         {# If breadcrumb is a single object/dict #}
         {% if breadcrumb is mapping %}
-          {# breadcrumb is a dict - use .get() method #}
-          {% set breadcrumb_text = breadcrumb.get('text', '') or breadcrumb.get('title', '') %}
-          {% set breadcrumb_url = breadcrumb.get('url', '') %}
+          {# breadcrumb is a dict - use bracket notation for Jinja2 #}
+          {% set breadcrumb_text = breadcrumb['text'] if 'text' in breadcrumb else (breadcrumb['title'] if 'title' in breadcrumb else '') %}
+          {% set breadcrumb_url = breadcrumb['url'] if 'url' in breadcrumb else '' %}
         {% else %}
           {# breadcrumb might be a string or other type #}
           {% set breadcrumb_text = breadcrumb|string if breadcrumb else '' %}
