@@ -11,6 +11,7 @@ urlpatterns = [
    path('login', views.LoginView.as_view(),name='login'),
    path('login/<str:enc_id>', views.LoginView.as_view(),name='referallogin'),
    path('profiledetails', views.ProfileBasicDetails.as_view(), name="profiledetails"),
+   path('viewprofile', views.ViewProfile.as_view(), name="viewprofile"),
    path('loginsingup',views.LoginSignUp.as_view(),name='loginsingup'),
    path('signupverifyotp',views.SignUpVerifyOTP.as_view(),name='signupotpverify'),
    path('signuppwd',views.SignUpPassword.as_view(),name='signuppwd'),

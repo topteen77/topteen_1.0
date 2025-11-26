@@ -1,0 +1,261 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}View Profile | Top Teen{% endblock %}
+{% block description_content %}View your complete profile information.{% endblock %}
+
+{% block bodyclass %}{{ super() }} profile-view{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .profile-view {
+    padding-top: 80px;
+  }
+  .profile-header {
+    background: linear-gradient(135deg, #3f37c9 0%, #6366f1 100%);
+    color: white;
+    padding: 40px 20px;
+    border-radius: 0 0 20px 20px;
+    margin-bottom: 30px;
+  }
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid white;
+    object-fit: cover;
+    margin-bottom: 20px;
+  }
+  .profile-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 25px;
+    margin-bottom: 20px;
+  }
+  .profile-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #3f37c9;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+  }
+  .profile-field {
+    margin-bottom: 20px;
+  }
+  .profile-label {
+    font-size: 12px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+  .profile-value {
+    font-size: 16px;
+    color: #212529;
+    font-weight: 500;
+  }
+  .profile-badge {
+    display: inline-block;
+    background: #f0f0ff;
+    color: #3f37c9;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 5px 5px 5px 0;
+  }
+  .back-arrow-btn {
+    position: absolute;
+    left: 20px;
+    top: 100px;
+    z-index: 10;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .back-arrow-btn:hover {
+    transform: translateX(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .edit-profile-btn {
+    background: #3f37c9;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+  }
+  .edit-profile-btn:hover {
+    background: #2d28a0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(63, 55, 201, 0.3);
+  }
+  @media (min-width: 992px) {
+    .back-arrow-btn {
+      left: 100px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="profile-view pb-5">
+  <button class="back-arrow-btn" onclick="window.location.href='{{ url('users:userdashboard') }}'">
+    <img src="{{ static('topteenfrontend/assets/images/arrow.left.png') }}" alt="Back" style="width: 15px; height: 15px;" />
+  </button>
+
+  <!-- Profile Header -->
+  <div class="profile-header text-center">
+    <div class="container">
+      {% if request.user.image %}
+      <img src="{{ request.user.image.url }}" class="profile-avatar mx-auto" alt="Profile" />
+      {% else %}
+      <div class="profile-avatar mx-auto bg-white d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+        <i class='bx bx-user fs-48 text-purple'></i>
+      </div>
+      {% endif %}
+      <h1 class="fs-28 fw-700 mb-2">{{ request.user.name|default('User') }}</h1>
+      <p class="fs-16 mb-0 opacity-90">{{ request.user.email|default('') }}</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <!-- Personal Information -->
+        <div class="profile-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="profile-section-title mb-0">Personal Information</h3>
+            <a href="{{ url('users:profiledetails') }}" class="edit-profile-btn text-decoration-none">
+              <i class="bx bx-edit me-2"></i>Edit Profile
+            </a>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="profile-field">
+                <div class="profile-label">Full Name</div>
+                <div class="profile-value">{{ request.user.name|default('Not set') }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="profile-field">
+                <div class="profile-label">Email</div>
+                <div class="profile-value">{{ request.user.email|default('Not set') }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="profile-field">
+                <div class="profile-label">Mobile Number</div>
+                <div class="profile-value">{{ request.user.mobile|default('Not set') }}</div>
+              </div>
+            </div>
+            {% if request.user.user_profile %}
+            <div class="col-md-6">
+              <div class="profile-field">
+                <div class="profile-label">Birthday</div>
+                <div class="profile-value">{{ request.user.user_profile.birthdate|default('Not set') }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="profile-field">
+                <div class="profile-label">Gender</div>
+                <div class="profile-value">
+                  {% if request.user.user_profile.gender == 20 %}Male
+                  {% elif request.user.user_profile.gender == 30 %}Female
+                  {% elif request.user.user_profile.gender == 10 %}Transgender
+                  {% else %}Not set
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="profile-field">
+                <div class="profile-label">School Name</div>
+                <div class="profile-value">{{ request.user.user_profile.schoolname|default('Not set') }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="profile-field">
+                <div class="profile-label">Grade/Class</div>
+                <div class="profile-value">Class {{ request.user.user_profile.grade|default('Not set') }}</div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if request.user.user_profile %}
+        <!-- What are you here for? -->
+        {% set figure_outs = request.user.user_profile.figure_out.all() %}
+        {% if figure_outs|length > 0 %}
+        <div class="profile-card">
+          <h3 class="profile-section-title">What are you here for?</h3>
+          <div class="d-flex flex-wrap">
+            {% for fo in figure_outs %}
+            <span class="profile-badge">
+              {% if fo.image %}
+              <img src="{{ fo.image.url }}" alt="{{ fo.name }}" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />
+              {% endif %}
+              {{ fo.name }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Subjects -->
+        {% set subjects = request.user.user_profile.subject.all() %}
+        {% if subjects|length > 0 %}
+        <div class="profile-card">
+          <h3 class="profile-section-title">Subjects</h3>
+          <div class="d-flex flex-wrap">
+            {% for subj in subjects %}
+            <span class="profile-badge">
+              {% if subj.image %}
+              <img src="{{ subj.image.url }}" alt="{{ subj.name }}" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />
+              {% endif %}
+              {{ subj.name }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Hobbies -->
+        {% set hobbies_list = request.user.user_profile.hobbies.all() %}
+        {% if hobbies_list|length > 0 %}
+        <div class="profile-card">
+          <h3 class="profile-section-title">Hobbies</h3>
+          <div class="d-flex flex-wrap">
+            {% for hobby in hobbies_list %}
+            <span class="profile-badge">
+              {% if hobby.image %}
+              <img src="{{ hobby.image.url }}" alt="{{ hobby.name }}" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />
+              {% endif %}
+              {{ hobby.name }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

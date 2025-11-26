@@ -1015,6 +1015,23 @@ class ProfileBasicDetails(TemplateView):
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
+class ViewProfile(TemplateView):
+    template_name="template20/user/view_profile.html"
+
+    def html_head(self):
+        name='View Profile'
+        return build_html_head(title=name, description=name)
+
+    def get_context(self,request,*args, **kwargs):
+        ctx={}
+        ctx["html_head"] = self.html_head()
+        return ctx
+
+    def get(self, request,*args, **kwargs):      
+        return render(request, self.template_name, self.get_context(request,args, kwargs))
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class UserDashboard(TemplateView):
     template_name ="template20/user/user_dashboard.html"
 

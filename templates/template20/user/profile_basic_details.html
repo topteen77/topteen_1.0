@@ -351,7 +351,7 @@
           {% for hb in hobbies %}
           <div class="col-12 col-lg-4">
             <label class="hobbiesTab d-flex align-items-center p-3 rounded-3 bg-light" style="min-height: 60px; cursor: pointer;">
-              <input type="checkbox" class="d-none" name="hobbies" value="{{ hb.id }}">
+              <input type="checkbox" class="d-none" name="hobbies" value="{{ hb.id }}" {% if request.user.user_profile and hb in request.user.user_profile.hobbies.all() %}checked{% endif %}>
               {% if hb.image %}
               <img src="{{ hb.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ hb.name }}" />
               {% endif %}
