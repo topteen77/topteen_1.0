@@ -11,20 +11,37 @@
   .profile-view {
     padding-top: 80px;
   }
-  .profile-header {
-    background: linear-gradient(135deg, #3f37c9 0%, #6366f1 100%);
-    color: white;
-    padding: 40px 20px;
-    border-radius: 0 0 20px 20px;
-    margin-bottom: 30px;
+  .profile-sidebar {
+    border: 1px solid #dedede;
+    border-radius: 10px;
+    padding: 24px;
   }
-  .profile-avatar {
-    width: 120px;
-    height: 120px;
+  .profile-image {
+    width: 104px;
+    height: 104px;
     border-radius: 50%;
-    border: 4px solid white;
     object-fit: cover;
-    margin-bottom: 20px;
+  }
+  .profile-complete-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 18px;
+    margin-top: 18px;
+  }
+  .progress-bar-custom {
+    height: 10px;
+    background: rgba(76, 201, 240, 0.15);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #4cc9f0;
+    border-radius: 100px;
+  }
+  .hover-bg-light:hover {
+    background: #e9ecef !important;
+    transition: all 0.3s;
   }
   .profile-card {
     background: white;
@@ -67,27 +84,6 @@
     font-weight: 500;
     margin: 5px 5px 5px 0;
   }
-  .back-arrow-btn {
-    position: absolute;
-    left: 20px;
-    top: 100px;
-    z-index: 10;
-    background: white;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  .back-arrow-btn:hover {
-    transform: translateX(-3px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  }
   .edit-profile-btn {
     background: #3f37c9;
     color: white;
@@ -103,38 +99,117 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(63, 55, 201, 0.3);
   }
-  @media (min-width: 992px) {
-    .back-arrow-btn {
-      left: 100px;
-    }
-  }
 </style>
 {% endblock %}
 
 {% block content %}
 <section class="profile-view pb-5">
-  <button class="back-arrow-btn" onclick="window.location.href='{{ url('users:userdashboard') }}'">
-    <img src="{{ static('topteenfrontend/assets/images/arrow.left.png') }}" alt="Back" style="width: 15px; height: 15px;" />
-  </button>
-
-  <!-- Profile Header -->
-  <div class="profile-header text-center">
-    <div class="container">
-      {% if request.user.image %}
-      <img src="{{ request.user.image.url }}" class="profile-avatar mx-auto" alt="Profile" />
-      {% else %}
-      <div class="profile-avatar mx-auto bg-white d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
-        <i class='bx bx-user fs-48 text-purple'></i>
-      </div>
-      {% endif %}
-      <h1 class="fs-28 fw-700 mb-2">{{ request.user.name|default('User') }}</h1>
-      <p class="fs-16 mb-0 opacity-90">{{ request.user.email|default('') }}</p>
-    </div>
-  </div>
-
   <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-10">
+    <div class="row g-4 pt-4">
+      <!-- Left part Desktop - Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="profile-sidebar">
+          <!-- User -->
+          <div class="text-center border-bottom pb-4 mb-4">
+            <div class="mb-3">
+              {% if request.user.image %}
+              <img src="{{ request.user.image.url }}" class="profile-image mx-auto" alt="{{ request.user.name }}" />
+              {% else %}
+              <img src="{{ static('images_new/icons/user-icon.svg') }}" class="profile-image mx-auto" alt="User" />
+              {% endif %}
+            </div>
+            <p class="fs-16 fw-semibold mb-1">{{ request.user.name|default(request.user.username) }}</p>
+            
+            <div class="d-flex flex-column gap-2">
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                <i class='bx bx-time-five fs-18 text-gray'></i>
+                <p class="text-gray fs-16 mb-0">Joined {{ date_format(request.user.created) if request.user.created else 'N/A' }}</p>
+              </div>
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                <i class='bx bx-book fs-18 text-gray'></i>
+                <p class="text-gray fs-16 mb-0">
+                  {% if request.user.user_profile %}
+                    {% if request.user.user_profile.schoolname %}
+                      {{ request.user.user_profile.schoolname }}
+                    {% endif %}
+                    {% if request.user.user_profile.grade %}
+                    • Class {{ request.user.user_profile.grade }}
+                    {% endif %}
+                  {% else %}
+                    - • -
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+          <!-- End of User -->
+
+          <!-- Complete Profile -->
+          <div class="profile-complete-card">
+            <div class="d-flex">
+              <div class="me-3">
+                <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 45px;" alt="Verified" />
+              </div>
+              <div class="flex-grow-1">
+                <p class="fs-12 fw-semibold text-dark mb-1">Complete your profile</p>
+                <p class="fs-10 text-gray mb-2">A complete profile helps us cater the best content to you</p>
+                <div class="progress-bar-custom" style="width: 100%;">
+                  <div class="progress-fill" style="width: {% if request.user.is_completed %}100{% else %}60{% endif %}%;"></div>
+                </div>
+              </div>
+            </div>
+            <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">
+              <i class='bx bx-cog me-2'></i> SETTINGS
+            </a>
+          </div>
+          <!-- End of Complete Profile -->
+
+          <!-- Settings Links -->
+          <div class="mt-4">
+            <a href="{{ url('users:viewprofile') }}" class="d-block text-decoration-none mb-3">
+              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+                <div>
+                  <p class="fs-14 fw-semibold mb-1">View Profile</p>
+                  <p class="text-gray fs-12 mb-0">View your profile information</p>
+                </div>
+                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+              </div>
+            </a>
+            <a href="{{ url('users:profiledetails') }}" class="d-block text-decoration-none mb-3">
+              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+                <div>
+                  <p class="fs-14 fw-semibold mb-1">Edit Profile</p>
+                  <p class="text-gray fs-12 mb-0">Update your profile information</p>
+                </div>
+                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+              </div>
+            </a>
+            <a href="{{ url('users:userhistory') }}" class="d-block text-decoration-none mb-3">
+              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+                <div>
+                  <p class="fs-14 fw-semibold mb-1">Manage payment history</p>
+                  <p class="text-gray fs-12 mb-0">View and manage your payments</p>
+                </div>
+                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+              </div>
+            </a>
+            <a href="{{ url('users:logout') }}" class="d-block text-decoration-none">
+              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+                <div>
+                  <p class="fs-14 fw-semibold mb-1 text-danger">Sign Out</p>
+                  <p class="text-danger text-opacity-60 fs-12 mb-0">Logout from your account</p>
+                </div>
+                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+              </div>
+            </a>
+          </div>
+          <!-- End of Settings Links -->
+        </div>
+      </div>
+      <!-- End of Left part Desktop -->
+
+      <!-- Right Part - Profile Content -->
+      <div class="col-lg-8">
         <!-- Personal Information -->
         <div class="profile-card">
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -254,6 +329,7 @@
         {% endif %}
         {% endif %}
       </div>
+      <!-- End of Right Part -->
     </div>
   </div>
 </section>
