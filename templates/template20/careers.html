@@ -89,12 +89,14 @@ Explore our comprehensive collection of career paths organized by industry and i
                 {% if professions %}
                 <div class="col-md-4 col-sm-6">
                   <label class="form-label fw-semibold">Professions</label>
-                  <select name="professions" class="form-select" multiple size="5" id="professionsFilter">
+                  <select name="professions" class="form-select filter-select2" multiple id="professionsFilter" data-placeholder="Search and select professions...">
                     {% for prof in professions %}
                     <option value="{{ prof.name }}" {% if prof.name in selected_professions %}selected{% endif %}>{{ prof.name }}</option>
                     {% endfor %}
                   </select>
-                  <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                  <small class="text-muted">Type to search, select multiple</small>
+                  <!-- Selected Professions Display -->
+                  <div id="selectedProfessionsDisplay" class="mt-2 d-flex flex-wrap gap-2"></div>
                 </div>
                 {% endif %}
 
@@ -102,15 +104,14 @@ Explore our comprehensive collection of career paths organized by industry and i
                 {% if facets_filter and facets_filter.skill %}
                 <div class="col-md-4 col-sm-6">
                   <label class="form-label fw-semibold">Skills</label>
-                  <div class="position-relative">
-                    <input type="text" class="form-control mb-2" id="skillSearchInput" placeholder="Search skills..." onkeyup="filterSkillOptions(this.value)">
-                    <select name="skills" class="form-select" multiple size="5" id="skillsFilter">
+                  <select name="skills" class="form-select filter-select2" multiple id="skillsFilter" data-placeholder="Search and select skills...">
                       {% for skill_name, count, selected in facets_filter.skill %}
-                      <option value="{{ skill_name }}" {% if selected %}selected{% endif %} data-name="{{ skill_name.lower() }}">{{ skill_name }}</option>
+                    <option value="{{ skill_name }}" {% if selected %}selected{% endif %}>{{ skill_name }}</option>
                       {% endfor %}
                     </select>
-                  </div>
-                  <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                  <small class="text-muted">Type to search, select multiple</small>
+                  <!-- Selected Skills Display -->
+                  <div id="selectedSkillsDisplay" class="mt-2 d-flex flex-wrap gap-2"></div>
                 </div>
                 {% endif %}
 
@@ -118,12 +119,14 @@ Explore our comprehensive collection of career paths organized by industry and i
                 {% if clusters %}
                 <div class="col-md-4 col-sm-6">
                   <label class="form-label fw-semibold">Career Cluster</label>
-                  <select name="cluster" class="form-select" id="clusterFilter">
-                    <option value="">All Clusters</option>
+                  <select name="cluster" class="form-select filter-select2" multiple id="clusterFilter" data-placeholder="Search and select clusters...">
                     {% for cluster in clusters %}
-                    <option value="{{ cluster.id }}" {% if request.GET.cluster == cluster.id|string %}selected{% endif %}>{{ cluster.name }}</option>
+                    <option value="{{ cluster.id }}" {% if cluster.id|string in request.GET.getlist('cluster') %}selected{% endif %}>{{ cluster.name }}</option>
                     {% endfor %}
                   </select>
+                  <small class="text-muted">Type to search, select multiple</small>
+                  <!-- Selected Cluster Display -->
+                  <div id="selectedClusterDisplay" class="mt-2 d-flex flex-wrap gap-2"></div>
                 </div>
                 {% endif %}
               </div>
@@ -357,6 +360,13 @@ Explore our comprehensive collection of career paths organized by industry and i
 {% endblock %}
 
 {% block additionaljs %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
   // Bookmark functionality
   const bookmarkButtons = document.querySelectorAll('.career-bookmark-btn');
@@ -385,33 +395,309 @@ Explore our comprehensive collection of career paths organized by industry and i
 </script>
 
 <script>
-// Filter skill options based on search
-function filterSkillOptions(searchTerm) {
-  const skillSelect = document.getElementById('skillsFilter');
-  if (!skillSelect) return;
-  const options = skillSelect.getElementsByTagName('option');
-  const searchLower = searchTerm.toLowerCase();
-  
-  for (let i = 0; i < options.length; i++) {
-    const option = options[i];
-    const skillName = option.getAttribute('data-name') || option.textContent.toLowerCase();
-    if (skillName.includes(searchLower)) {
-      option.style.display = '';
-    } else {
-      option.style.display = 'none';
+// Initialize Select2 with autocomplete for all filters
+// Wait for jQuery to be available
+(function() {
+  function initSelect2() {
+    if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') {
+      setTimeout(initSelect2, 100);
+      return;
     }
-  }
-}
+    
+    const $ = jQuery;
 
-// Auto-submit form when cluster changes
-document.addEventListener('DOMContentLoaded', function() {
-  const clusterFilter = document.getElementById('clusterFilter');
-  if (clusterFilter) {
-    clusterFilter.addEventListener('change', function() {
-      document.getElementById('career-filter-form').submit();
+    
+    // Initialize Professions Filter with AJAX autocomplete
+    $('#professionsFilter').select2({
+      theme: 'bootstrap-5',
+      placeholder: 'Search and select professions...',
+      allowClear: true,
+      multiple: true,
+      width: '100%',
+      ajax: {
+        url: '{{ url("careers:autocomplete_professions") }}',
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+          // Get selected clusters to filter professions (can be multiple)
+          const selectedClusters = $('#clusterFilter').val() || [];
+          return {
+            q: params.term || '', // search term
+            limit: 20,
+            cluster: selectedClusters
+          };
+        },
+        processResults: function (data) {
+          // Filter out any blank/empty results
+          const filteredResults = (data.results || []).filter(function(item) {
+            return item && item.text && item.text.trim() !== '';
+          });
+          return {
+            results: filteredResults
+          };
+        },
+        cache: true
+      },
+      minimumInputLength: 0
     });
+
+    
+    // Initialize Skills Filter with AJAX autocomplete
+    $('#skillsFilter').select2({
+      theme: 'bootstrap-5',
+      placeholder: 'Search and select skills...',
+      allowClear: true,
+      multiple: true,
+      width: '100%',
+      ajax: {
+        url: '{{ url("careers:autocomplete_skills") }}',
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+          // Get selected professions and clusters to filter skills (can be multiple)
+          const selectedProfessions = $('#professionsFilter').val() || [];
+          const selectedClusters = $('#clusterFilter').val() || [];
+          return {
+            q: params.term || '', // search term
+            limit: 20,
+            professions: selectedProfessions,
+            cluster: selectedClusters
+          };
+        },
+        processResults: function (data) {
+          // Filter out any blank/empty results
+          const filteredResults = (data.results || []).filter(function(item) {
+            return item && item.text && item.text.trim() !== '';
+          });
+          return {
+            results: filteredResults
+          };
+        },
+        cache: true
+      },
+      minimumInputLength: 0
+    });
+
+    // Function to update selected filters display
+    function updateSelectedFiltersDisplay() {
+      // Update Professions display
+      const selectedProfessions = $('#professionsFilter').val() || [];
+      const professionsDisplay = $('#selectedProfessionsDisplay');
+      professionsDisplay.empty();
+      
+      if (selectedProfessions.length > 0) {
+        selectedProfessions.forEach(function(profValue) {
+          // Get the text from the selected option
+          const profOption = $('#professionsFilter option[value="' + profValue + '"]');
+          const profText = profOption.text() || profValue;
+          
+          const badge = $('<span class="badge bg-info text-white d-flex align-items-center gap-1" style="font-size: 0.875rem; padding: 0.35rem 0.65rem;">' +
+            '<span>' + profText + '</span>' +
+            '<button type="button" class="btn-close btn-close-white" style="font-size: 0.65rem;" aria-label="Remove"></button>' +
+            '</span>');
+          
+          badge.find('button').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Remove from select2
+            const values = selectedProfessions.filter(function(v) { return v !== profValue; });
+            $('#professionsFilter').val(values).trigger('change');
+          });
+          
+          professionsDisplay.append(badge);
+        });
+      }
+      
+      // Update Skills display
+      const selectedSkills = $('#skillsFilter').val() || [];
+      const skillsDisplay = $('#selectedSkillsDisplay');
+      skillsDisplay.empty();
+      
+      if (selectedSkills.length > 0) {
+        selectedSkills.forEach(function(skillValue) {
+          // Get the text from the selected option
+          const skillOption = $('#skillsFilter option[value="' + skillValue + '"]');
+          const skillText = skillOption.text() || skillValue;
+          
+          const badge = $('<span class="badge bg-success text-white d-flex align-items-center gap-1" style="font-size: 0.875rem; padding: 0.35rem 0.65rem;">' +
+            '<span>' + skillText + '</span>' +
+            '<button type="button" class="btn-close btn-close-white" style="font-size: 0.65rem;" aria-label="Remove"></button>' +
+            '</span>');
+          
+          badge.find('button').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Remove from select2
+            const values = selectedSkills.filter(function(v) { return v !== skillValue; });
+            $('#skillsFilter').val(values).trigger('change');
+          });
+          
+          skillsDisplay.append(badge);
+        });
+      }
+      
+      // Update Cluster display (multi-select)
+      const selectedClusters = $('#clusterFilter').val() || [];
+      const clusterDisplay = $('#selectedClusterDisplay');
+      clusterDisplay.empty();
+      
+      if (selectedClusters.length > 0) {
+        selectedClusters.forEach(function(clusterValue) {
+          // Get the text from the selected option
+          const clusterOption = $('#clusterFilter option[value="' + clusterValue + '"]');
+          const clusterText = clusterOption.text() || clusterValue;
+          
+          const badge = $('<span class="badge bg-primary text-white d-flex align-items-center gap-1" style="font-size: 0.875rem; padding: 0.35rem 0.65rem;">' +
+            '<span>' + clusterText + '</span>' +
+            '<button type="button" class="btn-close btn-close-white" style="font-size: 0.65rem;" aria-label="Remove"></button>' +
+            '</span>');
+          
+          badge.find('button').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Remove from select2
+            const values = selectedClusters.filter(function(v) { return v !== clusterValue; });
+            $('#clusterFilter').val(values).trigger('change');
+          });
+          
+          clusterDisplay.append(badge);
+        });
+      }
+    }
+
+    // Function to auto-populate child filters when parent changes
+    function autoPopulateChildFilters() {
+      const selectedClusters = $('#clusterFilter').val() || [];
+      const selectedProfessions = $('#professionsFilter').val() || [];
+      
+      // If clusters are selected, auto-populate professions
+      if (selectedClusters.length > 0) {
+        // Load professions for these clusters
+        $.ajax({
+          url: '{{ url("careers:autocomplete_professions") }}',
+          dataType: 'json',
+          data: {
+            q: '',
+            limit: 100,
+            cluster: selectedClusters
+          },
+          success: function(data) {
+            // Filter out blank data
+            const validProfessions = (data.results || []).filter(function(item) {
+              return item && item.text && item.text.trim() !== '';
+            });
+            
+            // Update professions dropdown with new options
+            const currentValues = $('#professionsFilter').val() || [];
+            $('#professionsFilter').empty();
+            
+            // Add new options
+            validProfessions.forEach(function(prof) {
+              const option = new Option(prof.text, prof.value, false, currentValues.includes(prof.value));
+              $('#professionsFilter').append(option);
+            });
+            
+            // Trigger change to update skills
+            $('#professionsFilter').trigger('change');
+          }
+        });
+      }
+      
+      // If professions or clusters are selected, auto-populate skills
+      if (selectedProfessions.length > 0 || selectedClusters.length > 0) {
+        // Load skills for selected professions/clusters
+        $.ajax({
+          url: '{{ url("careers:autocomplete_skills") }}',
+          dataType: 'json',
+          data: {
+            q: '',
+            limit: 100,
+            professions: selectedProfessions,
+            cluster: selectedClusters
+          },
+          success: function(data) {
+            // Filter out blank data
+            const validSkills = (data.results || []).filter(function(item) {
+              return item && item.text && item.text.trim() !== '';
+            });
+            
+            // Update skills dropdown with new options
+            const currentValues = $('#skillsFilter').val() || [];
+            $('#skillsFilter').empty();
+            
+            // Add new options
+            validSkills.forEach(function(skill) {
+              const option = new Option(skill.text, skill.value, false, currentValues.includes(skill.value));
+              $('#skillsFilter').append(option);
+            });
+            
+            $('#skillsFilter').trigger('change');
+          }
+        });
+      } else {
+        // If no parent selected, clear child filters
+        $('#skillsFilter').empty().trigger('change');
+      }
+    }
+
+    // Update selected filters display on change
+    $('#professionsFilter').on('change', function() {
+      updateSelectedFiltersDisplay();
+      autoPopulateChildFilters();
+    });
+
+    $('#skillsFilter').on('change', function() {
+      updateSelectedFiltersDisplay();
+    });
+
+    // Initialize Cluster Filter with AJAX autocomplete (multi-select)
+    $('#clusterFilter').select2({
+      theme: 'bootstrap-5',
+      placeholder: 'Search and select clusters...',
+      allowClear: true,
+      multiple: true,
+      width: '100%',
+      ajax: {
+        url: '{{ url("careers:autocomplete_clusters") }}',
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+          return {
+            q: params.term || '', // search term
+            limit: 20
+          };
+        },
+        processResults: function (data) {
+          // Filter out any blank/empty results
+          const filteredResults = (data.results || []).filter(function(item) {
+            return item && item.text && item.text.trim() !== '';
+          });
+          return {
+            results: filteredResults
+          };
+        },
+        cache: true
+      },
+      minimumInputLength: 0
+    });
+
+    // Auto-populate child filters when cluster changes
+    $('#clusterFilter').on('change', function() {
+      updateSelectedFiltersDisplay();
+      autoPopulateChildFilters();
+    });
+    
+    // Initial display update for pre-selected values
+    updateSelectedFiltersDisplay();
   }
-});
+  
+  // Start initialization when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSelect2);
+  } else {
+    initSelect2();
+  }
+})();
 </script>
 {% endblock %}
 

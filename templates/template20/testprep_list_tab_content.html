@@ -1,0 +1,125 @@
+{% if twelthexamtag or collegeexamtag %}
+<!-- Popular Tags -->
+<div class="popular-tags mb-4">
+  <div class="d-flex flex-wrap gap-2">
+    {% if twelthexamtag %}
+      {% for tag in twelthexamtag[:4] %}
+      <a href="{{ url('entrance_exams:testprepfilter') }}?category=After+12th&tags={{ tag.slug }}" class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+        <i class='bx bx-flame me-1'></i>{{ tag.name }}
+      </a>
+      {% endfor %}
+    {% elif collegeexamtag %}
+      {% for tag in collegeexamtag[:4] %}
+      <a href="{{ url('entrance_exams:testprepfilter') }}?category=After+College&tags={{ tag.slug }}" class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+        <i class='bx bx-flame me-1'></i>{{ tag.name }}
+      </a>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Exams by Stream -->
+{% if twelthstreams %}
+  {% for stm in twelthstreams %}
+  <div class="stream-section mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="section-title mb-0">{{ stm.name }}</h3>
+      <a href="{{ url('entrance_exams:testprepfilter') }}?category={{ entrance_exam_category.after12 }}&stream={{ stm.slug }}" class="text-primary text-decoration-none">
+        View All <i class='bx bx-right-arrow-alt'></i>
+      </a>
+    </div>
+    
+    <div class="row">
+      {% set exam_count = 0 %}
+      {% for exam in twelthexams %}
+        {% if stm in exam.stream.all() %}
+          {% set exam_count = exam_count + 1 %}
+          {% if exam_count <= 3 %}
+          <div class="col-md-4 col-sm-6 mb-4">
+            <div class="exam-card h-100 p-3 rounded shadow-sm position-relative">
+              <div class="d-flex align-items-center mb-3">
+                <div class="exam-logo me-3" style="width: 60px; height: 60px;">
+                  <img src="{{ exam.logo_url }}" alt="{{ exam.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+                </div>
+                <div class="flex-grow-1">
+                  <h5 class="mb-1">
+                    <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="text-decoration-none">{{ exam.name }}</a>
+                  </h5>
+                  {% if exam.exam_date %}
+                  <p class="text-gray fs-12 mb-0">
+                    <i class='bx bx-calendar'></i> {{ date_format(exam.exam_date) }}
+                  </p>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="d-flex justify-content-between">
+                <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                <button class="btn btn-sm btn-outline-secondary shortlist-exam {% if exam.id in bookmarked_exam_ids %}bookmarked{% endif %}" data-exam-id="{{ exam.id }}">
+                  <i class='bx {% if exam.id in bookmarked_exam_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+{% elif collegestreams %}
+  {% for stm in collegestreams %}
+  <div class="stream-section mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="section-title mb-0">{{ stm.name }}</h3>
+      <a href="{{ url('entrance_exams:testprepfilter') }}?category={{ entrance_exam_category.aftercollge }}&stream={{ stm.slug }}" class="text-primary text-decoration-none">
+        View All <i class='bx bx-right-arrow-alt'></i>
+      </a>
+    </div>
+    
+    <div class="row">
+      {% set exam_count = 0 %}
+      {% for exam in collegeexams %}
+        {% if stm in exam.stream.all() %}
+          {% set exam_count = exam_count + 1 %}
+          {% if exam_count <= 3 %}
+          <div class="col-md-4 col-sm-6 mb-4">
+            <div class="exam-card h-100 p-3 rounded shadow-sm position-relative">
+              <div class="d-flex align-items-center mb-3">
+                <div class="exam-logo me-3" style="width: 60px; height: 60px;">
+                  <img src="{{ exam.logo_url }}" alt="{{ exam.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+                </div>
+                <div class="flex-grow-1">
+                  <h5 class="mb-1">
+                    <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="text-decoration-none">{{ exam.name }}</a>
+                  </h5>
+                  {% if exam.exam_date %}
+                  <p class="text-gray fs-12 mb-0">
+                    <i class='bx bx-calendar'></i> {{ date_format(exam.exam_date) }}
+                  </p>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="d-flex justify-content-between">
+                <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                <button class="btn btn-sm btn-outline-secondary shortlist-exam {% if exam.id in bookmarked_exam_ids %}bookmarked{% endif %}" data-exam-id="{{ exam.id }}">
+                  <i class='bx {% if exam.id in bookmarked_exam_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <!-- Empty State -->
+  <div class="text-center py-5">
+    <i class='bx bx-clipboard fs-64 text-gray mb-3'></i>
+    <h3 class="fs-20 fw-semibold text-dark mb-2">No Exams Found</h3>
+    <p class="text-gray fs-14 mb-4">There are no exams available in this category.</p>
+  </div>
+{% endif %}
+

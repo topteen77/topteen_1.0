@@ -7,6 +7,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .career-interests-page {
     padding-top: 80px;
@@ -65,96 +66,105 @@
 {% block content %}
 <section class="career-interests-page pb-5">
   <div class="container">
-    <!-- Breadcrumb -->
-    {% if breadcrumb %}
-    {% include 'template20/includes/breadcrumb.html' %}
-    {% endif %}
-
-    <!-- Career Interests Heading -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
-      <h1 class="fs-24 fw-semibold mb-0">Career Interests</h1>
-    </div>
-
-    <!-- Mobile Header -->
-    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.location='{{ url('users:scrapbook') }}'">
-        <i class='bx bx-arrow-left fs-18 text-gray'></i>
-      </button>
-      <h2 class="fs-16 fw-normal text-center mb-0">Career Interests</h2>
-      <button type="button" class="btn btn-link position-absolute end-0 top-0">
-        <i class='bx bx-search fs-18 text-gray'></i>
-      </button>
-    </div>
-
-    <!-- Career Cluster Cards -->
-    {% if clstrs %}
-    <div class="d-flex gap-3 gap-lg-4 overflow-auto pb-3 mb-4" style="scrollbar-width: none; -ms-overflow-style: none;">
-      <style>
-        .d-flex.gap-3.gap-lg-4.overflow-auto::-webkit-scrollbar {
-          display: none;
-        }
-      </style>
-      {% for clstr in clstrs %}
-      <div class="cluster-card text-white flex-shrink-0">
-        <div class="d-flex flex-column align-items-center">
-          <h6 class="fs-13 fw-semibold text-center mb-2" style="max-height: 72px; overflow: hidden;">
-            {{ clstr.name }}
-          </h6>
-          <div class="badge bg-white bg-opacity-22 text-white px-2 py-1 rounded-pill fs-10">
-            {{ clstr.get_clstr_career_count(career_ids) }} shortlisted
-          </div>
-        </div>
-        <div style="width: 63px; height: 48px;">
-          {% if clstr.image %}
-          <img src="{{ clstr.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ clstr.name }}" />
-          {% else %}
-          <img src="{{ static('images_new/icons/engineering.png') }}" class="w-100 h-100 object-fit-cover" alt="{{ clstr.name }}" />
-          {% endif %}
-        </div>
+    <div class="row g-4 pt-4">
+      <!-- Left part Desktop - Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
       </div>
-      {% endfor %}
-    </div>
-    {% endif %}
+      <!-- End of Left part Desktop -->
 
-    <!-- Career Interests List -->
-    {% if career_interests %}
-    <div class="d-flex flex-column gap-3 gap-lg-4">
-      {% for career_interest in career_interests %}
-      <div class="career-item">
-        <a href="{{ career_interest.career.url() }}" class="text-decoration-none d-flex align-items-center gap-3 flex-grow-1">
-          <img src="{% if career_interest.career.image and career_interest.career.image.name %}{{ career_interest.career.image.url }}{% else %}{{ static('images/career-icon.png') }}{% endif %}" 
-               alt="{{ career_interest.career.name }}" />
-          <div>
-            <p class="fs-13 fw-semibold text-dark mb-1">{{ career_interest.career.name }}</p>
-            <div class="d-flex align-items-center gap-2 text-gray fs-13">
-              <span>{{ career_interest.career.get_max_salary() }} LPA •</span>
-              <img src="{{ static('images_new/icons/favourite.png') }}" style="width: 12px; height: 12px;" alt="Rating" />
-              <span>4.4</span>
+      <!-- Right Part - Career Interests Content -->
+      <div class="col-lg-8">
+        <!-- Breadcrumb -->
+        {% if breadcrumb %}
+        {% include 'template20/includes/breadcrumb.html' %}
+        {% endif %}
+
+        <!-- Career Interests Heading -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="fs-24 fw-semibold mb-0">Career Interests</h1>
+        </div>
+
+        <!-- Mobile Header -->
+        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+          <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+            <i class='bx bx-arrow-left fs-18 text-gray'></i>
+          </button>
+          <h2 class="fs-16 fw-normal text-center mb-0">Career Interests</h2>
+        </div>
+
+        <!-- Career Cluster Cards -->
+        {% if clstrs %}
+        <div class="d-flex gap-3 gap-lg-4 overflow-auto pb-3 mb-4" style="scrollbar-width: none; -ms-overflow-style: none;">
+          <style>
+            .d-flex.gap-3.gap-lg-4.overflow-auto::-webkit-scrollbar {
+              display: none;
+            }
+          </style>
+          {% for clstr in clstrs %}
+          <div class="cluster-card text-white flex-shrink-0">
+            <div class="d-flex flex-column align-items-center">
+              <h6 class="fs-13 fw-semibold text-center mb-2" style="max-height: 72px; overflow: hidden;">
+                {{ clstr.name }}
+              </h6>
+              <div class="badge bg-white bg-opacity-22 text-white px-2 py-1 rounded-pill fs-10">
+                {{ clstr.get_clstr_career_count(career_ids) }} shortlisted
+              </div>
+            </div>
+            <div style="width: 63px; height: 48px;">
+              {% if clstr.image %}
+              <img src="{{ clstr.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ clstr.name }}" />
+              {% else %}
+              <img src="{{ static('images_new/icons/engineering.png') }}" class="w-100 h-100 object-fit-cover" alt="{{ clstr.name }}" />
+              {% endif %}
             </div>
           </div>
-        </a>
-        <button type="button" 
-                class="delete-btn deleteCareer" 
-                data-id="{{ career_interest.career.slug }}"
-                data-bs-toggle="modal" 
-                data-bs-target="#deleteCareerModal"
-                data-career-name="{{ career_interest.career.name }}">
-          <i class='bx bx-x-circle fs-24'></i>
-        </button>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Career Interests List -->
+        {% if career_interests %}
+        <div class="d-flex flex-column gap-3 gap-lg-4">
+          {% for career_interest in career_interests %}
+          <div class="career-item">
+            <a href="{{ career_interest.career.url() }}" class="text-decoration-none d-flex align-items-center gap-3 flex-grow-1">
+              <img src="{% if career_interest.career.image and career_interest.career.image.name %}{{ career_interest.career.image.url }}{% else %}{{ static('images/career-icon.png') }}{% endif %}" 
+                   alt="{{ career_interest.career.name }}" />
+              <div>
+                <p class="fs-13 fw-semibold text-dark mb-1">{{ career_interest.career.name }}</p>
+                <div class="d-flex align-items-center gap-2 text-gray fs-13">
+                  <span>{{ career_interest.career.get_max_salary() }} LPA •</span>
+                  <img src="{{ static('images_new/icons/favourite.png') }}" style="width: 12px; height: 12px;" alt="Rating" />
+                  <span>4.4</span>
+                </div>
+              </div>
+            </a>
+            <button type="button" 
+                    class="delete-btn deleteCareer" 
+                    data-id="{{ career_interest.career.slug }}"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#deleteCareerModal"
+                    data-career-name="{{ career_interest.career.name }}">
+              <i class='bx bx-x-circle fs-24'></i>
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+          <i class='bx bx-briefcase fs-64 text-gray mb-3'></i>
+          <h3 class="fs-20 fw-semibold text-dark mb-2">No Career Shortlisted</h3>
+          <p class="text-gray fs-14 mb-4">You haven't shortlisted any careers yet. Start exploring careers and add them to your interests.</p>
+          <a href="{{ url('careers:career') }}" class="btn custom-button purple-button">
+            <i class='bx bx-search me-2'></i> Explore Careers
+          </a>
+        </div>
+        {% endif %}
       </div>
-      {% endfor %}
+      <!-- End of Right Part -->
     </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="text-center py-5">
-      <i class='bx bx-briefcase fs-64 text-gray mb-3'></i>
-      <h3 class="fs-20 fw-semibold text-dark mb-2">No Career Shortlisted</h3>
-      <p class="text-gray fs-14 mb-4">You haven't shortlisted any careers yet. Start exploring careers and add them to your interests.</p>
-      <a href="{{ url('careers:career') }}" class="btn custom-button purple-button">
-        <i class='bx bx-search me-2'></i> Explore Careers
-      </a>
-    </div>
-    {% endif %}
   </div>
 </section>
 

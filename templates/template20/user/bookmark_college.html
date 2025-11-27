@@ -53,69 +53,78 @@
 {% block content %}
 <section class="bookmark-college-page pb-5">
   <div class="container">
-    <!-- Breadcrumb -->
-    {% if breadcrumb %}
-    {% include 'template20/includes/breadcrumb.html' %}
-    {% endif %}
-
-    <!-- College Heading -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
-      <h1 class="fs-24 fw-semibold mb-0">Colleges</h1>
-    </div>
-
-    <!-- Mobile Header -->
-    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
-        <i class='bx bx-arrow-left fs-18 text-gray'></i>
-      </button>
-      <h2 class="fs-16 fw-normal text-center mb-0">Colleges</h2>
-    </div>
-
-    <!-- Colleges Content -->
-    {% if colleges %}
-    <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
-      {% for college in colleges %}
-      <div class="college-card">
-        <div class="bookmark-btn {% if college.shortlist.filter(id=request.user.id).exists() %}active{% endif %}" 
-             id="college_{{ college.id }}"
-             onclick="collegeshortlist('{{ college.id }}')">
-          <img src="{{ static('images_new/icons/bookmark.svg') }}" alt="Bookmark" />
-        </div>
-        <figure class="mb-0">
-          {% if college.logo %}
-          <div class="college-image">
-            <img src="{{ college.logo.url }}" alt="{{ college.name }}" />
-          </div>
-          {% endif %}
-          <figcaption>
-            <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}" class="text-decoration-none">
-              <h5 class="fs-14 fw-semibold text-dark mb-1">{{ college.name }}</h5>
-            </a>
-            <div class="d-flex align-items-center gap-1">
-              <span class="fs-13 text-gray">
-                {% if college.country %}{{ college.country }}{% endif %}
-                {% if college.state and college.country %}, {% endif %}
-                {% if college.state %}{{ college.state }}{% endif %}
-              </span>
-              <img src="{{ static('images_new/icons/favourite.svg') }}" class="d-inline-block" style="width: 14px; height: 14px;" alt="Rating" />
-              <span class="fs-13 text-gray">4.4</span>
-            </div>
-          </figcaption>
-        </figure>
+    <div class="row g-4 pt-4">
+      <!-- Left part Desktop - Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
       </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="text-center py-5">
-      <i class='bx bx-building fs-64 text-gray mb-3'></i>
-      <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Colleges</h3>
-      <p class="text-gray fs-14 mb-4">You haven't bookmarked any colleges yet.</p>
-      <a href="{{ url('colleges:college') }}" class="btn custom-button purple-button">
-        Browse Colleges
-      </a>
-    </div>
-    {% endif %}
+      <!-- End of Left part Desktop -->
+
+      <!-- Right Part - Colleges Content -->
+      <div class="col-lg-8">
+        <!-- Breadcrumb -->
+        {% if breadcrumb %}
+        {% include 'template20/includes/breadcrumb.html' %}
+        {% endif %}
+
+        <!-- College Heading -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="fs-24 fw-semibold mb-0">Colleges</h1>
+        </div>
+
+        <!-- Mobile Header -->
+        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+          <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+            <i class='bx bx-arrow-left fs-18 text-gray'></i>
+          </button>
+          <h2 class="fs-16 fw-normal text-center mb-0">Colleges</h2>
+        </div>
+
+        <!-- Colleges Content -->
+        {% if colleges %}
+        <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
+          {% for college in colleges %}
+          <div class="college-card">
+            <div class="bookmark-btn {% if college.shortlist.filter(id=request.user.id).exists() %}active{% endif %}" 
+                 id="college_{{ college.id }}"
+                 onclick="collegeshortlist('{{ college.id }}')">
+              <img src="{{ static('images_new/icons/bookmark.svg') }}" alt="Bookmark" />
+            </div>
+            <figure class="mb-0">
+              {% if college.logo %}
+              <div class="college-image">
+                <img src="{{ college.logo.url }}" alt="{{ college.name }}" />
+              </div>
+              {% endif %}
+              <figcaption>
+                <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}" class="text-decoration-none">
+                  <h5 class="fs-14 fw-semibold text-dark mb-1">{{ college.name }}</h5>
+                </a>
+                <div class="d-flex align-items-center gap-1">
+                  <span class="fs-13 text-gray">
+                    {% if college.country %}{{ college.country }}{% endif %}
+                    {% if college.state and college.country %}, {% endif %}
+                    {% if college.state %}{{ college.state }}{% endif %}
+                  </span>
+                  <img src="{{ static('images_new/icons/favourite.svg') }}" class="d-inline-block" style="width: 14px; height: 14px;" alt="Rating" />
+                  <span class="fs-13 text-gray">4.4</span>
+                </div>
+              </figcaption>
+            </figure>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+          <i class='bx bx-building fs-64 text-gray mb-3'></i>
+          <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Colleges</h3>
+          <p class="text-gray fs-14 mb-4">You haven't bookmarked any colleges yet.</p>
+          <a href="{{ url('colleges:college') }}" class="btn custom-button purple-button">
+            Browse Colleges
+          </a>
+        </div>
+        {% endif %}
       </div>
       <!-- End of Right Part -->
     </div>

@@ -10,7 +10,12 @@ from django.core.paginator import Paginator
 
 class CollegeDocumentFilter:
     def __init__(self):
-        self.search=CollegeDocument.search()
+        try:
+            self.search=CollegeDocument.search()
+        except (KeyError, Exception) as e:
+            # Elasticsearch connection not available
+            self.search = None
+            raise e
 
     def college_detail(self,request,college_slug,is_ajax=False):
         streams=[]
@@ -93,11 +98,26 @@ class CollegeDocumentFilter:
         return selected_filters
     
     def get_facets_filter(self,request,filters={}):
-        d=self._parse_request_filters(request)
-        bs = CollegeFilterFacets(filters=d)
-        return bs.execute()
+        try:
+            d=self._parse_request_filters(request)
+            bs = CollegeFilterFacets(filters=d)
+            return bs.execute()
+        except (KeyError, Exception) as e:
+            # Return empty facets if Elasticsearch is not available
+            print(f"Elasticsearch facets not available: {e}")
+            # Return a mock object with empty facets
+            class EmptyFacets:
+                def __init__(self):
+                    self.facets = type('Facets', (), {
+                        'country': [],
+                        'state': [],
+                        'city': [],
+                    })()
+            return EmptyFacets()
 
     def get_college_list_context(self,request,state=None,is_ajax=False):
+        if self.search is None:
+            raise KeyError("Elasticsearch connection not available")
         ctx={}
         search_results=SearchResults(self.get_elasticsearch_document_college_all(request,state,is_ajax))
         paginator = Paginator(search_results,9)  # Show 25 contacts per page.

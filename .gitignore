@@ -295,3 +295,9 @@ tmp/
 
 # Documentation files - keep outside root directory
 /*.md
+
+# Test scripts and generated files
+scripts/verification_checklist.csv
+scripts/*.csv
+scripts/__pycache__/
+scripts/*.pyc

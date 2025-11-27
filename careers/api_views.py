@@ -1,10 +1,12 @@
 """
-API views for DOCX processing
+API views for DOCX processing and autocomplete
 """
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.db.models import Q
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from .models import Profession, Skill, CareerCluster, Career
 from .docx_utils import convert_docx_to_html, extract_career_data_from_html
 import json
 
@@ -43,3 +45,143 @@ def process_docx_api(request):
         
     except Exception as e:
         return JsonResponse({'error': f'Error processing DOCX file: {str(e)}'}, status=500)
+
+@require_http_methods(["GET"])
+def autocomplete_professions(request):
+    """API endpoint for profession autocomplete - only shows professions with published careers"""
+    query = request.GET.get('q', '').strip()
+    limit = int(request.GET.get('limit', 10))
+    
+    # Filter by cluster if provided (can be multiple)
+    selected_clusters = request.GET.getlist('cluster')
+    
+    # Start with professions that have published careers
+    careers_with_professions = Career.objects.filter(
+        publish_status=1,
+        profession__isnull=False
+    ).distinct()
+    
+    # If clusters are selected, filter careers by those clusters
+    if selected_clusters:
+        careers_with_professions = careers_with_professions.filter(
+            career_cluster__id__in=selected_clusters
+        ).distinct()
+    
+    # Get professions from those careers
+    professions = Profession.objects.filter(
+        career__in=careers_with_professions
+    ).distinct()
+    
+    # Apply search query
+    if query:
+        professions = professions.filter(Q(name__icontains=query))
+    
+    # Filter out blank/empty names and limit results
+    professions = professions.exclude(name__isnull=True).exclude(name='').order_by('name')[:limit]
+    
+    # Only return non-empty results that have associated careers
+    results = []
+    for p in professions:
+        if p.name and p.name.strip():
+            # Verify this profession has at least one published career
+            has_careers = Career.objects.filter(
+                profession=p,
+                publish_status=1
+            ).exists()
+            if has_careers:
+                results.append({'id': p.id, 'text': p.name, 'value': p.name})
+    
+    return JsonResponse({'results': results})
+
+@require_http_methods(["GET"])
+def autocomplete_skills(request):
+    """API endpoint for skill autocomplete - only shows skills with published careers"""
+    query = request.GET.get('q', '').strip()
+    limit = int(request.GET.get('limit', 10))
+    
+    # Filter by selected professions
+    selected_professions = request.GET.getlist('professions')
+    # Filter by selected clusters (can be multiple)
+    selected_clusters = request.GET.getlist('cluster')
+    
+    # Start with careers that have skills and are published
+    careers_with_skills = Career.objects.filter(
+        publish_status=1,
+        skills__isnull=False
+    ).distinct()
+    
+    # If professions are selected, filter careers by those professions
+    if selected_professions:
+        careers_with_skills = careers_with_skills.filter(
+            profession__name__in=selected_professions
+        ).distinct()
+    
+    # If clusters are selected, filter careers by those clusters
+    if selected_clusters:
+        careers_with_skills = careers_with_skills.filter(
+            career_cluster__id__in=selected_clusters
+        ).distinct()
+    
+    # Get skills from those careers
+    skills = Skill.objects.filter(
+        career__in=careers_with_skills
+    ).distinct()
+    
+    # Apply search query
+    if query:
+        skills = skills.filter(Q(name__icontains=query))
+    
+    # Filter out blank/empty names, order, and limit
+    skills = skills.exclude(name__isnull=True).exclude(name='').order_by('priority', 'name')[:limit]
+    
+    # Only return non-empty results that have associated careers
+    results = []
+    for s in skills:
+        if s.name and s.name.strip():
+            # Verify this skill has at least one published career
+            has_careers = Career.objects.filter(
+                skills=s,
+                publish_status=1
+            ).exists()
+            if has_careers:
+                results.append({'id': s.id, 'text': s.name, 'value': s.name})
+    
+    return JsonResponse({'results': results})
+
+@require_http_methods(["GET"])
+def autocomplete_clusters(request):
+    """API endpoint for cluster autocomplete - only shows clusters with published careers"""
+    query = request.GET.get('q', '').strip()
+    limit = int(request.GET.get('limit', 10))
+    
+    # Get clusters that have published careers
+    careers_with_clusters = Career.objects.filter(
+        publish_status=1,
+        career_cluster__isnull=False
+    ).distinct()
+    
+    # Get clusters from those careers
+    clusters = CareerCluster.objects.filter(
+        career__in=careers_with_clusters
+    ).distinct()
+    
+    # Apply search query
+    if query:
+        clusters = clusters.filter(Q(name__icontains=query))
+    
+    # Filter out blank/empty names, order, and limit
+    clusters = clusters.exclude(name__isnull=True).exclude(name='').order_by('name')[:limit]
+    
+    # Only return non-empty results that have associated careers
+    results = []
+    for c in clusters:
+        if c.name and c.name.strip():
+            # Verify this cluster has at least one published career
+            has_careers = Career.objects.filter(
+                career_cluster=c,
+                publish_status=1
+            ).exists()
+            if has_careers:
+                results.append({'id': c.id, 'text': c.name, 'value': str(c.id)})
+    
+    return JsonResponse({'results': results})

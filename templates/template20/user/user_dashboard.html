@@ -7,6 +7,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .user-dashboard {
     padding-top: 80px;
@@ -32,38 +33,6 @@
   }
   .quick-link-card:hover {
     background: #e9ecef;
-  }
-  .profile-sidebar {
-    border: 1px solid #dedede;
-    border-radius: 10px;
-    padding: 24px;
-  }
-  .profile-image {
-    width: 104px;
-    height: 104px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  .profile-complete-card {
-    background: #f7f7fa;
-    border-radius: 10px;
-    padding: 18px;
-    margin-top: 18px;
-  }
-  .progress-bar-custom {
-    height: 10px;
-    background: rgba(76, 201, 240, 0.15);
-    border-radius: 100px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: #4cc9f0;
-    border-radius: 100px;
-  }
-  .hover-bg-light:hover {
-    background: #e9ecef !important;
-    transition: all 0.3s;
   }
   /* Fix modal z-index to ensure it appears above backdrop */
   .modal {
@@ -93,11 +62,11 @@
       <button type="button" class="btn-close position-absolute top-0 end-0 m-3 referPopupClose" data-bs-dismiss="modal" aria-label="Close"></button>
       <div class="modal-body p-4 text-center">
         <h5 class="fs-24 fw-semibold mb-4">Refer/Invite friends</h5>
-        <form onsubmit="return false" id="referform">
+        <form onsubmit="return window.refersubmit ? window.refersubmit() : false;" id="referform">
           <div class="mb-3">
             <input type="email" id="remail" name="email" placeholder="Enter email" class="form-control custom-input" required>
           </div>
-          <button type="submit" onclick="refersubmit()" class="btn custom-button purple-button w-100">Submit</button>
+          <button type="submit" class="btn custom-button purple-button w-100">Submit</button>
         </form>
       </div>
     </div>
@@ -178,106 +147,7 @@
 
       <!-- Left part Desktop -->
       <div class="col-lg-4 d-none d-lg-block">
-        <div class="profile-sidebar">
-          <!-- User -->
-          <div class="text-center border-bottom pb-4 mb-4">
-            <div class="mb-3">
-              {% if request.user.image %}
-              <img src="{{ request.user.image.url }}" class="profile-image mx-auto" alt="{{ request.user.name }}" />
-              {% else %}
-              <img src="{{ static('images_new/icons/user-icon.svg') }}" class="profile-image mx-auto" alt="User" />
-              {% endif %}
-            </div>
-            <p class="fs-16 fw-semibold mb-1">{{ request.user.name|default(request.user.username) }}</p>
-            
-            <div class="d-flex flex-column gap-2">
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                <i class='bx bx-time-five fs-18 text-gray'></i>
-                <p class="text-gray fs-16 mb-0">Joined {{ date_format(request.user.created) }}</p>
-              </div>
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                <i class='bx bx-book fs-18 text-gray'></i>
-                <p class="text-gray fs-16 mb-0">
-                  {% if request.user.user_profile %}
-                    {% if request.user.student_management.last() and request.user.student_management.last().class_and_section %}
-                      {{ request.user.student_management.last().class_and_section }}
-                    {% endif %}
-                    {% if request.user.user_profile.schoolname %}
-                      • {{ request.user.user_profile.schoolname }}
-                    {% endif %}
-                    {% if user_grade %}
-                    Class {{ user_grade }}
-                    {% endif %}
-                  {% else %}
-                    - • -
-                  {% endif %}
-                </p>
-              </div>
-            </div>
-          </div>
-          <!-- End of User -->
-
-          <!-- Complete Profile -->
-          <div class="profile-complete-card">
-            <div class="d-flex">
-              <div class="me-3">
-                <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 45px;" alt="Verified" />
-              </div>
-              <div class="flex-grow-1">
-                <p class="fs-12 fw-semibold text-dark mb-1">Complete your profile</p>
-                <p class="fs-10 text-gray mb-2">A complete profile helps us cater the best content to you</p>
-                <div class="progress-bar-custom" style="width: 100%;">
-                  <div class="progress-fill" style="width: 60%;"></div>
-                </div>
-              </div>
-            </div>
-            <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">
-              <i class='bx bx-cog me-2'></i> SETTINGS
-            </a>
-          </div>
-          <!-- End of Complete Profile -->
-
-          <!-- Settings Links -->
-          <div class="mt-4">
-            <a href="{{ url('users:viewprofile') }}" class="d-block text-decoration-none mb-3">
-              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-                <div>
-                  <p class="fs-14 fw-semibold mb-1">View Profile</p>
-                  <p class="text-gray fs-12 mb-0">View your profile information</p>
-                </div>
-                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-              </div>
-            </a>
-            <a href="{{ url('users:profiledetails') }}" class="d-block text-decoration-none mb-3">
-              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-                <div>
-                  <p class="fs-14 fw-semibold mb-1">Edit Profile</p>
-                  <p class="text-gray fs-12 mb-0">Update your profile information</p>
-                </div>
-                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-              </div>
-            </a>
-            <a href="{{ url('users:userhistory') }}" class="d-block text-decoration-none mb-3">
-              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-                <div>
-                  <p class="fs-14 fw-semibold mb-1">Manage payment history</p>
-                  <p class="text-gray fs-12 mb-0">View and manage your payments</p>
-                </div>
-                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-              </div>
-            </a>
-            <a href="{{ url('users:logout') }}" class="d-block text-decoration-none">
-              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-                <div>
-                  <p class="fs-14 fw-semibold mb-1 text-danger">Sign Out</p>
-                  <p class="text-danger text-opacity-60 fs-12 mb-0">Logout from your account</p>
-                </div>
-                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-              </div>
-            </a>
-          </div>
-          <!-- End of Settings Links -->
-        </div>
+        {% include 'template20/user/includes/profile_sidebar.html' %}
       </div>
       <!-- End of Left part Desktop -->
 
@@ -518,6 +388,8 @@
 
 {% block additionaljs %}
 {{ super() }}
+<!-- SweetAlert2 - Load after jQuery -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   // Drawer modal functionality
   const drawerTrigger = document.querySelector('.drawerTrigger');
@@ -564,26 +436,82 @@
   if (referClose && referPopup) {
     referClose.addEventListener('click', function(e) {
       e.preventDefault();
-      const modal = bootstrap.Modal.getInstance(referPopup) || new bootstrap.Modal(referPopup);
-      modal.hide();
+      e.stopPropagation();
+      
+      // Get or create modal instance
+      let modal = bootstrap.Modal.getInstance(referPopup);
+      if (!modal) {
+        modal = new bootstrap.Modal(referPopup);
+      }
+      
+      // Hide the modal
+      if (modal) {
+        modal.hide();
+      }
+      
+      // Fallback: manually close if Bootstrap doesn't handle it
+      setTimeout(function() {
+        if (referPopup.classList.contains('show')) {
+          referPopup.classList.remove('show');
+          referPopup.style.display = 'none';
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) {
+            backdrop.remove();
+          }
+          document.body.classList.remove('modal-open');
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
+        }
+      }, 100);
     });
-    
-    // Also handle data-bs-dismiss attribute
-    referClose.setAttribute('data-bs-dismiss', 'modal');
   }
 
-  // Refer form submission
-  function refersubmit() {
-    const email = document.getElementById('remail').value;
-    if (!email) {
-      Swal.fire({
-        title: 'Email Required',
-        text: 'Please enter an email address',
-        icon: 'warning',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#3f37c9'
-      });
+  // Refer form submission - make it globally accessible
+  window.refersubmit = function() {
+    const emailInput = document.getElementById('remail');
+    if (!emailInput) {
+      console.error('Email input not found');
       return false;
+    }
+    
+    const email = emailInput.value.trim();
+    if (!email) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'Email Required',
+          text: 'Please enter an email address',
+          icon: 'warning',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#3f37c9'
+        });
+      } else {
+        alert('Please enter an email address');
+      }
+      return false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'Invalid Email',
+          text: 'Please enter a valid email address',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#3f37c9'
+        });
+      } else {
+        alert('Please enter a valid email address');
+      }
+      return false;
+    }
+
+    // Disable submit button during request
+    const submitBtn = document.querySelector('#referform button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
     }
 
     $.ajax({
@@ -595,30 +523,70 @@
       },
       success: function(response) {
         if (response.success === "true" || response.success === true) {
-          Swal.fire('Invited successfully!', 'Invitation sent successfully!', 'success');
-          const modal = bootstrap.Modal.getInstance(referPopup);
-          if (modal) {
-            modal.hide();
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: 'Invited successfully!',
+              text: 'Invitation sent successfully!',
+              icon: 'success',
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#3f37c9'
+            }).then(() => {
+              // Close modal after user clicks OK
+              const modal = bootstrap.Modal.getInstance(referPopup);
+              if (modal) {
+                modal.hide();
+              }
+              document.getElementById('referform').reset();
+            });
+          } else {
+            alert('Invitation sent successfully!');
+            const modal = bootstrap.Modal.getInstance(referPopup);
+            if (modal) {
+              modal.hide();
+            }
+            document.getElementById('referform').reset();
           }
-          document.getElementById('referform').reset();
         } else {
-          Swal.fire('Invalid!', 'Please Enter the Correct Email!', 'error');
-          const modal = bootstrap.Modal.getInstance(referPopup);
-          if (modal) {
-            modal.hide();
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: 'Error',
+              text: 'Please enter a valid email address',
+              icon: 'error',
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#3f37c9'
+            });
+          } else {
+            alert('Please enter a valid email address');
           }
         }
+        // Re-enable submit button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit';
+        }
       },
-      error: function(response) {
-        Swal.fire('Invalid!', 'Please Enter the Correct Email!', 'error');
-        const modal = bootstrap.Modal.getInstance(referPopup);
-        if (modal) {
-          modal.hide();
+      error: function(xhr, status, error) {
+        console.error('Error:', error);
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Error',
+            text: 'Something went wrong. Please try again.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3f37c9'
+          });
+        } else {
+          alert('Something went wrong. Please try again.');
+        }
+        // Re-enable submit button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit';
         }
       }
     });
     return false;
-  }
+  };
 </script>
 {% endblock %}
 

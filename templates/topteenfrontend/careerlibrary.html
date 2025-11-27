@@ -65,7 +65,7 @@
 
     <form method="GET" class="flex grow gap-[4px] relative max-w-[400px]">
       
-        <input type="text" name="careersearch" {% if request.GET.get("careersearch")%} value="{{request.GET.get("careersearch")}}" {% endif %} class=" w-full rounded-[4px] pl-[12px] pr-[40px]" placeholder="Enter Career">
+        <input type="text" name="careersearch" {% if request.GET.get('careersearch')%} value="{{request.GET.get('careersearch')}}" {% endif %} class=" w-full rounded-[4px] pl-[12px] pr-[40px]" placeholder="Enter Career">
 
         <button type="submit" class="absolute right-[12px] top-[50%] -translate-y-[50%]">
           <i
@@ -89,7 +89,7 @@
       <form method="GET" class="grow max-w-[270px] inline-block">
       <div class="flex w-full  gap-[4px] relative my-auto  ">
      
-          <input type="text" name="careersearch" {% if request.GET.get("careersearch")%} value="{{request.GET.get("careersearch")}}" {% endif %} class=" w-full rounded-[4px] pl-[12px] pr-[40px]" placeholder="Enter Career">
+          <input type="text" name="careersearch" {% if request.GET.get('careersearch')%} value="{{request.GET.get('careersearch')}}" {% endif %} class=" w-full rounded-[4px] pl-[12px] pr-[40px]" placeholder="Enter Career">
     
           <button type="submit" class="absolute right-[12px] top-[50%] -translate-y-[50%]">
             <i

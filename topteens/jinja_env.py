@@ -7,6 +7,8 @@ from django.templatetags.static import static
 from django.contrib.humanize.templatetags.humanize import intcomma
 from datetime import datetime
 from django.utils import timezone
+from django.middleware.csrf import get_token
+from django.utils.html import format_html
 import re
 from app.templatetags.myfilters_extras import my_url
 # from shop.models import Category
@@ -146,6 +148,18 @@ def seo_year(request):
 def custom_reverse(viewname, *args, **kwargs):
     return reverse(viewname, args=args, kwargs=kwargs)
 
+def csrf_input(request=None):
+    """Generate CSRF token input field for Jinja2 templates"""
+    # If request is provided, use it; otherwise try to get from context
+    if request:
+        token = get_token(request)
+        return format_html(
+            '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
+            token,
+        )
+    # Fallback: return empty string if no request
+    return ''
+
 def environment(**options):
     env = Environment(**options)
     
@@ -167,5 +181,6 @@ def environment(**options):
         'checkinstance':checkinstance,
         'seo_year':seo_year,
         'my_url': my_url,
+        'csrf_input': csrf_input,
     })
     return env

@@ -61,8 +61,13 @@ class CollegeDetails(TemplateView):
 
     def get(self, request,slug, *args, **kwargs):
         if is_ajax(request=request):
-            clgd=CollegeDocumentFilter()
-            ctx=clgd.college_detail(request,slug,is_ajax=True)
+            try:
+                clgd=CollegeDocumentFilter()
+                ctx=clgd.college_detail(request,slug,is_ajax=True)
+            except (KeyError, Exception) as e:
+                # Fallback to regular context when Elasticsearch is not available
+                print(f"Elasticsearch not available, using Django ORM fallback: {e}")
+                ctx = self.get_context(request, slug, args, kwargs)
             html=render_to_string("topteenfrontend/includes/explore_college.html",ctx)
             return HttpResponse(html) 
         return render(request, self.template_name, self.get_context(request,slug,args, kwargs))
@@ -83,8 +88,17 @@ class CollegeList(TemplateView):
 
     def get_context(self, request,state, *args, **kwargs):
         from django.urls import reverse
-        clg=CollegeDocumentFilter()
-        ctx=clg.get_college_list_context(request,state)
+        from django.core.paginator import Paginator
+        from django.db.models import Q
+        
+        try:
+            clg=CollegeDocumentFilter()
+            ctx=clg.get_college_list_context(request,state)
+        except (KeyError, Exception) as e:
+            # Fallback to Django ORM when Elasticsearch is not available
+            print(f"Elasticsearch not available, using Django ORM fallback: {e}")
+            ctx = self.get_fallback_context(request, state)
+        
         ctx['html_head'] = self.__html_head()
         counrty=request.GET.getlist('country')
         state_list=request.GET.getlist('state')
@@ -97,6 +111,79 @@ class CollegeList(TemplateView):
         ctx['query_list']=state_list+city
         ctx['get_updated_url']=queries
         ctx['breadcrumb'] = {'text': 'Colleges', 'url': reverse('colleges:college')}
+        return ctx
+    
+    def get_fallback_context(self, request, state=None):
+        """Fallback method using Django ORM when Elasticsearch is unavailable"""
+        from django.core.paginator import Paginator
+        from django.db.models import Q, Count
+        from core.models import Country, State, City
+        
+        ctx = {}
+        
+        # Get base queryset
+        colleges = College.objects.filter(publish_status=1).select_related('country', 'state', 'city', 'category')
+        
+        # Apply filters from request
+        country_filter = request.GET.getlist('country')
+        state_filter = request.GET.getlist('state')
+        city_filter = request.GET.getlist('city')
+        
+        if state:
+            colleges = colleges.filter(state__name=state)
+        elif state_filter:
+            colleges = colleges.filter(state__name__in=state_filter)
+        
+        if country_filter:
+            colleges = colleges.filter(country__name__in=country_filter)
+        
+        if city_filter:
+            colleges = colleges.filter(city__name__in=city_filter)
+        
+        # Order by name
+        colleges = colleges.order_by('name')
+        
+        # Pagination
+        paginator = Paginator(colleges, 9)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        ctx['colleges'] = page_obj
+        
+        # Create facets structure compatible with template expectations
+        # Get all available countries with counts
+        all_countries = Country.objects.filter(
+            college__publish_status=1
+        ).annotate(
+            count=Count('college', distinct=True)
+        ).distinct().order_by('name')
+        
+        # Get all available states with counts
+        all_states = State.objects.filter(
+            college__publish_status=1
+        ).annotate(
+            count=Count('college', distinct=True)
+        ).distinct().order_by('name')
+        
+        # Get all available cities with counts
+        all_cities = City.objects.filter(
+            college__publish_status=1
+        ).annotate(
+            count=Count('college', distinct=True)
+        ).distinct().order_by('name')
+        
+        # Create facets structure matching Elasticsearch FacetedResponse format
+        # The template expects facets_filter.facets.state, facets_filter.facets.city, facets_filter.facets.country
+        # Each should be a list of tuples: (tag, count, selected)
+        class FacetsWrapper:
+            def __init__(self):
+                self.facets = type('Facets', (), {
+                    'country': [(c.name, c.count, c.name in country_filter) for c in all_countries],
+                    'state': [(s.name, s.count, s.name in state_filter) for s in all_states],
+                    'city': [(c.name, c.count, c.name in city_filter) for c in all_cities],
+                })()
+        
+        ctx['facets_filter'] = FacetsWrapper()
+        
         return ctx
 
     def get(self, request,*args, **kwargs):      

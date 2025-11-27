@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from users.models import UserNote,UserFolder,FolderFile
 from core.models import Hobbies
 from colleges.models import College,CollegeShortlist
+from entrance_exams.models import EntranceExam
 from users.models import UserResume,UserResumeSkill,UserResumeCertificate,UserResumeInternship,UserResumeActivity,UserResumeVolunteerInvolvement
 from django.template.loader import render_to_string
 from core.models import Configuration
@@ -58,6 +59,32 @@ class ShortlistCollegeAPI(APIView):
             data['message'] = "Removed Shortlisted"
             data['value'] = "Shortlist College"
             college_shortlisted.delete()
+            return Response(data, status=status.HTTP_200_OK)
+
+class ShortlistExamAPI(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.SessionAuthentication, authentication.TokenAuthentication]
+
+    def post(self, request):
+        exam_id = request.POST.get('examid', False)
+        data = {}
+        
+        if not exam_id:
+            return Response({'message': 'Exam ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        exam = get_object_or_404(EntranceExam, id=exam_id)
+        user = request.user
+        
+        # Check if exam is already shortlisted
+        if exam.shortlist.filter(id=user.id).exists():
+            exam.shortlist.remove(user)
+            data['message'] = "Exam removed from bookmarks"
+            data['success'] = False
+            return Response(data, status=status.HTTP_200_OK)
+        else:
+            exam.shortlist.add(user)
+            data['message'] = "Exam bookmarked"
+            data['success'] = True
             return Response(data, status=status.HTTP_200_OK) 
 
 class UserNoteSave(APIView):

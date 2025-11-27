@@ -152,6 +152,14 @@ class Careers(TemplateView):
             "profession": [(prof.name, 0, prof.name in selected_professions) for prof in filtered_professions[:50]],
         }
         
+        # Get shortlisted career IDs for authenticated users
+        shortlisted_career_ids = []
+        if request.user.is_authenticated:
+            from .models import CareerShortlist
+            shortlisted_career_ids = list(CareerShortlist.objects.filter(
+                user=request.user
+            ).values_list('career_id', flat=True))
+        
         return {
             'careers': careers_page,
             'clusters': clusters,
@@ -165,6 +173,7 @@ class Careers(TemplateView):
             'facets_filter': facets_filter,
             'selected_professions': selected_professions,
             'selected_skills': selected_skills,
+            'shortlisted_career_ids': shortlisted_career_ids,
         }
     
 class CareerDetail(TemplateView):
@@ -848,7 +857,7 @@ class CareerTagFilter(TemplateView):
         }
 
 class CareerLibrary(TemplateView):
-    template_name='template20/careerlibrary.html'
+    template_name='topteenfrontend/careerlibrary.html'
 
     def __breadcrumb(self,name):
         l=[{'title':'Careers','text':'Careers','url':reverse_lazy('careers:career')},{'title':name,'text':name,'url':''}]

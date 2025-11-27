@@ -292,13 +292,15 @@ def db_results_inst_user(user):
 
     if not has_attempted_test(user):
         raise UserHasNotAttemptedTestException("User hasn't attempted the test yet.")
-    top_3_categories = ""
+    top_3_categories_str = ""
     top_categories = []
     questions= Question.objects.all()
     # Get the data from the database fro the Personality test
     try:
         if questions is not None:
             test1_result = Results.objects.get(user = user, test_paper='test1')
+            # Check if results dict exists and has data
+            if test1_result.results and isinstance(test1_result.results, dict):
             sorted_results = sorted(test1_result.results.items(), key=lambda x: x[1], reverse=True)
             for i, (category, score) in enumerate(sorted_results, start=1):
                 if i > 3:
@@ -308,14 +310,17 @@ def db_results_inst_user(user):
                     'category': category,
                     'score': f"{score:.2f}%"
                 })
-                top_3_categories += category[0]
+                    # Get first letter of category name (e.g., "Realistic" -> "R")
+                    top_3_categories_str += category[0] if category else ''
 
-            top_3_categories_str = "".join(top_3_categories)
-
-        top_3 = top_3_categories_str.split(',')
-        top_category_code = top_3[0]
-    except:
-        top_categories = ''
+        # Extract category code (first 3 letters)
+        top_category_code = top_3_categories_str[:3] if top_3_categories_str else ''
+    except Results.DoesNotExist:
+        top_categories = []
+        top_category_code = ''
+    except Exception as e:
+        print(f"Error processing test1 results for user {user.id}: {str(e)}")
+        top_categories = []
         top_category_code = ''
 
 
@@ -387,9 +392,25 @@ def Assessment_pdf_inst_user(request, user_id=None):
     # Call your function and check for issues
     try:
         top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(user)
+    except UserHasNotAttemptedTestException as e:
+        # User hasn't attempted test - return error page or redirect
+        from django.http import HttpResponse
+        return HttpResponse(f"User {user.name} hasn't attempted the test yet. Please complete the test first.", status=400)
     except Exception as e:
-        print("Error in db_results_inst_user:", str(e))
-        raise
+        # Log the error but don't crash - return with empty data
+        import traceback
+        print(f"Error in db_results_inst_user for user {user.id}: {str(e)}")
+        print(traceback.format_exc())
+        # Set default values to prevent template errors
+        top_category = None
+        streamsubject = set()
+        courseName = set()
+        max_length = ''
+        min_length = ''
+        below = []
+        avg = []
+        above_avg = []
+        top_categories = []
     
     
     user_name = user

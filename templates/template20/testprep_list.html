@@ -117,8 +117,8 @@ Explore entrance exams and test preparation resources. Find exams for After 10th
                     </div>
                     <div class="d-flex justify-content-between">
                       <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-sm btn-outline-primary">View Details</a>
-                      <button class="btn btn-sm btn-outline-secondary shortlist-exam" data-exam-id="{{ exam.id }}">
-                        <i class='bx bx-bookmark'></i>
+                      <button class="btn btn-sm btn-outline-secondary shortlist-exam {% if exam.id in bookmarked_exam_ids %}bookmarked{% endif %}" data-exam-id="{{ exam.id }}">
+                        <i class='bx {% if exam.id in bookmarked_exam_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
                       </button>
                     </div>
                   </div>
@@ -132,136 +132,24 @@ Explore entrance exams and test preparation resources. Find exams for After 10th
         {% endif %}
       </div>
 
-      <!-- After 12th Tab -->
+      <!-- After 12th Tab - Loaded via AJAX -->
       <div class="tab-pane fade" id="twelfth" role="tabpanel" aria-labelledby="twelfth-tab">
-        <!-- Popular Tags -->
-        {% if twelthexamtag %}
-        <div class="popular-tags mb-4">
-          <div class="d-flex flex-wrap gap-2">
-            {% for tag in twelthexamtag[:4] %}
-            <a href="{{ url('entrance_exams:testprepfilter') }}?category=After+12th&tags={{ tag.slug }}" class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
-              <i class='bx bx-flame me-1'></i>{{ tag.name }}
-            </a>
-            {% endfor %}
+        <div class="tab-loading text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
           </div>
+          <p class="mt-3 text-gray">Loading exams...</p>
         </div>
-        {% endif %}
-
-        <!-- Exams by Stream -->
-        {% if twelthstreams %}
-        {% for stm in twelthstreams %}
-        <div class="stream-section mb-5">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="section-title mb-0">{{ stm.name }}</h3>
-            <a href="{{ url('entrance_exams:testprepfilter') }}?category={{ entrance_exam_category.after12 }}&stream={{ stm.slug }}" class="text-primary text-decoration-none">
-              View All <i class='bx bx-right-arrow-alt'></i>
-            </a>
-          </div>
-          
-          <div class="row">
-            {% set exam_count = 0 %}
-            {% for exam in twelthexams %}
-              {% if stm in exam.stream.all() %}
-                {% set exam_count = exam_count + 1 %}
-                {% if exam_count <= 3 %}
-                <div class="col-md-4 col-sm-6 mb-4">
-                  <div class="exam-card h-100 p-3 rounded shadow-sm position-relative">
-                    <div class="d-flex align-items-center mb-3">
-                      <div class="exam-logo me-3" style="width: 60px; height: 60px;">
-                        <img src="{{ exam.logo_url }}" alt="{{ exam.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
-                      </div>
-                      <div class="flex-grow-1">
-                        <h5 class="mb-1">
-                          <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="text-decoration-none">{{ exam.name }}</a>
-                        </h5>
-                        {% if exam.exam_date %}
-                        <p class="text-gray fs-12 mb-0">
-                          <i class='bx bx-calendar'></i> {{ date_format(exam.exam_date) }}
-                        </p>
-                        {% endif %}
-                      </div>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                      <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-sm btn-outline-primary">View Details</a>
-                      <button class="btn btn-sm btn-outline-secondary shortlist-exam" data-exam-id="{{ exam.id }}">
-                        <i class='bx bx-bookmark'></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                {% endif %}
-              {% endif %}
-            {% endfor %}
-          </div>
-        </div>
-        {% endfor %}
-        {% endif %}
       </div>
 
-      <!-- After College Tab -->
+      <!-- After College Tab - Loaded via AJAX -->
       <div class="tab-pane fade" id="college" role="tabpanel" aria-labelledby="college-tab">
-        <!-- Popular Tags -->
-        {% if collegeexamtag %}
-        <div class="popular-tags mb-4">
-          <div class="d-flex flex-wrap gap-2">
-            {% for tag in collegeexamtag[:4] %}
-            <a href="{{ url('entrance_exams:testprepfilter') }}?category=After+College&tags={{ tag.slug }}" class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
-              <i class='bx bx-flame me-1'></i>{{ tag.name }}
-            </a>
-            {% endfor %}
+        <div class="tab-loading text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
           </div>
+          <p class="mt-3 text-gray">Loading exams...</p>
         </div>
-        {% endif %}
-
-        <!-- Exams by Stream -->
-        {% if collegestreams %}
-        {% for stm in collegestreams %}
-        <div class="stream-section mb-5">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="section-title mb-0">{{ stm.name }}</h3>
-            <a href="{{ url('entrance_exams:testprepfilter') }}?category={{ entrance_exam_category.aftercollge }}&stream={{ stm.slug }}" class="text-primary text-decoration-none">
-              View All <i class='bx bx-right-arrow-alt'></i>
-            </a>
-          </div>
-          
-          <div class="row">
-            {% set exam_count = 0 %}
-            {% for exam in collegeexams %}
-              {% if stm in exam.stream.all() %}
-                {% set exam_count = exam_count + 1 %}
-                {% if exam_count <= 3 %}
-                <div class="col-md-4 col-sm-6 mb-4">
-                  <div class="exam-card h-100 p-3 rounded shadow-sm position-relative">
-                    <div class="d-flex align-items-center mb-3">
-                      <div class="exam-logo me-3" style="width: 60px; height: 60px;">
-                        <img src="{{ exam.logo_url }}" alt="{{ exam.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
-                      </div>
-                      <div class="flex-grow-1">
-                        <h5 class="mb-1">
-                          <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="text-decoration-none">{{ exam.name }}</a>
-                        </h5>
-                        {% if exam.exam_date %}
-                        <p class="text-gray fs-12 mb-0">
-                          <i class='bx bx-calendar'></i> {{ date_format(exam.exam_date) }}
-                        </p>
-                        {% endif %}
-                      </div>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                      <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-sm btn-outline-primary">View Details</a>
-                      <button class="btn btn-sm btn-outline-secondary shortlist-exam" data-exam-id="{{ exam.id }}">
-                        <i class='bx bx-bookmark'></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                {% endif %}
-              {% endif %}
-            {% endfor %}
-          </div>
-        </div>
-        {% endfor %}
-        {% endif %}
       </div>
     </div>
 
@@ -296,37 +184,200 @@ Explore entrance exams and test preparation resources. Find exams for After 10th
 {% endblock %}
 
 {% block additionaljs %}
+{{ super() }}
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+  .shortlist-exam.bookmarked i,
+  .shortlist-exam.active i {
+    color: #28a745 !important; /* Green color for bookmarked */
+  }
+  .shortlist-exam i {
+    font-size: 18px;
+    transition: color 0.3s;
+  }
+</style>
 <script>
-// Shortlist Exam Functionality
-document.addEventListener('DOMContentLoaded', function() {
-  const shortlistButtons = document.querySelectorAll('.shortlist-exam');
+// Sweet Alert Helper
+const fireAlert = async function (
+  title,
+  icon = "success",
+  showConfirmButton = false,
+  showCloseButton = false,
+  isPrompt = false
+) {
+  const canDo = Swal.fire({
+    title,
+    icon: icon,
+    position: "top-end",
+    showCloseButton,
+    showConfirmButton,
+    toast: true,
+    showCancelButton: false,
+    ...(isPrompt ? {} : { timer: 2000 }),
+  });
+
+  if (isPrompt) {
+    return canDo?.isConfirmed;
+  } else {
+    return -1;
+  }
+};
+
+// Initialize bookmark buttons function - defined globally so it can be called after AJAX loads
+function initializeBookmarkButtons() {
+  // Check if jQuery is loaded
+  if (typeof $ === 'undefined') {
+    console.error('jQuery is not loaded');
+    return;
+  }
+  
+  const shortlistButtons = document.querySelectorAll('.shortlist-exam:not(.initialized)');
+  
+  if (shortlistButtons.length === 0) {
+    return; // No buttons to initialize
+  }
+  
   shortlistButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const examId = this.getAttribute('data-exam-id');
+    button.classList.add('initialized');
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
       
-      fetch('{{ url("entrance_exams:shortlist_exam") }}?id=' + examId, {
-        method: 'GET',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          if (data.shortlisted) {
-            this.classList.add('active');
-            this.innerHTML = '<i class="bx bxs-bookmark"></i>';
-          } else {
-            this.classList.remove('active');
-            this.innerHTML = '<i class="bx bx-bookmark"></i>';
+      const examId = this.getAttribute('data-exam-id');
+      const icon = this.querySelector('i');
+      
+      if (!examId) {
+        console.error('No exam ID found');
+        return;
+      }
+      
+      // Disable button during request
+      this.disabled = true;
+      
+      // Get CSRF token from cookie or meta tag
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
           }
         }
-      })
-      .catch(error => {
-        console.error('Error:', error);
+        return cookieValue;
+      }
+      
+      const csrfToken = getCookie('csrftoken') || '{{ csrf_token }}';
+      
+      $.ajax({
+        url: "/api/v1/user/shortlistexam",
+        type: 'POST',
+        data: {
+          'examid': examId,
+          'csrfmiddlewaretoken': csrfToken
+        },
+        success: function (data) {
+          // Check if exam was bookmarked (success === true) or removed (success === false)
+          if (data.success === true || data.success === "true") {
+            // Exam was bookmarked
+            this.classList.add('bookmarked', 'active');
+            if (icon) {
+              icon.classList.remove('bx-bookmark');
+              icon.classList.add('bxs-bookmark');
+            }
+            fireAlert(data.message || "Exam bookmarked successfully!", "success");
+          } else {
+            // Exam was removed from bookmarks
+            this.classList.remove('bookmarked', 'active');
+            if (icon) {
+              icon.classList.remove('bxs-bookmark');
+              icon.classList.add('bx-bookmark');
+            }
+            fireAlert(data.message || "Exam removed from bookmarks", "success");
+          }
+          this.disabled = false;
+        }.bind(this),
+        error: function(xhr, status, error) {
+          console.error('Error:', error);
+          try {
+            const errorMsg = xhr.responseJSON?.message || "Error updating bookmark";
+            fireAlert(errorMsg, "error");
+          } catch(e) {
+            fireAlert("Error updating bookmark", "error");
+          }
+          this.disabled = false;
+        }.bind(this)
       });
     });
   });
+}
+
+// Tab Content Loading via AJAX
+document.addEventListener('DOMContentLoaded', function() {
+  const tabButtons = document.querySelectorAll('#categoryTabs button[data-bs-toggle="pill"]');
+  const loadedTabs = new Set(['tenth']); // First tab is already loaded
+  
+  tabButtons.forEach(button => {
+    button.addEventListener('shown.bs.tab', function(e) {
+      const targetTab = e.target.getAttribute('data-bs-target').replace('#', '');
+      
+      // Only load if not already loaded
+      if (!loadedTabs.has(targetTab) && (targetTab === 'twelfth' || targetTab === 'college')) {
+        const tabPane = document.querySelector(`#${targetTab}`);
+        if (tabPane) {
+          const loadingDiv = tabPane.querySelector('.tab-loading');
+          
+          // Show loading
+          if (loadingDiv) {
+            loadingDiv.style.display = 'block';
+          }
+          
+          // Load content via AJAX
+          fetch(`{{ url('entrance_exams:testpreptenth') }}?tab=${targetTab}`, {
+            method: 'GET',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.html) {
+              tabPane.innerHTML = data.html;
+              loadedTabs.add(targetTab);
+              // Wait a bit for DOM to update, then re-initialize bookmark functionality
+              setTimeout(function() {
+                initializeBookmarkButtons();
+              }, 100);
+            }
+          })
+          .catch(error => {
+            console.error('Error loading tab content:', error);
+            if (loadingDiv) {
+              loadingDiv.innerHTML = '<p class="text-danger">Error loading content. Please refresh the page.</p>';
+            }
+          });
+        }
+      }
+    });
+  });
+  
+    // Initialize bookmark buttons on page load - wait for jQuery
+  if (typeof $ !== 'undefined') {
+    initializeBookmarkButtons();
+  } else {
+    // Wait for jQuery to load
+    window.addEventListener('load', function() {
+      if (typeof $ !== 'undefined') {
+        initializeBookmarkButtons();
+      }
+    });
+  }
 });
 </script>
 {% endblock %}

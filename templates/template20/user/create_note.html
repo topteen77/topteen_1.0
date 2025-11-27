@@ -7,6 +7,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .create-note-page {
     padding-top: 80px;
@@ -37,12 +38,26 @@
     outline: none;
     box-shadow: none;
   }
+  .folder-icon {
+    width: 48px;
+    height: 68px;
+    object-fit: contain;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <section class="create-note-page pb-5">
   <div class="container">
+    <div class="row g-4 pt-4">
+      <!-- Left part Desktop - Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
+      </div>
+      <!-- End of Left part Desktop -->
+
+      <!-- Right Part - Note Editor Content -->
+      <div class="col-lg-8">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4 pt-4 position-relative">
       <button type="button" class="btn btn-link text-gray text-decoration-none" onclick="window.location='{{ url('users:mynotepad') }}'">
@@ -65,11 +80,11 @@
 
     <!-- Note Editor -->
     <form method="POST" enctype="multipart/form-data" id="createnoteform" class="note-editor">
-      {% csrf_token %}
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
       <input type="hidden" name="obj_id" value="{{ note.id }}">
       
       <div class="mb-4">
-        <img src="{{ static('images_new/icons/folders.svg') }}" class="mb-3" style="width: 48px; height: 68px;" alt="Folder" />
+            <img src="{{ static('topteenfrontend/assets/images/folders.svg') }}" class="folder-icon mb-3" alt="Folder" onerror="this.style.display='none';" />
         <input name="title" 
                type="text" 
                {% if note.title %}value="{{ note.title }}"{% endif %}
@@ -91,6 +106,9 @@
       <button type="button" onclick="saveNoteSubmitForm();" class="btn custom-button purple-button">
         Save
       </button>
+        </div>
+      </div>
+      <!-- End of Right Part -->
     </div>
   </div>
 </section>

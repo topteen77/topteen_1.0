@@ -13,12 +13,19 @@ from django.urls import reverse_lazy
 
 class SkillLabCourseDocumentFilter:
     def __init__(self):
-        self.search=SkillLabCourseDocument.search()
+        try:
+            self.search=SkillLabCourseDocument.search()
+        except (KeyError, Exception) as e:
+            # Elasticsearch connection not available
+            self.search = None
+            raise e
 
     def get_elasticsearch_document_skilllab_all(self,request,is_ajax):
         return self.search
         
     def get_skilllab_list_context(self,request,is_ajax=False):
+        if self.search is None:
+            raise KeyError("Elasticsearch connection not available")
         ctx={}
         streams=[]
         search_results=SearchResults(self.get_elasticsearch_document_skilllab_all(request,is_ajax))

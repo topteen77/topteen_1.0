@@ -1,3 +1,21 @@
+** testing script start ***
+python scripts/run_test_students_manager.py create --limit 1
+
+python scripts/run_test_students_manager.py remove --dry-run  # Preview
+python scripts/run_test_students_manager.py remove            # Remove
+
+python scripts/run_test_students_manager.py create --class10-only --limit 1
+python scripts/run_test_students_manager.py create --class12-only --limit 1
+
+python scripts/verify_class10_st
+python scripts/verify_class12_st
+
+
+** testing script end ***
+
+
+
+
 python3 scripts/convert_docx_to_html.py
 python manage.py upload_careers_from_txt --input-dir career_html_output
 python manage.py upload_careers_from_txt --input-dir career_html_output --dry-run

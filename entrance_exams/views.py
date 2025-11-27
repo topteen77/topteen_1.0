@@ -7,6 +7,7 @@ from django.views.generic import TemplateView
 from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from django.template.loader import render_to_string
 from .models import EntranceExam
 from .document_filters import EntranceExamDocumentFilter
 from courses.models import Stream
@@ -82,62 +83,164 @@ class TestPreptenth(TemplateView):
 
     def get_context(self,request,*args,**kwargs):
         ctx={}
-        stmcat3=[]
-        stmcat2=[]
-        stmcat1=[]
-        tenthtag=[]
-        twelthtag=[]
-        collegetag=[]
-        stm=EntranceExam.objects.all().values('stream')
-        strm=Stream.objects.filter(id__in=stm)
-        exmst=[]
-        for examstr in strm:
-            if examstr not in exmst:
-                exmst.append(examstr)
-        ctx['strm']=exmst
-        tenthexam=EntranceExam.objects.filter(Q(category=choices.EntranceExamTypechoice.after_10_class)|Q(category=choices.EntranceExamTypechoice.BOTH))
-        for exam in tenthexam:
-            for tag in exam.examtags.all():
-                if tag not in tenthtag:
+        # Only load initial tab (After 10th) data - other tabs loaded via AJAX
+        from django.db.models import Prefetch
+        
+        # Optimize queries with prefetch_related to avoid N+1 queries
+        tenthexam = EntranceExam.objects.filter(
+            Q(category=choices.EntranceExamTypechoice.after_10_class) | 
+            Q(category=choices.EntranceExamTypechoice.BOTH)
+        ).prefetch_related('examtags', 'stream', 'shortlist')[:50]  # Limit initial load
+        
+        # Get unique streams efficiently
+        stmcat1 = list(Stream.objects.filter(
+            entranceexam__category__in=[choices.EntranceExamTypechoice.after_10_class, choices.EntranceExamTypechoice.BOTH]
+        ).distinct()[:10])
+        
+        # Get unique tags efficiently - limit to first 20 exams to avoid heavy processing
+        tenthtag = []
+        seen_tags = set()
+        for exam in tenthexam[:20]:
+            for tag in exam.examtags.all()[:5]:
+                if tag.id not in seen_tags:
                     tenthtag.append(tag)
-            for stream in exam.stream.all():
-                if stream not in stmcat1:
-                    stmcat1.append(stream)
-        ctx['tenthexamtag']=tenthtag  
-        ctx['tenthstream']=stmcat1 
-        ctx['tenthexam']=tenthexam
-        twelexam=EntranceExam.objects.filter(Q(category=choices.EntranceExamTypechoice.after_12_class)|Q(category=choices.EntranceExamTypechoice.BOTH))
-        for exam1 in twelexam:
-            for tag in exam1.examtags.all():
-                if tag not in twelthtag:
-                    twelthtag.append(tag)
-            for stream in exam1.stream.all():
-                if stream not in stmcat2:
-                    stmcat2.append(stream)
-        ctx['twelthexamtag']=twelthtag   
-        ctx['twelthstreams']=stmcat2 
-        ctx['twelthexams']=twelexam
-        collexam=EntranceExam.objects.filter(Q(category=choices.EntranceExamTypechoice.after_college))
-        for exam2 in collexam:
-            for tag in exam2.examtags.all():
-                if tag not in collegetag:
-                    collegetag.append(tag)
-            for stream in exam2.stream.all():
-                if stream not in stmcat3:
-                    stmcat3.append(stream)
-        ctx['collegeexamtag']=collegetag
-        ctx['collegestreams']=stmcat3
-        ctx['collegeexams']=collexam
+                    seen_tags.add(tag.id)
+                    if len(tenthtag) >= 10:
+                        break
+            if len(tenthtag) >= 10:
+                break
+        
+        # Pre-compute bookmarked exams to avoid N+1 queries in template
+        bookmarked_exam_ids = set()
+        if request.user.is_authenticated:
+            bookmarked_exam_ids = set(
+                EntranceExam.objects.filter(
+                    Q(category=choices.EntranceExamTypechoice.after_10_class) | 
+                    Q(category=choices.EntranceExamTypechoice.BOTH),
+                    shortlist=request.user
+                ).values_list('id', flat=True)
+            )
+        
+        ctx['tenthexamtag'] = tenthtag  
+        ctx['tenthstream'] = stmcat1 
+        ctx['tenthexam'] = tenthexam
+        ctx['bookmarked_exam_ids'] = bookmarked_exam_ids
+        
+        # Don't load other tabs initially - load via AJAX
+        ctx['twelthexamtag'] = []
+        ctx['twelthstreams'] = []
+        ctx['twelthexams'] = EntranceExam.objects.none()
+        ctx['collegeexamtag'] = []
+        ctx['collegestreams'] = []
+        ctx['collegeexams'] = EntranceExam.objects.none()
+        
+        # Only load related exams (lightweight)
         num_entities = EntranceExam.objects.all().order_by('?')[:5]
-        ctx['related_exam']=num_entities
+        ctx['related_exam'] = num_entities
         ctx["html_head"] = self.html_head()
-        ctx['entrance_exam_category']={'after10':"After 10th",'after12':"After 12th",'aftercollge':"After College"}
+        ctx['entrance_exam_category'] = {'after10':"After 10th",'after12':"After 12th",'aftercollge':"After College"}
         from django.urls import reverse
         ctx['breadcrumb'] = {'text': 'Test Prep', 'url': reverse('entrance_exams:testpreptenth')}
         return ctx
 
     def get(self, request,*args, **kwargs):
+        # Handle AJAX requests for tab content
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            tab = request.GET.get('tab', 'tenth')
+            return self.get_tab_content(request, tab)
         return render(request, self.template_name, self.get_context(request,args,kwargs))
+    
+    def get_tab_content(self, request, tab):
+        """Load tab content via AJAX"""
+        from django.db.models import Prefetch
+        
+        if tab == 'twelfth':
+            twelexam = EntranceExam.objects.filter(
+                Q(category=choices.EntranceExamTypechoice.after_12_class) | 
+                Q(category=choices.EntranceExamTypechoice.BOTH)
+            ).prefetch_related('examtags', 'stream', 'shortlist')[:50]
+            
+            stmcat2 = list(Stream.objects.filter(
+                entranceexam__category__in=[choices.EntranceExamTypechoice.after_12_class, choices.EntranceExamTypechoice.BOTH]
+            ).distinct()[:10])
+            
+            # Get unique tags efficiently
+            twelthtag = []
+            seen_tags = set()
+            for exam in twelexam[:20]:
+                for tag in exam.examtags.all()[:5]:
+                    if tag.id not in seen_tags:
+                        twelthtag.append(tag)
+                        seen_tags.add(tag.id)
+                        if len(twelthtag) >= 10:
+                            break
+                if len(twelthtag) >= 10:
+                    break
+            
+            # Pre-compute bookmarked exams
+            bookmarked_exam_ids = set()
+            if request.user.is_authenticated:
+                bookmarked_exam_ids = set(
+                    EntranceExam.objects.filter(
+                        Q(category=choices.EntranceExamTypechoice.after_12_class) | 
+                        Q(category=choices.EntranceExamTypechoice.BOTH),
+                        shortlist=request.user
+                    ).values_list('id', flat=True)
+                )
+            
+            ctx = {
+                'twelthexamtag': twelthtag,
+                'twelthstreams': stmcat2,
+                'twelthexams': twelexam,
+                'entrance_exam_category': {'after12':"After 12th"},
+                'bookmarked_exam_ids': bookmarked_exam_ids,
+            }
+            html = render_to_string('template20/testprep_list_tab_content.html', ctx, request=request)
+            return JsonResponse({'html': html})
+            
+        elif tab == 'college':
+            collexam = EntranceExam.objects.filter(
+                Q(category=choices.EntranceExamTypechoice.after_college)
+            ).prefetch_related('examtags', 'stream', 'shortlist')[:50]
+            
+            stmcat3 = list(Stream.objects.filter(
+                entranceexam__category=choices.EntranceExamTypechoice.after_college
+            ).distinct()[:10])
+            
+            # Get unique tags efficiently
+            collegetag = []
+            seen_tags = set()
+            for exam in collexam[:20]:
+                for tag in exam.examtags.all()[:5]:
+                    if tag.id not in seen_tags:
+                        collegetag.append(tag)
+                        seen_tags.add(tag.id)
+                        if len(collegetag) >= 10:
+                            break
+                if len(collegetag) >= 10:
+                    break
+            
+            # Pre-compute bookmarked exams
+            bookmarked_exam_ids = set()
+            if request.user.is_authenticated:
+                bookmarked_exam_ids = set(
+                    EntranceExam.objects.filter(
+                        Q(category=choices.EntranceExamTypechoice.after_college),
+                        shortlist=request.user
+                    ).values_list('id', flat=True)
+                )
+            
+            ctx = {
+                'collegeexamtag': collegetag,
+                'collegestreams': stmcat3,
+                'collegeexams': collexam,
+                'entrance_exam_category': {'aftercollge':"After College"},
+                'bookmarked_exam_ids': bookmarked_exam_ids,
+            }
+            html = render_to_string('template20/testprep_list_tab_content.html', ctx, request=request)
+            return JsonResponse({'html': html})
+        
+        return JsonResponse({'html': ''})
 
 def shortlist_exam_view(request):
     id=request.GET.get("id")

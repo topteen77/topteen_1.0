@@ -28,11 +28,35 @@ class SkillLabCourseList(TemplateView):
 
     def get_context(self,request,*args, **kwargs):
         from django.urls import reverse
-        ctx={}
-        skl=SkillLabCourseDocumentFilter()
-        ctx=skl.get_skilllab_list_context(request)
+        from django.core.paginator import Paginator
+        
+        try:
+            skl=SkillLabCourseDocumentFilter()
+            ctx=skl.get_skilllab_list_context(request)
+        except (KeyError, Exception) as e:
+            # Fallback to Django ORM when Elasticsearch is not available
+            print(f"Elasticsearch not available, using Django ORM fallback: {e}")
+            ctx = self.get_fallback_context(request)
+        
         ctx["html_head"] = self.html_head()
         ctx['breadcrumb'] = {'text': 'Skill Lab Courses', 'url': reverse('skilllabcourse:skilllabcourselist')}
+        return ctx
+    
+    def get_fallback_context(self, request):
+        """Fallback method using Django ORM when Elasticsearch is unavailable"""
+        from django.core.paginator import Paginator
+        
+        ctx = {}
+        
+        # Get all skilllab courses ordered by modified date (newest first)
+        courses = SkillLabCourse.objects.all().order_by('-modified')
+        
+        # Pagination
+        paginator = Paginator(courses, 9)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        ctx['skilllab'] = page_obj
+        
         return ctx
     
     def get(self, request,*args, **kwargs):      

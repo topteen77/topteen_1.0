@@ -38,6 +38,16 @@ class CareerDocumentFilter:
         ctx['careers']=page_obj
         
         ctx['facets_filter']=self.get_facets_filter(request,tagslug)
+        
+        # Get shortlisted career IDs for authenticated users
+        shortlisted_career_ids = []
+        if request.user.is_authenticated:
+            from careers.models import CareerShortlist
+            shortlisted_career_ids = list(CareerShortlist.objects.filter(
+                user=request.user
+            ).values_list('career_id', flat=True))
+        ctx['shortlisted_career_ids'] = shortlisted_career_ids
+        
         return ctx
 
     def get_facets_filter(self,request,tagslug=None):

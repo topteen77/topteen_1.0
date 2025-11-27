@@ -28,18 +28,40 @@
     position: absolute;
     top: 12px;
     right: 12px;
-    background: rgba(0,0,0,0.03);
+    background-color: rgba(0, 0, 0, 0.05);
     border-radius: 50%;
-    padding: 6px 7px;
+    padding: 8px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .bookmark-btn.active {
-    background-color: #3f37c9;
+  .bookmark-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    transform: scale(1.1);
   }
-  .bookmark-btn img {
-    width: 12px;
-    height: 16px;
+  .bookmark-btn i {
+    font-size: 18px;
+    color: #666;
+  }
+  .bookmark-btn:hover i {
+    color: #333;
+  }
+  .exam-card {
+    min-height: 280px;
+  }
+  .exam-description {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 12px;
   }
 </style>
 {% endblock %}
@@ -47,64 +69,89 @@
 {% block content %}
 <section class="bookmark-exam-page pb-5">
   <div class="container">
-    <!-- Breadcrumb -->
-    {% if breadcrumb %}
-    {% include 'template20/includes/breadcrumb.html' %}
-    {% endif %}
-
-    <!-- Exam Heading -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
-      <h1 class="fs-24 fw-semibold mb-0">Exams & Tests</h1>
-    </div>
-
-    <!-- Mobile Header -->
-    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
-        <i class='bx bx-arrow-left fs-18 text-gray'></i>
-      </button>
-      <h2 class="fs-16 fw-normal text-center mb-0">Exams & Tests</h2>
-    </div>
-
-    <!-- Exams Content -->
-    {% if exams %}
-    <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
-      {% for exam in exams %}
-      <div class="exam-card" style="width: 248px;">
-        <div id="exam_{{ exam.id }}" 
-             class="bookmark-btn {% if exam.shortlist.filter(id=request.user.id).exists() %}active{% endif %}" 
-             onclick="examshortlist('{{ exam.id }}')">
-          <img src="{{ static('images_new/icons/bookmark.svg') }}" alt="Bookmark" />
-        </div>
-        <div class="d-flex align-items-center gap-2 mb-3">
-          <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="d-flex align-items-center gap-2 text-decoration-none">
-            <div style="width: 57px; height: 63px; flex-shrink: 0;">
-              <img src="{{ exam.logo_url }}" class="w-100 h-100 object-cover" alt="{{ exam.name }}" />
-            </div>
-            <div>
-              <h5 class="fs-14 fw-semibold text-dark mb-0" style="max-height: 48px; overflow: hidden;">{{ exam.name }}</h5>
-            </div>
-          </a>
-        </div>
-        <div class="border-top border-bottom py-2 mb-3"></div>
-        <div class="text-center">
-          <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-outline-secondary btn-sm">
-            View Details
-          </a>
-        </div>
+    <div class="row g-4 pt-4">
+      <!-- Left part Desktop - Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
       </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="text-center py-5">
-      <i class='bx bx-clipboard fs-64 text-gray mb-3'></i>
-      <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Exams</h3>
-      <p class="text-gray fs-14 mb-4">You haven't bookmarked any exams yet.</p>
-      <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button purple-button">
-        Browse Exams
-      </a>
-    </div>
-    {% endif %}
+      <!-- End of Left part Desktop -->
+
+      <!-- Right Part - Exams Content -->
+      <div class="col-lg-8">
+        <!-- Breadcrumb -->
+        {% if breadcrumb %}
+        {% include 'template20/includes/breadcrumb.html' %}
+        {% endif %}
+
+        <!-- Exam Heading -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="fs-24 fw-semibold mb-0">Exams & Tests</h1>
+          {% if exams %}
+          <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button purple-button d-none d-md-inline-flex">
+            <i class='bx bx-search me-2'></i>Browse Exams
+          </a>
+          {% endif %}
+        </div>
+
+        <!-- Mobile Header -->
+        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+          <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+            <i class='bx bx-arrow-left fs-18 text-gray'></i>
+          </button>
+          <h2 class="fs-16 fw-normal text-center mb-0">Exams & Tests</h2>
+          {% if exams %}
+          <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn btn-sm custom-button purple-button position-absolute end-0 top-0">
+            <i class='bx bx-search me-1'></i>Browse
+          </a>
+          {% endif %}
+        </div>
+
+        <!-- Exams Content -->
+        {% if exams %}
+        <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
+          {% for exam in exams %}
+          <div class="exam-card" style="width: 248px;">
+            <div id="exam_{{ exam.id }}" 
+                 class="bookmark-btn active" 
+                 onclick="examshortlist('{{ exam.id }}')"
+                 title="Remove from bookmarks">
+              <i class='bx bx-x'></i>
+            </div>
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="d-flex align-items-center gap-2 text-decoration-none">
+                <div style="width: 57px; height: 63px; flex-shrink: 0;">
+                  <img src="{{ exam.logo_url }}" class="w-100 h-100 object-cover" alt="{{ exam.name }}" />
+                </div>
+                <div class="flex-grow-1">
+                  <h5 class="fs-14 fw-semibold text-dark mb-1" style="max-height: 48px; overflow: hidden;">{{ exam.name }}</h5>
+                </div>
+              </a>
+            </div>
+            {% if exam.about %}
+            <div class="exam-description">
+              {{ (exam.about|striptags|trim)|truncate(120) }}
+            </div>
+            {% endif %}
+            <div class="border-top border-bottom py-2 mb-3"></div>
+            <div class="text-center">
+              <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-outline-secondary btn-sm">
+                View Details
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+          <i class='bx bx-clipboard fs-64 text-gray mb-3'></i>
+          <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Exams</h3>
+          <p class="text-gray fs-14 mb-4">You haven't bookmarked any exams yet.</p>
+          <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button purple-button">
+            Browse Exams
+          </a>
+        </div>
+        {% endif %}
       </div>
       <!-- End of Right Part -->
     </div>
@@ -158,12 +205,20 @@
       success: function (data) {
         const bookmarkBtn = document.getElementById('exam_' + examId);
         if (bookmarkBtn) {
-          bookmarkBtn.classList.toggle('active');
-          if (bookmarkBtn.classList.contains('active')) {
-            fireAlert("Exam bookmarked", "success");
-          } else {
-            fireAlert("Exam removed from bookmarks", "success");
+          const icon = bookmarkBtn.querySelector('i');
+          // On bookmark exam page, clicking always removes (since all are bookmarked)
+          // Check API response: success === false means removed
+          if (data.success === false || data.success === "false") {
+            // Exam was removed from bookmarks
+            fireAlert(data.message || "Exam removed from bookmarks", "success");
             // Reload page to remove from list
+            setTimeout(function() {
+              window.location.reload();
+            }, 1000);
+          } else {
+            // This shouldn't happen on bookmark page, but handle it
+            fireAlert(data.message || "Exam bookmarked successfully!", "success");
+            // Reload page to refresh
             setTimeout(function() {
               window.location.reload();
             }, 1000);

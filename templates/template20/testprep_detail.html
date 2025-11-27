@@ -232,7 +232,38 @@
 {% endblock %}
 
 {% block additionaljs %}
+{{ super() }}
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+// Sweet Alert Helper
+const fireAlert = async function (
+  title,
+  icon = "success",
+  showConfirmButton = false,
+  showCloseButton = false,
+  isPrompt = false
+) {
+  const canDo = Swal.fire({
+    title,
+    icon: icon,
+    position: "top-end",
+    showCloseButton,
+    showConfirmButton,
+    toast: true,
+    showCancelButton: false,
+    ...(isPrompt ? {} : { timer: 2000 }),
+  });
+
+  if (isPrompt) {
+    return canDo?.isConfirmed;
+  } else {
+    return -1;
+  }
+};
+
 // Copy Link Functionality
 document.addEventListener('DOMContentLoaded', function() {
   const copyLinks = document.querySelectorAll('.copy-link');
@@ -242,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const url = this.getAttribute('data-url');
       const fullUrl = window.location.origin + url;
       navigator.clipboard.writeText(fullUrl).then(() => {
-        alert('Link copied to clipboard!');
+        fireAlert('Link copied to clipboard!', 'success');
       });
     });
   });
@@ -253,27 +284,55 @@ document.addEventListener('DOMContentLoaded', function() {
     shortlistButton.addEventListener('click', function() {
       const examId = this.getAttribute('data-exam-id');
       const shortlistText = this.querySelector('.shortlist-text');
+      const icon = this.querySelector('i');
       
-      fetch('{{ url("entrance_exams:shortlist_exam") }}?id=' + examId, {
-        method: 'GET',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          if (data.shortlisted) {
-            shortlistText.textContent = 'Remove from Shortlist';
-            this.classList.add('active');
+      // Disable button during request
+      this.disabled = true;
+      
+      $.ajax({
+        url: "/api/v1/user/shortlistexam",
+        type: 'POST',
+        data: {
+          'examid': examId,
+          'csrfmiddlewaretoken': '{{ csrf_token }}'
+        },
+        success: function (data) {
+          // Check if exam was bookmarked (success === true) or removed (success === false)
+          if (data.success === true || data.success === "true") {
+            // Exam was bookmarked
+            if (shortlistText) {
+              shortlistText.textContent = 'Remove from Shortlist';
+            }
+            if (icon) {
+              icon.classList.remove('bx-bookmark');
+              icon.classList.add('bxs-bookmark');
+            }
+            shortlistButton.classList.add('active');
+            fireAlert(data.message || "Exam bookmarked successfully!", "success");
           } else {
-            shortlistText.textContent = 'Shortlist Exam';
-            this.classList.remove('active');
+            // Exam was removed from bookmarks
+            if (shortlistText) {
+              shortlistText.textContent = 'Shortlist Exam';
+            }
+            if (icon) {
+              icon.classList.remove('bxs-bookmark');
+              icon.classList.add('bx-bookmark');
+            }
+            shortlistButton.classList.remove('active');
+            fireAlert(data.message || "Exam removed from bookmarks", "success");
           }
+          shortlistButton.disabled = false;
+        },
+        error: function(xhr, status, error) {
+          console.error('Error:', error);
+          try {
+            const errorMsg = xhr.responseJSON?.message || "Error updating bookmark";
+            fireAlert(errorMsg, "error");
+          } catch(e) {
+            fireAlert("Error updating bookmark", "error");
+          }
+          shortlistButton.disabled = false;
         }
-      })
-      .catch(error => {
-        console.error('Error:', error);
       });
     });
   }

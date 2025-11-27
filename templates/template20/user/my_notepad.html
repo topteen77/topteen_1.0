@@ -49,106 +49,7 @@
     <div class="row g-4 pt-4">
       <!-- Left part Desktop - Sidebar -->
       <div class="col-lg-4 d-none d-lg-block">
-        <div class="profile-sidebar">
-          <!-- User -->
-          <div class="text-center border-bottom pb-4 mb-4">
-            <div class="mb-3">
-              {% if request.user.image %}
-              <img src="{{ request.user.image.url }}" class="profile-image mx-auto" alt="{{ request.user.name }}" />
-              {% else %}
-              <img src="{{ static('images_new/icons/user-icon.svg') }}" class="profile-image mx-auto" alt="User" />
-              {% endif %}
-            </div>
-            <p class="fs-16 fw-semibold mb-1">{{ request.user.name|default(request.user.username) }}</p>
-            
-            <div class="d-flex flex-column gap-2">
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                <i class='bx bx-time-five fs-18 text-gray'></i>
-                <p class="text-gray fs-16 mb-0">Joined {{ date_format(request.user.created) }}</p>
-              </div>
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                <i class='bx bx-book fs-18 text-gray'></i>
-                <p class="text-gray fs-16 mb-0">
-                  {% if request.user.user_profile %}
-                    {% if request.user.student_management.last() and request.user.student_management.last().class_and_section %}
-                      {{ request.user.student_management.last().class_and_section }}
-                    {% endif %}
-                    {% if request.user.user_profile.schoolname %}
-                      • {{ request.user.user_profile.schoolname }}
-                    {% endif %}
-                    {% if request.user.user_profile.grade %}
-                    • Class {{ request.user.user_profile.grade }}
-                    {% endif %}
-                  {% else %}
-                    - • -
-                  {% endif %}
-                </p>
-              </div>
-            </div>
-          </div>
-          <!-- End of User -->
-
-          <!-- Complete Profile -->
-          <div class="profile-complete-card">
-            <div class="d-flex">
-              <div class="me-3">
-                <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 45px;" alt="Verified" />
-              </div>
-              <div class="flex-grow-1">
-                <p class="fs-12 fw-semibold text-dark mb-1">Complete your profile</p>
-                <p class="fs-10 text-gray mb-2">A complete profile helps us cater the best content to you</p>
-                <div class="progress-bar-custom" style="width: 100%;">
-                  <div class="progress-fill" style="width: {% if request.user.is_completed %}100{% else %}60{% endif %}%;"></div>
-                </div>
-              </div>
-            </div>
-            <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">
-              <i class='bx bx-cog me-2'></i> SETTINGS
-            </a>
-          </div>
-          <!-- End of Complete Profile -->
-
-          <!-- Settings Links -->
-          <div class="mt-4">
-            <a href="{{ url('users:viewprofile') }}" class="d-block text-decoration-none mb-3">
-              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-                <div>
-                  <p class="fs-14 fw-semibold mb-1">View Profile</p>
-                  <p class="text-gray fs-12 mb-0">View your profile information</p>
-                </div>
-                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-              </div>
-            </a>
-            <a href="{{ url('users:profiledetails') }}" class="d-block text-decoration-none mb-3">
-              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-                <div>
-                  <p class="fs-14 fw-semibold mb-1">Edit Profile</p>
-                  <p class="text-gray fs-12 mb-0">Update your profile information</p>
-                </div>
-                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-              </div>
-            </a>
-            <a href="{{ url('users:userhistory') }}" class="d-block text-decoration-none mb-3">
-              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-                <div>
-                  <p class="fs-14 fw-semibold mb-1">Manage payment history</p>
-                  <p class="text-gray fs-12 mb-0">View and manage your payments</p>
-                </div>
-                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-              </div>
-            </a>
-            <a href="{{ url('users:logout') }}" class="d-block text-decoration-none">
-              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-                <div>
-                  <p class="fs-14 fw-semibold mb-1 text-danger">Sign Out</p>
-                  <p class="text-danger text-opacity-60 fs-12 mb-0">Logout from your account</p>
-                </div>
-                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-              </div>
-            </a>
-          </div>
-          <!-- End of Settings Links -->
-        </div>
+        {% include 'template20/user/includes/profile_sidebar.html' %}
       </div>
       <!-- End of Left part Desktop -->
 
@@ -184,7 +85,7 @@
       <div class="col-12 col-md-6 col-lg-4">
         <a href="{{ url('users:updatenote', args=[note.id]) }}" class="text-decoration-none">
           <div class="note-card">
-            <img src="{{ static('images_new/icons/pin.svg') }}" class="note-pin" alt="Pin" />
+            <img src="{{ static('topteenfrontend/assets/images/pin.svg') }}" class="note-pin" alt="Pin" />
             <h3 class="fs-16 fw-semibold text-dark mb-2">
               {{ note.title|default('Untitled Note') }}
             </h3>
