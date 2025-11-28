@@ -259,15 +259,14 @@ class LeadData(APIView):
         mvalid = r'^(\+91|0)?[6789]\d{9}$'
         phone=re.match(mvalid,mobile)
         lead_exist=Lead.objects.filter(mobile=mobile).exists()
-        if name and phone and not lead_exist:
-            lead_data=Lead(name=name,mobile=mobile)
-            lead_data.save()
+        if name and phone:
+            if not lead_exist:
+                lead_data=Lead(name=name,mobile=mobile)
+                lead_data.save()
+            # Return success even if phone number already exists
             response={"success":"true","message":"Thank you for connecting with us!"}
         else:
-            if lead_exist:
-                response={"success":"false","message":"Your phone number already exist!"}
-            else:
-                response={"success":"false","message":"Please Enter the Correct Phone number!"}
+            response={"success":"false","message":"Please Enter the Correct Phone number!"}
         return JsonResponse(response)
 
 def deletehistory(request):

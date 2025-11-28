@@ -13,7 +13,7 @@ from entrance_exams.models import EntranceExam
 from django.shortcuts import HttpResponse
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from core.utils import build_breadcrumb,build_html_head
+from core.utils import build_breadcrumb,build_html_head,date_format
 from html import unescape
 # Create your views here.
 
@@ -36,8 +36,12 @@ class CollegeDetails(TemplateView):
         country=Country.objects.all()
         ctx['countries']=country
         courses=Course.objects.filter(college=college)
-        ctx['colleges'] = College.get_all_colleges()
-        ctx['courses']=courses
+        all_colleges = College.get_all_colleges()
+        if hasattr(all_colleges, '__iter__') and not isinstance(all_colleges, str):
+            colleges_list = list(all_colleges)
+        else:
+            colleges_list = []
+        ctx['courses']=list(courses)
         streams=[]
         for course in courses:
             stream=course.stream
@@ -47,10 +51,48 @@ class CollegeDetails(TemplateView):
         ctx['breadcrumb']= bread_crumb[1]
         ctx['html_head'] = self.__html_head(ctx["college"])
         ctx['unescape']=unescape
+        ctx['date_format']=date_format
+        
+        # Pre-evaluate querysets for Jinja2 template
+        ctx['college_texts'] = list(college.texts.all())
+        college_facts_list = list(college.facts.all())
+        # Pre-process facts to get display values - create dict with display values
+        facts_with_display = []
+        for fact in college_facts_list:
+            facts_with_display.append({
+                'fact': fact,
+                'type_display': fact.get_type_display(),
+                'value': fact.value
+            })
+        ctx['college_facts'] = facts_with_display
+        ctx['college_facilities'] = list(college.facilities.all())
+        ctx['college_images'] = list(college.college_images.all())
+        
+        # Pre-evaluate method calls for Jinja2 template
+        ctx['college_location'] = college.get_location()
+        ctx['college_email'] = college.get_email()
+        ctx['college_mobile'] = college.get_mobile()
+        ctx['college_website'] = college.get_website()
+        
+        # Pre-process related colleges - create list with location
+        colleges_with_location = []
+        for rel_college in colleges_list:
+            colleges_with_location.append({
+                'college': rel_college,
+                'location': rel_college.get_location()
+            })
+        ctx['colleges'] = colleges_with_location
+        
         try:
-            ctx['shortlisted_college']=CollegeShortlist.objects.filter(user=request.user,college__slug=ctx['college'].slug)
+            if request.user.is_authenticated:
+                ctx['shortlisted_college']=CollegeShortlist.objects.filter(user=request.user,college__slug=ctx['college'].slug).first()
+                ctx['is_bookmarked'] = ctx['shortlisted_college'] is not None
+            else:
+                ctx['shortlisted_college']=None
+                ctx['is_bookmarked'] = False
         except:
             ctx['shortlisted_college']=None
+            ctx['is_bookmarked'] = False
         return ctx
 
     def _breadcrumb(self,college):
@@ -120,6 +162,16 @@ class CollegeList(TemplateView):
         from core.models import Country, State, City
         
         ctx = {}
+        
+        # Get bookmarked college IDs and slugs for authenticated users
+        if request.user.is_authenticated:
+            bookmarked_college_ids = list(CollegeShortlist.objects.filter(user=request.user).values_list('college_id', flat=True))
+            bookmarked_college_slugs = list(CollegeShortlist.objects.filter(user=request.user).values_list('college__slug', flat=True))
+            ctx['bookmarked_college_ids'] = bookmarked_college_ids
+            ctx['bookmarked_college_slugs'] = bookmarked_college_slugs
+        else:
+            ctx['bookmarked_college_ids'] = []
+            ctx['bookmarked_college_slugs'] = []
         
         # Get base queryset
         colleges = College.objects.filter(publish_status=1).select_related('country', 'state', 'city', 'category')

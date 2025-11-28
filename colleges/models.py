@@ -92,7 +92,7 @@ class College(BaseModel,SeoModel,SlugModel,PublishableModel):
         return text
 
     def get_email(self):
-        return self._get_flat_text(choices.TextType.EMAIL)
+        return self._get_flat_text(choices.FlatTextType.EMAIL)
     
     def get_banner(self):
         if self.banner:
@@ -100,10 +100,10 @@ class College(BaseModel,SeoModel,SlugModel,PublishableModel):
         return self.logo.url
 
     def get_mobile(self):
-        return self._get_flat_text(choices.TextType.MOBILE)
+        return self._get_flat_text(choices.FlatTextType.MOBILE)
 
     def get_website(self):
-        return self._get_flat_text(choices.TextType.COLLEGE_WEBSITE)
+        return self._get_flat_text(choices.FlatTextType.WEBSITE)
 
     def get_about_us(self):
         return self._get_text(choices.CollegeTextType.ABOUT)

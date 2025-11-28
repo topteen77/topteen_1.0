@@ -63,19 +63,35 @@ class Careers(TemplateView):
         # Handle selected filters
         selected_professions = request.GET.getlist("professions")
         selected_skills = request.GET.getlist("skills")
-        selected_cluster = request.GET.get("cluster")
+        selected_clusters = request.GET.getlist("cluster")
         
-        # Apply cluster filtering
-        if selected_cluster:
-            careers = careers.filter(career_cluster__id=selected_cluster).distinct()
+        # Apply cluster filtering (multi-select) - OR logic within clusters
+        if selected_clusters:
+            # Convert to integers if they're strings, filter out invalid values
+            cluster_ids = []
+            for c in selected_clusters:
+                try:
+                    cluster_ids.append(int(c))
+                except (ValueError, TypeError):
+                    continue
+            if cluster_ids:
+                careers = careers.filter(career_cluster__id__in=cluster_ids).distinct()
         
-        # Apply profession filtering
+        # Apply profession filtering - OR logic within professions
+        # Match by exact name (handles trailing colons/spaces in database)
         if selected_professions:
-            careers = careers.filter(profession__name__in=selected_professions).distinct()
+            # Clean the profession names and filter
+            cleaned_professions = [p.strip() for p in selected_professions if p and p.strip()]
+            if cleaned_professions:
+                careers = careers.filter(profession__name__in=cleaned_professions).distinct()
         
-        # Apply skill filtering
+        # Apply skill filtering - OR logic within skills
+        # Match by exact name
         if selected_skills:
-            careers = careers.filter(skills__name__in=selected_skills).distinct()
+            # Clean the skill names and filter
+            cleaned_skills = [s.strip() for s in selected_skills if s and s.strip()]
+            if cleaned_skills:
+                careers = careers.filter(skills__name__in=cleaned_skills).distinct()
 
         # Basic search filtering
         search_query = request.GET.get('search', '')
@@ -100,56 +116,86 @@ class Careers(TemplateView):
         except EmptyPage:
             careers_page = paginator.page(paginator.num_pages)
         
-        clusters = CareerCluster.objects.all()
-        tags = CareerTags.objects.all()
-        skills = Skill.objects.all()
-        professions = Profession.objects.all()
-        employment_areas = ProspectiveEmploymentArea.objects.all()
-        recruiters = ProspectiveRecruiter.objects.all()
-        courses = Course.objects.all()
+        # Only load clusters that have active careers AND are active themselves
+        clusters = CareerCluster.objects.filter(
+            career_clusters__publish_status=1,
+            object_status=1  # Only active clusters
+        ).distinct().order_by('name')
         
-        # Filter skills based on selected professions
-        filtered_skills = skills
-        if selected_professions:
-            # Get careers that have the selected professions
-            careers_with_professions = Career.objects.filter(
-                profession__name__in=selected_professions,
-                publish_status=1
-            ).distinct()
-            
-            # Get skills from those careers
-        # Filter professions based on selected cluster
+        # Only load professions that have active careers AND are active themselves
+        professions = Profession.objects.filter(
+            career__publish_status=1,
+            object_status=1  # Only active professions
+        ).distinct().order_by('name')[:100]  # Limit to 100 for performance
+        
+        # Only load skills that have active careers AND are active themselves
+        skills = Skill.objects.filter(
+            career__publish_status=1,
+            object_status=1  # Only active skills
+        ).distinct().order_by('priority', 'name')[:200]  # Limit to 200 for performance
+        
+        # Other models - only load if needed, limit results
+        tags = CareerTags.objects.all()[:50]  # Limit tags
+        employment_areas = ProspectiveEmploymentArea.objects.all()[:50]
+        recruiters = ProspectiveRecruiter.objects.all()[:50]
+        courses = Course.objects.all()[:50]
+        
+        # Filter professions based on selected clusters (only if clusters selected)
         filtered_professions = professions
-        if selected_cluster:
-            # Get professions from careers in selected cluster
-            careers_with_cluster = Career.objects.filter(
-                career_cluster__id=selected_cluster,
-                publish_status=1
-            ).distinct()
+        if selected_clusters:
+            # Get professions from careers in selected clusters - optimized query
+            profession_ids = Career.objects.filter(
+                career_cluster__id__in=selected_clusters,
+                publish_status=1,
+                profession__isnull=False
+            ).values_list('profession__id', flat=True).distinct()
             
-            # Get professions from those careers
             filtered_professions = Profession.objects.filter(
-                career__in=careers_with_cluster
-            ).distinct().order_by("name")
+                id__in=profession_ids,
+                object_status=1  # Only active professions
+            ).distinct().order_by("name")[:100]
         
-        # Filter skills based on selected professions
+        # Filter skills based on selected professions and clusters (only if filters selected)
         filtered_skills = skills
-        if selected_professions:
-            # Get careers that have the selected professions
-            careers_with_professions = Career.objects.filter(
-                profession__name__in=selected_professions,
-                publish_status=1
-            ).distinct()
+        if selected_professions or selected_clusters:
+            # Build optimized query for careers with filters
+            careers_query = Career.objects.filter(publish_status=1)
             
-            # Get skills from those careers
+            if selected_professions:
+                careers_query = careers_query.filter(profession__name__in=selected_professions)
+            
+            if selected_clusters:
+                careers_query = careers_query.filter(career_cluster__id__in=selected_clusters)
+            
+            # Get skill IDs from those careers - optimized
+            skill_ids = careers_query.values_list('skills__id', flat=True).distinct()
+            
             filtered_skills = Skill.objects.filter(
-                career__in=careers_with_professions
-            ).distinct().order_by("priority", "name")
+                id__in=skill_ids,
+                object_status=1  # Only active skills
+            ).distinct().order_by("priority", "name")[:200]
         
-        # Create facets_filter with proper counts and selection status
+        # Create facets_filter with proper counts and selection status (limit for performance)
+        # Calculate actual career counts for each option
+        skill_facets = []
+        for skill in filtered_skills[:30]:
+            count = Career.objects.filter(
+                publish_status=1,
+                skills__name=skill.name
+            ).distinct().count()
+            skill_facets.append((skill.name, count, skill.name in selected_skills))
+        
+        profession_facets = []
+        for prof in filtered_professions[:30]:
+            count = Career.objects.filter(
+                publish_status=1,
+                profession__name=prof.name
+            ).distinct().count()
+            profession_facets.append((prof.name, count, prof.name in selected_professions))
+        
         facets_filter = {
-            "skill": [(skill.name, 0, skill.name in selected_skills) for skill in filtered_skills[:50]],
-            "profession": [(prof.name, 0, prof.name in selected_professions) for prof in filtered_professions[:50]],
+            "skill": skill_facets,
+            "profession": profession_facets,
         }
         
         # Get shortlisted career IDs for authenticated users
@@ -160,19 +206,46 @@ class Careers(TemplateView):
                 user=request.user
             ).values_list('career_id', flat=True))
         
+        # Add counts to clusters for display
+        clusters_with_counts = []
+        for cluster in clusters:
+            count = Career.objects.filter(
+                publish_status=1,
+                career_cluster__id=cluster.id
+            ).distinct().count()
+            clusters_with_counts.append({
+                'cluster': cluster,
+                'count': count
+            })
+        
+        # Add counts to professions for display
+        professions_with_counts = []
+        for prof in professions:
+            count = Career.objects.filter(
+                publish_status=1,
+                profession__name=prof.name
+            ).distinct().count()
+            professions_with_counts.append({
+                'profession': prof,
+                'count': count
+            })
+        
         return {
             'careers': careers_page,
             'clusters': clusters,
+            'clusters_with_counts': clusters_with_counts,  # For template display with counts
             'tags': tags,
             'skills': skills,
             'professions': professions,
+            'professions_with_counts': professions_with_counts,  # For template display with counts
             'employment_areas': employment_areas,
             'recruiters': recruiters,
             'courses': courses,
-            'total_careers': careers.count(),
+            'total_careers': paginator.count,  # Use paginator count (already calculated)
             'facets_filter': facets_filter,
             'selected_professions': selected_professions,
             'selected_skills': selected_skills,
+            'selected_clusters': selected_clusters,
             'shortlisted_career_ids': shortlisted_career_ids,
         }
     
@@ -765,17 +838,25 @@ class CareerTagFilter(TemplateView):
         selected_skills = request.GET.getlist('skills')
         selected_cluster = request.GET.get('cluster')
         
-        # Apply cluster filtering
+        # Apply cluster filtering (handle both single and multi-select)
         if selected_cluster:
-            careers = careers.filter(career_cluster__id=selected_cluster).distinct()
+            try:
+                cluster_id = int(selected_cluster) if isinstance(selected_cluster, str) and selected_cluster.isdigit() else selected_cluster
+                careers = careers.filter(career_cluster__id=cluster_id).distinct()
+            except (ValueError, TypeError):
+                pass  # Skip invalid cluster ID
         
-        # Apply profession filtering
+        # Apply profession filtering - OR logic within professions
         if selected_professions:
-            careers = careers.filter(profession__name__in=selected_professions).distinct()
+            cleaned_professions = [p.strip() for p in selected_professions if p and p.strip()]
+            if cleaned_professions:
+                careers = careers.filter(profession__name__in=cleaned_professions).distinct()
         
-        # Apply skill filtering
+        # Apply skill filtering - OR logic within skills
         if selected_skills:
-            careers = careers.filter(skills__name__in=selected_skills).distinct()
+            cleaned_skills = [s.strip() for s in selected_skills if s and s.strip()]
+            if cleaned_skills:
+                careers = careers.filter(skills__name__in=cleaned_skills).distinct()
 
         # Basic search filtering
         search_query = request.GET.get('search', '')
@@ -796,13 +877,28 @@ class CareerTagFilter(TemplateView):
         except EmptyPage:
             careers_page = paginator.page(paginator.num_pages)
         
-        clusters = CareerCluster.objects.all()
-        tags = CareerTags.objects.all()
-        skills = Skill.objects.all()
-        professions = Profession.objects.all()
-        employment_areas = ProspectiveEmploymentArea.objects.all()
-        recruiters = ProspectiveRecruiter.objects.all()
-        courses = Course.objects.all()
+        # Only load clusters that have active careers AND are active themselves
+        clusters = CareerCluster.objects.filter(
+            career_clusters__publish_status=1,
+            object_status=1  # Only active clusters
+        ).distinct().order_by('name')
+        
+        tags = CareerTags.objects.all()[:50]
+        employment_areas = ProspectiveEmploymentArea.objects.all()[:50]
+        recruiters = ProspectiveRecruiter.objects.all()[:50]
+        courses = Course.objects.all()[:50]
+        
+        # Only load professions that have active careers AND are active themselves
+        professions = Profession.objects.filter(
+            career__publish_status=1,
+            object_status=1  # Only active professions
+        ).distinct().order_by('name')[:100]
+        
+        # Only load skills that have active careers AND are active themselves
+        skills = Skill.objects.filter(
+            career__publish_status=1,
+            object_status=1  # Only active skills
+        ).distinct().order_by('priority', 'name')[:200]
         
         # Filter professions based on selected cluster
         filtered_professions = professions
@@ -813,9 +909,10 @@ class CareerTagFilter(TemplateView):
                 publish_status=1
             ).distinct()
             
-            # Get professions from those careers
+            # Get professions from those careers (only active ones)
             filtered_professions = Profession.objects.filter(
-                career__in=careers_with_cluster
+                career__in=careers_with_cluster,
+                object_status=1  # Only active professions
             ).distinct().order_by("name")
         
         # Filter skills based on selected professions
@@ -827,9 +924,10 @@ class CareerTagFilter(TemplateView):
                 publish_status=1
             ).distinct()
             
-            # Get skills from those careers
+            # Get skills from those careers (only active ones)
             filtered_skills = Skill.objects.filter(
-                career__in=careers_with_professions
+                career__in=careers_with_professions,
+                object_status=1  # Only active skills
             ).distinct().order_by("priority", "name")
         
         # Create facets_filter with proper counts and selection status

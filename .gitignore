@@ -279,6 +279,7 @@ career_html_output/
 *.key
 *.cert
 *.crt
+*.md
 *project.json
 *service-account*.json
 *credentials*.json

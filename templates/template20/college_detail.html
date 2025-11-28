@@ -24,39 +24,58 @@
 
       <div class="col-lg-8">
         <!-- College Banner -->
-        {% if college.banner %}
+        {% if college.banner and college.banner.name %}
         <div class="college-banner mb-4">
           <img src="{{ college.banner.url }}" alt="{{ college.name }}" class="img-fluid w-100 rounded" style="max-height: 400px; object-fit: cover;">
         </div>
-        {% elif college.logo %}
+        {% elif college.logo and college.logo.name %}
         <div class="college-banner mb-4">
           <img src="{{ college.logo.url }}" alt="{{ college.name }}" class="img-fluid w-100 rounded" style="max-height: 400px; object-fit: cover;">
         </div>
         {% endif %}
 
         <!-- College Header -->
-        <div class="college-header d-flex align-items-center mb-4">
-          {% if college.logo %}
-          <div class="college-logo me-3" style="width: 60px; height: 60px;">
-            <img src="{{ college.logo.url }}" alt="{{ college.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+        <div class="college-header d-flex align-items-center justify-content-between mb-4">
+          <div class="d-flex align-items-center">
+            {% if college.logo and college.logo.name %}
+            <div class="college-logo me-3" style="width: 60px; height: 60px;">
+              <img src="{{ college.logo.url }}" alt="{{ college.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+            </div>
+            {% endif %}
+            <div>
+              <h1 class="college-title mb-0">{{ college.name }}</h1>
+              {% if college_location %}
+              <p class="text-gray mb-0">
+                <i class='bx bx-map-pin'></i> {{ college_location }}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+          {% if request.user.is_authenticated %}
+          <div class="ms-3">
+            <button type="button" class="btn btn-outline-primary shortlistcollege" data-collegeslug="{{ college.slug }}" style="white-space: nowrap;">
+              <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}' style="font-size: 18px; color: {% if is_bookmarked %}#28a745{% else %}inherit{% endif %};"></i>
+              <span class="buttontext ms-2">
+                {% if is_bookmarked %}Remove Bookmark{% else %}Bookmark{% endif %}
+              </span>
+            </button>
           </div>
           {% endif %}
-          <div>
-            <h1 class="college-title mb-0">{{ college.name }}</h1>
-            {% if college.get_location() %}
-            <p class="text-gray mb-0">
-              <i class='bx bx-map-pin'></i> {{ college.get_location() }}
-            </p>
-            {% endif %}
-          </div>
         </div>
 
         <!-- College About -->
-        {% if college.texts.all() %}
+        {% if college_texts %}
         <div class="college-about mb-5">
-          <div class="college-description">
-            {% for ct in college.texts.all() %}
-            <div class="mb-3">{{ ct.value|safe }}</div>
+          <div class="college-description" style="line-height: 1.8; color: #333;">
+            {% for ct in college_texts %}
+              {% if ct.value %}
+                {# Use unescape if available to handle escaped HTML, then safe filter #}
+                {% if unescape %}
+                  {{ unescape(ct.value)|safe }}
+                {% else %}
+                  {{ ct.value|safe }}
+                {% endif %}
+              {% endif %}
             {% endfor %}
           </div>
         </div>
@@ -87,19 +106,19 @@
               <div class="course-card h-100">
                 <div class="course-image mb-3">
                   <a href="#">
-                    {% if course.logo %}
+                    {% if course.logo and course.logo.name %}
                     <img src="{{ course.logo.url }}" alt="{{ course.name }}" class="img-fluid w-100 rounded" style="height: 180px; object-fit: cover;">
                     {% else %}
-                    <img src="{{ static('images_new/general/course-placeholder.png') }}" alt="{{ course.name }}" class="img-fluid w-100 rounded" style="height: 180px; object-fit: cover;">
+                    <img src="{{ static('images_new/general/online-library.png') }}" alt="{{ course.name }}" class="img-fluid w-100 rounded" style="height: 180px; object-fit: cover;">
                     {% endif %}
                   </a>
                 </div>
                 <h5 class="course-name mb-2">
                   <a href="#" class="text-decoration-none">{{ course.name }}</a>
                 </h5>
-                {% if course.get_max_salary() %}
-                <div class="course-salary text-gray fs-14">
-                  <i class='bx bx-rupee'></i> {{ course.get_max_salary() }}
+                {% if course.duration_months %}
+                <div class="course-duration text-gray fs-14">
+                  <i class='bx bx-time'></i> {{ course.duration_months }} months
                 </div>
                 {% endif %}
               </div>
@@ -109,86 +128,34 @@
         </section>
         {% endif %}
 
-        <!-- Entrance Exams Section -->
-        {% if college.entrance_exams.all() %}
-        <section class="exams-section mb-5">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="section-title mb-0">Important Exams</h3>
-            <a href="#" class="text-primary text-decoration-none">View All</a>
-          </div>
-          <div class="row">
-            {% for exam_rel in college.entrance_exams.all() %}
-            <div class="col-md-4 col-sm-6 mb-4">
-              <div class="exam-card h-100 p-3 rounded shadow-sm position-relative">
-                <div class="d-flex align-items-center mb-3">
-                  <div>
-                    <h5 class="mb-1">{{ exam_rel.exam.name if exam_rel.exam else 'N/A' }}</h5>
-                    <p class="text-gray fs-12 mb-0">Entrance Exam</p>
-                  </div>
-                </div>
-                <div class="border-top pt-3 mb-3">
-                  <div class="row g-2">
-                    {% if exam_rel.exam.fees %}
-                    <div class="col-4">
-                      <h6 class="text-gray fs-10 mb-1">Fees</h6>
-                      <p class="mb-0 fs-12">&#8377;{{ exam_rel.exam.fees }}</p>
-                    </div>
-                    {% endif %}
-                    {% if exam_rel.exam.prep_time %}
-                    <div class="col-4">
-                      <h6 class="text-gray fs-10 mb-1">Prep Time</h6>
-                      <p class="mb-0 fs-12">{{ exam_rel.exam.prep_time }}</p>
-                    </div>
-                    {% endif %}
-                    {% if exam_rel.exam.next_exam_date %}
-                    <div class="col-4">
-                      <h6 class="text-gray fs-10 mb-1">Next Exam</h6>
-                      <p class="mb-0 fs-12">{{ date_format(exam_rel.exam.next_exam_date) }}</p>
-                    </div>
-                    {% endif %}
-                  </div>
-                </div>
-                <div class="d-flex justify-content-between gap-2">
-                  <button class="btn btn-outline-secondary btn-sm">View Details</button>
-                  <button class="btn btn-primary btn-sm">Register</button>
-                </div>
-                <div class="position-absolute top-0 end-0 m-2">
-                  <button class="btn btn-sm p-1 bg-light">
-                    <i class='bx bx-bookmark'></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </section>
-        {% endif %}
 
         <!-- College Images Gallery -->
-        {% if college.college_images.all() %}
+        {% if college_images %}
         <section class="images-section mb-5">
           <h3 class="section-title mb-4">College Images</h3>
           <div class="row">
-            {% for img in college.college_images.all()[:6] %}
+            {% for img in college_images[:6] %}
+              {% if img.college_image and img.college_image.name %}
             <div class="col-md-4 col-sm-6 mb-3">
               <a href="{{ img.college_image.url }}" data-lightbox="college-gallery" data-title="{{ img.image_alt_text }}">
                 <img src="{{ img.college_image.url }}" alt="{{ img.image_alt_text }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
               </a>
             </div>
+              {% endif %}
             {% endfor %}
           </div>
         </section>
         {% endif %}
 
         <!-- Facilities Section -->
-        {% if college.facilities.all() %}
+        {% if college_facilities %}
         <section class="facilities-section mb-5">
           <h3 class="section-title mb-4">Facilities</h3>
           <div class="row">
-            {% for facility_rel in college.facilities.all() %}
+            {% for facility_rel in college_facilities %}
             <div class="col-md-3 col-sm-4 col-6 mb-3">
               <div class="facility-item text-center">
-                {% if facility_rel.facility.logo %}
+                {% if facility_rel.facility.logo and facility_rel.facility.logo.name %}
                 <img src="{{ facility_rel.facility.logo.url }}" alt="{{ facility_rel.facility.name }}" class="img-fluid mb-2" style="max-height: 60px; max-width: 60px;">
                 {% endif %}
                 <p class="mb-0 fs-14">{{ facility_rel.facility.name }}</p>
@@ -206,16 +173,17 @@
             <h3 class="section-title mb-0">Explore Colleges</h3>
           </div>
           <div class="row">
-            {% for related_college in colleges[:6] %}
+            {% for college_data in colleges[:6] %}
+            {% set related_college = college_data.college %}
             {% if related_college.slug != college.slug %}
             <div class="col-md-4 col-sm-6 mb-4">
               <div class="college-card h-100">
                 <div class="college-image">
                   <a href="{{ url('colleges:collegedetail', args=[related_college.slug]) }}">
-                    {% if related_college.logo %}
+                    {% if related_college.logo and related_college.logo.name %}
                     <img src="{{ related_college.logo.url }}" alt="{{ related_college.name }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
                     {% else %}
-                    <img src="{{ static('images_new/general/college-placeholder.png') }}" alt="{{ related_college.name }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
+                    <img src="{{ static('images_new/general/online-library.png') }}" alt="{{ related_college.name }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
                     {% endif %}
                   </a>
                 </div>
@@ -223,9 +191,9 @@
                   <h5 class="college-name mb-2">
                     <a href="{{ url('colleges:collegedetail', args=[related_college.slug]) }}" class="text-decoration-none">{{ related_college.name }}</a>
                   </h5>
-                  {% if related_college.get_location() %}
+                  {% if college_data.location %}
                   <p class="text-gray fs-14 mb-0">
-                    <i class='bx bx-map-pin'></i> {{ related_college.get_location() }}
+                    <i class='bx bx-map-pin'></i> {{ college_data.location }}
                   </p>
                   {% endif %}
                 </div>
@@ -264,14 +232,14 @@
           </div>
 
           <!-- Quick Facts -->
-          {% if college.facts.all() %}
+          {% if college_facts %}
           <div class="sidebar-widget mb-4">
             <h4 class="sidebar-title mb-3">Quick Facts</h4>
             <ul class="list-unstyled">
-              {% for fact in college.facts.all() %}
+              {% for fact_data in college_facts %}
               <li class="d-flex justify-content-between py-2 border-bottom">
-                <span class="text-gray">{{ fact.get_type_display() }}</span>
-                <span class="fw-semibold">{{ fact.value }}</span>
+                <span class="text-gray">{{ fact_data.type_display }}</span>
+                <span class="fw-semibold">{{ fact_data.value }}</span>
               </li>
               {% endfor %}
             </ul>
@@ -293,26 +261,26 @@
           {% endif %}
 
           <!-- Contact Information -->
-          {% if college.get_email() or college.get_mobile() or college.get_website() %}
+          {% if college_email or college_mobile or college_website %}
           <div class="sidebar-widget mb-4">
             <h4 class="sidebar-title mb-3">Contact Information</h4>
             <ul class="list-unstyled">
-              {% if college.get_email() %}
+              {% if college_email %}
               <li class="mb-2">
                 <i class='bx bx-envelope me-2'></i>
-                <a href="mailto:{{ college.get_email() }}" class="text-decoration-none">{{ college.get_email() }}</a>
+                <a href="mailto:{{ college_email }}" class="text-decoration-none">{{ college_email }}</a>
               </li>
               {% endif %}
-              {% if college.get_mobile() %}
+              {% if college_mobile %}
               <li class="mb-2">
                 <i class='bx bx-phone me-2'></i>
-                <a href="tel:{{ college.get_mobile() }}" class="text-decoration-none">{{ college.get_mobile() }}</a>
+                <a href="tel:{{ college_mobile }}" class="text-decoration-none">{{ college_mobile }}</a>
               </li>
               {% endif %}
-              {% if college.get_website() %}
+              {% if college_website %}
               <li class="mb-2">
                 <i class='bx bx-globe me-2'></i>
-                <a href="{{ college.get_website() }}" target="_blank" class="text-decoration-none" rel="noopener">Visit Website</a>
+                <a href="{{ college_website }}" target="_blank" class="text-decoration-none" rel="noopener">Visit Website</a>
               </li>
               {% endif %}
             </ul>
@@ -336,12 +304,14 @@
           <a href="{{ url('core:contactus') }}" class="btn btn-light">
             <i class='bx bx-message me-2'></i> Know More Today
           </a>
+          {% if request.user.is_authenticated %}
           <button type="button" class="btn btn-light shortlistcollege" data-collegeslug="{{ college.slug }}">
-            <i class='bx bx-bookmark me-2'></i>
+            <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %} me-2' style="color: {% if is_bookmarked %}#28a745{% else %}inherit{% endif %};"></i>
             <span class="buttontext">
-              {% if shortlisted_college %}Remove Shortlisted{% else %}Shortlist College{% endif %}
+              {% if is_bookmarked %}Remove from Bookmarks{% else %}Bookmark College{% endif %}
             </span>
           </button>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -357,16 +327,34 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form id="leadpop" action="{{ url('core:lead_submit') }}" method="POST">
-          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <!-- Success Message (hidden by default) -->
+        <div id="leadSuccessMessage" class="text-center py-4 d-none">
           <div class="mb-3">
-            <input type="text" name="lead_name" id="lead_name" class="form-control" placeholder="Name" required>
+            <i class='bx bx-check-circle' style="font-size: 64px; color: #28a745;"></i>
           </div>
-          <div class="mb-3">
-            <input type="text" name="lead_mobile" id="lead_mobile" class="form-control" placeholder="Phone number" required>
-          </div>
-          <button type="submit" class="btn custom-button purple-button w-100">Submit</button>
-        </form>
+          <h4 class="text-success mb-2">Thank You!</h4>
+          <p class="text-muted mb-0">Thank you for connecting with us!</p>
+        </div>
+        
+        <!-- Form (shown by default) -->
+        <div id="leadFormContainer">
+          <form id="leadpop" onsubmit="return false;">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <div id="leadError" class="alert alert-danger d-none mb-3" role="alert"></div>
+            <div class="mb-3">
+              <label for="lead_name" class="form-label">Name</label>
+              <input type="text" name="lead_name" id="lead_name" class="form-control" placeholder="Enter your name" required>
+              <small class="text-danger d-none" id="nameError"></small>
+            </div>
+            <div class="mb-3">
+              <label for="lead_mobile" class="form-label">Phone Number</label>
+              <input type="text" name="lead_mobile" id="lead_mobile" class="form-control" placeholder="Enter 10-digit mobile number" required>
+              <small class="text-danger d-none" id="mobileError"></small>
+              <small class="text-muted">Enter a valid 10-digit mobile number (e.g., 9876543210)</small>
+            </div>
+            <button type="submit" class="btn custom-button purple-button w-100" id="leadSubmitBtn">Submit</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
@@ -375,7 +363,327 @@
 {% endblock %}
 
 {% block additionaljs %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+// Helper function to get CSRF token from cookies
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Lead form submission with AJAX
+document.addEventListener('DOMContentLoaded', function() {
+  const leadForm = document.getElementById('leadpop');
+  const leadFormContainer = document.getElementById('leadFormContainer');
+  const leadSuccessMessage = document.getElementById('leadSuccessMessage');
+  const leadError = document.getElementById('leadError');
+  const nameError = document.getElementById('nameError');
+  const mobileError = document.getElementById('mobileError');
+  const leadSubmitBtn = document.getElementById('leadSubmitBtn');
+  
+  if (leadForm) {
+    leadForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Hide previous errors
+      leadError.classList.add('d-none');
+      nameError.classList.add('d-none');
+      mobileError.classList.add('d-none');
+      
+      // Remove error styling from inputs
+      document.getElementById('lead_name').classList.remove('is-invalid');
+      document.getElementById('lead_mobile').classList.remove('is-invalid');
+      
+      const name = document.getElementById('lead_name').value.trim();
+      const mobile = document.getElementById('lead_mobile').value.trim();
+      const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value || getCookie('csrftoken');
+      
+      // Client-side validation
+      let isValid = true;
+      
+      if (!name) {
+        nameError.textContent = 'Name is required';
+        nameError.classList.remove('d-none');
+        document.getElementById('lead_name').classList.add('is-invalid');
+        isValid = false;
+      }
+      
+      if (!mobile) {
+        mobileError.textContent = 'Phone number is required';
+        mobileError.classList.remove('d-none');
+        document.getElementById('lead_mobile').classList.add('is-invalid');
+        isValid = false;
+      } else {
+        // Remove any non-digit characters except + for validation
+        const cleanMobile = mobile.replace(/[^\d+]/g, '');
+        
+        // Phone validation: Indian mobile numbers (10 digits starting with 6-9)
+        // Accepts: 10 digits, or with +91 prefix, or with 0 prefix
+        const phoneRegex = /^(\+91|0)?[6789]\d{9}$/;
+        
+        if (!phoneRegex.test(cleanMobile)) {
+          // More specific error messages
+          if (cleanMobile.length < 10) {
+            mobileError.textContent = 'Phone number must be 10 digits';
+          } else if (!/^[6789]/.test(cleanMobile.replace(/^(\+91|0)/, ''))) {
+            mobileError.textContent = 'Phone number must start with 6, 7, 8, or 9';
+          } else {
+            mobileError.textContent = 'Please enter a valid 10-digit mobile number (e.g., 9876543210)';
+          }
+          mobileError.classList.remove('d-none');
+          document.getElementById('lead_mobile').classList.add('is-invalid');
+          isValid = false;
+        }
+      }
+      
+      if (!isValid) {
+        return;
+      }
+      
+      // Disable submit button
+      leadSubmitBtn.disabled = true;
+      leadSubmitBtn.textContent = 'Submitting...';
+      
+      // Submit via AJAX
+      fetch('{{ url("core:lead_submit") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'lead_name=' + encodeURIComponent(name) + '&lead_mobile=' + encodeURIComponent(mobile) + '&csrfmiddlewaretoken=' + csrfToken
+      })
+      .then(response => response.json())
+      .then(data => {
+        leadSubmitBtn.disabled = false;
+        leadSubmitBtn.textContent = 'Submit';
+        
+        if (data.success === 'true' || data.success === true) {
+          // Hide form and show success message
+          leadFormContainer.classList.add('d-none');
+          leadSuccessMessage.classList.remove('d-none');
+          
+          // Close modal after 3 seconds
+          setTimeout(function() {
+            const modalElement = document.getElementById('eligibilityModal');
+            if (modalElement) {
+              const modal = bootstrap.Modal.getInstance(modalElement);
+              if (modal) {
+                modal.hide();
+              }
+            }
+            // Reset form state when modal is closed
+            setTimeout(function() {
+              leadFormContainer.classList.remove('d-none');
+              leadSuccessMessage.classList.add('d-none');
+              leadForm.reset();
+              document.getElementById('lead_name').classList.remove('is-invalid');
+              document.getElementById('lead_mobile').classList.remove('is-invalid');
+            }, 300);
+          }, 3000);
+          
+          // Show SweetAlert success
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: 'Thank You!',
+              text: data.message || 'Thank you for connecting with us!',
+              icon: 'success',
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 2000,
+              toast: true
+            });
+          }
+        } else {
+          // Error
+          leadError.textContent = data.message || 'An error occurred. Please try again.';
+          leadError.classList.remove('d-none');
+          
+          // Show SweetAlert error
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: 'Error',
+              text: data.message || 'An error occurred. Please try again.',
+              icon: 'error',
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+              toast: true
+            });
+          }
+        }
+      })
+      .catch(error => {
+        leadSubmitBtn.disabled = false;
+        leadSubmitBtn.textContent = 'Submit';
+        leadError.textContent = 'An error occurred. Please try again.';
+        leadError.classList.remove('d-none');
+        
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Error',
+            text: 'An error occurred. Please try again.',
+            icon: 'error',
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            toast: true
+          });
+        }
+      });
+    });
+  }
+});
+
+// Copy Link Functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const leadForm = document.getElementById('leadpop');
+  const leadError = document.getElementById('leadError');
+  const leadSuccess = document.getElementById('leadSuccess');
+  const nameError = document.getElementById('nameError');
+  const mobileError = document.getElementById('mobileError');
+  const leadSubmitBtn = document.getElementById('leadSubmitBtn');
+  
+  if (leadForm) {
+    leadForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Hide previous errors
+      leadError.classList.add('d-none');
+      leadSuccess.classList.add('d-none');
+      nameError.classList.add('d-none');
+      mobileError.classList.add('d-none');
+      
+      const name = document.getElementById('lead_name').value.trim();
+      const mobile = document.getElementById('lead_mobile').value.trim();
+      const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value || getCookie('csrftoken');
+      
+      // Client-side validation
+      let isValid = true;
+      
+      if (!name) {
+        nameError.textContent = 'Please enter your name';
+        nameError.classList.remove('d-none');
+        isValid = false;
+      }
+      
+      if (!mobile) {
+        mobileError.textContent = 'Please enter your phone number';
+        mobileError.classList.remove('d-none');
+        isValid = false;
+      } else {
+        // Phone validation: Indian mobile numbers (10 digits starting with 6-9)
+        const phoneRegex = /^(\+91|0)?[6789]\d{9}$/;
+        if (!phoneRegex.test(mobile)) {
+          mobileError.textContent = 'Please enter a valid 10-digit mobile number';
+          mobileError.classList.remove('d-none');
+          isValid = false;
+        }
+      }
+      
+      if (!isValid) {
+        return;
+      }
+      
+      // Disable submit button
+      leadSubmitBtn.disabled = true;
+      leadSubmitBtn.textContent = 'Submitting...';
+      
+      // Submit via AJAX
+      fetch('{{ url("core:lead_submit") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'lead_name=' + encodeURIComponent(name) + '&lead_mobile=' + encodeURIComponent(mobile) + '&csrfmiddlewaretoken=' + csrfToken
+      })
+      .then(response => response.json())
+      .then(data => {
+        leadSubmitBtn.disabled = false;
+        leadSubmitBtn.textContent = 'Submit';
+        
+        if (data.success === 'true' || data.success === true) {
+          // Success
+          leadSuccess.textContent = data.message || 'Thank you for connecting with us!';
+          leadSuccess.classList.remove('d-none');
+          leadForm.reset();
+          
+          // Close modal after 2 seconds
+          setTimeout(function() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('eligibilityModal'));
+            if (modal) {
+              modal.hide();
+            }
+            leadSuccess.classList.add('d-none');
+          }, 2000);
+          
+          // Show SweetAlert success
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: 'Success!',
+              text: data.message || 'Thank you for connecting with us!',
+              icon: 'success',
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 2000,
+              toast: true
+            });
+          }
+        } else {
+          // Error
+          leadError.textContent = data.message || 'An error occurred. Please try again.';
+          leadError.classList.remove('d-none');
+          
+          // Show SweetAlert error
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: 'Error',
+              text: data.message || 'An error occurred. Please try again.',
+              icon: 'error',
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+              toast: true
+            });
+          }
+        }
+      })
+      .catch(error => {
+        leadSubmitBtn.disabled = false;
+        leadSubmitBtn.textContent = 'Submit';
+        leadError.textContent = 'An error occurred. Please try again.';
+        leadError.classList.remove('d-none');
+        
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Error',
+            text: 'An error occurred. Please try again.',
+            icon: 'error',
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            toast: true
+          });
+        }
+      });
+    });
+  }
+});
+
 // Copy Link Functionality
 document.addEventListener('DOMContentLoaded', function() {
   const copyLinks = document.querySelectorAll('.copy-link');
@@ -396,30 +704,85 @@ document.addEventListener('DOMContentLoaded', function() {
     button.addEventListener('click', function() {
       const collegeSlug = this.getAttribute('data-collegeslug');
       const buttonText = this.querySelector('.buttontext');
+      const icon = this.querySelector('i');
+      const csrfToken = getCookie('csrftoken');
       
-      fetch('{{ url("colleges:shortlistcollege") }}?id=' + collegeSlug, {
-        method: 'GET',
+      // Disable button during request
+      this.disabled = true;
+      
+      fetch('/api/v1/user/shortlistcollege', {
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrfToken,
           'X-Requested-With': 'XMLHttpRequest'
-        }
+        },
+        body: 'collegeslug=' + encodeURIComponent(collegeSlug) + '&csrfmiddlewaretoken=' + csrfToken
       })
       .then(response => response.json())
       .then(data => {
-        if (data.success) {
-          if (data.shortlisted) {
-            buttonText.textContent = 'Remove Shortlisted';
+        if (data.message) {
+          // Toggle bookmark state
+          const isBookmarked = data.message === 'College Shortlisted';
+          if (isBookmarked) {
+            buttonText.textContent = 'Remove from Bookmarks';
+            icon.className = 'bx bxs-bookmark me-2';
+            icon.style.color = '#28a745';
             this.classList.add('active');
           } else {
-            buttonText.textContent = 'Shortlist College';
+            buttonText.textContent = 'Bookmark College';
+            icon.className = 'bx bx-bookmark me-2';
+            icon.style.color = 'inherit';
             this.classList.remove('active');
+          }
+          
+          // Show success message
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: data.message,
+              icon: 'success',
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 2000,
+              toast: true
+            });
           }
         }
       })
       .catch(error => {
         console.error('Error:', error);
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Error updating bookmark',
+            icon: 'error',
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            toast: true
+          });
+        }
+      })
+      .finally(() => {
+        this.disabled = false;
       });
     });
   });
+  
+  // Helper function to get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
 });
 </script>
 {% endblock %}

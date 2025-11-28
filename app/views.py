@@ -301,15 +301,15 @@ def db_results_inst_user(user):
             test1_result = Results.objects.get(user = user, test_paper='test1')
             # Check if results dict exists and has data
             if test1_result.results and isinstance(test1_result.results, dict):
-            sorted_results = sorted(test1_result.results.items(), key=lambda x: x[1], reverse=True)
-            for i, (category, score) in enumerate(sorted_results, start=1):
-                if i > 3:
-                    break
-                top_categories.append({
-                    'rank': i,
-                    'category': category,
-                    'score': f"{score:.2f}%"
-                })
+                sorted_results = sorted(test1_result.results.items(), key=lambda x: x[1], reverse=True)
+                for i, (category, score) in enumerate(sorted_results, start=1):
+                    if i > 3:
+                        break
+                    top_categories.append({
+                        'rank': i,
+                        'category': category,
+                        'score': f"{score:.2f}%"
+                    })
                     # Get first letter of category name (e.g., "Realistic" -> "R")
                     top_3_categories_str += category[0] if category else ''
 

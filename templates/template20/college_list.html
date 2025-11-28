@@ -34,7 +34,7 @@ Find the perfect college for your career goals. Explore colleges by country, sta
 
       <div class="col-lg-4 col-md-12">
         <div class="right-banner d-md-flex justify-content-end">
-          <img class="img-fluid" src="{{ static('images_new/general/college-banner.svg') }}" alt="College Finder Banner" />
+          <img class="img-fluid" src="{{ static('images_new/general/about-banner.svg') }}" alt="College Finder Banner" />
         </div>
       </div>
     </div>
@@ -150,13 +150,31 @@ Find the perfect college for your career goals. Explore colleges by country, sta
         <div class="row">
           {% for college in colleges %}
           <div class="col-md-4 col-sm-6 mb-4">
-            <div class="college-card h-100">
-              <div class="college-image">
-                <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}">
+            <div class="college-card h-100 position-relative">
+              <!-- Bookmark Button -->
+              {% if request.user.is_authenticated %}
+                {% set college_slug = college.slug %}
+                {% set is_bookmarked = college_slug in bookmarked_college_slugs %}
+              <button class="btn btn-sm p-2 position-absolute top-0 end-0 m-2 bookmark-college-btn {% if is_bookmarked %}bookmarked{% endif %}" 
+                      data-college-slug="{{ college_slug }}"
+                      style="background: rgba(255, 255, 255, 0.9); border-radius: 50%; z-index: 10; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                      title="{% if is_bookmarked %}Remove from bookmarks{% else %}Add to bookmarks{% endif %}">
+                <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}' 
+                   style="font-size: 20px; color: {% if is_bookmarked %}#28a745{% else %}#666{% endif %};"></i>
+              </button>
+              {% endif %}
+              <div class="college-image" style="height: 200px; background: #f8f9fa; border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 15px;">
+                <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}" class="w-100 h-100 d-flex align-items-center justify-content-center">
                   {% if college.logo %}
-                  <img src="{{ college.logo }}" alt="{{ college.name }}" class="img-fluid w-100" style="height: 200px; object-fit: cover; border-radius: 10px;">
+                    {% if college.logo.name %}
+                      {# Django ORM result - ImageField object #}
+                      <img src="{{ college.logo.url }}" alt="{{ college.name }}" class="img-fluid" style="max-height: 170px; max-width: 100%; object-fit: contain;" onerror="this.onerror=null; this.src='{{ static('images_new/general/online-library.png') }}';">
+                    {% else %}
+                      {# Elasticsearch result - string URL #}
+                      <img src="{{ college.logo }}" alt="{{ college.name }}" class="img-fluid" style="max-height: 170px; max-width: 100%; object-fit: contain;" onerror="this.onerror=null; this.src='{{ static('images_new/general/online-library.png') }}';">
+                    {% endif %}
                   {% else %}
-                  <img src="{{ static('images_new/general/college-placeholder.png') }}" alt="{{ college.name }}" class="img-fluid w-100" style="height: 200px; object-fit: cover; border-radius: 10px;">
+                    <img src="{{ static('images_new/general/online-library.png') }}" alt="{{ college.name }}" class="img-fluid" style="max-height: 170px; max-width: 100%; object-fit: contain;">
                   {% endif %}
                 </a>
               </div>
@@ -172,7 +190,7 @@ Find the perfect college for your career goals. Explore colleges by country, sta
                 </div>
                 {% if college.rating %}
                 <div class="college-rating d-flex align-items-center">
-                  <img src="{{ static('images_new/icons/star-icon.svg') }}" alt="rating" class="me-1" style="width: 14px; height: 14px;">
+                  <img src="{{ static('images/star-icon.svg') }}" alt="rating" class="me-1" style="width: 14px; height: 14px;">
                   <span class="text-gray fs-14">{{ college.rating|round(1) }}</span>
                 </div>
                 {% endif %}
@@ -183,7 +201,7 @@ Find the perfect college for your career goals. Explore colleges by country, sta
         </div>
         {% else %}
         <div class="no-results text-center py-5">
-          <img src="{{ static('images_new/icons/no-results.svg') }}" alt="No results" class="mb-3" style="max-width: 200px;">
+          <i class='bx bx-search-alt-2 fs-64 text-gray mb-3'></i>
           <h4 class="mb-2">No colleges found</h4>
           <p class="text-gray">Try adjusting your filters or search criteria.</p>
           <a href="{{ url('colleges:college') }}" class="btn custom-button purple-button mt-3">View All Colleges</a>
@@ -248,6 +266,8 @@ Find the perfect college for your career goals. Explore colleges by country, sta
 {% endblock %}
 
 {% block additionaljs %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 // Auto-submit form when filters change
 document.addEventListener('DOMContentLoaded', function() {
@@ -264,6 +284,95 @@ document.addEventListener('DOMContentLoaded', function() {
         filterForm.submit();
       });
     });
+  }
+  
+  // Bookmark College functionality
+  const bookmarkButtons = document.querySelectorAll('.bookmark-college-btn');
+  bookmarkButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const collegeSlug = this.getAttribute('data-college-slug');
+      const icon = this.querySelector('i');
+      const csrfToken = getCookie('csrftoken');
+      
+      // Disable button during request
+      this.disabled = true;
+      this.style.opacity = '0.6';
+      
+      fetch('/api/v1/user/shortlistcollege', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'collegeslug=' + encodeURIComponent(collegeSlug) + '&csrfmiddlewaretoken=' + csrfToken
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          // Toggle bookmark state
+          const isBookmarked = data.message === 'College Shortlisted';
+          if (isBookmarked) {
+            icon.className = 'bx bxs-bookmark';
+            icon.style.color = '#28a745';
+            this.classList.add('bookmarked');
+            Swal.fire({
+              title: 'College bookmarked',
+              icon: 'success',
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 2000,
+              toast: true
+            });
+          } else {
+            icon.className = 'bx bx-bookmark';
+            icon.style.color = '#666';
+            this.classList.remove('bookmarked');
+            Swal.fire({
+              title: 'College removed from bookmarks',
+              icon: 'success',
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 2000,
+              toast: true
+            });
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          title: 'Error updating bookmark',
+          icon: 'error',
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 2000,
+          toast: true
+        });
+      })
+      .finally(() => {
+        this.disabled = false;
+        this.style.opacity = '1';
+      });
+    });
+  });
+  
+  // Helper function to get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
   }
 });
 </script>

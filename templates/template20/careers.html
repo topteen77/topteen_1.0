@@ -90,9 +90,15 @@ Explore our comprehensive collection of career paths organized by industry and i
                 <div class="col-md-4 col-sm-6">
                   <label class="form-label fw-semibold">Professions</label>
                   <select name="professions" class="form-select filter-select2" multiple id="professionsFilter" data-placeholder="Search and select professions...">
+                    {% if professions_with_counts %}
+                      {% for item in professions_with_counts %}
+                    <option value="{{ item.profession.name }}" {% if item.profession.name in selected_professions %}selected{% endif %}>{{ item.profession.name }} ({{ item.count }})</option>
+                      {% endfor %}
+                    {% else %}
                     {% for prof in professions %}
                     <option value="{{ prof.name }}" {% if prof.name in selected_professions %}selected{% endif %}>{{ prof.name }}</option>
                     {% endfor %}
+                    {% endif %}
                   </select>
                   <small class="text-muted">Type to search, select multiple</small>
                   <!-- Selected Professions Display -->
@@ -106,7 +112,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                   <label class="form-label fw-semibold">Skills</label>
                   <select name="skills" class="form-select filter-select2" multiple id="skillsFilter" data-placeholder="Search and select skills...">
                       {% for skill_name, count, selected in facets_filter.skill %}
-                    <option value="{{ skill_name }}" {% if selected %}selected{% endif %}>{{ skill_name }}</option>
+                    <option value="{{ skill_name }}" {% if selected %}selected{% endif %}>{{ skill_name }} ({{ count }})</option>
                       {% endfor %}
                     </select>
                   <small class="text-muted">Type to search, select multiple</small>
@@ -120,9 +126,15 @@ Explore our comprehensive collection of career paths organized by industry and i
                 <div class="col-md-4 col-sm-6">
                   <label class="form-label fw-semibold">Career Cluster</label>
                   <select name="cluster" class="form-select filter-select2" multiple id="clusterFilter" data-placeholder="Search and select clusters...">
+                    {% if clusters_with_counts %}
+                      {% for item in clusters_with_counts %}
+                    <option value="{{ item.cluster.id }}" {% if item.cluster.id|string in request.GET.getlist('cluster') %}selected{% endif %}>{{ item.cluster.name }} ({{ item.count }})</option>
+                      {% endfor %}
+                    {% else %}
                     {% for cluster in clusters %}
                     <option value="{{ cluster.id }}" {% if cluster.id|string in request.GET.getlist('cluster') %}selected{% endif %}>{{ cluster.name }}</option>
                     {% endfor %}
+                    {% endif %}
                   </select>
                   <small class="text-muted">Type to search, select multiple</small>
                   <!-- Selected Cluster Display -->
@@ -408,12 +420,25 @@ Explore our comprehensive collection of career paths organized by industry and i
 
     
     // Initialize Professions Filter with AJAX autocomplete
+    // Pre-load initial data for immediate selection
+    const initialProfessions = [];
+    $('#professionsFilter option').each(function() {
+      if ($(this).val() && $(this).text().trim()) {
+        initialProfessions.push({
+          id: $(this).val(),
+          text: $(this).text(),
+          value: $(this).val()
+        });
+      }
+    });
+    
     $('#professionsFilter').select2({
       theme: 'bootstrap-5',
       placeholder: 'Search and select professions...',
       allowClear: true,
       multiple: true,
       width: '100%',
+      data: initialProfessions, // Pre-populate with initial options
       ajax: {
         url: '{{ url("careers:autocomplete_professions") }}',
         dataType: 'json',
@@ -423,7 +448,7 @@ Explore our comprehensive collection of career paths organized by industry and i
           const selectedClusters = $('#clusterFilter').val() || [];
           return {
             q: params.term || '', // search term
-            limit: 20,
+            limit: 30, // Optimized limit for better performance
             cluster: selectedClusters
           };
         },
@@ -438,17 +463,30 @@ Explore our comprehensive collection of career paths organized by industry and i
         },
         cache: true
       },
-      minimumInputLength: 0
+      minimumInputLength: 0 // Allow selection without typing
     });
 
     
     // Initialize Skills Filter with AJAX autocomplete
+    // Pre-load initial data for immediate selection
+    const initialSkills = [];
+    $('#skillsFilter option').each(function() {
+      if ($(this).val() && $(this).text().trim()) {
+        initialSkills.push({
+          id: $(this).val(),
+          text: $(this).text(),
+          value: $(this).val()
+        });
+      }
+    });
+    
     $('#skillsFilter').select2({
       theme: 'bootstrap-5',
       placeholder: 'Search and select skills...',
       allowClear: true,
       multiple: true,
       width: '100%',
+      data: initialSkills, // Pre-populate with initial options
       ajax: {
         url: '{{ url("careers:autocomplete_skills") }}',
         dataType: 'json',
@@ -459,7 +497,7 @@ Explore our comprehensive collection of career paths organized by industry and i
           const selectedClusters = $('#clusterFilter').val() || [];
           return {
             q: params.term || '', // search term
-            limit: 20,
+            limit: 30, // Optimized limit for better performance
             professions: selectedProfessions,
             cluster: selectedClusters
           };
@@ -475,7 +513,7 @@ Explore our comprehensive collection of career paths organized by industry and i
         },
         cache: true
       },
-      minimumInputLength: 0
+      minimumInputLength: 0 // Allow selection without typing
     });
 
     // Function to update selected filters display
@@ -562,8 +600,8 @@ Explore our comprehensive collection of career paths organized by industry and i
           
           clusterDisplay.append(badge);
         });
-      }
-    }
+  }
+}
 
     // Function to auto-populate child filters when parent changes
     function autoPopulateChildFilters() {
@@ -578,7 +616,7 @@ Explore our comprehensive collection of career paths organized by industry and i
           dataType: 'json',
           data: {
             q: '',
-            limit: 100,
+            limit: 30,  // Optimized for performance
             cluster: selectedClusters
           },
           success: function(data) {
@@ -611,7 +649,7 @@ Explore our comprehensive collection of career paths organized by industry and i
           dataType: 'json',
           data: {
             q: '',
-            limit: 100,
+            limit: 30,  // Optimized for performance
             professions: selectedProfessions,
             cluster: selectedClusters
           },
@@ -651,12 +689,25 @@ Explore our comprehensive collection of career paths organized by industry and i
     });
 
     // Initialize Cluster Filter with AJAX autocomplete (multi-select)
+    // Pre-load initial data for immediate selection
+    const initialClusters = [];
+    $('#clusterFilter option').each(function() {
+      if ($(this).val() && $(this).text().trim()) {
+        initialClusters.push({
+          id: $(this).val(),
+          text: $(this).text(),
+          value: $(this).val()
+    });
+  }
+});
+    
     $('#clusterFilter').select2({
       theme: 'bootstrap-5',
       placeholder: 'Search and select clusters...',
       allowClear: true,
       multiple: true,
       width: '100%',
+      data: initialClusters, // Pre-populate with initial options
       ajax: {
         url: '{{ url("careers:autocomplete_clusters") }}',
         dataType: 'json',
@@ -664,7 +715,7 @@ Explore our comprehensive collection of career paths organized by industry and i
         data: function (params) {
           return {
             q: params.term || '', // search term
-            limit: 20
+            limit: 30 // Optimized limit for better performance
           };
         },
         processResults: function (data) {
@@ -678,7 +729,7 @@ Explore our comprehensive collection of career paths organized by industry and i
         },
         cache: true
       },
-      minimumInputLength: 0
+      minimumInputLength: 0 // Allow selection without typing
     });
 
     // Auto-populate child filters when cluster changes

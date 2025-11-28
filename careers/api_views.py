@@ -50,7 +50,7 @@ def process_docx_api(request):
 def autocomplete_professions(request):
     """API endpoint for profession autocomplete - only shows professions with published careers"""
     query = request.GET.get('q', '').strip()
-    limit = int(request.GET.get('limit', 10))
+    limit = int(request.GET.get('limit', 30))  # Optimized default limit for better performance
     
     # Filter by cluster if provided (can be multiple)
     selected_clusters = request.GET.getlist('cluster')
@@ -67,9 +67,10 @@ def autocomplete_professions(request):
             career_cluster__id__in=selected_clusters
         ).distinct()
     
-    # Get professions from those careers
+    # Get professions from those careers (only active ones)
     professions = Profession.objects.filter(
-        career__in=careers_with_professions
+        career__in=careers_with_professions,
+        object_status=1  # Only active professions
     ).distinct()
     
     # Apply search query
@@ -79,17 +80,28 @@ def autocomplete_professions(request):
     # Filter out blank/empty names and limit results
     professions = professions.exclude(name__isnull=True).exclude(name='').order_by('name')[:limit]
     
-    # Only return non-empty results that have associated careers
+    # Only return non-empty results that have associated careers (deduplicated by name)
+    seen_names = set()  # Track unique names to prevent duplicates
     results = []
     for p in professions:
         if p.name and p.name.strip():
-            # Verify this profession has at least one published career
-            has_careers = Career.objects.filter(
+            name_lower = p.name.strip().lower()  # Case-insensitive comparison
+            # Skip if we've already seen this name
+            if name_lower in seen_names:
+                continue
+            # Count careers with this profession
+            career_count = Career.objects.filter(
                 profession=p,
                 publish_status=1
-            ).exists()
-            if has_careers:
-                results.append({'id': p.id, 'text': p.name, 'value': p.name})
+            ).count()
+            if career_count > 0:
+                seen_names.add(name_lower)
+                # Include count in the text
+                results.append({
+                    'id': p.id, 
+                    'text': f"{p.name.strip()} ({career_count})", 
+                    'value': p.name.strip()
+                })
     
     return JsonResponse({'results': results})
 
@@ -97,7 +109,7 @@ def autocomplete_professions(request):
 def autocomplete_skills(request):
     """API endpoint for skill autocomplete - only shows skills with published careers"""
     query = request.GET.get('q', '').strip()
-    limit = int(request.GET.get('limit', 10))
+    limit = int(request.GET.get('limit', 30))  # Optimized default limit for better performance
     
     # Filter by selected professions
     selected_professions = request.GET.getlist('professions')
@@ -122,9 +134,10 @@ def autocomplete_skills(request):
             career_cluster__id__in=selected_clusters
         ).distinct()
     
-    # Get skills from those careers
+    # Get skills from those careers (only active ones)
     skills = Skill.objects.filter(
-        career__in=careers_with_skills
+        career__in=careers_with_skills,
+        object_status=1  # Only active skills
     ).distinct()
     
     # Apply search query
@@ -134,17 +147,28 @@ def autocomplete_skills(request):
     # Filter out blank/empty names, order, and limit
     skills = skills.exclude(name__isnull=True).exclude(name='').order_by('priority', 'name')[:limit]
     
-    # Only return non-empty results that have associated careers
+    # Only return non-empty results that have associated careers (deduplicated by name)
+    seen_names = set()  # Track unique names to prevent duplicates
     results = []
     for s in skills:
         if s.name and s.name.strip():
-            # Verify this skill has at least one published career
-            has_careers = Career.objects.filter(
+            name_lower = s.name.strip().lower()  # Case-insensitive comparison
+            # Skip if we've already seen this name
+            if name_lower in seen_names:
+                continue
+            # Count careers with this skill
+            career_count = Career.objects.filter(
                 skills=s,
                 publish_status=1
-            ).exists()
-            if has_careers:
-                results.append({'id': s.id, 'text': s.name, 'value': s.name})
+            ).count()
+            if career_count > 0:
+                seen_names.add(name_lower)
+                # Include count in the text
+                results.append({
+                    'id': s.id, 
+                    'text': f"{s.name.strip()} ({career_count})", 
+                    'value': s.name.strip()
+                })
     
     return JsonResponse({'results': results})
 
@@ -152,7 +176,7 @@ def autocomplete_skills(request):
 def autocomplete_clusters(request):
     """API endpoint for cluster autocomplete - only shows clusters with published careers"""
     query = request.GET.get('q', '').strip()
-    limit = int(request.GET.get('limit', 10))
+    limit = int(request.GET.get('limit', 30))  # Optimized default limit for better performance
     
     # Get clusters that have published careers
     careers_with_clusters = Career.objects.filter(
@@ -160,9 +184,11 @@ def autocomplete_clusters(request):
         career_cluster__isnull=False
     ).distinct()
     
-    # Get clusters from those careers
+    # Get clusters from those careers (only active ones)
+    # Note: CareerCluster uses ManyToMany relationship with related_name="career_clusters"
     clusters = CareerCluster.objects.filter(
-        career__in=careers_with_clusters
+        career_clusters__in=careers_with_clusters,
+        object_status=1  # Only active clusters
     ).distinct()
     
     # Apply search query
@@ -172,16 +198,27 @@ def autocomplete_clusters(request):
     # Filter out blank/empty names, order, and limit
     clusters = clusters.exclude(name__isnull=True).exclude(name='').order_by('name')[:limit]
     
-    # Only return non-empty results that have associated careers
+    # Only return non-empty results that have associated careers (deduplicated by name)
+    seen_names = set()  # Track unique names to prevent duplicates
     results = []
     for c in clusters:
         if c.name and c.name.strip():
-            # Verify this cluster has at least one published career
-            has_careers = Career.objects.filter(
+            name_lower = c.name.strip().lower()  # Case-insensitive comparison
+            # Skip if we've already seen this name
+            if name_lower in seen_names:
+                continue
+            # Count careers with this cluster
+            career_count = Career.objects.filter(
                 career_cluster=c,
                 publish_status=1
-            ).exists()
-            if has_careers:
-                results.append({'id': c.id, 'text': c.name, 'value': str(c.id)})
+            ).count()
+            if career_count > 0:
+                seen_names.add(name_lower)
+                # Include count in the text
+                results.append({
+                    'id': c.id, 
+                    'text': f"{c.name.strip()} ({career_count})", 
+                    'value': str(c.id)
+                })
     
     return JsonResponse({'results': results})

@@ -44,6 +44,34 @@
   .logged-in .header {
     /* Add any logged-in specific header styles if needed */
   }
+  
+  /* Bootstrap Modal z-index fix - ensure modals work properly */
+  .modal-backdrop {
+    z-index: 1040 !important;
+  }
+  .modal {
+    z-index: 1050 !important;
+  }
+  .modal-dialog {
+    z-index: 1055 !important;
+  }
+  .modal.show {
+    display: block !important;
+  }
+  
+  /* SweetAlert2 z-index fix - ensure it appears above all elements */
+  .swal2-container {
+    z-index: 99999 !important;
+  }
+  .swal2-popup {
+    z-index: 99999 !important;
+  }
+  .swal2-backdrop-show {
+    z-index: 99998 !important;
+  }
+  .swal2-backdrop {
+    z-index: 99998 !important;
+  }
 </style>
 {{ super() }}
 <script>

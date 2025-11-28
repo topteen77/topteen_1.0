@@ -124,6 +124,18 @@ class CollegeDocumentFilter:
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         ctx['colleges']=page_obj
+        
+        # Get bookmarked college IDs and slugs for authenticated users
+        if request.user.is_authenticated:
+            from colleges.models import CollegeShortlist
+            bookmarked_college_ids = list(CollegeShortlist.objects.filter(user=request.user).values_list('college_id', flat=True))
+            bookmarked_college_slugs = list(CollegeShortlist.objects.filter(user=request.user).values_list('college__slug', flat=True))
+            ctx['bookmarked_college_ids'] = bookmarked_college_ids
+            ctx['bookmarked_college_slugs'] = bookmarked_college_slugs
+        else:
+            ctx['bookmarked_college_ids'] = []
+            ctx['bookmarked_college_slugs'] = []
+        
         if state:
             d={'state':state}
         else:

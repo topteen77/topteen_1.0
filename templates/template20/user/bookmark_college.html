@@ -16,6 +16,10 @@
     position: relative;
     width: 240px;
     flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+  .college-card:hover {
+    transform: translateY(-4px);
   }
   .college-image {
     width: 240px;
@@ -24,28 +28,61 @@
     overflow: hidden;
     margin-bottom: 18px;
     background: #f7f7fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
   }
   .college-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    max-width: 200px;
+    max-height: 200px;
+  }
+  .college-image i {
+    font-size: 64px;
+    color: #d0d0d0;
   }
   .bookmark-btn {
     position: absolute;
     top: 12px;
     right: 12px;
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 50%;
-    padding: 3px 5px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
+    border: none;
+  }
+  .bookmark-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: scale(1.1);
   }
   .bookmark-btn.active {
-    background-color: #3f37c9;
+    background-color: rgba(40, 167, 69, 0.1);
   }
-  .bookmark-btn img {
-    width: 14px;
-    height: 18px;
+  .bookmark-btn i {
+    font-size: 20px;
+    color: #28a745;
+  }
+  figcaption h5 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  figcaption .fs-13 {
+    font-size: 13px;
+    line-height: 1.5;
   }
 </style>
 {% endblock %}
@@ -70,6 +107,11 @@
         <!-- College Heading -->
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h1 class="fs-24 fw-semibold mb-0">Colleges</h1>
+          {% if colleges %}
+          <a href="{{ url('colleges:college') }}" class="btn custom-button purple-button">
+            Browse Colleges
+          </a>
+          {% endif %}
         </div>
 
         <!-- Mobile Header -->
@@ -85,30 +127,38 @@
         <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
           {% for college in colleges %}
           <div class="college-card">
-            <div class="bookmark-btn {% if college.shortlist.filter(id=request.user.id).exists() %}active{% endif %}" 
-                 id="college_{{ college.id }}"
-                 onclick="collegeshortlist('{{ college.id }}')">
-              <img src="{{ static('images_new/icons/bookmark.svg') }}" alt="Bookmark" />
+            <div class="bookmark-btn active" 
+                 id="college_{{ college.slug }}"
+                 onclick="collegeshortlist('{{ college.slug }}')">
+              <i class='bx bxs-bookmark' style="font-size: 18px; color: #28a745;"></i>
             </div>
             <figure class="mb-0">
-              {% if college.logo %}
+              {% if college.logo and college.logo.name %}
               <div class="college-image">
                 <img src="{{ college.logo.url }}" alt="{{ college.name }}" />
-              </div>
+              {% else %}
+              <div class="college-image" style="background: #f7f7fa; display: flex; align-items: center; justify-content: center;">
+                <i class='bx bx-building' style="font-size: 48px; color: #ccc;"></i>
               {% endif %}
+              </div>
               <figcaption>
                 <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}" class="text-decoration-none">
-                  <h5 class="fs-14 fw-semibold text-dark mb-1">{{ college.name }}</h5>
+                  <h5 class="mb-2">{{ college.name }}</h5>
                 </a>
-                <div class="d-flex align-items-center gap-1">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <i class='bx bx-map-pin' style="font-size: 14px; color: #666;"></i>
                   <span class="fs-13 text-gray">
-                    {% if college.country %}{{ college.country }}{% endif %}
+                    {% if college.country %}{{ college.country.name }}{% endif %}
                     {% if college.state and college.country %}, {% endif %}
-                    {% if college.state %}{{ college.state }}{% endif %}
+                    {% if college.state %}{{ college.state.name }}{% endif %}
                   </span>
-                  <img src="{{ static('images_new/icons/favourite.svg') }}" class="d-inline-block" style="width: 14px; height: 14px;" alt="Rating" />
-                  <span class="fs-13 text-gray">4.4</span>
                 </div>
+                {% if college.rating %}
+                <div class="d-flex align-items-center gap-1">
+                  <i class='bx bxs-star' style="font-size: 14px; color: #ffc107;"></i>
+                  <span class="fs-13 text-gray">{{ college.rating|round(1) }}</span>
+                </div>
+                {% endif %}
               </figcaption>
             </figure>
           </div>
@@ -167,26 +217,26 @@
   };
 
   // College shortlist/bookmark functionality
-  function collegeshortlist(collegeId) {
+  function collegeshortlist(collegeSlug) {
+    const csrfToken = getCookie('csrftoken');
     $.ajax({
       url: "/api/v1/user/shortlistcollege",
       type: 'POST',
       data: {
-        'collegeid': collegeId,
-        'csrfmiddlewaretoken': '{{ csrf_token }}'
+        'collegeslug': collegeSlug,
+        'csrfmiddlewaretoken': csrfToken
       },
       success: function (data) {
-        const bookmarkBtn = document.getElementById('college_' + collegeId);
+        const bookmarkBtn = document.getElementById('college_' + collegeSlug);
         if (bookmarkBtn) {
-          bookmarkBtn.classList.toggle('active');
-          if (bookmarkBtn.classList.contains('active')) {
-            fireAlert("College bookmarked", "success");
-          } else {
+          if (data.message === 'Removed Shortlisted') {
             fireAlert("College removed from bookmarks", "success");
             // Reload page to remove from list
             setTimeout(function() {
               window.location.reload();
             }, 1000);
+          } else {
+            fireAlert("College bookmarked", "success");
           }
         }
       },
@@ -198,6 +248,22 @@
         }
       }
     });
+  }
+  
+  // Helper function to get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
   }
 </script>
 {% endblock %}

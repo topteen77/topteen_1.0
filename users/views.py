@@ -1637,9 +1637,12 @@ class BookmarkCollege(TemplateView):
         return build_html_head(title=name, description=name)
 
     def get_context(self,request,*args,**kwargs):
+        from colleges.models import CollegeShortlist
         ctx={}
         ctx["html_head"] = self.html_head()
-        ctx["colleges"] = College.objects.filter(shortlist=request.user)
+        # Get bookmarked colleges from CollegeShortlist
+        college_shortlists = CollegeShortlist.objects.filter(user=request.user).select_related('college')
+        ctx["colleges"] = [cs.college for cs in college_shortlists]
         ctx['breadcrumb']=self.__breadcrumb()
 
         return ctx
