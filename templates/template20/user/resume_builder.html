@@ -7,6 +7,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .resume-builder-page {
     padding-top: 80px;
@@ -67,21 +68,30 @@
 {% block content %}
 <section class="resume-builder-page pb-5">
   <div class="container">
-    <!-- Breadcrumb -->
-    {% if breadcrumb %}
-    {% include 'template20/includes/breadcrumb.html' %}
-    {% endif %}
+    <div class="row g-4 pt-4">
+      <!-- Left part Desktop - Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
+      </div>
+      <!-- End of Left part Desktop -->
 
-    <!-- Mobile Header -->
-    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
-        <i class='bx bx-arrow-left fs-18 text-gray'></i>
-      </button>
-      <h2 class="fs-16 fw-normal text-center mb-0">Resume Builder</h2>
-    </div>
+      <!-- Right Part - Resume Builder Content -->
+      <div class="col-lg-8">
+        <!-- Breadcrumb -->
+        {% if breadcrumb %}
+        {% include 'template20/includes/breadcrumb.html' %}
+        {% endif %}
 
-    <!-- Desktop Header -->
-    <div class="d-none d-lg-block mb-4">
+        <!-- Mobile Header -->
+        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+          <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+            <i class='bx bx-arrow-left fs-18 text-gray'></i>
+          </button>
+          <h2 class="fs-16 fw-normal text-center mb-0">Resume Builder</h2>
+        </div>
+
+        <!-- Desktop Header -->
+        <div class="d-none d-lg-block mb-4">
       <h1 class="fs-24 fw-semibold mb-4">Resume Builder</h1>
       
       <!-- Profile Info -->
@@ -465,6 +475,9 @@
       <a href="{{ url('users:resumepdf') }}" download class="btn custom-button purple-button">
         <i class='bx bx-export me-2'></i> Export Resume
       </a>
+    </div>
+      </div>
+      <!-- End of Right Part -->
     </div>
   </div>
 </section>

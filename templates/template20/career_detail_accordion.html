@@ -1,0 +1,1545 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{{ career.name }} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+{{ career.summary if career.summary else career.name }}
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block additionalhead %}
+<style>
+  .add-read-more.show-less-content .second-section,
+  .add-read-more.show-less-content .read-less {
+    display: none;
+  }
+
+  .add-read-more.show-more-content .read-more {
+    display: none;
+  }
+
+  .add-read-more .read-more,
+  .add-read-more .read-less {
+    font-weight: bold;
+    margin-left: 2px;
+    color: #5046e5;
+    cursor: pointer;
+  }
+
+  .cat-main-content ol {
+    padding-left: 20px;
+  }
+
+  .cat-main-content tbody,
+  .cat-main-content td,
+  .cat-main-content th,
+  .cat-main-content thead,
+  .cat-main-content tr {
+    border-color: inherit;
+    border-style: solid;
+    border-width: 1px;
+    font-weight: 400;
+    font-size: 16px;
+  }
+
+  .cat-main-content .table tr:first-child {
+    background: #F2F0FF;
+  }
+
+  .cat-main-content .table tr th,
+  .cat-main-content .table tr td {
+    padding: 8px;
+  }
+
+  .cat-main-content .table tr td p {
+    margin: 0px;
+  }
+
+  .cat-main-content .table tr td a {
+    color: #5046E5;
+    text-decoration: underline;
+  }
+
+  .cat-main-content ol li {
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+
+  .cat-accordion {
+    margin-top: 32px;
+  }
+
+  .cat-accordion .accordion-item {
+    border: 1px solid #e4e7fb;
+    border-radius: 16px;
+    margin-bottom: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(12, 15, 37, 0.06);
+  }
+
+  .cat-accordion .accordion-button {
+    font-weight: 600;
+    font-size: 18px;
+    padding: 18px 24px;
+    gap: 12px;
+  }
+
+  .cat-accordion .accordion-button i {
+    font-size: 22px;
+    color: #5046e5;
+  }
+
+  .cat-accordion .accordion-button:not(.collapsed) {
+    color: #090b24;
+    background: #f4f3ff;
+    box-shadow: none;
+  }
+
+  .cat-accordion .accordion-button:focus {
+    box-shadow: none;
+    border-color: transparent;
+  }
+
+  .cat-accordion .accordion-body {
+    padding: 20px 28px 28px;
+    background: #fff;
+  }
+
+  .cat-accordion .accordion-body .table {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 576px) {
+    .cat-accordion .accordion-button {
+      font-size: 16px;
+      padding: 16px 18px;
+    }
+  }
+
+  /* ============================================ */
+  /* BACKUP: Old D3.js Mindmap Styles (Keep for reference) */
+  /* ============================================ */
+  .career-mindmap-standalone {
+    margin: 40px 0;
+  }
+
+  /* ============================================ */
+  /* NEW SVG Mindmap Styles */
+  /* ============================================ */
+  .mindmap-wrapper {
+    margin-top: 1.5rem;
+  }
+
+  .mindmap-card {
+    background: linear-gradient(135deg, #eef1ff 0%, #ffffff 100%);
+    border: 2px solid rgba(80, 70, 229, 0.15);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mindmap-card::after {
+    content: "";
+    position: absolute;
+    inset: 18px;
+    border-radius: 12px;
+    border: 1px dashed rgba(80, 70, 229, 0.2);
+    pointer-events: none;
+  }
+
+  .mindmap-head {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .mindmap-head h2 {
+    font-size: clamp(1.5rem, 2vw, 2rem);
+    margin-bottom: 0.5rem;
+    color: #362f78;
+  }
+
+  .mindmap-head p {
+    margin: 0;
+    color: #4a5568;
+    font-size: 1rem;
+  }
+
+  .mindmap-box {
+    position: relative;
+    width: 100%;
+    height: 460px;
+    border-radius: 24px;
+    background: radial-gradient(circle at top, rgba(80, 70, 229, 0.08), transparent 55%);
+    overflow: hidden;
+  }
+
+  .mindmap-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .mindmap-connector {
+    stroke: rgba(80, 70, 229, 0.4);
+    stroke-width: 5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-dasharray: 6 14;
+  }
+
+  .mindmap-root-circle {
+    fill: url(#mindmapRootGradient);
+    stroke: rgba(255, 255, 255, 0.6);
+    stroke-width: 5;
+  }
+
+  .mindmap-leaf {
+    fill: #fff;
+    stroke-width: 3;
+  }
+
+  .leaf-creative {
+    stroke: #ff8e53;
+  }
+
+  .leaf-engineering {
+    stroke: #45c4ff;
+  }
+
+  .leaf-experience {
+    stroke: #a855f7;
+  }
+
+  .leaf-tools {
+    stroke: #00c48c;
+  }
+
+  .leaf-future {
+    stroke: #f9c74f;
+  }
+
+  .leaf-launch {
+    stroke: #ff5da2;
+  }
+
+  .mindmap-label {
+    font-family: "Space Grotesk", "Poppins", sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    fill: #1b1f3b;
+  }
+
+  .mindmap-subtext {
+    font-family: "Space Grotesk", "Poppins", sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    fill: #4a4f67;
+  }
+
+  .mindmap-caption {
+    margin-top: 1.25rem;
+    text-align: center;
+    color: #4a5568;
+    font-size: 0.95rem;
+  }
+
+  .mindmap-node {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .mindmap-node:focus-visible rect,
+  .mindmap-node:focus-visible circle {
+    stroke: #5046e5;
+    stroke-width: 4;
+  }
+
+  .mindmap-node:hover {
+    transform: scale(1.01);
+  }
+
+  @media (max-width: 768px) {
+    .mindmap-card {
+      padding: 1.5rem;
+    }
+
+    .mindmap-box {
+      height: 520px;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .mindmap-box {
+      height: 560px;
+    }
+
+    .mindmap-head p {
+      font-size: 0.95rem;
+    }
+  }
+  
+  .connector-line {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawLine 2s ease-out forwards;
+  }
+  
+  @keyframes drawLine {
+    to { stroke-dashoffset: 0; }
+  }
+  
+  .node {
+    animation: nodeAppear 0.6s ease-out backwards;
+  }
+  
+  @keyframes nodeAppear {
+    from {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .node:hover {
+    transform: translateY(-8px) scale(1.05) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  .node i {
+    margin-right: 8px;
+    font-size: 1.1rem;
+  }
+  
+  .central-node:hover {
+    transform: translate(-50%, -50%) scale(1.1) !important;
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.5) !important;
+  }
+  
+  /* Detail Panels - Modal Style */
+  .detail-panel {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 750px;
+    max-height: 90vh;
+    background: #ffffff;
+    border-radius: 25px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    overflow: hidden;
+  }
+  
+  .detail-panel.show {
+    display: block;
+    animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -45%) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+  
+  .modal-header-custom {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 25px 30px;
+    position: relative;
+  }
+  
+  .modal-header-custom h3 {
+    color: white;
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+  }
+  
+  .modal-header-custom h3 i {
+    margin-right: 15px;
+    font-size: 2rem;
+  }
+  
+  .modal-body-custom {
+    padding: 30px;
+    overflow-y: auto;
+    max-height: calc(90vh - 100px);
+  }
+  
+  .modal-body-custom::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .modal-body-custom::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  .modal-body-custom::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+  }
+  
+  .detail-panel .close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    font-size: 1.2rem;
+  }
+  
+  .detail-panel .close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg) scale(1.1);
+  }
+  
+  .modal-body-custom h5 {
+    color: #667eea;
+    font-weight: 600;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+  }
+  
+  .modal-body-custom p {
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 15px;
+  }
+  
+  .badge-custom {
+    font-size: 0.85rem;
+    padding: 8px 16px;
+    margin-right: 8px;
+    margin-bottom: 10px;
+    border-radius: 25px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    color: #667eea;
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    font-weight: 500;
+    display: inline-block;
+    transition: all 0.3s ease;
+  }
+  
+  .badge-custom:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  }
+  
+  .list-styled {
+    padding-left: 25px;
+    color: #555;
+  }
+  
+  .list-styled li {
+    margin-bottom: 12px;
+    position: relative;
+    line-height: 1.6;
+  }
+  
+  .list-styled li::marker {
+    color: #667eea;
+    font-weight: bold;
+  }
+  
+  /* Mobile Mind Map */
+  @media (max-width: 768px) {
+    .desktop-mind-map {
+      display: none;
+    }
+    
+    .mobile-mind-map {
+      display: block;
+      margin: 20px auto;
+      max-width: 500px;
+    }
+    
+    .mobile-node {
+      margin: 12px 0;
+      padding: 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 600;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      position: relative;
+      overflow: hidden;
+      color: white;
+    }
+    
+    .mobile-node:hover {
+      transform: translateX(10px);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+    }
+    
+    .mobile-node i {
+      margin-right: 12px;
+      font-size: 1.3rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="career-hero mt-md-18 mt-13 pb-8">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-8 single-track-col">
+        <div class="track-header">
+          <h1 class="cat-title">{{ career.name }}</h1>
+          
+          {% if career.summary %}
+          <div class="blog-summary-box">
+            <h3 class="blog-summary-title">Summary</h3>
+            <p class="blog-summary-text add-read-more show-less-content">{{ career.summary }}</p>
+          </div>
+          {% endif %}
+
+          {% if career.image and career.image.name %}
+          <div class="blog-featured-image">
+            <img src="{{ career.image.url }}" alt="{{ career.name }}">
+          </div>
+          {% endif %}
+
+          <div class="blog-share">
+            <div class="blog-share-title">Share :</div>
+            <div class="blog-share-icons">
+              <a href="#" class="blog-share-icon" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank'); return false;"><i class="bx bxl-facebook"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent('{{ career.name }}'), '_blank'); return false;"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://www.linkedin.com/shareArticle?url=' + encodeURIComponent(window.location.href) + '&title=' + encodeURIComponent('{{ career.name }}'), '_blank'); return false;"><i class="bx bxl-linkedin"></i></a>
+              <a href="#" class="blog-share-icon" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('{{ career.name }} ' + window.location.href), '_blank'); return false;"><i class="bx bxl-whatsapp"></i></a>
+              <a href="#" class="blog-share-icon copy-link" data-url="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}"><i class="bx bx-link"></i></a>
+            </div>
+          </div>
+
+          <!-- ============================================ -->
+          <!-- BACKUP: OLD D3.js Mindmap (Commented Out) -->
+          <!-- ============================================ -->
+          {% if career_aspect_mindmap %}
+          <!-- 
+          <div class="career-mindmap-standalone mt-5 mb-5" id="career-mindmap-section-backup" style="display: none;">
+            <div class="card-container" style="background: #ffffff; border-radius: 25px; border: 2px solid #f0f0f0; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12); padding: 40px; margin: 20px 0;">
+              <div class="header text-center mb-4">
+                <h1 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 800; font-size: 3.5rem; letter-spacing: -1px; margin-bottom: 15px; position: relative; display: inline-block;">{{ career.name }} Career Track</h1>
+                <p style="color: #666; font-size: 1.3rem; font-weight: 400;">Explore the exciting career path and opportunities</p>
+              </div>
+              
+              <div class="desktop-mind-map">
+                <div class="mind-map-container" id="career-mindmap-container-backup" style="position: relative; min-height: 800px; margin: 0 auto; max-width: 1200px; overflow: visible;">
+                </div>
+              </div>
+              
+              <div class="mobile-mind-map" id="mobile-career-mindmap-backup" style="display: none;">
+              </div>
+            </div>
+          </div>
+          
+          <div class="career-mindmap-overlay" id="career-mindmap-overlay-backup" onclick="closeCareerAspectPanelsBackup()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 1000; backdrop-filter: blur(5px);"></div>
+          
+          <div id="career-aspect-panels-backup"></div>
+          -->
+          {% endif %}
+
+          <!-- ============================================ -->
+          <!-- NEW SVG-based Mindmap (Active) -->
+          <!-- ============================================ -->
+          <div class="mindmap-wrapper mt-5 mb-5" id="career-svg-mindmap-section">
+            <div class="mindmap-card" role="region" aria-labelledby="mindmap-title" aria-describedby="mindmap-caption">
+              <div class="mindmap-head">
+                <h2 id="mindmap-title">{{ career.name }} Mind Map</h2>
+                <p>Tap any branch to jump straight to the matching accordion section—Overview, Education, Career Path, Industry Insights, Resources, or Conclusion—and explore the detailed guidance below.</p>
+              </div>
+              <div class="mindmap-box">
+                <svg class="mindmap-svg" viewBox="0 0 1000 520" role="img" aria-labelledby="mindmap-title mindmap-svg-title">
+                  <title id="mindmap-svg-title">Interactive map of {{ career.name }} learning paths</title>
+                  <defs>
+                    <linearGradient id="mindmapRootGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#7f5dff" />
+                      <stop offset="100%" stop-color="#ff8e53" />
+                    </linearGradient>
+                  </defs>
+                  <path class="mindmap-connector" d="M500 240 C 390 200 310 150 230 130" />
+                  <path class="mindmap-connector" d="M500 240 C 610 190 710 150 830 120" />
+                  <path class="mindmap-connector" d="M500 290 C 620 310 720 330 840 360" />
+                  <path class="mindmap-connector" d="M500 310 C 400 330 300 360 210 390" />
+                  <path class="mindmap-connector" d="M500 210 C 500 150 500 120 500 90" />
+                  <path class="mindmap-connector" d="M500 320 C 500 360 500 400 500 440" />
+                  <g aria-hidden="true">
+                    <circle class="mindmap-root-circle" cx="500" cy="260" r="95"></circle>
+                    <text class="mindmap-label" text-anchor="middle" x="500" y="250">
+                      <tspan x="500" dy="0">{{ career.name }}</tspan>
+                      {% if career.summary %}
+                      <tspan class="mindmap-subtext" x="500" dy="26">{{ career.summary|truncate(30) }}</tspan>
+                      {% endif %}
+                    </text>
+                  </g>
+                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Career Description section" data-accordion-target="Career Description">
+                    <rect class="mindmap-leaf leaf-creative" x="110" y="70" width="220" height="130" rx="28" />
+                    <text class="mindmap-label" text-anchor="middle" x="220" y="120">
+                      <tspan x="220" dy="0">Overview</tspan>
+                      <tspan class="mindmap-subtext" x="220" dy="24">Role, mission, mindset</tspan>
+                      <tspan class="mindmap-subtext" x="220" dy="20">Career description</tspan>
+                    </text>
+                  </g>
+                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Education section" data-accordion-target="Study Route & Eligibility Criteria">
+                    <rect class="mindmap-leaf leaf-engineering" x="700" y="60" width="220" height="130" rx="28" />
+                    <text class="mindmap-label" text-anchor="middle" x="810" y="115">
+                      <tspan x="810" dy="0">Education</tspan>
+                      <tspan class="mindmap-subtext" x="810" dy="24">Study routes & eligibility</tspan>
+                      <tspan class="mindmap-subtext" x="810" dy="20">Courses & specializations</tspan>
+                    </text>
+                  </g>
+                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Career Path section" data-accordion-target="Ideal Progressing Career Path">
+                    <rect class="mindmap-leaf leaf-experience" x="730" y="280" width="210" height="150" rx="32" />
+                    <text class="mindmap-label" text-anchor="middle" x="835" y="335">
+                      <tspan x="835" dy="0">Career Path</tspan>
+                      <tspan class="mindmap-subtext" x="835" dy="24">Career progression</tspan>
+                      <tspan class="mindmap-subtext" x="835" dy="20">Employment areas</tspan>
+                      <tspan class="mindmap-subtext" x="835" dy="20">Recruiters</tspan>
+                    </text>
+                  </g>
+                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Industry Insights section" data-accordion-target="Pros and Cons of the Profession">
+                    <rect class="mindmap-leaf leaf-tools" x="70" y="300" width="230" height="150" rx="32" />
+                    <text class="mindmap-label" text-anchor="middle" x="185" y="355">
+                      <tspan x="185" dy="0">Industry Insights</tspan>
+                      <tspan class="mindmap-subtext" x="185" dy="24">Industry trends</tspan>
+                      <tspan class="mindmap-subtext" x="185" dy="20">Future outlook</tspan>
+                      <tspan class="mindmap-subtext" x="185" dy="20">Pros & cons</tspan>
+                    </text>
+                  </g>
+                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Resources section" data-accordion-target="Career Resources">
+                    <rect class="mindmap-leaf leaf-future" x="410" y="20" width="180" height="110" rx="28" />
+                    <text class="mindmap-label" text-anchor="middle" x="500" y="70">
+                      <tspan x="500" dy="0">Resources</tspan>
+                      <tspan class="mindmap-subtext" x="500" dy="24">Career media</tspan>
+                      <tspan class="mindmap-subtext" x="500" dy="20">FAQs</tspan>
+                    </text>
+                  </g>
+                </svg>
+              </div>
+              <p class="mindmap-caption" id="mindmap-caption">Each colorful branch maps to an accordion section below—click to reveal overview, study plans, role journeys, industry insights, practice resources, or concluding tips.</p>
+            </div>
+          </div>
+
+          <!-- Accordion Content Container -->
+          <div class="cat-main-content" id="careerAccordionContainer">
+            {% if career.description %}
+            <h4>Career Description</h4>
+            <div class="blogDetail careerDetail">{{ career.description|safe }}</div>
+            {% endif %}
+
+            {% if career.role_description %}
+            <h4>Roles and Responsibilities</h4>
+            <div class="blogDetail careerDetail">{{ career.role_description|safe }}</div>
+            {% endif %}
+
+            {% if career.eligibility %}
+            <h4>Study Route & Eligibility Criteria</h4>
+            <div class="blogDetail careerDetail">{{ career.eligibility|safe }}</div>
+            {% endif %}
+
+            {% if career.courses.all() %}
+            <h4>Related Courses</h4>
+            <div class="row">
+              {% for course in career.courses.all()[:6] %}
+              <div class="col-md-4 mb-4">
+                <div class="blog-card">
+                  <div class="blog-image">
+                    {% if course.logo %}
+                    <img src="{{ course.logo.url }}" alt="{{ course.name }}">
+                    {% else %}
+                    <img src="{{ static('images/career-icon.png') }}" alt="{{ course.name }}">
+                    {% endif %}
+                  </div>
+                  <div class="blog-content">
+                    <h5 class="blog-title mt-0">{{ course.name }}</h5>
+                    {% if course.stream %}
+                    <p class="text-gray fs-14">{{ course.stream.name }}</p>
+                    {% endif %}
+                    {% if course.overview %}
+                    <p class="blog-excerpt">{{ course.overview|truncate(100) }}</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if career.career_paths.all() %}
+            <h4>Ideal Progressing Career Path</h4>
+            {% for career_path in career.career_paths.all() %}
+            <div class="mb-4">
+              <h5>{{ career_path.name }}</h5>
+              {% if career_path.get_sorted_priority() %}
+              <ul class="list-disc pl-4">
+                {% for step in career_path.get_sorted_priority() %}
+                <li>{{ step.name }}</li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if career.prospective_employment_areas.exists() %}
+            <h4>Major Areas of Employment</h4>
+            <ul>
+              {% for area in career.prospective_employment_areas.all() %}
+              <li>{{ area.name }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+
+            {% if career.prospective_recruiters.exists() %}
+            <h4>Prominent Employers</h4>
+            <ul>
+              {% for recruiter in career.prospective_recruiters.all() %}
+              <li>{{ recruiter.name }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+
+            {% if career.pros_cons %}
+            <h4>Pros and Cons of the Profession</h4>
+            <div class="blogDetail careerDetail">{{ career.pros_cons|safe }}</div>
+            {% endif %}
+
+            {% if career.get_max_salary() %}
+            <h4>Salary Expectations</h4>
+            <p>{{ career.get_max_salary() }}</p>
+            {% endif %}
+
+            {% if career.careermedia.all() %}
+            <h4>Career Resources</h4>
+            <div class="row">
+              {% for media in career.careermedia.all()[:6] %}
+              <div class="col-md-4 mb-4">
+                {% if media.type == 1 %}
+                <img src="{{ media.media.url }}" alt="Career Media" class="img-fluid rounded">
+                {% elif media.type == 2 %}
+                <video class="w-100 rounded" controls>
+                  <source src="{{ media.media.url }}" type="video/mp4">
+                </video>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if career.careerFAQ.all() %}
+            <h4>Frequently Asked Questions</h4>
+            <div class="accordion" id="careerFAQ">
+              {% for faq in career.careerFAQ.all() %}
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="faq-heading-{{ faq.id }}">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-collapse-{{ faq.id }}" aria-expanded="false" aria-controls="faq-collapse-{{ faq.id }}">
+                    {{ faq.question|safe }}
+                  </button>
+                </h2>
+                <div id="faq-collapse-{{ faq.id }}" class="accordion-collapse collapse" aria-labelledby="faq-heading-{{ faq.id }}" data-bs-parent="#careerFAQ">
+                  <div class="accordion-body">
+                    {{ faq.answer|safe }}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <!-- Knowledge & Skills You Will Learn Sidebar -->
+        {% if career.skills.all() %}
+        <div class="skill-box mb-4">
+          <h5 class="skill-title">Knowledge & Skills You Will Learn</h5>
+          <ul class="skill-list">
+            {% for skill in career.skills.all() %}
+            <li>{{ skill.name }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <!-- Career Videos Sidebar -->
+        {% if career.videos.all() %}
+        <div class="career-sidebar mt-5 mb-4">
+          <h3 class="sidebar-title">Career Video</h3>
+          <div class="car-rel-video video-vertical flex-column">
+            {% for video in career.videos.all()[:2] %}
+            <div class="video-box mb-3">
+              <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="video-link">
+                <div class="text-b">
+                  <div class="blankdiv"></div>
+                  <div class="video-play"><img src="{{ static('images_new/icons/video-play.svg') }}" alt="Play Icon" /></div>
+                </div>
+                <div class="video-thumb-auto">
+                  {% if video.upload_video %}
+                  <video class="videoPlayer">
+                    <source src="{{ video.upload_video.url }}" type="video/mp4">
+                  </video>
+                  {% elif video.video_image %}
+                  <img src="{{ video.video_image.url }}" alt="{{ video.name }}" class="img-fluid">
+                  {% else %}
+                  <div class="bg-gray p-4 text-center">
+                    <i class='bx bx-play-circle fs-48'></i>
+                  </div>
+                  {% endif %}
+                </div>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Leading Professions Sidebar -->
+        {% if career.profession.all() %}
+        <div class="profession-sidebar blog-sidebar mt-5 mb-5">
+          <h3 class="sidebar-title">Leading Professions</h3>
+          <div class="proffesion-card-inn">
+            {% for profession in career.profession.all()[:3] %}
+            <div class="profession-card mb-3">
+              <div class="prf-image">
+                {% if profession.image and profession.image.name %}
+                <img src="{{ profession.image.url }}" alt="{{ profession.name }}">
+                {% else %}
+                <img src="{{ static('images/career-icon.png') }}" alt="{{ profession.name }}">
+                {% endif %}
+              </div>
+              <div class="prf-content">
+                <h3 class="prf-title mt-0">{{ profession.name }}</h3>
+                {% if profession.summary %}
+                <p class="blog-excerpt">{{ profession.summary|truncate(150) }}</p>
+                {% endif %}
+                {% if profession.get_salary_display() %}
+                <p class="text-gray fs-14">{{ profession.get_salary_display() }}</p>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+            <div class="view-all">
+              <a href="{{ url('careers:profession', args=[career.slug]) }}">View All</a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- CTA Section -->
+        <div class="career-cta mt-4 p-4 bg-light rounded">
+          <h5 class="mb-3">Interested in this career?</h5>
+          <p class="text-gray fs-14 mb-3">Take the next step and explore more about {{ career.name }}.</p>
+          <button type="button" class="btn custom-button purple-button w-100 shortlistcareer" data-careerslug="{{ career.slug }}">
+            <span class="buttontext">
+              {% if shortlisted_career %}
+              <i class='bx bxs-bookmark'></i> Remove from Shortlist
+              {% else %}
+              <i class='bx bx-bookmark'></i> Shortlist Career
+              {% endif %}
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Related Careers Section -->
+{% if related_careers %}
+<section class="py-10 bg-light">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h3 class="section-title mb-4">Related Careers</h3>
+        <p class="text-gray mb-4">Explore similar career paths that might interest you</p>
+      </div>
+    </div>
+    <div class="row">
+      {% for related_career in related_careers %}
+      <div class="col-md-4 col-sm-6 mb-4">
+        <div class="blog-card">
+          <div class="blog-image">
+            <div class="cat-header">
+              {% if related_career.career_cluster.all() %}
+                <a href="{{ url('careers:careerlibrary', args=[related_career.career_cluster.first().slug, related_career.career_cluster.first().id]) }}" class="blog-category category-parent">
+                  {{ related_career.career_cluster.first().name }}
+                </a>
+              {% else %}
+                <span class="blog-category category-parent">Career</span>
+              {% endif %}
+            </div>
+            <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}">
+              {% if related_career.image and related_career.image.name %}
+                <img src="{{ related_career.image.url }}" alt="{{ related_career.name }}">
+              {% else %}
+                <img src="{{ static('images/career-icon.png') }}" alt="{{ related_career.name }}">
+              {% endif %}
+            </a>
+          </div>
+          <div class="blog-content">
+            <h3 class="blog-title mt-0">
+              <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}">{{ related_career.name }}</a>
+            </h3>
+            {% if related_career.get_max_salary() %}
+            <div class="salary-range">
+              <i class='bx bx-rupee'></i>
+              <span>{{ related_career.get_max_salary() }}</span>
+            </div>
+            {% endif %}
+            {% if related_career.summary %}
+            <p class="blog-excerpt">{{ related_career.summary|truncate(120) }}</p>
+            {% endif %}
+            <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Video Modal -->
+<div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="videoModalLabel">Career Video</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <video id="modalVideo" class="w-100" controls>
+          <source src="" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block additionaljs %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+  // Mindmap data
+  const mindmapData = {{ mindmap_data|safe }};
+  const currentCareerId = {{ career.id }};
+  
+  // Career aspect mindmap data
+  let careerAspectMindmap;
+  try {
+    const mindmapDataStr = {{ career_aspect_mindmap|safe }};
+    careerAspectMindmap = typeof mindmapDataStr === 'string' ? JSON.parse(mindmapDataStr) : mindmapDataStr;
+    console.log('Career Aspect Mindmap loaded:', careerAspectMindmap);
+  } catch(e) {
+    console.error('Error loading career aspect mindmap:', e);
+    careerAspectMindmap = null;
+  }
+  
+  // Video modal handler
+  document.addEventListener('DOMContentLoaded', function() {
+    const videoModal = document.getElementById('videoModal');
+    const modalVideo = document.getElementById('modalVideo');
+    
+    if (videoModal) {
+      videoModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const videoUrl = button.getAttribute('data-video');
+        if (modalVideo && videoUrl) {
+          modalVideo.src = videoUrl;
+        }
+      });
+      
+      videoModal.addEventListener('hide.bs.modal', function() {
+        if (modalVideo) {
+          modalVideo.pause();
+          modalVideo.src = '';
+        }
+      });
+    }
+
+    // Copy link functionality
+    const copyLinks = document.querySelectorAll('.copy-link');
+    copyLinks.forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const url = this.getAttribute('data-url');
+        navigator.clipboard.writeText(url).then(function() {
+          alert('Link copied to clipboard!');
+        });
+      });
+    });
+
+    // Read more/less functionality
+    const readMoreElements = document.querySelectorAll('.add-read-more');
+    readMoreElements.forEach(function(element) {
+      const text = element.textContent;
+      if (text.length > 200) {
+        const shortText = text.substring(0, 200) + '...';
+        const fullText = text;
+        element.innerHTML = '<span class="first-section">' + shortText + '</span><span class="second-section">' + fullText.substring(200) + '</span><span class="read-more">Read More</span><span class="read-less">Read Less</span>';
+        
+        const readMoreBtn = element.querySelector('.read-more');
+        const readLessBtn = element.querySelector('.read-less');
+        
+        if (readMoreBtn) {
+          readMoreBtn.addEventListener('click', function() {
+            element.classList.remove('show-less-content');
+            element.classList.add('show-more-content');
+          });
+        }
+        
+        if (readLessBtn) {
+          readLessBtn.addEventListener('click', function() {
+            element.classList.remove('show-more-content');
+            element.classList.add('show-less-content');
+          });
+        }
+      }
+    });
+
+    // ============================================
+    // BACKUP: Old D3.js Mindmap Initialization (Commented Out)
+    // ============================================
+    // if (careerAspectMindmap && careerAspectMindmap.children && careerAspectMindmap.children.length > 0) {
+    //   initializeCareerAspectMindmap();
+    // }
+
+    // ============================================
+    // NEW SVG Mindmap - Accordion Integration
+    // ============================================
+    function activateAccordionSection(targetSectionName) {
+      if (!targetSectionName) return;
+
+      // Find the accordion button that matches the section name
+      const accordionButtons = document.querySelectorAll('.accordion-button');
+      let targetButton = null;
+
+      accordionButtons.forEach(button => {
+        const buttonText = button.querySelector('span')?.textContent.trim();
+        if (buttonText === targetSectionName) {
+          targetButton = button;
+        }
+      });
+
+      if (targetButton) {
+        // Check if it's collapsed, if so, click it to expand
+        if (targetButton.classList.contains('collapsed')) {
+          targetButton.click();
+        }
+        
+        // Scroll to the accordion section
+        const accordionWrapper = document.querySelector('.career-tabs-wrapper') || document.querySelector('.cat-accordion');
+        if (accordionWrapper) {
+          setTimeout(() => {
+            targetButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        }
+      }
+    }
+
+    // Handle SVG mindmap node clicks
+    function handleMindmapNodeClick(e) {
+      if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') {
+        return;
+      }
+      e.preventDefault();
+      const targetSection = this.getAttribute('data-accordion-target');
+      if (targetSection) {
+        activateAccordionSection(targetSection);
+      }
+    }
+
+    // Attach event listeners to SVG mindmap nodes
+    document.querySelectorAll('.mindmap-node[data-accordion-target]').forEach(node => {
+      node.addEventListener('click', handleMindmapNodeClick);
+      node.addEventListener('keydown', handleMindmapNodeClick);
+    });
+
+    // Convert H4 headings to accordion
+    const container = document.getElementById('careerAccordionContainer');
+    if (container && container.dataset.accordionReady !== 'true') {
+      const headings = Array.from(container.children).filter((child) => child.tagName === 'H4');
+      if (headings.length) {
+        const accordion = document.createElement('div');
+        accordion.className = 'accordion cat-accordion custom-faq';
+        accordion.id = 'careerAccordion';
+
+        const iconMap = {
+          'Career Description': 'bx bx-id-card',
+          'Roles and Responsibilities': 'bx bx-task',
+          'Study Route & Eligibility Criteria': 'bx bx-graduation',
+          'Significant Observations': 'bx bx-bulb',
+          'Internships & Practical Exposure': 'bx bx-briefcase-alt-2',
+          'Courses & Specializations to Enter the Field': 'bx bx-book-content',
+          'Top Institutes for Automobile Design Education in India': 'bx bx-building-house',
+          'Top International Institutes': 'bx bx-globe',
+          'Entrance Tests Required': 'bx bx-edit-alt',
+          'Ideal Progressing Career Path': 'bx bx-trending-up',
+          'Major Areas of Employment': 'bx bx-map-alt',
+          'Prominent Employers': 'bx bx-building',
+          'Pros and Cons of the Profession': 'bx bx-traffic-cone',
+          'Industry Trends and Future Outlook': 'bx bx-line-chart',
+          'Notable Automobile Designers and Their Contributions': 'bx bx-user-voice',
+          'Salary Expectations': 'bx bx-money-withdraw',
+          'Key Software Tools': 'bx bx-chip',
+          'Professional Organizations and Networks': 'bx bx-network-chart',
+          'Advice for Aspiring Automobile Designers': 'bx bx-message-dots',
+          'Conclusion': 'bx bx-check-shield',
+          'Related Courses': 'bx bx-book-open',
+          'Career Resources': 'bx bx-folder-open',
+          'Frequently Asked Questions': 'bx bx-help-circle'
+        };
+
+        let sectionIndex = 0;
+
+        headings.forEach((heading) => {
+          sectionIndex += 1;
+          const sectionId = `careerAccordionItem${sectionIndex}`;
+          const accordionItem = document.createElement('div');
+          accordionItem.className = 'accordion-item';
+
+          const header = document.createElement('h2');
+          header.className = 'accordion-header';
+          header.id = `${sectionId}Heading`;
+
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = sectionIndex === 1 ? 'accordion-button' : 'accordion-button collapsed';
+          button.setAttribute('data-bs-toggle', 'collapse');
+          button.setAttribute('data-bs-target', `#${sectionId}`);
+          button.setAttribute('aria-expanded', sectionIndex === 1 ? 'true' : 'false');
+          button.setAttribute('aria-controls', sectionId);
+
+          const iconClass = iconMap[heading.textContent.trim()] || 'bx bx-layer';
+          button.innerHTML = `<i class="${iconClass}"></i><span>${heading.textContent.trim()}</span>`;
+
+          header.appendChild(button);
+
+          const collapse = document.createElement('div');
+          collapse.id = sectionId;
+          collapse.className = sectionIndex === 1 ? 'accordion-collapse collapse show' : 'accordion-collapse collapse';
+          collapse.setAttribute('aria-labelledby', header.id);
+          collapse.setAttribute('data-bs-parent', '#careerAccordion');
+
+          const body = document.createElement('div');
+          body.className = 'accordion-body';
+
+          let sibling = heading.nextSibling;
+          const bufferedNodes = [];
+
+          while (sibling && !(sibling.nodeType === 1 && sibling.tagName === 'H4')) {
+            const nextSibling = sibling.nextSibling;
+            bufferedNodes.push(sibling);
+            sibling = nextSibling;
+          }
+
+          bufferedNodes.forEach((node) => body.appendChild(node.cloneNode(true)));
+
+          collapse.appendChild(body);
+          accordionItem.appendChild(header);
+          accordionItem.appendChild(collapse);
+          accordion.appendChild(accordionItem);
+        });
+
+        // Store original content
+        const originalContent = container.innerHTML;
+        container.innerHTML = '';
+        container.appendChild(accordion);
+        container.dataset.accordionReady = 'true';
+        container.dataset.originalContent = originalContent;
+      }
+    }
+  });
+
+  // ============================================
+  // BACKUP: Old D3.js Mindmap Function (Keep for reference)
+  // To use: Uncomment the initialization call above and this function
+  // ============================================
+  function initializeCareerAspectMindmap_BACKUP() {
+    if (!careerAspectMindmap || !careerAspectMindmap.children || careerAspectMindmap.children.length === 0) {
+      return;
+    }
+    
+    const container = document.getElementById('career-mindmap-container');
+    const panelsContainer = document.getElementById('career-aspect-panels');
+    
+    if (!container || !panelsContainer) {
+      return;
+    }
+    
+    // Clear previous content
+    container.innerHTML = '';
+    
+    const width = container.offsetWidth || 1100;
+    const height = Math.max(800, careerAspectMindmap.children.length * 200 + 300);
+    
+    container.style.height = height + 'px';
+    
+    // Create SVG for the tree
+    const svg = d3.select("#career-mindmap-container")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .style("background", "transparent");
+    
+    const g = svg.append("g")
+      .attr("transform", "translate(60, 80)");
+    
+    // Create tree layout (top to bottom)
+    const tree = d3.tree()
+      .size([height - 160, width - 300])
+      .nodeSize([140, 280]);
+    
+    // Build hierarchy from H1 -> H2 -> H3 structure
+    const root = d3.hierarchy({
+      name: careerAspectMindmap.name,
+      summary: careerAspectMindmap.summary || "",
+      content: "",
+      children: careerAspectMindmap.children
+    }, d => d.children);
+    
+    tree(root);
+    
+    // Color scheme for different levels
+    const nodeColors = {
+      root: "#667eea",      // Purple for root (H1)
+      h2: "#4facfe",        // Blue for H2 (main branches)
+      h3: "#81fbb8"         // Green for H3 (sub-branches)
+    };
+    
+    // Draw links (curved lines)
+    const links = g.selectAll(".link")
+      .data(root.links())
+      .enter()
+      .append("path")
+      .attr("class", "link")
+      .attr("d", d3.linkHorizontal()
+        .x(d => d.y)
+        .y(d => d.x))
+      .style("fill", "none")
+      .style("stroke", "#999")
+      .style("stroke-width", "2.5px")
+      .style("opacity", 0.6);
+    
+    // Draw nodes
+    const nodes = g.selectAll(".node")
+      .data(root.descendants())
+      .enter()
+      .append("g")
+      .attr("class", d => "node " + (d.depth === 0 ? "root" : d.depth === 1 ? "h2" : "h3"))
+      .attr("transform", d => `translate(${d.y},${d.x})`)
+      .style("cursor", d => (d.data.content && d.data.content.length > 0) ? "pointer" : "default");
+    
+    // Add node rectangles with rounded corners
+    nodes.append("rect")
+      .attr("x", -120)
+      .attr("y", -35)
+      .attr("width", 240)
+      .attr("height", d => {
+        // Adjust height based on whether there's summary text or children
+        if (d.data.summary && d.data.summary.length > 0 && !d.children) {
+          return 80; // Leaf nodes with summary
+        }
+        if (d.children && d.children.length > 0) {
+          return 60; // Parent nodes
+        }
+        return 50; // Simple nodes
+      })
+      .attr("rx", 12)
+      .attr("ry", 12)
+      .style("fill", d => {
+        if (d.depth === 0) return nodeColors.root;
+        if (d.depth === 1) return nodeColors.h2;
+        return nodeColors.h3;
+      })
+      .style("stroke", "#fff")
+      .style("stroke-width", "2.5px")
+      .style("filter", "drop-shadow(0 4px 8px rgba(0,0,0,0.15))");
+    
+    // Add arrow icons for parent nodes
+    nodes.filter(d => d.children && d.children.length > 0)
+      .append("text")
+      .attr("text-anchor", "middle")
+      .attr("x", 100)
+      .attr("y", 5)
+      .style("font-size", "18px")
+      .style("fill", "#fff")
+      .text("→");
+    
+    // Add node text (name)
+    nodes.append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", -5)
+      .style("fill", "white")
+      .style("font-size", d => d.depth === 0 ? "16px" : d.depth === 1 ? "14px" : "13px")
+      .style("font-weight", "bold")
+      .text(d => {
+        const name = d.data.name || "";
+        // Truncate long names
+        const maxLength = d.depth === 0 ? 35 : d.depth === 1 ? 30 : 25;
+        return name.length > maxLength ? name.substring(0, maxLength - 3) + "..." : name;
+      });
+    
+    // Add summary text for leaf nodes (final nodes with content)
+    nodes.filter(d => !d.children && d.data.summary && d.data.summary.length > 0)
+      .append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", 15)
+      .style("fill", "white")
+      .style("font-size", "11px")
+      .style("opacity", 0.95)
+      .style("font-weight", "normal")
+      .text(d => {
+        const summary = d.data.summary || "";
+        return summary.length > 50 ? summary.substring(0, 47) + "..." : summary;
+      });
+    
+    // Hover effects
+    nodes.on("mouseover", function(event, d) {
+      d3.select(this).select("rect")
+        .style("stroke-width", "3.5px")
+        .style("filter", "drop-shadow(0 6px 15px rgba(0,0,0,0.25))")
+        .style("transform", "scale(1.05)");
+    })
+    .on("mouseout", function(event, d) {
+      d3.select(this).select("rect")
+        .style("stroke-width", "2.5px")
+        .style("filter", "drop-shadow(0 4px 8px rgba(0,0,0,0.15))")
+        .style("transform", "scale(1)");
+    });
+    
+    // Click handler - show modal for nodes with content (especially leaf nodes)
+    nodes.filter(d => d.data.content && d.data.content.length > 0)
+      .on("click", function(event, d) {
+        const nodeId = `node-${d.data.name.replace(/\s+/g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '')}`;
+        
+        // Create or update modal panel
+        let panel = document.getElementById(`${nodeId}-panel`);
+        if (!panel) {
+          panel = document.createElement('div');
+          panel.className = 'detail-panel';
+          panel.id = `${nodeId}-panel`;
+          panelsContainer.appendChild(panel);
+        }
+        
+        // Build content: include H3 children if they exist
+        let panelContent = '';
+        if (d.data.content) {
+          panelContent += d.data.content;
+        }
+        
+        // Add H3 children if they exist
+        if (d.data.children && d.data.children.length > 0) {
+          d.data.children.forEach((h3Child) => {
+            panelContent += `<h5 style="color: #667eea; margin-top: 20px; margin-bottom: 10px;">${h3Child.name}</h5>`;
+            if (h3Child.content) {
+              panelContent += h3Child.content;
+            } else if (h3Child.summary) {
+              panelContent += `<p>${h3Child.summary}</p>`;
+            }
+          });
+        }
+        
+        panel.innerHTML = `
+          <div class="modal-header-custom">
+            <h3><i class="fas fa-circle"></i> ${d.data.name}</h3>
+            <button class="close-btn" onclick="closeCareerAspectPanels()"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="modal-body-custom">
+            ${panelContent}
+          </div>
+        `;
+        
+        showCareerAspectPanel(nodeId);
+      });
+    
+    // Create central panel
+    const centralPanel = document.createElement('div');
+    centralPanel.className = 'detail-panel';
+    centralPanel.id = 'central-panel';
+    centralPanel.innerHTML = `
+      <div class="modal-header-custom">
+        <h3><i class="fas fa-briefcase"></i> ${careerAspectMindmap.name}</h3>
+        <button class="close-btn" onclick="closeCareerAspectPanels()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body-custom">
+        <p>${careerAspectMindmap.summary || 'This comprehensive mind map outlines the various aspects of this career path.'}</p>
+        <p>Click on any node in the mind map to view detailed information.</p>
+      </div>
+    `;
+    panelsContainer.appendChild(centralPanel);
+  }
+  
+  function showCareerAspectPanel(panelId) {
+    closeCareerAspectPanels();
+    
+    const overlay = document.getElementById('career-mindmap-overlay');
+    const panel = document.getElementById(`${panelId}-panel`);
+    
+    if (overlay && panel) {
+      overlay.style.display = 'block';
+      panel.style.display = 'block';
+      panel.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+  
+  function closeCareerAspectPanels() {
+    const overlay = document.getElementById('career-mindmap-overlay');
+    const panels = document.querySelectorAll('.detail-panel');
+    
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+    
+    panels.forEach(panel => {
+      panel.style.display = 'none';
+      panel.classList.remove('show');
+    });
+    
+    document.body.style.overflow = 'auto';
+  }
+  
+  // Close panel with Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeCareerAspectPanels();
+    }
+  });
+
+  // Career shortlist/bookmark functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const shortlistButtons = document.querySelectorAll('.shortlistcareer');
+    shortlistButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const careerSlug = this.getAttribute('data-careerslug');
+        const buttonText = this.querySelector('.buttontext') || this;
+        const icon = this.querySelector('i');
+        const csrfToken = getCookie('csrftoken');
+        
+        // Disable button during request
+        this.disabled = true;
+        
+        fetch('/api/v1/user/shortlistcareer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: 'careerslug=' + encodeURIComponent(careerSlug) + '&csrfmiddlewaretoken=' + csrfToken
+        })
+        .then(response => response.json())
+        .then(data => {
+          this.disabled = false;
+          
+          if (data.message === 'Career Shortlisted') {
+            // Bookmarked
+            if (icon) {
+              icon.classList.remove('bx-bookmark');
+              icon.classList.add('bxs-bookmark');
+            }
+            if (buttonText && buttonText.textContent) {
+              buttonText.innerHTML = '<i class=\'bx bxs-bookmark\'></i> Remove from Shortlist';
+            }
+            this.classList.add('active');
+            
+            // Show success message
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                title: 'Career bookmarked',
+                icon: 'success',
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                toast: true
+              });
+            }
+          } else if (data.message === 'Removed Shortlisted') {
+            // Removed
+            if (icon) {
+              icon.classList.remove('bxs-bookmark');
+              icon.classList.add('bx-bookmark');
+            }
+            if (buttonText && buttonText.textContent) {
+              buttonText.innerHTML = '<i class=\'bx bx-bookmark\'></i> Shortlist Career';
+            }
+            this.classList.remove('active');
+            
+            // Show success message
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                title: 'Career removed from bookmarks',
+                icon: 'success',
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                toast: true
+              });
+            }
+          }
+        })
+        .catch(error => {
+          this.disabled = false;
+          console.error('Error:', error);
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: 'Error updating bookmark',
+              icon: 'error',
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 2000,
+              toast: true
+            });
+          }
+        });
+      });
+    });
+  });
+</script>
+{% endblock %}
+

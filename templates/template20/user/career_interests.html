@@ -12,53 +12,95 @@
   .career-interests-page {
     padding-top: 80px;
   }
-  .cluster-card {
-    background: #333;
-    border-radius: 10px;
-    min-width: 144px;
-    height: 182px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 9px 8px 24px;
-    position: relative;
-  }
-  @media (min-width: 992px) {
-    .cluster-card {
-      min-width: 248px;
-      height: 236px;
-      flex-direction: column-reverse;
-      padding-top: 24px;
-    }
-  }
-  .career-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    border-radius: 10px;
-    transition: background 0.3s;
-  }
-  .career-item:hover {
+  .career-card {
     background: #f7f7fa;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 151px;
+    transition: transform 0.3s;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+    color: inherit;
   }
-  .career-item img {
+  .career-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: inherit;
+  }
+  .career-card-icon {
     width: 69px;
     height: 69px;
-    object-fit: cover;
+    margin: 0 auto 14px;
     border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
-  .delete-btn {
-    background: none;
+  .career-card-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .career-card-icon i {
+    font-size: 32px;
+    color: #999;
+  }
+  .career-card-mobile {
+    min-height: 84px;
+    padding: 20px;
+  }
+  .career-card-mobile .icon-mobile {
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%) rotate(31.19deg);
+    width: 57px;
+    height: 57px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .career-card-mobile .icon-mobile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .career-card-mobile .icon-mobile i {
+    font-size: 24px;
+    color: #999;
+  }
+  .delete-career-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.9);
     border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    padding: 0;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
     color: #bdbdbd;
-    transition: color 0.3s;
   }
-  .delete-btn:hover {
+  .delete-career-btn:hover {
+    background: rgba(255, 255, 255, 1);
     color: #dc3545;
+    transform: scale(1.1);
   }
 </style>
 {% endblock %}
@@ -81,8 +123,15 @@
         {% endif %}
 
         <!-- Career Interests Heading -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
           <h1 class="fs-24 fw-semibold mb-0">Career Interests</h1>
+          {% if career_interests %}
+          <div class="d-none d-lg-block">
+            <a href="{{ url('careers:career') }}" class="btn custom-button purple-button">
+              <i class='bx bx-search me-2'></i> Explore Careers
+            </a>
+          </div>
+          {% endif %}
         </div>
 
         <!-- Mobile Header -->
@@ -91,64 +140,52 @@
             <i class='bx bx-arrow-left fs-18 text-gray'></i>
           </button>
           <h2 class="fs-16 fw-normal text-center mb-0">Career Interests</h2>
+          {% if career_interests %}
+          <a href="{{ url('careers:career') }}" class="btn btn-link position-absolute end-0 top-0">
+            <i class='bx bx-search fs-18 text-gray'></i>
+          </a>
+          {% endif %}
         </div>
 
-        <!-- Career Cluster Cards -->
-        {% if clstrs %}
-        <div class="d-flex gap-3 gap-lg-4 overflow-auto pb-3 mb-4" style="scrollbar-width: none; -ms-overflow-style: none;">
-          <style>
-            .d-flex.gap-3.gap-lg-4.overflow-auto::-webkit-scrollbar {
-              display: none;
-            }
-          </style>
-          {% for clstr in clstrs %}
-          <div class="cluster-card text-white flex-shrink-0">
-            <div class="d-flex flex-column align-items-center">
-              <h6 class="fs-13 fw-semibold text-center mb-2" style="max-height: 72px; overflow: hidden;">
-                {{ clstr.name }}
-              </h6>
-              <div class="badge bg-white bg-opacity-22 text-white px-2 py-1 rounded-pill fs-10">
-                {{ clstr.get_clstr_career_count(career_ids) }} shortlisted
-              </div>
-            </div>
-            <div style="width: 63px; height: 48px;">
-              {% if clstr.image %}
-              <img src="{{ clstr.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ clstr.name }}" />
-              {% else %}
-              <img src="{{ static('images_new/icons/engineering.png') }}" class="w-100 h-100 object-fit-cover" alt="{{ clstr.name }}" />
-              {% endif %}
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Career Interests List -->
-        {% if career_interests %}
-        <div class="d-flex flex-column gap-3 gap-lg-4">
+        <!-- Career Interests Grid -->
+        {% if career_interests and career_interests|length > 0 %}
+        <div class="row g-3 g-lg-4">
           {% for career_interest in career_interests %}
-          <div class="career-item">
-            <a href="{{ career_interest.career.url() }}" class="text-decoration-none d-flex align-items-center gap-3 flex-grow-1">
-              <img src="{% if career_interest.career.image and career_interest.career.image.name %}{{ career_interest.career.image.url }}{% else %}{{ static('images/career-icon.png') }}{% endif %}" 
-                   alt="{{ career_interest.career.name }}" />
-              <div>
-                <p class="fs-13 fw-semibold text-dark mb-1">{{ career_interest.career.name }}</p>
-                <div class="d-flex align-items-center gap-2 text-gray fs-13">
-                  <span>{{ career_interest.career.get_max_salary() }} LPA •</span>
-                  <img src="{{ static('images_new/icons/favourite.png') }}" style="width: 12px; height: 12px;" alt="Rating" />
-                  <span>4.4</span>
+            {% if career_interest and career_interest.career %}
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="career-card career-card-mobile d-lg-block d-flex align-items-center position-relative">
+                <button type="button" 
+                        class="delete-career-btn deleteCareer" 
+                        data-id="{{ career_interest.career.slug }}"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#deleteCareerModal"
+                        data-career-name="{{ career_interest.career.name }}">
+                  <i class='bx bx-x fs-18'></i>
+                </button>
+                
+                <div class="career-card-icon icon-mobile d-lg-block d-none">
+                  {% if career_interest.career.image and career_interest.career.image.name %}
+                  <img src="{{ career_interest.career.image.url }}" 
+                       alt="{{ career_interest.career.name }}"
+                       onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                  <i class='bx bx-briefcase' style="display: none; font-size: 32px; color: #999;"></i>
+                  {% else %}
+                  <i class='bx bx-briefcase' style="font-size: 32px; color: #999;"></i>
+                  {% endif %}
+                </div>
+                
+                <div class="flex-grow-1 text-center text-lg-center">
+                  <a href="{{ career_interest.career.url() }}" class="text-decoration-none text-dark">
+                    <h3 class="fs-16 fw-semibold text-dark mb-0">{{ career_interest.career.name }}</h3>
+                  </a>
+                </div>
+                
+                <div class="d-lg-none position-absolute end-0 top-50 translate-middle-y me-3">
+                  <i class='bx bx-right-arrow-alt fs-20 text-gray'></i>
                 </div>
               </div>
-            </a>
-            <button type="button" 
-                    class="delete-btn deleteCareer" 
-                    data-id="{{ career_interest.career.slug }}"
-                    data-bs-toggle="modal" 
-                    data-bs-target="#deleteCareerModal"
-                    data-career-name="{{ career_interest.career.name }}">
-              <i class='bx bx-x-circle fs-24'></i>
-            </button>
-          </div>
+            </div>
+            {% endif %}
           {% endfor %}
         </div>
         {% else %}
@@ -168,20 +205,20 @@
   </div>
 </section>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteCareerModal" tabindex="-1" aria-hidden="true">
+<!-- Delete Career Modal -->
+<div class="modal fade" id="deleteCareerModal" tabindex="-1" aria-labelledby="deleteCareerModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Remove Career Interest</h5>
+        <h5 class="modal-title" id="deleteCareerModalLabel">Remove Career Interest</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p class="mb-0">Are you sure you want to remove <strong id="careerNameToDelete"></strong> from your career interests?</p>
+        <p>Are you sure you want to remove <strong id="deleteCareerName"></strong> from your career interests?</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-        <button type="button" class="btn custom-button purple-button" id="confirmDeleteCareerBtn">Yes, Remove</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn custom-button purple-button" id="confirmDeleteCareer">Remove</button>
       </div>
     </div>
   </div>
@@ -190,11 +227,10 @@
 
 {% block additionaljs %}
 {{ super() }}
-<!-- jQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
   // Sweet Alert Helper
   const fireAlert = async function (
@@ -222,76 +258,66 @@
     }
   };
 
-  // Delete career interest functionality
-  let careerSlugToDelete = null;
-
-  // Set up delete buttons
-  document.querySelectorAll('.deleteCareer').forEach(btn => {
-    btn.addEventListener('click', function() {
-      careerSlugToDelete = this.dataset.id;
-      const careerName = this.dataset.careerName || 'this career';
-      document.getElementById('careerNameToDelete').textContent = careerName;
-    });
-  });
-
-  // Confirm delete
-  document.getElementById('confirmDeleteCareerBtn')?.addEventListener('click', function() {
-    if (careerSlugToDelete) {
-      deleteCareerInterest(careerSlugToDelete);
+  // Helper function to get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
     }
-  });
+    return cookieValue;
+  }
 
-  function deleteCareerInterest(slug) {
-    const form = document.createElement("form");
-    form.setAttribute("method", "POST");
+  // Delete career functionality
+  let careerToDelete = null;
+  const deleteCareerModal = document.getElementById('deleteCareerModal');
+  
+  if (deleteCareerModal) {
+    deleteCareerModal.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      const careerSlug = button.getAttribute('data-id');
+      const careerName = button.getAttribute('data-career-name');
+      careerToDelete = careerSlug;
+      document.getElementById('deleteCareerName').textContent = careerName;
+    });
+  }
+
+  document.getElementById('confirmDeleteCareer')?.addEventListener('click', function() {
+    if (!careerToDelete) return;
     
-    const csrfField = document.createElement("input");
-    csrfField.setAttribute("type", "hidden");
-    csrfField.setAttribute("name", "csrfmiddlewaretoken");
-    csrfField.setAttribute("value", "{{ csrf_token }}");
-    form.appendChild(csrfField);
-    
-    const careerField = document.createElement("input");
-    careerField.setAttribute("type", "hidden");
-    careerField.setAttribute("name", "careerslug");
-    careerField.setAttribute("value", slug);
-    form.appendChild(careerField);
-    
-    const formData = new FormData(form);
+    const csrfToken = getCookie('csrftoken');
     
     $.ajax({
       url: "/api/v1/user/shortlistcareer",
       type: 'POST',
-      data: formData,
+      data: {
+        'careerslug': careerToDelete,
+        'csrfmiddlewaretoken': csrfToken
+      },
       success: function (data) {
-        fireAlert("Career removed successfully", "success");
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteCareerModal'));
+        fireAlert(data.message || "Career removed from interests", "success");
+        const modal = bootstrap.Modal.getInstance(deleteCareerModal);
         if (modal) {
           modal.hide();
         }
-        // Reload page after a short delay
         setTimeout(function() {
           window.location.reload();
         }, 1000);
       },
       error: function(data) {
         try {
-          fireAlert(data.responseJSON.message || "Error removing career", "error");
+          fireAlert(data.responseJSON?.message || "Error removing career", "error");
         } catch(e) {
           fireAlert("Internal Server Error", "error");
         }
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteCareerModal'));
-        if (modal) {
-          modal.hide();
-        }
-      },
-      cache: false,
-      contentType: false,
-      processData: false
+      }
     });
-  }
+  });
 </script>
 {% endblock %}
-

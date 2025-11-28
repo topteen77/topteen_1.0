@@ -2,9 +2,6 @@
 <div class="col-md-12">
   <div class="breadcrumb">
     <ol class="ps-0">
-      <li>
-        <a class="active" href="{{ url('core:home') }}">Home</a>
-      </li>
       {% if breadcrumb is iterable and breadcrumb is not string and breadcrumb is not mapping %}
         {# If breadcrumb is a list/array (not a dict) #}
         {% for item in breadcrumb %}

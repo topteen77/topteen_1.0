@@ -69,29 +69,44 @@
             <div class="video-item mb-4 pb-4 border-bottom">
               <div class="row">
                 <div class="col-md-4 col-sm-12 mb-3 mb-md-0">
-                  <div class="video-thumbnail position-relative">
+                  <div class="video-thumbnail position-relative" style="height: 200px; overflow: hidden; background: #f0f0f0;">
                     {% if video.upload_video %}
-                      <video class="w-100" controls style="max-height: 200px;">
+                      <video class="w-100" controls style="max-height: 200px; width: 100%;">
                         <source src="{{ video.get_video_or_url() }}" type="video/mp4">
                       </video>
-                    {% elif video.video_image %}
-                      <img src="{{ video.video_image.url }}" alt="{{ video.name }}" class="img-fluid w-100" style="max-height: 200px; object-fit: cover;">
                     {% else %}
-                      <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                        <i class='bx bx-play-circle fs-48 text-gray'></i>
+                      {% if video_thumbnails and video.id in video_thumbnails and video_thumbnails[video.id] %}
+                        <img src="{{ video_thumbnails[video.id] }}" alt="{{ video.name }}" class="img-fluid w-100" style="height: 200px; object-fit: cover; width: 100%;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="bg-light d-flex align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100" style="display: none;">
+                          <i class='bx bx-play-circle fs-48 text-gray'></i>
+                        </div>
+                      {% else %}
+                        {# Use server-generated thumbnail or placeholder #}
+                        {% if video_thumbnails and video.id in video_thumbnails and video_thumbnails[video.id] %}
+                          <img src="{{ video_thumbnails[video.id] }}" 
+                               alt="{{ video.name }}" 
+                               class="img-fluid w-100" 
+                               style="height: 200px; object-fit: cover; width: 100%;" 
+                               onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                          <div class="bg-light d-flex align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100" style="display: none;">
+                            <i class='bx bx-play-circle fs-48 text-gray'></i>
+                          </div>
+                        {% else %}
+                          <div class="bg-light d-flex align-items-center justify-content-center w-100 h-100">
+                            <i class='bx bx-play-circle fs-48 text-gray'></i>
+                          </div>
+                        {% endif %}
+                      {% endif %}
+                      <div class="video-play-overlay position-absolute top-50 start-50 translate-middle" style="z-index: 2;">
+                        <button class="btn btn-link text-white p-0" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="{{ video.get_video_or_url() }}">
+                          <i class='bx bx-play-circle fs-48' style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);"></i>
+                        </button>
                       </div>
-                    {% endif %}
-                    {% if not video.upload_video %}
-                    <div class="video-play-overlay position-absolute top-50 start-50 translate-middle">
-                      <button class="btn btn-link text-white p-0" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="{{ video.get_video_or_url() }}">
-                        <i class='bx bx-play-circle fs-48'></i>
-                      </button>
-                    </div>
                     {% endif %}
                     {% if request.user.is_authenticated %}
                     <div class="video-shortlist position-absolute top-0 end-0 m-2">
                       <button type="button" class="btn btn-sm btn-light rounded-circle p-2" onclick="shortlistVideo('{{ video.id }}')" id="shortlist_{{ video.id }}" title="Shortlist">
-                        <i class='bx {% if video.shortlist.filter(id=request.user.id).exists() %}bxs{% else %}bx{% endif %}-bookmark'></i>
+                        <i class='bx {% if bookmarked_video_ids and video.id in bookmarked_video_ids %}bxs{% else %}bx{% endif %}-bookmark'></i>
                       </button>
                     </div>
                     {% endif %}
@@ -242,6 +257,8 @@
 {% endblock %}
 
 {% block additionaljs %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 // Video Modal Handler
 document.addEventListener('DOMContentLoaded', function() {
@@ -277,33 +294,83 @@ document.addEventListener('DOMContentLoaded', function() {
 // Shortlist Video Function
 function shortlistVideo(videoId) {
   {% if request.user.is_authenticated %}
-  fetch('{{ url("careers:shortlist_video") }}', {
-    method: 'POST',
+  // Helper function to get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Use GET request as expected by the backend
+  fetch('{{ url("careers:shortlist_video") }}?id=' + videoId, {
+    method: 'GET',
     headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token }}'
-    },
-    body: JSON.stringify({
-      video_id: videoId
-    })
+      'X-CSRFToken': getCookie('csrftoken')
+    }
   })
   .then(response => response.json())
   .then(data => {
-    if (data.success) {
-      const btn = document.getElementById('shortlist_' + videoId);
-      if (btn) {
-        const icon = btn.querySelector('i');
-        if (data.shortlisted) {
-          icon.classList.remove('bx-bookmark');
-          icon.classList.add('bxs-bookmark');
-        } else {
-          icon.classList.remove('bxs-bookmark');
-          icon.classList.add('bx-bookmark');
+    const btn = document.getElementById('shortlist_' + videoId);
+    if (btn) {
+      const icon = btn.querySelector('i');
+      if (data.success === 'true' || data.success === true) {
+        // Video was bookmarked
+        icon.classList.remove('bx-bookmark');
+        icon.classList.add('bxs-bookmark');
+        // Show success message
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Bookmarked!',
+            text: 'Video added to bookmarks',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+          });
+        }
+      } else {
+        // Video was removed from bookmarks
+        icon.classList.remove('bxs-bookmark');
+        icon.classList.add('bx-bookmark');
+        // Show success message
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Removed!',
+            text: 'Video removed from bookmarks',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+          });
         }
       }
     }
   })
-  .catch(error => console.error('Error:', error));
+  .catch(error => {
+    console.error('Error:', error);
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: 'Error!',
+        text: 'Failed to update bookmark',
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000
+      });
+    }
+  });
   {% else %}
   window.location.href = '{{ url("users:loginsingup") }}';
   {% endif %}

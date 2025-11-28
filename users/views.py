@@ -1302,14 +1302,23 @@ class UserHobbies(TemplateView):
         ctx={}
         ctx["html_head"] = self.html_head()
         ctx['breadcrumb']=self.__breadcrumb()
+        # Pre-evaluate hobbies for Jinja2 template
+        try:
+            if hasattr(request.user, 'user_profile') and request.user.user_profile:
+                hobbies_qs = request.user.user_profile.hobbies.all()
+                ctx['hobbies'] = list(hobbies_qs) if hobbies_qs.exists() else []
+            else:
+                ctx['hobbies'] = []
+        except Exception as e:
+            ctx['hobbies'] = []
         return ctx
 
     def get(self, request,*args, **kwargs):
         return render(request, self.template_name, self.get_context(request,*args, **kwargs))
     
-#thod_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
+@method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class UserColleges(TemplateView):
-    template_name="topteenfrontend/user/mycolleges.html"
+    template_name="template20/user/bookmark_college.html"
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'My Colleges','text':'My Colleges','url':''}]
@@ -1320,10 +1329,13 @@ class UserColleges(TemplateView):
         return build_html_head(title=name, description=name)
 
     def get_context(self,request,*args,**kwargs):
+        from colleges.models import CollegeShortlist
         ctx={}
         ctx["html_head"] = self.html_head()
+        # Get bookmarked colleges from CollegeShortlist
+        college_shortlists = CollegeShortlist.objects.filter(user=request.user).select_related('college')
+        ctx["colleges"] = [cs.college for cs in college_shortlists]
         ctx['breadcrumb']=self.__breadcrumb()
-        ctx['colleges']=CollegeShortlist.objects.filter(user=request.user)
         return ctx
 
     def get(self, request,*args, **kwargs):
@@ -1346,12 +1358,20 @@ class CareerInterests(TemplateView):
         ctx={}
         ctx["html_head"] = self.html_head()
         ctx['breadcrumb']=self.__breadcrumb()
-        career_interests=request.user.career_shortlists.all()
-        ctx['career_interests']=career_interests
-        ids=career_interests.values_list('career_id',flat=True)
-        clstrs=CareerCluster.objects.filter(career_clusters__in=ids).distinct()
-        ctx['career_ids']=ids
-        ctx['clstrs']=clstrs
+        # Use select_related to optimize query and ensure career data is loaded
+        # Filter out any career_shortlists where career is None
+        career_interests_qs = request.user.career_shortlists.select_related('career').filter(career__isnull=False).all()
+        # Convert to list to ensure queryset is evaluated for Jinja2 template
+        career_interests_list = list(career_interests_qs)
+        ctx['career_interests'] = career_interests_list
+        # Get career IDs for cluster filtering - filter out None values
+        ids = [ci.career_id for ci in career_interests_list if ci and ci.career and ci.career_id]
+        if ids:
+            clstrs = CareerCluster.objects.filter(career_clusters__in=ids).distinct()
+        else:
+            clstrs = CareerCluster.objects.none()
+        ctx['career_ids'] = ids
+        ctx['clstrs'] = clstrs
         return ctx
 
     def get(self, request, *args, **kwargs):

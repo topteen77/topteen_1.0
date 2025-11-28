@@ -320,6 +320,36 @@ class Videos(BaseModel,SlugModel):
             return self.upload_video.url
             
         raise Exception('No video found')
+    
+    def get_thumbnail_url(self):
+        """Get video thumbnail URL - prefer video_image, fallback to YouTube thumbnail"""
+        # First check if video_image exists
+        if self.video_image and self.video_image.name:
+            try:
+                return self.video_image.url
+            except:
+                pass
+        
+        # If no video_image but has YouTube link, extract thumbnail
+        if self.link:
+            import re
+            # Check if it's a YouTube URL
+            youtube_patterns = [
+                r'(?:youtube\.com\/embed\/|youtu\.be\/|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]+)',
+                r'youtube\.com\/v\/([a-zA-Z0-9_-]+)',
+            ]
+            
+            for pattern in youtube_patterns:
+                match = re.search(pattern, self.link)
+                if match:
+                    video_id = match.group(1)
+                    # Return YouTube thumbnail URL (hqdefault is more reliable than maxresdefault)
+                    # hqdefault.jpg (480x360) is available for most videos
+                    return f'https://i.ytimg.com/vi/{video_id}/hqdefault.jpg'
+        
+        # For S3 or other video URLs without video_image, return None
+        # The template will show a placeholder icon
+        return None
 
 class RIASECCareer(BaseModel):
     key = models.CharField(max_length=200,unique=True)

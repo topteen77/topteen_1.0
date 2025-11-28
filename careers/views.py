@@ -250,8 +250,9 @@ class Careers(TemplateView):
         }
     
 class CareerDetail(TemplateView):
-    template_name = "template20/career_detail.html"
-    
+    template_name = "template20/career_detail_accordion.html"
+    # template_name = "template20/career_detail.html"  # Original template
+    # template_name = "template20/career_detail_mindmap.html"  # Mindmap version
     def html_head(self,career):
         titleb=career.name
         descriptionb=career.summary
@@ -955,7 +956,7 @@ class CareerTagFilter(TemplateView):
         }
 
 class CareerLibrary(TemplateView):
-    template_name='topteenfrontend/careerlibrary.html'
+    template_name='template20/careerlibrary.html'
 
     def __breadcrumb(self,name):
         l=[{'title':'Careers','text':'Careers','url':reverse_lazy('careers:career')},{'title':name,'text':name,'url':''}]
@@ -1009,6 +1010,22 @@ class CareerVideosView(TemplateView):
             page_numbers = request.GET.get('page')
             ctx['page_obj'] = paginator.get_page(page_numbers)
             ctx['html_head']=self.html_head('Explore Career Videos - Page - {}'.format(ctx['page_obj'].number))
+        
+        # Add bookmarked video IDs for authenticated users
+        if request.user.is_authenticated:
+            bookmarked_video_ids = list(Videos.objects.filter(shortlist=request.user).values_list('id', flat=True))
+            ctx['bookmarked_video_ids'] = bookmarked_video_ids
+        else:
+            ctx['bookmarked_video_ids'] = []
+        
+        # Pre-evaluate thumbnail URLs for videos in page_obj
+        video_thumbnails = {}
+        if 'page_obj' in ctx and ctx['page_obj']:
+            for video in ctx['page_obj'].object_list:
+                video_thumbnails[video.id] = video.get_thumbnail_url()
+        
+        ctx['video_thumbnails'] = video_thumbnails
+        
         return ctx
 
     def get(self,request,*args, **kwargs):
@@ -1037,6 +1054,22 @@ class CategoryCareerVideosView(TemplateView):
         ctx['breadcrumb']=self._breadcrumb(category.name)[1]
         ctx['heading'] = f"Videos in {category.name}"
         ctx['search_videos'] = ""
+        
+        # Add bookmarked video IDs for authenticated users
+        if request.user.is_authenticated:
+            bookmarked_video_ids = list(Videos.objects.filter(shortlist=request.user).values_list('id', flat=True))
+            ctx['bookmarked_video_ids'] = bookmarked_video_ids
+        else:
+            ctx['bookmarked_video_ids'] = []
+        
+        # Pre-evaluate thumbnail URLs for videos in page_obj
+        video_thumbnails = {}
+        if 'page_obj' in ctx and ctx['page_obj']:
+            for video in ctx['page_obj'].object_list:
+                video_thumbnails[video.id] = video.get_thumbnail_url()
+        
+        ctx['video_thumbnails'] = video_thumbnails
+        
         return ctx
 
     def get(self,request,category_slug,*args, **kwargs):

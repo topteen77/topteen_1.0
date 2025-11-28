@@ -17,6 +17,7 @@ urlpatterns = [
     path("career_rating",views.CareerRatingView.as_view(),name="careerrating"),
     path("career_rating_delete/<int:id>",views.career_rate_delete_view,name="ratingdelete"),
     path("shortlist_video",views.shortlist_video_view,name="shortlist_video"),
+    # path("video-thumbnail/<int:video_id>",views.video_thumbnail_view,name="video_thumbnail"),  # Function not implemented yet
     
     # API endpoints
     path("api/process-docx/", api_views.process_docx_api, name="process_docx_api"),

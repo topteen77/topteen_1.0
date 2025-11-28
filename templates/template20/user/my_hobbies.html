@@ -7,6 +7,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .my-hobbies-page {
     padding-top: 80px;
@@ -46,52 +47,64 @@
 {% block content %}
 <section class="my-hobbies-page pb-5">
   <div class="container">
-    <!-- Breadcrumb -->
-    {% if breadcrumb %}
-    {% include 'template20/includes/breadcrumb.html' %}
-    {% endif %}
-
-    <!-- Hobbies Heading -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
-      <h1 class="fs-24 fw-semibold mb-0">My Hobbies</h1>
-    </div>
-
-    <!-- Mobile Header -->
-    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
-        <i class='bx bx-arrow-left fs-18 text-gray'></i>
-      </button>
-      <h2 class="fs-16 fw-normal text-center mb-0">My Hobbies</h2>
-    </div>
-
-    <!-- Hobbies Content -->
-    {% if request.user.user_profile and request.user.user_profile.hobbies.all() %}
-    <div class="row g-3 g-lg-4">
-      {% for h in request.user.user_profile.hobbies.all() %}
-      <div class="col-12 col-md-6 col-lg-4">
-        <div class="hobby-card">
-          {% if h.image %}
-          <img src="{{ h.image.url }}" alt="{{ h.name }}" class="me-3">
-          {% endif %}
-          <p class="fs-16 fw-semibold text-dark mb-0 flex-grow-1">{{ h.name }}</p>
-          <button type="button" class="delete-btn deletehobbie" data-id="{{ h.id }}" data-bs-toggle="modal" data-bs-target="#deleteHobbyModal" data-hobby-name="{{ h.name }}">
-            <i class='bx bx-x-circle fs-24'></i>
-          </button>
-        </div>
+    <div class="row g-4 pt-4">
+      <!-- Left part Desktop - Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
       </div>
-      {% endfor %}
+      <!-- End of Left part Desktop -->
+
+      <!-- Right Part - Hobbies Content -->
+      <div class="col-lg-8">
+        <!-- Breadcrumb -->
+        {% if breadcrumb %}
+        {% include 'template20/includes/breadcrumb.html' %}
+        {% endif %}
+
+        <!-- Hobbies Heading -->
+        <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+          <h1 class="fs-24 fw-semibold mb-0">My Hobbies</h1>
+        </div>
+
+        <!-- Mobile Header -->
+        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+          <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+            <i class='bx bx-arrow-left fs-18 text-gray'></i>
+          </button>
+          <h2 class="fs-16 fw-normal text-center mb-0">My Hobbies</h2>
+        </div>
+
+        <!-- Hobbies Content -->
+        {% if hobbies and hobbies|length > 0 %}
+        <div class="row g-3 g-lg-4">
+          {% for h in hobbies %}
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="hobby-card">
+              {% if h.image %}
+              <img src="{{ h.image.url }}" alt="{{ h.name }}" class="me-3">
+              {% endif %}
+              <p class="fs-16 fw-semibold text-dark mb-0 flex-grow-1">{{ h.name }}</p>
+              <button type="button" class="delete-btn deletehobbie" data-id="{{ h.id }}" data-bs-toggle="modal" data-bs-target="#deleteHobbyModal" data-hobby-name="{{ h.name }}">
+                <i class='bx bx-x-circle fs-24'></i>
+              </button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+          <i class='bx bx-heart fs-64 text-gray mb-3'></i>
+          <h3 class="fs-20 fw-semibold text-dark mb-2">No Hobbies Selected</h3>
+          <p class="text-gray fs-14 mb-4">You haven't selected any hobbies yet. Add hobbies to help us personalize your content.</p>
+          <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button">
+            <i class='bx bx-plus me-2'></i> Add Hobbies
+          </a>
+        </div>
+        {% endif %}
+      </div>
+      <!-- End of Right Part -->
     </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="text-center py-5">
-      <i class='bx bx-heart fs-64 text-gray mb-3'></i>
-      <h3 class="fs-20 fw-semibold text-dark mb-2">No Hobbies Selected</h3>
-      <p class="text-gray fs-14 mb-4">You haven't selected any hobbies yet. Add hobbies to help us personalize your content.</p>
-      <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button">
-        <i class='bx bx-plus me-2'></i> Add Hobbies
-      </a>
-    </div>
-    {% endif %}
   </div>
 </section>
 

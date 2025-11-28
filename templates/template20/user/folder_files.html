@@ -7,6 +7,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .folder-files-page {
     padding-top: 80px;
@@ -51,30 +52,39 @@
 {% block content %}
 <section class="folder-files-page pb-5">
   <div class="container">
-    <!-- Breadcrumb -->
-    {% if breadcrumb %}
-    {% include 'template20/includes/breadcrumb.html' %}
-    {% endif %}
-
-    <!-- Folder Heading -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
-      <h1 class="fs-24 fw-semibold mb-0">{{ folder.title }}</h1>
-      <div class="d-none d-lg-block">
-        <button type="button" class="btn custom-button purple-button addFileBtn">
-          <i class='bx bx-plus me-2'></i> Upload New File
-        </button>
+    <div class="row g-4 pt-4">
+      <!-- Left part Desktop - Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
       </div>
-    </div>
+      <!-- End of Left part Desktop -->
 
-    <!-- Mobile Header -->
-    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-      <button type="button" class="btn btn-link position-absolute end-0 top-0" onclick="window.location='{{ url('users:userfolders') }}'">
-        <i class='bx bx-x fs-24 text-gray'></i>
-      </button>
-      <h2 class="fs-16 fw-normal text-center mb-0">{{ folder.title }}</h2>
-    </div>
+      <!-- Right Part - Files Content -->
+      <div class="col-lg-8">
+        <!-- Breadcrumb -->
+        {% if breadcrumb %}
+        {% include 'template20/includes/breadcrumb.html' %}
+        {% endif %}
 
-    <!-- Files Content -->
+        <!-- Folder Heading -->
+        <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+          <h1 class="fs-24 fw-semibold mb-0">{{ folder.title }}</h1>
+          <div class="d-none d-lg-block">
+            <button type="button" class="btn custom-button purple-button addFileBtn">
+              <i class='bx bx-plus me-2'></i> Upload New File
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Header -->
+        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+          <button type="button" class="btn btn-link position-absolute end-0 top-0" onclick="window.location='{{ url('users:userfolders') }}'">
+            <i class='bx bx-x fs-24 text-gray'></i>
+          </button>
+          <h2 class="fs-16 fw-normal text-center mb-0">{{ folder.title }}</h2>
+        </div>
+
+        <!-- Files Content -->
     {% if folder.folder_files.all() %}
     <div class="row g-3 g-lg-4">
       {% for file in folder.folder_files.all() %}
@@ -120,6 +130,9 @@
       <button type="button" class="btn custom-button purple-button addFileBtn">
         <i class='bx bx-plus me-2'></i> Upload New File
       </button>
+    </div>
+      </div>
+      <!-- End of Right Part -->
     </div>
   </div>
 </section>
