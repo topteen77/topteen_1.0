@@ -7664,6 +7664,8 @@ a:hover {
 
 .grid-box img {
   width: 100%;
+  height: 255px;
+  object-fit: cover;
   transition: all .4s ease;
 }
 
@@ -7933,6 +7935,7 @@ div#videoModal {
   margin: 0px !important;
   padding: 10px;
   width: 100%;
+  opacity: 1;
 }
 
 
@@ -7944,6 +7947,9 @@ div#videoModal {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  opacity: 1;
+  position: relative;
+  z-index: 10001;
 }
 
 
@@ -7952,6 +7958,20 @@ div#videoModal {
   line-height: 17px;
   font-weight: 500;
   margin-bottom: 0px;
+  color: #fff;
+  opacity: 1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.video-box .video-play {
+  position: relative;
+  z-index: 10000;
+  opacity: 1;
+}
+
+.video-box .video-play img {
+  opacity: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 
@@ -7974,6 +7994,8 @@ div#videoModal {
   display: flex;
   justify-content: center;
   margin-top: 3px;
+  position: relative;
+  z-index: 9999;
 }
 
 

@@ -148,9 +148,14 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             </ul>
 
           </div>
-          <button onclick="location.replace('{{ url('psychometrictests:psychometrictest') }}')" type="button"
-            class="btn custom-button purple-button mt-md-3 me-3">Take The Test
-            Now!</button>
+
+          <div class="d-flex flex-row mt-md-4 mt-3">
+            <a href="{{ url('psychometrictests:psychometrictest') }}" type="button"
+              class="btn custom-button purple-button mt-md-3 me-3">Stream Sorter <span class="fs-12"> (class 9th - 10th) </span> </a>
+
+            <a href="{{ url('psychometrictests:PsychometricTest12') }}" type="button"
+              class="btn custom-button purple-button mt-md-3 me-3">Career Direction <span class="fs-12">  (Class 11th - 12th) </span> </a>
+          </div>
         </div>
       </div>
     </div>
@@ -572,8 +577,8 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             exams. Start early and set clear goals for a fulfilling
             career!</p>
 
-          <button type="button" class="btn custom-button purple-button mt-3 me-3">Explore
-            More</button>
+          <a href="{{ url('careers:defaultcareerlibrary') }}" class="btn custom-button purple-button mt-3 me-3">Explore
+            More</a>
         </div>
         <div class="col-md-5 offset-md-1 order-md-2 order-1">
           <div class="cta-image">
@@ -610,39 +615,66 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
         <div class="col-md-12">
           <div class="grid-3 py-5">
             <div class="grid-box">
+              {% if after_10_course %}
+              <img src="{{ after_10_course.get_image_url() }}" alt="{{ after_10_course.name }}" onerror="this.src='{{ static('images_new/short-courses/career-ready.jpg') }}'; this.onerror=null;" />
+              {% else %}
               <img src="{{ static('images_new/short-courses/career-ready.jpg') }}" alt="img" />
+              {% endif %}
 
               <div class="text-in">
                 <span> After 10th </span>
                 <div class="text-explore">
-                  <p>Are your Career Ready?</p>
-                  <button type="button" class="btn custom-button blue-button ">Explore
-                    Now</button>
+                  <p>{% if after_10_course %}{{ after_10_course.name }}{% else %}Are your Career Ready?{% endif %}</p>
+                  {% if after_10_course %}
+                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[after_10_course.slug]) }}" class="btn custom-button blue-button ">Explore
+                    Now</a>
+                  {% else %}
+                  <a href="{{ url('skilllab:skilllabcourselist') }}" class="btn custom-button blue-button ">Explore
+                    Now</a>
+                  {% endif %}
                 </div>
               </div>
             </div>
 
             <div class="grid-box">
+              {% if after_12_course %}
+              <img src="{{ after_12_course.get_image_url() }}" alt="{{ after_12_course.name }}" onerror="this.src='{{ static('images_new/short-courses/soft-skills.jpg') }}'; this.onerror=null;" />
+              {% else %}
               <img src="{{ static('images_new/short-courses/soft-skills.jpg') }}" alt="img" />
+              {% endif %}
               <div class="text-in">
                 <span> After 12th </span>
                 <div class="text-explore">
-                  <p>Soft Skills</p>
-                  <button type="button" class="btn custom-button blue-button ">Explore
-                    Now</button>
+                  <p>{% if after_12_course %}{{ after_12_course.name }}{% else %}Soft Skills{% endif %}</p>
+                  {% if after_12_course %}
+                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[after_12_course.slug]) }}" class="btn custom-button blue-button ">Explore
+                    Now</a>
+                  {% else %}
+                  <a href="{{ url('skilllab:skilllabcourselist') }}" class="btn custom-button blue-button ">Explore
+                    Now</a>
+                  {% endif %}
                 </div>
               </div>
             </div>
 
             <div class="grid-box">
+              {% if after_college_course %}
+              <img src="{{ after_college_course.get_image_url() }}" alt="{{ after_college_course.name }}" onerror="this.src='{{ static('images_new/short-courses/career-planning.jpg') }}'; this.onerror=null;" />
+              {% else %}
               <img src="{{ static('images_new/short-courses/career-planning.jpg') }}" alt="img" />
+              {% endif %}
 
               <div class="text-in">
                 <span> After College </span>
                 <div class="text-explore">
-                  <p>Career Planning after College </p>
-                  <button type="button" class="btn custom-button blue-button ">Explore
-                    Now</button>
+                  <p>{% if after_college_course %}{{ after_college_course.name }}{% else %}Career Planning after College{% endif %}</p>
+                  {% if after_college_course %}
+                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[after_college_course.slug]) }}" class="btn custom-button blue-button ">Explore
+                    Now</a>
+                  {% else %}
+                  <a href="{{ url('skilllab:skilllabcourselist') }}" class="btn custom-button blue-button ">Explore
+                    Now</a>
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -1122,44 +1154,56 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
         <div class="col-md-12">
 
           <div class="grid-3 blog-grid pt-5">
-
-            <a class="blog-box" href="#" title="blog title">
-              <div class="blog-img-d">
-                <img src="{{ static('images_new/blogs/blog-image-1.svg') }}" alt="Blog Title" />
-              </div>
-              <div class="blog-info">
-                <span class="blog-tags text-gray fw-400 fs-14 mb-3"> For
-                  Student </span>
-                <h4 class="blog-title text-white fs-22 fw-600">Your
-                  Definitive Guide To Choosing The Perfect Stream In
-                  Class 11</h4>
-              </div>
-            </a>
-
-            <a class="blog-box" href="#" title="blog title">
-              <div class="blog-img-d">
-                <img src="{{ static('images_new/blogs/blog-image-2.svg') }}" alt="Blog Title" />
-              </div>
-              <div class="blog-info">
-                <span class="blog-tags text-gray fw-400 fs-14  mb-3"> For
-                  Parents </span>
-                <h4 class="blog-title text-white fs-22 fw-600">Career in
-                  Machine learning</h4>
-              </div>
-            </a>
-
-            <a class="blog-box" href="#" title="blog title">
-              <div class="blog-img-d">
-                <img src="{{ static('images_new/blogs/blog-image-3.svg') }}" alt="Blog Title" />
-              </div>
-              <div class="blog-info">
-                <span class="blog-tags text-gray fw-400 fs-14  mb-3"> For
-                  Student </span>
-                <h4 class="blog-title text-white fs-22 fw-600">Career in
-                  Artificial Intelligence</h4>
-              </div>
-            </a>
-
+            {% if blogs %}
+              {% for blog in blogs[:3] %}
+              <a class="blog-box" href="{{ url('blog:blogdetail', args=[blog.slug]) }}" title="{{ blog.title }}">
+                <div class="blog-img-d">
+                  {% if blog.image %}
+                  <img src="{{ blog.image.url }}" alt="{{ blog.title }}" />
+                  {% else %}
+                  <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ blog.title }}" />
+                  {% endif %}
+                </div>
+                <div class="blog-info">
+                  {% if blog.category %}
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">{{ blog.category.name }}</span>
+                  {% else %}
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">Blog</span>
+                  {% endif %}
+                  <h4 class="blog-title text-white fs-22 fw-600">{{ blog.title }}</h4>
+                </div>
+              </a>
+              {% endfor %}
+            {% else %}
+              {# Fallback to static content if no blogs available #}
+              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Blog Title">
+                <div class="blog-img-d">
+                  <img src="{{ static('images_new/blogs/blog-image-1.svg') }}" alt="Blog Title" />
+                </div>
+                <div class="blog-info">
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">For Student</span>
+                  <h4 class="blog-title text-white fs-22 fw-600">Your Definitive Guide To Choosing The Perfect Stream In Class 11</h4>
+                </div>
+              </a>
+              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Blog Title">
+                <div class="blog-img-d">
+                  <img src="{{ static('images_new/blogs/blog-image-2.svg') }}" alt="Blog Title" />
+                </div>
+                <div class="blog-info">
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">For Parents</span>
+                  <h4 class="blog-title text-white fs-22 fw-600">Career in Machine learning</h4>
+                </div>
+              </a>
+              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Blog Title">
+                <div class="blog-img-d">
+                  <img src="{{ static('images_new/blogs/blog-image-3.svg') }}" alt="Blog Title" />
+                </div>
+                <div class="blog-info">
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">For Student</span>
+                  <h4 class="blog-title text-white fs-22 fw-600">Career in Artificial Intelligence</h4>
+                </div>
+              </a>
+            {% endif %}
           </div>
 
           <div class="text-center pt-5">

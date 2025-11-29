@@ -65,6 +65,31 @@ class Home(TemplateView):
         ctx['student_faq']=CommonFAQ.get_commonfaq_by_priority().filter(user_type=choices.FAQType.student,is_featured=choices.FAQFeaturedType.HOME)[:10]
         ctx["html_head"] = self.html_head()
         ctx['skilllab_courses']=SkillLabCourse.all_objects()
+        
+        # Get specific courses for home page "Boost Your Skills" section (fully dynamic)
+        # For After 10th: try category=1 first, then fallback to BOTH (category=3)
+        ctx['after_10_course'] = SkillLabCourse.objects.filter(
+            category=choices.SkillLabCourseTypeChoice.after_10_class
+        ).first()
+        if not ctx['after_10_course']:
+            ctx['after_10_course'] = SkillLabCourse.objects.filter(
+                category=choices.SkillLabCourseTypeChoice.BOTH
+            ).first()
+        
+        # For After 12th: try category=2 first, then fallback to BOTH (category=3)
+        ctx['after_12_course'] = SkillLabCourse.objects.filter(
+            category=choices.SkillLabCourseTypeChoice.after_12_class
+        ).first()
+        if not ctx['after_12_course']:
+            ctx['after_12_course'] = SkillLabCourse.objects.filter(
+                category=choices.SkillLabCourseTypeChoice.BOTH
+            ).first()
+        
+        # For After College: use category=4
+        ctx['after_college_course'] = SkillLabCourse.objects.filter(
+            category=choices.SkillLabCourseTypeChoice.after_college
+        ).first()
+        
         ctx['exams']=EntranceExam.objects.all().order_by('?')[:3]
         ctx['clusters']=CareerCluster.objects.filter(parent__isnull=True)
         return ctx
