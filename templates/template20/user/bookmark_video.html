@@ -27,6 +27,10 @@
     width: 100%;
     height: 208px;
     background: #000;
+    overflow: hidden;
+  }
+  .video-play-overlay {
+    z-index: 2;
   }
   .video-thumbnail video,
   .video-thumbnail iframe {
@@ -35,18 +39,21 @@
     object-fit: cover;
   }
   .bookmark-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
     width: 27px;
     height: 27px;
     background: #ffffff;
+    border: 1px solid #efefee;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 10;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+  .bookmark-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   }
   .bookmark-btn.active {
     background-color: #3f37c9;
@@ -97,35 +104,61 @@
       {% for video in videos %}
       <div class="col-12 col-md-6 col-lg-4">
         <div class="video-card">
-          <div class="video-thumbnail">
-            {% if video.upload_video %}
-            <video controls muted>
-              <source src="{{ video.get_video_or_url() }}" type="video/mp4">
-            </video>
+          <div class="video-thumbnail position-relative">
+            {% set video_url = video.get_video_or_url() %}
+            {% set is_youtube = video_url and ('youtube.com' in video_url or 'youtu.be' in video_url) %}
+            {% set is_s3_video = video.upload_video or (video_url and not is_youtube and ('.mp4' in video_url.lower() or '.webm' in video_url.lower() or '.mov' in video_url.lower())) %}
+            
+            {% if is_s3_video %}
+              {# For S3 videos: Use hidden video to capture first frame #}
+              <video class="video-thumb-source" 
+                     data-video-id="{{ video.id }}"
+                     preload="metadata"
+                     muted
+                     playsinline
+                     crossorigin="anonymous"
+                     style="display: none;">
+                <source src="{{ video_url }}" type="video/mp4">
+              </video>
+              <img class="video-thumb-img" 
+                   data-video-id="{{ video.id }}"
+                   alt="{{ video.name }}"
+                   style="width: 100%; height: 208px; object-fit: cover; display: none;">
+              <canvas class="video-thumb-canvas" 
+                      data-video-id="{{ video.id }}"
+                      style="display: none;"></canvas>
+              <div class="video-thumb-placeholder bg-light d-flex align-items-center justify-content-center w-100 h-100" data-video-id="{{ video.id }}" style="height: 208px;">
+                <i class='bx bx-play-circle fs-48 text-gray'></i>
+              </div>
             {% else %}
-            <iframe class="h-full w-full" 
-                    allowfullscreen 
-                    src="{{ video.get_video_or_url() }}" 
-                    muted
-                    frameborder="0"
-                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-            </iframe>
-            <div class="absolute inset-0 d-flex justify-content-center align-items-center">
-              <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="btn btn-link p-0">
+              {# For YouTube/external videos: Use existing thumbnail or placeholder #}
+              {% if video.video_image %}
+                <img src="{{ video.video_image.url }}" alt="{{ video.name }}" class="w-100" style="height: 208px; object-fit: cover;">
+              {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center w-100 h-100" style="height: 208px;">
+                  <i class='bx bx-play-circle fs-48 text-gray'></i>
+                </div>
+              {% endif %}
+            {% endif %}
+            
+            {# Play button overlay #}
+            <div class="video-play-overlay position-absolute top-50 start-50 translate-middle" style="z-index: 2;">
+              <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="btn btn-link text-white p-0">
                 <img src="{{ static('images_new/icons/video-play.svg') }}" alt="Play" style="width: 68px; height: 68px;">
               </a>
             </div>
-            {% endif %}
-            <div id="video_{{ video.id }}" 
-                 class="bookmark-btn {% if video.shortlist.filter(id=request.user.id).exists() %}active{% endif %}" 
-                 onclick="shortlist('{{ video.id }}')">
-              <i class='bx bx-bookmark'></i>
-            </div>
           </div>
           <div class="p-3 border-top">
-            <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="text-decoration-none">
-              <h5 class="fs-18 fw-semibold text-dark mb-2">{{ video.name }}</h5>
-            </a>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="text-decoration-none flex-grow-1">
+                <h5 class="fs-18 fw-semibold text-dark mb-0">{{ video.name }}</h5>
+              </a>
+              <div id="video_{{ video.id }}" 
+                   class="bookmark-btn ms-2 {% if video.shortlist.filter(id=request.user.id).exists() %}active{% endif %}" 
+                   onclick="shortlist('{{ video.id }}')">
+                <i class='bx bx-bookmark'></i>
+              </div>
+            </div>
             <p class="fs-12 text-gray mb-2">
               <i class='bx bx-calendar me-1'></i>{{ date_format(video.created) }}
             </p>
@@ -250,8 +283,102 @@
   });
 
   // Close modal and stop video when modal is hidden
-  document.getElementById('videoModal').addEventListener('hidden.bs.modal', function() {
-    document.getElementById('videoPlayer').src = '';
+  const videoModal = document.getElementById('videoModal');
+  if (videoModal) {
+    videoModal.addEventListener('hidden.bs.modal', function() {
+      const videoPlayer = document.getElementById('videoPlayer');
+      if (videoPlayer) {
+        videoPlayer.src = '';
+      }
+    });
+  }
+
+  // Generate thumbnails from first frame (0:00:00) for S3 videos
+  function generateVideoThumbnails() {
+    const videoElements = document.querySelectorAll('.video-thumb-source');
+    console.log('Found ' + videoElements.length + ' video elements for thumbnail generation');
+    
+    if (videoElements.length === 0) {
+      console.log('No S3 videos found - all videos might be YouTube/external links');
+      return;
+    }
+    
+    videoElements.forEach(function(video) {
+      if (!video) return;
+      
+      const videoId = video.getAttribute('data-video-id');
+      if (!videoId) {
+        console.warn('Video element missing data-video-id');
+        return;
+      }
+      
+      const canvas = document.querySelector('.video-thumb-canvas[data-video-id="' + videoId + '"]');
+      const thumbnailImg = document.querySelector('.video-thumb-img[data-video-id="' + videoId + '"]');
+      const placeholder = document.querySelector('.video-thumb-placeholder[data-video-id="' + videoId + '"]');
+      
+      if (!canvas || !thumbnailImg || !placeholder) {
+        console.warn('Missing elements for video ID: ' + videoId);
+        return;
+      }
+      
+      console.log('Processing video ID: ' + videoId);
+      
+      video.addEventListener('loadedmetadata', function() {
+        try {
+          const width = video.videoWidth || 640;
+          const height = video.videoHeight || 360;
+          canvas.width = width;
+          canvas.height = height;
+          console.log('Video metadata loaded for ID ' + videoId + ': ' + width + 'x' + height);
+          video.currentTime = 0.1;
+        } catch (e) {
+          console.error('Error loading metadata for video ' + videoId + ':', e);
+          placeholder.style.display = 'flex';
+          thumbnailImg.style.display = 'none';
+        }
+      }, { once: true });
+      
+      video.addEventListener('seeked', function() {
+        try {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imgData = canvas.toDataURL('image/jpeg', 0.85);
+            thumbnailImg.src = imgData;
+            placeholder.style.display = 'none';
+            thumbnailImg.style.display = 'block';
+            console.log('Thumbnail generated successfully for video ID: ' + videoId);
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+          }
+        } catch (e) {
+          console.error('Error capturing thumbnail for video ' + videoId + ':', e);
+          placeholder.style.display = 'flex';
+          thumbnailImg.style.display = 'none';
+        }
+      }, { once: true });
+      
+      video.addEventListener('error', function(e) {
+        if (thumbnailImg.style.display !== 'block') {
+          console.error('Video load error for ID ' + videoId + ':', e);
+          placeholder.style.display = 'flex';
+          thumbnailImg.style.display = 'none';
+        }
+      }, { once: true });
+      
+      try {
+        video.load();
+        console.log('Loading video for ID: ' + videoId);
+      } catch (e) {
+        console.error('Error loading video ' + videoId + ':', e);
+      }
+    });
+  }
+
+  // Generate thumbnails on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    generateVideoThumbnails();
   });
 </script>
 {% endblock %}

@@ -29,17 +29,36 @@
         <h1 class="heading-title mt-md-9 mt-8 mb-3">
           {{ video.name }}
         </h1>
-        <div class="video-meta mb-3">
-          <span class="text-gray fs-14">
-            <i class='bx bx-calendar'></i> {{ date_format(video.created) }}
-          </span>
-          {% if video.category.all() %}
-          <span class="text-gray fs-14 ms-3">
-            <i class='bx bx-category'></i>
-            {% for cat in video.category.all() %}
-              <a href="{{ url('careers:category', args=[cat.slug]) }}" class="text-decoration-none">{{ cat.name }}</a>{% if not loop.last %}, {% endif %}
-            {% endfor %}
-          </span>
+        <div class="video-meta mb-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div>
+            <span class="text-gray fs-14">
+              <i class='bx bx-calendar'></i> {{ date_format(video.created) }}
+            </span>
+            {% if video.category.all() %}
+            <span class="text-gray fs-14 ms-3">
+              <i class='bx bx-category'></i>
+              {% for cat in video.category.all() %}
+                <a href="{{ url('careers:category', args=[cat.slug]) }}" class="text-decoration-none">{{ cat.name }}</a>{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </span>
+            {% endif %}
+          </div>
+          {% if request.user.is_authenticated %}
+          <div>
+            <button type="button" class="btn btn-outline-primary shortlist-video-btn" onclick="shortlistVideo('{{ video.id }}')" id="shortlist_{{ video.id }}" style="white-space: nowrap;">
+              <i class='bx {% if is_video_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}' style="font-size: 18px; color: {% if is_video_bookmarked %}#28a745{% else %}inherit{% endif %};"></i>
+              <span class="buttontext ms-2">
+                {% if is_video_bookmarked %}Remove Bookmark{% else %}Bookmark{% endif %}
+              </span>
+            </button>
+          </div>
+          {% else %}
+          <div>
+            <a href="{{ url('users:loginsingup') }}" class="btn btn-outline-primary" style="white-space: nowrap;">
+              <i class='bx bx-bookmark' style="font-size: 18px;"></i>
+              <span class="ms-2">Bookmark</span>
+            </a>
+          </div>
           {% endif %}
         </div>
       </div>
@@ -82,8 +101,8 @@
         </div>
         {% endif %}
 
-        <!-- Share and Bookmark -->
-        <div class="video-actions d-flex flex-wrap gap-3 mb-4 pb-4 border-bottom">
+        <!-- Share Section -->
+        <div class="video-actions mb-4 pb-4 border-bottom">
           <div class="blog-share">
             <div class="blog-share-title">Share:</div>
             <div class="blog-share-icons">
@@ -94,21 +113,6 @@
               <a href="#" class="blog-share-icon copy-link" data-url="{{ url('careers:videodetail', args=[video.slug]) }}"><i class="bx bx-link"></i></a>
             </div>
           </div>
-          {% if request.user.is_authenticated %}
-          <div class="video-bookmark">
-            <button type="button" class="btn custom-button purple-button" onclick="shortlistVideo('{{ video.id }}')" id="shortlist_{{ video.id }}">
-              <i class='bx {% if video.shortlist.filter(id=request.user.id).exists() %}bxs{% else %}bx{% endif %}-bookmark'></i>
-              <span>{% if video.shortlist.filter(id=request.user.id).exists() %}Bookmarked{% else %}Bookmark{% endif %}</span>
-            </button>
-          </div>
-          {% else %}
-          <div class="video-bookmark">
-            <a href="{{ url('users:loginsingup') }}" class="btn custom-button purple-button">
-              <i class='bx bx-bookmark'></i>
-              <span>Bookmark</span>
-            </a>
-          </div>
-          {% endif %}
         </div>
       </div>
 
@@ -211,6 +215,8 @@
 {% endblock %}
 
 {% block additionaljs %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 // Convert YouTube URLs to embed format
 document.addEventListener('DOMContentLoaded', function() {
@@ -234,36 +240,88 @@ document.addEventListener('DOMContentLoaded', function() {
 // Shortlist Video Function
 function shortlistVideo(videoId) {
   {% if request.user.is_authenticated %}
-  fetch('{{ url("careers:shortlist_video") }}', {
-    method: 'POST',
+  // Helper function to get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Use GET request as expected by the backend
+  fetch('{{ url("careers:shortlist_video") }}?id=' + videoId, {
+    method: 'GET',
     headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token }}'
-    },
-    body: JSON.stringify({
-      video_id: videoId
-    })
+      'X-CSRFToken': getCookie('csrftoken')
+    }
   })
   .then(response => response.json())
   .then(data => {
-    if (data.success) {
-      const btn = document.getElementById('shortlist_' + videoId);
-      if (btn) {
-        const icon = btn.querySelector('i');
-        const span = btn.querySelector('span');
-        if (data.shortlisted) {
-          icon.classList.remove('bx-bookmark');
-          icon.classList.add('bxs-bookmark');
-          if (span) span.textContent = 'Bookmarked';
-        } else {
-          icon.classList.remove('bxs-bookmark');
-          icon.classList.add('bx-bookmark');
-          if (span) span.textContent = 'Bookmark';
+    const btn = document.getElementById('shortlist_' + videoId);
+    if (btn) {
+      const icon = btn.querySelector('i');
+      const span = btn.querySelector('.buttontext');
+      if (data.success === 'true' || data.success === true) {
+        // Video was bookmarked
+        icon.classList.remove('bx-bookmark');
+        icon.classList.add('bxs-bookmark');
+        icon.style.color = '#28a745';
+        if (span) span.textContent = 'Remove Bookmark';
+        // Show success message
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Bookmarked!',
+            text: 'Video added to bookmarks',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+          });
+        }
+      } else {
+        // Video was removed from bookmarks
+        icon.classList.remove('bxs-bookmark');
+        icon.classList.add('bx-bookmark');
+        icon.style.color = 'inherit';
+        if (span) span.textContent = 'Bookmark';
+        // Show success message
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Removed!',
+            text: 'Video removed from bookmarks',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+          });
         }
       }
     }
   })
-  .catch(error => console.error('Error:', error));
+  .catch(error => {
+    console.error('Error:', error);
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: 'Error!',
+        text: 'Failed to update bookmark',
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000
+      });
+    }
+  });
   {% else %}
   window.location.href = '{{ url("users:loginsingup") }}';
   {% endif %}

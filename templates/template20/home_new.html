@@ -548,7 +548,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
     </div>
 
     <div class="text-center pt-5">
-      <a class="text-purple text-decoration-underline fs-17" href="#" target="_blank">Explore All <i
+      <a class="text-purple text-decoration-underline fs-17" href="{{ url('careers:defaultcareerlibrary') }}">Explore All <i
           class="bx bx-chevrons-right"></i></a>
     </div>
   </section>
@@ -604,7 +604,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
               and personal development. Start learning today to stay ahead!
             </p>
           </div>
-          <a class="text-purple text-decoration-underline fs-17 d-md-block d-none" href="#" target="_blank">View All <i
+          <a class="text-purple text-decoration-underline fs-17 d-md-block d-none" href="{{ url('skilllab:skilllabcourselist') }}">View All <i
               class='bx bx-chevrons-right'></i></a>
         </div>
         <div class="col-md-12">
@@ -650,7 +650,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
           <div class="col-md-12 text-center">
 
-            <a class="text-purple text-decoration-underline fs-17 d-md-none d-block" href="#" target="_blank">View All
+            <a class="text-purple text-decoration-underline fs-17 d-md-none d-block" href="{{ url('skilllab:skilllabcourselist') }}">View All
               <i class='bx bx-chevrons-right'></i></a>
 
           </div>
@@ -683,7 +683,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
           </div>
 
-          <a class="text-purple text-decoration-underline fs-17 d-md-block d-none" href="#" target="_blank">View All <i
+          <a class="text-purple text-decoration-underline fs-17 d-md-block d-none" href="{{ url('careers:careervideos') }}">View All <i
               class="bx bx-chevrons-right"></i></a>
         </div>
 
@@ -794,7 +794,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
       <div class="row">
         <div class="col-md-12 text-center">
-          <a class="text-purple text-decoration-underline fs-17 d-md-none d-block" href="#" target="_blank">View All <i
+          <a class="text-purple text-decoration-underline fs-17 d-md-none d-block" href="{{ url('careers:careervideos') }}">View All <i
               class='bx bx-chevrons-right'></i></a>
         </div>
       </div>
@@ -1045,82 +1045,51 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
         <div class="col-md-7 position-relative">
 
+          {% if reviewers %}
           <div id="testim" class="testim">
             <div class="wrap">
 
               <ul id="testim-dots" class="dots d-none">
-                <li class="dot active"></li>
-                <li class="dot"></li>
-                <li class="dot"></li>
+                {% for reviewer in reviewers %}
+                <li class="dot {% if loop.first %}active{% endif %}"></li>
+                {% endfor %}
               </ul>
               <div id="testim-background" class="demo">
+                {% for reviewer in reviewers %}
                 <div class="slider"></div>
-                <div class="slider"></div>
+                {% endfor %}
               </div>
               <div id="testim-content" class="cont">
 
-                <div class="slider active">
+                {% for reviewer in reviewers %}
+                <div class="slider {% if loop.first %}active{% endif %}">
                   <div class="test-text">
-                    <div class="test-img"><img src="{{ static('images_new/general/puneet-img.svg') }}" alt="TestImg" /> </div>
+                    <div class="test-img">
+                      <img src="{% if reviewer.image %}{{ reviewer.image.url }}{% else %}{{ static('images/review-default.png') }}{% endif %}" alt="{{ reviewer.name }}" onerror="this.src='{{ static('images/review-default.png') }}'; this.onerror=null;" />
+                    </div>
                     <div class="test-test-info">
-                      <p class="test-name text-purple fs-16 fw-600">Preet
-                        Kunwar Singh</p>
-                      <p class="test-cas text-gray">Student</p>
+                      <p class="test-name text-purple fs-16 fw-600">{{ reviewer.name }}</p>
+                      <p class="test-cas text-gray">{{ reviewer.profession }}</p>
                       <div class="quote-text">
                         <div class="text-gray">
-                          <p class="text-purple fw-500   mb-2 ts-st">"Dream
-                            to Reality – Thanks to
-                            TopTeen! </p>
-                          <p class="mt-2">
-                            TopTeen made my study abroad journey seamless,
-                            from university selection to visa processing.
-                            With their expert guidance, I graduated from
-                            the University of the Fraser Valley, BC, and
-                            am
-                            now happily settled in Canada. Their
-                            personalized support and commitment to student
-                            success
-                            are truly commendable!"
-                          </p>
-
+                          <p class="text-purple fw-500 mb-2 ts-st">"{{ reviewer.description|truncate(100) }}</p>
+                          <p class="mt-2">{{ reviewer.description }}</p>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div class="slider ">
-                  <div class="test-text">
-                    <div class="test-img"><img src="{{ static('images_new/general/achirabhasingh.svg') }}" alt="TestImg" />
-                    </div>
-                    <div class="test-test-info">
-                      <p class="test-name text-purple fs-16 fw-600">Ms.
-                        Achirabha Singh</p>
-                      <p class="test-cas text-gray">Student</p>
-                      <div class="quote-text">
-                        <div class="text-gray">
-
-                          <p class="text-purple fw-500   mb-2 ts-st">"Dream
-                            to Reality – Thanks to
-                            TopTeen! </p>
-                          <p class="mt-2">
-                            TopTeen’s expert counseling made my study
-                            abroad journey smooth and stress-free. With
-                            their
-                            support, I chose the right course and am now
-                            pursuing my Post Graduate Diploma at Langara
-                            College, BC. Their guidance gave me confidence
-                            in my future—highly recommended!
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {% endfor %}
 
               </div>
 
             </div>
           </div>
+          {% else %}
+          <div class="testim-placeholder d-flex align-items-center justify-content-center" style="min-height: 300px;">
+            <p class="text-gray">No testimonials available at the moment.</p>
+          </div>
+          {% endif %}
 
         </div>
 
@@ -1439,7 +1408,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
           </div>
 
           <div class="text-center pt-5">
-            <a class="text-purple text-decoration-underline fs-17" href="#" target="_blank">View All <i
+            <a class="text-purple text-decoration-underline fs-17" href="{{ url('core:allfaq') }}">View All <i
                 class="bx bx-chevrons-right"></i></a>
           </div>
 

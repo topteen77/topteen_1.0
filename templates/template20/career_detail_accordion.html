@@ -12,6 +12,18 @@
 
 {% block additionalhead %}
 <style>
+  .shortlist-button-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .shortlist-button-container .btn {
+    min-width: 200px;
+  }
+
   .add-read-more.show-less-content .second-section,
   .add-read-more.show-less-content .read-less {
     display: none;
@@ -549,6 +561,19 @@
             </div>
           </div>
 
+          <!-- Shortlist Button - Moved from sidebar to main content area -->
+          <div class="shortlist-button-container mt-4 mb-4">
+            <button type="button" class="btn custom-button purple-button shortlistcareer" data-careerslug="{{ career.slug }}">
+              <span class="buttontext">
+                {% if shortlisted_career %}
+                <i class='bx bxs-bookmark'></i> Remove from Shortlist
+                {% else %}
+                <i class='bx bx-bookmark'></i> Shortlist Career
+                {% endif %}
+              </span>
+            </button>
+          </div>
+
           <!-- ============================================ -->
           <!-- BACKUP: OLD D3.js Mindmap (Commented Out) -->
           <!-- ============================================ -->
@@ -742,9 +767,9 @@
             <div class="blogDetail careerDetail">{{ career.pros_cons|safe }}</div>
             {% endif %}
 
-            {% if career.get_max_salary() %}
+            {% if career.get_max_salary() and career.get_max_salary() != 'N/A' %}
             <h4>Salary Expectations</h4>
-            <p>{{ career.get_max_salary() }}</p>
+            <p>{{ career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim }}</p>
             {% endif %}
 
             {% if career.careermedia.all() %}
@@ -869,15 +894,6 @@
         <div class="career-cta mt-4 p-4 bg-light rounded">
           <h5 class="mb-3">Interested in this career?</h5>
           <p class="text-gray fs-14 mb-3">Take the next step and explore more about {{ career.name }}.</p>
-          <button type="button" class="btn custom-button purple-button w-100 shortlistcareer" data-careerslug="{{ career.slug }}">
-            <span class="buttontext">
-              {% if shortlisted_career %}
-              <i class='bx bxs-bookmark'></i> Remove from Shortlist
-              {% else %}
-              <i class='bx bx-bookmark'></i> Shortlist Career
-              {% endif %}
-            </span>
-          </button>
         </div>
       </div>
     </div>
@@ -920,10 +936,10 @@
             <h3 class="blog-title mt-0">
               <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}">{{ related_career.name }}</a>
             </h3>
-            {% if related_career.get_max_salary() %}
+            {% if related_career.get_max_salary() and related_career.get_max_salary() != 'N/A' %}
             <div class="salary-range">
               <i class='bx bx-rupee'></i>
-              <span>{{ related_career.get_max_salary() }}</span>
+              <span>{{ related_career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim }}</span>
             </div>
             {% endif %}
             {% if related_career.summary %}
@@ -1451,15 +1467,41 @@
     }
   });
 
+  // Helper function to get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
   // Career shortlist/bookmark functionality
   document.addEventListener('DOMContentLoaded', function() {
     const shortlistButtons = document.querySelectorAll('.shortlistcareer');
     shortlistButtons.forEach(button => {
       button.addEventListener('click', function() {
         const careerSlug = this.getAttribute('data-careerslug');
-        const buttonText = this.querySelector('.buttontext') || this;
+        const buttonText = this.querySelector('.buttontext');
         const icon = this.querySelector('i');
         const csrfToken = getCookie('csrftoken');
+        
+        if (!csrfToken) {
+          console.error('CSRF token not found');
+          Swal.fire({
+            title: 'Error',
+            text: 'Please refresh the page and try again',
+            icon: 'error'
+          });
+          return;
+        }
         
         // Disable button during request
         this.disabled = true;
@@ -1471,10 +1513,37 @@
             'X-CSRFToken': csrfToken,
             'X-Requested-With': 'XMLHttpRequest'
           },
+          credentials: 'same-origin',
           body: 'careerslug=' + encodeURIComponent(careerSlug) + '&csrfmiddlewaretoken=' + csrfToken
         })
-        .then(response => response.json())
+        .then(response => {
+          if (response.status === 403) {
+            // User not authenticated
+            this.disabled = false;
+            Swal.fire({
+              title: 'Login Required',
+              text: 'You must be logged in to shortlist careers. Would you like to login?',
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#667eea',
+              cancelButtonColor: '#d33',
+              confirmButtonText: 'Yes, Login',
+              cancelButtonText: 'Cancel'
+            }).then((result) => {
+              if (result.isConfirmed) {
+                window.location.href = '/user/login/';
+              }
+            });
+            return null;
+          }
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
         .then(data => {
+          if (!data) return; // Handled authentication error above
+          
           this.disabled = false;
           
           if (data.message === 'Career Shortlisted') {
@@ -1483,63 +1552,61 @@
               icon.classList.remove('bx-bookmark');
               icon.classList.add('bxs-bookmark');
             }
-            if (buttonText && buttonText.textContent) {
+            if (buttonText) {
               buttonText.innerHTML = '<i class=\'bx bxs-bookmark\'></i> Remove from Shortlist';
             }
             this.classList.add('active');
             
             // Show success message
-            if (typeof Swal !== 'undefined') {
-              Swal.fire({
-                title: 'Career bookmarked',
-                icon: 'success',
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2000,
-                toast: true
-              });
-            }
+            Swal.fire({
+              title: 'Career bookmarked',
+              icon: 'success',
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 2000,
+              toast: true
+            });
           } else if (data.message === 'Removed Shortlisted') {
             // Removed
             if (icon) {
               icon.classList.remove('bxs-bookmark');
               icon.classList.add('bx-bookmark');
             }
-            if (buttonText && buttonText.textContent) {
+            if (buttonText) {
               buttonText.innerHTML = '<i class=\'bx bx-bookmark\'></i> Shortlist Career';
             }
             this.classList.remove('active');
             
             // Show success message
-            if (typeof Swal !== 'undefined') {
-              Swal.fire({
-                title: 'Career removed from bookmarks',
-                icon: 'success',
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2000,
-                toast: true
-              });
-            }
-          }
-        })
-        .catch(error => {
-          this.disabled = false;
-          console.error('Error:', error);
-          if (typeof Swal !== 'undefined') {
             Swal.fire({
-              title: 'Error updating bookmark',
-              icon: 'error',
+              title: 'Career removed from bookmarks',
+              icon: 'success',
               position: 'top-end',
               showConfirmButton: false,
               timer: 2000,
               toast: true
             });
           }
+        })
+        .catch(error => {
+          this.disabled = false;
+          console.error('Error:', error);
+          Swal.fire({
+            title: 'Error updating bookmark',
+            text: error.message || 'Please try again later',
+            icon: 'error',
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            toast: true
+          });
         });
       });
     });
   });
 </script>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 {% endblock %}
 

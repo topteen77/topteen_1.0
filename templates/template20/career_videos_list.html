@@ -70,39 +70,50 @@
               <div class="row">
                 <div class="col-md-4 col-sm-12 mb-3 mb-md-0">
                   <div class="video-thumbnail position-relative" style="height: 200px; overflow: hidden; background: #f0f0f0;">
-                    {% if video.upload_video %}
-                      <video class="w-100" controls style="max-height: 200px; width: 100%;">
-                        <source src="{{ video.get_video_or_url() }}" type="video/mp4">
+                    {% set video_url = video.get_video_or_url() %}
+                    {% set is_youtube = video_url and ('youtube.com' in video_url or 'youtu.be' in video_url) %}
+                    {% set is_s3_video = video.upload_video or (video_url and not is_youtube and ('.mp4' in video_url.lower() or '.webm' in video_url.lower() or '.mov' in video_url.lower())) %}
+                    
+                    {% if is_s3_video %}
+                      {# For S3 videos: Use hidden video to capture first frame #}
+                      <video class="video-thumb-source" 
+                             data-video-id="{{ video.id }}"
+                             preload="metadata"
+                             muted
+                             playsinline
+                             crossorigin="anonymous"
+                             style="display: none;">
+                        <source src="{{ video_url }}" type="video/mp4">
                       </video>
+                      <img class="video-thumb-img" 
+                           data-video-id="{{ video.id }}"
+                           alt="{{ video.name }}"
+                           style="width: 100%; height: 200px; object-fit: cover; display: none;">
+                      <canvas class="video-thumb-canvas" 
+                              data-video-id="{{ video.id }}"
+                              style="display: none;"></canvas>
+                      <div class="video-thumb-placeholder bg-light d-flex align-items-center justify-content-center w-100 h-100" data-video-id="{{ video.id }}">
+                        <i class='bx bx-play-circle fs-48 text-gray'></i>
+                      </div>
                     {% else %}
+                      {# For YouTube/external videos: Use existing thumbnail logic #}
                       {% if video_thumbnails and video.id in video_thumbnails and video_thumbnails[video.id] %}
                         <img src="{{ video_thumbnails[video.id] }}" alt="{{ video.name }}" class="img-fluid w-100" style="height: 200px; object-fit: cover; width: 100%;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <div class="bg-light d-flex align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100" style="display: none;">
                           <i class='bx bx-play-circle fs-48 text-gray'></i>
                         </div>
                       {% else %}
-                        {# Use server-generated thumbnail or placeholder #}
-                        {% if video_thumbnails and video.id in video_thumbnails and video_thumbnails[video.id] %}
-                          <img src="{{ video_thumbnails[video.id] }}" 
-                               alt="{{ video.name }}" 
-                               class="img-fluid w-100" 
-                               style="height: 200px; object-fit: cover; width: 100%;" 
-                               onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                          <div class="bg-light d-flex align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100" style="display: none;">
-                            <i class='bx bx-play-circle fs-48 text-gray'></i>
-                          </div>
-                        {% else %}
-                          <div class="bg-light d-flex align-items-center justify-content-center w-100 h-100">
-                            <i class='bx bx-play-circle fs-48 text-gray'></i>
-                          </div>
-                        {% endif %}
+                        <div class="bg-light d-flex align-items-center justify-content-center w-100 h-100">
+                          <i class='bx bx-play-circle fs-48 text-gray'></i>
+                        </div>
                       {% endif %}
-                      <div class="video-play-overlay position-absolute top-50 start-50 translate-middle" style="z-index: 2;">
-                        <button class="btn btn-link text-white p-0" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="{{ video.get_video_or_url() }}">
-                          <i class='bx bx-play-circle fs-48' style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);"></i>
-                        </button>
-                      </div>
                     {% endif %}
+                    {# Play button overlay #}
+                    <div class="video-play-overlay position-absolute top-50 start-50 translate-middle" style="z-index: 2;">
+                      <button class="btn btn-link text-white p-0" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="{{ video.get_video_or_url() }}">
+                        <i class='bx bx-play-circle fs-48' style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);"></i>
+                      </button>
+                    </div>
                     {% if request.user.is_authenticated %}
                     <div class="video-shortlist position-absolute top-0 end-0 m-2">
                       <button type="button" class="btn btn-sm btn-light rounded-circle p-2" onclick="shortlistVideo('{{ video.id }}')" id="shortlist_{{ video.id }}" title="Shortlist">
@@ -260,8 +271,99 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+// Generate thumbnails from first frame (0:00:00) for S3 videos
+function generateVideoThumbnails() {
+  const videoElements = document.querySelectorAll('.video-thumb-source');
+  console.log('Found ' + videoElements.length + ' video elements for thumbnail generation');
+  
+  if (videoElements.length === 0) {
+    console.log('No S3 videos found - all videos might be YouTube/external links');
+    return;
+  }
+  
+  videoElements.forEach(function(video) {
+    if (!video) return;
+    
+    const videoId = video.getAttribute('data-video-id');
+    if (!videoId) {
+      console.warn('Video element missing data-video-id');
+      return;
+    }
+    
+    const canvas = document.querySelector('.video-thumb-canvas[data-video-id="' + videoId + '"]');
+    const thumbnailImg = document.querySelector('.video-thumb-img[data-video-id="' + videoId + '"]');
+    const placeholder = document.querySelector('.video-thumb-placeholder[data-video-id="' + videoId + '"]');
+    
+    if (!canvas || !thumbnailImg || !placeholder) {
+      console.warn('Missing elements for video ID: ' + videoId);
+      return;
+    }
+    
+    console.log('Processing video ID: ' + videoId);
+    
+    video.addEventListener('loadedmetadata', function() {
+      try {
+        const width = video.videoWidth || 640;
+        const height = video.videoHeight || 360;
+        canvas.width = width;
+        canvas.height = height;
+        console.log('Video metadata loaded for ID ' + videoId + ': ' + width + 'x' + height);
+        video.currentTime = 0.1;
+      } catch (e) {
+        console.error('Error loading metadata for video ' + videoId + ':', e);
+        placeholder.style.display = 'flex';
+        thumbnailImg.style.display = 'none';
+      }
+    }, { once: true });
+    
+    video.addEventListener('seeked', function() {
+      try {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imgData = canvas.toDataURL('image/jpeg', 0.85);
+          thumbnailImg.src = imgData;
+          placeholder.style.display = 'none';
+          thumbnailImg.style.display = 'block';
+          console.log('Thumbnail generated successfully for video ID: ' + videoId);
+          // Clean up video element after successful capture
+          video.pause();
+          video.removeAttribute('src');
+          video.load(); // Reload to clear
+        }
+      } catch (e) {
+        console.error('Error capturing thumbnail for video ' + videoId + ':', e);
+        console.error('This might be a CORS issue. Check S3 bucket CORS settings.');
+        placeholder.style.display = 'flex';
+        thumbnailImg.style.display = 'none';
+      }
+    }, { once: true });
+    
+    video.addEventListener('error', function(e) {
+      // Only show error if thumbnail wasn't already generated
+      if (thumbnailImg.style.display !== 'block') {
+        console.error('Video load error for ID ' + videoId + ':', e);
+        console.error('Video source:', video.querySelector('source') ? video.querySelector('source').src : 'No source');
+        console.error('CORS Error: S3 bucket needs CORS configuration to allow thumbnail generation from this domain.');
+        placeholder.style.display = 'flex';
+        thumbnailImg.style.display = 'none';
+      }
+    }, { once: true });
+    
+    try {
+      video.load();
+      console.log('Loading video for ID: ' + videoId);
+    } catch (e) {
+      console.error('Error loading video ' + videoId + ':', e);
+    }
+  });
+}
+
 // Video Modal Handler
 document.addEventListener('DOMContentLoaded', function() {
+  // Generate thumbnails for S3 videos
+  generateVideoThumbnails();
+  
   const videoModal = document.getElementById('videoModal');
   if (videoModal) {
     videoModal.addEventListener('show.bs.modal', function(event) {
@@ -273,10 +375,10 @@ document.addEventListener('DOMContentLoaded', function() {
         let embedUrl = videoUrl;
         if (videoUrl.includes('youtube.com/watch')) {
           const videoId = videoUrl.split('v=')[1]?.split('&')[0];
-          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+          embedUrl = 'https://www.youtube.com/embed/' + videoId;
         } else if (videoUrl.includes('youtu.be/')) {
           const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
-          embedUrl = `https://www.youtube.com/embed/${videoId}`;
+          embedUrl = 'https://www.youtube.com/embed/' + videoId;
         }
         videoFrame.src = embedUrl;
       }

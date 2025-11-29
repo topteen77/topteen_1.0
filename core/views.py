@@ -56,7 +56,7 @@ class Home(TemplateView):
         ctx['videos'] = Videos.objects.all().order_by('?')
         ctx['careers_video']=Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED).exclude(Q(video_url=""))
         ctx['courses'] = Course.get_all_courses()
-        ctx['reviewers'] = Review.get_all_reviews()
+        ctx['reviewers'] = Review.get_published_objects()
         ctx['tags']=tags
         ctx['countries']=country
         ctx['body_css_class']='no-scrollbar overflow-x-hidden'

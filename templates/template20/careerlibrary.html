@@ -198,10 +198,10 @@ Explore careers in {{ cluster_name }}. Discover diverse career paths organized b
             <h3 class="blog-title mt-0">
               <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">{{ career.name }}</a>
             </h3>
-            {% if career.get_max_salary() %}
+            {% if career.get_max_salary() and career.get_max_salary() != 'N/A' %}
             <div class="salary-range">
               <i class='bx bx-rupee'></i>
-              <span>{{ career.get_max_salary() }}</span>
+              <span>{{ career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim }}</span>
             </div>
             {% endif %}
             {% if career.summary %}

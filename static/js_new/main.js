@@ -614,7 +614,10 @@ $(document).ready(function ($) {
 // Initialize testimonial script only when DOM is ready
 function initTestimonialScript() {
   var testim = document.getElementById("testim");
-  if (!testim) return; // Exit early if testim element doesn't exist
+  if (!testim) {
+    console.log('[Testimonial] Testim element not found');
+    return; // Exit early if testim element doesn't exist
+  }
   
   var testimDotsEl = document.getElementById("testim-dots"),
     testimContentEl = document.getElementById("testim-content"),
@@ -634,8 +637,25 @@ function initTestimonialScript() {
     touchPosDiff,
     ignoreTouch = 30;
 
+  console.log('[Testimonial] Initializing:', {
+    testim: !!testim,
+    dots: testimDots.length,
+    content: testimContent.length,
+    leftArrow: !!testimLeftArrow,
+    rightArrow: !!testimRightArrow
+  });
+
   // Testim Script - only run if testimonial elements exist
   if (testim && testimDots.length > 0 && testimContent.length > 0) {
+    console.log('[Testimonial] Setting up carousel with', testimContent.length, 'slides');
+    // Hide arrows if only one testimonial
+    if (testimContent.length <= 1) {
+      console.log('[Testimonial] Only one slide, hiding arrows');
+      if (testimLeftArrow) testimLeftArrow.style.display = 'none';
+      if (testimRightArrow) testimRightArrow.style.display = 'none';
+      return; // Exit early if only one testimonial
+    }
+
     function playSlide(slide) {
       if (testimDemo.length >= 2) {
         testimDemo[0].classList.add("active");
@@ -644,7 +664,7 @@ function initTestimonialScript() {
 
       for (var k = 0; k < testimDots.length; k++) {
         testimContent[k].classList.remove("active");
-        testimContent[k].classList.add(`inactive`);
+        testimContent[k].classList.add("inactive");
         testimDots[k].classList.remove("active");
       }
 
@@ -657,9 +677,13 @@ function initTestimonialScript() {
         slide = currentSlide = 0;
       }
 
-      testimContent[slide].classList.remove("inactive");
-      testimContent[slide].classList.add("active");
-      testimDots[slide].classList.add("active");
+      if (testimContent[slide]) {
+        testimContent[slide].classList.remove("inactive");
+        testimContent[slide].classList.add("active");
+        if (testimDots[slide]) {
+          testimDots[slide].classList.add("active");
+        }
+      }
 
       currentActive = currentSlide;
 
@@ -677,16 +701,33 @@ function initTestimonialScript() {
       }, testimSpeed);
     }
 
+    // Initialize first slide
+    playSlide(0);
+
     if (testimLeftArrow) {
-      testimLeftArrow.addEventListener("click", function () {
+      testimLeftArrow.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Testimonial] Left arrow clicked, current slide:', currentSlide);
+        clearTimeout(testimTimer);
         playSlide(currentSlide -= 1);
       });
+      console.log('[Testimonial] Left arrow listener attached');
+    } else {
+      console.log('[Testimonial] Left arrow not found!');
     }
 
     if (testimRightArrow) {
-      testimRightArrow.addEventListener("click", function () {
+      testimRightArrow.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Testimonial] Right arrow clicked, current slide:', currentSlide);
+        clearTimeout(testimTimer);
         playSlide(currentSlide += 1);
       });
+      console.log('[Testimonial] Right arrow listener attached');
+    } else {
+      console.log('[Testimonial] Right arrow not found!');
     }
 
     for (var l = 0; l < testimDots.length; l++) {

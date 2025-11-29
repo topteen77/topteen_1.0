@@ -126,9 +126,9 @@
                 </svg>
               </div>
               <p class="mindmap-caption" id="mindmap-caption">Each colorful branch maps to a tab below—click to reveal overview, study plans, role journeys, industry insights, practice resources, or concluding tips.</p>
-            </div>
-          </div>
-
+                </div>
+              </div>
+              
           <!-- Tab Navigation -->
           <div class="career-tabs-wrapper">
             <div class="career-tabs-nav-container">
@@ -157,16 +157,16 @@
                     <i class='bx bx-briefcase'></i>
                     <span>Resources</span>
                   </button>
-                </div>
+              </div>
                 <button class="tab-scroll-btn right" id="tabScrollRight" aria-label="Scroll tabs right">
                   <i class='bx bx-chevron-right'></i>
                 </button>
-              </div>
             </div>
+          </div>
 
-            <!-- Tab Content -->
+          <!-- Tab Content -->
             <div class="career-tabs-content">
-              <!-- Overview Tab -->
+            <!-- Overview Tab -->
               <div class="career-tab-content active" id="overview-tab">
               <div class="cat-main-content">
                 {% if career.description %}
@@ -191,7 +191,7 @@
               </div>
             </div>
 
-              <!-- Education Tab -->
+            <!-- Education Tab -->
               <div class="career-tab-content" id="education-tab">
               <div class="cat-main-content">
                 {% if career.eligibility %}
@@ -229,7 +229,7 @@
               </div>
             </div>
 
-              <!-- Career Path Tab -->
+            <!-- Career Path Tab -->
               <div class="career-tab-content" id="career-path-tab">
               <div class="cat-main-content">
                 {% if career.career_paths.all() %}
@@ -251,7 +251,7 @@
               </div>
             </div>
 
-              <!-- Industry Insights Tab -->
+            <!-- Industry Insights Tab -->
               <div class="career-tab-content" id="industry-insights-tab">
               <div class="cat-main-content">
                 {% if career.prospective_employment_areas.exists() %}
@@ -279,7 +279,7 @@
               </div>
             </div>
 
-              <!-- Resources Tab -->
+            <!-- Resources Tab -->
               <div class="career-tab-content" id="resource-tab">
               <div class="cat-main-content">
                 {% if career.careermedia.all() %}
@@ -1061,7 +1061,7 @@
 
       $(".add-read-more").each(function () {
         if ($(this).find(".first-section").length)
-          return;
+      return;
         var allstr = $(this).text();
         if (allstr.length > carLmt) {
           var firstSet = allstr.substring(0, carLmt);
@@ -1077,7 +1077,7 @@
     }
 
     AddReadMore();
-
+    
     // Tab switching functionality
     function activateCareerTab(targetTab, shouldScroll = true) {
       if (!targetTab) return;
@@ -1105,7 +1105,7 @@
       var targetTab = $(this).data('tab');
       activateCareerTab(targetTab);
     });
-
+    
     // Mindmap node click handler
     function handleMindmapTrigger(e) {
       if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') {
@@ -1126,7 +1126,7 @@
       var scrollLeft = nav.scrollLeft();
       var scrollWidth = nav[0].scrollWidth;
       var clientWidth = nav[0].clientWidth;
-
+    
       // Update left button
       if (scrollLeft <= 5) {
         $('#tabScrollLeft').addClass('disabled');
@@ -1140,8 +1140,8 @@
       } else {
         $('#tabScrollRight').removeClass('disabled');
       }
-    }
-
+        }
+        
     // Scroll left
     $('#tabScrollLeft').on('click', function () {
       if (!$(this).hasClass('disabled')) {
@@ -1150,8 +1150,8 @@
         }, 300, function () {
           updateScrollButtons();
         });
-      }
-    });
+            }
+          });
 
     // Scroll right
     $('#tabScrollRight').on('click', function () {
@@ -1185,7 +1185,7 @@
         const videoUrl = button.getAttribute('data-video');
         if (modalVideo && videoUrl) {
           modalVideo.src = videoUrl;
-        }
+    }
       });
       
       videoModal.addEventListener('hide.bs.modal', function() {
@@ -1194,8 +1194,8 @@
           modalVideo.src = '';
         }
       });
-    }
-
+  }
+  
     // Copy link functionality
     const copyLinks = document.querySelectorAll('.copy-link');
     copyLinks.forEach(function(link) {
@@ -1205,7 +1205,7 @@
         navigator.clipboard.writeText(url).then(function() {
           alert('Link copied to clipboard!');
         });
-      });
+  });
     });
   });
 

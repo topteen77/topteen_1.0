@@ -12,7 +12,7 @@
           {% include 'template20/includes/breadcrumb.html' %}
           <div class="col-lg-6 col-md-12">
             <span class="highlighter">
-              <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="iocn" /> Frequently Asked Questions 
+              <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="iocn" onerror="this.src='{{ static('images_new/icons/faq-icon.svg') }}'; this.onerror=null;" /> Frequently Asked Questions 
             </span>
             <h1 class="heading-title mt-md-9 mb-md-8 mt-8 mb-3">
               Got Questions? We've Got Answers!
@@ -23,7 +23,7 @@
 
           <div class="col-lg-4 col-md-12 offset-md-2">
             <div class="right-banner d-md-flex d-none justify-content-end">
-              <img class="img-fluid" src="{{ static('images_new/faqs-img.svg') }}" alt="Psychometric Test" />
+              <img class="img-fluid" src="{{ static('images_new/general/faqs-img.svg') }}" alt="FAQ" onerror="this.style.display='none'; this.onerror=null;" />
             </div>
           </div>
 

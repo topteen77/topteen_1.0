@@ -236,12 +236,38 @@
             <div class="feed-card" style="min-width: 200px; max-width: 300px;">
               <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="text-decoration-none">
                 <div class="position-relative">
+                  {% set video_url = video.get_video_or_url() %}
+                  {% set is_youtube = video_url and ('youtube.com' in video_url or 'youtu.be' in video_url) %}
+                  {% set is_s3_video = video.upload_video or (video_url and not is_youtube and ('.mp4' in video_url.lower() or '.webm' in video_url.lower() or '.mov' in video_url.lower())) %}
+                  
                   {% if video.video_image %}
-                  <img src="{{ video.video_image.url }}" class="w-100" style="height: 150px; object-fit: cover;" alt="{{ video.name }}">
+                    <img src="{{ video.video_image.url }}" class="w-100" style="height: 150px; object-fit: cover;" alt="{{ video.name }}">
+                  {% elif is_s3_video %}
+                    {# For S3 videos: Use hidden video to capture first frame #}
+                    <video class="video-thumb-source" 
+                           data-video-id="{{ video.id }}"
+                           preload="metadata"
+                           muted
+                           playsinline
+                           crossorigin="anonymous"
+                           style="display: none;">
+                      <source src="{{ video_url }}" type="video/mp4">
+                    </video>
+                    <img class="video-thumb-img" 
+                         data-video-id="{{ video.id }}"
+                         alt="{{ video.name }}"
+                         class="w-100"
+                         style="height: 150px; object-fit: cover; display: none;">
+                    <canvas class="video-thumb-canvas" 
+                            data-video-id="{{ video.id }}"
+                            style="display: none;"></canvas>
+                    <div class="video-thumb-placeholder bg-light d-flex align-items-center justify-content-center" data-video-id="{{ video.id }}" style="height: 150px;">
+                      <i class='bx bx-play-circle fs-48 text-gray'></i>
+                    </div>
                   {% else %}
-                  <div class="bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
-                    <i class='bx bx-play-circle fs-48 text-gray'></i>
-                  </div>
+                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
+                      <i class='bx bx-play-circle fs-48 text-gray'></i>
+                    </div>
                   {% endif %}
                   <div class="position-absolute top-50 start-50 translate-middle">
                     <i class='bx bx-play-circle fs-48 text-white'></i>
@@ -606,6 +632,76 @@
       contentType: false,
       processData: false
     });
+  });
+
+  // Generate thumbnails from first frame (0:00:00) for S3 videos
+  function generateVideoThumbnails() {
+    const videoElements = document.querySelectorAll('.video-thumb-source');
+    
+    if (videoElements.length === 0) {
+      return;
+    }
+    
+    videoElements.forEach(function(video) {
+      if (!video) return;
+      
+      const videoId = video.getAttribute('data-video-id');
+      if (!videoId) return;
+      
+      const canvas = document.querySelector('.video-thumb-canvas[data-video-id="' + videoId + '"]');
+      const thumbnailImg = document.querySelector('.video-thumb-img[data-video-id="' + videoId + '"]');
+      const placeholder = document.querySelector('.video-thumb-placeholder[data-video-id="' + videoId + '"]');
+      
+      if (!canvas || !thumbnailImg || !placeholder) return;
+      
+      video.addEventListener('loadedmetadata', function() {
+        try {
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 360;
+          video.currentTime = 0.1;
+        } catch (e) {
+          placeholder.style.display = 'flex';
+          thumbnailImg.style.display = 'none';
+        }
+      }, { once: true });
+      
+      video.addEventListener('seeked', function() {
+        try {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imgData = canvas.toDataURL('image/jpeg', 0.85);
+            thumbnailImg.src = imgData;
+            placeholder.style.display = 'none';
+            thumbnailImg.style.display = 'block';
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+          }
+        } catch (e) {
+          placeholder.style.display = 'flex';
+          thumbnailImg.style.display = 'none';
+        }
+      }, { once: true });
+      
+      video.addEventListener('error', function(e) {
+        if (thumbnailImg.style.display !== 'block') {
+          placeholder.style.display = 'flex';
+          thumbnailImg.style.display = 'none';
+        }
+      }, { once: true });
+      
+      try {
+        video.load();
+      } catch (e) {
+        console.error('Error loading video:', e);
+      }
+    });
+  }
+
+  // Generate thumbnails on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    generateVideoThumbnails();
   });
 </script>
 {% endblock %}

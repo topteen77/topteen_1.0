@@ -1090,6 +1090,12 @@ class VideoDetail(TemplateView):
         ctx['breadcrumb']= bread_crumb[1]
         ctx['html_head']=self.html_head(video.name)
         
+        # Check if video is bookmarked by current user (for Jinja2 template compatibility)
+        if request.user.is_authenticated:
+            ctx['is_video_bookmarked'] = video.shortlist.filter(id=request.user.id).exists()
+        else:
+            ctx['is_video_bookmarked'] = False
+        
         # Get related videos from same categories
         related_videos = Videos.objects.none()
         if video.category.exists():
