@@ -1,0 +1,168 @@
+<!-- Students Table Container (for AJAX loading) -->
+<div id="students-table-container">
+<div class="table-responsive">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>S.No.</th>
+        <th>Class</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Contact</th>
+        <th>Recent Follow-up</th>
+        <th>Session Attended</th>
+        <th>Psychometric Report</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if students %}
+        {% for stu_info in students %}
+        <tr>
+          <td>
+            {% if paginator %}
+              {{ (students.number - 1) * students.paginator.per_page + loop.index0 + 1 }}
+            {% else %}
+              {{ loop.index }}
+            {% endif %}
+          </td>
+          <td>{{ stu_info.student.class_and_section.class_and_section }}</td>
+          <td>{{ stu_info.student.student.name }}</td>
+          <td>{{ stu_info.student.student.email }}</td>
+          <td>{{ stu_info.student.student.mobile }}</td>
+          <td>
+            {% if stu_info.follow_ups %}
+              {{ stu_info.follow_ups[0].last_follow_up_date|default('-') }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>
+            {% if stu_info.follow_ups %}
+              {% if stu_info.follow_ups[0].is_followed_up %}
+                <span class="badge bg-success">Yes</span>
+              {% else %}
+                <span class="badge bg-danger">No</span>
+              {% endif %}
+            {% else %}
+              <span class="badge bg-danger">No</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if results_data %}
+              {% if stu_info.student.student in results_data %}
+                {% set result = results_data[stu_info.student.student] %}
+                {% set test_status = result.get('test_status', 'no_tests') %}
+                {% set tooltip = result.get('tooltip', '') %}
+                
+                {% if test_status == 'completed' %}
+                  <span class="badge bg-success position-relative" 
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="top" 
+                        title="{{ tooltip or 'All tests completed' }}">
+                    <i class='bx bx-check-circle me-1'></i> Complete
+                  </span>
+                  {% if result.test_link %}
+                    <a href="{{ result.test_link }}" target="_blank" class="btn btn-sm btn-link p-0 ms-2" title="View Report">
+                      <i class='bx bx-link-external'></i>
+                    </a>
+                  {% endif %}
+                {% elif test_status == 'in_progress' %}
+                  <span class="badge bg-warning position-relative" 
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="top" 
+                        title="{{ tooltip or 'Tests in progress' }}">
+                    <i class='bx bx-time-five me-1'></i> In Process
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary position-relative" 
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="top" 
+                        title="{{ tooltip or 'No tests taken' }}">
+                    <i class='bx bx-hourglass me-1'></i> Pending
+                  </span>
+                {% endif %}
+              {% else %}
+                <span class="badge bg-secondary">
+                  <i class='bx bx-hourglass me-1'></i> Pending
+                </span>
+              {% endif %}
+            {% else %}
+              <span class="badge bg-secondary">
+                <i class='bx bx-hourglass me-1'></i> Pending
+              </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="8" class="text-center">No students found.</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+</div>
+<!-- End of Table Container -->
+
+<!-- Pagination Container (for AJAX loading) -->
+<div id="students-pagination">
+{% if students %}
+<div class="d-flex justify-content-between align-items-center mt-3">
+  <div>
+    {% if paginator %}
+      Showing {{ ((students.number - 1) * students.paginator.per_page) + 1 }} to {% if students.number * students.paginator.per_page < students.paginator.count %}{{ students.number * students.paginator.per_page }}{% else %}{{ students.paginator.count }}{% endif %} of {{ students.paginator.count }} entries
+    {% else %}
+      Showing all {{ students|length }} entries
+    {% endif %}
+  </div>
+  {% if paginator %}
+  <nav>
+    <ul class="pagination mb-0">
+      {% if students.has_previous() %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ students.previous_page_number() }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">
+          <i class='bx bx-chevron-left'></i>
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled">
+        <span class="page-link"><i class='bx bx-chevron-left'></i></span>
+      </li>
+      {% endif %}
+
+      {% for num in students.paginator.page_range %}
+        {% if students.number == num %}
+          <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+          </li>
+        {% elif num <= 3 or num > students.paginator.num_pages - 3 or (num >= students.number - 2 and num <= students.number + 2) %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ num }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">{{ num }}</a>
+          </li>
+        {% elif num == 4 or num == students.paginator.num_pages - 3 %}
+          <li class="page-item disabled">
+            <span class="page-link">...</span>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if students.has_next() %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ students.next_page_number() }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">
+          <i class='bx bx-chevron-right'></i>
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled">
+        <span class="page-link"><i class='bx bx-chevron-right'></i></span>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endif %}
+</div>
+<!-- End of Pagination Container -->
+

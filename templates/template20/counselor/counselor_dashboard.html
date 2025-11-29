@@ -1,0 +1,580 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Counselor Dashboard | Top Teen{% endblock %}
+{% block description_content %}Counselor dashboard for managing students and courses.{% endblock %}
+
+{% block bodyclass %}{{ super() }} counselor-dashboard{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<style>
+  .counselor-dashboard {
+    padding-top: 80px;
+  }
+  .stat-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .stat-card i {
+    min-width: 32px;
+  }
+  .stat-card p {
+    margin: 0;
+  }
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: #828282;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="counselor-dashboard pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <!-- Left Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="border rounded-3 p-3 sticky-top" style="top: 100px;">
+          <!-- Counselor Profile -->
+          <div class="text-center border-bottom pb-3 mb-3">
+            <div class="mb-3">
+              {% if counselors.coun_user.image %}
+              <img src="/media/upload/users/{{counselors.coun_user.id}}/user_{{counselors.coun_user.id}}.jpg" 
+                   class="rounded-circle" 
+                   style="width: 104px; height: 104px; object-fit: cover;" 
+                   alt="Counselor Image" 
+                   onerror="this.src='{{ static('images_new/icons/user-icon.svg') }}'">
+              {% else %}
+              <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 104px; height: 104px;">
+                <i class='bx bx-user fs-48 text-gray'></i>
+              </div>
+              {% endif %}
+            </div>
+            <h5 class="fs-16 fw-semibold mb-3">{{ counselors.counselor_name }}</h5>
+            <div class="d-flex flex-column gap-2 text-start">
+              <div class="d-flex gap-2 align-items-center">
+                <i class='bx bx-calendar fs-18 text-gray'></i>
+                <span class="fs-14 text-gray">Joined {{ counselors.created.strftime("%B, %Y") }}</span>
+              </div>
+              <div class="d-flex gap-2 align-items-center">
+                <i class='bx bx-book fs-18 text-gray'></i>
+                <span class="fs-14 text-gray">
+                  {% if counselors.counselor_education %}{{ counselors.counselor_education }}{% else %}-{% endif %} •
+                  {% if counselors.counselor_address %}{{ counselors.counselor_address }}{% else %}-{% endif %}
+                </span>
+              </div>
+              <div class="d-flex gap-2 align-items-center">
+                <i class='bx bx-building fs-18 text-gray'></i>
+                <span class="fs-14 text-gray">{{ counselors.counselor_admin }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- My Course Button -->
+          {% if request.user.user_type == 4 %}
+          <a href="{{ url('counselor:Counselor_Course', args=[counselors.id]) }}" 
+             class="btn w-100 mb-3 text-white fw-bold" 
+             style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;">
+            <i class='bx bx-chalkboard me-2'></i> MY COURSE
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        <h2 class="fs-24 fw-semibold mb-4">Counselor Dashboard</h2>
+        
+        <!-- Statistics Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-6">
+            <div class="stat-card">
+              <i class='bx bx-user-check fs-32 text-primary'></i>
+              <div>
+                <p class="stat-value">{{ students_count|length }}</p>
+                <p class="stat-label">Assigned</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="stat-card">
+              <i class='bx bx-check-circle fs-32 text-success'></i>
+              <div>
+                <p class="stat-value">{{ total_is_followed_up_count }}</p>
+                <p class="stat-label">Followed</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assigned Students Section -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="fs-18 fw-semibold mb-0">Assigned Students</h3>
+          <div class="d-flex gap-2 align-items-center">
+            <label for="class_and_section_filter" class="form-label text-gray fs-12 mb-1">Records per page</label>
+            <select name="per_page" id="perPageSelect" class="form-control custom-input" style="width: auto; min-width: 100px;" onchange="updatePerPage(this.value)">
+              <option value="10" {% if per_page == '10' %}selected{% endif %}>10</option>
+              <option value="100" {% if per_page == '100' %}selected{% endif %}>100</option>
+              <option value="all" {% if per_page == 'all' %}selected{% endif %}>All</option>
+            </select>
+            <a href="{{ url('counselor:Counselor_follow_up_page', args=[counselors.id]) }}" 
+               class="btn custom-button purple-button">
+              <i class='bx bx-user-check me-1'></i> FOLLOW-UP HISTORY
+            </a>
+          </div>
+        </div>
+
+        <!-- Filter Form -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <form id="student-filter-form" method="get" class="row g-3">
+              <input type="hidden" name="per_page" value="{{ per_page }}">
+              <div class="col-md-3">
+                <label for="class_and_section_filter" class="form-label text-gray fs-12 mb-1">Class</label>
+                <select name="class_and_section" id="class_and_section_filter" class="form-control custom-input">
+                  <option value="">All Classes</option>
+                  {% for cas in class_and_sections %}
+                  <option value="{{ cas.class_and_section }}" 
+                          {% if request.GET.class_and_section == cas.class_and_section %}selected{% endif %}>
+                    {{ cas.class_and_section }} ({{ class_counts.get(cas.class_and_section, 0) }} students)
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="test_taken_filter" class="form-label text-gray fs-12 mb-1">Assessment Status</label>
+                <select name="test_taken" id="test_taken_filter" class="form-control custom-input">
+                  <option value="">All Assessments</option>
+                  <option value="Yes" {% if request.GET.test_taken == 'Yes' %}selected{% endif %}>Completed</option>
+                  <option value="No" {% if request.GET.test_taken == 'No' %}selected{% endif %}>Not Started</option>
+                  <option value="In Progress" {% if request.GET.test_taken == 'In Progress' %}selected{% endif %}>In Progress</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="student_name_filter" class="form-label text-gray fs-12 mb-1">Student Name</label>
+                <input type="text" 
+                       name="student_name" 
+                       id="student_name_filter"
+                       class="form-control custom-input" 
+                       placeholder="Enter student name"
+                       value="{{ request.GET.student_name|default('') }}">
+              </div>
+              <div class="col-md-3 d-flex gap-2 align-items-end">
+                <button type="submit" 
+                        class="btn custom-button purple-button" 
+                        style="height: 50px; width: 150px; text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
+                  Search
+                </button>
+                <a href="{{ url('counselor:CounselorDashboardView', args=[coun_id]) }}" 
+                   class="btn btn-secondary" 
+                   style="height: 50px; width: 150px; text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
+                  Reset
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Students Table -->
+        <div class="card">
+          <div class="card-body">
+            <!-- Loader -->
+            <div id="students-loader" class="text-center py-5" style="display: none;">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3 text-gray">Loading students...</p>
+            </div>
+            
+            <!-- Table Container -->
+            <div id="students-table-container">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>S.No.</th>
+                    <th>Class</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Recent Follow-up</th>
+                    <th>Session Attended</th>
+                    <th>Psychometric Report</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if students %}
+                    {% for stu_info in students %}
+                    <tr>
+                      <td>
+                        {% if paginator %}
+                          {{ (students.number - 1) * students.paginator.per_page + loop.index0 + 1 }}
+                        {% else %}
+                          {{ loop.index }}
+                        {% endif %}
+                      </td>
+                      <td>{{ stu_info.student.class_and_section.class_and_section }}</td>
+                      <td>{{ stu_info.student.student.name }}</td>
+                      <td>{{ stu_info.student.student.email }}</td>
+                      <td>{{ stu_info.student.student.mobile }}</td>
+                      <td>
+                        {% if stu_info.follow_ups %}
+                          {{ stu_info.follow_ups[0].last_follow_up_date|default('-') }}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if stu_info.follow_ups %}
+                          {% if stu_info.follow_ups[0].is_followed_up %}
+                            <span class="badge bg-success">Yes</span>
+                          {% else %}
+                            <span class="badge bg-danger">No</span>
+                          {% endif %}
+                        {% else %}
+                          <span class="badge bg-danger">No</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if results_data %}
+                          {% if stu_info.student.student in results_data %}
+                            {% set result = results_data[stu_info.student.student] %}
+                            {% set test_status = result.get('test_status', 'no_tests') %}
+                            {% set tooltip = result.get('tooltip', '') %}
+                            
+                            {% if test_status == 'completed' %}
+                              <span class="badge bg-success position-relative" 
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-placement="top" 
+                                    title="{{ tooltip or 'All tests completed' }}">
+                                <i class='bx bx-check-circle me-1'></i> Complete
+                              </span>
+                              {% if result.test_link %}
+                                <a href="{{ result.test_link }}" target="_blank" class="btn btn-sm btn-link p-0 ms-2" title="View Report">
+                                  <i class='bx bx-link-external'></i>
+                                </a>
+                              {% endif %}
+                            {% elif test_status == 'in_progress' %}
+                              <span class="badge bg-warning position-relative" 
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-placement="top" 
+                                    title="{{ tooltip or 'Tests in progress' }}">
+                                <i class='bx bx-time-five me-1'></i> In Process
+                              </span>
+                            {% else %}
+                              <span class="badge bg-secondary position-relative" 
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-placement="top" 
+                                    title="{{ tooltip or 'No tests taken' }}">
+                                <i class='bx bx-hourglass me-1'></i> Pending
+                              </span>
+                            {% endif %}
+                          {% else %}
+                            <span class="badge bg-secondary">
+                              <i class='bx bx-hourglass me-1'></i> Pending
+                            </span>
+                          {% endif %}
+                        {% else %}
+                          <span class="badge bg-secondary">
+                            <i class='bx bx-hourglass me-1'></i> Pending
+                          </span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="8" class="text-center">No students found.</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+            </div>
+            <!-- End of Table Container -->
+
+              <!-- Pagination -->
+            <div id="students-pagination">
+            {% if students %}
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div>
+                {% if paginator %}
+                  Showing {{ ((students.number - 1) * students.paginator.per_page) + 1 }} to {% if students.number * students.paginator.per_page < students.paginator.count %}{{ students.number * students.paginator.per_page }}{% else %}{{ students.paginator.count }}{% endif %} of {{ students.paginator.count }} entries
+                {% else %}
+                  Showing all {{ students|length }} entries
+                {% endif %}
+              </div>
+              {% if paginator %}
+              <nav>
+                <ul class="pagination mb-0">
+                  {% if students.has_previous() %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ students.previous_page_number() }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">
+                      <i class='bx bx-chevron-left'></i>
+                    </a>
+                  </li>
+                  {% else %}
+                  <li class="page-item disabled">
+                    <span class="page-link"><i class='bx bx-chevron-left'></i></span>
+                  </li>
+                  {% endif %}
+
+                  {% for num in students.paginator.page_range %}
+                    {% if students.number == num %}
+                      <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                      </li>
+                    {% elif num <= 3 or num > students.paginator.num_pages - 3 or (num >= students.number - 2 and num <= students.number + 2) %}
+                      <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">{{ num }}</a>
+                      </li>
+                    {% elif num == 4 or num == students.paginator.num_pages - 3 %}
+                      <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+
+                  {% if students.has_next() %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ students.next_page_number() }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">
+                      <i class='bx bx-chevron-right'></i>
+                    </a>
+                  </li>
+                  {% else %}
+                  <li class="page-item disabled">
+                    <span class="page-link"><i class='bx bx-chevron-right'></i></span>
+                  </li>
+                  {% endif %}
+                </ul>
+              </nav>
+              {% endif %}
+            </div>
+            {% endif %}
+            </div>
+            <!-- End of Pagination Container -->
+          </div>
+        </div>
+
+        <!-- Weekly Session Report -->
+        <div class="card mt-4">
+          <div class="card-body text-center">
+            <h5 class="fs-18 fw-bold mb-4">Weekly Counselor Session Report</h5>
+            <canvas id="sessionsChart" width="400" height="200"></canvas>
+            <div id="no-data-container" data-no-data-img="{{ static('images_new/general/no-data.png') }}" style="display: none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const sessionsDataElement = document.getElementById('sessions-data');
+    if (!sessionsDataElement) {
+      console.log('Sessions data element not found');
+      return;
+    }
+    
+    let sessionsData;
+    try {
+      sessionsData = JSON.parse(sessionsDataElement.textContent);
+    } catch (e) {
+      console.error('Error parsing sessions data:', e);
+      return;
+    }
+    
+    const chartContainer = document.querySelector(".card-body");
+    const canvas = document.getElementById('sessionsChart');
+    if (!canvas) {
+      console.log('Canvas element not found');
+      return;
+    }
+    const noDataContainer = document.getElementById("no-data-container");
+    const noDataImage = noDataContainer ? noDataContainer.getAttribute("data-no-data-img") : null;
+
+    if (!sessionsData.length || !sessionsData[0].sessions.length) {
+      if (canvas) {
+        canvas.parentElement.innerHTML = `
+          <div class="d-flex justify-content-center align-items-center flex-column">
+            <img width="100px" src="${noDataImage || ''}" alt="No Data"/>
+            <p class="mt-3">No matching records found</p>
+          </div>
+        `;
+      }
+      return;
+    }
+
+    const colorPalette = ['#ff758c', '#11998e', '#667eea', '#3357FF', '#89f7fe', '#9B59B6', '#E67E22'];
+    const datasets = sessionsData.map((counselor, index) => ({
+      label: `Counselor: ${counselor.counselor_name}`,
+      data: counselor.sessions.map(session => session.session_count),
+      backgroundColor: colorPalette[index % colorPalette.length],
+      borderColor: colorPalette[index % colorPalette.length],
+      borderWidth: 1
+    }));
+
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: sessionsData[0].sessions.map(session => session.day),
+          datasets: datasets
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+                callback: function (value) {
+                  return Number.isInteger(value) ? value : null;
+                }
+              },
+              title: {
+                display: true,
+                text: 'Number of Sessions'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Date'
+              }
+            }
+          },
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top'
+            }
+          }
+        }
+      });
+    }
+  });
+</script>
+<script id="sessions-data" type="application/json">{{ sessions_data_json|safe }}</script>
+<script>
+  function updatePerPage(value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', value);
+    url.searchParams.delete('page'); // Reset to page 1 when changing per_page
+    loadStudentsTable(url.toString());
+  }
+  
+  // Initialize Bootstrap tooltips
+  function initTooltips() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }
+  
+  // AJAX function to load students table
+  function loadStudentsTable(url) {
+    const tableContainer = document.getElementById('students-table-container');
+    const loader = document.getElementById('students-loader');
+    
+    if (tableContainer && loader) {
+      tableContainer.style.display = 'none';
+      loader.style.display = 'block';
+      
+      fetch(url, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      })
+      .then(response => response.text())
+      .then(html => {
+        // Create a temporary container to parse the HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // Extract the table and pagination from the response
+        const newTableContainer = tempDiv.querySelector('#students-table-container');
+        const newPagination = tempDiv.querySelector('#students-pagination');
+        
+        if (newTableContainer) {
+          document.getElementById('students-table-container').innerHTML = newTableContainer.innerHTML;
+        }
+        if (newPagination) {
+          const paginationContainer = document.getElementById('students-pagination');
+          if (paginationContainer) {
+            paginationContainer.innerHTML = newPagination.innerHTML;
+          }
+        }
+        
+        // Update per_page dropdown to match current selection
+        const urlParams = new URLSearchParams(url.split('?')[1] || '');
+        const perPageValue = urlParams.get('per_page') || '10';
+        const perPageSelect = document.getElementById('perPageSelect');
+        if (perPageSelect) {
+          perPageSelect.value = perPageValue;
+        }
+        
+        // Update URL without reload
+        window.history.pushState({}, '', url);
+        
+        // Hide loader and show table
+        loader.style.display = 'none';
+        tableContainer.style.display = 'block';
+        
+        // Reinitialize tooltips
+        initTooltips();
+      })
+      .catch(error => {
+        console.error('Error loading students:', error);
+        loader.style.display = 'none';
+        tableContainer.style.display = 'block';
+      });
+    } else {
+      // Fallback to full page reload if AJAX fails
+      window.location.href = url;
+    }
+  }
+  
+  // Handle form submission with AJAX
+  document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.getElementById('student-filter-form');
+    if (filterForm) {
+      filterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const params = new URLSearchParams(formData);
+        const url = window.location.pathname + '?' + params.toString();
+        loadStudentsTable(url);
+      });
+    }
+    
+    // Handle pagination links with AJAX
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.pagination a')) {
+        e.preventDefault();
+        const url = e.target.closest('a').href;
+        loadStudentsTable(url);
+      }
+    });
+    
+    // Initialize tooltips on page load
+    initTooltips();
+  });
+</script>
+{% endblock %}
+

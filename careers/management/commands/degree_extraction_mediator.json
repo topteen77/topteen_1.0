@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "description": "Mediator JSON file for correcting/overriding degree extraction from career HTML files",
+  "career_overrides": {
+    "example-career-slug": {
+      "career_name": "Example Career Name",
+      "degrees": [
+        {
+          "name": "Corrected Degree Name",
+          "abbreviation": "CDN",
+          "duration": "4 years",
+          "description": "Corrected description if needed",
+          "stream_category": "non-medical"
+        }
+      ],
+      "notes": "Reason for override or correction"
+    }
+  },
+  "degree_mappings": {
+    "B.V.Sc. & A.H.": {
+      "standard_name": "Bachelor of Veterinary Science and Animal Husbandry",
+      "abbreviation": "B.V.Sc. & A.H.",
+      "duration": "5-5.5 years",
+      "stream_category": "medical"
+    },
+    "M.V.Sc.": {
+      "standard_name": "Master of Veterinary Science",
+      "abbreviation": "M.V.Sc.",
+      "duration": "2 years",
+      "stream_category": "medical"
+    }
+  },
+  "ignore_careers": [
+    "career-slug-to-skip-1",
+    "career-slug-to-skip-2"
+  ],
+  "parsing_rules": {
+    "skip_patterns": [
+      "Entrance Exam",
+      "Eligibility Criteria",
+      "Admission Process"
+    ],
+    "degree_patterns": {
+      "bachelor": ["Bachelor", "B.", "B.Sc", "B.A", "B.Com", "B.E", "B.Tech"],
+      "master": ["Master", "M.", "M.Sc", "M.A", "M.Com", "M.E", "M.Tech"],
+      "phd": ["Ph.D", "PhD", "Doctorate", "Doctor of"]
+    }
+  }
+}
+

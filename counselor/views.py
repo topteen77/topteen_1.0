@@ -16,7 +16,7 @@ from .models import Counselor, FollowUpStatus
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, HttpResponse
 
 
 from django.urls import reverse_lazy
@@ -31,39 +31,544 @@ User = get_user_model()
     
 #     return render(request, 'topteenfrontend/user/app/counselor_dashboard.html')
 
+def get_students_by_role(user, counselor=None, institute=None):
+    """
+    Centralized function to get students based on user role.
+    
+    Args:
+        user: The User object (request.user)
+        counselor: Counselor object (required if user is a counselor)
+        institute: Institute object (required if user is an institute)
+    
+    Returns:
+        QuerySet of StudentManagement objects based on role:
+        - Counselor: Only assigned students
+        - Institute: All students in their institute
+        - Institute Group Admin: All students in institutes within their group
+        - Marketing Group Admin: All students in institutes within their marketing group
+    """
+    from core import choices
+    from institute.models import InstituteGroup, InstituteMarketingGroup
+    
+    user_type = user.user_type
+    
+    if user_type == choices.UserType.COUNSELOR:
+        # Counselor sees only their assigned students
+        if not counselor:
+            # Try to get counselor from user
+            try:
+                counselor = Counselor.objects.get(coun_user=user)
+            except Counselor.DoesNotExist:
+                return StudentManagement.objects.none()
+        
+        if not counselor.counselor_admin:
+            return StudentManagement.objects.none()
+        
+        institute = counselor.counselor_admin
+        # Return only assigned students (not unassigned)
+        return counselor.get_students(institute=institute)
+    
+    elif user_type == choices.UserType.INSTITUTE:
+        # Institute sees all students in their own institute
+        if not institute:
+            # Try to get institute from user
+            try:
+                institute = Institute.objects.filter(created_by=user).first()
+            except Institute.DoesNotExist:
+                return StudentManagement.objects.none()
+        
+        if not institute:
+            return StudentManagement.objects.none()
+        
+        return StudentManagement.objects.filter(institute=institute)
+    
+    elif user_type == choices.UserType.INSTITUTEGROUPADMIN:
+        # Institute Group Admin sees all students in institutes within their group
+        institute_group = InstituteGroup.objects.filter(institute_group_admin=user).first()
+        if not institute_group:
+            return StudentManagement.objects.none()
+        
+        return StudentManagement.objects.filter(institute__institute_group=institute_group)
+    
+    elif user_type == choices.UserType.MARKETINGGROUPADMIN:
+        # Marketing Group Admin sees all students in institutes within their marketing group
+        marketing_group = InstituteMarketingGroup.objects.filter(marketing_group_admin=user).first()
+        if not marketing_group:
+            return StudentManagement.objects.none()
+        
+        return StudentManagement.objects.filter(institute__marketing_group=marketing_group)
+    
+    else:
+        # Unknown role, return empty queryset
+        return StudentManagement.objects.none()
+
+
+def get_class_and_sections_by_role(user, students_queryset):
+    """
+    Get class_and_sections based on user role and the students they can see.
+    Returns distinct class_and_sections for the students in the queryset.
+    
+    Args:
+        user: The User object (request.user)
+        students_queryset: QuerySet of StudentManagement objects
+    
+    Returns:
+        QuerySet of ClassAndSection objects (distinct, ordered)
+    """
+    if not students_queryset.exists():
+        return ClassAndSection.objects.none()
+    
+    # Get distinct class_and_sections from the students queryset
+    class_and_sections = ClassAndSection.objects.filter(
+        student_management__in=students_queryset
+    ).distinct().order_by('class_and_section')
+    
+    return class_and_sections
+
+
+def apply_student_filters(students_data, request, results_data=None):
+    """
+    Centralized function to apply common filters to student data.
+    Works with both QuerySet and list of student dictionaries.
+    
+    Args:
+        students_data: QuerySet of StudentManagement objects or list of student dicts
+        request: Django request object with GET parameters
+        results_data: Optional dict of test results (for test_taken filter)
+                      Format: {student_user: {'test_status': 'completed'|'in_progress'|'no_tests', ...}}
+    
+    Returns:
+        Filtered students_data (same type as input)
+    """
+    # Get filter parameters from request
+    class_filter = request.GET.get('class_and_section', '').strip()
+    name_filter = request.GET.get('student_name', '').strip()
+    test_taken_filter = request.GET.get('test_taken', '').strip()
+    
+    # Handle QuerySet
+    if hasattr(students_data, 'filter'):
+        # It's a QuerySet
+        queryset = students_data
+        
+        # Apply class filter
+        if class_filter:
+            queryset = queryset.filter(class_and_section__class_and_section=class_filter)
+        
+        # Apply name filter
+        if name_filter:
+            queryset = queryset.filter(student__name__icontains=name_filter)
+        
+        # Apply test_taken filter (requires results_data)
+        if test_taken_filter and results_data:
+            # We need to filter based on test_status in results_data
+            # This is more complex for QuerySet, so we'll convert to list and filter
+            student_list = list(queryset)
+            filtered_list = []
+            for student_mgmt in student_list:
+                student_user = student_mgmt.student
+                student_result = results_data.get(student_user, {})
+                test_status = student_result.get('test_status', 'no_tests')
+                
+                if test_taken_filter == 'Yes' and test_status == 'completed':
+                    filtered_list.append(student_mgmt)
+                elif test_taken_filter == 'No' and test_status == 'no_tests':
+                    filtered_list.append(student_mgmt)
+                elif test_taken_filter == 'In Progress' and test_status == 'in_progress':
+                    filtered_list.append(student_mgmt)
+            
+            return filtered_list
+        
+        return queryset
+    
+    # Handle list of dictionaries (merged_data format)
+    else:
+        # It's a list
+        filtered_data = list(students_data)
+        
+        # Apply class filter
+        if class_filter:
+            filtered_data = [
+                s for s in filtered_data
+                if hasattr(s, 'get') and s.get('student') and 
+                hasattr(s['student'], 'class_and_section') and
+                s['student'].class_and_section and
+                str(s['student'].class_and_section.class_and_section) == class_filter
+            ]
+        
+        # Apply name filter
+        if name_filter:
+            filtered_data = [
+                s for s in filtered_data
+                if hasattr(s, 'get') and s.get('student') and
+                hasattr(s['student'], 'student') and
+                name_filter.lower() in s['student'].student.name.lower()
+            ]
+        
+        # Apply test_taken filter
+        if test_taken_filter and results_data:
+            filtered_list = []
+            for student_info in filtered_data:
+                student = student_info.get('student')
+                if student:
+                    student_user = getattr(student, 'student', student)
+                    student_result = results_data.get(student_user, {})
+                    test_status = student_result.get('test_status', 'no_tests')
+                    
+                    if test_taken_filter == 'Yes' and test_status == 'completed':
+                        filtered_list.append(student_info)
+                    elif test_taken_filter == 'No' and test_status == 'no_tests':
+                        filtered_list.append(student_info)
+                    elif test_taken_filter == 'In Progress' and test_status == 'in_progress':
+                        filtered_list.append(student_info)
+            
+            filtered_data = filtered_list
+        
+        return filtered_data
+
+
+def get_class_counts(students_queryset):
+    """
+    Centralized function to get class counts for display in dropdown.
+    
+    Args:
+        students_queryset: QuerySet or list of StudentManagement objects
+    
+    Returns:
+        Dict with class names as keys and student counts as values
+    """
+    class_counts = {}
+    
+    # Handle QuerySet
+    if hasattr(students_queryset, 'values_list'):
+        for student in students_queryset:
+            if student.class_and_section:
+                class_name = student.class_and_section.class_and_section
+                class_counts[class_name] = class_counts.get(class_name, 0) + 1
+    # Handle list
+    else:
+        for student_item in students_queryset:
+            # Handle both StudentManagement objects and dict format
+            if hasattr(student_item, 'class_and_section'):
+                student = student_item
+            elif isinstance(student_item, dict) and 'student' in student_item:
+                student = student_item['student']
+            else:
+                continue
+            
+            if student.class_and_section:
+                class_name = student.class_and_section.class_and_section
+                class_counts[class_name] = class_counts.get(class_name, 0) + 1
+    
+    return class_counts
+
+
 def get_students_in_institute(counselor):
-    """Fetch assigned and unassigned students for a given counselor."""
-    inst_coun = counselor.counselor_admin
-    institute = get_object_or_404(Institute, id=inst_coun.id)
+    """
+    Fetch assigned students for a given counselor.
+    Note: This function is kept for backward compatibility but now only returns assigned students.
+    Use get_students_by_role() for new code.
+    """
+    if not counselor or not counselor.counselor_admin:
+        return StudentManagement.objects.none(), StudentManagement.objects.none(), StudentManagement.objects.none()
+    
+    institute = counselor.counselor_admin
     all_institute_students = StudentManagement.objects.filter(institute=institute)
     
-    # Get assigned and unassigned students
+    # Get assigned students only
     assigned_students = counselor.get_students(institute=institute)
     assigned_student_ids = assigned_students.values_list('id', flat=True)
     unassigned_students = all_institute_students.exclude(id__in=assigned_student_ids)
 
-    # Return assigned or unassigned students based on availability
-    students_to_display = assigned_students if assigned_student_ids else unassigned_students
+    # Counselor should only see assigned students, not unassigned
+    students_to_display = assigned_students
     return students_to_display, assigned_students, unassigned_students
 
 def get_results_data_for_students(students):
-    """Prepare results data for a list of students."""
+    """Prepare results data for a list of students using the same logic as institute dashboard."""
+    from app.models import TestCompletion, Results
+    from app_post_matric.models import TestSession
+    from institute.models import StudentManagement
+    from django.urls import reverse
+    import re
+    
     results_data = {}
     
     for student_management in students:
         student = student_management.student  # Access the student related to StudentManagement
-        results = Results.objects.filter(user=student)
-        success_count = sum(1 for result in results if result.is_test_successful)
-        if results.exists():
-            latest_result = results.last()
-
+        
+        try:
+            # Check student's class to determine which system to use
+            student_mgmt = StudentManagement.objects.filter(student=student).first()
+            
+            if student_mgmt and student_mgmt.class_and_section:
+                class_name = student_mgmt.class_and_section.class_and_section
+                
+                # Extract class number
+                class_number = None
+                try:
+                    numbers = re.findall(r'\d+', class_name)
+                    if numbers:
+                        class_number = int(numbers[0])
+                except (ValueError, IndexError):
+                    pass
+                
+                # Determine system based on class
+                if class_number and class_number >= 11:
+                    # Class 11-12: Use post-matric system
+                    post_matric_sessions = TestSession.objects.filter(user=student)
+                    student_result = _get_post_matric_test_result(student, post_matric_sessions)
+                else:
+                    # Class 10 and below: Use psychometric system
+                    student_result = _get_psychometric_test_result(student)
+            else:
+                # No class information, default to psychometric system
+                student_result = _get_psychometric_test_result(student)
+                
+        except Exception as e:
+            print(f"Error getting test result for student {student}: {e}")
+            student_result = {
+                "test_success": False,
+                "test_link": None,
+                "success_count": 0,
+                "test_status": "no_tests",
+                "tooltip": "Error loading test data"
+            }
+        
+        if student_result:
+            results_data[student] = student_result
+        else:
+            # Default values if no result
             results_data[student] = {
-                "test_success": success_count > 0,
-                "test_link": latest_result.get_test_report_or_test_link(student) if latest_result else None,
-                "success_count": success_count,
+                "test_success": False,
+                "test_link": None,
+                "success_count": 0,
+                "test_status": "no_tests",
+                "tooltip": "No tests taken"
             }
         
     return results_data
+
+
+def _get_psychometric_test_result(user):
+    """Handle psychometric students (class 1-10) using TestCompletion/Results."""
+    from app.models import TestCompletion, Results
+    from django.urls import reverse
+    
+    try:
+        # Check TestCompletion first to determine if student has completed tests
+        test_completion = None
+        try:
+            test_completion = TestCompletion.objects.get(user=user)
+        except TestCompletion.DoesNotExist:
+            # If no TestCompletion record exists, student hasn't taken any tests
+            return {
+                "streams": {},
+                "test_success": False,
+                "test_link": reverse('app:test_buttons'),
+                "success_count": 0,
+                "test_status": "no_tests",
+                "test_details": {
+                    "test1": False,
+                    "test2": False,
+                    "test3": False
+                },
+                "tooltip": "No tests taken"
+            }
+        
+        # Get individual test completion status
+        test1_complete = test_completion.test1_complete
+        test2_complete = test_completion.test2_complete
+        
+        # Verify test3_complete - only True if ALL subtests are complete
+        all_test3_subtests_complete = (
+            test_completion.numerical_complete and
+            test_completion.verbal_complete and
+            test_completion.logical_complete and
+            test_completion.emotional_complete and
+            test_completion.machanical_complete and
+            test_completion.language_complete and
+            test_completion.spatial_complete
+        )
+        
+        test3_complete = test_completion.test3_complete if all_test3_subtests_complete else False
+        
+        # Count completed tests
+        completed_tests = sum([test1_complete, test2_complete, test3_complete])
+        
+        # Create detailed tooltip showing all test statuses
+        completed_list = []
+        not_completed_list = []
+        
+        if test1_complete:
+            completed_list.append("Career Interest")
+        else:
+            not_completed_list.append("Career Interest")
+            
+        if test2_complete:
+            completed_list.append("Intelligence")
+        else:
+            not_completed_list.append("Intelligence")
+            
+        if test3_complete:
+            completed_list.append("Personality")
+        else:
+            not_completed_list.append("Personality")
+        
+        # Create detailed tooltip showing all test statuses
+        tooltip_parts = []
+        if completed_list:
+            tooltip_parts.append(f"Completed: {', '.join(completed_list)}")
+        if not_completed_list:
+            tooltip_parts.append(f"Not completed: {', '.join(not_completed_list)}")
+        tooltip = " | ".join(tooltip_parts)
+        
+        # Determine overall status
+        if completed_tests == 0:
+            test_status = "no_tests"
+        elif completed_tests == 3:
+            test_status = "completed"
+        else:
+            test_status = "in_progress"
+        
+        # Get test link - only provide link if all tests are completed
+        test_link = None
+        if test_status == "completed":
+            results = Results.objects.filter(user=user)
+            if results.exists():
+                latest_result = results.last()
+                test_link = latest_result.get_test_report_or_test_link(user) if latest_result else None
+        
+        return {
+            "streams": {},
+            "test_success": completed_tests > 0,
+            "test_link": test_link,
+            "success_count": completed_tests,
+            "test_status": test_status,
+            "test_details": {
+                "test1": test1_complete,
+                "test2": test2_complete,
+                "test3": test3_complete
+            },
+            "tooltip": tooltip
+        }
+        
+    except Exception as e:
+        print(f"Error in _get_psychometric_test_result: {e}")
+        return {
+            "streams": {},
+            "test_success": False,
+            "test_link": None,
+            "success_count": 0,
+            "test_status": "no_tests",
+            "test_details": {
+                "test1": False,
+                "test2": False,
+                "test3": False
+            },
+            "tooltip": "Error loading test data"
+        }
+
+
+def _get_post_matric_test_result(user, test_sessions):
+    """Handle post-matric students (class 11-12) using TestSession/TestResult."""
+    from app_post_matric.models import TestSession
+    from django.urls import reverse
+    
+    try:
+        # Initialize test completion status for 4 tests
+        test_completion = {
+            1: False,  # Personality Assessment
+            2: False,  # Motivation Assessment
+            3: False,  # Career Interest Inventory  
+            4: False   # Aptitude Assessment
+        }
+        
+        # Check completed sessions
+        completed_sessions = test_sessions.filter(is_completed=True)
+        for session in completed_sessions:
+            test_id = session.test.id
+            if test_id in test_completion:
+                test_completion[test_id] = True
+        
+        # Count completed tests
+        completed_tests = sum(test_completion.values())
+        
+        # Determine overall status and create detailed tooltip
+        completed_list = []
+        not_completed_list = []
+        
+        if test_completion[1]:
+            completed_list.append("Personality")
+        else:
+            not_completed_list.append("Personality")
+            
+        if test_completion[2]:
+            completed_list.append("Motivation")
+        else:
+            not_completed_list.append("Motivation")
+            
+        if test_completion[3]:
+            completed_list.append("Career Interest")
+        else:
+            not_completed_list.append("Career Interest")
+            
+        if test_completion[4]:
+            completed_list.append("Aptitude")
+        else:
+            not_completed_list.append("Aptitude")
+        
+        # Create detailed tooltip showing all test statuses
+        tooltip_parts = []
+        if completed_list:
+            tooltip_parts.append(f"Completed: {', '.join(completed_list)}")
+        if not_completed_list:
+            tooltip_parts.append(f"Not completed: {', '.join(not_completed_list)}")
+        tooltip = " | ".join(tooltip_parts)
+        
+        # Determine overall status
+        if completed_tests == 0:
+            test_status = "no_tests"
+        elif completed_tests == 4:
+            test_status = "completed"
+        else:
+            test_status = "in_progress"
+        
+        # Get test link - only provide link if all tests are completed
+        test_link = None
+        if test_status == "completed":
+            test_link = reverse('post_matric:combined_report', args=[user.id])
+        
+        return {
+            "streams": {},
+            "test_success": completed_tests > 0,
+            "test_link": test_link,
+            "success_count": completed_tests,
+            "test_status": test_status,
+            "test_details": {
+                "test1": test_completion[1],
+                "test2": test_completion[2],
+                "test3": test_completion[3],
+                "test4": test_completion[4]
+            },
+            "tooltip": tooltip
+        }
+            
+    except Exception as e:
+        print(f"Error in _get_post_matric_test_result: {e}")
+        return {
+            "streams": {},
+            "test_success": False,
+            "test_link": None,
+            "success_count": 0,
+            "test_status": "no_tests",
+            "test_details": {
+                "test1": False,
+                "test2": False,
+                "test3": False,
+                "test4": False
+            },
+            "tooltip": "Error loading test data"
+        }
 
 
 import logging
@@ -74,14 +579,23 @@ logger = logging.getLogger(__name__)
 @login_required(login_url=reverse_lazy('users:login'))
 
 def Students_follow_up(request, coun_id):
+    from core import choices
+    from django.http import Http404
+    
     # Get the counselor and institute details
     counselor = get_object_or_404(Counselor, id=coun_id)
+    
+    # Security check: Ensure counselors can only access their own follow-up page
+    if request.user.user_type == choices.UserType.COUNSELOR:
+        # If user is a counselor, they must be the owner of this counselor record
+        if counselor.coun_user != request.user:
+            raise Http404("You don't have permission to access this counselor's follow-up page.")
+    
     inst_coun = counselor.counselor_admin
     institute = get_object_or_404(Institute, id=inst_coun.id)
 
-    # Get all students in the institute and filter by the counselor
-    all_institute_students = StudentManagement.objects.filter(institute=institute)
-    students_to_display, _, _ = get_students_in_institute(counselor)
+    # Use centralized role-based function to get students
+    students_to_display = get_students_by_role(request.user, counselor=counselor)
     
     # Initialize follow_up_data as an empty list
     follow_up_data = []
@@ -162,17 +676,8 @@ def Students_follow_up(request, coun_id):
     # Sorting merged data
     merged_data = sorted(merged_data, key=lambda x: x['student'].student.name.lower())
     
-    # Apply filters based on GET parameters
-    class_filter = request.GET.get('class_and_section')
-    name_filter = request.GET.get('student_name')
-
-    # Filter merged_data based on class_filter
-    if class_filter:
-        merged_data = [student for student in merged_data if student['student'].class_and_section.class_and_section == class_filter]
-
-    # Filter merged_data based on name_filter
-    if name_filter:
-        merged_data = [student for student in merged_data if name_filter.lower() in student['student'].student.name.lower()]
+    # Apply filters using centralized function (no test_taken filter in follow-up page)
+    merged_data = apply_student_filters(merged_data, request, results_data=None)
 
     
     # Setting up pagination
@@ -180,27 +685,51 @@ def Students_follow_up(request, coun_id):
     page_number = request.GET.get('page')
     students_page = paginator.get_page(page_number)
 
+    # Get class counts for display in dropdown using centralized function
+    class_counts = get_class_counts(students_to_display)
+
     # Render context
     context = {
         'counselors': counselor,
         'students': students_page,
-        'class_and_sections': ClassAndSection.objects.all(),
+        'class_and_sections': get_class_and_sections_by_role(request.user, students_to_display),
+        'class_counts': class_counts,  # Add class counts for dropdown
         'students_count': students_to_display,
         'total_is_followed_up_count': total_is_followed_up_count,
         'coun_id' : coun_id
     }
 
-    return render(request, 'topteenfrontend/user/app/coun_follow_up_page.html', context)
+    return render(request, 'template20/counselor/follow_up_page.html', context)
 
-def CounselorCoursepayment(request):    
-    return render(request, 'topteenfrontend/user/app/counselor-course.html')
+def CounselorCoursepayment(request):
+    from django.conf import settings
+    import razorpay
+    client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
+    data = { "amount": 500*100, "currency": "INR", "receipt": "order_rcptid_11" }
+    payment = client.order.create(data=data)
+    context = {
+        'key': settings.RAZORPAY_API_KEY,
+        'payment': payment
+    }
+    return render(request, 'template20/counselor/course_payment.html', context)
 def display_pdfs(request):
-    return render(request, 'topteenfrontend/user/app/99pdfs.html')
+    return render(request, 'template20/counselor/display_pdfs.html')
 
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
 class CourseStartsView(View):
     def get(self, request, counselor_id):
+        from core import choices
+        from django.http import Http404
+        
         # Retrieve the counselor using the provided ID
         counselor = get_object_or_404(Counselor, id=counselor_id)
+        
+        # Security check: Ensure counselors can only access their own course
+        if request.user.user_type == choices.UserType.COUNSELOR:
+            # If user is a counselor, they must be the owner of this counselor record
+            if counselor.coun_user != request.user:
+                raise Http404("You don't have permission to access this counselor's course.")
+        
         user = request.user
         course_with_related_data = CounselorCourse.objects.prefetch_related(
                 'chapters__parts__quizzes__questions__answers'
@@ -246,7 +775,7 @@ class CourseStartsView(View):
         }
 
         # Render the template with the context
-        return render(request, 'topteenfrontend/user/app/counselor-course-information.html',context)
+        return render(request, 'template20/counselor/course_information.html', context)
 
 # @csrf_exempt  # Use this only if you need to bypass CSRF verification for testing. Not recommended for production.
 def Counselorenrolledcourse(request):
@@ -380,10 +909,22 @@ def Counselorenrolledcourse(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def CounselorDashboard(request, coun_id=None):
-
+    from core import choices
+    from django.http import Http404
+    
     counselor = get_object_or_404(Counselor, id=coun_id)
-    students_to_display, _, _ = get_students_in_institute(counselor)
-    results_data = get_results_data_for_students(students_to_display)
+    
+    # Security check: Ensure counselors can only access their own dashboard
+    if request.user.user_type == choices.UserType.COUNSELOR:
+        # If user is a counselor, they must be the owner of this counselor record
+        if counselor.coun_user != request.user:
+            raise Http404("You don't have permission to access this counselor's dashboard.")
+    
+    # Use centralized role-based function to get students
+    students_to_display = get_students_by_role(request.user, counselor=counselor)
+    
+    # Keep backward compatibility for other parts of code that might use the old function
+    _, assigned_students, unassigned_students = get_students_in_institute(counselor)
 
     # Retrieve follow-up data for all students associated with the counselor
     follow_ups = FollowUpStatus.objects.filter(counselor=counselor)
@@ -421,17 +962,11 @@ def CounselorDashboard(request, coun_id=None):
     # Sorting merged data
     merged_data = sorted(merged_data, key=lambda x: x['student'].student.name.lower())
     
-    # Apply filters based on GET parameters
-    class_filter = request.GET.get('class_and_section')
-    name_filter = request.GET.get('student_name')
-
-    # Filter merged_data based on class_filter
-    if class_filter:
-        merged_data = [student for student in merged_data if student['student'].class_and_section.class_and_section == class_filter]
-
-    # Filter merged_data based on name_filter
-    if name_filter:
-        merged_data = [student for student in merged_data if name_filter.lower() in student['student'].student.name.lower()]
+    # Get results_data for all students before filtering (needed for test_taken filter)
+    results_data = get_results_data_for_students(students_to_display)
+    
+    # Apply filters using centralized function
+    merged_data = apply_student_filters(merged_data, request, results_data)
 
     sessions_data = (
         FollowUpStatus.objects
@@ -446,32 +981,48 @@ def CounselorDashboard(request, coun_id=None):
         session['last_follow_up_date'] = session['last_follow_up_date'].isoformat()  # Convert date to ISO format
 
     week_data = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0}  # Monday to Saturday
-
+    
+    # Use today's date as reference for calculating week dates
+    reference_date = date.today()
+    
     # Process the session data to aggregate session counts by day of the week
     for session in sessions_data_list:
         try:
-            session_date = datetime.strptime(session['last_follow_up_date'], "%Y-%m-%d")
-            day_of_week = session_date.weekday()  # Monday is 0
+            session_date_str = session.get('last_follow_up_date')
+            if session_date_str:
+                # Handle both ISO format (from database) and string format
+                if isinstance(session_date_str, str):
+                    if 'T' in session_date_str:
+                        # ISO format with time: "2024-01-15T00:00:00"
+                        session_date = datetime.fromisoformat(session_date_str.split('T')[0]).date()
+                    else:
+                        # Date only format: "2024-01-15"
+                        session_date = datetime.strptime(session_date_str, "%Y-%m-%d").date()
+                else:
+                    # Already a date object
+                    session_date = session_date_str
+                
+                day_of_week = session_date.weekday()  # Monday is 0
 
-            if day_of_week < 6:  # Only consider Monday to Saturday
-                week_data[day_of_week] += session['session_count']
+                if day_of_week < 6:  # Only consider Monday to Saturday
+                    week_data[day_of_week] += session.get('session_count', 0)
 
-        except KeyError as e:
-            print(f"KeyError: {e} in session data: {session}")
+        except (KeyError, ValueError, TypeError) as e:
+            print(f"Error processing session data: {e} in session: {session}")
 
-    # Prepare the final list for rendering
     # Prepare the final list for rendering
     final_data = []
+    # Get the start of the current week (Monday)
+    days_since_monday = reference_date.weekday()
+    week_start = reference_date - timedelta(days=days_since_monday)
+    
     for day, count in week_data.items():
-        # Calculate the correct date for each day in the week
-        try:
-            final_data.append({
-                "day": (session_date - timedelta(days=session_date.weekday() - day)).strftime("%Y-%m-%d"),
-                "session_count": count
-            })
-        except:
-            final_data =[]
-            pass
+        # Calculate the date for each day in the week (Monday to Saturday)
+        day_date = week_start + timedelta(days=day)
+        final_data.append({
+            "day": day_date.strftime("%Y-%m-%d"),
+            "session_count": count
+        })
 
     # Append the sessions data for the current counselor to the main list
     couns_sessions_data.append({
@@ -495,18 +1046,41 @@ def CounselorDashboard(request, coun_id=None):
 
 
     # Setting up pagination
-    paginator = Paginator(merged_data, 3)  # 10 students per page
-    page_number = request.GET.get('page')
-    students_page = paginator.get_page(page_number)
+    # Get per_page parameter from request, default to 10
+    per_page = request.GET.get('per_page', '10')
+    
+    # Handle pagination
+    if per_page == 'all':
+        # Show all records without pagination
+        students_page = merged_data
+        paginator = None
+    else:
+        try:
+            per_page_int = int(per_page)
+            # Limit to valid options: 10, 100
+            if per_page_int not in [10, 100]:
+                per_page_int = 10
+        except (ValueError, TypeError):
+            per_page_int = 10
+        
+        paginator = Paginator(merged_data, per_page_int)
+        page_number = request.GET.get('page')
+        students_page = paginator.get_page(page_number)
     # breakpoint()
     
+
+    # Get class counts for display in dropdown using centralized function
+    class_counts = get_class_counts(students_to_display)
 
     # Render context
     context = {
         'counselors': counselor,
         'students': students_page,
+        'paginator': paginator,  # Add paginator to context
+        'per_page': per_page,  # Add current per_page selection
         'results_data': results_data,
-        'class_and_sections': ClassAndSection.objects.all(),
+        'class_and_sections': get_class_and_sections_by_role(request.user, students_to_display),
+        'class_counts': class_counts,  # Add class counts for dropdown
         'students_count': students_to_display,
         'total_is_followed_up_count': total_is_followed_up_count,
         'coun_id' : coun_id,
@@ -517,12 +1091,22 @@ def CounselorDashboard(request, coun_id=None):
         
     }
 
-    return render(request, 'topteenfrontend/user/app/counselor_dashboard.html', context)
+    # Check if this is an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Return only the table and pagination HTML
+        return render(request, 'template20/counselor/counselor_dashboard_table.html', context)
+    
+    # Check if this is an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Return only the table and pagination HTML
+        return render(request, 'template20/counselor/counselor_dashboard_table.html', context)
+    
+    return render(request, 'template20/counselor/counselor_dashboard.html', context)
 
 
 # @login_required(login_url=reverse_lazy('users:login'))
 class CounselorEnrolledCourseView(View):
-    template_name = 'topteenfrontend/user/app/counselor-enrolled-course.html'
+    template_name = 'template20/counselor/enrolled_course.html'
 
     def post(self, request, *args, **kwargs):        
 
@@ -936,5 +1520,5 @@ def delete_note(request, note_id):
         return JsonResponse({"success": True, "id": note_id})
 
 
-def TestVttVideo(request):  
-    return render(request, 'topteenfrontend/user/app/test_vvt_vedio.html')
+def TestVttVideo(request):
+    return render(request, 'template20/counselor/test_vtt_video.html')

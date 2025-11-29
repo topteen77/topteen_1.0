@@ -1,0 +1,62 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Display PDFs | Top Teen{% endblock %}
+{% block description_content %}View and download course PDFs.{% endblock %}
+
+{% block bodyclass %}{{ super() }} display-pdfs-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .display-pdfs-page {
+    padding-top: 80px;
+  }
+  .pdf-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .pdf-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+    color: inherit;
+  }
+  .pdf-card i {
+    font-size: 48px;
+    color: #5046e5;
+    margin-bottom: 10px;
+  }
+  .pdf-card h5 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="display-pdfs-page pb-5">
+  <div class="container">
+    <h1 class="fs-24 fw-semibold mb-4 text-center">Course PDFs</h1>
+    <div class="row g-4">
+      {% for i in range(99) %}
+      <div class="col-6 col-md-4 col-lg-3">
+        <a href="#" class="pdf-card">
+          <i class='bx bx-file-blank'></i>
+          <h5>PDF Document {{ i + 1 }}</h5>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+

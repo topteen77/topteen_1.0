@@ -59,15 +59,41 @@
 
   <!-- Settings Links -->
   <div class="mt-4">
-    <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
-      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-        <div>
-          <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-          <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+    {% if request.user.user_type == 4 %}
+      {% set counselor_list = request.user.counselor.all() %}
+      {% if counselor_list|length > 0 %}
+        {% set counselor_obj = counselor_list[0] %}
+        <a href="{{ url('counselor:CounselorDashboardView', args=[counselor_obj.id]) }}" class="d-block text-decoration-none mb-3">
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+            <div>
+              <p class="fs-14 fw-semibold mb-1">Dashboard</p>
+              <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+            </div>
+            <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+          </div>
+        </a>
+      {% else %}
+        <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+            <div>
+              <p class="fs-14 fw-semibold mb-1">Dashboard</p>
+              <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+            </div>
+            <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+          </div>
+        </a>
+      {% endif %}
+    {% else %}
+      <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-1">Dashboard</p>
+            <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
         </div>
-        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-      </div>
-    </a>
+      </a>
+    {% endif %}
     <a href="{{ url('users:viewprofile') }}" class="d-block text-decoration-none mb-3">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>

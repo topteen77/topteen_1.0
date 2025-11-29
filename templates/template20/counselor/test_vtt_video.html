@@ -1,0 +1,55 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Test VTT Video | Top Teen{% endblock %}
+{% block description_content %}Test video player with VTT captions.{% endblock %}
+
+{% block bodyclass %}{{ super() }} test-vtt-video-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .test-vtt-video-page {
+    padding-top: 80px;
+  }
+  .video-container {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .video-container video {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  video::cue {
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 17px;
+    line-height: 23px;
+    background: rgba(0,0,0,.80);
+    text-shadow: none;
+    transition: all 1s ease-out;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="test-vtt-video-page pb-5">
+  <div class="container">
+    <h1 class="fs-24 fw-semibold mb-4 text-center">Video Player with Captions</h1>
+    <div class="video-container">
+      <video id="myVideo" preload="metadata" controls controlsList="nodownload">
+        <source src="https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/courseintroduction/courseintroductiontopteen.mp4" type="video/mp4">
+        <track label="English subtitles" kind="subtitles" srclang="en"
+              src="https://topteenc.s3.ap-northeast-1.amazonaws.com/counselor_career_course/courseintroduction/courseintroductiontopteen.vtt">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

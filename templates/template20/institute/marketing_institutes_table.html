@@ -1,0 +1,130 @@
+<!-- Institutes Table Container (for AJAX loading) -->
+<div id="institutes-table-wrapper">
+<div id="institutes-table-container">
+<div class="table-responsive">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Sr. No.</th>
+        <th>School Name</th>
+        <th>Email</th>
+        <th>Contact</th>
+        <th>Address</th>
+        <th>Students</th>
+        <th>Action</th>
+        <th>Approval</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if institutes_paginations %}
+        {% for ins in institutes_paginations %}
+        <tr>
+          <td>{{ (institutes_paginations.number - 1) * institutes_paginations.paginator.per_page + loop.index }}</td>
+          <td>
+            <a href="{{ url('institute:institutedashboard', args=[ins.slug]) }}">
+              {{ ins.name }}
+            </a>
+          </td>
+          <td>{{ ins.created_by.email if ins.created_by else '-' }}</td>
+          <td>{{ ins.contact_info if ins.contact_info else '-' }}</td>
+          <td>{{ ins.address if ins.address else '-' }}</td>
+          <td>{{ ins.student_count if ins.student_count else 0 }}</td>
+          <td>
+            <div class="d-flex gap-2">
+              <button type="button" 
+                      class="btn btn-sm btn-link p-0" 
+                      data-bs-toggle="modal" 
+                      data-bs-target="#updateInstituteModal{{ ins.id }}"
+                      title="Update">
+                <i class='bx bx-edit text-primary'></i>
+              </button>
+              <button type="button" 
+                      class="btn btn-sm btn-link p-0" 
+                      data-bs-toggle="modal" 
+                      data-bs-target="#changePasswordModal{{ ins.id }}"
+                      title="Change Password">
+                <i class='bx bx-key text-info'></i>
+              </button>
+            </div>
+          </td>
+          <td>
+            {% if ins.institute_status == 3 %}
+            <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}" 
+               class="badge bg-warning text-dark">
+              <i class='bx bx-time-five me-1'></i> Pending
+            </a>
+            {% else %}
+            <span class="badge bg-success">
+              <i class='bx bx-check-circle me-1'></i> Approved
+            </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="8" class="text-center text-gray">No institutes found</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+</div>
+<!-- End of Table Container -->
+
+<!-- Pagination Container (for AJAX loading) -->
+<div id="institutes-pagination">
+{% if institutes_paginations and institutes_paginations.paginator.num_pages > 1 %}
+<div class="d-flex justify-content-between align-items-center mt-3">
+  <div>
+    Showing {{ institutes_paginations.start_index() }} to {{ institutes_paginations.end_index() }} of {{ institutes_paginations.paginator.count }} entries
+  </div>
+  <nav>
+    <ul class="pagination mb-0">
+      {% if institutes_paginations.has_previous() %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ institutes_paginations.previous_page_number() }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}">
+          <i class='bx bx-chevron-left'></i>
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled">
+        <span class="page-link"><i class='bx bx-chevron-left'></i></span>
+      </li>
+      {% endif %}
+      
+      {% for num in institutes_paginations.paginator.page_range %}
+        {% if institutes_paginations.number == num %}
+        <li class="page-item active">
+          <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num <= 3 or num > institutes_paginations.paginator.num_pages - 3 or (num >= institutes_paginations.number - 2 and num <= institutes_paginations.number + 2) %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ num }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}">{{ num }}</a>
+        </li>
+        {% elif num == 4 or num == institutes_paginations.paginator.num_pages - 3 %}
+        <li class="page-item disabled">
+          <span class="page-link">...</span>
+        </li>
+        {% endif %}
+      {% endfor %}
+      
+      {% if institutes_paginations.has_next() %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ institutes_paginations.next_page_number() }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}">
+          <i class='bx bx-chevron-right'></i>
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled">
+        <span class="page-link"><i class='bx bx-chevron-right'></i></span>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endif %}
+</div>
+<!-- End of Pagination Container -->
+</div>
+<!-- End of Table Wrapper -->

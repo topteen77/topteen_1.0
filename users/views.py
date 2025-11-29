@@ -590,11 +590,41 @@ class SignUpPassword(APIView):
                         print(f"Warning: Error logging in user: {str(login_error)}")
                         print(traceback.format_exc())
                     
-                    # Return redirect URL to dashboard after signup
+                    # Return redirect URL to dashboard after signup based on user type
                     # User is created successfully, so return success even if profile/login had minor issues
                     data['success'] = True
                     data['message'] = "Account created successfully"
-                    data['redirect_url'] = reverse('users:userdashboard')
+                    
+                    # Redirect based on user type
+                    if user.user_type == choices.UserType.COUNSELOR:
+                        try:
+                            from counselor.models import Counselor
+                            coun = Counselor.objects.get(coun_user=user)
+                            data['redirect_url'] = reverse('counselor:CounselorDashboardView', args=[coun.id])
+                        except Counselor.DoesNotExist:
+                            data['redirect_url'] = reverse('users:userdashboard')
+                    elif user.user_type == choices.UserType.INSTITUTE:
+                        from institute.models import Institute
+                        institute = Institute.objects.filter(created_by=user).last()
+                        if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
+                            data['redirect_url'] = reverse('institute:institutedashboard', args=[institute.slug])
+                        else:
+                            data['redirect_url'] = reverse('users:userdashboard')
+                    elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
+                        from institute.models import InstituteGroup
+                        if InstituteGroup.objects.filter(institute_group_admin=user).exists():
+                            data['redirect_url'] = reverse('institute:institutegroupdashboard')
+                        else:
+                            data['redirect_url'] = reverse('users:userdashboard')
+                    elif user.user_type == choices.UserType.MARKETINGGROUPADMIN:
+                        from institute.models import Institute
+                        if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
+                            data['redirect_url'] = reverse('institute:marketinggroupdashboard')
+                        else:
+                            data['redirect_url'] = reverse('users:userdashboard')
+                    else:
+                        data['redirect_url'] = reverse('users:userdashboard')
+                    
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     data['success'] = False
@@ -692,9 +722,40 @@ class LoginPassword(APIView):
                 login(request, user, backend='users.backends.CustomUserBackend')
                 data['success'] = True
                 
-                # Default redirect to user dashboard instead of test buttons
-                # Test buttons now requires payment, so redirect to dashboard first
-                data['redirect_url'] = reverse('users:userdashboard')
+                # Redirect based on user type
+                # Check for counselor first
+                if user.user_type == choices.UserType.COUNSELOR:
+                    try:
+                        from counselor.models import Counselor
+                        coun = Counselor.objects.get(coun_user=user)
+                        data['redirect_url'] = reverse('counselor:CounselorDashboardView', args=[coun.id])
+                    except Counselor.DoesNotExist:
+                        data['redirect_url'] = reverse('users:userdashboard')
+                # Check for institute users
+                elif user.user_type == choices.UserType.INSTITUTE:
+                    from institute.models import Institute
+                    institute = Institute.objects.filter(created_by=user).last()
+                    if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
+                        data['redirect_url'] = reverse('institute:institutedashboard', args=[institute.slug])
+                    else:
+                        data['redirect_url'] = reverse('users:userdashboard')
+                # Check for institute group admin
+                elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
+                    from institute.models import InstituteGroup
+                    if InstituteGroup.objects.filter(institute_group_admin=user).exists():
+                        data['redirect_url'] = reverse('institute:institutegroupdashboard')
+                    else:
+                        data['redirect_url'] = reverse('users:userdashboard')
+                # Check for marketing group admin
+                elif user.user_type == choices.UserType.MARKETINGGROUPADMIN:
+                    from institute.models import Institute
+                    if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
+                        data['redirect_url'] = reverse('institute:marketinggroupdashboard')
+                    else:
+                        data['redirect_url'] = reverse('users:userdashboard')
+                else:
+                    # Default redirect to user dashboard for students
+                    data['redirect_url'] = reverse('users:userdashboard')
                 
                 # Get student class information if available
                 student_info = None

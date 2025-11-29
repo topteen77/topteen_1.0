@@ -1,0 +1,153 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Counselor Course | Top Teen{% endblock %}
+{% block description_content %}View course information, chapters, and progress.{% endblock %}
+
+{% block bodyclass %}{{ super() }} course-information-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<style>
+  .course-information-page {
+    padding-top: 80px;
+  }
+  .chapter-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+  .part-item {
+    background: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 4px solid #5046e5;
+  }
+  .progress-bar-custom {
+    height: 10px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #4cc9f0;
+    transition: width 0.3s;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="course-information-page pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <!-- Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        <h2 class="fs-24 fw-semibold mb-4">Course Information</h2>
+        
+        {% if course %}
+        <!-- Course Stats -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="card text-center">
+              <div class="card-body">
+                <h3 class="fs-32 fw-bold text-primary mb-1">{{ chapter_count }}</h3>
+                <p class="text-gray mb-0">Chapters</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card text-center">
+              <div class="card-body">
+                <h3 class="fs-32 fw-bold text-primary mb-1">{{ part_count }}</h3>
+                <p class="text-gray mb-0">Parts</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card text-center">
+              <div class="card-body">
+                <h3 class="fs-32 fw-bold text-primary mb-1">{{ question_count }}</h3>
+                <p class="text-gray mb-0">Questions</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fs-16 fw-semibold">Course Progress</span>
+              <span class="fs-16 fw-semibold text-primary">{{ progress_percentage }}%</span>
+            </div>
+            <div class="progress-bar-custom">
+              <div class="progress-fill" style="width: {{ progress_percentage }}%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chapters -->
+        <div class="card">
+          <div class="card-body">
+            <h3 class="fs-20 fw-semibold mb-4">Course Chapters</h3>
+            {% if course.chapters.exists() %}
+              {% for chapter in course.chapters.all() %}
+              <div class="chapter-card">
+                <h4 class="fs-18 fw-semibold mb-3">{{ chapter.name|default('Chapter ' ~ loop.index) }}</h4>
+                {% if chapter.parts.exists() %}
+                  {% for part in chapter.parts.all() %}
+                  <div class="part-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h5 class="fs-16 fw-semibold mb-1">{{ part.name|default('Part ' + loop.index|string) }}</h5>
+                        {% if part.description %}
+                        <p class="text-gray fs-14 mb-0">{{ part.description|truncate(100) }}</p>
+                        {% endif %}
+                      </div>
+                      <div class="d-flex gap-2 align-items-center">
+                        {% set part_id = part.id %}
+                        {% set is_completed = video_progress.get(part_id, False) %}
+                        {% if is_completed %}
+                        <span class="badge bg-success">
+                          <i class='bx bx-check-circle me-1'></i> Completed
+                        </span>
+                        {% else %}
+                        <span class="badge bg-warning">
+                          <i class='bx bx-time me-1'></i> Pending
+                        </span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                <p class="text-gray">No parts available in this chapter.</p>
+                {% endif %}
+              </div>
+              {% endfor %}
+            {% else %}
+            <p class="text-center text-gray">No chapters available for this course.</p>
+            {% endif %}
+          </div>
+        </div>
+        {% else %}
+        <div class="card">
+          <div class="card-body text-center">
+            <p class="text-gray">No course data available.</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

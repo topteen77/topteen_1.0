@@ -1,0 +1,382 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Marketing Group Dashboard | Top Teen{% endblock %}
+{% block description_content %}Marketing group dashboard for managing institutes and analytics.{% endblock %}
+
+{% block bodyclass %}{{ super() }} marketing-group-dashboard{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<style>
+  .marketing-group-dashboard {
+    padding-top: 80px;
+  }
+  .stat-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .stat-card i {
+    min-width: 32px;
+  }
+  .stat-card p {
+    margin: 0;
+  }
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: #828282;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="marketing-group-dashboard pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <!-- Left Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="border rounded-3 p-3 sticky-top" style="top: 100px;">
+          <!-- Marketing Group Profile -->
+          <div class="text-center border-bottom pb-3 mb-3">
+            <div class="mb-3">
+              {% if request.user.image %}
+              <img src="/media/upload/users/{{request.user.id}}/user_{{request.user.id}}.jpg" 
+                   class="rounded-circle" 
+                   style="width: 104px; height: 104px; object-fit: cover;" 
+                   alt="Profile Image" 
+                   onerror="this.src='{{ static('images_new/icons/user-icon.svg') }}'">
+              {% else %}
+              <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 104px; height: 104px;">
+                <i class='bx bx-user fs-48 text-gray'></i>
+              </div>
+              {% endif %}
+            </div>
+            <h5 class="fs-16 fw-semibold mb-3">{{ request.user.get_full_name|default(request.user.username) }}</h5>
+            <div class="d-flex flex-column gap-2 text-start">
+              <div class="d-flex gap-2 align-items-center">
+                <i class='bx bx-calendar fs-18 text-gray'></i>
+                <span class="fs-14 text-gray">Joined {{ request.user.created.strftime("%B, %Y") if request.user.created else '-' }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Settings Button -->
+          <a href="{{ url('institute:marketingprofileedit') }}" 
+             class="btn w-100 mb-3 text-white fw-bold" 
+             style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;">
+            <i class='bx bx-cog me-2'></i> SETTINGS
+          </a>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        <h2 class="fs-24 fw-semibold mb-4">Marketing Group Dashboard</h2>
+        
+        <!-- Statistics Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-4">
+            <div class="stat-card">
+              <i class='bx bx-building fs-32 text-primary'></i>
+              <div>
+                <p class="stat-value" id="institutes-count">
+                  <span class="spinner-border spinner-border-sm" role="status"></span>
+                </p>
+                <p class="stat-label">Total Institutes</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="stat-card">
+              <i class='bx bx-user-check fs-32 text-success'></i>
+              <div>
+                <p class="stat-value" id="students-count">
+                  <span class="spinner-border spinner-border-sm" role="status"></span>
+                </p>
+                <p class="stat-label">Total Students</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="stat-card">
+              <i class='bx bx-user fs-32 text-info'></i>
+              <div>
+                <p class="stat-value" id="counselors-count">
+                  <span class="spinner-border spinner-border-sm" role="status"></span>
+                </p>
+                <p class="stat-label">Counselors</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Form -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <form method="GET" class="row g-3">
+              <div class="col-md-4">
+                <label for="institute_filter" class="form-label text-gray fs-12 mb-1">Institute Name</label>
+                <input type="text" 
+                       name="institute" 
+                       id="institute_filter"
+                       class="form-control custom-input" 
+                       placeholder="Search institute"
+                       value="{{ search_params.institute|default('') }}">
+              </div>
+              <div class="col-md-4">
+                <label for="location_filter" class="form-label text-gray fs-12 mb-1">Location</label>
+                <select name="location" id="location_filter" class="form-control custom-input">
+                  <option value="">All Locations</option>
+                  {% for location in locations %}
+                  <option value="{{ location }}" {% if search_params.location == location %}selected{% endif %}>
+                    {{ location }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="location_search_filter" class="form-label text-gray fs-12 mb-1">Search Location</label>
+                <input type="text" 
+                       name="location_search" 
+                       id="location_search_filter"
+                       class="form-control custom-input" 
+                       placeholder="Search by location"
+                       value="{{ search_params.location_search|default('') }}">
+              </div>
+              <div class="col-md-12 d-flex gap-2 align-items-end">
+                <button type="submit" 
+                        class="btn custom-button purple-button" 
+                        style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
+                  Search
+                </button>
+                <a href="{{ url('institute:marketinggroupdashboard') }}" 
+                   class="btn btn-secondary" 
+                   style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
+                  Reset
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Institutes Table -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <!-- Loader (shown initially) -->
+            <div id="institutes-loader" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3 text-gray">Loading institutes...</p>
+            </div>
+            
+            <!-- Table Container (hidden initially, shown after AJAX load) -->
+            <div id="institutes-table-wrapper" style="display: none;"></div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row g-4 mb-4" id="charts-section" style="display: none;">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title mb-3">Total Students by Institute</h5>
+                <div id="location-chart-loader" class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+                <canvas id="locationChart" height="200" style="display: none;"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title mb-3">Psychometric Test Completion</h5>
+                <div id="personality-chart-loader" class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+                <canvas id="personalityChart" height="200" style="display: none;"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Update Institute Modal -->
+{% if institutes_paginations %}
+  {% for ins in institutes_paginations %}
+  <div class="modal fade" id="updateInstituteModal{{ ins.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Update Institute Profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ url('institute:marketingprofileedit') }}" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          <input type="hidden" name="institute_id" value="{{ ins.id }}">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Institute Name</label>
+              <input type="text" name="institute_name" class="form-control" value="{{ ins.name }}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Address</label>
+              <input type="text" name="institute_address" class="form-control" value="{{ ins.address }}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Contact</label>
+              <input type="text" name="institute_contact" class="form-control" value="{{ ins.contact_info }}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Admin Contact</label>
+              <input type="text" name="institute_admin" class="form-control" value="{{ ins.administrator_contact }}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Credit Counts</label>
+              <input type="number" name="upd_credits" class="form-control" value="{{ ins.credit_counts }}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Institute Logo</label>
+              <input type="file" name="institute_logo" class="form-control" accept=".jpg,.png">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+{% endif %}
+
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Initialize Bootstrap tooltips
+  function initTooltips() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }
+  
+  // AJAX function to load institutes table
+  function loadInstitutesTable(url) {
+    const tableWrapper = document.getElementById('institutes-table-wrapper');
+    const loader = document.getElementById('institutes-loader');
+    
+    if (tableWrapper && loader) {
+      tableWrapper.style.display = 'none';
+      loader.style.display = 'block';
+      
+      fetch(url, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      })
+      .then(response => response.text())
+      .then(html => {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        const newTableWrapper = tempDiv.querySelector('#institutes-table-wrapper');
+        
+        if (newTableWrapper) {
+          tableWrapper.innerHTML = newTableWrapper.innerHTML;
+        } else {
+          // Fallback: try to find table container and pagination separately
+          const newTableContainer = tempDiv.querySelector('#institutes-table-container');
+          const newPagination = tempDiv.querySelector('#institutes-pagination');
+          
+          if (newTableContainer || newPagination) {
+            tableWrapper.innerHTML = '';
+            if (newTableContainer) {
+              tableWrapper.appendChild(newTableContainer);
+            }
+            if (newPagination) {
+              tableWrapper.appendChild(newPagination);
+            }
+          }
+        }
+        
+        window.history.pushState({}, '', url);
+        
+        loader.style.display = 'none';
+        tableWrapper.style.display = 'block';
+        
+        initTooltips();
+      })
+      .catch(error => {
+        console.error('Error loading institutes:', error);
+        loader.style.display = 'none';
+        tableWrapper.style.display = 'block';
+      });
+    } else {
+      window.location.href = url;
+    }
+  }
+  
+  // Load institutes table on page load
+  function loadInstitutesOnPageLoad() {
+    const url = window.location.pathname + window.location.search;
+    loadInstitutesTable(url);
+  }
+  
+  // Handle form submissions with AJAX
+  document.addEventListener('DOMContentLoaded', function() {
+    // Load institutes table after page loads
+    loadInstitutesOnPageLoad();
+    
+    const instituteFilterForm = document.getElementById('institute-filter-form');
+    
+    if (instituteFilterForm) {
+      instituteFilterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const params = new URLSearchParams(formData);
+        const url = window.location.pathname + '?' + params.toString();
+        loadInstitutesTable(url);
+      });
+    }
+    
+    // Handle pagination links with AJAX
+    document.addEventListener('click', function(e) {
+      const paginationLink = e.target.closest('.pagination a');
+      if (paginationLink) {
+        e.preventDefault();
+        const url = paginationLink.href;
+        if (url.includes('page=')) {
+          loadInstitutesTable(url);
+        }
+      }
+    });
+    
+    // Initialize tooltips for non-AJAX content
+    initTooltips();
+  });
+
+</script>
+{% endblock %}
+

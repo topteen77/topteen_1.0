@@ -1,0 +1,358 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Enrolled Course | Top Teen{% endblock %}
+{% block description_content %}View your enrolled course, watch videos, take quizzes, and track progress.{% endblock %}
+
+{% block bodyclass %}{{ super() }} enrolled-course-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<style>
+  .enrolled-course-page {
+    padding-top: 80px;
+  }
+  .chapter-tab {
+    background: #f7f7fa;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .chapter-tab.active {
+    background: #5046e5;
+    color: #fff;
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  .part-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+  .video-container {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .video-container video {
+    width: 100%;
+    height: auto;
+  }
+  .quiz-section {
+    background: #f7f7fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+  .question-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+  .certificate-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="enrolled-course-page pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <!-- Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        <h2 class="fs-24 fw-semibold mb-4">Enrolled Course</h2>
+        
+        {% if course %}
+        <!-- Chapter Tabs -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="d-flex flex-wrap gap-2 mb-4" id="chapterTabs">
+              {% for chapter in course.chapters.all() %}
+              <button class="chapter-tab {% if loop.first %}active{% endif %}" 
+                      data-chapter="{{ chapter.id }}">
+                {{ chapter.name|default('Chapter ' ~ loop.index) }}
+              </button>
+              {% endfor %}
+            </div>
+
+            <!-- Chapter Content -->
+            {% for chapter in course.chapters.all() %}
+            <div class="tab-content {% if loop.first %}active{% endif %}" 
+                 id="chapter{{ chapter.id }}">
+              <h4 class="fs-20 fw-semibold mb-3">{{ chapter.name|default('Chapter ' ~ loop.index) }}</h4>
+              
+              {% if chapter.parts.exists() %}
+                {% for part in chapter.parts.all() %}
+                <div class="part-card">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fs-18 fw-semibold mb-0">{{ part.name|default('Part ' ~ loop.index) }}</h5>
+                    {% set part_id = part.id %}
+                    {% set is_completed = video_progress.get(part_id, False) %}
+                    <span class="badge {% if is_completed %}bg-success{% else %}bg-warning{% endif %}">
+                      {% if is_completed %}Completed{% else %}In Progress{% endif %}
+                    </span>
+                  </div>
+
+                  {% if part.video_url or part.video_file %}
+                  <!-- Video Section -->
+                  <div class="video-container">
+                    <video id="video-{{ part.id }}" 
+                           preload="metadata" 
+                           controls
+                           data-part-id="{{ part.id }}">
+                      {% if part.video_file %}
+                      <source src="{{ part.video_file.url }}" type="video/mp4">
+                      {% elif part.video_url %}
+                      <source src="{{ part.video_url }}" type="video/mp4">
+                      {% endif %}
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                  {% endif %}
+
+                  <!-- Quiz Section -->
+                  {% if part.quizzes.exists() %}
+                    {% for quiz in part.quizzes.all() %}
+                    <div class="quiz-section">
+                      <h6 class="fs-16 fw-semibold mb-3">Quiz: {{ quiz.name|default('Quiz ' ~ loop.index) }}</h6>
+                      <form method="POST" id="quizForm{{ quiz.id }}">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        <input type="hidden" name="part_id" value="{{ part.id }}">
+                        
+                        {% if quiz.questions.exists() %}
+                          {% for question in quiz.questions.all() %}
+                          <div class="question-card">
+                            <p class="fs-16 fw-semibold mb-3">{{ question.question_text }}</p>
+                            {% if question.answers.exists() %}
+                              {% for answer in question.answers.all() %}
+                              <div class="form-check mb-2">
+                                <input class="form-check-input" 
+                                       type="radio" 
+                                       name="question_{{ question.id }}" 
+                                       id="answer_{{ answer.id }}" 
+                                       value="{{ answer.id }}">
+                                <label class="form-check-label" for="answer_{{ answer.id }}">
+                                  {{ answer.answer_text }}
+                                </label>
+                              </div>
+                              {% endfor %}
+                            {% endif %}
+                          </div>
+                          {% endfor %}
+                        {% endif %}
+                        
+                        <button type="submit" class="btn custom-button purple-button mt-3">
+                          Submit Quiz
+                        </button>
+                      </form>
+                    </div>
+                    {% endfor %}
+                  {% endif %}
+
+                  <!-- Notes Section -->
+                  <div class="mt-3">
+                    <h6 class="fs-16 fw-semibold mb-2">Notes</h6>
+                    <div id="notesContainer{{ part.id }}">
+                      {% if notes %}
+                        {% for note in notes %}
+                          {% if note.part.id == part.id %}
+                          <div class="bg-light p-2 rounded mb-2">
+                            <small class="text-gray">{{ note.video_timestamp|default('') }}</small>
+                            <p class="mb-0 fs-14">{{ note.content }}</p>
+                          </div>
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+                    </div>
+                    <button type="button" 
+                            class="btn btn-sm btn-outline-primary mt-2" 
+                            onclick="showAddNoteModal({{ part.id }})">
+                      <i class='bx bx-plus me-1'></i> Add Note
+                    </button>
+                  </div>
+                </div>
+                {% endfor %}
+              {% else %}
+              <p class="text-gray">No parts available in this chapter.</p>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Certificate Section -->
+        {% if certification %}
+        <div class="card">
+          <div class="card-body">
+            <div class="certificate-badge">
+              <h3 class="fs-24 fw-bold mb-2">Certificate Earned!</h3>
+              <p class="mb-2">Grade: {{ certification.grade }}</p>
+              <p class="mb-0">Code: {{ certification.certificate_code }}</p>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="card">
+          <div class="card-body text-center">
+            <p class="text-gray">No course data available.</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Add Note Modal -->
+<div class="modal fade" id="addNoteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Note</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="addNoteForm">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="part_id" id="notePartId">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Video Timestamp</label>
+            <input type="text" name="time" id="noteTime" class="form-control custom-input" placeholder="00:00:00">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Note Content</label>
+            <textarea name="content" id="noteContent" class="form-control custom-input" rows="4" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Save Note</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  // Chapter tab switching
+  document.querySelectorAll('.chapter-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      const chapterId = this.getAttribute('data-chapter');
+      
+      // Remove active class from all tabs and contents
+      document.querySelectorAll('.chapter-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      // Add active class to clicked tab and corresponding content
+      this.classList.add('active');
+      document.getElementById('chapter' + chapterId).classList.add('active');
+    });
+  });
+
+  // Video progress tracking
+  document.querySelectorAll('video').forEach(video => {
+    const partId = video.getAttribute('data-part-id');
+    
+    video.addEventListener('timeupdate', function() {
+      const progress = (this.currentTime / this.duration) * 100;
+      updateVideoProgress('video-' + partId, progress, this.duration);
+    });
+    
+    video.addEventListener('ended', function() {
+      updateVideoProgress('video-' + partId, 100, this.duration);
+    });
+  });
+
+  function updateVideoProgress(videoId, progress, duration) {
+    fetch('{{ url("counselor:update_progress") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        video_id: videoId,
+        progress: progress,
+        duration: duration
+      })
+    }).catch(err => console.error('Error updating progress:', err));
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function showAddNoteModal(partId) {
+    document.getElementById('notePartId').value = partId;
+    const modal = new bootstrap.Modal(document.getElementById('addNoteModal'));
+    modal.show();
+  }
+
+  // Add note form submission
+  document.getElementById('addNoteForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const partId = formData.get('part_id');
+    
+    fetch('{{ url("counselor:add_note", args=[0]) }}'.replace('0', partId), {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Add note to container
+      const container = document.getElementById('notesContainer' + partId);
+      const noteHtml = `
+        <div class="bg-light p-2 rounded mb-2">
+          <small class="text-gray">${data.time || ''}</small>
+          <p class="mb-0 fs-14">${data.content}</p>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', noteHtml);
+      
+      // Close modal and reset form
+      bootstrap.Modal.getInstance(document.getElementById('addNoteModal')).hide();
+      this.reset();
+    })
+    .catch(err => console.error('Error adding note:', err));
+  });
+</script>
+{% endblock %}
+
