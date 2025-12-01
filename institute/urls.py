@@ -17,6 +17,7 @@ urlpatterns = [
 
     path("marketing_group_dashboard",views.MarketingGroupDashboardView.as_view(),name="marketinggroupdashboard"),
     path("marketing_profile_edit",views.InstituteMarketingProfileEditView.as_view(),name="marketingprofileedit"),
+    path("update_seat_capacity",views.UpdateSeatCapacityView.as_view(),name="updateseatcapacity"),
     path("institute_approve/<int:id>", views.InstituteApproveView.as_view(), name="instituteapprove"),
     
     # path("create_counselor_dashboard",views.CounselorDashboard,name="CounselorDashboardView"),

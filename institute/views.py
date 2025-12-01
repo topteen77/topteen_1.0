@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.views.generic import TemplateView,View
 from counselor.models import Counselor, FollowUpStatus
-from counselor.views import get_students_by_role, apply_student_filters, get_class_and_sections_by_role, get_class_counts, get_results_data_for_students
+from counselor.views import get_students_by_role, apply_student_filters, get_class_and_sections_by_role, get_class_counts, get_results_data_for_students, get_unique_streams_by_role
 from users.models import User, UserProfile
 from core import choices
 from psychometric_tests.models import PsychometricTestResult,CentralTestCandidate
@@ -17,9 +17,10 @@ from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from institute.decorators import change_counselor_password_only, institute_user_only,institute_authenticated_user_only,institute_block_student_only,institute_update_delete_student_only,institute_change_student_password_only,institute_profile_update_delete, marketing_group_user_only,only_superuser,institute_group_user_only
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
+from django.views import View
 from institute.task import update_student_data,create_institute_log,send_institute_group_mail
 from institute.models import Institute,StudentManagement,InstituteAccountDeletion,ClassAndSection,InstituteLog,get_global_remain_credits,InstituteGroup,InstituteMarketingGroup
 from django.conf import settings
@@ -168,6 +169,12 @@ class AdminDashboardView(TemplateView):
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 @method_decorator(only_superuser,name='dispatch')
 class InstituteCreateView(TemplateView):
+    template_name = 'template20/institute/marketing_group_dashboard.html'
+    
+    def get(self, request, *args, **kwargs):
+        # Redirect to marketing dashboard if accessed via GET
+        return HttpResponseRedirect(reverse('institute:marketinggroupdashboard'))
+    
     def post(self,request,*args,**kwargs):
         import re
         evalid = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -183,15 +190,32 @@ class InstituteCreateView(TemplateView):
         logo=request.FILES.get("institute_logo")
         ins_em=re.match(evalid,ins_email)
         if ins_em and name and address and contact and admin_contact and logo and (0<=int(credit_counts)<=get_global_remain_credits()):
+            # Attach institute to selected institute group (if any)
             if institute_group_id:
                 ins_group=get_object_or_404(InstituteGroup,id=institute_group_id)
             else:
                 ins_group=None
+
+            # Attach institute to the marketing group of the logged-in marketing admin
+            marketing_group = InstituteMarketingGroup.objects.filter(
+                marketing_group_admin=request.user
+            ).first()
+
             import random
             password=''.join([str(random.randint(0,10)) for _ in range(6)])
             user_dict={'email':ins_email,'password':password,'user_type':choices.UserType.INSTITUTE}
             ins_user=User.create_user(**user_dict)
-            ins=Institute(name=name,created_by=ins_user,logo=logo,address=address,contact_info=contact,administrator_contact=admin_contact,credit_counts=credit_counts,institute_group=ins_group)
+            ins=Institute(
+                name=name,
+                created_by=ins_user,
+                logo=logo,
+                address=address,
+                contact_info=contact,
+                administrator_contact=admin_contact,
+                credit_counts=credit_counts,
+                institute_group=ins_group,
+                marketing_group=marketing_group
+            )
             ins.save()
             send_institute_mail.delay(ins.created_by.email,password)
             messages.success(request, "Institute Created")
@@ -469,7 +493,7 @@ class MarketingGroupDashboardView(TemplateView):
         
         # Check what data is being requested
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        data_type = request.GET.get('data_type', '')  # 'institutes', 'stats', 'charts'
+        data_type = request.GET.get('data_type', '')  # 'institutes', 'stats', 'charts', 'seat_capacity'
         
         # For initial page load, use lightweight mode
         if not is_ajax:
@@ -482,16 +506,16 @@ class MarketingGroupDashboardView(TemplateView):
             if marketing_group:
                 # Quick counts only - no full data loading
                 ctx.update({
-                    'total_institute_count': Institute.objects.filter(marketing_group=marketing_group),
+                    'total_institute_count': Institute.objects.filter(marketing_group=marketing_group).count(),
                     'total_stu_count': None,  # Will load via AJAX
                     'counselors_count': None,  # Will load via AJAX
                     'institutes': [],
                     'total_students_count': None,
                     'test_result_count': None,
                     'streams': {},
-                    'locations': Institute.objects.filter(
+                    'locations': list(Institute.objects.filter(
                         marketing_group=marketing_group
-                    ).values_list('address', flat=True).distinct()[:50],  # Limit locations
+                    ).values_list('address', flat=True).distinct()[:50]),  # Limit locations, convert to list
                     'search_params': search_params,
                     "institute_group": InstituteGroup.objects.all(),
                     "institute_types": choices.InstituteType.CHOICES,
@@ -517,10 +541,33 @@ class MarketingGroupDashboardView(TemplateView):
             group_admin = request.user
             info = self.get_institute_group_info(group_admin, search_params, load_full_data=False)
             institutes_list = info['institutes']
-            pages = Paginator(institutes_list, 10)
-            page_number = request.GET.get('page', 1)
-            ctx['institutes_paginations'] = pages.get_page(page_number)
+            
+            # Get per_page parameter from request, default to 10
+            per_page = request.GET.get('per_page', '10')
+            
+            # Handle pagination
+            if per_page == 'all':
+                # Show all records without pagination
+                ctx['institutes_paginations'] = None
+                ctx['institutes_list_all'] = list(institutes_list)
+            else:
+                try:
+                    per_page_int = int(per_page)
+                    # Limit to valid options: 10, 100
+                    if per_page_int not in [10, 100]:
+                        per_page_int = 10
+                except (ValueError, TypeError):
+                    per_page_int = 10
+                
+                pages = Paginator(institutes_list, per_page_int)
+                page_number = request.GET.get('page', 1)
+                try:
+                    ctx['institutes_paginations'] = pages.get_page(page_number)
+                except:
+                    ctx['institutes_paginations'] = pages.get_page(1)
+            
             ctx['search_params'] = search_params
+            ctx['per_page'] = per_page
         elif data_type == 'stats':
             # AJAX request for statistics
             group_admin = request.user
@@ -528,6 +575,10 @@ class MarketingGroupDashboardView(TemplateView):
                 marketing_group_admin=group_admin
             ).first()
             if marketing_group:
+                from institute.models import get_global_remain_credits
+                from django.conf import settings
+                institutes_in_group = Institute.objects.filter(marketing_group=marketing_group)
+                total_credits = sum(inst.credit_counts for inst in institutes_in_group)
                 ctx.update({
                     'total_stu_count': StudentManagement.objects.filter(
                         institute__marketing_group=marketing_group
@@ -535,26 +586,148 @@ class MarketingGroupDashboardView(TemplateView):
                     'counselors_count': Counselor.objects.filter(
                         counselor_admin__marketing_group=marketing_group
                     ).count(),
+                    'total_credits': total_credits,
+                    'global_credits': settings.CREDIT_LIMIT,
+                    'total_events': 0,  # Placeholder - add actual events count if available
                 })
             else:
                 ctx.update({
                     'total_stu_count': 0,
                     'counselors_count': 0,
+                    'total_credits': 0,
+                    'total_events': 0,
                 })
         elif data_type == 'charts':
-            # AJAX request for charts data
+            # AJAX request for charts data - OPTIMIZED for performance
             group_admin = request.user
-            info = self.get_institute_group_info(group_admin, search_params, load_full_data=True)
-            # Convert to serializable format
-            students_list = list(info['tstudents']) if hasattr(info['tstudents'], '__iter__') else []
-            # Count students with test results
-            test_result_count = sum(1 for r1 in students_list if r1.get_test_result())
-            ctx.update({
-                'institutes': info['institute_data'],
-                'total_students_count': len(students_list),  # Just the count
-                'test_result_count': test_result_count,  # Just the count
-                'streams': info['streams'],
-            })
+            marketing_group = InstituteMarketingGroup.objects.filter(
+                marketing_group_admin=group_admin
+            ).first()
+            
+            if not marketing_group:
+                ctx.update({
+                    'institutes': [],
+                    'total_students_count': 0,
+                    'test_result_count': 0,
+                    'streams': {},
+                    'streams_chart_data': [],
+                })
+            else:
+                # OPTIMIZED: Get institute data for location chart (only address and student_count)
+                # Use values() and annotate() to get aggregated data directly from DB
+                # Limit to top 20 locations by student count to prevent chart overflow
+                institute_data = list(
+                    Institute.objects
+                    .filter(marketing_group=marketing_group)
+                    .values('address')
+                    .annotate(student_count=Count('student_management'))
+                    .order_by('-student_count')[:20]  # Top 20 locations only
+                )
+                
+                # Get full institute list for seat capacity table (with seat capacity data)
+                seat_capacity_institutes = list(
+                    Institute.objects
+                    .filter(marketing_group=marketing_group)
+                    .values('id', 'name', 'address', 'pcm', 'cbm', 'comm', 'hme', 'hmb')
+                    .order_by('name')[:100]  # Limit to 100 institutes
+                )
+                
+                # OPTIMIZED: Get total student count (single query)
+                total_students_count = StudentManagement.objects.filter(
+                    institute__marketing_group=marketing_group
+                ).count()
+                
+                # OPTIMIZED: Get test result count (single query with exists check)
+                test_result_count = StudentManagement.objects.filter(
+                    institute__marketing_group=marketing_group
+                ).filter(
+                    student__results__test_paper='test3'
+                ).distinct().count()
+                
+                # OPTIMIZED: Get streams data (only if needed, with limits)
+                # Only fetch a sample of students with results for stream calculation
+                sample_students = StudentManagement.objects.filter(
+                    institute__marketing_group=marketing_group
+                ).select_related('student')[:200]  # Limit to 200 for stream calculation
+                
+                # Get test results for sample students only
+                student_users = [stu.student for stu in sample_students]
+                test_results_queryset = Results.objects.filter(
+                    user__in=student_users,
+                    test_paper='test3'
+                ).select_related('user')[:200]  # Limit results
+                
+                # Create mapping and process streams
+                results_map = {result.user: result for result in test_results_queryset}
+                test_results = []
+                for stu in sample_students:
+                    if stu.student in results_map:
+                        result = results_map[stu.student]
+                        if result.results:
+                            personality_res = result.results
+                            sreams_scores = {label.split("_")[0].upper(): value for label, value in personality_res.items()}
+                            test_results.append({"streams": sreams_scores})
+                
+                streams_data = self.get_stream(test_results) if test_results else {}
+                
+                # Convert streams dict to list format for chart
+                # Sort by count (descending) and limit to top 15 to prevent chart overflow
+                streams_chart_data = []
+                if streams_data:
+                    sorted_streams = sorted(streams_data.items(), key=lambda x: x[1], reverse=True)[:15]
+                    for stream, count in sorted_streams:
+                        streams_chart_data.append({
+                            'stream': stream,
+                            'count': count
+                        })
+                
+                ctx.update({
+                    'institutes': institute_data,  # Optimized: only address and student_count for chart
+                    'total_students_count': total_students_count,
+                    'test_result_count': test_result_count,
+                    'streams': streams_data,
+                    'streams_chart_data': streams_chart_data,
+                    'seat_capacity_institutes': seat_capacity_institutes,  # Add seat capacity data
+                })
+                
+                # Handle seat capacity pagination separately
+                if data_type == 'seat_capacity':
+                    # Get paginated seat capacity data
+                    page = request.GET.get('page', 1)
+                    per_page = request.GET.get('per_page', 10)
+                    
+                    seat_capacity_queryset = Institute.objects.filter(
+                        marketing_group=marketing_group
+                    ).order_by('name')
+                    
+                    paginator = Paginator(seat_capacity_queryset, per_page)
+                    seat_capacity_page = paginator.get_page(page)
+                    
+                    seat_capacity_list = []
+                    for inst in seat_capacity_page:
+                        seat_capacity_list.append({
+                            'id': inst.id,
+                            'name': inst.name,
+                            'pcm': inst.pcm,
+                            'cbm': inst.cbm,
+                            'comm': inst.comm,
+                            'hme': inst.hme,
+                            'hmb': inst.hmb
+                        })
+                    
+                    ctx.update({
+                        'institutes': seat_capacity_list,
+                        'page': seat_capacity_page.number,
+                        'per_page': per_page,
+                        'total_pages': paginator.num_pages,
+                        'total_count': paginator.count,
+                        'has_previous': seat_capacity_page.has_previous(),
+                        'has_next': seat_capacity_page.has_next(),
+                        'previous_page': seat_capacity_page.previous_page_number() if seat_capacity_page.has_previous() else None,
+                        'next_page': seat_capacity_page.next_page_number() if seat_capacity_page.has_next() else None,
+                        'start_index': seat_capacity_page.start_index(),
+                        'end_index': seat_capacity_page.end_index(),
+                    })
         else:
             # Default AJAX - just institute table
             group_admin = request.user
@@ -586,15 +759,29 @@ class MarketingGroupDashboardView(TemplateView):
             # Convert QuerySets to counts/lists for JSON serialization
             json_data = {}
             for key, value in context.items():
-                if hasattr(value, 'count'):
+                # Skip non-serializable items
+                if key in ['html_head', 'request', 'search_params']:
+                    continue
+                if hasattr(value, 'count') and not isinstance(value, (str, dict, list)):
                     json_data[key] = value.count()
-                elif hasattr(value, '__iter__') and not isinstance(value, (str, dict)):
+                elif isinstance(value, (list, tuple)):
+                    # Handle lists of dicts (like institute_data)
+                    json_data[key] = value
+                elif isinstance(value, dict):
+                    json_data[key] = value
+                elif hasattr(value, '__iter__') and not isinstance(value, (str, dict, list)):
                     try:
                         json_data[key] = list(value)[:100]  # Limit to 100 items
                     except:
                         json_data[key] = []
+                elif value is None:
+                    json_data[key] = None
                 else:
-                    json_data[key] = value
+                    # For simple types (int, str, bool, etc.)
+                    try:
+                        json_data[key] = value
+                    except:
+                        pass
             return JsonResponse(json_data)
         else:
             # Regular page load
@@ -621,20 +808,73 @@ class MarketingGroupDashboardView(TemplateView):
         
         return queryset
     
-    def get(self,request,*args,**kwargs):
-        context = self.get_context(request,*args,**kwargs)
-        
-        # Check if this is an AJAX request for institutes table
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return render(request, 'template20/institute/marketing_institutes_table.html', context)
-        
-        return render(request,self.template_name,context)
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
-@method_decorator(institute_profile_update_delete,name='dispatch')
+@method_decorator(marketing_group_user_only,name='dispatch')
 class InstituteMarketingProfileEditView(TemplateView):
+    template_name = 'template20/institute/marketing_group_dashboard.html'
+    
+    def get(self, request, *args, **kwargs):
+        # Redirect to marketing dashboard if accessed via GET
+        return HttpResponseRedirect(reverse('institute:marketinggroupdashboard'))
+    
     def post(self,request, *args, **kwargs):
         ins_id = request.POST.get("institute_id")
+        change_password = request.POST.get("change_password")
+        
+        # Handle password change
+        if change_password == "1":
+            new_password = request.POST.get("new_password")
+            confirm_password = request.POST.get("confirm_password")
+            
+            if not new_password or not confirm_password:
+                messages.error(request, "Both password fields are required.")
+                # Handle AJAX requests
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': 'Both password fields are required.'}, status=400)
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+            
+            if new_password != confirm_password:
+                messages.error(request, "Passwords do not match.")
+                # Handle AJAX requests
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': 'Passwords do not match.'}, status=400)
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+            
+            ins = get_object_or_404(Institute, id=ins_id)
+            # Verify the institute belongs to the user's marketing group
+            group_admin = request.user
+            marketing_group = InstituteMarketingGroup.objects.filter(
+                marketing_group_admin=group_admin
+            ).first()
+            
+            if not marketing_group or ins.marketing_group != marketing_group:
+                messages.error(request, "Unauthorized access.")
+                # Handle AJAX requests
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': 'Unauthorized access.'}, status=403)
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+            
+            # Get the institute user (created_by)
+            if ins.created_by:
+                ins_user = ins.created_by
+                ins_user.set_password(new_password)
+                ins_user.save()
+                send_new_student_credential.delay(ins_user.email, new_password)
+                messages.success(request, f"Password changed successfully for {ins.name}.")
+                
+                # Handle AJAX requests
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': True, 'message': f'Password changed successfully for {ins.name}.'})
+            else:
+                messages.error(request, "Institute user not found.")
+                # Handle AJAX requests
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': 'Institute user not found.'}, status=400)
+            
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        
+        # Handle institute profile update
         ins_name=request.POST.get("institute_name")
         ins_address=request.POST.get("institute_address")
         ins_contact=request.POST.get("institute_contact")
@@ -642,7 +882,19 @@ class InstituteMarketingProfileEditView(TemplateView):
         ins_credits=request.POST.get("upd_credits")
         ins_group=request.POST.get("institute_group")
         ins_logo=request.FILES.get("institute_logo")
+        
         ins=get_object_or_404(Institute,id=ins_id)
+        
+        # Verify the institute belongs to the user's marketing group
+        group_admin = request.user
+        marketing_group = InstituteMarketingGroup.objects.filter(
+            marketing_group_admin=group_admin
+        ).first()
+        
+        if not marketing_group or ins.marketing_group != marketing_group:
+            messages.error(request, "Unauthorized access.")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        
         if ins_name or ins_address or ins_contact or ins_admin or ins_logo or ins_credits or ins_group:
             if ins_name:
                 update_student_data.delay(ins.id,ins_name)
@@ -662,6 +914,14 @@ class InstituteMarketingProfileEditView(TemplateView):
             if ins_logo:
                 ins.logo=ins_logo
             ins.save()
+            messages.success(request, f"Institute {ins.name} updated successfully.")
+        else:
+            messages.info(request, "No changes were made.")
+        
+        # Handle AJAX requests
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': f'Institute {ins.name} updated successfully.'})
+        
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -918,7 +1178,7 @@ from app_post_matric.models import (
 class InstituteDashboardView(TemplateView):
     # template_name="topteenfrontend/user/institute_dashboard.html" 
     # template_name="topteenfrontend/user/app/profile_index.html" 
-    template_name="topteenfrontend/user/app/institute-dashboard-admin.html"
+    template_name="template20/institute/institute_dashboard.html"
     
     def html_head(self):
         name='Institute Dashboard'
@@ -1321,94 +1581,472 @@ class InstituteDashboardView(TemplateView):
                             ts.class_and_section.class_and_section in ['11', '12', '11th', '12th']]
         return higher_class_students
     
+    def _get_student_test_result_optimized(self, user, student_management, test_completion, post_matric_sessions, results_list):
+        """
+        Optimized version of get_student_test_result that uses pre-fetched data.
+        This avoids N+1 queries by using batch-fetched data.
+        """
+        try:
+            if student_management and student_management.class_and_section:
+                class_name = student_management.class_and_section.class_and_section
+                
+                # Extract class number
+                class_number = None
+                try:
+                    import re
+                    numbers = re.findall(r'\d+', class_name)
+                    if numbers:
+                        class_number = int(numbers[0])
+                except (ValueError, IndexError):
+                    pass
+                
+                # Determine system based on class
+                if class_number and class_number >= 11:
+                    # Class 11-12: Use post-matric system
+                    return self._get_post_matric_test_result_optimized(user, post_matric_sessions)
+                else:
+                    # Class 10 and below: Use psychometric system
+                    return self._get_psychometric_test_result_optimized(user, test_completion, results_list)
+            else:
+                # No class information, default to psychometric system
+                return self._get_psychometric_test_result_optimized(user, test_completion, results_list)
+                
+        except Exception as e:
+            print(f"An error occurred in _get_student_test_result_optimized: {e}")
+            return {
+                "streams": {},
+                "test_success": False,
+                "test_link": None,
+                "success_count": 0,
+                "test_status": "no_tests",
+                "test_details": {
+                    "test1": False,
+                    "test2": False,
+                    "test3": False
+                },
+                "tooltip": "Error loading test data"
+            }
+    
+    def _get_post_matric_test_result_optimized(self, user, test_sessions):
+        """Optimized version using pre-fetched test_sessions"""
+        try:
+            # Initialize test completion status for 4 tests
+            test_completion = {
+                1: False,  # Personality Assessment
+                2: False,  # Motivation Assessment
+                3: False,  # Career Interest Inventory  
+                4: False   # Aptitude Assessment
+            }
+            
+            # Check completed sessions from pre-fetched data
+            for session in test_sessions:
+                if session.is_completed and session.test:
+                    test_id = session.test.id
+                    if test_id in test_completion:
+                        test_completion[test_id] = True
+            
+            # Count completed tests
+            completed_tests = sum(test_completion.values())
+            
+            # Determine overall status and create detailed tooltip
+            completed_list = []
+            not_completed_list = []
+            
+            if test_completion[1]:
+                completed_list.append("Personality")
+            else:
+                not_completed_list.append("Personality")
+                
+            if test_completion[2]:
+                completed_list.append("Motivation")
+            else:
+                not_completed_list.append("Motivation")
+                
+            if test_completion[3]:
+                completed_list.append("Career Interest")
+            else:
+                not_completed_list.append("Career Interest")
+                
+            if test_completion[4]:
+                completed_list.append("Aptitude")
+            else:
+                not_completed_list.append("Aptitude")
+            
+            # Create detailed tooltip showing all test statuses
+            tooltip_parts = []
+            if completed_list:
+                tooltip_parts.append(f"Completed: {', '.join(completed_list)}")
+            if not_completed_list:
+                tooltip_parts.append(f"Not completed: {', '.join(not_completed_list)}")
+            tooltip = " | ".join(tooltip_parts)
+            
+            # Determine overall status
+            if completed_tests == 0:
+                test_status = "no_tests"
+            elif completed_tests == 4:
+                test_status = "completed"
+            else:
+                test_status = "in_progress"
+            
+            # Get test link - only provide link if all tests are completed
+            test_link = None
+            if test_status == "completed":
+                from django.urls import reverse
+                test_link = f"{reverse('post_matric:combined_report',args=[user.id])}"
+            
+            return {
+                "streams": {},
+                "test_success": completed_tests > 0,
+                "test_link": test_link,
+                "success_count": completed_tests,
+                "test_status": test_status,
+                "test_details": {
+                    "test1": test_completion[1],
+                    "test2": test_completion[2],
+                    "test3": test_completion[3],
+                    "test4": test_completion[4]
+                },
+                "tooltip": tooltip
+            }
+            
+        except Exception as e:
+            print(f"Error in _get_post_matric_test_result_optimized: {e}")
+            from django.urls import reverse
+            return {
+                "streams": {},
+                "test_success": False,
+                "test_link": reverse('post_matric:tests'),
+                "success_count": 0,
+                "test_status": "no_tests",
+                "test_details": {
+                    "test1": False,
+                    "test2": False,
+                    "test3": False,
+                    "test4": False
+                },
+                "tooltip": "Error loading post-matric test data"
+            }
+    
+    def _get_psychometric_test_result_optimized(self, user, test_completion, results_list):
+        """Optimized version using pre-fetched test_completion and results_list"""
+        try:
+            if not test_completion:
+                # If no TestCompletion record exists, student hasn't taken any tests
+                from django.urls import reverse
+                return {
+                    "streams": {},
+                    "test_success": False,
+                    "test_link": reverse('app:test_buttons'),
+                    "success_count": 0,
+                    "test_status": "no_tests",
+                    "test_details": {
+                        "test1": False,
+                        "test2": False,
+                        "test3": False
+                    },
+                    "tooltip": "No tests taken"
+                }
+            
+            # Get individual test completion status
+            test1_complete = test_completion.test1_complete
+            test2_complete = test_completion.test2_complete
+            
+            # Verify test3_complete - only True if ALL subtests are complete
+            all_test3_subtests_complete = (
+                test_completion.numerical_complete and
+                test_completion.verbal_complete and
+                test_completion.logical_complete and
+                test_completion.emotional_complete and
+                test_completion.machanical_complete and
+                test_completion.language_complete and
+                test_completion.spatial_complete
+            )
+            
+            # Correct test3_complete if it's incorrectly set
+            if test_completion.test3_complete != all_test3_subtests_complete:
+                test_completion.test3_complete = all_test3_subtests_complete
+                test_completion.save()
+            
+            test3_complete = test_completion.test3_complete
+            
+            # Count completed tests
+            completed_tests = sum([test1_complete, test2_complete, test3_complete])
+            
+            # Create detailed tooltip showing all test statuses
+            completed_list = []
+            not_completed_list = []
+            
+            if test1_complete:
+                completed_list.append("Career Interest")
+            else:
+                not_completed_list.append("Career Interest")
+                
+            if test2_complete:
+                completed_list.append("Intelligence")
+            else:
+                not_completed_list.append("Intelligence")
+                
+            if test3_complete:
+                completed_list.append("Personality")
+            else:
+                not_completed_list.append("Personality")
+            
+            # Create detailed tooltip showing all test statuses
+            tooltip_parts = []
+            if completed_list:
+                tooltip_parts.append(f"Completed: {', '.join(completed_list)}")
+            if not_completed_list:
+                tooltip_parts.append(f"Not completed: {', '.join(not_completed_list)}")
+            tooltip = " | ".join(tooltip_parts)
+            
+            # Determine overall status
+            if completed_tests == 0:
+                test_status = "no_tests"
+            elif completed_tests == 3:
+                test_status = "completed"
+            else:
+                test_status = "in_progress"
+            
+            # Get streams data if any tests are completed
+            scores = {}
+            if completed_tests > 0 and results_list:
+                # Use pre-fetched results_list instead of querying
+                # Try to get test3 result first (personality test) for streams data
+                test3_result = None
+                for result in results_list:
+                    if result.test_paper == 'test3':
+                        test3_result = result
+                        break
+                
+                if test3_result and test3_result.results:
+                    personality_res = test3_result.results
+                    scores = {label.split("_")[0].upper(): value for label, value in personality_res.items()}
+                
+                # Count successful tests from pre-fetched results
+                success_count = sum(1 for result in results_list if result.is_test_successful)
+            else:
+                success_count = 0
+            
+            # Get test link
+            from django.urls import reverse
+            test_link = None
+            if test_status == "completed":
+                # Try to get latest result for test link
+                latest_result = None
+                if results_list:
+                    # Get the latest result by created date
+                    latest_result = max(results_list, key=lambda r: r.created if hasattr(r, 'created') else r.id)
+                    if latest_result:
+                        test_link = latest_result.get_test_report_or_test_link(user)
+            
+            if not test_link:
+                test_link = reverse('app:test_buttons')
+            
+            return {
+                "streams": scores,
+                "test_success": completed_tests > 0,
+                "test_link": test_link,
+                "success_count": success_count,
+                "test_status": test_status,
+                "test_details": {
+                    "test1": test1_complete,
+                    "test2": test2_complete,
+                    "test3": test3_complete
+                },
+                "tooltip": tooltip
+            }
+            
+        except Exception as e:
+            print(f"Error in _get_psychometric_test_result_optimized: {e}")
+            from django.urls import reverse
+            return {
+                "streams": {},
+                "test_success": False,
+                "test_link": reverse('app:test_buttons'),
+                "success_count": 0,
+                "test_status": "no_tests",
+                "test_details": {
+                    "test1": False,
+                    "test2": False,
+                    "test3": False
+                },
+                "tooltip": "Error loading psychometric test data"
+            }
+    
     def get_context(self,request,*args,**kwargs):        
         slug=kwargs.get("slug")
         institute=get_object_or_404(Institute,slug=slug)
-        stu_manage=StudentManagement.objects.filter(institute=institute)
+        
+        # Use centralized function to get students based on role
+        # Optimize with select_related and prefetch_related to avoid N+1 queries
+        stu_manage = get_students_by_role(request.user, institute=institute).select_related(
+            'student', 
+            'class_and_section',
+            'institute'
+        )
         
         # Get filter parameters
         test_taken_filter = request.GET.get('test_taken', '')
-        student_name_filter = request.GET.get('student_name', '')
-        class_and_section_filter = request.GET.get('class_and_section', '')
         stream_filter = request.GET.get('stream', '')
 
-        ptr_count=[r for r in stu_manage if r.get_psychometric_result()]
+        # Optimize: Batch fetch psychometric results for all students
+        from psychometric_tests.models import PsychometricTestResult
+        student_users = [stu.student for stu in stu_manage if stu.student]
+        psychometric_results_map = {}
+        if student_users:
+            psychometric_results = PsychometricTestResult.objects.filter(
+                assessment__central_test_candidate__user__in=student_users
+            ).select_related('assessment__central_test_candidate__user')
+            for result in psychometric_results:
+                user = result.assessment.central_test_candidate.user
+                if user not in psychometric_results_map:
+                    psychometric_results_map[user] = []
+                psychometric_results_map[user].append(result)
+        
+        # Count students with psychometric results (for this specific institute)
+        ptr_count = len([r for r in stu_manage if r.student and r.student in psychometric_results_map])
+        
+        # Optimize: Batch fetch test results for all students (for this specific institute)
+        from app.models import Results
+        test_results_map = {}
+        if student_users:
+            all_results = Results.objects.filter(user__in=student_users).select_related('user')
+            for result in all_results:
+                if result.user not in test_results_map:
+                    test_results_map[result.user] = []
+                test_results_map[result.user].append(result)
+        
+        # Count students with test results (for this specific institute)
+        ptr_count1 = len([
+            r1 for r1 in stu_manage 
+            if r1.student and r1.student in test_results_map and 
+            any(res.is_test_successful for res in test_results_map[r1.student])
+        ])
+        
+        # Use centralized function to get class_and_sections based on role
+        class_and_sections = get_class_and_sections_by_role(request.user, stu_manage)
+        
+        # Get class counts using centralized function
+        class_counts = get_class_counts(stu_manage)
+        
+        # Get unique streams using centralized function
+        from counselor.views import get_unique_streams_by_role
+        unique_streams = get_unique_streams_by_role(request.user, stu_manage)
 
-        #<------------------------------ manish
-
-        ptr_count1=[r1 for r1 in stu_manage if r1.get_test_result()]
-        # classes based on the institute
-        selected_institute_id = institute.id
-        class_and_sections = ClassAndSection.objects.all()
-        if selected_institute_id:
-            class_and_sections = ClassAndSection.objects.filter(student_management__institute_id=selected_institute_id).distinct()
-
-        # Fetch the results for each student
+        # For initial page load, skip heavy student data processing
+        # Student table will be loaded via AJAX with full data
         results_data = {}
-        for stu in stu_manage:
-            
-            post_matric_stu = self.get_post_matric_student(stu.student)
-            
-            student_result = self.get_student_test_result(stu.student)
-            # get_student_test_result now always returns a result object
-            results_data[stu.student.id] = student_result
-        
-        # Count students who have completed tests based on results_data (matches filter logic)
-        completed_students_count = [
-            stu for stu in stu_manage 
-            if results_data.get(stu.student.id, {}).get('test_status') == 'completed'
-        ]
-        
+        completed_students_count = []
         higher_class_results = {}
-        for stu in stu_manage:
-            higher_class_results[stu.student] = self.get_higher_class_result(stu_manage)
-       
-        # If you want to create a list of results instead of a dictionary
-        test_results = list(results_data.values())
-        streams = self.get_stream(test_results)
-        # results_data = {stu.student: self.get_student_test_result(stu.student) for stu in stu_manage}        
-        counselors = Counselor.objects.filter(counselor_admin=institute)
+        
+        # Lightweight: Don't convert to list - keep as QuerySet for initial load
+        # Only get count for statistics
+        student_user_ids = stu_manage.values_list('student_id', flat=True).filter(student__isnull=False)
+        
+        # Lightweight streams calculation for chart - only process sample of students with results
+        from app.models import Results
+        streams = {}
+        if student_user_ids:
+            # Get a sample of students with test3 results for stream calculation (limit to 200 for performance)
+            sample_students = list(stu_manage[:200])
+            student_users = [stu.student for stu in sample_students if stu.student]
+            
+            if student_users:
+                test_results_queryset = Results.objects.filter(
+                    user__in=student_users,
+                    test_paper='test3'
+                ).select_related('user')[:200]
+                
+                # Process streams from sample results - use same format as marketing dashboard
+                test_results = []
+                results_map = {result.user: result for result in test_results_queryset}
+                for stu in sample_students:
+                    if stu.student and stu.student in results_map:
+                        result = results_map[stu.student]
+                        if result.results:
+                            personality_res = result.results
+                            streams_scores = {label.split("_")[0].upper(): value for label, value in personality_res.items()}
+                            test_results.append({"streams": streams_scores})
+                
+                # Calculate streams from sample
+                if test_results:
+                    streams = self.get_stream(test_results)
+        
+        # Lightweight: Don't convert to list - keep as QuerySet for initial load
+        # Only get count for statistics
+        total_students_count_list = stu_manage.count() if hasattr(stu_manage, 'count') else len(list(stu_manage))
+        
+        # Optimize: Batch fetch counselor data and FollowUpStatus records
+        counselors = Counselor.objects.filter(counselor_admin=institute).select_related('counselor_admin')
+        counselor_ids = [c.id for c in counselors]
+        
+        # Batch fetch all FollowUpStatus records for all counselors at once
+        all_followups = FollowUpStatus.objects.filter(counselor_id__in=counselor_ids).select_related('counselor')
+        
+        # Create maps for efficient lookup
+        followups_by_counselor = {}
+        for followup in all_followups:
+            if followup.counselor_id not in followups_by_counselor:
+                followups_by_counselor[followup.counselor_id] = []
+            followups_by_counselor[followup.counselor_id].append(followup)
+        
+        # Batch fetch session data grouped by counselor and date
+        from django.db.models import Count
+        sessions_data_all = (
+            FollowUpStatus.objects
+            .filter(counselor_id__in=counselor_ids)
+            .values('counselor_id', 'last_follow_up_date')
+            .annotate(session_count=Count('id'))
+        )
+        
+        # Group session data by counselor
+        sessions_by_counselor = {}
+        for session in sessions_data_all:
+            counselor_id = session['counselor_id']
+            if counselor_id not in sessions_by_counselor:
+                sessions_by_counselor[counselor_id] = []
+            sessions_by_counselor[counselor_id].append(session)
+        
         counselor_data_list = []
         couns_sessions_data = []
 
         for counselor in counselors:
-            # Get assigned students and count sessions (assuming FollowUpStatus represents a session)
-            assigned_students = counselor.get_students(institute=institute)
-            sessions_count = FollowUpStatus.objects.filter(counselor=counselor).count()
-            students_counseled_count = FollowUpStatus.objects.filter(counselor=counselor, follow_up_status='completed').count()
+            counselor_id = counselor.id
+            followups = followups_by_counselor.get(counselor_id, [])
+            
+            # Calculate counts from pre-fetched data
+            sessions_count = len(followups)
+            students_counseled_count = sum(1 for f in followups if f.follow_up_status == 'completed')
             
             # Append data for each counselor to the list
             counselor_data_list.append({
                 'id': counselor.id,
-                'coun_admin':counselor.counselor_admin,
+                'coun_admin': counselor.counselor_admin,
                 'name': counselor.counselor_name,
                 'email': counselor.counselor_email,
                 'sessions': sessions_count,
                 'students_counseled': students_counseled_count,
                 'created': counselor.created
-            })        
-            # Get session data for the current counselor
-            sessions_data = (
-                FollowUpStatus.objects
-                .filter(counselor_id=counselor.id)
-                .values('last_follow_up_date', 'counselor__counselor_name')
-                .annotate(session_count=Count('id'))
-            )
-            # Convert the queryset to a list and convert dates to strings
-            sessions_data_list = list(sessions_data)  # Convert queryset to list
+            })
+            
+            # Get session data for the current counselor from pre-fetched data
+            sessions_data_list = sessions_by_counselor.get(counselor_id, [])
+            # Convert dates to strings
             for session in sessions_data_list:
-                session['last_follow_up_date'] = session['last_follow_up_date'].isoformat()  # Convert date to ISO format
+                if session.get('last_follow_up_date'):
+                    session['last_follow_up_date'] = session['last_follow_up_date'].isoformat()
 
             # Calculate sessions for the current week (Monday to Saturday)
             week_data = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0}  # Monday to Saturday
             for session in sessions_data_list:
                 try:
-                    session_date = datetime.strptime(session['last_follow_up_date'], "%Y-%m-%d")
-                    day_of_week = session_date.weekday()  # Monday is 0
-                    if day_of_week < 6:  # Only consider Monday to Saturday
-                        week_data[day_of_week] += session['session_count']
-                except KeyError as e:
-                    print(f"KeyError: {e} in session data: {session}")
+                    if session.get('last_follow_up_date'):
+                        session_date = datetime.strptime(session['last_follow_up_date'], "%Y-%m-%d")
+                        day_of_week = session_date.weekday()  # Monday is 0
+                        if day_of_week < 6:  # Only consider Monday to Saturday
+                            week_data[day_of_week] += session.get('session_count', 0)
+                except (KeyError, ValueError) as e:
+                    print(f"Error parsing session data: {e} in session: {session}")
 
             # Prepare the final sessions data for the counselor
             final_sessions_data = []
@@ -1424,7 +2062,7 @@ class InstituteDashboardView(TemplateView):
             # Append the sessions data for the current counselor to the main list
             couns_sessions_data.append({
                 'counselor_id': counselor.id,
-                'counselor_name':counselor.counselor_name,
+                'counselor_name': counselor.counselor_name,
                 'sessions': final_sessions_data  # Add sessions data for this counselor
             })
         # Convert to JSON
@@ -1434,73 +2072,181 @@ class InstituteDashboardView(TemplateView):
             print(f"Error serializing sessions data: {e}")
             sessions_data_json = '[]'
         
-        #end manish----------->
-
-        # Apply basic filters using StudentFilter (for student_name, class_and_section, etc.)
-        # but exclude test_taken as we handle it separately
-        filter_data = request.GET.copy()
-        if 'test_taken' in filter_data:
-            del filter_data['test_taken']
-        
-        queryset=stu_manage
-        students=StudentFilter(filter_data,queryset=queryset)
-
-        # pages=Paginator(students.qs.order_by('student__name'),10)
-        pages = Paginator(students.qs.order_by('-created'), 10)
-        page_number=request.GET.get('page')
+        # For initial page load, create minimal pagination - table will load via AJAX
+        # Don't process filters or student data here - it's done in AJAX request
+        from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+        # Create a minimal paginator with just 1 item for initial structure
+        minimal_students = stu_manage[:1] if hasattr(stu_manage, '__getitem__') else []
+        pages = Paginator(minimal_students, 10)
+        page_number = request.GET.get('page', 1)
+        try:
+            total_students = pages.get_page(page_number)
+        except (EmptyPage, PageNotAnInteger):
+            total_students = pages.get_page(1)
         
         ctx={}
         ctx["html_head"] = self.html_head()
-        ctx['total_students_count'] = stu_manage
-        ctx["total_students"]=pages.get_page(page_number)
-        ctx["active_students"]=stu_manage.filter(student__is_active=True)
-        # ptr_count=[r for r in stu_manage if r.get_psychometric_result()]
-        ctx["psychometric_test_result_count"]=ptr_count
-        # ctx["psychometric_test_result"]=PsychometricTestResult.objects.all()
-        ctx["central_test_candidate"]=CentralTestCandidate.objects.all()
+        # Pass count directly as integer for this specific institute
+        ctx['total_students_count'] = total_students_count_list  # Direct count for this institute
+        ctx["total_students"]=total_students  # Minimal for initial structure
+        ctx["active_students"]=stu_manage.filter(student__is_active=True).count() if hasattr(stu_manage, 'count') else 0
+        ctx["psychometric_test_result_count"]=ptr_count  # Just count
+        ctx["central_test_candidate"]=CentralTestCandidate.objects.none()  # Don't load all
         ctx["institute"]=institute
-        # ctx["class_and_sections"]=ClassAndSection.objects.all()
         ctx["class_and_sections"]=class_and_sections
-        ctx['stu']=students.qs
-        ctx['results_data']=results_data
-        ctx['test_result_count']=completed_students_count  # Use count based on results_data (matches filter logic)
+        ctx['class_counts']=class_counts  # Add class counts for dropdown
+        ctx['unique_streams']=unique_streams  # Add unique streams for dropdown
+        ctx['stu']=stu_manage  # Keep as QuerySet, don't convert to list
+        ctx['results_data']={}  # Empty - will be loaded via AJAX
+        ctx['test_result_count']=ptr_count1  # Just count
         ctx['counselor_list']= counselors     
-        # Apply test_taken filter to the already filtered queryset from StudentFilter
-        if test_taken_filter:
-            filtered_stu_manage = []
-            for stu in students.qs:
-                # Apply test_taken filter
-                student_result = results_data.get(stu.student.id, {})
-                test_status = student_result.get('test_status', 'no_tests')
-                
-                if test_taken_filter == 'Yes' and test_status != 'completed':
-                    continue
-                elif test_taken_filter == 'In Progress' and test_status != 'in_progress':
-                    continue
-                elif test_taken_filter == 'No' and test_status != 'no_tests':
-                    continue
-                
-                filtered_stu_manage.append(stu)
-            
-            # Update pagination to use filtered stu_manage (sort by created date descending)
-            sorted_stu_manage = sorted(filtered_stu_manage, key=lambda x: x.created, reverse=True)
-            pages = Paginator(sorted_stu_manage, 10)
-            ctx["total_students"]=pages.get_page(page_number)
-
         ctx['counselor_data_list']= counselor_data_list
         ctx['sessions_data_json']= sessions_data_json 
-        ctx['streams'] = streams
-        ctx['higher_class_results'] = higher_class_results
+        ctx['streams'] = streams  # Empty for initial load
+        ctx['higher_class_results'] = {}  # Empty for initial load
         ctx['Testsession'] = TestSession
         return ctx
 
     def get(self, request, *args, **kwargs):
-        ctx=self.get_context(request, *args, **kwargs)
         download=request.GET.get("download")
+        
+        # Check if this is an AJAX request for student table - process only student data
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            data_type = request.GET.get('data_type', '')
+            if data_type == 'students':
+                # Lightweight context for AJAX - only student table data
+                ctx = self.get_student_table_context_ajax(request, *args, **kwargs)
+                from institute.student_table_helpers import get_student_table_config, get_student_action_urls
+                ctx['table_config'] = get_student_table_config('institute')
+                ctx['action_urls'] = get_student_action_urls('institute')
+                # Map total_students to students for template compatibility
+                ctx['students'] = ctx.get('total_students')
+                return render(request, 'template20/shared/students_table.html', ctx)
+        
+        # Full context for initial page load
+        ctx=self.get_context(request, *args, **kwargs)
         if download=="Yes":
             data=ctx.get('stu')
             return self.get_filter_data(request,data)
+        
         return render(request, self.template_name, ctx )
+    
+    def get_student_table_context_ajax(self, request, *args, **kwargs):
+        """
+        Lightweight context method for AJAX student table requests.
+        Only processes student-related data, skipping heavy operations like counselor data, charts, etc.
+        """
+        slug=kwargs.get("slug")
+        institute=get_object_or_404(Institute,slug=slug)
+        
+        # Use centralized function to get students based on role
+        stu_manage = get_students_by_role(request.user, institute=institute).select_related(
+            'student', 
+            'class_and_section',
+            'institute'
+        )
+        
+        # Get filter parameters
+        stream_filter = request.GET.get('stream', '')
+        
+        # Get class and sections for filter dropdown
+        class_and_sections = get_class_and_sections_by_role(request.user, stu_manage)
+        class_counts = get_class_counts(stu_manage)
+        
+        # Get unique streams using centralized function
+        unique_streams = get_unique_streams_by_role(request.user, stu_manage)
+        
+        # Optimize: Batch fetch all test-related data for all students at once
+        from app.models import TestCompletion, Results
+        from app_post_matric.models import TestSession as PostMatricTestSession
+        
+        student_users = [stu.student for stu in stu_manage if stu.student]
+        
+        # Batch fetch TestCompletion records
+        test_completion_map = {}
+        if student_users:
+            test_completions = TestCompletion.objects.filter(user__in=student_users).select_related('user')
+            test_completion_map = {tc.user: tc for tc in test_completions}
+        
+        # Batch fetch post-matric TestSession records
+        post_matric_sessions_map = {}
+        if student_users:
+            post_matric_sessions = PostMatricTestSession.objects.filter(
+                user__in=student_users
+            ).select_related('user', 'test')
+            for session in post_matric_sessions:
+                if session.user not in post_matric_sessions_map:
+                    post_matric_sessions_map[session.user] = []
+                post_matric_sessions_map[session.user].append(session)
+        
+        # Batch fetch Results for psychometric students
+        results_queryset_map = {}
+        if student_users:
+            results_queryset = Results.objects.filter(user__in=student_users).select_related('user')
+            for result in results_queryset:
+                if result.user not in results_queryset_map:
+                    results_queryset_map[result.user] = []
+                results_queryset_map[result.user].append(result)
+        
+        # Now fetch results for each student using batch-fetched data
+        results_data = {}
+        for stu in stu_manage:
+            if not stu.student:
+                continue
+            user = stu.student
+            student_result = self._get_student_test_result_optimized(
+                user, 
+                stu,
+                test_completion_map.get(user),
+                post_matric_sessions_map.get(user, []),
+                results_queryset_map.get(user, [])
+            )
+            results_data[user.id] = student_result
+        
+        # Apply filters using centralized function
+        filtered_students = apply_student_filters(stu_manage, request, results_data=results_data)
+        
+        # Handle stream filter separately if needed
+        if stream_filter:
+            if hasattr(filtered_students, 'filter'):
+                filtered_students = filtered_students.filter(class_and_section__stream=stream_filter)
+            else:
+                filtered_students = [
+                    s for s in filtered_students
+                    if hasattr(s, 'class_and_section') and s.class_and_section and
+                    s.class_and_section.stream == stream_filter
+                ]
+        
+        # Handle per_page parameter
+        per_page_param = request.GET.get('per_page', '10')
+        if per_page_param == 'all':
+            per_page_value = 10000
+        else:
+            try:
+                per_page_value = int(per_page_param)
+            except (ValueError, TypeError):
+                per_page_value = 10
+        
+        # Pagination
+        if isinstance(filtered_students, list):
+            sorted_students = sorted(filtered_students, key=lambda x: x.created, reverse=True)
+            pages = Paginator(sorted_students, per_page_value)
+        else:
+            pages = Paginator(filtered_students.order_by('-created'), per_page_value)
+        
+        page_number = request.GET.get('page', 1)
+        total_students = pages.get_page(page_number)
+        
+        return {
+            'total_students': total_students,
+            'total_students_count': list(stu_manage),
+            'class_and_sections': class_and_sections,
+            'class_counts': class_counts,
+            'unique_streams': unique_streams,
+            'results_data': results_data,
+            'stu': filtered_students if hasattr(filtered_students, 'filter') else filtered_students,
+            'institute': institute,
+        }
     
     def post(self, request, *args, **kwargs):
         slug=kwargs.get("slug")
@@ -1875,6 +2621,66 @@ class InstituteStudentBlockView(TemplateView):
             stu.save()
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
+@method_decorator(marketing_group_user_only,name='dispatch')
+class UpdateSeatCapacityView(View):
+    """View to update seat capacity for an institute via AJAX"""
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            institute_id = request.POST.get('institute_id')
+            pcm = request.POST.get('pcm')
+            cbm = request.POST.get('cbm')
+            comm = request.POST.get('comm')
+            hme = request.POST.get('hme')
+            hmb = request.POST.get('hmb')
+            
+            if not institute_id:
+                return JsonResponse({'success': False, 'error': 'Institute ID is required'}, status=400)
+            
+            # Get the institute
+            institute = get_object_or_404(Institute, id=institute_id)
+            
+            # Verify the institute belongs to the user's marketing group
+            group_admin = request.user
+            marketing_group = InstituteMarketingGroup.objects.filter(
+                marketing_group_admin=group_admin
+            ).first()
+            
+            if not marketing_group or institute.marketing_group != marketing_group:
+                return JsonResponse({'success': False, 'error': 'Unauthorized access'}, status=403)
+            
+            # Update seat capacity fields
+            if pcm is not None:
+                institute.pcm = int(pcm)
+            if cbm is not None:
+                institute.cbm = int(cbm)
+            if comm is not None:
+                institute.comm = int(comm)
+            if hme is not None:
+                institute.hme = int(hme)
+            if hmb is not None:
+                institute.hmb = int(hmb)
+            
+            institute.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Seat capacity updated successfully',
+                'data': {
+                    'pcm': institute.pcm,
+                    'cbm': institute.cbm,
+                    'comm': institute.comm,
+                    'hme': institute.hme,
+                    'hmb': institute.hmb
+                }
+            })
+            
+        except ValueError as e:
+            return JsonResponse({'success': False, 'error': f'Invalid value: {str(e)}'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 @method_decorator(marketing_group_user_only,name='dispatch') 

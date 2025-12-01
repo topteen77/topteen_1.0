@@ -1,4 +1,4 @@
-<!-- Students Table Container (for AJAX loading) -->
+<!-- Students Table and Pagination Container (for AJAX loading) -->
 <div id="students-table-container">
 <div class="table-responsive">
   <table class="table table-hover">
@@ -102,10 +102,8 @@
     </tbody>
   </table>
 </div>
-</div>
-<!-- End of Table Container -->
 
-<!-- Pagination Container (for AJAX loading) -->
+<!-- Pagination Container -->
 <div id="students-pagination">
 {% if students %}
 <div class="d-flex justify-content-between align-items-center mt-3">
@@ -121,7 +119,7 @@
     <ul class="pagination mb-0">
       {% if students.has_previous() %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ students.previous_page_number() }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">
+        <a class="page-link" href="?page={{ students.previous_page_number() }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}&data_type=students">
           <i class='bx bx-chevron-left'></i>
         </a>
       </li>
@@ -138,7 +136,7 @@
           </li>
         {% elif num <= 3 or num > students.paginator.num_pages - 3 or (num >= students.number - 2 and num <= students.number + 2) %}
           <li class="page-item">
-            <a class="page-link" href="?page={{ num }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">{{ num }}</a>
+            <a class="page-link" href="?page={{ num }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}&data_type=students">{{ num }}</a>
           </li>
         {% elif num == 4 or num == students.paginator.num_pages - 3 %}
           <li class="page-item disabled">
@@ -149,7 +147,7 @@
 
       {% if students.has_next() %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ students.next_page_number() }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">
+        <a class="page-link" href="?page={{ students.next_page_number() }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}&data_type=students">
           <i class='bx bx-chevron-right'></i>
         </a>
       </li>
@@ -165,4 +163,6 @@
 {% endif %}
 </div>
 <!-- End of Pagination Container -->
+</div>
+<!-- End of Students Table Container -->
 

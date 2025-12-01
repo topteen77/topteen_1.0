@@ -35,6 +35,92 @@
     font-size: 10px;
     color: #828282;
   }
+  @media (min-width: 992px) {
+    .col-lg-2-4 {
+      flex: 0 0 auto;
+      width: 20%;
+    }
+  }
+  .text-purple {
+    color: #6f42c1;
+  }
+  /* Right Side Panel Styles */
+  .institute-details-panel {
+    position: fixed;
+    top: 100px;
+    right: -400px;
+    width: 380px;
+    height: calc(100vh - 120px);
+    background: #fff;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #e0e0e0;
+    overflow-y: auto;
+  }
+  .institute-details-panel.show {
+    right: 0;
+  }
+  .panel-header {
+    padding: 20px;
+    background: #f7f7fa;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .panel-header h5 {
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .panel-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .institute-detail-item {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .institute-detail-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .institute-detail-label {
+    font-size: 12px;
+    color: #828282;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+  .institute-detail-value {
+    font-size: 14px;
+    color: #333;
+    word-break: break-word;
+  }
+  .table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .table tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+  @media (max-width: 991px) {
+    .institute-details-panel {
+      width: 100%;
+      right: -100%;
+      top: 0;
+      height: 100vh;
+      z-index: 9999;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -69,22 +155,45 @@
             </div>
           </div>
           
-          <!-- Settings Button -->
-          <a href="{{ url('institute:marketingprofileedit') }}" 
-             class="btn w-100 mb-3 text-white fw-bold" 
-             style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;">
-            <i class='bx bx-cog me-2'></i> SETTINGS
-          </a>
+          <!-- Credits Information -->
+          <div class="card mb-3" style="background: #f7f7fa; border: 1px solid #e0e0e0;">
+            <div class="card-body p-3">
+              <h6 class="fs-14 fw-semibold mb-3 text-center">Credits Information</h6>
+              <div class="d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fs-12 text-gray">Total Credits:</span>
+                  <span class="fs-14 fw-semibold" id="sidebar-total-credits">-</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fs-12 text-gray">Used Credits:</span>
+                  <span class="fs-14 fw-semibold text-warning" id="sidebar-used-credits">-</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                  <span class="fs-12 text-gray">Remaining:</span>
+                  <span class="fs-14 fw-semibold text-success" id="sidebar-remaining-credits">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Add Institute Button -->
+          <button type="button" 
+                  class="btn w-100 mb-3 text-white fw-bold" 
+                  style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
+                  data-bs-toggle="modal" 
+                  data-bs-target="#addInstituteModal">
+            <i class='bx bx-plus me-2'></i> ADD INSTITUTE
+          </button>
         </div>
       </div>
 
       <!-- Main Content -->
-      <div class="col-lg-8">
+      <div class="col-lg-8" id="main-content-area">
         <h2 class="fs-24 fw-semibold mb-4">Marketing Group Dashboard</h2>
         
         <!-- Statistics Cards -->
         <div class="row g-3 mb-4">
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-4 col-lg-2-4">
             <div class="stat-card">
               <i class='bx bx-building fs-32 text-primary'></i>
               <div>
@@ -95,7 +204,7 @@
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-4 col-lg-2-4">
             <div class="stat-card">
               <i class='bx bx-user-check fs-32 text-success'></i>
               <div>
@@ -106,7 +215,7 @@
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-4 col-lg-2-4">
             <div class="stat-card">
               <i class='bx bx-user fs-32 text-info'></i>
               <div>
@@ -117,13 +226,35 @@
               </div>
             </div>
           </div>
+          <div class="col-12 col-md-4 col-lg-2-4">
+            <div class="stat-card">
+              <i class='bx bx-credit-card fs-32 text-warning'></i>
+              <div>
+                <p class="stat-value" id="credits-count">
+                  <span class="spinner-border spinner-border-sm" role="status"></span>
+                </p>
+                <p class="stat-label">Total Credits</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4 col-lg-2-4">
+            <div class="stat-card">
+              <i class='bx bx-calendar-check fs-32 text-purple'></i>
+              <div>
+                <p class="stat-value" id="events-count">
+                  <span class="spinner-border spinner-border-sm" role="status"></span>
+                </p>
+                <p class="stat-label">Total Events</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Filter Form -->
         <div class="card mb-4">
           <div class="card-body">
-            <form method="GET" class="row g-3">
-              <div class="col-md-4">
+            <form method="GET" class="row g-2 align-items-end" id="institute-filter-form">
+              <div class="col-md-2">
                 <label for="institute_filter" class="form-label text-gray fs-12 mb-1">Institute Name</label>
                 <input type="text" 
                        name="institute" 
@@ -132,7 +263,7 @@
                        placeholder="Search institute"
                        value="{{ search_params.institute|default('') }}">
               </div>
-              <div class="col-md-4">
+              <div class="col-md-2">
                 <label for="location_filter" class="form-label text-gray fs-12 mb-1">Location</label>
                 <select name="location" id="location_filter" class="form-control custom-input">
                   <option value="">All Locations</option>
@@ -143,7 +274,7 @@
                   {% endfor %}
                 </select>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-2">
                 <label for="location_search_filter" class="form-label text-gray fs-12 mb-1">Search Location</label>
                 <input type="text" 
                        name="location_search" 
@@ -152,14 +283,22 @@
                        placeholder="Search by location"
                        value="{{ search_params.location_search|default('') }}">
               </div>
-              <div class="col-md-12 d-flex gap-2 align-items-end">
+              <div class="col-md-2">
+                <label for="per_page_filter" class="form-label text-gray fs-12 mb-1">Records per page</label>
+                <select name="per_page" id="per_page_filter" class="form-control custom-input" onchange="updatePerPage(this.value)">
+                  <option value="10" {% if request.GET.per_page == '10' or not request.GET.per_page %}selected{% endif %}>10</option>
+                  <option value="100" {% if request.GET.per_page == '100' %}selected{% endif %}>100</option>
+                  <option value="all" {% if request.GET.per_page == 'all' %}selected{% endif %}>All</option>
+                </select>
+              </div>
+              <div class="col-md-4 d-flex gap-2 align-items-end">
                 <button type="submit" 
-                        class="btn custom-button purple-button" 
+                        class="btn custom-button purple-button flex-fill" 
                         style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
                   Search
                 </button>
                 <a href="{{ url('institute:marketinggroupdashboard') }}" 
-                   class="btn btn-secondary" 
+                   class="btn btn-secondary flex-fill" 
                    style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
                   Reset
                 </a>
@@ -169,7 +308,7 @@
         </div>
 
         <!-- Institutes Table -->
-        <div class="card mb-4">
+        <div class="card mb-4 position-relative">
           <div class="card-body">
             <!-- Loader (shown initially) -->
             <div id="institutes-loader" class="text-center py-5">
@@ -182,33 +321,91 @@
             <!-- Table Container (hidden initially, shown after AJAX load) -->
             <div id="institutes-table-wrapper" style="display: none;"></div>
           </div>
+          
         </div>
 
-        <!-- Charts Section -->
+        <!-- Charts Section - Line Graph (Full Width) -->
         <div class="row g-4 mb-4" id="charts-section" style="display: none;">
-          <div class="col-md-6">
+          <div class="col-12">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title mb-3">Total Students by Institute</h5>
+                <h5 class="card-title mb-3">Total No. of Students in each institute</h5>
                 <div id="location-chart-loader" class="text-center py-5">
                   <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                   </div>
                 </div>
-                <canvas id="locationChart" height="200" style="display: none;"></canvas>
+                <div style="height: 400px; position: relative; overflow: hidden;">
+                  <canvas id="locationChart" style="display: none; max-height: 400px; max-width: 100%;"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Seat Capacity by Stream Table -->
+        <div class="card mb-4" id="seat-capacity-section" style="display: none;">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Seat Capacity by Stream in School</h5>
+            <div id="seat-capacity-loader" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <div id="seat-capacity-table-wrapper" style="display: none;">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Sr. No.</th>
+                      <th>Name</th>
+                      <th>PCM</th>
+                      <th>CBM</th>
+                      <th>COMM</th>
+                      <th>HME</th>
+                      <th>HMB</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="seat-capacity-tbody">
+                  </tbody>
+                </table>
+              </div>
+              <!-- Pagination Container -->
+              <div id="seat-capacity-pagination"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Bottom Charts Section - Two Side by Side (Same Row) -->
+        <div class="row g-4 mb-4" id="bottom-charts-section" style="display: none;">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title mb-3">Total No of students have attempts psychometric test</h5>
+                <div id="personality-chart-loader" class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+                <div style="height: 300px; position: relative;">
+                  <canvas id="personalityChart" style="display: none;"></canvas>
+                </div>
               </div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title mb-3">Psychometric Test Completion</h5>
-                <div id="personality-chart-loader" class="text-center py-5">
+                <h5 class="card-title mb-3">Stream-based graph of all Institutes</h5>
+                <div id="streams-chart-loader" class="text-center py-5">
                   <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                   </div>
                 </div>
-                <canvas id="personalityChart" height="200" style="display: none;"></canvas>
+                <div style="height: 300px; position: relative; overflow: hidden;">
+                  <canvas id="streamsChart" style="display: none; max-height: 300px; max-width: 100%;"></canvas>
+                </div>
               </div>
             </div>
           </div>
@@ -217,6 +414,61 @@
     </div>
   </div>
 </section>
+
+<!-- Right Side Panel for Institute Details -->
+<div id="instituteDetailsPanel" class="institute-details-panel">
+  <div class="panel-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 fs-18 fw-semibold">Institute Details</h5>
+      <button type="button" class="btn-close" id="closePanelBtn" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="panel-body">
+    <div class="institute-detail-item">
+      <div class="institute-detail-label">Institute Name</div>
+      <div class="institute-detail-value" id="panel-institute-name">-</div>
+    </div>
+    <div class="institute-detail-item">
+      <div class="institute-detail-label">Email</div>
+      <div class="institute-detail-value" id="panel-institute-email">-</div>
+    </div>
+    <div class="institute-detail-item">
+      <div class="institute-detail-label">Contact</div>
+      <div class="institute-detail-value" id="panel-institute-contact">-</div>
+    </div>
+    <div class="institute-detail-item">
+      <div class="institute-detail-label">Address</div>
+      <div class="institute-detail-value" id="panel-institute-address">-</div>
+    </div>
+    <div class="institute-detail-item">
+      <div class="institute-detail-label">Admin Contact</div>
+      <div class="institute-detail-value" id="panel-institute-admin">-</div>
+    </div>
+    <div class="institute-detail-item">
+      <div class="institute-detail-label">Students</div>
+      <div class="institute-detail-value" id="panel-institute-students">-</div>
+    </div>
+    
+    <!-- Credits Information Section -->
+    <div class="institute-detail-item border-top pt-3 mt-3">
+      <div class="institute-detail-label mb-2">Credits Information</div>
+      <div class="d-flex flex-column gap-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fs-12 text-gray">Total Credits:</span>
+          <span class="fs-14 fw-semibold" id="panel-institute-total-credits">-</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fs-12 text-gray">Used Credits:</span>
+          <span class="fs-14 fw-semibold text-warning" id="panel-institute-used-credits">-</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center border-top pt-2">
+          <span class="fs-12 text-gray">Remaining:</span>
+          <span class="fs-14 fw-semibold text-success" id="panel-institute-remaining-credits">-</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Update Institute Modal -->
 {% if institutes_paginations %}
@@ -265,6 +517,37 @@
       </div>
     </div>
   </div>
+  
+  <!-- Change Password Modal -->
+  <div class="modal fade" id="changePasswordModal{{ ins.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Change Institute Password</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ url('institute:marketingprofileedit') }}" method="POST">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          <input type="hidden" name="institute_id" value="{{ ins.id }}">
+          <input type="hidden" name="change_password" value="1">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <input type="password" name="new_password" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Confirm Password</label>
+              <input type="password" name="confirm_password" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button">Change Password</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
   {% endfor %}
 {% endif %}
 
@@ -272,6 +555,8 @@
 
 {% block additionaljs %}
 {{ super() }}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   // Initialize Bootstrap tooltips
@@ -287,67 +572,758 @@
     const tableWrapper = document.getElementById('institutes-table-wrapper');
     const loader = document.getElementById('institutes-loader');
     
-    if (tableWrapper && loader) {
-      tableWrapper.style.display = 'none';
-      loader.style.display = 'block';
+    if (!tableWrapper || !loader) {
+      console.error('Required elements not found');
+      return;
+    }
+    
+    tableWrapper.style.display = 'none';
+    loader.style.display = 'block';
+    
+    // Ensure data_type is in URL for AJAX requests
+    let ajaxUrl = url;
+    if (!ajaxUrl.includes('data_type=')) {
+      ajaxUrl += (ajaxUrl.includes('?') ? '&' : '?') + 'data_type=institutes';
+    }
+    
+    console.log('Loading institutes from:', ajaxUrl);
+    
+    fetch(ajaxUrl, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(html => {
+      console.log('Received HTML response, length:', html.length);
       
-      fetch(url, {
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-        }
-      })
-      .then(response => response.text())
-      .then(html => {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
+      if (!html || html.trim().length === 0) {
+        throw new Error('Empty response received');
+      }
+      
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      
+      const newTableWrapper = tempDiv.querySelector('#institutes-table-wrapper');
+      const newModals = tempDiv.querySelectorAll('.modal');
+      
+      if (newTableWrapper) {
+        // Remove existing modals for institutes before adding new ones
+        const existingModals = document.querySelectorAll('[id^="viewInstituteModal"], [id^="updateInstituteModal"], [id^="changePasswordModal"]');
+        existingModals.forEach(modal => modal.remove());
         
-        const newTableWrapper = tempDiv.querySelector('#institutes-table-wrapper');
+        // Extract table content (without modals)
+        const tableContent = newTableWrapper.cloneNode(true);
+        // Remove modals from table content
+        const modalsInContent = tableContent.querySelectorAll('.modal');
+        modalsInContent.forEach(modal => modal.remove());
         
-        if (newTableWrapper) {
-          tableWrapper.innerHTML = newTableWrapper.innerHTML;
+        tableWrapper.innerHTML = tableContent.innerHTML;
+        
+        // Append modals to body
+        newModals.forEach(modal => {
+          document.body.appendChild(modal.cloneNode(true));
+        });
+      } else {
+        // Fallback: try to find table container and pagination separately
+        const newTableContainer = tempDiv.querySelector('#institutes-table-container');
+        const newPagination = tempDiv.querySelector('#institutes-pagination');
+        
+        if (newTableContainer || newPagination) {
+          tableWrapper.innerHTML = '';
+          if (newTableContainer) {
+            tableWrapper.appendChild(newTableContainer);
+          }
+          if (newPagination) {
+            tableWrapper.appendChild(newPagination);
+          }
         } else {
-          // Fallback: try to find table container and pagination separately
-          const newTableContainer = tempDiv.querySelector('#institutes-table-container');
-          const newPagination = tempDiv.querySelector('#institutes-pagination');
-          
-          if (newTableContainer || newPagination) {
-            tableWrapper.innerHTML = '';
-            if (newTableContainer) {
-              tableWrapper.appendChild(newTableContainer);
+          // If no table found, show the HTML directly
+          tableWrapper.innerHTML = html;
+        }
+      }
+      
+      // Append modals to body if they exist
+      if (newModals && newModals.length > 0) {
+        newModals.forEach(modal => {
+          // Remove existing modal with same ID if it exists
+          const existingModal = document.getElementById(modal.id);
+          if (existingModal) {
+            existingModal.remove();
+          }
+          // Append new modal to body
+          document.body.appendChild(modal.cloneNode(true));
+        });
+      }
+      
+      // Re-initialize hover handlers for institute rows
+      initializeInstituteRowHover();
+      
+      // Update URL without data_type parameter for cleaner URLs
+      const urlObj = new URL(url, window.location.origin);
+      urlObj.searchParams.delete('data_type');
+      const cleanUrl = urlObj.pathname + (urlObj.search ? urlObj.search : '');
+      window.history.pushState({}, '', cleanUrl);
+      
+      loader.style.display = 'none';
+      tableWrapper.style.display = 'block';
+      
+      initTooltips();
+      console.log('Institutes table loaded successfully');
+    })
+    .catch(error => {
+      console.error('Error loading institutes:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        url: ajaxUrl
+      });
+      loader.innerHTML = '<div class="alert alert-danger"><p class="mb-0">Error loading institutes. Please refresh the page.</p><p class="mb-0 fs-12 mt-2">' + error.message + '</p></div>';
+      loader.style.display = 'block';
+      tableWrapper.style.display = 'none';
+    });
+  }
+  
+  // Load statistics via AJAX
+  function loadStatistics() {
+    const url = window.location.pathname + '?data_type=stats';
+    fetch(url, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('students-count').textContent = data.total_stu_count || 0;
+      document.getElementById('counselors-count').textContent = data.counselors_count || 0;
+      document.getElementById('credits-count').textContent = data.total_credits || 0;
+      document.getElementById('events-count').textContent = data.total_events || 0;
+      
+      // Update sidebar credits
+      const totalCredits = data.global_credits || 5000;
+      const usedCredits = data.total_credits || 0;
+      const remainingCredits = totalCredits - usedCredits;
+      
+      document.getElementById('sidebar-total-credits').textContent = totalCredits.toLocaleString();
+      document.getElementById('sidebar-used-credits').textContent = usedCredits.toLocaleString();
+      document.getElementById('sidebar-remaining-credits').textContent = remainingCredits.toLocaleString();
+    })
+    .catch(error => {
+      console.error('Error loading statistics:', error);
+      document.getElementById('students-count').textContent = '0';
+      document.getElementById('counselors-count').textContent = '0';
+      document.getElementById('credits-count').textContent = '0';
+      document.getElementById('events-count').textContent = '0';
+      document.getElementById('sidebar-total-credits').textContent = '0';
+      document.getElementById('sidebar-used-credits').textContent = '0';
+      document.getElementById('sidebar-remaining-credits').textContent = '0';
+    });
+  }
+  
+  // Load institute count
+  function loadInstituteCount() {
+    const institutesCountEl = document.getElementById('institutes-count');
+    if (institutesCountEl) {
+      {% if total_institute_count is defined %}
+      institutesCountEl.textContent = {{ total_institute_count }};
+      {% else %}
+      institutesCountEl.textContent = '0';
+      {% endif %}
+    }
+  }
+  
+  // Load charts data via AJAX
+  function loadCharts() {
+    const url = window.location.pathname + '?data_type=charts';
+    fetch(url, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Charts data received:', data);
+      // Show charts section
+      document.getElementById('charts-section').style.display = 'block';
+      
+      // Load location chart
+      if (data.institutes && data.institutes.length > 0) {
+        loadLocationChart(data.institutes);
+      } else {
+        document.getElementById('location-chart-loader').innerHTML = '<p class="text-gray">No data available</p>';
+      }
+      
+      // Show bottom charts section
+      document.getElementById('bottom-charts-section').style.display = 'block';
+      
+      // Load personality chart
+      if (data.total_students_count !== undefined && data.test_result_count !== undefined) {
+        loadPersonalityChart(data.total_students_count, data.test_result_count);
+      } else {
+        document.getElementById('personality-chart-loader').innerHTML = '<p class="text-gray">No data available</p>';
+      }
+      
+      // Load streams chart
+      if (data.streams_chart_data && data.streams_chart_data.length > 0) {
+        loadStreamsChart(data.streams_chart_data);
+      } else {
+        const streamsLoader = document.getElementById('streams-chart-loader');
+        if (streamsLoader) {
+          streamsLoader.innerHTML = '<p class="text-gray">No stream data available</p>';
+        }
+      }
+      
+      // Load seat capacity table with institutes data from charts
+      if (data.seat_capacity_institutes && data.seat_capacity_institutes.length > 0) {
+        loadSeatCapacityTable(data.seat_capacity_institutes);
+      } else {
+        const seatCapacityLoader = document.getElementById('seat-capacity-loader');
+        const seatCapacitySection = document.getElementById('seat-capacity-section');
+        if (seatCapacityLoader && seatCapacitySection) {
+          seatCapacitySection.style.display = 'block';
+          seatCapacityLoader.innerHTML = '<p class="text-gray">No seat capacity data available</p>';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error loading charts:', error);
+      document.getElementById('charts-section').style.display = 'block';
+      const locationLoader = document.getElementById('location-chart-loader');
+      const personalityLoader = document.getElementById('personality-chart-loader');
+      if (locationLoader) {
+        locationLoader.innerHTML = '<p class="text-danger">Error loading chart: ' + error.message + '</p>';
+      }
+      if (personalityLoader) {
+        personalityLoader.innerHTML = '<p class="text-danger">Error loading chart</p>';
+      }
+    });
+  }
+  
+  // Load location chart (Line graph as per production) - OPTIMIZED
+  function loadLocationChart(institutes) {
+    const loader = document.getElementById('location-chart-loader');
+    const canvas = document.getElementById('locationChart');
+    
+    if (!loader || !canvas) {
+      return;
+    }
+    
+    // Safety check: if data is too large or invalid, limit it
+    if (!Array.isArray(institutes) || institutes.length === 0) {
+      loader.innerHTML = '<p class="text-gray">No data available</p>';
+      return;
+    }
+    
+    // Data is already grouped by address from backend, just extract it
+    const labels = [];
+    const data = [];
+    
+    // Limit to max 20 data points to prevent browser hang (data is already sorted by backend)
+    const maxPoints = 20;
+    const limitedInstitutes = institutes.slice(0, maxPoints);
+    
+    limitedInstitutes.forEach(inst => {
+      const addr = inst.address || 'Unknown';
+      // Truncate long addresses to prevent chart overflow
+      const shortAddr = addr.length > 30 ? addr.substring(0, 30) + '...' : addr;
+      labels.push(shortAddr);
+      data.push(inst.student_count || 0);
+    });
+    
+    if (labels.length > 0) {
+      loader.style.display = 'none';
+      canvas.style.display = 'block';
+      
+      // Destroy existing chart if it exists
+      if (window.locationChartInstance) {
+        window.locationChartInstance.destroy();
+      }
+      
+      window.locationChartInstance = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Total Students',
+            data: data,
+            backgroundColor: 'rgba(76, 201, 240, 0.2)',
+            borderColor: 'rgba(76, 201, 240, 1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 3,
+            pointHoverRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 3, // Fixed aspect ratio to prevent excessive height
+          layout: {
+            padding: {
+              top: 10,
+              bottom: 10,
+              left: 10,
+              right: 10
             }
-            if (newPagination) {
-              tableWrapper.appendChild(newPagination);
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Institute Location'
+              },
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45,
+                maxTicksLimit: 20, // Limit x-axis labels
+                font: {
+                  size: 10
+                }
+              },
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Total Students'
+              },
+              ticks: {
+                stepSize: 50,
+                maxTicksLimit: 10 // Limit y-axis labels
+              }
             }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              enabled: true,
+              intersect: false,
+              mode: 'index'
+            }
+          },
+          animation: {
+            duration: 1000 // Faster animation
           }
         }
-        
-        window.history.pushState({}, '', url);
-        
-        loader.style.display = 'none';
-        tableWrapper.style.display = 'block';
-        
-        initTooltips();
-      })
-      .catch(error => {
-        console.error('Error loading institutes:', error);
-        loader.style.display = 'none';
-        tableWrapper.style.display = 'block';
       });
     } else {
-      window.location.href = url;
+      loader.innerHTML = '<p class="text-gray">No data available</p>';
     }
+  }
+  
+  // Load personality chart
+  function loadPersonalityChart(totalStudents, testResults) {
+    const loader = document.getElementById('personality-chart-loader');
+    const canvas = document.getElementById('personalityChart');
+    
+    const total = typeof totalStudents === 'number' ? totalStudents : (totalStudents || 0);
+    const completed = typeof testResults === 'number' ? testResults : (testResults || 0);
+    const pending = total - completed;
+    
+    if (total > 0) {
+      loader.style.display = 'none';
+      canvas.style.display = 'block';
+      
+      new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: ['Completed', 'Pending'],
+          datasets: [{
+            data: [completed, pending],
+            backgroundColor: [
+              'rgba(40, 167, 69, 0.8)',
+              'rgba(255, 193, 7, 0.8)'
+            ],
+            borderColor: [
+              'rgba(40, 167, 69, 1)',
+              'rgba(255, 193, 7, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 1.5, // Fixed aspect ratio
+          layout: {
+            padding: {
+              top: 10,
+              bottom: 10,
+              left: 10,
+              right: 10
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          },
+          animation: {
+            duration: 1000
+          }
+        }
+      });
+    } else {
+      loader.innerHTML = '<p class="text-gray">No data available</p>';
+    }
+  }
+  
+  // Load streams chart (Line graph as per production) - OPTIMIZED
+  function loadStreamsChart(streamsData) {
+    const loader = document.getElementById('streams-chart-loader');
+    const canvas = document.getElementById('streamsChart');
+    const section = document.getElementById('bottom-charts-section');
+    
+    if (!loader || !canvas || !section) {
+      return;
+    }
+    
+    // Limit data points to prevent browser hang
+    const maxPoints = 15; // Limit to 15 streams max
+    // Safety check: if data is too large, limit it
+    if (!Array.isArray(streamsData) || streamsData.length === 0) {
+      loader.innerHTML = '<p class="text-gray">No stream data available</p>';
+      return;
+    }
+    
+    // Sort by count (descending) and take top N
+    const sortedData = [...streamsData].sort((a, b) => (b.count || 0) - (a.count || 0));
+    const limitedData = sortedData.slice(0, maxPoints);
+    
+    const labels = limitedData.map(item => item.stream || 'Other');
+    const data = limitedData.map(item => item.count || 0);
+    
+    // Truncate long stream names to prevent chart overflow
+    const shortLabels = labels.map(label => {
+      return label.length > 20 ? label.substring(0, 20) + '...' : label;
+    });
+    
+    if (shortLabels.length > 0 && data.some(count => count > 0)) {
+      section.style.display = 'block';
+      loader.style.display = 'none';
+      canvas.style.display = 'block';
+      
+      // Destroy existing chart if it exists
+      if (window.streamsChartInstance) {
+        window.streamsChartInstance.destroy();
+      }
+      
+      window.streamsChartInstance = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: shortLabels,
+          datasets: [{
+            label: 'Count',
+            data: data,
+            backgroundColor: 'rgba(63, 55, 201, 0.2)',
+            borderColor: 'rgba(63, 55, 201, 1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 3,
+            pointHoverRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 2, // Fixed aspect ratio to prevent excessive height
+          layout: {
+            padding: {
+              top: 10,
+              bottom: 10,
+              left: 10,
+              right: 10
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Stream'
+              },
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45,
+                maxTicksLimit: 15, // Limit x-axis labels
+                font: {
+                  size: 10
+                }
+              },
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Count'
+              },
+              ticks: {
+                stepSize: 50,
+                maxTicksLimit: 10 // Limit y-axis labels
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              enabled: true,
+              intersect: false,
+              mode: 'index'
+            }
+          },
+          animation: {
+            duration: 1000 // Faster animation
+          }
+        }
+      });
+    } else {
+      section.style.display = 'block';
+      loader.innerHTML = '<p class="text-gray">No stream data available</p>';
+    }
+  }
+  
+  // Load seat capacity table with inline edit functionality
+  function loadSeatCapacityTable(institutes) {
+    const section = document.getElementById('seat-capacity-section');
+    const tbody = document.getElementById('seat-capacity-tbody');
+    const loader = document.getElementById('seat-capacity-loader');
+    const tableWrapper = document.getElementById('seat-capacity-table-wrapper');
+    
+    if (!section || !tbody) {
+      return;
+    }
+    
+    section.style.display = 'block';
+    
+    if (institutes && institutes.length > 0) {
+      let html = '';
+      institutes.forEach((inst, index) => {
+        // Default seat capacity values (100 per stream as per production)
+        const pcm = inst.pcm || 100;
+        const cbm = inst.cbm || 100;
+        const comm = inst.comm || 100;
+        const hme = inst.hme || 100;
+        const hmb = inst.hmb || 100;
+        const name = inst.name || 'Unknown';
+        const instId = inst.id || index;
+        
+        html += `
+          <tr data-institute-id="${instId}" data-edit-mode="false">
+            <td>${index + 1}</td>
+            <td class="institute-name">${name}</td>
+            <td class="pcm-value">${pcm}</td>
+            <td class="cbm-value">${cbm}</td>
+            <td class="comm-value">${comm}</td>
+            <td class="hme-value">${hme}</td>
+            <td class="hmb-value">${hmb}</td>
+            <td>
+              <button class="btn btn-sm btn-primary edit-seat-capacity-btn" onclick="toggleEditSeatCapacity(${instId})">
+                <i class='bx bx-edit'></i> Edit
+              </button>
+              <button class="btn btn-sm btn-success save-seat-capacity-btn" onclick="saveSeatCapacity(${instId})" style="display: none;">
+                <i class='bx bx-save'></i> Save
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+      
+      tbody.innerHTML = html;
+      
+      // Hide loader and show table
+      if (loader) {
+        loader.style.display = 'none';
+      }
+      if (tableWrapper) {
+        tableWrapper.style.display = 'block';
+      }
+    } else {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-gray">No data available</td></tr>';
+      
+      // Hide loader and show table even if no data
+      if (loader) {
+        loader.style.display = 'none';
+      }
+      if (tableWrapper) {
+        tableWrapper.style.display = 'block';
+      }
+    }
+  }
+  
+  // Toggle edit mode for seat capacity row
+  function toggleEditSeatCapacity(instituteId) {
+    const row = document.querySelector(`tr[data-institute-id="${instituteId}"]`);
+    if (!row) return;
+    
+    const isEditMode = row.getAttribute('data-edit-mode') === 'true';
+    
+    if (!isEditMode) {
+      // Enter edit mode
+      const pcm = row.querySelector('.pcm-value').textContent.trim();
+      const cbm = row.querySelector('.cbm-value').textContent.trim();
+      const comm = row.querySelector('.comm-value').textContent.trim();
+      const hme = row.querySelector('.hme-value').textContent.trim();
+      const hmb = row.querySelector('.hmb-value').textContent.trim();
+      
+      row.querySelector('.pcm-value').innerHTML = `<input type="number" class="form-control form-control-sm" value="${pcm}" style="width: 80px;">`;
+      row.querySelector('.cbm-value').innerHTML = `<input type="number" class="form-control form-control-sm" value="${cbm}" style="width: 80px;">`;
+      row.querySelector('.comm-value').innerHTML = `<input type="number" class="form-control form-control-sm" value="${comm}" style="width: 80px;">`;
+      row.querySelector('.hme-value').innerHTML = `<input type="number" class="form-control form-control-sm" value="${hme}" style="width: 80px;">`;
+      row.querySelector('.hmb-value').innerHTML = `<input type="number" class="form-control form-control-sm" value="${hmb}" style="width: 80px;">`;
+      
+      row.querySelector('.edit-seat-capacity-btn').style.display = 'none';
+      row.querySelector('.save-seat-capacity-btn').style.display = 'inline-block';
+      row.setAttribute('data-edit-mode', 'true');
+    }
+  }
+  
+  // Save seat capacity
+  function saveSeatCapacity(instituteId) {
+    const row = document.querySelector(`tr[data-institute-id="${instituteId}"]`);
+    if (!row) return;
+    
+    const pcm = row.querySelector('.pcm-value input').value;
+    const cbm = row.querySelector('.cbm-value input').value;
+    const comm = row.querySelector('.comm-value input').value;
+    const hme = row.querySelector('.hme-value input').value;
+    const hmb = row.querySelector('.hmb-value input').value;
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                     document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+    
+    // Disable save button during request
+    const saveBtn = row.querySelector('.save-seat-capacity-btn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="bx bx-loader bx-spin"></i> Saving...';
+    
+    // Send AJAX request to save seat capacity
+    const formData = new FormData();
+    formData.append('institute_id', instituteId);
+    formData.append('pcm', pcm);
+    formData.append('cbm', cbm);
+    formData.append('comm', comm);
+    formData.append('hme', hme);
+    formData.append('hmb', hmb);
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    
+    fetch('{{ url("institute:updateseatcapacity") }}', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Update the display with saved values
+        row.querySelector('.pcm-value').textContent = data.data.pcm;
+        row.querySelector('.cbm-value').textContent = data.data.cbm;
+        row.querySelector('.comm-value').textContent = data.data.comm;
+        row.querySelector('.hme-value').textContent = data.data.hme;
+        row.querySelector('.hmb-value').textContent = data.data.hmb;
+        
+        row.querySelector('.edit-seat-capacity-btn').style.display = 'inline-block';
+        saveBtn.style.display = 'none';
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalText;
+        row.setAttribute('data-edit-mode', 'false');
+        
+        // Show success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Seat capacity updated successfully!',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      } else {
+        throw new Error(data.error || 'Failed to save seat capacity');
+      }
+    })
+    .catch(error => {
+      console.error('Error saving seat capacity:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: 'Error saving seat capacity: ' + error.message,
+        confirmButtonText: 'OK'
+      });
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = originalText;
+    });
+  }
+  
+  // Update per_page and reload table
+  function updatePerPage(value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', value);
+    url.searchParams.delete('page'); // Reset to page 1 when changing per_page
+    url.searchParams.set('data_type', 'institutes');
+    loadInstitutesTable(url.toString());
   }
   
   // Load institutes table on page load
   function loadInstitutesOnPageLoad() {
-    const url = window.location.pathname + window.location.search;
+    // Build URL properly to avoid duplicate query parameters
+    const urlObj = new URL(window.location.href);
+    urlObj.searchParams.set('data_type', 'institutes');
+    const url = urlObj.pathname + urlObj.search;
     loadInstitutesTable(url);
   }
   
   // Handle form submissions with AJAX
   document.addEventListener('DOMContentLoaded', function() {
-    // Load institutes table after page loads
-    loadInstitutesOnPageLoad();
+    // Load data sequentially to avoid browser hang
+    setTimeout(function() {
+      loadInstituteCount();
+    }, 100);
+    
+    setTimeout(function() {
+      loadStatistics();
+    }, 200);
+    
+    setTimeout(function() {
+      loadInstitutesOnPageLoad();
+    }, 300);
+    
+    setTimeout(function() {
+      loadCharts();
+    }, 1000); // Load charts last as they require most data (includes seat capacity data)
+    
+    // Show streams chart section after charts load
+    setTimeout(function() {
+      const streamsSection = document.getElementById('streams-chart-section');
+      if (streamsSection) {
+        // Section visibility is handled by loadStreamsChart function
+      }
+    }, 1200);
     
     const instituteFilterForm = document.getElementById('institute-filter-form');
     
@@ -358,6 +1334,21 @@
         const params = new URLSearchParams(formData);
         const url = window.location.pathname + '?' + params.toString();
         loadInstitutesTable(url);
+        // Reload charts with new filters
+        setTimeout(function() {
+          loadCharts();
+        }, 500);
+      });
+      
+      // Also handle filter changes without submit
+      const filterInputs = instituteFilterForm.querySelectorAll('input, select');
+      filterInputs.forEach(input => {
+        input.addEventListener('change', function() {
+          const formData = new FormData(instituteFilterForm);
+          const params = new URLSearchParams(formData);
+          const url = window.location.pathname + '?' + params.toString();
+          loadInstitutesTable(url);
+        });
       });
     }
     
@@ -373,10 +1364,330 @@
       }
     });
     
+    // Handle update institute form submissions
+    document.addEventListener('submit', function(e) {
+      const updateForm = e.target.closest('form[id^="updateInstituteForm"]');
+      if (updateForm) {
+        e.preventDefault();
+        const formData = new FormData(updateForm);
+        const submitBtn = updateForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bx bx-loader bx-spin"></i> Updating...';
+        
+        fetch('{{ url("institute:marketingprofileedit") }}', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            return response.json().then(data => {
+              throw new Error(data.error || 'Error updating institute');
+            });
+          }
+        })
+        .then(data => {
+          if (data.success) {
+            // Reload the institutes table
+            loadInstitutesTable(window.location.pathname + '?data_type=institutes' + (window.location.search ? '&' + window.location.search.substring(1) : ''));
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(updateForm.closest('.modal'));
+            if (modal) {
+              modal.hide();
+            }
+            // Show success message
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: data.message || 'Institute updated successfully!',
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+          } else {
+            throw new Error(data.error || 'Error updating institute');
+          }
+        })
+        .catch(error => {
+          console.error('Error updating institute:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Error updating institute: ' + error.message,
+            confirmButtonText: 'OK'
+          });
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+        });
+      }
+      
+      // Handle change password form submissions
+      const passwordForm = e.target.closest('form[id^="changePasswordForm"]');
+      if (passwordForm) {
+        e.preventDefault();
+        const formData = new FormData(passwordForm);
+        const newPassword = formData.get('new_password');
+        const confirmPassword = formData.get('confirm_password');
+        
+        if (newPassword !== confirmPassword) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Passwords do not match!',
+            confirmButtonText: 'OK'
+          });
+          return;
+        }
+        
+        const submitBtn = passwordForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bx bx-loader bx-spin"></i> Changing...';
+        
+        fetch('{{ url("institute:marketingprofileedit") }}', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            return response.json().then(data => {
+              throw new Error(data.error || 'Error changing password');
+            });
+          }
+        })
+        .then(data => {
+          if (data.success) {
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(passwordForm.closest('.modal'));
+            if (modal) {
+              modal.hide();
+            }
+            // Clear the form
+            passwordForm.reset();
+            // Show success message
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: data.message || 'Password changed successfully!',
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+          } else {
+            throw new Error(data.error || 'Error changing password');
+          }
+        })
+        .catch(error => {
+          console.error('Error changing password:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Error changing password: ' + error.message,
+            confirmButtonText: 'OK'
+          });
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+        });
+      }
+    });
+    
     // Initialize tooltips for non-AJAX content
     initTooltips();
   });
 
+</script>
+
+<!-- Add Institute Modal -->
+<div class="modal fade" id="addInstituteModal" tabindex="-1" aria-labelledby="addInstituteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addInstituteModalLabel">
+          <i class='bx bx-plus me-2'></i> Create Institute
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:createinstitute') }}" enctype="multipart/form-data" id="addInstituteForm">
+        <div class="modal-body">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          <div class="mb-3">
+            <label for="institute_email" class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" id="institute_email" name="institute_email" required>
+          </div>
+          <div class="mb-3">
+            <label for="institute_name" class="form-label">Institute Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="institute_name" name="institute_name" required>
+          </div>
+          <div class="mb-3">
+            <label for="institute_address" class="form-label">Address <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="institute_address" name="institute_address" required>
+          </div>
+          <div class="mb-3">
+            <label for="institute_contact" class="form-label">Contact No <span class="text-danger">*</span></label>
+            <input type="tel" class="form-control" id="institute_contact" name="institute_contact" required>
+          </div>
+          <div class="mb-3">
+            <label for="institute_admin" class="form-label">Admin Contact <span class="text-danger">*</span></label>
+            <input type="tel" class="form-control" id="institute_admin" name="institute_admin" required>
+          </div>
+          <div class="mb-3">
+            <label for="institute_group" class="form-label">Institute Group</label>
+            <select class="form-select" id="institute_group" name="institute_group">
+              <option value="">Select Group</option>
+              {% if institute_group %}
+                {% for group in institute_group %}
+                  <option value="{{ group.id }}">{{ group.group_name }}</option>
+                {% endfor %}
+              {% endif %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="ins_credits" class="form-label">Exam Credits <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="ins_credits" name="ins_credits" required>
+            <small class="text-muted">Remaining credits: <span id="remaining-credits">-</span></small>
+          </div>
+          <div class="mb-3">
+            <label for="institute_logo" class="form-label">Institute Logo <span class="text-danger">*</span></label>
+            <input type="file" class="form-control" id="institute_logo" name="institute_logo" accept=".jpg,.png" required>
+            <small class="text-muted">Accepted formats: JPG, PNG</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class='bx bx-save me-2'></i> Create Institute
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initialize institute row hover functionality
+  let hoverTimeout = null;
+  let panelHoverTimeout = null;
+  
+  function initializeInstituteRowHover() {
+    const panel = document.getElementById('instituteDetailsPanel');
+    const closeBtn = document.getElementById('closePanelBtn');
+    const instituteRows = document.querySelectorAll('.institute-row');
+    
+    if (!panel) return;
+    
+    // Close panel handler (only add once)
+    if (closeBtn && !closeBtn.hasAttribute('data-hover-initialized')) {
+      closeBtn.setAttribute('data-hover-initialized', 'true');
+      closeBtn.addEventListener('click', function() {
+        clearTimeout(hoverTimeout);
+        clearTimeout(panelHoverTimeout);
+        panel.classList.remove('show');
+      });
+    }
+    
+    // Hover handlers for each row (use event delegation to avoid duplicates)
+    instituteRows.forEach(row => {
+      // Skip if already initialized
+      if (row.hasAttribute('data-hover-initialized')) {
+        return;
+      }
+      row.setAttribute('data-hover-initialized', 'true');
+      
+      row.addEventListener('mouseenter', function() {
+        clearTimeout(hoverTimeout);
+        clearTimeout(panelHoverTimeout);
+        hoverTimeout = setTimeout(() => {
+          // Get data from row
+          const name = row.getAttribute('data-institute-name') || '-';
+          const email = row.getAttribute('data-institute-email') || '-';
+          const contact = row.getAttribute('data-institute-contact') || '-';
+          const address = row.getAttribute('data-institute-address') || '-';
+          const admin = row.getAttribute('data-institute-admin') || '-';
+          const students = parseInt(row.getAttribute('data-institute-students') || '0');
+          const totalCredits = parseInt(row.getAttribute('data-institute-credits') || '0');
+          
+          // Calculate credits
+          const usedCredits = students; // Used credits = number of students
+          const remainingCredits = totalCredits - usedCredits;
+          
+          // Update panel content
+          const nameEl = document.getElementById('panel-institute-name');
+          const emailEl = document.getElementById('panel-institute-email');
+          const contactEl = document.getElementById('panel-institute-contact');
+          const addressEl = document.getElementById('panel-institute-address');
+          const adminEl = document.getElementById('panel-institute-admin');
+          const studentsEl = document.getElementById('panel-institute-students');
+          const totalCreditsEl = document.getElementById('panel-institute-total-credits');
+          const usedCreditsEl = document.getElementById('panel-institute-used-credits');
+          const remainingCreditsEl = document.getElementById('panel-institute-remaining-credits');
+          
+          if (nameEl) nameEl.textContent = name;
+          if (emailEl) emailEl.textContent = email;
+          if (contactEl) contactEl.textContent = contact;
+          if (addressEl) addressEl.textContent = address;
+          if (adminEl) adminEl.textContent = admin;
+          if (studentsEl) studentsEl.textContent = students;
+          if (totalCreditsEl) totalCreditsEl.textContent = totalCredits.toLocaleString();
+          if (usedCreditsEl) usedCreditsEl.textContent = usedCredits.toLocaleString();
+          if (remainingCreditsEl) remainingCreditsEl.textContent = remainingCredits.toLocaleString();
+          
+          // Show panel
+          panel.classList.add('show');
+        }, 200); // Small delay to prevent flickering
+      });
+      
+      row.addEventListener('mouseleave', function() {
+        clearTimeout(hoverTimeout);
+        // Don't hide immediately - wait a bit in case mouse moves to panel
+        hoverTimeout = setTimeout(() => {
+          // Check if mouse is over panel
+          if (!panel.matches(':hover')) {
+            panel.classList.remove('show');
+          }
+        }, 300);
+      });
+    });
+    
+    // Keep panel open when hovering over it (only add once)
+    if (!panel.hasAttribute('data-hover-initialized')) {
+      panel.setAttribute('data-hover-initialized', 'true');
+      panel.addEventListener('mouseenter', function() {
+        clearTimeout(hoverTimeout);
+        clearTimeout(panelHoverTimeout);
+      });
+      
+      panel.addEventListener('mouseleave', function() {
+        clearTimeout(hoverTimeout);
+        clearTimeout(panelHoverTimeout);
+        panelHoverTimeout = setTimeout(() => {
+          panel.classList.remove('show');
+        }, 200);
+      });
+    }
+  }
+  
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeInstituteRowHover();
+  });
 </script>
 {% endblock %}
 

@@ -1,0 +1,1279 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Institute Dashboard | Top Teen{% endblock %}
+{% block description_content %}Institute dashboard for managing students, counselors, and analytics.{% endblock %}
+
+{% block bodyclass %}{{ super() }} institute-dashboard{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<style>
+  .institute-dashboard {
+    padding-top: 80px;
+  }
+  .stat-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .stat-card i {
+    min-width: 32px;
+  }
+  .stat-card p {
+    margin: 0;
+  }
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: #828282;
+  }
+  /* Student Details Panel */
+  .student-details-panel {
+    position: fixed;
+    top: 100px;
+    right: -400px;
+    width: 380px;
+    height: calc(100vh - 120px);
+    background: #fff;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #e0e0e0;
+    overflow-y: auto;
+  }
+  .student-details-panel.show {
+    right: 0;
+  }
+  .student-panel-header {
+    padding: 20px;
+    background: #f7f7fa;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .student-panel-header h5 {
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .student-panel-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .student-detail-item {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .student-detail-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .student-detail-label {
+    font-size: 12px;
+    color: #828282;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+  .student-detail-value {
+    font-size: 14px;
+    color: #333;
+    word-break: break-word;
+  }
+  .table tbody tr.student-row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .table tbody tr.student-row:hover {
+    background-color: #f8f9fa;
+  }
+  @media (max-width: 991px) {
+    .student-details-panel {
+      width: 100%;
+      right: -100%;
+      top: 0;
+      height: 100vh;
+      z-index: 9999;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="institute-dashboard pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <!-- Left Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="border rounded-3 p-3 sticky-top" style="top: 100px;">
+          <!-- Institute Profile -->
+          <div class="text-center border-bottom pb-3 mb-3">
+            <div class="mb-3">
+              {% if institute.logo %}
+              <img src="{{ institute.logo.url }}" 
+                   class="rounded-circle" 
+                   style="width: 104px; height: 104px; object-fit: cover;" 
+                   alt="Institute Logo">
+              {% else %}
+              <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 104px; height: 104px;">
+                <i class='bx bx-building fs-48 text-gray'></i>
+              </div>
+              {% endif %}
+            </div>
+            <h5 class="fs-16 fw-semibold mb-3">{{ institute.name }}</h5>
+            <div class="d-flex flex-column gap-2 text-start">
+              <div class="d-flex gap-2 align-items-center">
+                <i class='bx bx-calendar fs-18 text-gray'></i>
+                <span class="fs-14 text-gray">
+                  Joined {% if institute.created %}{{ institute.created.strftime("%B, %Y") }}{% else %}-{% endif %}
+                </span>
+              </div>
+              <div class="d-flex gap-2 align-items-center">
+                <i class='bx bx-map fs-18 text-gray'></i>
+                <span class="fs-14 text-gray">
+                  {% if institute.address %}{{ institute.address }}{% else %}-{% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <button type="button" 
+                  class="btn w-100 mb-2 text-white fw-bold" 
+                  style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
+                  data-bs-toggle="modal" 
+                  data-bs-target="#addMultipleStudentsModal">
+            <i class='bx bx-plus me-2'></i> Add Multiple Students
+          </button>
+          
+          <button type="button" 
+                  class="btn w-100 mb-2 text-white fw-bold" 
+                  style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
+                  data-bs-toggle="modal" 
+                  data-bs-target="#addSingleStudentModal">
+            <i class='bx bx-user-plus me-2'></i> Add Single Student
+          </button>
+          
+          <button type="button" 
+                  class="btn w-100 mb-2 text-white fw-bold" 
+                  style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
+                  data-bs-toggle="modal" 
+                  data-bs-target="#addCounselorModal">
+            <i class='bx bx-user me-2'></i> ADD COUNSELOR
+          </button>
+          
+          <button type="button" 
+                  class="btn w-100 mb-2 text-white fw-bold" 
+                  style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
+                  data-bs-toggle="modal" 
+                  data-bs-target="#addCsvStudentModal">
+            <i class='bx bx-file me-2'></i> Matric - CSV Upload
+          </button>
+          
+          <button type="button" 
+                  class="btn w-100 mb-2 text-white fw-bold" 
+                  style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
+                  data-bs-toggle="modal" 
+                  data-bs-target="#addPostMatricCsvModal">
+            <i class='bx bx-file me-2'></i> Post-Matric - CSV Upload
+          </button>
+          
+          <a href="{{ url('institute:institutehistorylog', args=[institute.slug]) }}" 
+             class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+             style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1; text-decoration: none;">
+            <i class='bx bx-history me-2'></i> Uploaded History Log
+          </a>
+          
+          {% if messages %}
+          <div class="mt-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ 'success' if message.tags == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        <h2 class="fs-24 fw-semibold mb-4">Dashboard</h2>
+        
+        <!-- Statistics Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="stat-card">
+              <i class='bx bx-user-check fs-32 text-primary'></i>
+              <div>
+                <p class="stat-value">{{ total_students_count if total_students_count is number else total_students_count|length }}</p>
+                <p class="stat-label">Total Students</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="stat-card">
+              <i class='bx bx-check-circle fs-32 text-success'></i>
+              <div>
+                <p class="stat-value">{{ test_result_count if test_result_count is number else test_result_count|length }}</p>
+                <p class="stat-label">Psychometric Completed</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="stat-card">
+              <i class='bx bx-credit-card fs-32 text-warning'></i>
+              <div>
+                <p class="stat-value">{{ institute.credit_counts if institute.credit_counts else 0 }}</p>
+                <p class="stat-label">Total Credits</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="stat-card">
+              <i class='bx bx-wallet fs-32 text-info'></i>
+              <div>
+                <p class="stat-value">{{ institute.get_current_credits_count() }}</p>
+                <p class="stat-label">Remaining Credits</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="stat-card">
+              <i class='bx bx-user fs-32 text-purple'></i>
+              <div>
+                <p class="stat-value">{{ counselor_list|length }}</p>
+                <p class="stat-label">Counselors</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Form -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <form method="GET" class="row g-2 align-items-end" id="filter-form">
+              <div class="col-md-2">
+                <label for="classes" class="form-label text-gray fs-12 mb-1">Classes</label>
+                <select name="class_and_section" id="classes" class="form-control custom-input">
+                  <option value="" disabled selected>Classes</option>
+                  {% for cas in class_and_sections %}
+                  <option value="{{ cas.class_and_section }}" {% if request.GET.get('class_and_section') == cas.class_and_section %}selected{% endif %}>
+                    {{ cas.class_and_section }}{% if class_counts %} ({{ class_counts.get(cas.class_and_section, 0) }} students){% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label for="streams" class="form-label text-gray fs-12 mb-1">Streams</label>
+                <select name="stream" id="streams" class="form-control custom-input">
+                  <option value="" disabled selected>Streams</option>
+                  {% if unique_streams %}
+                  {% for stream in unique_streams %}
+                  <option value="{{ stream }}" {% if request.GET.get('stream') == stream %}selected{% endif %}>
+                    {{ stream }}
+                  </option>
+                  {% endfor %}
+                  {% else %}
+                  {% for cas in class_and_sections %}
+                  {% if cas.stream %}
+                  <option value="{{ cas.stream }}" {% if request.GET.get('stream') == cas.stream %}selected{% endif %}>
+                    {{ cas.stream }}
+                  </option>
+                  {% endif %}
+                  {% endfor %}
+                  {% endif %}
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label for="assessment" class="form-label text-gray fs-12 mb-1">Assessment</label>
+                <select name="test_taken" id="assessment" class="form-control custom-input">
+                  <option value="" disabled selected>Assessment</option>
+                  <option value="Yes" {% if request.GET.get('test_taken') == 'Yes' %}selected{% endif %}>Yes</option>
+                  <option value="In Progress" {% if request.GET.get('test_taken') == 'In Progress' %}selected{% endif %}>In Progress</option>
+                  <option value="No" {% if request.GET.get('test_taken') == 'No' %}selected{% endif %}>No</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="student_name" class="form-label text-gray fs-12 mb-1">Student Name</label>
+                <div class="input-group">
+                  <input type="text" 
+                         name="student_name" 
+                         id="student_name"
+                         class="form-control custom-input" 
+                         placeholder="Search student"
+                         value="{{ request.GET.get('student_name', '') }}">
+                  <span class="input-group-text bg-white border-start-0">
+                    <i class='bx bx-search'></i>
+                  </span>
+                </div>
+              </div>
+              <div class="col-md-3 d-flex gap-2 align-items-end">
+                <a href="{{ request.path }}?{% if request.GET %}{% for key, value in request.GET.items() %}{{ key }}={{ value }}&{% endfor %}{% endif %}download=Yes" 
+                   class="btn btn-link p-0" 
+                   title="Download CSV">
+                  <i class='bx bx-download text-primary fs-24'></i>
+                </a>
+                <button type="submit" 
+                        class="btn custom-button purple-button flex-fill" 
+                        style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
+                  Search
+                </button>
+                <a href="{{ url('institute:institutedashboard', args=[institute.slug]) }}" 
+                   class="btn btn-secondary flex-fill" 
+                   style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
+                  Reset
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Students Table -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <!-- Loader -->
+            <div id="students-loader" class="text-center py-5" style="display: none;">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3 text-gray">Loading students...</p>
+            </div>
+            
+            <!-- Table Container (loaded via AJAX) -->
+            <div id="students-table-wrapper">
+              {% set table_config = {
+                'show_stream': True,
+                'show_email': False,
+                'show_contact': False,
+                'show_created': True,
+                'show_report': True,
+                'show_actions': True,
+                'show_block': True,
+                'show_followup': False,
+                'show_institute': False,
+                'role': 'institute'
+              } %}
+              {% set action_urls = {
+                'update': 'institute:update_student',
+                'delete': 'institute:delete_student',
+                'block': 'institute:institutestudentblock',
+                'change_password': 'institute:change_student_password'
+              } %}
+              {% include 'template20/shared/students_table.html' %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row g-4 mb-4">
+          {% if (total_students_count if total_students_count is number else total_students_count|length) > 0 %}
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title mb-3">Total No of students have attempts psychometric test</h5>
+                <div style="height: 300px; position: relative;">
+                  <canvas id="personality-chart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title mb-3">Stream-based graph of all Institutes</h5>
+                <div style="height: 300px; position: relative;">
+                  <canvas id="stream_chart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body text-center py-5">
+                <i class='bx bx-pie-chart-alt-2 fs-48 text-gray mb-3'></i>
+                <h5 class="fs-18 fw-semibold mb-2">No Data Available</h5>
+                <p class="text-gray">There is no test data to display at this time.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-body text-center py-5">
+                <i class='bx bx-bar-chart-alt-2 fs-48 text-gray mb-3'></i>
+                <h5 class="fs-18 fw-semibold mb-2">No Results Available</h5>
+                <p class="text-gray">Test score data will appear here once available.</p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Seat Capacity Table -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Seat Capacity by Stream in School</h5>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Sr. No.</th>
+                    <th>Class</th>
+                    <th>PCM</th>
+                    <th>CBM</th>
+                    <th>COMM</th>
+                    <th>HUM</th>
+                    <th>HM</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1.</td>
+                    <td>11th Class</td>
+                    <td>{{ institute.pcm if institute.pcm else 100 }}</td>
+                    <td>{{ institute.cbm if institute.cbm else 100 }}</td>
+                    <td>{{ institute.comm if institute.comm else 100 }}</td>
+                    <td>{{ institute.hum if institute.hum else 100 }}</td>
+                    <td>{{ institute.hm if institute.hm else 100 }}</td>
+                    <td>
+                      <button type="button" 
+                              class="btn btn-sm btn-primary" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#editSeatCapacityModal">
+                        <i class='bx bx-edit me-1'></i> Edit
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>2.</td>
+                    <td>12th Class</td>
+                    <td>{{ institute.pcm if institute.pcm else 100 }}</td>
+                    <td>{{ institute.cbm if institute.cbm else 100 }}</td>
+                    <td>{{ institute.comm if institute.comm else 100 }}</td>
+                    <td>{{ institute.hum if institute.hum else 100 }}</td>
+                    <td>{{ institute.hm if institute.hm else 100 }}</td>
+                    <td>
+                      <button type="button" 
+                              class="btn btn-sm btn-primary" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#editSeatCapacityModal">
+                        <i class='bx bx-edit me-1'></i> Edit
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Counselors Table -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Counselors Details</h5>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Sr.no.</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Students Followed up</th>
+                    <th>Created</th>
+                    <th>Students Counselled</th>
+                    <th>Action</th>
+                    <th>Block/Unblock</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if counselor_data_list %}
+                    {% set has_counselors = false %}
+                    {% for coun in counselor_data_list %}
+                      {% if coun.coun_admin == institute %}
+                        {% set has_counselors = true %}
+                        <tr>
+                          <td>{{ loop.index }}</td>
+                          <td>
+                            <a href="{{ url('counselor:CounselorDashboardView', args=[coun.id]) }}">{{ coun.name }}</a>
+                          </td>
+                          <td>{{ coun.email }}</td>
+                          <td>{{ coun.sessions }}</td>
+                          <td>{% if coun.created %}{{ coun.created.strftime('%d-%m-%Y') }}{% else %}-{% endif %}</td>
+                          <td>{{ coun.students_counseled }}</td>
+                          <td>
+                            <div class="d-flex gap-2">
+                              <button type="button" 
+                                      class="btn btn-sm btn-link p-0" 
+                                      data-bs-toggle="modal" 
+                                      data-bs-target="#editCounselorModal{{ coun.id }}"
+                                      title="Edit Profile">
+                                <i class='bx bx-edit text-primary'></i>
+                              </button>
+                              <button type="button" 
+                                      class="btn btn-sm btn-link p-0" 
+                                      data-bs-toggle="modal" 
+                                      data-bs-target="#changeCounselorPasswordModal"
+                                      onclick="document.getElementById('coun_password_id').value='{{ coun.id }}'"
+                                      title="Change Password">
+                                <i class='bx bx-key text-info'></i>
+                              </button>
+                            </div>
+                          </td>
+                          <td>
+                            <button type="button" 
+                                    class="btn btn-sm btn-link p-0" 
+                                    title="Block Profile">
+                              <i class='bx bx-block text-success'></i>
+                            </button>
+                          </td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                    {% if not has_counselors %}
+                    <tr>
+                      <td colspan="8" class="text-center py-5">
+                        <div class="d-flex flex-column align-items-center">
+                          <i class='bx bx-user-plus fs-48 text-gray mb-3'></i>
+                          <h4 class="fs-18 fw-semibold mb-2">No Counselors Found</h4>
+                          <p class="text-gray text-center mb-4">There are no counselors registered in the system.<br>Add counselors to manage student guidance.</p>
+                          <button type="button" 
+                                  class="btn btn-primary" 
+                                  data-bs-toggle="modal" 
+                                  data-bs-target="#addCounselorModal">
+                            <i class='bx bx-user-plus me-2'></i> ADD COUNSELOR
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    {% endif %}
+                  {% else %}
+                  <tr>
+                    <td colspan="8" class="text-center py-5">
+                      <div class="d-flex flex-column align-items-center">
+                        <i class='bx bx-user-plus fs-48 text-gray mb-3'></i>
+                        <h4 class="fs-18 fw-semibold mb-2">No Counselors Found</h4>
+                        <p class="text-gray text-center mb-4">There are no counselors registered in the system.<br>Add counselors to manage student guidance.</p>
+                        <button type="button" 
+                                class="btn btn-primary" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#addCounselorModal">
+                          <i class='bx bx-user-plus me-2'></i> ADD COUNSELOR
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Counselor Session Report -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Weekly Counselor's Session Report</h5>
+            {% if sessions_data_json and sessions_data_json != '[]' %}
+            <div style="height: 300px; position: relative;">
+              <canvas id="sessionsChart"></canvas>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+              <i class='bx bx-line-chart fs-48 text-gray mb-3'></i>
+              <h5 class="fs-18 fw-semibold mb-2">No Session Data Available</h5>
+              <p class="text-gray">Weekly counselor session data will appear here once sessions are conducted and recorded.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Right Side Panel for Student Details -->
+<div id="studentDetailsPanel" class="student-details-panel">
+  <div class="student-panel-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 fs-18 fw-semibold">Student Details</h5>
+      <button type="button" class="btn-close" id="closeStudentPanelBtn" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="student-panel-body">
+    <div class="student-detail-item">
+      <div class="student-detail-label">Student Name</div>
+      <div class="student-detail-value" id="panel-student-name">-</div>
+    </div>
+    <div class="student-detail-item">
+      <div class="student-detail-label">Email</div>
+      <div class="student-detail-value" id="panel-student-email">-</div>
+    </div>
+    <div class="student-detail-item">
+      <div class="student-detail-label">Contact</div>
+      <div class="student-detail-value" id="panel-student-contact">-</div>
+    </div>
+    <div class="student-detail-item">
+      <div class="student-detail-label">Class</div>
+      <div class="student-detail-value" id="panel-student-class">-</div>
+    </div>
+    <div class="student-detail-item">
+      <div class="student-detail-label">Stream</div>
+      <div class="student-detail-value" id="panel-student-stream">-</div>
+    </div>
+    <div class="student-detail-item">
+      <div class="student-detail-label">Created</div>
+      <div class="student-detail-value" id="panel-student-created">-</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals will be added here -->
+<!-- Add Multiple Students Modal -->
+<div class="modal fade" id="addMultipleStudentsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Multiple Students</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:institutedashboard', args=[institute.slug]) }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class='bx bx-info-circle me-2'></i>
+            For multiple students enter comma separated emails<br>
+            eg - email1@gmail.com, email2@gmail.com and so on
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Class Section</label>
+            <select name="class_section" class="form-control" required>
+              <option value="">Select Class</option>
+              {% for cas in class_and_sections %}
+              <option value="{{ cas.id }}">{{ cas.class_and_section }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Student Emails</label>
+            <textarea name="student_email" 
+                      class="form-control" 
+                      rows="5" 
+                      placeholder="Enter comma separated emails"
+                      required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Add Students</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Single Student Modal -->
+<div class="modal fade" id="addSingleStudentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Single Student</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:institutestudentcreate') }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" value="{{ institute.id }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email" name="student_email" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Class Section</label>
+            <select name="class_and_section" class="form-control">
+              <option value="">Select Class</option>
+              {% for cas in class_and_sections %}
+              <option value="{{ cas.id }}">{{ cas.class_and_section }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Add Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Counselor Modal -->
+<div class="modal fade" id="addCounselorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create Counselor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:createcounselor', args=[institute.slug]) }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="counselor_admin" value="{{ institute.id }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Counselor Name <span class="text-danger">*</span></label>
+            <input type="text" name="counselor_name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Email <span class="text-danger">*</span></label>
+            <input type="email" name="counselor_email" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Address</label>
+            <input type="text" name="counselor_address" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Contact Info</label>
+            <input type="text" name="counselor_contact_info" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Education</label>
+            <select name="c_education" class="form-control">
+              <option value="">Select...</option>
+              <option value="PHD">PHD</option>
+              <option value="Bachelor's Degree">Bachelor's Degree</option>
+              <option value="Master's Degree">Master's Degree</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Create Counselor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add CSV Student Modal -->
+<div class="modal fade" id="addCsvStudentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Students (CSV Upload)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:institutecsvstudentcreate') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" value="{{ institute.id }}">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class='bx bx-info-circle me-2'></i>
+            CSV file must follow this format <a href="{{ url('institute:download_student_sample_csv') }}" target="_blank">Sample CSV</a>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">CSV File <span class="text-danger">*</span></label>
+            <input type="file" name="stu_file" class="form-control" accept=".csv" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Upload CSV</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Post-Matric CSV Student Modal -->
+<div class="modal fade" id="addPostMatricCsvModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Students (Post-Matric CSV Upload)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:institutepostmatriccsvstudentcreate') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" value="{{ institute.id }}">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class='bx bx-info-circle me-2'></i>
+            CSV file must follow this format <a href="{{ url('institute:post_matric_student_sample_csv') }}" target="_blank">Post Matric Sample CSV</a>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">CSV File <span class="text-danger">*</span></label>
+            <input type="file" name="stu_file" class="form-control" accept=".csv" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Upload CSV</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Student Modal -->
+<div class="modal fade" id="deleteStudentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Student</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:institutestudentdelete') }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="student_id" id="student_id" value="">
+        <div class="modal-body">
+          <p>Are you sure you want to delete this student? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Change Student Password Modal -->
+<div class="modal fade" id="changeStudentPasswordModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Change Student Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:institutestudentchangepassword') }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="student_id" id="password_id" value="">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">New Password <span class="text-danger">*</span></label>
+            <input type="password" name="new_password" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+            <input type="password" name="confirm_password" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Change Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Change Counselor Password Modal -->
+<div class="modal fade" id="changeCounselorPasswordModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Change Counselor Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:counselorchangepassword') }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="counselor_id" id="coun_password_id" value="">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">New Password <span class="text-danger">*</span></label>
+            <input type="password" name="new_password" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+            <input type="password" name="confirm_password" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Change Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Seat Capacity Modal -->
+<div class="modal fade" id="editSeatCapacityModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Seat Capacity</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:updateseatcapacity') }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute_id" value="{{ institute.id }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">PCM</label>
+            <input type="number" name="pcm" class="form-control" value="{{ institute.pcm if institute.pcm else 100 }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">CBM</label>
+            <input type="number" name="cbm" class="form-control" value="{{ institute.cbm if institute.cbm else 100 }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">COMM</label>
+            <input type="number" name="comm" class="form-control" value="{{ institute.comm if institute.comm else 100 }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">HUM</label>
+            <input type="number" name="hum" class="form-control" value="{{ institute.hum if institute.hum else 100 }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">HM</label>
+            <input type="number" name="hm" class="form-control" value="{{ institute.hm if institute.hm else 100 }}">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Update Student Modals (one for each student) -->
+{% if total_students %}
+  {% for ts in total_students %}
+  <div class="modal fade" id="updateStudentModal{{ ts.student.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Update Student</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="POST" action="{{ url('institute:institutestudentupdate') }}">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          <input type="hidden" name="student_id" value="{{ ts.student.id }}">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" name="student_email" class="form-control" value="{{ ts.student.email }}" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" name="student_name" class="form-control" value="{{ ts.student.name if ts.student.name else '' }}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Class Section</label>
+              <select name="class_and_section" class="form-control">
+                <option value="">Select Class</option>
+                {% for cas in class_and_sections %}
+                <option value="{{ cas.id }}" {% if ts.class_and_section and ts.class_and_section.id == cas.id %}selected{% endif %}>
+                  {{ cas.class_and_section }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<!-- Edit Counselor Modals (one for each counselor) -->
+{% if counselor_data_list %}
+  {% for coun in counselor_data_list %}
+    {% if coun.coun_admin == institute %}
+    <div class="modal fade" id="editCounselorModal{{ coun.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Counselor Profile</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form method="POST" action="#" enctype="multipart/form-data">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Counselor Name</label>
+                <input type="text" name="counselor_name" class="form-control" value="{{ coun.name }}">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Counselor Email</label>
+                <input type="email" name="counselor_email" class="form-control" value="{{ coun.email }}" readonly>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Counselor Address</label>
+                <input type="text" name="counselor_address" class="form-control" value="">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Counselor Contact Info</label>
+                <input type="text" name="counselor_contact_info" class="form-control" value="">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn custom-button purple-button">Update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Personality Chart
+  {% if (total_students_count if total_students_count is number else total_students_count|length) > 0 %}
+  const test_taken_stu = {{ test_result_count if test_result_count is number else test_result_count|length }};
+  const total_students1 = {{ total_students_count if total_students_count is number else total_students_count|length }};
+  const test_taken_student = test_taken_stu;
+
+  const personalityCtx = document.getElementById('personality-chart');
+  if (personalityCtx) {
+    new Chart(personalityCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Students Attempted Test', 'Remaining Students'],
+        datasets: [{
+          data: [test_taken_student, total_students1 - test_taken_student],
+          backgroundColor: ['#B3AFFD', '#4A4CB3'],
+          hoverBackgroundColor: ['#A1A6FF', '#3E3F96']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          }
+        }
+      }
+    });
+  }
+  {% endif %}
+
+  // Stream Chart
+  {% if streams %}
+  const streamCtx = document.getElementById('stream_chart');
+  if (streamCtx) {
+    const streamLabels = [];
+    const streamData = [];
+    {% for stream, count in streams.items() %}
+    streamLabels.push('{{ stream }}');
+    streamData.push({{ count }});
+    {% endfor %}
+    
+    new Chart(streamCtx, {
+      type: 'bar',
+      data: {
+        labels: streamLabels,
+        datasets: [{
+          label: 'Students',
+          data: streamData,
+          backgroundColor: '#4CC9F0',
+          borderColor: '#3CBAE1',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+  {% endif %}
+
+  // Sessions Chart
+  {% if sessions_data_json and sessions_data_json != '[]' %}
+  const sessionsCtx = document.getElementById('sessionsChart');
+  if (sessionsCtx) {
+    try {
+      const sessionsData = JSON.parse('{{ sessions_data_json|safe }}');
+      if (sessionsData && sessionsData.length > 0 && sessionsData[0].sessions && sessionsData[0].sessions.length > 0) {
+        const colorPalette = ['#ff758c', '#11998e', '#667eea', '#3357FF', '#89f7fe', '#9B59B6', '#E67E22'];
+        const datasets = sessionsData.map((counselor, index) => ({
+          label: counselor.counselor_name || `Counselor ${index + 1}`,
+          data: counselor.sessions.map(s => s.session_count || 0),
+          backgroundColor: colorPalette[index % colorPalette.length],
+          borderColor: colorPalette[index % colorPalette.length],
+          borderWidth: 1,
+          tension: 0.4
+        }));
+        
+        const labels = sessionsData[0].sessions.map(s => {
+          const date = new Date(s.day);
+          return date.toLocaleDateString('en-US', { weekday: 'short' });
+        });
+        
+        new Chart(sessionsCtx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: datasets
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1
+                }
+              }
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Error parsing sessions data:', e);
+    }
+  }
+  {% endif %}
+
+  // Student function for update modal
+  function student(studentId) {
+    // This function can be used to populate update modal with student data
+    console.log('Student ID:', studentId);
+  }
+
+  // Initialize Student Details Panel
+  let studentHoverTimeout;
+  let studentPanelHoverTimeout;
+  
+  function initializeStudentRowHover() {
+    const panel = document.getElementById('studentDetailsPanel');
+    const closeBtn = document.getElementById('closeStudentPanelBtn');
+    const studentRows = document.querySelectorAll('.student-row');
+    
+    if (!panel) return;
+    
+    // Close panel handler (only add once)
+    if (closeBtn && !closeBtn.hasAttribute('data-hover-initialized')) {
+      closeBtn.setAttribute('data-hover-initialized', 'true');
+      closeBtn.addEventListener('click', function() {
+        clearTimeout(studentHoverTimeout);
+        clearTimeout(studentPanelHoverTimeout);
+        panel.classList.remove('show');
+      });
+    }
+    
+    // Hover handlers for each row (use event delegation to avoid duplicates)
+    studentRows.forEach(row => {
+      // Skip if already initialized
+      if (row.hasAttribute('data-hover-initialized')) {
+        return;
+      }
+      row.setAttribute('data-hover-initialized', 'true');
+      
+      row.addEventListener('mouseenter', function() {
+        clearTimeout(studentHoverTimeout);
+        clearTimeout(studentPanelHoverTimeout);
+        studentHoverTimeout = setTimeout(() => {
+          // Get data from row
+          const name = row.getAttribute('data-student-name') || '-';
+          const email = row.getAttribute('data-student-email') || '-';
+          const contact = row.getAttribute('data-student-contact') || '-';
+          const studentClass = row.getAttribute('data-student-class') || '-';
+          const stream = row.getAttribute('data-student-stream') || '-';
+          const created = row.getAttribute('data-student-created') || '-';
+          
+          // Update panel content
+          const nameEl = document.getElementById('panel-student-name');
+          const emailEl = document.getElementById('panel-student-email');
+          const contactEl = document.getElementById('panel-student-contact');
+          const classEl = document.getElementById('panel-student-class');
+          const streamEl = document.getElementById('panel-student-stream');
+          const createdEl = document.getElementById('panel-student-created');
+          
+          if (nameEl) nameEl.textContent = name;
+          if (emailEl) emailEl.textContent = email;
+          if (contactEl) contactEl.textContent = contact;
+          if (classEl) classEl.textContent = studentClass;
+          if (streamEl) streamEl.textContent = stream;
+          if (createdEl) createdEl.textContent = created;
+          
+          // Show panel
+          panel.classList.add('show');
+        }, 200); // Small delay to prevent flickering
+      });
+      
+      row.addEventListener('mouseleave', function() {
+        clearTimeout(studentHoverTimeout);
+        // Don't hide immediately - wait a bit in case mouse moves to panel
+        studentHoverTimeout = setTimeout(() => {
+          // Check if mouse is over panel
+          if (!panel.matches(':hover')) {
+            panel.classList.remove('show');
+          }
+        }, 300);
+      });
+    });
+    
+    // Keep panel open when hovering over it (only add once)
+    if (!panel.hasAttribute('data-hover-initialized')) {
+      panel.setAttribute('data-hover-initialized', 'true');
+      panel.addEventListener('mouseenter', function() {
+        clearTimeout(studentPanelHoverTimeout);
+      });
+      
+      panel.addEventListener('mouseleave', function() {
+        clearTimeout(studentPanelHoverTimeout);
+        studentPanelHoverTimeout = setTimeout(() => {
+          panel.classList.remove('show');
+        }, 300);
+      });
+    }
+  }
+  
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeStudentRowHover();
+  });
+</script>
+
+<!-- Centralized Student Table AJAX Script -->
+<script src="/static/js_new/student_table_ajax.js"></script>
+{% endblock %}
+

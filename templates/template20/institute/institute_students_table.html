@@ -1,0 +1,157 @@
+<!-- Students Table Container (for AJAX loading) -->
+<div id="students-table-container">
+<div class="table-responsive">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>S. no.</th>
+        <th>Class</th>
+        <th>Stream</th>
+        <th>Name</th>
+        <th>Created</th>
+        <th>Report</th>
+        <th>Action</th>
+        <th>Block/Unblock</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if total_students %}
+        {% for ts in total_students %}
+        <tr class="student-row"
+            data-student-id="{{ ts.student.id if ts.student else '' }}"
+            data-student-name="{{ ts.student.name if (ts.student and ts.student.name) else '-' }}"
+            data-student-email="{{ ts.student.email if ts.student else '-' }}"
+            data-student-contact="{{ ts.student.mobile if (ts.student and ts.student.mobile) else '-' }}"
+            data-student-class="{{ ts.class_and_section.class_and_section if (ts.class_and_section and ts.class_and_section.class_and_section) else '-' }}"
+            data-student-stream="{{ ts.class_and_section.stream if (ts.class_and_section and ts.class_and_section.stream) else '-' }}"
+            data-student-created="{{ ts.student.created.strftime('%d/%m/%Y') if (ts.student and ts.student.created) else '-' }}">
+          <td>{{ (total_students.number - 1) * total_students.paginator.per_page + loop.index }}</td>
+          <td>{% if ts.class_and_section and ts.class_and_section.class_and_section %}{{ ts.class_and_section.class_and_section }}{% else %}-{% endif %}</td>
+          <td>{% if ts.class_and_section and ts.class_and_section.stream %}{{ ts.class_and_section.stream }}{% else %}-{% endif %}</td>
+          <td>
+            {% if ts.student and ts.student.name %}
+            <a href="#">{{ ts.student.name }}</a>
+            {% else %}-{% endif %}
+          </td>
+          <td>{% if ts.student and ts.student.created %}{{ ts.student.created.strftime("%d/%m/%Y") }}{% else %}-{% endif %}</td>
+          <td>
+            {% if results_data %}
+              {% set result = results_data.get(ts.student.id) %}
+              {% if result %}
+                {% if result.test_status == "completed" and result.test_link %}
+                <a target="_blank" href="{{ result.test_link }}">
+                  <span class="badge bg-success" title="{{ result.tooltip }}">Yes</span>
+                </a>
+                {% elif result.test_status == "completed" %}
+                <span class="badge bg-success" title="{{ result.tooltip }}">Yes</span>
+                {% elif result.test_status == "in_progress" %}
+                <span class="badge bg-warning text-dark" title="{{ result.tooltip }}">In Progress</span>
+                {% else %}
+                <span class="badge bg-danger" title="{{ result.tooltip }}">No</span>
+                {% endif %}
+              {% else %}
+              <span class="badge bg-secondary">-</span>
+              {% endif %}
+            {% else %}
+            <span class="badge bg-secondary">-</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-2">
+              {% set result = results_data.get(ts.student.id) if results_data else None %}
+              {% if result and result.test_success %}
+              <button type="button" 
+                      class="btn btn-sm btn-link p-0" 
+                      data-bs-toggle="modal" 
+                      data-bs-target="#deleteStudentModal"
+                      onclick="document.getElementById('student_id').value='{{ ts.student.id }}'"
+                      title="Delete">
+                <i class='bx bx-trash text-danger'></i>
+              </button>
+              {% endif %}
+              <button type="button" 
+                      class="btn btn-sm btn-link p-0" 
+                      data-bs-toggle="modal" 
+                      data-bs-target="#updateStudentModal{{ ts.student.id }}"
+                      onclick="student('{{ ts.student.id }}')"
+                      title="Update">
+                <i class='bx bx-edit text-success'></i>
+              </button>
+              <button type="button" 
+                      class="btn btn-sm btn-link p-0" 
+                      data-bs-toggle="modal" 
+                      data-bs-target="#changeStudentPasswordModal"
+                      onclick="document.getElementById('password_id').value='{{ ts.student.id }}'"
+                      title="Change Password">
+                <i class='bx bx-key text-info'></i>
+              </button>
+            </div>
+          </td>
+          <td>
+            <a href="{{ url('institute:institutestudentblock', args=[ts.student.id]) }}" 
+               class="btn btn-sm btn-link p-0" 
+               title="Click to block">
+              <i class='bx bx-block text-success'></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+      <tr>
+        <td colspan="8" class="text-center py-5">
+          <div class="d-flex flex-column align-items-center">
+            <i class='bx bx-user-x fs-48 text-gray mb-3'></i>
+            <h4 class="fs-18 fw-semibold mb-2">No Students Found</h4>
+            <p class="text-gray text-center">No students match the current filters.<br>Try adjusting your search criteria.</p>
+          </div>
+        </td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+{% if total_students and total_students.paginator.num_pages > 1 %}
+<nav aria-label="Page navigation">
+  <ul class="pagination justify-content-center">
+    {% if total_students.has_previous() %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ total_students.previous_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}">Previous</a>
+    </li>
+    {% else %}
+    <li class="page-item disabled">
+      <span class="page-link">Previous</span>
+    </li>
+    {% endif %}
+    
+    {% for num in range(1, total_students.paginator.num_pages + 1) %}
+      {% if num == total_students.number %}
+      <li class="page-item active">
+        <span class="page-link">{{ num }}</span>
+      </li>
+      {% elif num <= 3 or num > total_students.paginator.num_pages - 3 or (num >= total_students.number - 1 and num <= total_students.number + 1) %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ num }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}">{{ num }}</a>
+      </li>
+      {% elif num == 4 or num == total_students.paginator.num_pages - 2 %}
+      <li class="page-item disabled">
+        <span class="page-link">...</span>
+      </li>
+      {% endif %}
+    {% endfor %}
+    
+    {% if total_students.has_next() %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ total_students.next_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}">Next</a>
+    </li>
+    {% else %}
+    <li class="page-item disabled">
+      <span class="page-link">Next</span>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+</div>
+

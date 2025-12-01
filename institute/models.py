@@ -124,6 +124,33 @@ class Institute(BaseModel, SlugModel):
         verbose_name="institute Status",
         help_text="Current status of the institute"
     )
+    
+    # Seat Capacity fields for streams
+    pcm = models.PositiveIntegerField(
+        default=100,
+        verbose_name="PCM Seat Capacity",
+        help_text="Seat capacity for PCM stream"
+    )
+    cbm = models.PositiveIntegerField(
+        default=100,
+        verbose_name="CBM Seat Capacity",
+        help_text="Seat capacity for CBM stream"
+    )
+    comm = models.PositiveIntegerField(
+        default=100,
+        verbose_name="COMM Seat Capacity",
+        help_text="Seat capacity for COMM stream"
+    )
+    hme = models.PositiveIntegerField(
+        default=100,
+        verbose_name="HME Seat Capacity",
+        help_text="Seat capacity for HME stream"
+    )
+    hmb = models.PositiveIntegerField(
+        default=100,
+        verbose_name="HMB Seat Capacity",
+        help_text="Seat capacity for HMB stream"
+    )
 
     class Meta:
         verbose_name = "Institute"

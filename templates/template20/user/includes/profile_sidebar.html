@@ -59,7 +59,55 @@
 
   <!-- Settings Links -->
   <div class="mt-4">
-    {% if request.user.user_type == 4 %}
+    {% if request.user.user_type == 5 %}
+      {# Marketing Group Admin #}
+      <a href="{{ url('institute:marketinggroupdashboard') }}" class="d-block text-decoration-none mb-3">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-1">Dashboard</p>
+            <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+        </div>
+      </a>
+    {% elif request.user.user_type == 3 %}
+      {# Institute Group Admin #}
+      <a href="{{ url('institute:institutegroupdashboard') }}" class="d-block text-decoration-none mb-3">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-1">Dashboard</p>
+            <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+        </div>
+      </a>
+    {% elif request.user.user_type == 2 %}
+      {# Institute #}
+      {% set institute_list = request.user.institute_created.all() %}
+      {% if institute_list|length > 0 %}
+        {% set institute_obj = institute_list[0] %}
+        <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" class="d-block text-decoration-none mb-3">
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+            <div>
+              <p class="fs-14 fw-semibold mb-1">Dashboard</p>
+              <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+            </div>
+            <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+          </div>
+        </a>
+      {% else %}
+        <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+            <div>
+              <p class="fs-14 fw-semibold mb-1">Dashboard</p>
+              <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+            </div>
+            <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+          </div>
+        </a>
+      {% endif %}
+    {% elif request.user.user_type == 4 %}
+      {# Counselor #}
       {% set counselor_list = request.user.counselor.all() %}
       {% if counselor_list|length > 0 %}
         {% set counselor_obj = counselor_list[0] %}
@@ -83,7 +131,58 @@
           </div>
         </a>
       {% endif %}
+    {% elif request.user.user_type == 1 %}
+      {# Student - Check if class 11/12 for post_matric dashboard, else user dashboard #}
+      {% set student_management = request.user.student_management.all() %}
+      {% if student_management|length > 0 %}
+        {% set sm = student_management[0] %}
+        {% if sm.class_and_section %}
+          {% set class_name = sm.class_and_section.class_and_section %}
+          {% if class_name and (class_name[:2].strip() == "11" or class_name[:2].strip() == "12") %}
+            <a href="{{ url('post_matric:tests') }}" class="d-block text-decoration-none mb-3">
+              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+                <div>
+                  <p class="fs-14 fw-semibold mb-1">Dashboard</p>
+                  <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+                </div>
+                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+              </div>
+            </a>
+          {% else %}
+            <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+                <div>
+                  <p class="fs-14 fw-semibold mb-1">Dashboard</p>
+                  <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+                </div>
+                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+              </div>
+            </a>
+          {% endif %}
+        {% else %}
+          <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+              <div>
+                <p class="fs-14 fw-semibold mb-1">Dashboard</p>
+                <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+              </div>
+              <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+            </div>
+          </a>
+        {% endif %}
+      {% else %}
+        <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+            <div>
+              <p class="fs-14 fw-semibold mb-1">Dashboard</p>
+              <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+            </div>
+            <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+          </div>
+        </a>
+      {% endif %}
     {% else %}
+      {# Default - Student or other #}
       <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
           <div>

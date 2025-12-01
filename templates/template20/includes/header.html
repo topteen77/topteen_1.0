@@ -100,7 +100,23 @@
             <h6>Dashboard</h6>
             <p class="text-gray fs-14">Welcome, {{ user.first_name|default(user.username) }}</p>
             <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
-              {% if user.user_type == 4 %}
+              {% if user.user_type == 5 %}
+                {# Marketing Group Admin #}
+                <a href="{{ url('institute:marketinggroupdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
+              {% elif user.user_type == 3 %}
+                {# Institute Group Admin #}
+                <a href="{{ url('institute:institutegroupdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
+              {% elif user.user_type == 2 %}
+                {# Institute #}
+                {% set institute_list = user.institute_created.all() %}
+                {% if institute_list|length > 0 %}
+                  {% set institute_obj = institute_list[0] %}
+                  <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" class="btn custom-button purple-button me-3">Dashboard</a>
+                {% else %}
+                  <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
+                {% endif %}
+              {% elif user.user_type == 4 %}
+                {# Counselor #}
                 {% set counselor_list = user.counselor.all() %}
                 {% if counselor_list|length > 0 %}
                   {% set counselor_obj = counselor_list[0] %}
@@ -108,7 +124,26 @@
                 {% else %}
                   <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
                 {% endif %}
+              {% elif user.user_type == 1 %}
+                {# Student - Check if class 11/12 for post_matric dashboard, else user dashboard #}
+                {% set student_management = user.student_management.all() %}
+                {% if student_management|length > 0 %}
+                  {% set sm = student_management[0] %}
+                  {% if sm.class_and_section %}
+                    {% set class_name = sm.class_and_section.class_and_section %}
+                    {% if class_name and (class_name[:2].strip() == "11" or class_name[:2].strip() == "12") %}
+                      <a href="{{ url('post_matric:tests') }}" class="btn custom-button purple-button me-3">Dashboard</a>
+                    {% else %}
+                      <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
+                    {% endif %}
+                  {% else %}
+                    <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
+                  {% endif %}
+                {% else %}
+                  <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
+                {% endif %}
               {% else %}
+                {# Default - Student or other #}
                 <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
               {% endif %}
               <a href="{{ url('users:logout') }}" class="btn custom-button blue-button d-flex align-items-center">Logout</a>
