@@ -101,7 +101,7 @@
             <div class="stat-card">
               <i class='bx bx-user-check fs-32 text-primary'></i>
               <div>
-                <p class="stat-value">{{ students_count|length }}</p>
+                <p class="stat-value">{{ students_count }}</p>
                 <p class="stat-label">Assigned</p>
               </div>
             </div>
@@ -137,47 +137,58 @@
         <!-- Filter Form -->
         <div class="card mb-4">
           <div class="card-body">
-            <form id="student-filter-form" method="get" class="row g-3">
-              <input type="hidden" name="per_page" value="{{ per_page }}">
-              <div class="col-md-3">
-                <label for="class_and_section_filter" class="form-label text-gray fs-12 mb-1">Class</label>
-                <select name="class_and_section" id="class_and_section_filter" class="form-control custom-input">
-                  <option value="">All Classes</option>
+            <form id="filter-form" method="get" class="row g-2 align-items-end">
+              <div class="col-md-2">
+                <label for="classes" class="form-label text-gray fs-12 mb-1">Classes</label>
+                <select name="class_and_section" id="classes" class="form-control custom-input">
+                  <option value="" disabled selected>Classes</option>
                   {% for cas in class_and_sections %}
-                  <option value="{{ cas.class_and_section }}" 
-                          {% if request.GET.class_and_section == cas.class_and_section %}selected{% endif %}>
-                    {{ cas.class_and_section }} ({{ class_counts.get(cas.class_and_section, 0) }} students)
+                  <option value="{{ cas.class_and_section }}" {% if request.GET.get('class_and_section') == cas.class_and_section %}selected{% endif %}>
+                    {{ cas.class_and_section }}{% if class_counts %} ({{ class_counts.get(cas.class_and_section, 0) }} students){% endif %}
                   </option>
                   {% endfor %}
                 </select>
               </div>
-              <div class="col-md-3">
-                <label for="test_taken_filter" class="form-label text-gray fs-12 mb-1">Assessment Status</label>
-                <select name="test_taken" id="test_taken_filter" class="form-control custom-input">
-                  <option value="">All Assessments</option>
-                  <option value="Yes" {% if request.GET.test_taken == 'Yes' %}selected{% endif %}>Completed</option>
-                  <option value="No" {% if request.GET.test_taken == 'No' %}selected{% endif %}>Not Started</option>
-                  <option value="In Progress" {% if request.GET.test_taken == 'In Progress' %}selected{% endif %}>In Progress</option>
+              <div class="col-md-2">
+                <label for="assessment" class="form-label text-gray fs-12 mb-1">Assessment</label>
+                <select name="test_taken" id="assessment" class="form-control custom-input">
+                  <option value="" disabled selected>Assessment</option>
+                  <option value="Yes" {% if request.GET.get('test_taken') == 'Yes' %}selected{% endif %}>Yes</option>
+                  <option value="In Progress" {% if request.GET.get('test_taken') == 'In Progress' %}selected{% endif %}>In Progress</option>
+                  <option value="No" {% if request.GET.get('test_taken') == 'No' %}selected{% endif %}>No</option>
                 </select>
               </div>
               <div class="col-md-3">
-                <label for="student_name_filter" class="form-label text-gray fs-12 mb-1">Student Name</label>
-                <input type="text" 
-                       name="student_name" 
-                       id="student_name_filter"
-                       class="form-control custom-input" 
-                       placeholder="Enter student name"
-                       value="{{ request.GET.student_name|default('') }}">
+                <label for="student_name" class="form-label text-gray fs-12 mb-1">Student Name</label>
+                <div class="input-group">
+                  <input type="text" 
+                         name="student_name" 
+                         id="student_name"
+                         class="form-control custom-input" 
+                         placeholder="Search student"
+                         value="{{ request.GET.get('student_name', '') }}">
+                  <span class="input-group-text bg-white border-start-0">
+                    <i class='bx bx-search'></i>
+                  </span>
+                </div>
+              </div>
+              <div class="col-md-2">
+                <label for="per_page" class="form-label text-gray fs-12 mb-1">Records per page</label>
+                <select name="per_page" id="per_page" class="form-control custom-input">
+                  <option value="10" {% if request.GET.get('per_page', '10') == '10' %}selected{% endif %}>10</option>
+                  <option value="100" {% if request.GET.get('per_page') == '100' %}selected{% endif %}>100</option>
+                  <option value="all" {% if request.GET.get('per_page') == 'all' %}selected{% endif %}>All</option>
+                </select>
               </div>
               <div class="col-md-3 d-flex gap-2 align-items-end">
                 <button type="submit" 
-                        class="btn custom-button purple-button" 
-                        style="height: 50px; width: 150px; text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
+                        class="btn custom-button purple-button flex-fill" 
+                        style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
                   Search
                 </button>
                 <a href="{{ url('counselor:CounselorDashboardView', args=[coun_id]) }}" 
-                   class="btn btn-secondary" 
-                   style="height: 50px; width: 150px; text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
+                   class="btn btn-secondary flex-fill" 
+                   style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
                   Reset
                 </a>
               </div>
@@ -197,6 +208,7 @@
             </div>
             
             <!-- Table Container -->
+            <div id="students-table-wrapper">
             <div id="students-table-container">
             <div class="table-responsive">
               <table class="table table-hover">
@@ -370,6 +382,11 @@
         <div class="card mt-4">
           <div class="card-body text-center">
             <h5 class="fs-18 fw-bold mb-4">Weekly Counselor Session Report</h5>
+            <div id="sessions-loader" class="text-center py-3" style="display: none;">
+              <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
             <canvas id="sessionsChart" width="400" height="200"></canvas>
             <div id="no-data-container" data-no-data-img="{{ static('images_new/general/no-data.png') }}" style="display: none;"></div>
           </div>
@@ -384,101 +401,106 @@
 {{ super() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const sessionsDataElement = document.getElementById('sessions-data');
-    if (!sessionsDataElement) {
-      console.log('Sessions data element not found');
-      return;
-    }
-    
-    let sessionsData;
-    try {
-      sessionsData = JSON.parse(sessionsDataElement.textContent);
-    } catch (e) {
-      console.error('Error parsing sessions data:', e);
-      return;
-    }
-    
-    const chartContainer = document.querySelector(".card-body");
+  // Load session chart data via AJAX
+  function loadSessionsChart() {
+    const loader = document.getElementById('sessions-loader');
     const canvas = document.getElementById('sessionsChart');
-    if (!canvas) {
-      console.log('Canvas element not found');
-      return;
-    }
-    const noDataContainer = document.getElementById("no-data-container");
-    const noDataImage = noDataContainer ? noDataContainer.getAttribute("data-no-data-img") : null;
-
-    if (!sessionsData.length || !sessionsData[0].sessions.length) {
-      if (canvas) {
-        canvas.parentElement.innerHTML = `
-          <div class="d-flex justify-content-center align-items-center flex-column">
-            <img width="100px" src="${noDataImage || ''}" alt="No Data"/>
-            <p class="mt-3">No matching records found</p>
-          </div>
-        `;
+    
+    if (loader) loader.style.display = 'block';
+    if (canvas) canvas.style.display = 'none';
+    
+    const url = new URL(window.location.href);
+    url.searchParams.set('data_type', 'sessions');
+    
+    fetch(url.toString(), {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
       }
-      return;
-    }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (loader) loader.style.display = 'none';
+      if (canvas) canvas.style.display = 'block';
+      
+      const sessionsData = data.sessions_data || [];
+      const noDataContainer = document.getElementById("no-data-container");
+      const noDataImage = noDataContainer ? noDataContainer.getAttribute("data-no-data-img") : null;
 
-    const colorPalette = ['#ff758c', '#11998e', '#667eea', '#3357FF', '#89f7fe', '#9B59B6', '#E67E22'];
-    const datasets = sessionsData.map((counselor, index) => ({
-      label: `Counselor: ${counselor.counselor_name}`,
-      data: counselor.sessions.map(session => session.session_count),
-      backgroundColor: colorPalette[index % colorPalette.length],
-      borderColor: colorPalette[index % colorPalette.length],
-      borderWidth: 1
-    }));
+      if (!sessionsData.length || !sessionsData[0].sessions.length) {
+        if (canvas) {
+          canvas.parentElement.innerHTML = `
+            <div class="d-flex justify-content-center align-items-center flex-column">
+              <img width="100px" src="${noDataImage || ''}" alt="No Data"/>
+              <p class="mt-3">No matching records found</p>
+            </div>
+          `;
+        }
+        return;
+      }
 
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: sessionsData[0].sessions.map(session => session.day),
-          datasets: datasets
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                stepSize: 1,
-                callback: function (value) {
-                  return Number.isInteger(value) ? value : null;
+      const colorPalette = ['#ff758c', '#11998e', '#667eea', '#3357FF', '#89f7fe', '#9B59B6', '#E67E22'];
+      const datasets = sessionsData.map((counselor, index) => ({
+        label: `Counselor: ${counselor.counselor_name}`,
+        data: counselor.sessions.map(session => session.session_count),
+        backgroundColor: colorPalette[index % colorPalette.length],
+        borderColor: colorPalette[index % colorPalette.length],
+        borderWidth: 1
+      }));
+
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: sessionsData[0].sessions.map(session => session.day),
+            datasets: datasets
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1,
+                  callback: function (value) {
+                    return Number.isInteger(value) ? value : null;
+                  }
+                },
+                title: {
+                  display: true,
+                  text: 'Number of Sessions'
                 }
               },
-              title: {
-                display: true,
-                text: 'Number of Sessions'
+              x: {
+                title: {
+                  display: true,
+                  text: 'Date'
+                }
               }
             },
-            x: {
-              title: {
-                display: true,
-                text: 'Date'
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'top'
               }
             }
-          },
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'top'
-            }
           }
-        }
-      });
-    }
-  });
-</script>
-<script id="sessions-data" type="application/json">{{ sessions_data_json|safe }}</script>
-<script>
-  function updatePerPage(value) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('per_page', value);
-    url.searchParams.delete('page'); // Reset to page 1 when changing per_page
-    loadStudentsTable(url.toString());
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error loading sessions chart:', error);
+      if (loader) loader.style.display = 'none';
+      if (canvas) canvas.style.display = 'block';
+    });
   }
   
+  // Load sessions chart after page loads
+  document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(loadSessionsChart, 500); // Load after 500ms delay
+  });
+</script>
+<script src="{{ static('js_new/student_table_ajax.js') }}"></script>
+<script>
   // Initialize Bootstrap tooltips
   function initTooltips() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -487,90 +509,89 @@
     });
   }
   
-  // AJAX function to load students table
-  function loadStudentsTable(url) {
-    const tableContainer = document.getElementById('students-table-container');
-    const loader = document.getElementById('students-loader');
-    
-    if (tableContainer && loader) {
-      tableContainer.style.display = 'none';
-      loader.style.display = 'block';
-      
-      fetch(url, {
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-        }
-      })
-      .then(response => response.text())
-      .then(html => {
-        // Create a temporary container to parse the HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        
-        // Extract the table and pagination from the response
-        const newTableContainer = tempDiv.querySelector('#students-table-container');
-        const newPagination = tempDiv.querySelector('#students-pagination');
-        
-        if (newTableContainer) {
-          document.getElementById('students-table-container').innerHTML = newTableContainer.innerHTML;
-        }
-        if (newPagination) {
-          const paginationContainer = document.getElementById('students-pagination');
-          if (paginationContainer) {
-            paginationContainer.innerHTML = newPagination.innerHTML;
-          }
-        }
-        
-        // Update per_page dropdown to match current selection
-        const urlParams = new URLSearchParams(url.split('?')[1] || '');
-        const perPageValue = urlParams.get('per_page') || '10';
-        const perPageSelect = document.getElementById('perPageSelect');
-        if (perPageSelect) {
-          perPageSelect.value = perPageValue;
-        }
-        
-        // Update URL without reload
-        window.history.pushState({}, '', url);
-        
-        // Hide loader and show table
-        loader.style.display = 'none';
-        tableContainer.style.display = 'block';
-        
-        // Reinitialize tooltips
-        initTooltips();
-      })
-      .catch(error => {
-        console.error('Error loading students:', error);
-        loader.style.display = 'none';
-        tableContainer.style.display = 'block';
-      });
-    } else {
-      // Fallback to full page reload if AJAX fails
-      window.location.href = url;
-    }
-  }
-  
-  // Handle form submission with AJAX
+  // Override initStudentTableAJAX for counselor-specific URL
   document.addEventListener('DOMContentLoaded', function() {
-    const filterForm = document.getElementById('student-filter-form');
+    // Handle filter form submission
+    const filterForm = document.getElementById('filter-form');
     if (filterForm) {
       filterForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        const formData = new FormData(this);
-        const params = new URLSearchParams(formData);
-        const url = window.location.pathname + '?' + params.toString();
-        loadStudentsTable(url);
+        const url = new URL(window.location.href);
+        const formData = new FormData(filterForm);
+        for (const [key, value] of formData.entries()) {
+          if (value) {
+            url.searchParams.set(key, value);
+          } else {
+            url.searchParams.delete(key);
+          }
+        }
+        url.searchParams.set('data_type', 'students');
+        url.searchParams.set('page', '1'); // Reset to page 1
+        loadStudentsTable(url.toString(), {
+          containerId: 'students-table-container',
+          loaderId: 'students-loader',
+          wrapperId: 'students-table-wrapper',
+          onSuccess: function() {
+            initTooltips();
+          }
+        });
       });
     }
     
-    // Handle pagination links with AJAX
+    // Handle per_page dropdown
+    const perPageSelect = document.getElementById('per_page');
+    if (perPageSelect) {
+      perPageSelect.addEventListener('change', function() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('per_page', this.value);
+        url.searchParams.delete('page');
+        url.searchParams.set('data_type', 'students');
+        loadStudentsTable(url.toString(), {
+          containerId: 'students-table-container',
+          loaderId: 'students-loader',
+          wrapperId: 'students-table-wrapper',
+          onSuccess: function() {
+            initTooltips();
+          }
+        });
+      });
+    }
+    
+    // Handle pagination links
     document.addEventListener('click', function(e) {
-      if (e.target.closest('.pagination a')) {
+      const paginationLink = e.target.closest('.pagination a.page-link');
+      if (paginationLink && paginationLink.href) {
         e.preventDefault();
-        const url = e.target.closest('a').href;
-        loadStudentsTable(url);
+        const url = new URL(paginationLink.href);
+        url.searchParams.set('data_type', 'students');
+        loadStudentsTable(url.toString(), {
+          containerId: 'students-table-container',
+          loaderId: 'students-loader',
+          wrapperId: 'students-table-wrapper',
+          onSuccess: function() {
+            initTooltips();
+          }
+        });
       }
     });
+    
+    // Load table on page load
+    if (document.getElementById('students-table-wrapper')) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('data_type', 'students');
+      if (!window.location.search.includes('data_type=')) {
+        setTimeout(() => {
+          loadStudentsTable(url.toString(), {
+            containerId: 'students-table-container',
+            loaderId: 'students-loader',
+            wrapperId: 'students-table-wrapper',
+            onSuccess: function() {
+              initTooltips();
+            }
+          });
+        }, 100);
+      }
+    }
     
     // Initialize tooltips on page load
     initTooltips();

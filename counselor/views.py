@@ -38,35 +38,123 @@ def get_students_by_role(user, counselor=None, institute=None):
     Args:
         user: The User object (request.user)
         counselor: Counselor object (required if user is a counselor)
-        institute: Institute object (required if user is an institute)
+        institute: Institute object (if provided, filter by this specific institute regardless of role)
     
     Returns:
         QuerySet of StudentManagement objects based on role:
         - Counselor: Only assigned students
-        - Institute: All students in their institute
-        - Institute Group Admin: All students in institutes within their group
-        - Marketing Group Admin: All students in institutes within their marketing group
+        - Institute: All students in their own institute
+        - Institute Group Admin: All students in institutes within their group (or specific institute if provided)
+        - Marketing Group Admin: All students in institutes within their marketing group (or specific institute if provided)
     """
     from core import choices
     from institute.models import InstituteGroup, InstituteMarketingGroup
     
+    # If counselor is provided, always return only assigned students for that counselor
+    # This takes priority over institute filtering to ensure correct data when viewing counselor dashboard
+    if counselor:
+        if not counselor.counselor_admin:
+            return StudentManagement.objects.none()
+        
+        # If institute is also provided, verify it matches the counselor's institute
+        if institute and counselor.counselor_admin.id != institute.id:
+            return StudentManagement.objects.none()
+        
+        institute = counselor.counselor_admin
+        # Return only assigned students (not unassigned) - matching production code
+        students = counselor.get_students(institute=institute)
+        # Optimize with select_related to avoid N+1 queries
+        return students.select_related('student', 'class_and_section', 'institute')
+    
+    # If a specific institute is provided (but no counselor), filter by that institute regardless of role
+    # This ensures that when viewing a specific institute page, only that institute's data is shown
+    if institute:
+        # Verify user has permission to view this institute
+        user_type = user.user_type
+        
+        if user_type == choices.UserType.INSTITUTE:
+            # Institute users can only see their own institute
+            user_institute = Institute.objects.filter(created_by=user).first()
+            if user_institute and user_institute.id != institute.id:
+                return StudentManagement.objects.none()
+        elif user_type == choices.UserType.INSTITUTEGROUPADMIN:
+            # Institute Group Admin can see institutes in their group
+            institute_group = InstituteGroup.objects.filter(institute_group_admin=user).first()
+            if institute_group and institute.institute_group != institute_group:
+                return StudentManagement.objects.none()
+        elif user_type == choices.UserType.MARKETINGGROUPADMIN:
+            # Marketing Group Admin can see institutes in their marketing group
+            marketing_group = InstituteMarketingGroup.objects.filter(marketing_group_admin=user).first()
+            if marketing_group and institute.marketing_group != marketing_group:
+                return StudentManagement.objects.none()
+        elif user_type == choices.UserType.COUNSELOR:
+            # Counselor can see students from their assigned institute
+            if not counselor:
+                try:
+                    counselor = Counselor.objects.select_related('counselor_admin', 'coun_user').get(coun_user=user)
+                except Counselor.DoesNotExist:
+                    return StudentManagement.objects.none()
+            
+            # If counselor is associated with an institute, they can only see that institute's students
+            if counselor.counselor_admin:
+                if institute and counselor.counselor_admin.id != institute.id:
+                    return StudentManagement.objects.none()
+            else:
+                # If counselor is not associated with any institute, they can only see students with no institute
+                if institute is not None:
+                    return StudentManagement.objects.none()
+        
+        # Return students for the specific institute (or None if institute is None)
+        if institute:
+            return StudentManagement.objects.filter(institute=institute).select_related('student', 'class_and_section', 'institute')
+        else:
+            return StudentManagement.objects.filter(institute__isnull=True).select_related('student', 'class_and_section', 'institute')
+    
+    # If counselor is provided, always return only assigned students for that counselor
+    # This ensures that when viewing a counselor dashboard (even by marketing/institute users),
+    # only the counselor's assigned students are shown
+    if counselor:
+        if not counselor.counselor_admin:
+            return StudentManagement.objects.none()
+        
+        institute = counselor.counselor_admin
+        # Return only assigned students (not unassigned) - matching production code
+        students = counselor.get_students(institute=institute)
+        # Optimize with select_related to avoid N+1 queries
+        return students.select_related('student', 'class_and_section', 'institute')
+    
+    # If counselor is explicitly provided, return only assigned students for that counselor
+    # This ensures that when viewing a counselor dashboard (even as a marketing user),
+    # we show only the counselor's assigned students, not all students in the marketing group
+    if counselor:
+        if not counselor.counselor_admin:
+            return StudentManagement.objects.none()
+        
+        institute = counselor.counselor_admin
+        # Return only assigned students (not unassigned) - matching production code
+        students = counselor.get_students(institute=institute)
+        # Optimize with select_related to avoid N+1 queries
+        return students.select_related('student', 'class_and_section', 'institute')
+    
+    # If no specific institute provided, use role-based logic
     user_type = user.user_type
     
     if user_type == choices.UserType.COUNSELOR:
-        # Counselor sees only their assigned students
-        if not counselor:
-            # Try to get counselor from user
-            try:
-                counselor = Counselor.objects.get(coun_user=user)
-            except Counselor.DoesNotExist:
-                return StudentManagement.objects.none()
+        # Counselor sees only their assigned students (matching production code)
+        # Try to get counselor from user
+        try:
+            counselor = Counselor.objects.select_related('counselor_admin', 'coun_user').get(coun_user=user)
+        except Counselor.DoesNotExist:
+            return StudentManagement.objects.none()
         
         if not counselor.counselor_admin:
             return StudentManagement.objects.none()
         
         institute = counselor.counselor_admin
-        # Return only assigned students (not unassigned)
-        return counselor.get_students(institute=institute)
+        # Return only assigned students (not unassigned) - matching production code
+        students = counselor.get_students(institute=institute)
+        # Optimize with select_related to avoid N+1 queries
+        return students.select_related('student', 'class_and_section', 'institute')
     
     elif user_type == choices.UserType.INSTITUTE:
         # Institute sees all students in their own institute
@@ -80,7 +168,7 @@ def get_students_by_role(user, counselor=None, institute=None):
         if not institute:
             return StudentManagement.objects.none()
         
-        return StudentManagement.objects.filter(institute=institute)
+        return StudentManagement.objects.filter(institute=institute).select_related('student', 'class_and_section', 'institute')
     
     elif user_type == choices.UserType.INSTITUTEGROUPADMIN:
         # Institute Group Admin sees all students in institutes within their group
@@ -88,7 +176,7 @@ def get_students_by_role(user, counselor=None, institute=None):
         if not institute_group:
             return StudentManagement.objects.none()
         
-        return StudentManagement.objects.filter(institute__institute_group=institute_group)
+        return StudentManagement.objects.filter(institute__institute_group=institute_group).select_related('student', 'class_and_section', 'institute')
     
     elif user_type == choices.UserType.MARKETINGGROUPADMIN:
         # Marketing Group Admin sees all students in institutes within their marketing group
@@ -96,7 +184,7 @@ def get_students_by_role(user, counselor=None, institute=None):
         if not marketing_group:
             return StudentManagement.objects.none()
         
-        return StudentManagement.objects.filter(institute__marketing_group=marketing_group)
+        return StudentManagement.objects.filter(institute__marketing_group=marketing_group).select_related('student', 'class_and_section', 'institute')
     
     else:
         # Unknown role, return empty queryset
@@ -260,6 +348,49 @@ def get_class_counts(students_queryset):
                 class_counts[class_name] = class_counts.get(class_name, 0) + 1
     
     return class_counts
+
+
+def get_unique_streams_by_role(user, students_queryset):
+    """
+    Get unique streams based on user role and the students they can see.
+    Returns distinct stream values for the students in the queryset.
+    
+    Args:
+        user: The User object (request.user)
+        students_queryset: QuerySet of StudentManagement objects
+    
+    Returns:
+        List of unique stream values (distinct, ordered, excluding None/empty)
+    """
+    if not students_queryset.exists() if hasattr(students_queryset, 'exists') else not students_queryset:
+        return []
+    
+    # Get distinct streams from the students queryset
+    if hasattr(students_queryset, 'values_list'):
+        # QuerySet - use database distinct
+        streams = students_queryset.filter(
+            class_and_section__stream__isnull=False
+        ).exclude(
+            class_and_section__stream=''
+        ).values_list(
+            'class_and_section__stream', flat=True
+        ).distinct().order_by('class_and_section__stream')
+        return list(streams)
+    else:
+        # List - use Python set
+        streams_set = set()
+        for student_item in students_queryset:
+            if hasattr(student_item, 'class_and_section'):
+                student = student_item
+            elif isinstance(student_item, dict) and 'student' in student_item:
+                student = student_item['student']
+            else:
+                continue
+            
+            if student.class_and_section and student.class_and_section.stream:
+                streams_set.add(student.class_and_section.stream)
+        
+        return sorted(list(streams_set))
 
 
 def get_students_in_institute(counselor):
@@ -591,11 +722,23 @@ def Students_follow_up(request, coun_id):
         if counselor.coun_user != request.user:
             raise Http404("You don't have permission to access this counselor's follow-up page.")
     
-    inst_coun = counselor.counselor_admin
-    institute = get_object_or_404(Institute, id=inst_coun.id)
-
-    # Use centralized role-based function to get students
-    students_to_display = get_students_by_role(request.user, counselor=counselor)
+    # Get counselor's associated institute
+    counselor_institute = counselor.counselor_admin
+    
+    # Use centralized role-based function to get students - ALL students from counselor's institute (if associated)
+    # Pass both counselor and institute to ensure correct filtering regardless of logged-in user's role
+    students_to_display = get_students_by_role(request.user, counselor=counselor, institute=counselor_institute)
+    
+    # Get assigned student IDs separately for follow-up filtering
+    # Follow-ups should only be shown for students actually assigned to this counselor
+    if counselor.counselor_admin:
+        # Get students assigned to this counselor from their institute
+        assigned_students = counselor.get_students(institute=counselor.counselor_admin)
+        assigned_student_ids = assigned_students.values_list('id', flat=True) if hasattr(assigned_students, 'values_list') else [s.id for s in assigned_students]
+    else:
+        # If no institute, get assigned students (though this might be empty)
+        assigned_students = counselor.students.filter(institute__isnull=True)
+        assigned_student_ids = assigned_students.values_list('id', flat=True) if hasattr(assigned_students, 'values_list') else [s.id for s in assigned_students]
     
     # Initialize follow_up_data as an empty list
     follow_up_data = []
@@ -606,10 +749,11 @@ def Students_follow_up(request, coun_id):
         if student_id:
             logger.debug(f"Received student ID: {student_id}")
             try:
-                student_management_instance = all_institute_students.get(student=student_id)
+                # Only allow creating follow-ups for assigned students
+                student_management_instance = assigned_students.get(id=student_id)
             except StudentManagement.DoesNotExist:
-                logger.warning("Student not found.")
-                messages.error(request, 'Selected student not found in the specified institute.')
+                logger.warning("Student not found or not assigned to counselor.")
+                messages.error(request, 'Selected student is not assigned to you.')
                 return redirect('counselor:Counselor_follow_up_page', coun_id=coun_id)
 
             # Create or update the follow-up instance
@@ -641,8 +785,11 @@ def Students_follow_up(request, coun_id):
         else:
             logger.warning("No student ID provided.")
 
-    # Retrieve follow-up data for all students associated with the counselor
-    follow_ups = FollowUpStatus.objects.filter(counselor=counselor)
+    # Retrieve follow-up data only for assigned students
+    follow_ups = FollowUpStatus.objects.filter(
+        counselor=counselor,
+        student_id__in=assigned_student_ids
+    ).select_related('student', 'student__student')
     
     # Create a dictionary to hold follow-up data by student ID
     follow_up_data = {}
@@ -910,7 +1057,7 @@ def Counselorenrolledcourse(request):
 @login_required(login_url=reverse_lazy('users:login'))
 def CounselorDashboard(request, coun_id=None):
     from core import choices
-    from django.http import Http404
+    from django.http import Http404, JsonResponse
     
     counselor = get_object_or_404(Counselor, id=coun_id)
     
@@ -920,188 +1067,315 @@ def CounselorDashboard(request, coun_id=None):
         if counselor.coun_user != request.user:
             raise Http404("You don't have permission to access this counselor's dashboard.")
     
-    # Use centralized role-based function to get students
-    students_to_display = get_students_by_role(request.user, counselor=counselor)
+    # Check if this is an AJAX request for specific data
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        data_type = request.GET.get('data_type', '')
+        
+        if data_type == 'students':
+            # Optimized AJAX handler for student table only
+            return _get_counselor_student_table_ajax(request, counselor, coun_id)
+        elif data_type == 'stats':
+            # AJAX handler for statistics
+            return _get_counselor_stats_ajax(counselor)
+        elif data_type == 'sessions':
+            # AJAX handler for session chart data
+            return _get_counselor_sessions_ajax(counselor, coun_id)
     
-    # Keep backward compatibility for other parts of code that might use the old function
-    _, assigned_students, unassigned_students = get_students_in_institute(counselor)
+    # Get counselor's associated institute
+    counselor_institute = counselor.counselor_admin
+    
+    # Lightweight initial page load - only essential data
+    # Use optimized queries with select_related and prefetch_related
+    # Pass both counselor and institute to ensure correct filtering regardless of logged-in user's role
+    # This returns ONLY assigned students (matching production code)
+    students_to_display = get_students_by_role(request.user, counselor=counselor, institute=counselor_institute)
+    
+    # Get assigned student IDs for follow-up filtering (students_to_display already contains assigned students)
+    assigned_student_ids = students_to_display.values_list('id', flat=True) if hasattr(students_to_display, 'values_list') else [s.id for s in students_to_display]
+    
+    # Retrieve follow-up data for assigned students (matching production code - filter only by counselor)
+    follow_ups = FollowUpStatus.objects.filter(
+        counselor=counselor,
+        student_id__in=assigned_student_ids
+    ).select_related('student', 'student__student')
+    
+    # Get basic counts efficiently - only for assigned students
+    total_is_followed_up_count = follow_ups.filter(is_followed_up=True).count()
+    
+    # Get class counts and sections efficiently (only for filters)
+    class_and_sections = get_class_and_sections_by_role(request.user, students_to_display)
+    class_counts = get_class_counts(students_to_display)
+    unique_streams = get_unique_streams_by_role(request.user, students_to_display)
+    
+    # For initial load, only get minimal data needed for filters
+    # Heavy processing (results_data, merged_data) will be done via AJAX
+    per_page = request.GET.get('per_page', '10')
+    
+    # Initialize lightweight context for initial page load
+    context = {
+        'counselors': counselor,
+        'coun_id': coun_id,
+        'counselor_institute': counselor_institute,  # Add institute to context for verification
+        'per_page': per_page,
+        'class_and_sections': class_and_sections,
+        'class_counts': class_counts,
+        'unique_streams': unique_streams,
+        'total_is_followed_up_count': total_is_followed_up_count,
+        'students_count': students_to_display.count() if hasattr(students_to_display, 'count') else len(students_to_display),
+        'key': settings.RAZORPAY_API_KEY,
+        'secrit': settings.RAZORPAY_API_SECRET,
+    }
+    
+    # Only load student table data if explicitly requested (not on initial page load)
+    # This will be loaded via AJAX after page loads
+    if request.GET.get('load_table', 'false') == 'true':
+        # Load full table data
+        context.update(_get_counselor_full_table_context(request, counselor, students_to_display, follow_ups, per_page))
+    
+    return render(request, 'template20/counselor/counselor_dashboard.html', context)
 
-    # Retrieve follow-up data for all students associated with the counselor
-    follow_ups = FollowUpStatus.objects.filter(counselor=counselor)
+
+def _get_counselor_student_table_ajax(request, counselor, coun_id):
+    """Optimized AJAX handler for student table with pagination."""
+    from django.core.paginator import Paginator
     
-    # Create a dictionary to hold follow-up data by student ID
+    # Get counselor's associated institute
+    counselor_institute = counselor.counselor_admin
+    
+    # Get students with optimized query - ONLY assigned students (matching production code)
+    # Pass both counselor and institute to ensure correct filtering regardless of logged-in user's role
+    students_to_display = get_students_by_role(request.user, counselor=counselor, institute=counselor_institute)
+    
+    # Get assigned student IDs for follow-up filtering (students_to_display already contains assigned students)
+    assigned_student_ids = students_to_display.values_list('id', flat=True) if hasattr(students_to_display, 'values_list') else [s.id for s in students_to_display]
+    
+    # Retrieve follow-up data for assigned students (matching production code - filter only by counselor)
+    follow_ups = FollowUpStatus.objects.filter(
+        counselor=counselor,
+        student_id__in=assigned_student_ids
+    ).select_related('student', 'student__student')
+    
+    # Build follow_up_data efficiently
     follow_up_data = {}
-    total_is_followed_up_count = 0
-    
     for follow_up in follow_ups:
-        if follow_up.student.id not in follow_up_data:
-            follow_up_data[follow_up.student.id] = {
-                'follow_ups': []
-            }
-        follow_up_data[follow_up.student.id]['follow_ups'].append({
+        student_id = follow_up.student.id
+        if student_id not in follow_up_data:
+            follow_up_data[student_id] = {'follow_ups': []}
+        follow_up_data[student_id]['follow_ups'].append({
             'is_followed_up': follow_up.is_followed_up,
             'message': follow_up.message,
             'last_follow_up_date': follow_up.last_follow_up_date,
             'next_follow_up_date': follow_up.next_follow_up_date,
         })
-        
-        # Increment the count if this follow-up is marked as followed up
-        if follow_up.is_followed_up:
-            total_is_followed_up_count += 1
-
-    # Merging the data
+    
+    # Build merged_data only for current page
     merged_data = []
-    couns_sessions_data = []
     for student in students_to_display:
-        student_info = {
+        merged_data.append({
             'student': student,
             'follow_ups': follow_up_data.get(student.id, {'follow_ups': []})['follow_ups'],
-        }
-        merged_data.append(student_info)
-
-    # Sorting merged data
+        })
+    
+    # Sort only once
     merged_data = sorted(merged_data, key=lambda x: x['student'].student.name.lower())
     
-    # Get results_data for all students before filtering (needed for test_taken filter)
-    results_data = get_results_data_for_students(students_to_display)
+    # Get results_data only for filtered students (optimize this)
+    # Limit to first 100 students for results_data to avoid N+1
+    students_for_results = students_to_display[:100] if hasattr(students_to_display, '__getitem__') else list(students_to_display)[:100]
+    results_data = get_results_data_for_students(students_for_results)
     
-    # Apply filters using centralized function
+    # Apply filters
     merged_data = apply_student_filters(merged_data, request, results_data)
-
-    sessions_data = (
-        FollowUpStatus.objects
-        .filter(counselor_id=coun_id)
-        .values('last_follow_up_date', 'counselor__counselor_name')
-        .annotate(session_count=Count('id'))
-    )
-
-    # Convert the queryset to a list, and convert date to string
-    sessions_data_list = list(sessions_data)  # Convert queryset to list
-    for session in sessions_data_list:
-        session['last_follow_up_date'] = session['last_follow_up_date'].isoformat()  # Convert date to ISO format
-
-    week_data = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0}  # Monday to Saturday
     
-    # Use today's date as reference for calculating week dates
-    reference_date = date.today()
-    
-    # Process the session data to aggregate session counts by day of the week
-    for session in sessions_data_list:
-        try:
-            session_date_str = session.get('last_follow_up_date')
-            if session_date_str:
-                # Handle both ISO format (from database) and string format
-                if isinstance(session_date_str, str):
-                    if 'T' in session_date_str:
-                        # ISO format with time: "2024-01-15T00:00:00"
-                        session_date = datetime.fromisoformat(session_date_str.split('T')[0]).date()
-                    else:
-                        # Date only format: "2024-01-15"
-                        session_date = datetime.strptime(session_date_str, "%Y-%m-%d").date()
-                else:
-                    # Already a date object
-                    session_date = session_date_str
-                
-                day_of_week = session_date.weekday()  # Monday is 0
-
-                if day_of_week < 6:  # Only consider Monday to Saturday
-                    week_data[day_of_week] += session.get('session_count', 0)
-
-        except (KeyError, ValueError, TypeError) as e:
-            print(f"Error processing session data: {e} in session: {session}")
-
-    # Prepare the final list for rendering
-    final_data = []
-    # Get the start of the current week (Monday)
-    days_since_monday = reference_date.weekday()
-    week_start = reference_date - timedelta(days=days_since_monday)
-    
-    for day, count in week_data.items():
-        # Calculate the date for each day in the week (Monday to Saturday)
-        day_date = week_start + timedelta(days=day)
-        final_data.append({
-            "day": day_date.strftime("%Y-%m-%d"),
-            "session_count": count
-        })
-
-    # Append the sessions data for the current counselor to the main list
-    couns_sessions_data.append({
-        'counselor_id': counselor.id,
-        'counselor_name':counselor.counselor_name,
-        'sessions': final_data  # Add sessions data for this counselor
-    })
-    # Convert to JSON
-    try:
-        sessions_data_json = json.dumps(couns_sessions_data)
-    except Exception as e:
-        print(f"Error serializing sessions data: {e}")
-        sessions_data_json = '[]'
-
-    # breakpoint()
-    import razorpay
-    client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
-
-    data = { "amount": 500*100, "currency": "INR", "receipt": "order_rcptid_11" }
-    payment = client.order.create(data=data)
-
-
-    # Setting up pagination
-    # Get per_page parameter from request, default to 10
+    # Pagination
     per_page = request.GET.get('per_page', '10')
-    
-    # Handle pagination
     if per_page == 'all':
-        # Show all records without pagination
         students_page = merged_data
         paginator = None
     else:
         try:
             per_page_int = int(per_page)
-            # Limit to valid options: 10, 100
             if per_page_int not in [10, 100]:
                 per_page_int = 10
         except (ValueError, TypeError):
             per_page_int = 10
         
         paginator = Paginator(merged_data, per_page_int)
-        page_number = request.GET.get('page')
+        page_number = request.GET.get('page', 1)
         students_page = paginator.get_page(page_number)
-    # breakpoint()
     
-
-    # Get class counts for display in dropdown using centralized function
+    # Get class counts and sections for filters
+    class_and_sections = get_class_and_sections_by_role(request.user, students_to_display)
     class_counts = get_class_counts(students_to_display)
-
-    # Render context
+    unique_streams = get_unique_streams_by_role(request.user, students_to_display)
+    
     context = {
         'counselors': counselor,
         'students': students_page,
-        'paginator': paginator,  # Add paginator to context
-        'per_page': per_page,  # Add current per_page selection
+        'paginator': paginator,
+        'per_page': per_page,
         'results_data': results_data,
-        'class_and_sections': get_class_and_sections_by_role(request.user, students_to_display),
-        'class_counts': class_counts,  # Add class counts for dropdown
-        'students_count': students_to_display,
-        'total_is_followed_up_count': total_is_followed_up_count,
-        'coun_id' : coun_id,
-        'sessions_data_json': sessions_data_json,
-        'key':settings.RAZORPAY_API_KEY,
-        'secrit':settings.RAZORPAY_API_SECRET,
-        'payment':payment
-        
+        'class_and_sections': class_and_sections,
+        'class_counts': class_counts,
+        'unique_streams': unique_streams,
+        'coun_id': coun_id,
+        'follow_up_data': follow_up_data,
+        'merged_data': merged_data,
     }
+    
+    return render(request, 'template20/counselor/counselor_dashboard_table.html', context)
 
-    # Check if this is an AJAX request
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Return only the table and pagination HTML
-        return render(request, 'template20/counselor/counselor_dashboard_table.html', context)
+
+def _get_counselor_stats_ajax(counselor):
+    """AJAX handler for statistics."""
+    # Get counselor's associated institute
+    counselor_institute = counselor.counselor_admin
     
-    # Check if this is an AJAX request
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Return only the table and pagination HTML
-        return render(request, 'template20/counselor/counselor_dashboard_table.html', context)
+    # Get ONLY assigned students (matching production code)
+    # Pass both counselor and institute to ensure correct filtering regardless of logged-in user's role
+    students_to_display = get_students_by_role(counselor.coun_user, counselor=counselor, institute=counselor_institute)
     
-    return render(request, 'template20/counselor/counselor_dashboard.html', context)
+    # Get assigned student IDs for follow-up filtering (students_to_display already contains assigned students)
+    assigned_student_ids = students_to_display.values_list('id', flat=True) if hasattr(students_to_display, 'values_list') else [s.id for s in students_to_display]
+    
+    # Count follow-ups only for assigned students (matching production code - filter only by counselor)
+    total_is_followed_up_count = FollowUpStatus.objects.filter(
+        counselor=counselor,
+        student_id__in=assigned_student_ids,
+        is_followed_up=True
+    ).count()
+    
+    # Count counseled students (follow_up_status='completed') only for assigned students
+    counseled_count = FollowUpStatus.objects.filter(
+        counselor=counselor,
+        student_id__in=assigned_student_ids,
+        follow_up_status='completed'
+    ).values('student_id').distinct().count()
+    
+    return JsonResponse({
+        'total_students': students_to_display.count() if hasattr(students_to_display, 'count') else len(students_to_display),
+        'total_followed_up': total_is_followed_up_count,
+        'total_counseled': counseled_count,
+    })
+
+
+def _get_counselor_sessions_ajax(counselor, coun_id):
+    """AJAX handler for session chart data."""
+    from django.db.models import Count
+    
+    # Get counselor's associated institute
+    counselor_institute = counselor.counselor_admin
+    
+    # Get ONLY assigned students (matching production code)
+    # Pass both counselor and institute to ensure correct filtering regardless of logged-in user's role
+    students_to_display = get_students_by_role(counselor.coun_user, counselor=counselor, institute=counselor_institute)
+    
+    # Get assigned student IDs for session filtering (students_to_display already contains assigned students)
+    assigned_student_ids = students_to_display.values_list('id', flat=True) if hasattr(students_to_display, 'values_list') else [s.id for s in students_to_display]
+    
+    # Filter sessions only for assigned students (matching production code - filter only by counselor)
+    sessions_data = (
+        FollowUpStatus.objects
+        .filter(counselor_id=coun_id, student_id__in=assigned_student_ids)
+        .values('last_follow_up_date')
+        .annotate(session_count=Count('id'))
+    )
+    
+    week_data = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+    reference_date = date.today()
+    
+    for session in sessions_data:
+        try:
+            session_date = session.get('last_follow_up_date')
+            if session_date:
+                if isinstance(session_date, str):
+                    if 'T' in session_date:
+                        session_date = datetime.fromisoformat(session_date.split('T')[0]).date()
+                    else:
+                        session_date = datetime.strptime(session_date, "%Y-%m-%d").date()
+                
+                day_of_week = session_date.weekday()
+                if day_of_week < 6:
+                    week_data[day_of_week] += session.get('session_count', 0)
+        except (KeyError, ValueError, TypeError):
+            continue
+    
+    days_since_monday = reference_date.weekday()
+    week_start = reference_date - timedelta(days=days_since_monday)
+    
+    final_data = []
+    for day, count in week_data.items():
+        day_date = week_start + timedelta(days=day)
+        final_data.append({
+            "day": day_date.strftime("%Y-%m-%d"),
+            "session_count": count
+        })
+    
+    couns_sessions_data = [{
+        'counselor_id': counselor.id,
+        'counselor_name': counselor.counselor_name,
+        'sessions': final_data
+    }]
+    
+    return JsonResponse({'sessions_data': couns_sessions_data})
+
+
+def _get_counselor_full_table_context(request, counselor, students_to_display, follow_ups, per_page):
+    """Get full table context - used only when explicitly needed."""
+    # This is the old heavy processing logic, but only called when needed
+    follow_up_data = {}
+    total_is_followed_up_count = 0
+    
+    for follow_up in follow_ups:
+        if follow_up.student.id not in follow_up_data:
+            follow_up_data[follow_up.student.id] = {'follow_ups': []}
+        follow_up_data[follow_up.student.id]['follow_ups'].append({
+            'is_followed_up': follow_up.is_followed_up,
+            'message': follow_up.message,
+            'last_follow_up_date': follow_up.last_follow_up_date,
+            'next_follow_up_date': follow_up.next_follow_up_date,
+        })
+        if follow_up.is_followed_up:
+            total_is_followed_up_count += 1
+    
+    merged_data = []
+    for student in students_to_display:
+        merged_data.append({
+            'student': student,
+            'follow_ups': follow_up_data.get(student.id, {'follow_ups': []})['follow_ups'],
+        })
+    
+    merged_data = sorted(merged_data, key=lambda x: x['student'].student.name.lower())
+    
+    # Limit results_data processing
+    students_for_results = students_to_display[:100] if hasattr(students_to_display, '__getitem__') else list(students_to_display)[:100]
+    results_data = get_results_data_for_students(students_for_results)
+    merged_data = apply_student_filters(merged_data, request, results_data)
+    
+    # Pagination
+    if per_page == 'all':
+        students_page = merged_data
+        paginator = None
+    else:
+        try:
+            per_page_int = int(per_page)
+            if per_page_int not in [10, 100]:
+                per_page_int = 10
+        except (ValueError, TypeError):
+            per_page_int = 10
+        
+        paginator = Paginator(merged_data, per_page_int)
+        page_number = request.GET.get('page', 1)
+        students_page = paginator.get_page(page_number)
+    
+    return {
+        'students': students_page,
+        'paginator': paginator,
+        'results_data': results_data,
+        'total_is_followed_up_count': total_is_followed_up_count,
+        'follow_up_data': follow_up_data,
+        'merged_data': merged_data,
+    }
 
 
 # @login_required(login_url=reverse_lazy('users:login'))
