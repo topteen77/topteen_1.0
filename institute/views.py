@@ -2374,15 +2374,54 @@ class InstituteCsvStudentCreateView(TemplateView):
         institute_id=request.POST.get("institute")
         institute=get_object_or_404(Institute,id=institute_id)
         csv_file=request.FILES.get('stu_file')
-        csvfile=csv_file.read().decode('utf-8').splitlines()
+        
+        # Validate file exists
+        if not csv_file:
+            messages.error(request, "No file uploaded")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        
+        # Try to decode the file with error handling
+        file_content = csv_file.read()
+        try:
+            csvfile=file_content.decode('utf-8').splitlines()
+        except UnicodeDecodeError:
+            try:
+                csvfile=file_content.decode('utf-8-sig').splitlines()
+            except:
+                csvfile=file_content.decode('latin-1').splitlines()
+        
         import csv
         stu_file=csv.reader(csvfile)
-        header=next(stu_file)
+        
+        # Get and normalize headers
+        try:
+            header_raw=next(stu_file)
+            # Normalize headers: strip whitespace and convert to lowercase
+            header = [h.strip().lower() for h in header_raw]
+        except StopIteration:
+            messages.error(request, "CSV file is empty")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        
+        # Validate required headers
+        required_headers = ['name', 'mobile', 'class_and_section']
+        missing_headers = [h for h in required_headers if h not in header]
+        if missing_headers:
+            messages.error(request, f"CSV file is missing required columns: {', '.join(missing_headers)}. Required columns are: name, mobile, class_and_section. Email is optional.")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        
         error_list=[]
         email_list=[]
+        row_number = 1  # Track row number for better error messages
+        
         for stu in stu_file:
+            row_number += 1
+            # Skip empty rows
+            if not any(stu) or len(stu) == 0:
+                continue
+            
             email_list.append(stu)
-            stu_d={header[i]:s for i,s in enumerate(stu) if s}
+            # Normalize values: strip whitespace and handle empty strings
+            stu_d={header[i]:s.strip() if s and s.strip() else None for i,s in enumerate(stu) if i < len(header)}
             stu_name=stu_d.get('name')
             stu_mobile=stu_d.get('mobile')
             stu_email=stu_d.get('email')
@@ -2391,7 +2430,11 @@ class InstituteCsvStudentCreateView(TemplateView):
             # If email is not present, generate a random email using the student's name
             if not stu_email:
                 random_number = str(random.randint(1000, 9999))
-                stu_email = f"{stu_name.lower().replace(' ', '_')}_{random_number}@yopmail.com"
+                if stu_name:
+                    stu_email = f"{stu_name.lower().replace(' ', '_')}_{random_number}@yopmail.com"
+                else:
+                    # If name is also missing, use a default
+                    stu_email = f"student_{random_number}@yopmail.com"
             
             if stu_name and stu_email and stu_mobile and class_section:
                 stu_exist=User.objects.filter(email=stu_email).exists()
@@ -2427,8 +2470,18 @@ class InstituteCsvStudentCreateView(TemplateView):
                         messages.error(request,"Something Went Wrong !!")
                         error_list.append(stu_email)
             else:
-                messages.error(request,"Invalid File Format")
-                error_list.append(stu_email)
+                # Provide specific error message about what's missing
+                missing_fields = []
+                if not stu_name:
+                    missing_fields.append("name")
+                if not stu_mobile:
+                    missing_fields.append("mobile")
+                if not class_section:
+                    missing_fields.append("class_and_section")
+                
+                error_msg = f"Row {row_number}: Missing required fields - {', '.join(missing_fields)}"
+                messages.error(request, error_msg)
+                error_list.append(f"Row {row_number}: {error_msg}")
         
         create_institute_log.delay(institute.id,error_list,len(email_list))
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
@@ -2458,15 +2511,54 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
         institute_id=request.POST.get("institute")
         institute=get_object_or_404(Institute,id=institute_id)
         csv_file=request.FILES.get('stu_file')
-        csvfile=csv_file.read().decode('utf-8').splitlines()
+        
+        # Validate file exists
+        if not csv_file:
+            messages.error(request, "No file uploaded")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        
+        # Try to decode the file with error handling
+        file_content = csv_file.read()
+        try:
+            csvfile=file_content.decode('utf-8').splitlines()
+        except UnicodeDecodeError:
+            try:
+                csvfile=file_content.decode('utf-8-sig').splitlines()
+            except:
+                csvfile=file_content.decode('latin-1').splitlines()
+        
         import csv
         stu_file=csv.reader(csvfile)
-        header=next(stu_file)
+        
+        # Get and normalize headers
+        try:
+            header_raw=next(stu_file)
+            # Normalize headers: strip whitespace and convert to lowercase
+            header = [h.strip().lower() for h in header_raw]
+        except StopIteration:
+            messages.error(request, "CSV file is empty")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        
+        # Validate required headers for post-matric
+        required_headers = ['name', 'mobile', 'class_and_section']
+        missing_headers = [h for h in required_headers if h not in header]
+        if missing_headers:
+            messages.error(request, f"CSV file is missing required columns: {', '.join(missing_headers)}. Required columns are: name, mobile, class_and_section. Email and gender are optional.")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        
         error_list=[]
         email_list=[]
+        row_number = 1  # Track row number for better error messages
+        
         for stu in stu_file:
+            row_number += 1
+            # Skip empty rows
+            if not any(stu) or len(stu) == 0:
+                continue
+            
             email_list.append(stu)
-            stu_d={header[i]:s for i,s in enumerate(stu) if s}
+            # Normalize values: strip whitespace and handle empty strings
+            stu_d={header[i]:s.strip() if s and s.strip() else None for i,s in enumerate(stu) if i < len(header)}
             stu_name=stu_d.get('name')
             stu_mobile=stu_d.get('mobile')
             stu_email=stu_d.get('email')
@@ -2477,7 +2569,11 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
             # If email is not present, generate a random email using the student's name
             if not stu_email:
                 random_number = str(random.randint(1000, 9999))
-                stu_email = f"{stu_name.lower().replace(' ', '_')}_{random_number}@yopmail.com"
+                if stu_name:
+                    stu_email = f"{stu_name.lower().replace(' ', '_')}_{random_number}@yopmail.com"
+                else:
+                    # If name is also missing, use a default
+                    stu_email = f"student_{random_number}@yopmail.com"
             
             if stu_name and stu_email and stu_mobile and class_section:
                 stu_exist=User.objects.filter(email=stu_email).exists()
@@ -2519,8 +2615,18 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
                         messages.error(request,"Something Went Wrong !!")
                         error_list.append(stu_email)
             else:
-                messages.error(request,"Invalid File Format")
-                error_list.append(stu_email)
+                # Provide specific error message about what's missing
+                missing_fields = []
+                if not stu_name:
+                    missing_fields.append("name")
+                if not stu_mobile:
+                    missing_fields.append("mobile")
+                if not class_section:
+                    missing_fields.append("class_and_section")
+                
+                error_msg = f"Row {row_number}: Missing required fields - {', '.join(missing_fields)}"
+                messages.error(request, error_msg)
+                error_list.append(f"Row {row_number}: {error_msg}")
         
         create_institute_log.delay(institute.id,error_list,len(email_list))
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
@@ -2786,24 +2892,78 @@ class InstituteData(APIView):
         return JsonResponse(response)
     
 def students_csv_sample_file(request):
+    import os
     try:
-        file=open("student_sample_data.csv",'r')
-        data=HttpResponse(file.read(),content_type='application/x-download')
-        data['Content-Disposition']='attachment;filename=Student sample data.csv'
-        return data
+        # Try multiple possible locations for the CSV file
+        base_dir = settings.BASE_DIR
+        possible_paths = [
+            os.path.join(base_dir, "student_sample_data.csv"),
+            os.path.join(base_dir, "scripts", "student_sample_data.csv"),
+            os.path.join(base_dir, "static", "student_sample_data.csv"),
+            os.path.join(base_dir, "demo-topteens", "student_sample_data.csv"),
+        ]
+        
+        file_path = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                file_path = path
+                break
+        
+        if not file_path:
+            # Create a sample CSV if file doesn't exist
+            sample_content = "Email,Name,Mobile,class_and_section\nstudent1@example.com,Student One,9876543210,10th A\nstudent2@example.com,Student Two,9876543211,10th B"
+            response = HttpResponse(sample_content, content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="Student sample data.csv"'
+            return response
+        
+        with open(file_path, 'r', encoding='utf-8') as file:
+            response = HttpResponse(file.read(), content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="Student sample data.csv"'
+            return response
     except Exception as e:
-        print("---eeee----",e)
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        print("---Error downloading student sample CSV----", e)
+        # Return a basic sample CSV even if file read fails
+        sample_content = "Email,Name,Mobile,class_and_section\nstudent1@example.com,Student One,9876543210,10th A\nstudent2@example.com,Student Two,9876543211,10th B"
+        response = HttpResponse(sample_content, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="Student sample data.csv"'
+        return response
     
 def post_matric_student_sample_data(request):
+    import os
     try:
-        file=open("post_matric_student_sample_data.csv",'r')
-        data=HttpResponse(file.read(),content_type='application/x-download')
-        data['Content-Disposition']='attachment;filename=Post Matric Student sample data.csv'
-        return data
+        # Try multiple possible locations for the CSV file
+        base_dir = settings.BASE_DIR
+        possible_paths = [
+            os.path.join(base_dir, "post_matric_student_sample_data.csv"),
+            os.path.join(base_dir, "scripts", "post_matric_student_sample_data.csv"),
+            os.path.join(base_dir, "static", "post_matric_student_sample_data.csv"),
+            os.path.join(base_dir, "demo-topteens", "post_matric_student_sample_data.csv"),
+        ]
+        
+        file_path = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                file_path = path
+                break
+        
+        if not file_path:
+            # Create a sample CSV if file doesn't exist
+            sample_content = "Email,Name,Mobile,class_and_section,Stream,Gender\nstudent1@example.com,Student One,9876543210,11th,PCM,M\nstudent2@example.com,Student Two,9876543211,12th,COMM,F"
+            response = HttpResponse(sample_content, content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="Post Matric Student sample data.csv"'
+            return response
+        
+        with open(file_path, 'r', encoding='utf-8') as file:
+            response = HttpResponse(file.read(), content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="Post Matric Student sample data.csv"'
+            return response
     except Exception as e:
-        print("---eeee----",e)
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        print("---Error downloading post-matric sample CSV----", e)
+        # Return a basic sample CSV even if file read fails
+        sample_content = "Email,Name,Mobile,class_and_section,Stream,Gender\nstudent1@example.com,Student One,9876543210,11th,PCM,M\nstudent2@example.com,Student Two,9876543211,12th,COMM,F"
+        response = HttpResponse(sample_content, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="Post Matric Student sample data.csv"'
+        return response
     
 # def CounselorDashboard(request):    
 #     return render(request, 'topteenfrontend/user/app/counselor_dashboard.html')

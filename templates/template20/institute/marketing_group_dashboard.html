@@ -178,12 +178,70 @@
           
           <!-- Add Institute Button -->
           <button type="button" 
-                  class="btn w-100 mb-3 text-white fw-bold" 
+                  class="btn w-100 mb-2 text-white fw-bold" 
                   style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
                   data-bs-toggle="modal" 
                   data-bs-target="#addInstituteModal">
             <i class='bx bx-plus me-2'></i> ADD INSTITUTE
           </button>
+          
+          <!-- My Dashboard Button -->
+          {% if request.user.user_type == 5 %}
+            {# Marketing Group Admin #}
+            <a href="{{ url('institute:marketinggroupdashboard') }}" 
+               class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+               style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+              <i class='bx bx-home me-2'></i> My Dashboard
+            </a>
+          {% elif request.user.user_type == 3 %}
+            {# Institute Group Admin #}
+            <a href="{{ url('institute:institutegroupdashboard') }}" 
+               class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+               style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+              <i class='bx bx-home me-2'></i> My Dashboard
+            </a>
+          {% elif request.user.user_type == 2 %}
+            {# Institute #}
+            {% set institute_list = request.user.institute_created.all() %}
+            {% if institute_list|length > 0 %}
+              {% set institute_obj = institute_list[0] %}
+              <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" 
+                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+                <i class='bx bx-home me-2'></i> My Dashboard
+              </a>
+            {% else %}
+              <a href="{{ url('users:userdashboard') }}" 
+                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+                <i class='bx bx-home me-2'></i> My Dashboard
+              </a>
+            {% endif %}
+          {% elif request.user.user_type == 4 %}
+            {# Counselor #}
+            {% set counselor_list = request.user.counselor.all() %}
+            {% if counselor_list|length > 0 %}
+              {% set counselor_obj = counselor_list[0] %}
+              <a href="{{ url('counselor:CounselorDashboardView', args=[counselor_obj.id]) }}" 
+                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+                <i class='bx bx-home me-2'></i> My Dashboard
+              </a>
+            {% else %}
+              <a href="{{ url('users:userdashboard') }}" 
+                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+                <i class='bx bx-home me-2'></i> My Dashboard
+              </a>
+            {% endif %}
+          {% else %}
+            {# Default - Student or other #}
+            <a href="{{ url('users:userdashboard') }}" 
+               class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+               style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+              <i class='bx bx-home me-2'></i> My Dashboard
+            </a>
+          {% endif %}
         </div>
       </div>
 

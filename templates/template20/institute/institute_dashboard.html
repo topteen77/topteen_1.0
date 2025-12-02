@@ -73,6 +73,25 @@
     overflow-y: auto;
     flex: 1;
   }
+  .student-panel-footer {
+    padding: 20px;
+    background: #f7f7fa;
+    border-top: 1px solid #e0e0e0;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+  }
+  .student-panel-footer .btn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .student-panel-footer .btn:last-child {
+    margin-bottom: 0;
+  }
+  .student-panel-footer .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   .student-detail-item {
     margin-bottom: 20px;
     padding-bottom: 15px;
@@ -199,6 +218,63 @@
              style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1; text-decoration: none;">
             <i class='bx bx-history me-2'></i> Uploaded History Log
           </a>
+          
+          {% if request.user.user_type == 5 %}
+            {# Marketing Group Admin #}
+            <a href="{{ url('institute:marketinggroupdashboard') }}" 
+               class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+               style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+              <i class='bx bx-home me-2'></i> My Dashboard
+            </a>
+          {% elif request.user.user_type == 3 %}
+            {# Institute Group Admin #}
+            <a href="{{ url('institute:institutegroupdashboard') }}" 
+               class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+               style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+              <i class='bx bx-home me-2'></i> My Dashboard
+            </a>
+          {% elif request.user.user_type == 2 %}
+            {# Institute #}
+            {% set institute_list = request.user.institute_created.all() %}
+            {% if institute_list|length > 0 %}
+              {% set institute_obj = institute_list[0] %}
+              <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" 
+                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+                <i class='bx bx-home me-2'></i> My Dashboard
+              </a>
+            {% else %}
+              <a href="{{ url('users:userdashboard') }}" 
+                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+                <i class='bx bx-home me-2'></i> My Dashboard
+              </a>
+            {% endif %}
+          {% elif request.user.user_type == 4 %}
+            {# Counselor #}
+            {% set counselor_list = request.user.counselor.all() %}
+            {% if counselor_list|length > 0 %}
+              {% set counselor_obj = counselor_list[0] %}
+              <a href="{{ url('counselor:CounselorDashboardView', args=[counselor_obj.id]) }}" 
+                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+                <i class='bx bx-home me-2'></i> My Dashboard
+              </a>
+            {% else %}
+              <a href="{{ url('users:userdashboard') }}" 
+                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+                <i class='bx bx-home me-2'></i> My Dashboard
+              </a>
+            {% endif %}
+          {% else %}
+            {# Default - Student or other #}
+            <a href="{{ url('users:userdashboard') }}" 
+               class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+               style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+              <i class='bx bx-home me-2'></i> My Dashboard
+            </a>
+          {% endif %}
           
           {% if messages %}
           <div class="mt-3">
@@ -611,7 +687,7 @@
 </section>
 
 <!-- Right Side Panel for Student Details -->
-<div id="studentDetailsPanel" class="student-details-panel">
+<div id="studentDetailsPanel" class="student-details-panel" data-student-id="">
   <div class="student-panel-header">
     <div class="d-flex justify-content-between align-items-center">
       <h5 class="mb-0 fs-18 fw-semibold">Student Details</h5>
@@ -643,6 +719,22 @@
       <div class="student-detail-label">Created</div>
       <div class="student-detail-value" id="panel-student-created">-</div>
     </div>
+  </div>
+  <div class="student-panel-footer">
+    <button type="button" 
+            class="btn custom-button purple-button" 
+            id="panel-edit-student-btn"
+            title="Edit Student"
+            disabled>
+      <i class='bx bx-edit me-2'></i> Edit Student
+    </button>
+    <button type="button" 
+            class="btn btn-info text-white" 
+            id="panel-change-password-btn"
+            title="Change Password"
+            disabled>
+      <i class='bx bx-key me-2'></i> Set Password
+    </button>
   </div>
 </div>
 
@@ -786,7 +878,7 @@
         <div class="modal-body">
           <div class="alert alert-info">
             <i class='bx bx-info-circle me-2'></i>
-            CSV file must follow this format <a href="{{ url('institute:download_student_sample_csv') }}" target="_blank">Sample CSV</a>
+            CSV file must follow this format <a href="{{ url('institute:download_student_sample_csv') }}" target="_blank" download>Sample CSV</a>
           </div>
           <div class="mb-3">
             <label class="form-label">CSV File <span class="text-danger">*</span></label>
@@ -816,7 +908,7 @@
         <div class="modal-body">
           <div class="alert alert-info">
             <i class='bx bx-info-circle me-2'></i>
-            CSV file must follow this format <a href="{{ url('institute:post_matric_student_sample_csv') }}" target="_blank">Post Matric Sample CSV</a>
+            CSV file must follow this format <a href="{{ url('institute:post_matric_student_sample_csv') }}" target="_blank" download>Post Matric Sample CSV</a>
           </div>
           <div class="mb-3">
             <label class="form-label">CSV File <span class="text-danger">*</span></label>
@@ -1177,6 +1269,163 @@
     // This function can be used to populate update modal with student data
     console.log('Student ID:', studentId);
   }
+  
+  // Function to open edit student modal from panel
+  function openEditStudentModalFromPanel(studentId) {
+    if (!studentId) {
+      console.error('No student ID provided');
+      return;
+    }
+    
+    // Try to find existing modal first
+    const existingModal = document.getElementById(`updateStudentModal${studentId}`);
+    if (existingModal) {
+      // Modal exists, just open it
+      const modal = new bootstrap.Modal(existingModal);
+      modal.show();
+      return;
+    }
+    
+    // Modal doesn't exist (AJAX-loaded student), fetch data and populate single modal
+    // First, create a single reusable modal if it doesn't exist
+    let singleModal = document.getElementById('updateStudentModalSingle');
+    if (!singleModal) {
+      // Create the modal dynamically
+      const modalHTML = `
+        <div class="modal fade" id="updateStudentModalSingle" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Update Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <form method="POST" action="{{ url('institute:institutestudentupdate') }}">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <input type="hidden" name="user_id" id="single_modal_user_id" value="">
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="upd_email" id="single_modal_email" class="form-control" readonly>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <input type="text" name="upd_name" id="single_modal_name" class="form-control" value="">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Mobile</label>
+                    <input type="text" name="upd_mobile" id="single_modal_mobile" class="form-control" value="">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Class Section</label>
+                    <select name="class_section" id="single_modal_class_section" class="form-control">
+                      <option value="">Select Class</option>
+                      {% for cas in class_and_sections %}
+                      <option value="{{ cas.id }}">{{ cas.class_and_section }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn custom-button purple-button">Update</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      singleModal = document.getElementById('updateStudentModalSingle');
+    }
+    
+    // Fetch student data via API
+    const formData = new FormData();
+    formData.append('id', studentId);
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                     document.querySelector('input[name="csrfmiddlewaretoken"]')?.value ||
+                     '{{ csrf_token }}';
+    
+    fetch('{{ url("institute:studentdata") }}', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': csrfToken
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success === 'true') {
+        // Populate modal fields
+        document.getElementById('single_modal_user_id').value = studentId;
+        document.getElementById('single_modal_email').value = data.email || '';
+        document.getElementById('single_modal_name').value = data.name || '';
+        document.getElementById('single_modal_mobile').value = data.mobile || '';
+        if (data.class_id) {
+          document.getElementById('single_modal_class_section').value = data.class_id;
+        }
+        
+        // Show modal
+        const modal = new bootstrap.Modal(singleModal);
+        modal.show();
+      } else {
+        console.error('Failed to fetch student data');
+        alert('Failed to load student data. Please try again.');
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching student data:', error);
+      alert('Error loading student data. Please try again.');
+    });
+  }
+  
+  // Function to open change password modal from panel
+  function openChangePasswordModalFromPanel(studentId) {
+    if (!studentId) {
+      console.error('No student ID provided');
+      return;
+    }
+    
+    const passwordModal = document.getElementById('changeStudentPasswordModal');
+    if (passwordModal) {
+      document.getElementById('password_id').value = studentId;
+      const modal = new bootstrap.Modal(passwordModal);
+      modal.show();
+    } else {
+      console.error('Change password modal not found');
+    }
+  }
+  
+  // Add event listeners for panel buttons
+  document.addEventListener('DOMContentLoaded', function() {
+    const editBtn = document.getElementById('panel-edit-student-btn');
+    const passwordBtn = document.getElementById('panel-change-password-btn');
+    
+    if (editBtn) {
+      editBtn.addEventListener('click', function() {
+        const panel = document.getElementById('studentDetailsPanel');
+        const studentId = panel.getAttribute('data-student-id');
+        if (studentId) {
+          openEditStudentModalFromPanel(studentId);
+        } else {
+          alert('No student selected');
+        }
+      });
+    }
+    
+    if (passwordBtn) {
+      passwordBtn.addEventListener('click', function() {
+        const panel = document.getElementById('studentDetailsPanel');
+        const studentId = panel.getAttribute('data-student-id');
+        if (studentId) {
+          openChangePasswordModalFromPanel(studentId);
+        } else {
+          alert('No student selected');
+        }
+      });
+    }
+  });
 
   // Initialize Student Details Panel
   let studentHoverTimeout;
@@ -1196,6 +1445,13 @@
         clearTimeout(studentHoverTimeout);
         clearTimeout(studentPanelHoverTimeout);
         panel.classList.remove('show');
+        // Clear student ID when panel is closed
+        panel.setAttribute('data-student-id', '');
+        // Disable buttons
+        const editBtn = document.getElementById('panel-edit-student-btn');
+        const passwordBtn = document.getElementById('panel-change-password-btn');
+        if (editBtn) editBtn.disabled = true;
+        if (passwordBtn) passwordBtn.disabled = true;
       });
     }
     
@@ -1212,12 +1468,24 @@
         clearTimeout(studentPanelHoverTimeout);
         studentHoverTimeout = setTimeout(() => {
           // Get data from row
+          const studentId = row.getAttribute('data-student-id') || '';
           const name = row.getAttribute('data-student-name') || '-';
           const email = row.getAttribute('data-student-email') || '-';
           const contact = row.getAttribute('data-student-contact') || '-';
           const studentClass = row.getAttribute('data-student-class') || '-';
           const stream = row.getAttribute('data-student-stream') || '-';
           const created = row.getAttribute('data-student-created') || '-';
+          
+          // Store student ID and class ID in panel
+          panel.setAttribute('data-student-id', studentId);
+          const classId = row.getAttribute('data-student-class-id') || '';
+          panel.setAttribute('data-student-class-id', classId);
+          
+          // Enable/disable buttons based on student ID
+          const editBtn = document.getElementById('panel-edit-student-btn');
+          const passwordBtn = document.getElementById('panel-change-password-btn');
+          if (editBtn) editBtn.disabled = !studentId;
+          if (passwordBtn) passwordBtn.disabled = !studentId;
           
           // Update panel content
           const nameEl = document.getElementById('panel-student-name');

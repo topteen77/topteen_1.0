@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Paths Mindmap</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 95%;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+        }
+        
+        #mindmap {
+            width: 100%;
+            height: 800px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        
+        .node {
+            cursor: pointer;
+        }
+        
+        .node circle {
+            fill: #fff;
+            stroke: #667eea;
+            stroke-width: 3px;
+        }
+        
+        .node--root circle {
+            fill: #764ba2;
+            stroke: #667eea;
+            stroke-width: 4px;
+            r: 20;
+        }
+        
+        .node--category circle {
+            fill: #667eea;
+            stroke: #764ba2;
+            stroke-width: 3px;
+            r: 15;
+        }
+        
+        .node--career circle {
+            fill: #ffd700;
+            stroke: #ff8c00;
+            stroke-width: 2px;
+            r: 8;
+        }
+        
+        .node text {
+            font-size: 12px;
+            font-weight: bold;
+            fill: #333;
+        }
+        
+        .node--root text {
+            font-size: 18px;
+            fill: white;
+        }
+        
+        .node--category text {
+            font-size: 14px;
+            fill: white;
+        }
+        
+        .link {
+            fill: none;
+            stroke: #999;
+            stroke-width: 2px;
+            opacity: 0.6;
+        }
+        
+        .node:hover circle {
+            stroke-width: 4px;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            pointer-events: none;
+            font-size: 12px;
+            max-width: 200px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Career Paths Mindmap</h1>
+        <div class="controls">
+            <button onclick="resetZoom()">Reset Zoom</button>
+            <button onclick="expandAll()">Expand All</button>
+            <button onclick="collapseAll()">Collapse All</button>
+        </div>
+        <div id="mindmap"></div>
+    </div>
+
+    <script>
+        // Career data structure
+        const careerData = {
+            name: "Career Paths",
+            children: [
+                {
+                    name: "Agriculture, Natural Resources & Allied Sciences",
+                    children: [
+                        { name: "Agriculturalist" },
+                        { name: "Agri-business Management" },
+                        { name: "Food Technology" },
+                        { name: "Organic Farming" },
+                        { name: "Soil Scientist" },
+                        { name: "Dairy Technology" }
+                    ]
+                },
+                {
+                    name: "Architecture, Construction & Planning",
+                    children: [
+                        { name: "Architect" },
+                        { name: "Interior Designing" },
+                        { name: "Urban Planning" },
+                        { name: "Construction Manager" },
+                        { name: "Landscape Designing" }
+                    ]
+                },
+                {
+                    name: "Arts, Humanities, Education & Training",
+                    children: [
+                        { name: "Teaching" },
+                        { name: "Content Writer" },
+                        { name: "Journalist" },
+                        { name: "Psychologist" },
+                        { name: "Career Counselling" },
+                        { name: "Anthropologist" }
+                    ]
+                },
+                {
+                    name: "Business Management & Marketing",
+                    children: [
+                        { name: "Management" },
+                        { name: "Marketing Manager" },
+                        { name: "HR Management" },
+                        { name: "Project Management" },
+                        { name: "Digital Marketing Expert" },
+                        { name: "Entrepreneurship" }
+                    ]
+                },
+                {
+                    name: "Commerce, Economics & Finance",
+                    children: [
+                        { name: "Chartered Accountant" },
+                        { name: "Financial Analyst" },
+                        { name: "Investment Banker" },
+                        { name: "Economist" },
+                        { name: "Tax Consultant" }
+                    ]
+                },
+                {
+                    name: "Computer Applications",
+                    children: [
+                        { name: "Software Developer" },
+                        { name: "Data Scientist" },
+                        { name: "Cybersecurity Expert" },
+                        { name: "AI/ML Engineer" },
+                        { name: "Cloud Architect" }
+                    ]
+                },
+                {
+                    name: "Design & Fine Arts",
+                    children: [
+                        { name: "Graphic Designer" },
+                        { name: "Fashion Designer" },
+                        { name: "UI/UX Designer" },
+                        { name: "Animator" },
+                        { name: "Photographer" }
+                    ]
+                },
+                {
+                    name: "Engineering & Technology",
+                    children: [
+                        { name: "Biomedical Engineer" },
+                        { name: "Aerospace Engineer" },
+                        { name: "Mechanical Engineer" },
+                        { name: "Electrical Engineer" },
+                        { name: "Civil Engineer" },
+                        { name: "Chemical Engineer" }
+                    ]
+                },
+                {
+                    name: "Government & Administrative Services",
+                    children: [
+                        { name: "IAS Officer" },
+                        { name: "IPS Officer" },
+                        { name: "IFS Officer" },
+                        { name: "Public Administration" },
+                        { name: "Diplomat" }
+                    ]
+                },
+                {
+                    name: "Health Sciences",
+                    children: [
+                        { name: "Doctor" },
+                        { name: "Nurse" },
+                        { name: "Dentist" },
+                        { name: "Pharmacist" },
+                        { name: "Physiotherapist" },
+                        { name: "Nutritionist" }
+                    ]
+                },
+                {
+                    name: "Hospitality & Tourism",
+                    children: [
+                        { name: "Hotel Manager" },
+                        { name: "Chef" },
+                        { name: "Travel Agent" },
+                        { name: "Event Manager" },
+                        { name: "Tour Guide" }
+                    ]
+                },
+                {
+                    name: "Law & Public Safety",
+                    children: [
+                        { name: "Lawyer" },
+                        { name: "Judge" },
+                        { name: "Legal Advisor" },
+                        { name: "Police Officer" },
+                        { name: "Forensic Scientist" }
+                    ]
+                },
+                {
+                    name: "Mass Communications & Media",
+                    children: [
+                        { name: "Journalist" },
+                        { name: "Radio Jockey" },
+                        { name: "Video Jockey" },
+                        { name: "Anchor" },
+                        { name: "Screenwriter" }
+                    ]
+                },
+                {
+                    name: "Pure Sciences & Research",
+                    children: [
+                        { name: "Physicist" },
+                        { name: "Chemist" },
+                        { name: "Biologist" },
+                        { name: "Mathematician" },
+                        { name: "Research Scientist" }
+                    ]
+                },
+                {
+                    name: "Sports, Fitness & Physical Education",
+                    children: [
+                        { name: "Athlete" },
+                        { name: "Sports Coach" },
+                        { name: "Fitness Trainer" },
+                        { name: "Sports Medicine" },
+                        { name: "Physical Education Teacher" }
+                    ]
+                },
+                {
+                    name: "Veterinary Sciences",
+                    children: [
+                        { name: "Veterinarian" },
+                        { name: "Animal Nutritionist" },
+                        { name: "Wildlife Biologist" },
+                        { name: "Veterinary Surgeon" }
+                    ]
+                },
+                {
+                    name: "Vocational",
+                    children: [
+                        { name: "Electrician" },
+                        { name: "Plumber" },
+                        { name: "Carpenter" },
+                        { name: "Welder" },
+                        { name: "Mechanic" }
+                    ]
+                }
+            ]
+        };
+
+        // Set up SVG
+        const width = document.getElementById('mindmap').clientWidth;
+        const height = 800;
+        const svg = d3.select("#mindmap")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        const g = svg.append("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+        // Zoom behavior
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 3])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+
+        svg.call(zoom);
+
+        // Create tooltip
+        const tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        // Create tree layout
+        const tree = d3.tree()
+            .size([2 * Math.PI, Math.min(width, height) / 2 - 100])
+            .separation((a, b) => (a.parent == b.parent ? 1 : 2) / a.depth);
+
+        const root = d3.hierarchy(careerData);
+        tree(root);
+
+        // Draw links
+        const links = g.selectAll(".link")
+            .data(root.links())
+            .enter()
+            .append("path")
+            .attr("class", "link")
+            .attr("d", d3.linkRadial()
+                .angle(d => d.x)
+                .radius(d => d.y));
+
+        // Draw nodes
+        const nodes = g.selectAll(".node")
+            .data(root.descendants())
+            .enter()
+            .append("g")
+            .attr("class", d => {
+                if (d.depth === 0) return "node node--root";
+                if (d.depth === 1) return "node node--category";
+                return "node node--career";
+            })
+            .attr("transform", d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`);
+
+        nodes.append("circle")
+            .attr("r", d => {
+                if (d.depth === 0) return 20;
+                if (d.depth === 1) return 15;
+                return 8;
+            });
+
+        nodes.append("text")
+            .attr("dy", d => {
+                if (d.depth === 0) return -25;
+                if (d.depth === 1) return -20;
+                return -12;
+            })
+            .attr("x", d => d.x < Math.PI ? 8 : -8)
+            .style("text-anchor", d => d.x < Math.PI ? "start" : "end")
+            .style("font-size", d => {
+                if (d.depth === 0) return "18px";
+                if (d.depth === 1) return "14px";
+                return "11px";
+            })
+            .text(d => d.data.name)
+            .style("fill", d => {
+                if (d.depth === 0) return "white";
+                if (d.depth === 1) return "white";
+                return "#333";
+            });
+
+        // Add interactions
+        nodes.on("mouseover", function(event, d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html(d.data.name)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px");
+            
+            d3.select(this).select("circle")
+                .style("stroke-width", "4px");
+        })
+        .on("mouseout", function(event, d) {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+            
+            d3.select(this).select("circle")
+                .style("stroke-width", d => {
+                    if (d.depth === 0) return "4px";
+                    if (d.depth === 1) return "3px";
+                    return "2px";
+                });
+        })
+        .on("click", function(event, d) {
+            if (d.children) {
+                d._children = d.children;
+                d.children = null;
+            } else {
+                d.children = d._children;
+                d._children = null;
+            }
+            update();
+        });
+
+        function update() {
+            tree(root);
+            
+            const links = g.selectAll(".link")
+                .data(root.links());
+            
+            links.exit().remove();
+            
+            links.enter()
+                .append("path")
+                .attr("class", "link")
+                .merge(links)
+                .attr("d", d3.linkRadial()
+                    .angle(d => d.x)
+                    .radius(d => d.y));
+            
+            const nodes = g.selectAll(".node")
+                .data(root.descendants(), d => d.data.name);
+            
+            nodes.exit().remove();
+            
+            const nodeEnter = nodes.enter()
+                .append("g")
+                .attr("class", d => {
+                    if (d.depth === 0) return "node node--root";
+                    if (d.depth === 1) return "node node--category";
+                    return "node node--career";
+                })
+                .attr("transform", d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`);
+            
+            nodeEnter.append("circle")
+                .attr("r", d => {
+                    if (d.depth === 0) return 20;
+                    if (d.depth === 1) return 15;
+                    return 8;
+                });
+            
+            nodeEnter.append("text")
+                .attr("dy", d => {
+                    if (d.depth === 0) return -25;
+                    if (d.depth === 1) return -20;
+                    return -12;
+                })
+                .attr("x", d => d.x < Math.PI ? 8 : -8)
+                .style("text-anchor", d => d.x < Math.PI ? "start" : "end")
+                .style("font-size", d => {
+                    if (d.depth === 0) return "18px";
+                    if (d.depth === 1) return "14px";
+                    return "11px";
+                })
+                .text(d => d.data.name)
+                .style("fill", d => {
+                    if (d.depth === 0) return "white";
+                    if (d.depth === 1) return "white";
+                    return "#333";
+                });
+            
+            const nodeUpdate = nodeEnter.merge(nodes);
+            nodeUpdate.attr("transform", d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`);
+            
+            nodeUpdate.selectAll("circle")
+                .attr("r", d => {
+                    if (d.depth === 0) return 20;
+                    if (d.depth === 1) return 15;
+                    return 8;
+                });
+            
+            nodeUpdate.selectAll("text")
+                .attr("x", d => d.x < Math.PI ? 8 : -8)
+                .style("text-anchor", d => d.x < Math.PI ? "start" : "end");
+            
+            nodeUpdate.on("mouseover", function(event, d) {
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html(d.data.name)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+                
+                d3.select(this).select("circle")
+                    .style("stroke-width", "4px");
+            })
+            .on("mouseout", function(event, d) {
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+                
+                d3.select(this).select("circle")
+                    .style("stroke-width", d => {
+                        if (d.depth === 0) return "4px";
+                        if (d.depth === 1) return "3px";
+                        return "2px";
+                    });
+            })
+            .on("click", function(event, d) {
+                if (d.children) {
+                    d._children = d.children;
+                    d.children = null;
+                } else {
+                    d.children = d._children;
+                    d._children = null;
+                }
+                update();
+            });
+        }
+
+        function resetZoom() {
+            svg.transition()
+                .duration(750)
+                .call(zoom.transform, d3.zoomIdentity);
+        }
+
+        function expandAll() {
+            root.each(d => {
+                if (d._children) {
+                    d.children = d._children;
+                    d._children = null;
+                }
+            });
+            update();
+        }
+
+        function collapseAll() {
+            root.each(d => {
+                if (d.children && d.depth > 0) {
+                    d._children = d.children;
+                    d.children = null;
+                }
+            });
+            update();
+        }
+    </script>
+</body>
+</html>
+

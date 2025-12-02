@@ -50,10 +50,16 @@
     z-index: 1040 !important;
   }
   .modal {
-    z-index: 1050 !important;
+    z-index: 1060 !important;
   }
   .modal-dialog {
-    z-index: 1055 !important;
+    z-index: 1065 !important;
+  }
+  /* Ensure modals appear above header/navigation */
+  .header,
+  .navbar,
+  .tt-header {
+    z-index: 1030 !important;
   }
   .modal.show {
     display: block !important;

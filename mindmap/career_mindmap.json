@@ -1,0 +1,180 @@
+{
+  "name": "Career Paths",
+  "children": [
+    {
+      "name": "Agriculture, Natural Resources & Allied Sciences",
+      "children": [
+        {"name": "Agriculturalist", "description": "Expert in crop production and soil management"},
+        {"name": "Agri-business Management", "description": "Business management in agricultural sector"},
+        {"name": "Food Technology", "description": "Food processing and preservation"},
+        {"name": "Organic Farming", "description": "Sustainable farming practices"},
+        {"name": "Soil Scientist", "description": "Soil analysis and management"},
+        {"name": "Dairy Technology", "description": "Dairy product development and processing"}
+      ]
+    },
+    {
+      "name": "Architecture, Construction & Planning",
+      "children": [
+        {"name": "Architect", "description": "Building design and planning"},
+        {"name": "Interior Designing", "description": "Interior space design"},
+        {"name": "Urban Planning", "description": "City and town planning"},
+        {"name": "Construction Manager", "description": "Construction project management"},
+        {"name": "Landscape Designing", "description": "Outdoor space design"}
+      ]
+    },
+    {
+      "name": "Arts, Humanities, Education & Training",
+      "children": [
+        {"name": "Teaching", "description": "Educational instruction"},
+        {"name": "Content Writer", "description": "Written content creation"},
+        {"name": "Journalist", "description": "News reporting and investigation"},
+        {"name": "Psychologist", "description": "Mental health and behavior"},
+        {"name": "Career Counselling", "description": "Career guidance and advice"},
+        {"name": "Anthropologist", "description": "Study of human societies"}
+      ]
+    },
+    {
+      "name": "Business Management & Marketing",
+      "children": [
+        {"name": "Management", "description": "General business management"},
+        {"name": "Marketing Manager", "description": "Marketing strategy and execution"},
+        {"name": "HR Management", "description": "Human resources management"},
+        {"name": "Project Management", "description": "Project planning and execution"},
+        {"name": "Digital Marketing Expert", "description": "Online marketing strategies"},
+        {"name": "Entrepreneurship", "description": "Starting and running businesses"}
+      ]
+    },
+    {
+      "name": "Commerce, Economics & Finance",
+      "children": [
+        {"name": "Chartered Accountant", "description": "Financial accounting and auditing"},
+        {"name": "Financial Analyst", "description": "Financial data analysis"},
+        {"name": "Investment Banker", "description": "Investment and financial services"},
+        {"name": "Economist", "description": "Economic analysis and research"},
+        {"name": "Tax Consultant", "description": "Tax planning and compliance"}
+      ]
+    },
+    {
+      "name": "Computer Applications",
+      "children": [
+        {"name": "Software Developer", "description": "Software application development"},
+        {"name": "Data Scientist", "description": "Data analysis and machine learning"},
+        {"name": "Cybersecurity Expert", "description": "Information security"},
+        {"name": "AI/ML Engineer", "description": "Artificial intelligence and machine learning"},
+        {"name": "Cloud Architect", "description": "Cloud infrastructure design"}
+      ]
+    },
+    {
+      "name": "Design & Fine Arts",
+      "children": [
+        {"name": "Graphic Designer", "description": "Visual communication design"},
+        {"name": "Fashion Designer", "description": "Clothing and fashion design"},
+        {"name": "UI/UX Designer", "description": "User interface and experience design"},
+        {"name": "Animator", "description": "Animation and motion graphics"},
+        {"name": "Photographer", "description": "Photography and image creation"}
+      ]
+    },
+    {
+      "name": "Engineering & Technology",
+      "children": [
+        {"name": "Biomedical Engineer", "description": "Medical device and technology development"},
+        {"name": "Aerospace Engineer", "description": "Aircraft and spacecraft design"},
+        {"name": "Mechanical Engineer", "description": "Mechanical systems design"},
+        {"name": "Electrical Engineer", "description": "Electrical systems and power"},
+        {"name": "Civil Engineer", "description": "Infrastructure and construction"},
+        {"name": "Chemical Engineer", "description": "Chemical processes and manufacturing"}
+      ]
+    },
+    {
+      "name": "Government & Administrative Services",
+      "children": [
+        {"name": "IAS Officer", "description": "Indian Administrative Service"},
+        {"name": "IPS Officer", "description": "Indian Police Service"},
+        {"name": "IFS Officer", "description": "Indian Foreign Service"},
+        {"name": "Public Administration", "description": "Public sector management"},
+        {"name": "Diplomat", "description": "International relations and diplomacy"}
+      ]
+    },
+    {
+      "name": "Health Sciences",
+      "children": [
+        {"name": "Doctor", "description": "Medical diagnosis and treatment"},
+        {"name": "Nurse", "description": "Patient care and medical support"},
+        {"name": "Dentist", "description": "Dental health and treatment"},
+        {"name": "Pharmacist", "description": "Pharmaceutical services"},
+        {"name": "Physiotherapist", "description": "Physical rehabilitation"},
+        {"name": "Nutritionist", "description": "Nutrition and diet planning"}
+      ]
+    },
+    {
+      "name": "Hospitality & Tourism",
+      "children": [
+        {"name": "Hotel Manager", "description": "Hotel operations management"},
+        {"name": "Chef", "description": "Culinary arts and food preparation"},
+        {"name": "Travel Agent", "description": "Travel planning and booking"},
+        {"name": "Event Manager", "description": "Event planning and coordination"},
+        {"name": "Tour Guide", "description": "Tourism and travel guidance"}
+      ]
+    },
+    {
+      "name": "Law & Public Safety",
+      "children": [
+        {"name": "Lawyer", "description": "Legal representation and advice"},
+        {"name": "Judge", "description": "Judicial decision making"},
+        {"name": "Legal Advisor", "description": "Legal consultation"},
+        {"name": "Police Officer", "description": "Law enforcement"},
+        {"name": "Forensic Scientist", "description": "Crime scene investigation"}
+      ]
+    },
+    {
+      "name": "Mass Communications & Media",
+      "children": [
+        {"name": "Journalist", "description": "News reporting"},
+        {"name": "Radio Jockey", "description": "Radio broadcasting"},
+        {"name": "Video Jockey", "description": "Video hosting and presentation"},
+        {"name": "Anchor", "description": "News anchoring"},
+        {"name": "Screenwriter", "description": "Script writing for media"}
+      ]
+    },
+    {
+      "name": "Pure Sciences & Research",
+      "children": [
+        {"name": "Physicist", "description": "Physics research and study"},
+        {"name": "Chemist", "description": "Chemistry research"},
+        {"name": "Biologist", "description": "Biological sciences research"},
+        {"name": "Mathematician", "description": "Mathematical research"},
+        {"name": "Research Scientist", "description": "Scientific research"}
+      ]
+    },
+    {
+      "name": "Sports, Fitness & Physical Education",
+      "children": [
+        {"name": "Athlete", "description": "Professional sports"},
+        {"name": "Sports Coach", "description": "Athletic training"},
+        {"name": "Fitness Trainer", "description": "Fitness and wellness"},
+        {"name": "Sports Medicine", "description": "Athletic health"},
+        {"name": "Physical Education Teacher", "description": "PE instruction"}
+      ]
+    },
+    {
+      "name": "Veterinary Sciences",
+      "children": [
+        {"name": "Veterinarian", "description": "Animal health and treatment"},
+        {"name": "Animal Nutritionist", "description": "Animal diet and nutrition"},
+        {"name": "Wildlife Biologist", "description": "Wildlife research"},
+        {"name": "Veterinary Surgeon", "description": "Animal surgery"}
+      ]
+    },
+    {
+      "name": "Vocational",
+      "children": [
+        {"name": "Electrician", "description": "Electrical installation and repair"},
+        {"name": "Plumber", "description": "Plumbing services"},
+        {"name": "Carpenter", "description": "Woodworking and construction"},
+        {"name": "Welder", "description": "Metal joining and fabrication"},
+        {"name": "Mechanic", "description": "Vehicle and machinery repair"}
+      ]
+    }
+  ]
+}
+
