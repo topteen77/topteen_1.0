@@ -75,8 +75,12 @@ def get_students_by_role(user, counselor=None, institute=None):
         if user_type == choices.UserType.INSTITUTE:
             # Institute users can only see their own institute
             user_institute = Institute.objects.filter(created_by=user).first()
-            if user_institute and user_institute.id != institute.id:
+            # If user has an institute, it must match the provided institute
+            # If user doesn't have an institute, they shouldn't see any students (unless decorator allows, but that's handled separately)
+            if not user_institute or user_institute.id != institute.id:
                 return StudentManagement.objects.none()
+            # Use the user's own institute to ensure correct filtering
+            institute = user_institute
         elif user_type == choices.UserType.INSTITUTEGROUPADMIN:
             # Institute Group Admin can see institutes in their group
             institute_group = InstituteGroup.objects.filter(institute_group_admin=user).first()

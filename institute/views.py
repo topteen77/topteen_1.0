@@ -230,7 +230,7 @@ class InstituteCreateView(TemplateView):
 
 # manish
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
-@method_decorator(only_superuser,name='dispatch')
+@method_decorator(institute_authenticated_user_only,name='dispatch')
 class CounselorCreateView(TemplateView):
     
     def post(self,request,*args,**kwargs):
@@ -242,17 +242,37 @@ class CounselorCreateView(TemplateView):
         address=request.POST.get("counselor_address")
         contact=request.POST.get("counselor_contact_info")
         education = request.POST.get("counselor_education") if request.POST.get("c_education") == "Any other" else request.POST.get("c_education")
-        gender=request.POST.get("counselor_gender")
+        gender_str=request.POST.get("counselor_gender", "")  # Get gender as string
         counselor_admin=request.POST.get("counselor_admin")
         ins_em=re.match(evalid,coun_email)
 
-        # ins1 = Institute.objects.filter(created_by=request.user)
         slug=kwargs.get("slug")
-        if ins_em and name and address and contact and education and gender:
+        # Convert gender string to integer value
+        # GenderChoices: UNKNOWN=10, MALE=20, FEMALE=30
+        if gender_str:
+            gender_str = gender_str.strip().lower()
+            if gender_str in ['m', 'male', '20']:
+                gender = choices.GenderChoices.MALE  # 20
+            elif gender_str in ['f', 'female', '30']:
+                gender = choices.GenderChoices.FEMALE  # 30
+            else:
+                gender = choices.GenderChoices.UNKNOWN  # 10
+        else:
+            gender = choices.GenderChoices.UNKNOWN  # Default to UNKNOWN if not provided
+        
+        # Validate required fields: email, name, address, contact, education
+        # Gender is optional, so we don't require it
+        if ins_em and name and address and contact and education:
             if ins_em:
                 current_institute=get_object_or_404(Institute,slug=slug)
             else:
                 current_institute = None
+            
+            # Check if user already exists
+            if User.objects.filter(email=coun_email).exists():
+                messages.error(request,"{} Already Exist !!".format(coun_email))
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+            
             import random
             password=''.join([str(random.randint(0,10)) for _ in range(6)])
             user_dict={'email':coun_email,'password':password,'user_type':choices.UserType.COUNSELOR}
@@ -260,12 +280,23 @@ class CounselorCreateView(TemplateView):
             coun=Counselor(counselor_name=name,coun_user = coun_user,counselor_email=coun_email,counselor_address=address,counselor_contact_info=contact,counselor_education=education,counselor_gender=gender,counselor_admin=current_institute)
             coun.save()
             send_institute_mail.delay(coun.coun_user.email,password)
-            messages.success(request, "Institute Created")
+            messages.success(request, "Counselor Created Successfully")
         else:
             if User.objects.filter(email=coun_email).exists():
                 messages.error(request,"{} Already Exist !!".format(coun_email))
             else:
-                messages.error(request,"Something Went Wrong !!")
+                missing_fields = []
+                if not ins_em:
+                    missing_fields.append("valid email")
+                if not name:
+                    missing_fields.append("name")
+                if not address:
+                    missing_fields.append("address")
+                if not contact:
+                    missing_fields.append("contact info")
+                if not education:
+                    missing_fields.append("education")
+                messages.error(request,"Please fill all required fields: {}".format(", ".join(missing_fields)))
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
