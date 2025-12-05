@@ -223,13 +223,22 @@ class SearchItems(TemplateView):
 
     def get_context(self,request,*args,**kwargs):
         ctx={}
-        careeritems=CareerDocumentFilter()
-        examitems=EntranceExamDocumentFilter()
-        total=careeritems.get_career_list_context(request)
-        ctx['car']=careeritems.get_career_list_context(request)
+        try:
+            careeritems=CareerDocumentFilter()
+            ctx['car']=careeritems.get_career_list_context(request)
+        except Exception as e:
+            print(f"Elasticsearch not available for careers, using Django ORM fallback: {e}")
+            ctx['car'] = {'careers': [], 'facets_filter': {'skill': [], 'profession': []}, 'shortlisted_career_ids': []}
+        
+        try:
+            examitems=EntranceExamDocumentFilter()
+            ctx['exm']=examitems.get_entrance_exam_list_context(request)
+        except Exception as e:
+            print(f"Elasticsearch not available for exams, using Django ORM fallback: {e}")
+            ctx['exm'] = {'exams': [], 'facets_filter': {}}
+        
         ctx['videoscount']=Videos.objects.all().count()
         ctx['col']=College.get_all_colleges().count()
-        ctx['exm']=examitems.get_entrance_exam_list_context(request)
         ctx['coursecount']=Course.objects.all().count()
         ctx['most_searchcareers'] = Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED).order_by('?')[:8]
         ctx['most_searchcolleges'] = College.objects.all().order_by('id')[:5]
@@ -255,7 +264,7 @@ class AjaxSearchResult(TemplateView):
         ctx['allsearch']=clf.get_ajax_search_Item_list(request,input)
         ctx["html_head"] = self.html_head(request)
         ctx['searchname']=input
-        
+        ctx['tranding_content']=Blog.objects.all()
         ctx['user'] = request.user
 
         return ctx

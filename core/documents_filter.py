@@ -85,22 +85,54 @@ class AllSearch:
         search_data = searcheddata._get_search()
         return search_data
 
-    def _search_college(self,search):
-        q = Q("match_phrase", name=search) 
+    def _search_college(self,search_term):
+        # Use match with fuzziness for partial matching - allows "Amity" to match "Amity University"
+        q = Q("match", name={"query": search_term, "fuzziness": "AUTO"}) 
+        colleges = None
         try:
-            search=self.searchcollege.query(q) 
-            colleges = search.execute()[0:]
-        except:
-            colleges = None
+            es_search=self.searchcollege.query(q) 
+            colleges = es_search.execute()[0:]
+        except Exception as e:
+            print(f"Elasticsearch error in college search: {e}")
+            # Fallback to Django ORM if Elasticsearch fails
+            try:
+                from colleges.models import College
+                colleges = list(College.objects.filter(name__icontains=search_term)[:10])
+                print(f"Django ORM fallback found {len(colleges)} colleges")
+            except Exception as e2:
+                print(f"Django ORM fallback error in college search: {e2}")
+                import traceback
+                traceback.print_exc()
+                colleges = None
+        if colleges is None:
+            colleges = []
         return colleges
 
-    def _search_career(self,search):
-        q = Q("match_phrase", name=search)
+    def _search_career(self,search_term):
+        # Use match with fuzziness for partial matching
+        q = Q("match", name={"query": search_term, "fuzziness": "AUTO"})
+        career = None
         try:
-            search=self.searchcareer.query(q) 
-            career = search.execute()[0:]
-        except:
-            career = None
+            es_search=self.searchcareer.query(q) 
+            career = es_search.execute()[0:]
+        except Exception as e:
+            print(f"Elasticsearch error in career search: {e}")
+            # Fallback to Django ORM if Elasticsearch fails
+            try:
+                from careers.models import Career
+                from core import choices
+                career = list(Career.objects.filter(
+                    name__icontains=search_term,
+                    publish_status=choices.PublishStatus.PUBLISHED
+                )[:10])
+                print(f"Django ORM fallback found {len(career)} careers")
+            except Exception as e2:
+                print(f"Django ORM fallback error in career search: {e2}")
+                import traceback
+                traceback.print_exc()
+                career = None
+        if career is None:
+            career = []
         return career
 
     def _search_course(self,search):

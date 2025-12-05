@@ -1,0 +1,197 @@
+{% if infographics.roles_responsibilities %}
+<!-- Roles and Responsibilities - Separate Page Design -->
+<div class="roles-separate-page" style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 4rem 2rem; position: relative; overflow: hidden;">
+  
+  <!-- Animated Background Elements -->
+  <div class="bg-shapes" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: none;">
+    <div style="position: absolute; top: 10%; left: 5%; width: 200px; height: 200px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; animation: float 6s ease-in-out infinite;"></div>
+    <div style="position: absolute; bottom: 15%; right: 8%; width: 150px; height: 150px; background: rgba(255, 255, 255, 0.08); border-radius: 50%; animation: float 8s ease-in-out infinite reverse;"></div>
+    <div style="position: absolute; top: 50%; right: 15%; width: 100px; height: 100px; background: rgba(255, 255, 255, 0.06); border-radius: 50%; animation: float 7s ease-in-out infinite;"></div>
+  </div>
+  
+  <!-- Main Container -->
+  <div class="roles-main-content" style="max-width: 1400px; margin: 0 auto; position: relative; z-index: 1;">
+    
+    <!-- Hero Header -->
+    <div class="roles-hero" style="text-align: center; margin-bottom: 4rem; color: white;">
+      <div style="font-size: 48px; font-weight: 900; margin-bottom: 1rem; text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);">
+        {{ career.name }}
+      </div>
+      <div style="font-size: 24px; font-weight: 300; opacity: 0.95; letter-spacing: 1px;">
+        ROLES & RESPONSIBILITIES
+      </div>
+      <div style="width: 100px; height: 4px; background: white; margin: 2rem auto; border-radius: 2px;"></div>
+    </div>
+    
+    <!-- Roles Grid -->
+    <div class="roles-separate-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2.5rem;">
+      
+      {% for role in infographics.roles_responsibilities %}
+      <div class="role-separate-card" style="background: white; border-radius: 20px; padding: 2.5rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden;">
+        
+        <!-- Card Number Badge -->
+        <div style="position: absolute; top: -15px; right: 30px; width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 800; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);">
+          {{ loop.index }}
+        </div>
+        
+        <!-- Role Icon -->
+        <div style="width: 100px; height: 100px; margin: 0 auto 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); transform: rotate(-5deg); transition: transform 0.3s ease;">
+          <svg width="50" height="50" viewBox="0 0 50 50" fill="none">
+            <rect x="10" y="15" width="30" height="20" rx="3" fill="white" opacity="0.9"/>
+            <path d="M20 25 L25 30 L30 25" stroke="white" stroke-width="2" fill="none"/>
+            <circle cx="25" cy="35" r="3" fill="white"/>
+          </svg>
+        </div>
+        
+        <!-- Role Title -->
+        <h3 style="font-size: 26px; font-weight: 800; color: #2d3748; text-align: center; margin-bottom: 2rem; line-height: 1.3; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+          {{ role.name }}
+        </h3>
+        
+        <!-- Responsibilities -->
+        {% if role.responsibilities %}
+        <div class="responsibilities-separate" style="space-y: 1rem;">
+          {% for resp in role.responsibilities %}
+          <div class="resp-separate-item" style="display: flex; align-items: flex-start; gap: 1rem; padding: 1.25rem; background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%); border-radius: 16px; margin-bottom: 1rem; border-left: 4px solid #667eea; transition: all 0.3s ease; position: relative;">
+            <!-- Icon -->
+            <div style="flex-shrink: 0; width: 32px; height: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M3 9 L7 13 L15 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <!-- Text -->
+            <div style="flex: 1; font-size: 15px; line-height: 1.7; color: #4a5568; font-weight: 400; padding-top: 2px;">
+              {{ resp }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Decorative Corner -->
+        <div style="position: absolute; bottom: 0; right: 0; width: 150px; height: 150px; background: radial-gradient(circle, rgba(102, 126, 234, 0.05) 0%, transparent 70%); border-radius: 50% 0 0 0; pointer-events: none;"></div>
+        
+      </div>
+      {% endfor %}
+      
+    </div>
+    
+    <!-- Footer CTA -->
+    <div style="text-align: center; margin-top: 4rem; color: white;">
+      <div style="font-size: 20px; font-weight: 500; opacity: 0.9;">
+        Explore more about {{ career.name }} career path
+      </div>
+    </div>
+    
+  </div>
+  
+</div>
+
+<style>
+.roles-separate-page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.role-separate-card:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+}
+
+.role-separate-card:hover .role-icon {
+  transform: rotate(5deg) scale(1.1);
+}
+
+.resp-separate-item:hover {
+  transform: translateX(8px);
+  border-left-width: 6px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  33% {
+    transform: translateY(-20px) translateX(10px);
+  }
+  66% {
+    transform: translateY(10px) translateX(-10px);
+  }
+}
+
+@media (max-width: 1024px) {
+  .roles-separate-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+    gap: 2rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .roles-separate-page {
+    padding: 3rem 1.5rem !important;
+  }
+  
+  .roles-hero div:first-child {
+    font-size: 36px !important;
+  }
+  
+  .roles-hero div:nth-child(2) {
+    font-size: 18px !important;
+  }
+  
+  .roles-separate-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+  
+  .role-separate-card {
+    padding: 2rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .roles-separate-page {
+    padding: 2rem 1rem !important;
+  }
+  
+  .role-separate-card {
+    padding: 1.5rem !important;
+  }
+  
+  .resp-separate-item {
+    padding: 1rem !important;
+  }
+  
+  h3 {
+    font-size: 22px !important;
+  }
+}
+</style>
+
+<script>
+// Staggered entrance animation
+document.addEventListener('DOMContentLoaded', function() {
+  const cards = document.querySelectorAll('.role-separate-card');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, index) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0) scale(1)';
+        }, index * 100);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  
+  cards.forEach((card) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(50px) scale(0.9)';
+    card.style.transition = 'opacity 0.8s ease, transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    observer.observe(card);
+  });
+});
+</script>
+{% endif %}
+

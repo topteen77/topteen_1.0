@@ -61,8 +61,41 @@ class TestPrepFilter(TemplateView):
     def get_context(self,request,stream,*args, **kwargs):
         name=request.GET.get('search')
         
-        entex=EntranceExamDocumentFilter()
-        ctx=entex.get_entrance_exam_list_context(request,stream=stream,name=name)
+        try:
+            entex=EntranceExamDocumentFilter()
+            ctx=entex.get_entrance_exam_list_context(request,stream=stream,name=name)
+        except Exception as e:
+            # Fallback to Django ORM if filter fails
+            import traceback
+            print(f"EntranceExamDocumentFilter failed: {e}")
+            traceback.print_exc()
+            from django.core.paginator import Paginator
+            from .models import EntranceExam
+            from courses.models import Stream
+            
+            exams = EntranceExam.objects.all()
+            paginator = Paginator(exams, 10)
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            
+            from core.utils import build_breadcrumb
+            breadcrumb_url = reverse_lazy('entrance_exams:testprepfilter')
+            breadcrumb_list = [{'text': 'Exam', 'url': breadcrumb_url}]
+            breadcrumb_result = build_breadcrumb(breadcrumb_list)
+            
+            ctx = {
+                'exams': page_obj,
+                'streams': list(Stream.objects.filter(entranceexam__isnull=False).distinct().values_list('name', flat=True)),
+                'exam_count': exams.count(),
+                'related_exam': exams.order_by('?')[:5],
+                'facets_filter': {
+                    'category': [],
+                    'examtags_slug': [],
+                    'stream_slug': []
+                },
+                'breadcrumb': breadcrumb_result[1] if isinstance(breadcrumb_result, tuple) else breadcrumb_result
+            }
+        
         ctx["html_head"] = self.html_head()
         ctx['searchname']=name
         return ctx

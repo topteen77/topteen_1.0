@@ -35,7 +35,8 @@ from app.models import Results, TestCompletion
 @method_decorator(only_superuser,name='dispatch')
 class AdminDashboardView(TemplateView):
     # template_name="topteenfrontend/user/admin_dashboard.html"
-    template_name="topteenfrontend/user/app/Admin_Dashboard.html"
+    # template_name="topteenfrontend/user/app/Admin_Dashboard.html"
+    template_name="template20/institute/admin_dashboard.html"
 
     def html_head(self):
         name='Admin Dashboard'
@@ -44,7 +45,9 @@ class AdminDashboardView(TemplateView):
     def get_student_test_sreams(self, user):
         try:
             # Fetch the test result for the specific user
-            test3_result = Results.objects.get(user=user, test_paper='test3')
+            test3_result = Results.objects.filter(user=user, test_paper='test3').first()
+            if not test3_result:
+                return None
             personality_res = test3_result.results
 
             scores = {label.split("_")[0].upper(): value for label, value in personality_res.items()}
@@ -122,7 +125,7 @@ class AdminDashboardView(TemplateView):
             for institute in institutes
         ]
 
-        all_inst_student = StudentManagement.objects.all()
+        all_inst_student = StudentManagement.objects.all().order_by('-id')
         ptr_count1=[r1 for r1 in all_inst_student if r1.get_test_result()]
 
         results_data = {}
@@ -133,7 +136,7 @@ class AdminDashboardView(TemplateView):
         
         # If you want to create a list of results instead of a dictionary
         test_results = list(results_data.values())
-        streams = self.get_stream(test_results)
+        streams = self.get_stream(test_results) if test_results else {}
 
         
         pages=Paginator(institutes,4)
@@ -959,7 +962,8 @@ class InstituteMarketingProfileEditView(TemplateView):
 @method_decorator(institute_group_user_only,name='dispatch')
 class InstituteGroupDashboardView(TemplateView):
     # template_name="topteenfrontend/user/institute_group_dashboard.html"
-    template_name="topteenfrontend/user/app/institute_group_dashboard.html"
+    # template_name="topteenfrontend/user/app/institute_group_dashboard.html"
+    template_name="template20/institute/institute_group_dashboard.html"
 
     def html_head(self):
         name='Institute Group Dashboard'
@@ -1145,7 +1149,8 @@ class InstituteGroupDashboardView(TemplateView):
             'streams': info['streams'],
             'locations': info['locations'],  # Add locations for dropdown
             'search_params': search_params,  # Add search params to maintain state
-            "institute_group": InstituteGroup.objects.all(),
+            "institute_group": InstituteGroup.objects.filter(institute_group_admin=group_admin).first(),
+            "institute_groups": InstituteGroup.objects.all(),
             "institute_types": choices.InstituteType.CHOICES
         })
         return ctx
@@ -2881,7 +2886,8 @@ class CreateClassSectionView(TemplateView):
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 @method_decorator(institute_authenticated_user_only,name='dispatch')
 class InstituteHistoryLogView(TemplateView):
-    template_name="topteenfrontend/user/institute_log.html"
+    # template_name="topteenfrontend/user/institute_log.html"
+    template_name="template20/institute/institute_history_log.html"
 
     def html_head(self):
         name='Institute Logs'

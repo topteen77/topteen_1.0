@@ -428,7 +428,7 @@ class ProfessionDetailView(BaseDetailView):
 
 
 class LoginView(TemplateView):
-    template_name ="topteenadmin/user/login.html"
+    template_name ="template20/admin/login.html"
     
     def post(self,request,*args,**kwargs):
         data={}
@@ -445,7 +445,7 @@ class LoginView(TemplateView):
 
 
 def password_reset_request(request, *args, **kwargs):
-    template_name="topteenadmin/user/forgot_password.html"
+    template_name="template20/admin/forgot_password.html"
     password_reset_form=None
     if request.method == "POST":
         password_reset_form = PasswordResetForm(request.POST)
@@ -483,11 +483,17 @@ def password_reset_request(request, *args, **kwargs):
 
 
 class ChangePasswordView(TemplateView):
-    template_name = 'topteenadmin/user/new-password.html'
+    template_name = 'template20/admin/change_password.html'
 
     def html_head(self):
         s='Edit My Profile'
         return build_html_head(title=s, description=s)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['uidb64'] = kwargs.get('uidb64', '')
+        ctx['token'] = kwargs.get('token', '')
+        return ctx
 
     def post(self,request, uidb64,token,*args, **kwargs):
         ctx={}
@@ -512,7 +518,7 @@ class ChangePasswordView(TemplateView):
 
 def profileupdate(request , *args, **kwargs):
     ctx={}
-    template_name='topteenadmin/user/account.html'
+    template_name='template20/admin/profile_update.html'
     ids = request.user.id
     user = User.objects.get(pk=ids)
              

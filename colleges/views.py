@@ -242,12 +242,22 @@ class CollegeList(TemplateView):
         return render(request, self.template_name, self.get_context(request,args, kwargs))
 
 def shortlist_college_view(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'User not authenticated'}, status=401)
+    
     id=request.GET.get("id")
-    college=get_object_or_404(College,id=id)
-    data=College.objects.filter(id=id,shortlist=request.user).exists()
-    if data:
-        college.shortlist.remove(request.user)
-        return JsonResponse({'success':'false'})
-    else:
-        college.shortlist.add(request.user)
-        return JsonResponse({'success':'true'})
+    if not id:
+        return JsonResponse({'success': False, 'error': 'College ID is required'}, status=400)
+    
+    try:
+        college=get_object_or_404(College,id=id)
+        # Check if user already shortlisted this college using ManyToMany relationship
+        is_shortlisted = college.shortlist.filter(id=request.user.id).exists()
+        if is_shortlisted:
+            college.shortlist.remove(request.user)
+            return JsonResponse({'success':'false'})
+        else:
+            college.shortlist.add(request.user)
+            return JsonResponse({'success':'true'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

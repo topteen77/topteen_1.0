@@ -1,0 +1,342 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Institute Group Dashboard | Top Teen{% endblock %}
+{% block description_content %}Institute group dashboard for managing institutes and analytics.{% endblock %}
+
+{% block bodyclass %}{{ super() }} institute-group-dashboard{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<style>
+  .institute-group-dashboard {
+    padding-top: 80px;
+  }
+  .stat-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .stat-card i {
+    min-width: 32px;
+  }
+  .stat-card p {
+    margin: 0;
+  }
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: #828282;
+  }
+  .institute-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.2s ease;
+  }
+  .institute-card:hover {
+    border-color: #3f37c9;
+    box-shadow: 0 2px 8px rgba(63, 55, 201, 0.1);
+  }
+  .table-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  .search-box {
+    max-width: 400px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="institute-group-dashboard pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <!-- Left Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="border rounded-3 p-3 sticky-top" style="top: 100px;">
+          <!-- Institute Group Profile -->
+          <div class="text-center border-bottom pb-3 mb-3">
+            <div class="mb-3">
+              {% if request.user.image %}
+              <img src="/media/upload/users/{{request.user.id}}/user_{{request.user.id}}.jpg" 
+                   class="rounded-circle" 
+                   style="width: 104px; height: 104px; object-fit: cover;" 
+                   alt="Profile Image" 
+                   onerror="this.src='{{ static('images_new/icons/user-icon.svg') }}'">
+              {% else %}
+              <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 104px; height: 104px;">
+                <i class='bx bx-user fs-48 text-gray'></i>
+              </div>
+              {% endif %}
+            </div>
+            <h5 class="fs-16 fw-semibold mb-3">{{ request.user.get_full_name|default(request.user.username) }}</h5>
+            {% if institute_group %}
+            <p class="fs-14 text-gray mb-0">{{ institute_group.group_name }}</p>
+            <p class="fs-12 text-muted mb-0">Group Admin</p>
+            {% endif %}
+          </div>
+          
+          <!-- Statistics -->
+          <div class="card mb-3" style="background: #f7f7fa; border: 1px solid #e0e0e0;">
+            <div class="card-body p-3">
+              <h6 class="fs-14 fw-semibold mb-3 text-center">Group Statistics</h6>
+              <div class="d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fs-12 text-gray">Institutes:</span>
+                  <span class="fs-14 fw-semibold">{{ total_institute_count.count if total_institute_count else 0 }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fs-12 text-gray">Students:</span>
+                  <span class="fs-14 fw-semibold text-primary">{{ total_stu_count }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fs-12 text-gray">Counselors:</span>
+                  <span class="fs-14 fw-semibold text-info">{{ counselors_count }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                  <span class="fs-12 text-gray">Tests Completed:</span>
+                  <span class="fs-14 fw-semibold text-success">{{ test_result_count|length if test_result_count else 0 }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- My Dashboard Button -->
+          {% if request.user.user_type == 3 %}
+            {# Institute Group Admin #}
+            <a href="{{ url('institute:institutegroupdashboard') }}" 
+               class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
+               style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+              <i class='bx bx-home me-2'></i> My Dashboard
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="fs-24 fw-semibold mb-0">Institute Group Dashboard</h2>
+          {% if institute_group %}
+          <span class="badge bg-primary fs-14">{{ institute_group.group_name }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="stat-card">
+              <i class='bx bx-building text-primary'></i>
+              <div>
+                <p class="stat-value">{{ total_institute_count.count if total_institute_count else 0 }}</p>
+                <p class="stat-label">Total Institutes</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="stat-card">
+              <i class='bx bx-user text-success'></i>
+              <div>
+                <p class="stat-value">{{ total_stu_count }}</p>
+                <p class="stat-label">Total Students</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="stat-card">
+              <i class='bx bx-user-check text-info'></i>
+              <div>
+                <p class="stat-value">{{ counselors_count }}</p>
+                <p class="stat-label">Counselors</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="stat-card">
+              <i class='bx bx-check-circle text-warning'></i>
+              <div>
+                <p class="stat-value">{{ test_result_count|length if test_result_count else 0 }}</p>
+                <p class="stat-label">Tests Completed</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stream Distribution Chart -->
+        {% if streams %}
+        <div class="table-card mb-4">
+          <h5 class="mb-3">Stream Distribution</h5>
+          <canvas id="streamChart" height="100"></canvas>
+        </div>
+        {% endif %}
+
+        <!-- Search and Filter -->
+        <div class="table-card mb-4">
+          <form method="get" action="{{ url('institute:institutegroupdashboard') }}" class="row g-3">
+            <div class="col-md-4">
+              <label for="institute" class="form-label">Institute Name</label>
+              <input type="text" 
+                     name="institute" 
+                     id="institute"
+                     class="form-control" 
+                     placeholder="Search institute..."
+                     value="{{ search_params.institute|default('') }}">
+            </div>
+            <div class="col-md-4">
+              <label for="location" class="form-label">Location</label>
+              <select name="location" id="location" class="form-select">
+                <option value="">All Locations</option>
+                {% if locations %}
+                {% for location in locations %}
+                <option value="{{ location }}" {% if search_params.location == location %}selected{% endif %}>
+                  {{ location }}
+                </option>
+                {% endfor %}
+                {% endif %}
+              </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end gap-2">
+              <button type="submit" class="btn btn-primary flex-fill">
+                <i class='bx bx-search me-2'></i> Search
+              </button>
+              <a href="{{ url('institute:institutegroupdashboard') }}" class="btn btn-secondary">
+                <i class='bx bx-refresh'></i>
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <!-- Institutes List -->
+        <div class="table-card">
+          <h5 class="mb-3">Institutes ({{ institutes_paginations.paginator.count }})</h5>
+          {% if institutes_paginations %}
+          <div class="row">
+            {% for institute in institutes_paginations %}
+            <div class="col-12 col-md-6 mb-3">
+              <div class="institute-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="mb-0 fw-semibold">{{ institute.name|truncate(30) }}</h6>
+                  <span class="badge bg-primary">{{ institute.student_count|default(0) }} Students</span>
+                </div>
+                {% if institute.address %}
+                <p class="text-muted small mb-2">
+                  <i class='bx bx-map-pin me-1'></i> {{ institute.address|truncate(40) }}
+                </p>
+                {% endif %}
+                {% if institute.created_by %}
+                <p class="text-muted small mb-2">
+                  <i class='bx bx-user me-1'></i> {{ institute.created_by.email|truncate(25) }}
+                </p>
+                {% endif %}
+                <div class="d-flex gap-2 mt-3">
+                  <a href="{{ url('institute:institutedashboard', args=[institute.slug]) }}" class="btn btn-sm btn-outline-primary flex-fill">
+                    <i class='bx bx-show me-1'></i> View
+                  </a>
+                  {% if institute.institute_status == 1 %}
+                  <span class="badge bg-success">Approved</span>
+                  {% else %}
+                  <span class="badge bg-warning">Pending</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Pagination -->
+          {% if institutes_paginations.has_other_pages %}
+          <nav aria-label="Institutes pagination">
+            <ul class="pagination justify-content-center">
+              {% if institutes_paginations.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ institutes_paginations.previous_page_number }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}">Previous</a>
+              </li>
+              {% endif %}
+              {% for num in institutes_paginations.paginator.page_range %}
+              {% if institutes_paginations.number == num %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+              </li>
+              {% elif num > institutes_paginations.number|add:'-3' and num < institutes_paginations.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}">{{ num }}</a>
+              </li>
+              {% endif %}
+              {% endfor %}
+              {% if institutes_paginations.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ institutes_paginations.next_page_number }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}">Next</a>
+              </li>
+              {% endif %}
+            </ul>
+          </nav>
+          {% endif %}
+          {% else %}
+          <div class="text-center py-5">
+            <i class='bx bx-building fs-48 text-muted mb-3'></i>
+            <p class="text-muted">No institutes found</p>
+            {% if search_params.institute or search_params.location %}
+            <a href="{{ url('institute:institutegroupdashboard') }}" class="btn btn-outline-primary mt-2">
+              Clear Filters
+            </a>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+{% if streams %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('streamChart');
+    if (ctx) {
+      const streams = {{ streams|tojson }};
+      const labels = Object.keys(streams);
+      const data = Object.values(streams);
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Students',
+            data: data,
+            backgroundColor: 'rgba(63, 55, 201, 0.8)',
+            borderColor: 'rgba(63, 55, 201, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}
+

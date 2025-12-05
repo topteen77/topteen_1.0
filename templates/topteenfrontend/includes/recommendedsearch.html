@@ -5,9 +5,9 @@ id="desktopviewsearch"
         
       {% for college in colleges['career'][:10] %}
       <li
-        class="p-4 flex flex-row justify-between items-center cursor-pointer font-semibold"
+        class="p-4 flex flex-row justify-between items-center font-semibold"
       >
-        <a href="{{college.url}}">{{college.name}}</a>
+        <a href="{{get_url(college)}}" class="block w-full text-[#0f0f0f] hover:text-[#009d32] no-underline">{{college.name}}</a>
         
         <p class="text-[#009d32] text-[18px] font-semibold">
         Career
@@ -17,9 +17,9 @@ id="desktopviewsearch"
 
       {% for college in colleges['college'] %}
       <li
-        class="p-4 flex flex-row justify-between items-center cursor-pointer font-semibold"
+        class="p-4 flex flex-row justify-between items-center font-semibold"
       >
-        <a href="{{college.url}}">{{college.name}}</a>
+        <a href="{{get_url(college)}}" class="block w-full text-[#0f0f0f] hover:text-[#009d32] no-underline">{{college.name}}</a>
         
         <p class="text-[#009d32] text-[18px] font-semibold">
         College
@@ -30,9 +30,9 @@ id="desktopviewsearch"
       
       {% for college in colleges['entranceexam'][:10] %}
       <li
-        class="p-4 flex flex-row justify-between items-center cursor-pointer font-semibold"
+        class="p-4 flex flex-row justify-between items-center font-semibold"
       >
-        <a href="{{college.url}}">{{college.name}}</a>
+        <a href="{{get_url(college)}}" class="block w-full text-[#0f0f0f] hover:text-[#009d32] no-underline">{{college.name}}</a>
         
         <p class="text-[#009d32] text-[18px] font-semibold">
         Exam
@@ -42,9 +42,9 @@ id="desktopviewsearch"
       
       {% for college in colleges['course'][:10] %}
       <li
-        class="p-4 flex flex-row justify-between items-center cursor-pointer font-semibold"
+        class="p-4 flex flex-row justify-between items-center font-semibold"
       >
-        <a href="{{college.url}}">{{college.name}}</a>
+        <a href="{{get_url(college)}}" class="block w-full text-[#0f0f0f] hover:text-[#009d32] no-underline">{{college.name}}</a>
         
         <p class="text-[#009d32] text-[18px] font-semibold">
         Course

@@ -1,0 +1,171 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}Admin Login | Top Teen{% endblock %}
+{% block description_content %}Login to Top Teen Admin Panel{% endblock %}
+
+{% block bodyclass %}admin-login-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .admin-login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+  }
+  .login-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    max-width: 450px;
+    width: 100%;
+  }
+  .login-logo {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .login-logo img {
+    max-width: 200px;
+    height: auto;
+  }
+  .login-title {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .login-title h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  .login-title p {
+    color: #666;
+    font-size: 14px;
+  }
+  .form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .form-control {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+  .form-control:focus {
+    border-color: #3f37c9;
+    box-shadow: 0 0 0 3px rgba(63, 55, 201, 0.1);
+  }
+  .forgot-password-link {
+    color: #3f37c9;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: color 0.2s ease;
+  }
+  .forgot-password-link:hover {
+    color: #2e289d;
+    text-decoration: underline;
+  }
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: #3f37c9;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+  }
+  .login-btn:hover {
+    background: #2e289d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(63, 55, 201, 0.3);
+  }
+  .login-btn:active {
+    transform: translateY(0);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <a href="{{ url('core:home') }}">
+        <img src="{{ static('images_new/logos/logo.svg') }}" alt="Top Teen Logo">
+      </a>
+    </div>
+    
+    <div class="login-title">
+      <h1>Admin Login</h1>
+      <p>Sign in to access the admin panel</p>
+    </div>
+
+    {% include 'template20/includes/messages.html' %}
+
+    <form method="POST" action="{{ url('topteenadmin:login') }}" id="adminLoginForm">
+      {% csrf_token %}
+      
+      <div class="mb-3">
+        <label for="email" class="form-label">Email Address</label>
+        <input type="email" 
+               class="form-control" 
+               id="email" 
+               name="email" 
+               placeholder="Enter your email"
+               required 
+               autocomplete="email">
+      </div>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <label for="password" class="form-label mb-0">Password</label>
+          <a href="{{ url('topteenadmin:forgotpassword') }}" class="forgot-password-link">
+            Forgot Password?
+          </a>
+        </div>
+        <input type="password" 
+               class="form-control" 
+               id="password" 
+               name="password" 
+               placeholder="Enter your password"
+               required 
+               autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="login-btn">
+        <i class='bx bx-log-in me-2'></i> Sign In
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('adminLoginForm');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="bx bx-loader bx-spin me-2"></i> Signing in...';
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
+

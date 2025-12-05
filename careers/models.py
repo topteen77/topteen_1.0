@@ -144,6 +144,197 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
             return self.image.url
         return '/static/images/career-icon.png'  # Default career icon
     
+    def get_xmind_file_path(self):
+        """
+        Dynamically find XMind file path based on career name and cluster structure.
+        Uses the career_mindmap directory at project root.
+        Returns None gracefully if file doesn't exist (no errors).
+        """
+        from pathlib import Path
+        from django.conf import settings
+        
+        try:
+            # Use absolute path: /career_mindmap directory at project root
+            mind_maps_base = Path(settings.BASE_DIR) / 'career_mindmap'
+            
+            # Return None if base directory doesn't exist
+            if not mind_maps_base.exists():
+                return None
+            
+            # Try multiple search strategies
+            search_paths = []
+            
+            # Strategy 1: Use career clusters (same as import structure)
+            if self.career_cluster.exists():
+                for cluster in self.career_cluster.all():
+                    cluster_folder = cluster.name.strip()
+                    cluster_path = mind_maps_base / cluster_folder
+                    
+                    # Skip if cluster folder doesn't exist
+                    if not cluster_path.exists():
+                        continue
+                    
+                    # Try exact career name
+                    search_paths.append(cluster_path / f'{self.name}.xmind')
+                    # Try slugified name
+                    from django.utils.text import slugify
+                    search_paths.append(cluster_path / f'{slugify(self.name)}.xmind')
+                    # Try with underscores
+                    search_paths.append(cluster_path / f'{self.name.replace(" ", "_")}.xmind')
+                    # Try with hyphens
+                    search_paths.append(cluster_path / f'{self.name.replace(" ", "-")}.xmind')
+                    # Try lowercase
+                    search_paths.append(cluster_path / f'{self.name.lower()}.xmind')
+            
+            # Strategy 2: Search all folders (fallback) - only if no cluster matches
+            if not search_paths and mind_maps_base.exists():
+                from django.utils.text import slugify
+                for cluster_folder in mind_maps_base.iterdir():
+                    if cluster_folder.is_dir():
+                        search_paths.append(cluster_folder / f'{self.name}.xmind')
+                        search_paths.append(cluster_folder / f'{slugify(self.name)}.xmind')
+                        search_paths.append(cluster_folder / f'{self.name.lower()}.xmind')
+            
+            # Check each potential path
+            for path in search_paths:
+                try:
+                    if path.exists() and path.is_file():
+                        return path
+                except (OSError, PermissionError):
+                    # Skip files we can't access
+                    continue
+            
+            return None
+        
+        except Exception:
+            # Silently return None on any error
+            return None
+
+    def has_xmind_file(self):
+        """Check if XMind file exists for this career. Returns False gracefully if not found."""
+        try:
+            return self.get_xmind_file_path() is not None
+        except Exception:
+            return False
+    
+    def has_mindmap_data(self):
+        """
+        Check if mindmap data is available for this career.
+        Returns True if either XMind file exists OR description contains h2 headings.
+        """
+        try:
+            # First check for XMind file
+            if self.has_xmind_file():
+                return True
+            
+            # Then check if description has h2 tags
+            if self.description:
+                from bs4 import BeautifulSoup
+                soup = BeautifulSoup(self.description, 'html.parser')
+                h2_tags = soup.find_all('h2')
+                if h2_tags:
+                    return True
+            
+            return False
+        except Exception:
+            return False
+    
+    def convert_description_to_jsmind_json(self):
+        """
+        Convert HTML content from career.description to jsMind format.
+        Extracts all h2 headings and creates a mindmap structure.
+        Also extracts h3 headings as sub-children of h2.
+        
+        Returns:
+            dict: jsMind-compatible JSON structure with 'meta', 'format', and 'data' keys
+            None: if description is empty or parsing fails
+        """
+        if not self.description or not self.name:
+            return None
+        
+        try:
+            from bs4 import BeautifulSoup
+            from django.utils.html import strip_tags
+            import logging
+            
+            logger = logging.getLogger(__name__)
+            
+            soup = BeautifulSoup(self.description, 'html.parser')
+            
+            # Root node with career name
+            root_node = {
+                'id': 'root',
+                'topic': self.name,
+                'expanded': True,
+                'children': []
+            }
+            
+            # Find all h2 and h3 tags
+            all_headings = soup.find_all(['h2', 'h3'])
+            
+            if not all_headings:
+                # If no headings, return just the root node
+                return {
+                    'meta': {
+                        'name': self.name,
+                        'author': 'HTML Parser',
+                        'version': '1.0'
+                    },
+                    'format': 'node_tree',
+                    'data': root_node
+                }
+            
+            # Process headings to build hierarchy
+            h2_idx = -1
+            h3_idx = 0
+            
+            for heading in all_headings:
+                heading_text = heading.get_text(strip=True)
+                if not heading_text:
+                    continue
+                
+                if heading.name == 'h2':
+                    # New h2 - create new child node
+                    h2_idx += 1
+                    h3_idx = 0
+                    
+                    h2_node = {
+                        'id': f'root-{h2_idx}',
+                        'topic': heading_text,
+                        'expanded': True,
+                        'children': []
+                    }
+                    root_node['children'].append(h2_node)
+                
+                elif heading.name == 'h3' and h2_idx >= 0:
+                    # h3 - add as child of current h2
+                    h3_node = {
+                        'id': f'root-{h2_idx}-{h3_idx}',
+                        'topic': heading_text,
+                        'expanded': True
+                    }
+                    
+                    # Add to the last h2 node's children
+                    if root_node['children']:
+                        root_node['children'][-1]['children'].append(h3_node)
+                        h3_idx += 1
+            
+            return {
+                'meta': {
+                    'name': self.name,
+                    'author': 'HTML Parser',
+                    'version': '1.0'
+                },
+                'format': 'node_tree',
+                'data': root_node
+            }
+        
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f'Error parsing HTML description for mindmap (career: {self.name}): {str(e)}')
+            return None
+    
     def save(self, *args, **kwargs):
         """Convert only non-ASCII characters to numeric entities, preserve HTML tags."""
         import html

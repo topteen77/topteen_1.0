@@ -39,7 +39,7 @@ def institute_authenticated_user_only(view_func):
             return view_func(request,*args,**kwargs)
         else:
             # if (ins.institute_group.institute_group_admin==request.user) and request.method=="GET":
-            if (ins.institute_group.institute_group_admin==request.user):
+            if (ins.institute_group and ins.institute_group.institute_group_admin==request.user):
                 return view_func(request,*args,**kwargs) 
             return HttpResponseRedirect("/")
     return wrap

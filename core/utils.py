@@ -116,30 +116,23 @@ def get_preferred_payment_gateway():
     
     # Check if ICICI Eazypay is preferred (preference = 1 means ICICI Eazypay)
     if preference == 1:  # ICICI Eazypay preference
-        merchant_id = getattr(settings, 'ICICI_EAZYPAY_MERCHANT_ID', '')
-        encryption_key = getattr(settings, 'ICICI_EAZYPAY_ENCRYPTION_KEY', '')
-        
-        print(f"[Gateway Selection] ICICI Eazypay ({icici_environment} mode) - Merchant ID: {'SET' if merchant_id else 'EMPTY'}, Encryption Key: {'SET' if encryption_key else 'EMPTY'}")
-        
-        # If ICICI Eazypay is properly configured, use it
-        if merchant_id and encryption_key:
+        # Use the improved is_gateway_available function for consistent validation
+        if is_gateway_available(choices.GatewayChoices.ICICIEAZYPAY):
             print("[Gateway Selection] Using ICICI Eazypay (credentials configured)")
             return choices.GatewayChoices.ICICIEAZYPAY
         else:
+            merchant_id = getattr(settings, 'ICICI_EAZYPAY_MERCHANT_ID', '')
+            encryption_key = getattr(settings, 'ICICI_EAZYPAY_ENCRYPTION_KEY', '')
+            print(f"[Gateway Selection] ICICI Eazypay ({icici_environment} mode) - Merchant ID: {'SET' if merchant_id else 'EMPTY'}, Encryption Key: {'SET' if encryption_key else 'EMPTY'}")
             print("[Gateway Selection] ICICI Eazypay preferred but credentials not configured, falling back to Razorpay")
     
     # Fallback to Razorpay (either preference is 2, or ICICI Eazypay is not configured)
-    razorpay_key = getattr(settings, 'RAZORPAY_KEY', '')
-    razorpay_secret = getattr(settings, 'RAZORPAY_SECRET', '')
-    
-    print(f"[Gateway Selection] Razorpay - Key: {'SET' if razorpay_key else 'EMPTY'}, Secret: {'SET' if razorpay_secret else 'EMPTY'}")
-    
-    if razorpay_key and razorpay_secret:
+    if is_gateway_available(choices.GatewayChoices.RAZORPAY):
         print("[Gateway Selection] Using Razorpay")
         return choices.GatewayChoices.RAZORPAY
     
-    # If neither is configured, default to Razorpay
-    print("[Gateway Selection] Defaulting to Razorpay (no gateway configured)")
+    # If neither is configured, default to Razorpay (even if not configured)
+    print("[Gateway Selection] Warning: No payment gateway properly configured, defaulting to Razorpay")
     return choices.GatewayChoices.RAZORPAY
 
 def is_gateway_available(gateway_choice):
@@ -149,11 +142,28 @@ def is_gateway_available(gateway_choice):
     if gateway_choice == choices.GatewayChoices.ICICIEAZYPAY:
         merchant_id = getattr(settings, 'ICICI_EAZYPAY_MERCHANT_ID', '')
         encryption_key = getattr(settings, 'ICICI_EAZYPAY_ENCRYPTION_KEY', '')
-        return bool(merchant_id and encryption_key)
+        
+        # Check that both are non-empty strings (after stripping whitespace)
+        merchant_id = str(merchant_id).strip() if merchant_id else ''
+        encryption_key = str(encryption_key).strip() if encryption_key else ''
+        
+        # AES keys must be 16, 24, or 32 bytes long
+        if encryption_key:
+            key_length = len(encryption_key.encode('utf-8'))
+            valid_key_length = key_length in [16, 24, 32]
+        else:
+            valid_key_length = False
+        
+        return bool(merchant_id and encryption_key and valid_key_length)
     
     elif gateway_choice == choices.GatewayChoices.RAZORPAY:
         razorpay_key = getattr(settings, 'RAZORPAY_KEY', '')
         razorpay_secret = getattr(settings, 'RAZORPAY_SECRET', '')
+        
+        # Check that both are non-empty strings (after stripping whitespace)
+        razorpay_key = str(razorpay_key).strip() if razorpay_key else ''
+        razorpay_secret = str(razorpay_secret).strip() if razorpay_secret else ''
+        
         return bool(razorpay_key and razorpay_secret)
     
     return False

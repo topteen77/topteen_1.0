@@ -1,0 +1,75 @@
+{% if infographics.observations %}
+<!-- Significant Observations Infographic -->
+<div class="infographic-container observations-infographic-container" style="margin: 2rem 0; padding: 2rem; background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
+  <div class="observations-infographic">
+    <div class="infographic-title">Significant Observations (Academic Related Points)</div>
+    <div class="observations-grid">
+      {% for obs in infographics.observations %}
+      <div class="observation-card">
+        <div class="observation-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="14" fill="#4caf50" opacity="0.2"/>
+            <path d="M16 8 L20 12 L16 16 L12 12 Z" fill="#4caf50"/>
+            <circle cx="16" cy="22" r="3" fill="#4caf50"/>
+          </svg>
+        </div>
+        <div class="observation-title">{{ obs.title }}</div>
+        {% if obs.description %}
+        <div class="observation-description">{{ obs.description }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+.observations-infographic {
+  position: relative;
+}
+
+.observations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.observation-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(76, 175, 80, 0.15);
+  border-top: 4px solid #4caf50;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.observation-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.25);
+}
+
+.observation-icon {
+  margin-bottom: 12px;
+}
+
+.observation-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2e7d32;
+  margin-bottom: 8px;
+}
+
+.observation-description {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .observations-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endif %}
+

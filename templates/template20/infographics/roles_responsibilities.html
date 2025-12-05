@@ -1,0 +1,106 @@
+{% if infographics.roles_responsibilities %}
+<!-- Roles and Responsibilities Infographic -->
+<div class="infographic-container roles-infographic-container" style="margin: 2rem 0; padding: 2rem; background: linear-gradient(135deg, #ffeef8 0%, #fff0f5 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
+  <div class="roles-infographic">
+    <div class="infographic-title">{{ career.name }} - Roles and Responsibilities</div>
+    <div class="roles-grid">
+      {% for role in infographics.roles_responsibilities %}
+      <div class="role-card">
+        <div class="role-icon">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="18" fill="#9c27b0" opacity="0.2"/>
+            <path d="M20 10 L25 15 L20 20 L15 15 Z" fill="#9c27b0"/>
+            <path d="M20 20 L25 25 L20 30 L15 25 Z" fill="#9c27b0"/>
+          </svg>
+        </div>
+        <div class="role-name">{{ role.name }}</div>
+        {% if role.responsibilities %}
+        <ul class="role-responsibilities">
+          {% for resp in role.responsibilities %}
+          <li>{{ resp }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+.roles-infographic {
+  position: relative;
+}
+
+.infographic-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #7b1fa2;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 3px solid #9c27b0;
+}
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.role-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(156, 39, 176, 0.15);
+  border-left: 4px solid #9c27b0;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.role-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 20px rgba(156, 39, 176, 0.25);
+}
+
+.role-icon {
+  margin-bottom: 12px;
+}
+
+.role-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #7b1fa2;
+  margin-bottom: 12px;
+}
+
+.role-responsibilities {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.role-responsibilities li {
+  padding: 8px 0;
+  padding-left: 24px;
+  position: relative;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.role-responsibilities li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #9c27b0;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .roles-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endif %}
+

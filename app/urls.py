@@ -10,7 +10,7 @@ app_name = 'app'
 
 urlpatterns = [
     path('upload/', views.upload_file, name='upload_file'),
-    path('home', views.test_buttons, name='test_buttons'),
+    path('home/', views.test_buttons, name='test_buttons'),
 
     path('logout/', views.custom_logout, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
@@ -37,11 +37,11 @@ urlpatterns = [
     
     path('submit/', views.app_submit, name='app_submit'),
     path('submit_clicks/', views.submit_clicks, name='submit_clicks'),
-    path('download_pdf/<str:test_paper>', views.download_pdf, name='download-pdf'),
+    path('download_pdf/<str:test_paper>/', views.download_pdf, name='download-pdf'),
 
     # new addition
     path('export-to-excel/<str:email>/', views.export_to_excel, name='export_to_excel'),
-    path('test_1/<str:test_paper>', views.test_1, name='test_1'),
+    path('test_1/<str:test_paper>/', views.test_1, name='test_1'),
     path('pdf-check/', views.pdf_checker, name='pdf'),
 
 ]

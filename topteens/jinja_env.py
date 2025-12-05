@@ -1,6 +1,6 @@
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import reverse
-from jinja2 import Environment
+from jinja2 import Environment, pass_context
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.templatetags.static import static
@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.middleware.csrf import get_token
 from django.utils.html import format_html
 import re
+import json
 from app.templatetags.myfilters_extras import my_url
 # from shop.models import Category
 from django.utils.timezone import template_localtime
@@ -148,24 +149,77 @@ def seo_year(request):
 def custom_reverse(viewname, *args, **kwargs):
     return reverse(viewname, args=args, kwargs=kwargs)
 
-def csrf_input(request=None):
+def jinja_url(viewname, args=None, kwargs=None):
+    """Jinja2-compatible URL function that accepts args as a list"""
+    if args is None:
+        args = []
+    if kwargs is None:
+        kwargs = {}
+    if isinstance(args, list):
+        return reverse(viewname, args=args, kwargs=kwargs)
+    else:
+        # Handle positional arguments
+        return reverse(viewname, args=args if args else [], kwargs=kwargs)
+
+@pass_context
+def csrf_input(context):
     """Generate CSRF token input field for Jinja2 templates"""
-    # If request is provided, use it; otherwise try to get from context
+    # Try multiple ways to access request from context
+    request = None
+    if hasattr(context, 'get'):
+        request = context.get('request')
+    elif hasattr(context, 'request'):
+        request = context.request
+    elif 'request' in context:
+        request = context['request']
+    
     if request:
         token = get_token(request)
         return format_html(
             '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
             token,
         )
-    # Fallback: return empty string if no request
     return ''
+
+@pass_context  
+def csrf_token_value(context):
+    """Get CSRF token value for Jinja2 templates (for JavaScript usage)"""
+    # Try multiple ways to access request from context
+    request = None
+    if hasattr(context, 'get'):
+        request = context.get('request')
+    elif hasattr(context, 'request'):
+        request = context.request
+    elif 'request' in context:
+        request = context['request']
+    
+    if request:
+        return get_token(request)
+    return ''
+
+def tojson_filter(value):
+    """Convert Python object to JSON string"""
+    return mark_safe(json.dumps(value))
+
+def get_url(obj):
+    """Get URL from object - handles both Elasticsearch documents (url attribute) and Django models (url() method)"""
+    if hasattr(obj, 'url'):
+        url_attr = getattr(obj, 'url')
+        if callable(url_attr):
+            return url_attr()
+        else:
+            return url_attr
+    return '#'
 
 def environment(**options):
     env = Environment(**options)
     
+    # Add filters
+    env.filters['tojson'] = tojson_filter
+    
     env.globals.update({
         'static': staticfiles_storage.url,
-        'url': reverse,
+        'url': jinja_url,
         'url_':custom_reverse,
         'img_tag':img_tag,
         'MEDIA_URL': settings.MEDIA_URL,
@@ -182,5 +236,7 @@ def environment(**options):
         'seo_year':seo_year,
         'my_url': my_url,
         'csrf_input': csrf_input,
+        'csrf_token': csrf_token_value,
+        'get_url': get_url,
     })
     return env

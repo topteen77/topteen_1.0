@@ -222,7 +222,7 @@ class="lg:grid w-full lg:grid-cols-4  gap-x-[30px] container mt-8 px-3 mx-auto"
             {{exam.name}}
           </h5>
         </a>
-          {%for str in exam.stream[:1]%}
+          {%for str in exam.stream.all()[:1]%}
           <p
             class="text-[10px] leading-[11px] mediumFont text-opacity-[0.25] text-black"
           >

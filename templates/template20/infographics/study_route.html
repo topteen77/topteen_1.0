@@ -1,0 +1,39 @@
+{% if infographics.study_route %}
+<!-- Study Route Infographic -->
+<div class="infographic-container study-route-infographic-container" style="margin: 2rem 0; padding: 2rem; background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
+  <div class="study-route-infographic">
+    <div class="study-route-title">{{ career.name }} Study Route & Eligibility Criteria</div>
+    <div class="study-routes-grid">
+      {% for route in infographics.study_route %}
+      <div class="study-route-box {{ route.class }}">
+        <div class="route-name">{{ route.name }}</div>
+        <div class="route-steps">
+          {% for step in route.steps %}
+          <div class="route-step">
+            <div class="step-number">{{ step.number }}</div>
+            <div class="step-content">
+              <div class="step-title">{{ step.title }}</div>
+              {% if step.description %}
+              <div class="step-description">{{ step.description }}</div>
+              {% endif %}
+              {% if step.duration %}
+              <div class="step-duration">({{ step.duration }})</div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="route-connection"></div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="final-badge">
+      <div class="badge-circle">
+        <div class="badge-title">{{ career.name }}</div>
+        <div class="badge-subtitle">Professional</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+

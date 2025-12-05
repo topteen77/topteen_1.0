@@ -1,0 +1,2990 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{{ career.name }} - Mind Map | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Interactive mind map for {{ career.name }}
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <!-- Breadcrumb -->
+  <div class="container mt-3">
+    {% include 'template20/includes/breadcrumb.html' %}
+  </div>
+
+  <!-- Variation Selector -->
+  <div class="container mt-3 mb-3">
+    <div class="card" style="background: #f8f9fa; border: 1px solid #dee2e6;">
+      <div class="card-body p-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <h5 class="mb-0" style="font-size: 1.1rem;">{{ career.name }} - Mind Map</h5>
+            <small class="text-muted">Select layout variation:</small>
+          </div>
+          <div class="btn-group" role="group" style="flex-wrap: wrap;">
+            <a href="?variation=1" class="btn btn-sm {% if variation == '1' or variation == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}">Compact</a>
+            <a href="?variation=2" class="btn btn-sm {% if variation == '2' or variation == 2 %}btn-primary{% else %}btn-outline-primary{% endif %}">Minimal</a>
+            <a href="?variation=3" class="btn btn-sm {% if variation == '3' or variation == 3 %}btn-primary{% else %}btn-outline-primary{% endif %}">Fullscreen</a>
+            <a href="?variation=4" class="btn btn-sm {% if variation == '4' or variation == 4 %}btn-primary{% else %}btn-outline-primary{% endif %}">Sidebar</a>
+            <a href="?variation=5" class="btn btn-sm {% if variation == '5' or variation == 5 %}btn-primary{% else %}btn-outline-primary{% endif %}">Bottom Controls</a>
+            <a href="?variation=6" class="btn btn-sm {% if variation == '6' or variation == 6 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">✨ Radial</a>
+            <a href="?variation=7" class="btn btn-sm {% if variation == '7' or variation == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">🎴 Cards</a>
+            <a href="?variation=8" class="btn btn-sm {% if variation == '8' or variation == 8 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none;">🌊 Flow</a>
+            <a href="?variation=9" class="btn btn-sm {% if variation == '9' or variation == 9 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none;">🕸️ Network</a>
+            <a href="?variation=10" class="btn btn-sm {% if variation == '10' or variation == 10 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; border: none;">⏱️ Timeline</a>
+            <div class="w-100 mt-2"></div>
+            <small class="text-muted w-100">Vertical Versions:</small>
+            <a href="?variation=11" class="btn btn-sm {% if variation == '11' or variation == 11 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">⬇️ Vertical Radial</a>
+            <a href="?variation=12" class="btn btn-sm {% if variation == '12' or variation == 12 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">⬇️ Vertical Cards</a>
+            <a href="?variation=13" class="btn btn-sm {% if variation == '13' or variation == 13 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none;">⬇️ Vertical Flow</a>
+            <a href="?variation=14" class="btn btn-sm {% if variation == '14' or variation == 14 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none;">⬇️ Vertical Network</a>
+            <a href="?variation=15" class="btn btn-sm {% if variation == '15' or variation == 15 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; border: none;">⬇️ Vertical Timeline</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if has_xmind_file %}
+  
+  <!-- Variation 1: Compact Layout -->
+  {% if variation == '1' or variation == 1 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 20px;">
+        <h6 class="mb-0">{{ career.name }} Mind Map</h6>
+      </div>
+      <div class="card-body p-2">
+        <!-- Compact Toolbar -->
+        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap" style="padding: 8px; background: #f8f9fa; border-radius: 6px;">
+          <button class="btn btn-sm btn-light" onclick="xmindZoomIn()" title="Zoom In">🔍+</button>
+          <button class="btn btn-sm btn-light" onclick="xmindZoomOut()" title="Zoom Out">🔍-</button>
+          <span id="xmindZoomValue" class="badge bg-secondary" style="min-width: 50px;">100%</span>
+          <button class="btn btn-sm btn-light" onclick="xmindResetView()" title="Reset">🎯</button>
+          <div class="vr"></div>
+          <button class="btn btn-sm btn-light" onclick="xmindExpandAll()">⬇️ Expand</button>
+          <button class="btn btn-sm btn-light" onclick="xmindCollapseAll()">⬆️ Collapse</button>
+          <input type="text" class="form-control form-control-sm" id="xmindSearchInput" placeholder="Search..." style="max-width: 150px;" onkeyup="xmindSearchNodes(this.value)">
+        </div>
+        <!-- Compact Mindmap Container -->
+        <div class="mindmap-container-compact" style="height: 500px; max-height: 60vh; overflow: auto; background: #f8f9fa; border-radius: 8px; position: relative;">
+          <div id="loading-xmind" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div>Loading mind map...</div>
+          </div>
+          <div id="xmind_container" style="display: none; width: 100%; height: calc(100% - 40px); position: relative; overflow: visible;"></div>
+          <div id="xmind-navigation-bar" style="display: none; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 8px 15px; border-radius: 0 0 8px 8px; z-index: 1000;">
+            <div style="display: flex; align-items: center; justify-content: space-between; color: white; font-size: 12px;">
+              <span>Focusing on: <strong id="xmind-focused-node-name"></strong></span>
+              <button id="xmind-back-to-parent" onclick="xmindBackToParent()" style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                ← Back to <span id="xmind-parent-node-name"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 2: Minimal Layout (No Toolbar) -->
+  {% if variation == '2' or variation == 2 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <div class="card-body p-0">
+        <div class="mindmap-container-minimal" style="height: 600px; max-height: 75vh; overflow: auto; background: #f8f9fa; position: relative;">
+          <div id="loading-xmind" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div>Loading mind map...</div>
+          </div>
+          <div id="xmind_container" style="display: none; width: 100%; height: 100%; position: relative; overflow: visible;"></div>
+          <!-- Floating controls (top-right corner) -->
+          <div style="position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 5px; flex-direction: column;">
+            <button class="btn btn-sm btn-light shadow-sm" onclick="xmindZoomIn()" title="Zoom In" style="width: 40px; height: 40px; padding: 0;">+</button>
+            <button class="btn btn-sm btn-light shadow-sm" onclick="xmindZoomOut()" title="Zoom Out" style="width: 40px; height: 40px; padding: 0;">-</button>
+            <button class="btn btn-sm btn-light shadow-sm" onclick="xmindResetView()" title="Reset" style="width: 40px; height: 40px; padding: 0;">⌂</button>
+          </div>
+          <div id="xmind-navigation-bar" style="display: none; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 8px 15px; border-radius: 0 0 12px 12px; z-index: 1000;">
+            <div style="display: flex; align-items: center; justify-content: space-between; color: white; font-size: 12px;">
+              <span>Focusing on: <strong id="xmind-focused-node-name"></strong></span>
+              <button id="xmind-back-to-parent" onclick="xmindBackToParent()" style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                ← Back to <span id="xmind-parent-node-name"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 3: Fullscreen Layout -->
+  {% if variation == '3' or variation == 3 %}
+  <div class="mindmap-fullscreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f8f9fa; z-index: 9999; overflow: hidden;">
+    <div style="position: absolute; top: 10px; left: 10px; z-index: 10000;">
+      <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}" class="btn btn-sm btn-light shadow">← Back</a>
+    </div>
+    <div class="mindmap-container-fullscreen" style="height: 100vh; width: 100vw; overflow: auto; position: relative;">
+      <div id="loading-xmind" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+        <div>Loading mind map...</div>
+      </div>
+      <div id="xmind_container" style="display: none; width: 100%; height: 100%; position: relative; overflow: visible;"></div>
+      <!-- Fullscreen Toolbar (bottom) -->
+      <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; background: white; padding: 10px 20px; border-radius: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; gap: 10px; align-items: center;">
+        <button class="btn btn-sm btn-primary" onclick="xmindZoomIn()">🔍+</button>
+        <button class="btn btn-sm btn-primary" onclick="xmindZoomOut()">🔍-</button>
+        <span id="xmindZoomValue" class="badge bg-secondary" style="min-width: 60px;">100%</span>
+        <button class="btn btn-sm btn-primary" onclick="xmindResetView()">🎯 Reset</button>
+        <div class="vr"></div>
+        <button class="btn btn-sm btn-primary" onclick="xmindExpandAll()">⬇️ Expand</button>
+        <button class="btn btn-sm btn-primary" onclick="xmindCollapseAll()">⬆️ Collapse</button>
+        <input type="text" class="form-control form-control-sm" id="xmindSearchInput" placeholder="Search..." style="width: 200px;" onkeyup="xmindSearchNodes(this.value)">
+      </div>
+      <div id="xmind-navigation-bar" style="display: none; position: absolute; top: 60px; left: 50%; transform: translateX(-50%); z-index: 10000; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 10px 20px; border-radius: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+        <div style="display: flex; align-items: center; gap: 15px; color: white;">
+          <span>Focusing on: <strong id="xmind-focused-node-name"></strong></span>
+          <button id="xmind-back-to-parent" onclick="xmindBackToParent()" style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 6px 15px; border-radius: 20px; cursor: pointer;">
+            ← Back to <span id="xmind-parent-node-name"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 4: Sidebar Layout -->
+  {% if variation == '4' or variation == 4 %}
+  <div class="container mb-4">
+    <div class="row g-0">
+      <div class="col-md-9">
+        <div class="card" style="border-radius: 12px 0 0 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); height: 700px;">
+          <div class="card-body p-0">
+            <div class="mindmap-container-sidebar" style="height: 700px; overflow: auto; background: #f8f9fa; position: relative;">
+              <div id="loading-xmind" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                <div>Loading mind map...</div>
+              </div>
+              <div id="xmind_container" style="display: none; width: 100%; height: 100%; position: relative; overflow: visible;"></div>
+              <div id="xmind-navigation-bar" style="display: none; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 8px 15px; z-index: 1000;">
+                <div style="display: flex; align-items: center; justify-content: space-between; color: white; font-size: 12px;">
+                  <span>Focusing on: <strong id="xmind-focused-node-name"></strong></span>
+                  <button id="xmind-back-to-parent" onclick="xmindBackToParent()" style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    ← Back to <span id="xmind-parent-node-name"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card" style="border-radius: 0 12px 12px 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); height: 700px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <div class="card-body" style="color: white;">
+            <h6 class="mb-3">Controls</h6>
+            <div class="d-grid gap-2 mb-3">
+              <button class="btn btn-light btn-sm" onclick="xmindZoomIn()">🔍 Zoom In</button>
+              <button class="btn btn-light btn-sm" onclick="xmindZoomOut()">🔍 Zoom Out</button>
+              <span id="xmindZoomValue" class="badge bg-dark text-center" style="padding: 8px;">100%</span>
+              <button class="btn btn-light btn-sm" onclick="xmindResetView()">🎯 Reset View</button>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.3);">
+            <div class="d-grid gap-2 mb-3">
+              <button class="btn btn-light btn-sm" onclick="xmindExpandAll()">⬇️ Expand All</button>
+              <button class="btn btn-light btn-sm" onclick="xmindCollapseAll()">⬆️ Collapse All</button>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.3);">
+            <div class="mb-3">
+              <label class="form-label" style="font-size: 0.9rem;">Search Nodes</label>
+              <input type="text" class="form-control form-control-sm" id="xmindSearchInput" placeholder="Type to search..." onkeyup="xmindSearchNodes(this.value)">
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.3);">
+            <div>
+              <small style="opacity: 0.9;">
+                <strong>Tips:</strong><br>
+                • Click nodes to expand/collapse<br>
+                • Double-click to focus<br>
+                • Drag to pan<br>
+                • Ctrl +/- to zoom
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 5: Bottom Controls Layout -->
+  {% if variation == '5' or variation == 5 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <div class="card-body p-0">
+        <div class="mindmap-container-bottom" style="height: 600px; max-height: 75vh; overflow: auto; background: #f8f9fa; position: relative;">
+          <div id="loading-xmind" class="loading" style="display: flex; justify-content: center; align-items: center; height: calc(100% - 60px);">
+            <div>Loading mind map...</div>
+          </div>
+          <div id="xmind_container" style="display: none; width: 100%; height: calc(100% - 60px); position: relative; overflow: visible;"></div>
+          <!-- Bottom Toolbar -->
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: white; border-top: 2px solid #667eea; padding: 10px 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; box-shadow: 0 -2px 8px rgba(0,0,0,0.1); z-index: 1000;">
+            <button class="btn btn-sm btn-outline-primary" onclick="xmindZoomIn()">🔍+</button>
+            <button class="btn btn-sm btn-outline-primary" onclick="xmindZoomOut()">🔍-</button>
+            <span id="xmindZoomValue" class="badge bg-primary" style="min-width: 50px;">100%</span>
+            <button class="btn btn-sm btn-outline-primary" onclick="xmindResetView()">🎯 Reset</button>
+            <div class="vr"></div>
+            <button class="btn btn-sm btn-outline-primary" onclick="xmindExpandAll()">⬇️ Expand</button>
+            <button class="btn btn-sm btn-outline-primary" onclick="xmindCollapseAll()">⬆️ Collapse</button>
+            <div class="vr"></div>
+            <input type="text" class="form-control form-control-sm" id="xmindSearchInput" placeholder="Search nodes..." style="max-width: 200px;" onkeyup="xmindSearchNodes(this.value)">
+            <div class="ms-auto">
+              <small class="text-muted">Double-click node to focus | Drag to pan</small>
+            </div>
+          </div>
+          <div id="xmind-navigation-bar" style="display: none; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1001; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 8px 20px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+            <div style="display: flex; align-items: center; gap: 15px; color: white; font-size: 13px;">
+              <span>Focusing on: <strong id="xmind-focused-node-name"></strong></span>
+              <button id="xmind-back-to-parent" onclick="xmindBackToParent()" style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 5px 15px; border-radius: 15px; cursor: pointer; font-size: 12px;">
+                ← Back to <span id="xmind-parent-node-name"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 6: Radial/Circular Layout -->
+  {% if variation == '6' or variation == 6 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15); background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+      <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px;">
+        <h5 class="mb-0">✨ Radial Mind Map - {{ career.name }}</h5>
+        <small style="opacity: 0.9;">Nodes arranged in concentric circles</small>
+      </div>
+      <div class="card-body p-3">
+        <div class="radial-mindmap-container" style="height: 700px; max-height: 80vh; overflow: auto; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 12px; position: relative;">
+          <div id="loading-radial" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div style="text-align: center;">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p class="mt-2">Loading radial mind map...</p>
+            </div>
+          </div>
+          <svg id="radial-svg" style="width: 100%; height: 100%; display: none;"></svg>
+          <div id="radial-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
+            <div class="btn-group-vertical" style="gap: 8px;">
+              <button class="btn btn-sm btn-light shadow" onclick="radialZoomIn()" title="Zoom In">🔍+</button>
+              <button class="btn btn-sm btn-light shadow" onclick="radialZoomOut()" title="Zoom Out">🔍-</button>
+              <button class="btn btn-sm btn-light shadow" onclick="radialReset()" title="Reset">🎯</button>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 7: Card Grid Layout -->
+  {% if variation == '7' or variation == 7 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(240, 147, 251, 0.15); background: linear-gradient(135deg, #ffeef8 0%, #fff0f5 100%);">
+      <div class="card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 15px 25px;">
+        <h5 class="mb-0">🎴 Card Grid Mind Map - {{ career.name }}</h5>
+        <small style="opacity: 0.9;">Modern card-based layout with smooth animations</small>
+      </div>
+      <div class="card-body p-3">
+        <div class="card-grid-mindmap-container" style="height: 700px; max-height: 80vh; overflow: auto; background: linear-gradient(135deg, #fff5f8 0%, #ffeef8 100%); border-radius: 12px; padding: 20px; position: relative;">
+          <div id="loading-cards" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div style="text-align: center;">
+              <div class="spinner-border" style="color: #f093fb;" role="status"></div>
+              <p class="mt-2">Loading card grid...</p>
+            </div>
+          </div>
+          <div id="card-grid-container" style="display: none; position: relative; min-height: 100%;"></div>
+          <div id="card-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
+            <div class="btn-group-vertical" style="gap: 8px;">
+              <button class="btn btn-sm btn-light shadow" onclick="cardGridToggleView()" title="Toggle View">🔄</button>
+              <button class="btn btn-sm btn-light shadow" onclick="cardGridExpandAll()" title="Expand All">⬇️</button>
+              <button class="btn btn-sm btn-light shadow" onclick="cardGridCollapseAll()" title="Collapse All">⬆️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 8: Minimalist Flow Layout -->
+  {% if variation == '8' or variation == 8 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(79, 172, 254, 0.15); background: linear-gradient(135deg, #e8f4fd 0%, #f0f9ff 100%);">
+      <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 15px 25px;">
+        <h5 class="mb-0">🌊 Flow Mind Map - {{ career.name }}</h5>
+        <small style="opacity: 0.9;">Clean flowing design with organic connections</small>
+      </div>
+      <div class="card-body p-3">
+        <div class="flow-mindmap-container" style="height: 700px; max-height: 80vh; overflow: auto; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; position: relative;">
+          <div id="loading-flow" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div style="text-align: center;">
+              <div class="spinner-border" style="color: #4facfe;" role="status"></div>
+              <p class="mt-2">Loading flow mind map...</p>
+            </div>
+          </div>
+          <svg id="flow-svg" style="width: 100%; height: 100%; display: none;"></svg>
+          <div id="flow-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
+            <div class="btn-group-vertical" style="gap: 8px;">
+              <button class="btn btn-sm btn-light shadow" onclick="flowZoomIn()" title="Zoom In">🔍+</button>
+              <button class="btn btn-sm btn-light shadow" onclick="flowZoomOut()" title="Zoom Out">🔍-</button>
+              <button class="btn btn-sm btn-light shadow" onclick="flowReset()" title="Reset">🎯</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 9: Network Graph Layout -->
+  {% if variation == '9' or variation == 9 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(67, 233, 123, 0.15); background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);">
+      <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 15px 25px;">
+        <h5 class="mb-0">🕸️ Network Graph - {{ career.name }}</h5>
+        <small style="opacity: 0.9;">Force-directed network visualization</small>
+      </div>
+      <div class="card-body p-3">
+        <div class="network-mindmap-container" style="height: 700px; max-height: 80vh; overflow: auto; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-radius: 12px; position: relative;">
+          <div id="loading-network" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div style="text-align: center;">
+              <div class="spinner-border" style="color: #43e97b;" role="status"></div>
+              <p class="mt-2">Loading network graph...</p>
+            </div>
+          </div>
+          <svg id="network-svg" style="width: 100%; height: 100%; display: none;"></svg>
+          <div id="network-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
+            <div class="btn-group-vertical" style="gap: 8px;">
+              <button class="btn btn-sm btn-light shadow" onclick="networkReset()" title="Reset Layout">🔄</button>
+              <button class="btn btn-sm btn-light shadow" onclick="networkTogglePhysics()" title="Toggle Physics">⚡</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 10: Timeline Flow Layout -->
+  {% if variation == '10' or variation == 10 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(250, 112, 154, 0.15); background: linear-gradient(135deg, #fff5f7 0%, #fff7ed 100%);">
+      <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 15px 25px;">
+        <h5 class="mb-0">⏱️ Timeline Mind Map - {{ career.name }}</h5>
+        <small style="opacity: 0.9;">Horizontal timeline-style flow</small>
+      </div>
+      <div class="card-body p-3">
+        <div class="timeline-mindmap-container" style="height: 700px; max-height: 80vh; overflow: auto; background: linear-gradient(135deg, #fff7ed 0%, #fff5f7 100%); border-radius: 12px; position: relative;">
+          <div id="loading-timeline" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div style="text-align: center;">
+              <div class="spinner-border" style="color: #fa709a;" role="status"></div>
+              <p class="mt-2">Loading timeline...</p>
+            </div>
+          </div>
+          <div id="timeline-container" style="display: none; position: relative; min-height: 100%; padding: 40px;"></div>
+          <div id="timeline-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
+            <div class="btn-group-vertical" style="gap: 8px;">
+              <button class="btn btn-sm btn-light shadow" onclick="timelineScrollLeft()" title="Scroll Left">←</button>
+              <button class="btn btn-sm btn-light shadow" onclick="timelineScrollRight()" title="Scroll Right">→</button>
+              <button class="btn btn-sm btn-light shadow" onclick="timelineReset()" title="Reset">🎯</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 11: Vertical Radial Layout -->
+  {% if variation == '11' or variation == 11 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15); background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+      <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px;">
+        <h5 class="mb-0">⬇️ Vertical Radial Mind Map - {{ career.name }}</h5>
+        <small style="opacity: 0.9;">Top-down circular arrangement</small>
+      </div>
+      <div class="card-body p-3">
+        <div class="vertical-radial-container" style="height: 700px; max-height: 80vh; overflow: auto; background: radial-gradient(ellipse at top, #ffffff 0%, #f0f4ff 100%); border-radius: 12px; position: relative;">
+          <div id="loading-vertical-radial" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div style="text-align: center;">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p class="mt-2">Loading vertical radial mind map...</p>
+            </div>
+          </div>
+          <svg id="vertical-radial-svg" style="width: 100%; height: 100%; display: none;"></svg>
+          <div id="vertical-radial-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
+            <div class="btn-group-vertical" style="gap: 8px;">
+              <button class="btn btn-sm btn-light shadow" onclick="verticalRadialZoomIn()" title="Zoom In">🔍+</button>
+              <button class="btn btn-sm btn-light shadow" onclick="verticalRadialZoomOut()" title="Zoom Out">🔍-</button>
+              <button class="btn btn-sm btn-light shadow" onclick="verticalRadialReset()" title="Reset">🎯</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 12: Vertical Card Stack Layout -->
+  {% if variation == '12' or variation == 12 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(240, 147, 251, 0.15); background: linear-gradient(135deg, #ffeef8 0%, #fff0f5 100%);">
+      <div class="card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 15px 25px;">
+        <h5 class="mb-0">⬇️ Vertical Card Stack - {{ career.name }}</h5>
+        <small style="opacity: 0.9;">Vertical card-based layout</small>
+      </div>
+      <div class="card-body p-3">
+        <div class="vertical-card-container" style="height: 700px; max-height: 80vh; overflow: auto; background: linear-gradient(180deg, #fff5f8 0%, #ffeef8 100%); border-radius: 12px; padding: 20px; position: relative;">
+          <div id="loading-vertical-cards" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div style="text-align: center;">
+              <div class="spinner-border" style="color: #f093fb;" role="status"></div>
+              <p class="mt-2">Loading vertical card stack...</p>
+            </div>
+          </div>
+          <div id="vertical-card-container" style="display: none; position: relative; min-height: 100%; max-width: 600px; margin: 0 auto;"></div>
+          <div id="vertical-card-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
+            <div class="btn-group-vertical" style="gap: 8px;">
+              <button class="btn btn-sm btn-light shadow" onclick="verticalCardExpandAll()" title="Expand All">⬇️</button>
+              <button class="btn btn-sm btn-light shadow" onclick="verticalCardCollapseAll()" title="Collapse All">⬆️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 13: Vertical Flow Layout -->
+  {% if variation == '13' or variation == 13 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(79, 172, 254, 0.15); background: linear-gradient(135deg, #e8f4fd 0%, #f0f9ff 100%);">
+      <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 15px 25px;">
+        <h5 class="mb-0">⬇️ Vertical Flow - {{ career.name }}</h5>
+        <small style="opacity: 0.9;">Top-down flowing design</small>
+      </div>
+      <div class="card-body p-3">
+        <div class="vertical-flow-container" style="height: 700px; max-height: 80vh; overflow: auto; background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; position: relative;">
+          <div id="loading-vertical-flow" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div style="text-align: center;">
+              <div class="spinner-border" style="color: #4facfe;" role="status"></div>
+              <p class="mt-2">Loading vertical flow...</p>
+            </div>
+          </div>
+          <svg id="vertical-flow-svg" style="width: 100%; height: 100%; display: none;"></svg>
+          <div id="vertical-flow-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
+            <div class="btn-group-vertical" style="gap: 8px;">
+              <button class="btn btn-sm btn-light shadow" onclick="verticalFlowZoomIn()" title="Zoom In">🔍+</button>
+              <button class="btn btn-sm btn-light shadow" onclick="verticalFlowZoomOut()" title="Zoom Out">🔍-</button>
+              <button class="btn btn-sm btn-light shadow" onclick="verticalFlowReset()" title="Reset">🎯</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 14: Vertical Network Layout -->
+  {% if variation == '14' or variation == 14 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(67, 233, 123, 0.15); background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);">
+      <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 15px 25px;">
+        <h5 class="mb-0">⬇️ Vertical Network - {{ career.name }}</h5>
+        <small style="opacity: 0.9;">Top-down network graph</small>
+      </div>
+      <div class="card-body p-3">
+        <div class="vertical-network-container" style="height: 700px; max-height: 80vh; overflow: auto; background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%); border-radius: 12px; position: relative;">
+          <div id="loading-vertical-network" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div style="text-align: center;">
+              <div class="spinner-border" style="color: #43e97b;" role="status"></div>
+              <p class="mt-2">Loading vertical network...</p>
+            </div>
+          </div>
+          <svg id="vertical-network-svg" style="width: 100%; height: 100%; display: none;"></svg>
+          <div id="vertical-network-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
+            <div class="btn-group-vertical" style="gap: 8px;">
+              <button class="btn btn-sm btn-light shadow" onclick="verticalNetworkReset()" title="Reset Layout">🔄</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Variation 15: Vertical Timeline Layout -->
+  {% if variation == '15' or variation == 15 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(250, 112, 154, 0.15); background: linear-gradient(135deg, #fff5f7 0%, #fff7ed 100%);">
+      <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 15px 25px;">
+        <h5 class="mb-0">⬇️ Vertical Timeline - {{ career.name }}</h5>
+        <small style="opacity: 0.9;">Vertical timeline-style flow</small>
+      </div>
+      <div class="card-body p-3">
+        <div class="vertical-timeline-container" style="height: 700px; max-height: 80vh; overflow: auto; background: linear-gradient(180deg, #fff7ed 0%, #fff5f7 100%); border-radius: 12px; position: relative;">
+          <div id="loading-vertical-timeline" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+            <div style="text-align: center;">
+              <div class="spinner-border" style="color: #fa709a;" role="status"></div>
+              <p class="mt-2">Loading vertical timeline...</p>
+            </div>
+          </div>
+          <div id="vertical-timeline-container" style="display: none; position: relative; min-height: 100%; padding: 40px; max-width: 500px; margin: 0 auto;"></div>
+          <div id="vertical-timeline-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
+            <div class="btn-group-vertical" style="gap: 8px;">
+              <button class="btn btn-sm btn-light shadow" onclick="verticalTimelineScrollUp()" title="Scroll Up">↑</button>
+              <button class="btn btn-sm btn-light shadow" onclick="verticalTimelineScrollDown()" title="Scroll Down">↓</button>
+              <button class="btn btn-sm btn-light shadow" onclick="verticalTimelineReset()" title="Reset">🎯</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Load jsMind Library -->
+  <link type="text/css" rel="stylesheet" href="/static/jsmind/jsmind.css" />
+  <script src="/static/jsmind/jsmind.js"></script>
+  <script src="/static/jsmind/jsmind.draggable.js"></script>
+
+  <script>
+  let xmindJm = null;
+  let xmindCurrentZoom = 100;
+  let xmindSearchResults = [];
+  let xmindCurrentSearchIndex = -1;
+  let xmindOriginalWidth = null;
+  let xmindOriginalHeight = null;
+  let xmindFitToWidthScale = 1;
+  let xmindFocusedNode = null;
+  let xmindParentNode = null;
+  let xmindIsDragging = false;
+  let xmindDragStartX = 0;
+  let xmindDragStartY = 0;
+  let xmindScrollStartX = 0;
+  let xmindScrollStartY = 0;
+  let xmindHasMoved = false;
+  const XMIND_DRAG_THRESHOLD = 5;
+
+  // Get container class based on variation
+  function getMindmapContainer() {
+    const variation = '{{ variation }}';
+    const containers = {
+      '1': '.mindmap-container-compact',
+      '2': '.mindmap-container-minimal',
+      '3': '.mindmap-container-fullscreen',
+      '4': '.mindmap-container-sidebar',
+      '5': '.mindmap-container-bottom'
+    };
+    return document.querySelector(containers[variation] || containers['1']);
+  }
+
+  async function loadXMindMap() {
+      const careerId = {{ career.id }};
+      const careerSlug = '{{ career.slug }}';
+      const apiUrl = `/careers/api/career/${careerSlug}-${careerId}-mindmap/json/`;
+      
+      try {
+          const response = await fetch(apiUrl, {
+              method: 'GET',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+              },
+              credentials: 'same-origin'
+          });
+          
+          if (response.status === 404 || !response.ok) {
+              document.getElementById('loading-xmind').style.display = 'none';
+              return;
+          }
+          
+          const jsmindData = await response.json();
+          
+          if (jsmindData.available === false || typeof jsMind === 'undefined') {
+              document.getElementById('loading-xmind').style.display = 'none';
+              return;
+          }
+          
+          const container = document.getElementById('xmind_container');
+          container.style.display = 'block';
+          
+          setTimeout(() => {
+              const options = {
+                  container: 'xmind_container',
+                  theme: 'primary',
+                  mode: 'full',
+                  editable: false
+              };
+              
+              xmindJm = new jsMind(options);
+              xmindJm.show(jsmindData);
+              
+              document.getElementById('loading-xmind').style.display = 'none';
+              
+              setTimeout(() => {
+                  applyXMindStyling();
+                  
+                  const svg = document.querySelector('#xmind_container svg.jsmind');
+                  if (svg) {
+                      xmindOriginalWidth = parseFloat(svg.getAttribute('width')) || svg.getBoundingClientRect().width;
+                      xmindOriginalHeight = parseFloat(svg.getAttribute('height')) || svg.getBoundingClientRect().height;
+                  }
+                  
+                  const scrollContainer = getMindmapContainer();
+                  if (scrollContainer && xmindOriginalWidth) {
+                      const containerWidth = scrollContainer.getBoundingClientRect().width - 40;
+                      xmindFitToWidthScale = containerWidth / xmindOriginalWidth;
+                      applyXMindZoom();
+                  }
+                  
+                  const rootNode = document.querySelector('#xmind_container jmnode.root');
+                  if (scrollContainer && rootNode) {
+                      scrollContainer.scrollLeft = 0;
+                      scrollContainer.scrollTop = 0;
+                      setTimeout(() => {
+                          const containerRect = scrollContainer.getBoundingClientRect();
+                          const rootRect = rootNode.getBoundingClientRect();
+                          const scrollLeft = rootRect.left - containerRect.left - (containerRect.width / 2) + (rootRect.width / 2);
+                          const scrollTop = rootRect.top - containerRect.top - (containerRect.height / 2) + (rootRect.height / 2);
+                          scrollContainer.scrollLeft = Math.max(0, scrollLeft);
+                          scrollContainer.scrollTop = Math.max(0, scrollTop);
+                      }, 200);
+                  }
+                  
+                  updateXMindZoomDisplay();
+                  
+                  let resizeTimer;
+                  window.addEventListener('resize', function() {
+                      clearTimeout(resizeTimer);
+                      resizeTimer = setTimeout(function() {
+                          if (xmindJm && xmindOriginalWidth) {
+                              const scrollContainer = getMindmapContainer();
+                              if (scrollContainer) {
+                                  const containerWidth = scrollContainer.getBoundingClientRect().width - 40;
+                                  xmindFitToWidthScale = containerWidth / xmindOriginalWidth;
+                                  applyXMindZoom();
+                              }
+                              xmindJm.view.resize();
+                              applyXMindStyling();
+                          }
+                      }, 250);
+                  });
+                  
+                  const observer = new MutationObserver(function(mutations) {
+                      setTimeout(() => applyXMindStyling(), 100);
+                  });
+                  
+                  const mindmapInnerContainer = document.querySelector('#xmind_container .jsmind-inner');
+                  if (mindmapInnerContainer) {
+                      observer.observe(mindmapInnerContainer, {
+                          childList: true,
+                          subtree: true
+                      });
+                  }
+                  
+                  xmindSetupDragToPan();
+                  xmindSetupKeyboardShortcuts();
+                  xmindSetupNodeClickToggle();
+              }, 300);
+              
+          }, 100);
+          
+      } catch (error) {
+          const loadingEl = document.getElementById('loading-xmind');
+          if (loadingEl) loadingEl.style.display = 'none';
+      }
+  }
+
+  function xmindZoomIn() {
+      if (!xmindJm) return;
+      xmindCurrentZoom = Math.min(xmindCurrentZoom + 10, 200);
+      applyXMindZoom();
+  }
+
+  function xmindZoomOut() {
+      if (!xmindJm) return;
+      xmindCurrentZoom = Math.max(xmindCurrentZoom - 10, 50);
+      applyXMindZoom();
+  }
+
+  function applyXMindZoom() {
+      if (!xmindJm) return;
+      const scrollContainer = getMindmapContainer();
+      const innerContainer = document.querySelector('#xmind_container .jsmind-inner');
+      if (!scrollContainer || !innerContainer) return;
+      
+      const scale = xmindFitToWidthScale * (xmindCurrentZoom / 100);
+      innerContainer.style.transform = `scale(${scale})`;
+      innerContainer.style.transformOrigin = 'top left';
+      
+      if (xmindOriginalWidth && xmindOriginalHeight) {
+          const scaledWidth = xmindOriginalWidth * scale;
+          const scaledHeight = xmindOriginalHeight * scale;
+          innerContainer.style.width = scaledWidth + 'px';
+          innerContainer.style.height = scaledHeight + 'px';
+          innerContainer.style.minWidth = scaledWidth + 'px';
+          innerContainer.style.minHeight = scaledHeight + 'px';
+      }
+      
+      updateXMindZoomDisplay();
+  }
+
+  function xmindResetView() {
+      if (!xmindJm) return;
+      xmindCurrentZoom = 100;
+      applyXMindZoom();
+      const scrollContainer = getMindmapContainer();
+      if (scrollContainer) {
+          scrollContainer.scrollLeft = 0;
+          scrollContainer.scrollTop = 0;
+      }
+  }
+
+  function updateXMindZoomDisplay() {
+      const zoomEl = document.getElementById('xmindZoomValue');
+      if (zoomEl) {
+          zoomEl.textContent = xmindCurrentZoom + '%';
+      }
+  }
+
+  function xmindExpandAll() {
+      if (!xmindJm) return;
+      xmindJm.expand_all();
+      setTimeout(() => applyXMindStyling(), 200);
+  }
+
+  function xmindCollapseAll() {
+      if (!xmindJm) return;
+      xmindJm.collapse_all();
+      setTimeout(() => applyXMindStyling(), 200);
+  }
+
+  function xmindSearchNodes(query) {
+      if (!xmindJm || !query.trim()) {
+          xmindClearSearch();
+          return;
+      }
+      const queryLower = query.toLowerCase();
+      xmindSearchResults = [];
+      const mind = xmindJm.mind;
+      function searchNode(node) {
+          if (node.topic.toLowerCase().includes(queryLower)) {
+              xmindSearchResults.push(node);
+          }
+          if (node.children) {
+              node.children.forEach(child => searchNode(child));
+          }
+      }
+      if (mind && mind.root) {
+          searchNode(mind.root);
+      }
+      if (xmindSearchResults.length > 0) {
+          xmindHighlightSearchResults();
+      } else {
+          xmindClearSearch();
+      }
+  }
+
+  function xmindHighlightSearchResults() {
+      document.querySelectorAll('#xmind_container jmnode').forEach(node => {
+          node.classList.remove('search-highlight');
+      });
+      xmindSearchResults.forEach(node => {
+          const nodeElement = document.querySelector(`#xmind_container jmnode[nodeid="${node.id}"]`);
+          if (nodeElement) {
+              nodeElement.classList.add('search-highlight');
+              nodeElement.style.backgroundColor = '#fff3cd';
+              nodeElement.style.border = '2px solid #ffc107';
+          }
+      });
+  }
+
+  function xmindClearSearch() {
+      document.querySelectorAll('#xmind_container jmnode').forEach(node => {
+          node.classList.remove('search-highlight');
+          node.style.backgroundColor = '';
+          node.style.border = '';
+      });
+      xmindSearchResults = [];
+      xmindCurrentSearchIndex = -1;
+  }
+
+  function applyXMindStyling() {
+      if (!xmindJm) return;
+      const colorPalettes = [
+          ['#667eea', '#764ba2'], ['#f093fb', '#f5576c'], ['#4facfe', '#00f2fe'],
+          ['#43e97b', '#38f9d7'], ['#fa709a', '#fee140'], ['#30cfd0', '#330867'],
+          ['#a8edea', '#fed6e3'], ['#ff9a9e', '#fecfef'], ['#ffecd2', '#fcb69f'],
+          ['#a1c4fd', '#c2e9fb'],
+      ];
+      const nodes = document.querySelectorAll('#xmind_container jmnode');
+      nodes.forEach((node, index) => {
+          if (node.classList.contains('root')) return;
+          const nodeIdAttr = node.getAttribute('nodeid') || '';
+          const depth = (nodeIdAttr.match(/-/g) || []).length;
+          const palette = colorPalettes[depth % colorPalettes.length];
+          const gradient = `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 100%)`;
+          node.style.background = gradient;
+          node.style.color = depth > 2 ? '#1a1a1a' : 'white';
+          node.style.border = `2px solid ${palette[0]}`;
+          node.style.borderRadius = '8px';
+          node.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)';
+          node.style.whiteSpace = 'normal';
+          node.style.wordWrap = 'break-word';
+          node.style.overflowWrap = 'break-word';
+          node.style.transition = 'all 0.3s ease';
+          const nodeId = node.getAttribute('nodeid');
+          if (nodeId && xmindJm) {
+              const nodeObj = xmindJm.get_node(nodeId);
+              if (nodeObj && nodeObj.children && nodeObj.children.length > 0) {
+                  node.style.cursor = 'pointer';
+                  node.setAttribute('title', 'Click to expand/collapse | Double-click or Shift+Click to focus');
+              }
+          }
+      });
+      const lines = document.querySelectorAll('#xmind_container svg.jsmind line, #xmind_container svg.jsmind path');
+      lines.forEach((line, index) => {
+          const colors = ['#667eea', '#f5576c', '#4facfe', '#43e97b', '#fa709a'];
+          line.style.stroke = colors[index % colors.length];
+          line.style.strokeWidth = '2.5px';
+          line.style.opacity = '0.7';
+      });
+  }
+
+  function xmindFocusOnNode(node) {
+      if (!xmindJm || !node) return;
+      xmindParentNode = node.parent;
+      xmindFocusedNode = node;
+      const descendantIds = new Set();
+      function collectDescendants(n) {
+          descendantIds.add(n.id);
+          if (n.children) {
+              n.children.forEach(child => collectDescendants(child));
+          }
+      }
+      collectDescendants(node);
+      const allNodes = document.querySelectorAll('#xmind_container jmnode');
+      allNodes.forEach(nodeElement => {
+          const nodeId = nodeElement.getAttribute('nodeid');
+          if (nodeId === node.id || descendantIds.has(nodeId)) {
+              nodeElement.style.display = '';
+          } else {
+              nodeElement.style.display = 'none';
+          }
+      });
+      const allLines = document.querySelectorAll('#xmind_container svg.jsmind line, #xmind_container svg.jsmind path');
+      allLines.forEach(line => {
+          let connectsVisible = false;
+          allNodes.forEach(nodeElement => {
+              if (nodeElement.style.display !== 'none') {
+                  const nodeRect = nodeElement.getBoundingClientRect();
+                  const containerRect = document.querySelector('#xmind_container').getBoundingClientRect();
+                  const nodeX = nodeRect.left - containerRect.left + nodeRect.width / 2;
+                  const nodeY = nodeRect.top - containerRect.top + nodeRect.height / 2;
+                  const x1 = parseFloat(line.getAttribute('x1') || 0);
+                  const y1 = parseFloat(line.getAttribute('y1') || 0);
+                  const x2 = parseFloat(line.getAttribute('x2') || 0);
+                  const y2 = parseFloat(line.getAttribute('y2') || 0);
+                  const dist1 = Math.sqrt(Math.pow(x1 - nodeX, 2) + Math.pow(y1 - nodeY, 2));
+                  const dist2 = Math.sqrt(Math.pow(x2 - nodeX, 2) + Math.pow(y2 - nodeY, 2));
+                  if (dist1 < 50 || dist2 < 50) {
+                      connectsVisible = true;
+                  }
+              }
+          });
+          line.style.display = connectsVisible ? '' : 'none';
+      });
+      const navBar = document.getElementById('xmind-navigation-bar');
+      const focusedNodeName = document.getElementById('xmind-focused-node-name');
+      const parentNodeName = document.getElementById('xmind-parent-node-name');
+      if (navBar && focusedNodeName) {
+          focusedNodeName.textContent = node.topic || 'Node';
+          if (xmindParentNode && parentNodeName) {
+              parentNodeName.textContent = xmindParentNode.topic || 'Parent';
+          } else if (parentNodeName) {
+              parentNodeName.textContent = 'Root';
+          }
+          navBar.style.display = 'block';
+      }
+      if (node.children && node.children.length > 0) {
+          xmindJm.expand_node(node);
+      }
+      setTimeout(() => {
+          applyXMindStyling();
+          xmindCenterFocusedNode();
+      }, 200);
+  }
+
+  function xmindBackToParent() {
+      if (!xmindJm) return;
+      if (xmindParentNode) {
+          xmindFocusOnNode(xmindParentNode);
+      } else {
+          xmindShowAllNodes();
+      }
+  }
+
+  function xmindShowAllNodes() {
+      if (!xmindJm) return;
+      document.querySelectorAll('#xmind_container jmnode').forEach(nodeElement => {
+          nodeElement.style.display = '';
+      });
+      document.querySelectorAll('#xmind_container svg.jsmind line, #xmind_container svg.jsmind path').forEach(line => {
+          line.style.display = '';
+      });
+      const navBar = document.getElementById('xmind-navigation-bar');
+      if (navBar) {
+          navBar.style.display = 'none';
+      }
+      xmindFocusedNode = null;
+      xmindParentNode = null;
+      setTimeout(() => {
+          applyXMindStyling();
+      }, 100);
+  }
+
+  function xmindCenterFocusedNode() {
+      if (!xmindFocusedNode) return;
+      const container = getMindmapContainer();
+      const focusedNodeElement = document.querySelector(`#xmind_container jmnode[nodeid="${xmindFocusedNode.id}"]`);
+      if (container && focusedNodeElement) {
+          setTimeout(() => {
+              const containerRect = container.getBoundingClientRect();
+              const nodeRect = focusedNodeElement.getBoundingClientRect();
+              const scrollLeft = nodeRect.left - containerRect.left - (containerRect.width / 2) + (nodeRect.width / 2);
+              const scrollTop = nodeRect.top - containerRect.top - (containerRect.height / 2) + (nodeRect.height / 2);
+              container.scrollLeft = Math.max(0, scrollLeft);
+              container.scrollTop = Math.max(0, scrollTop);
+          }, 100);
+      }
+  }
+
+  function xmindSetupDragToPan() {
+      const scrollContainer = getMindmapContainer();
+      const innerContainer = document.querySelector('#xmind_container .jsmind-inner');
+      if (!scrollContainer || !innerContainer) return;
+      scrollContainer.addEventListener('mousedown', function(e) {
+          const target = e.target;
+          const isNode = target.tagName === 'JMNODE' || target.closest('jmnode');
+          const isExpander = target.tagName === 'JMEXPANDER' || target.closest('jmexpander');
+          if (!isNode && !isExpander) {
+              xmindIsDragging = true;
+              xmindHasMoved = false;
+              xmindDragStartX = e.clientX;
+              xmindDragStartY = e.clientY;
+              xmindScrollStartX = scrollContainer.scrollLeft;
+              xmindScrollStartY = scrollContainer.scrollTop;
+              scrollContainer.classList.add('dragging');
+          }
+      });
+      document.addEventListener('mousemove', function(e) {
+          if (xmindIsDragging) {
+              const deltaX = Math.abs(xmindDragStartX - e.clientX);
+              const deltaY = Math.abs(xmindDragStartY - e.clientY);
+              if (deltaX > XMIND_DRAG_THRESHOLD || deltaY > XMIND_DRAG_THRESHOLD) {
+                  xmindHasMoved = true;
+                  const panX = xmindDragStartX - e.clientX;
+                  const panY = xmindDragStartY - e.clientY;
+                  scrollContainer.scrollLeft = xmindScrollStartX + panX;
+                  scrollContainer.scrollTop = xmindScrollStartY + panY;
+                  e.preventDefault();
+              }
+          }
+      });
+      document.addEventListener('mouseup', function(e) {
+          if (xmindIsDragging) {
+              if (xmindHasMoved) {
+                  e.preventDefault();
+                  e.stopPropagation();
+              }
+              xmindIsDragging = false;
+              setTimeout(() => {
+                  xmindHasMoved = false;
+              }, 50);
+              scrollContainer.classList.remove('dragging');
+          }
+      });
+  }
+
+  function xmindSetupKeyboardShortcuts() {
+      document.addEventListener('keydown', function(e) {
+          if (!document.getElementById('xmind_container')) return;
+          if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) {
+              e.preventDefault();
+              xmindZoomIn();
+          }
+          if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+              e.preventDefault();
+              xmindZoomOut();
+          }
+          if (e.key === ' ' && e.target.tagName !== 'INPUT') {
+              e.preventDefault();
+              xmindResetView();
+          }
+          if (e.key === 'Escape') {
+              const searchInput = document.getElementById('xmindSearchInput');
+              if (searchInput) {
+                  searchInput.value = '';
+                  xmindClearSearch();
+              }
+          }
+      });
+  }
+
+  function xmindSetupNodeClickToggle() {
+      if (!xmindJm) return;
+      const container = document.querySelector('#xmind_container');
+      if (!container) return;
+      container.addEventListener('click', function(e) {
+          let nodeElement = e.target;
+          if (nodeElement.tagName !== 'JMNODE') {
+              nodeElement = nodeElement.closest('jmnode');
+          }
+          if (e.target.tagName === 'JMEXPANDER' || e.target.closest('jmexpander')) {
+              return;
+          }
+          if (nodeElement && nodeElement.tagName === 'JMNODE') {
+              if (xmindHasMoved) {
+                  return;
+              }
+              const nodeId = nodeElement.getAttribute('nodeid');
+              if (!nodeId) return;
+              const node = xmindJm.get_node(nodeId);
+              if (!node) return;
+              if (e.detail === 2 || e.shiftKey) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (node.children && node.children.length > 0) {
+                      xmindFocusOnNode(node);
+                  }
+                  return;
+              }
+              if (node.children && node.children.length > 0) {
+                  xmindJm.toggle_node(node);
+                  setTimeout(() => {
+                      applyXMindStyling();
+                  }, 100);
+              }
+          }
+      });
+  }
+
+  const xmindStyle = document.createElement('style');
+  xmindStyle.textContent = `
+      @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+      }
+      #xmind_container { overflow: visible !important; position: relative; }
+      .mindmap-container-compact, .mindmap-container-minimal, .mindmap-container-fullscreen,
+      .mindmap-container-sidebar, .mindmap-container-bottom {
+          overflow: auto !important;
+          scrollbar-width: thin;
+          scrollbar-color: #667eea #f8f9fa;
+      }
+      .mindmap-container-compact::-webkit-scrollbar, .mindmap-container-minimal::-webkit-scrollbar,
+      .mindmap-container-fullscreen::-webkit-scrollbar, .mindmap-container-sidebar::-webkit-scrollbar,
+      .mindmap-container-bottom::-webkit-scrollbar {
+          width: 10px; height: 10px;
+      }
+      .mindmap-container-compact::-webkit-scrollbar-track, .mindmap-container-minimal::-webkit-scrollbar-track,
+      .mindmap-container-fullscreen::-webkit-scrollbar-track, .mindmap-container-sidebar::-webkit-scrollbar-track,
+      .mindmap-container-bottom::-webkit-scrollbar-track {
+          background: #f8f9fa; border-radius: 5px;
+      }
+      .mindmap-container-compact::-webkit-scrollbar-thumb, .mindmap-container-minimal::-webkit-scrollbar-thumb,
+      .mindmap-container-fullscreen::-webkit-scrollbar-thumb, .mindmap-container-sidebar::-webkit-scrollbar-thumb,
+      .mindmap-container-bottom::-webkit-scrollbar-thumb {
+          background: #667eea; border-radius: 5px;
+      }
+      .mindmap-container-compact::-webkit-scrollbar-thumb:hover, .mindmap-container-minimal::-webkit-scrollbar-thumb:hover,
+      .mindmap-container-fullscreen::-webkit-scrollbar-thumb:hover, .mindmap-container-sidebar::-webkit-scrollbar-thumb:hover,
+      .mindmap-container-bottom::-webkit-scrollbar-thumb:hover {
+          background: #5568d3;
+      }
+      #xmind_container .jsmind-inner {
+          cursor: grab;
+          position: relative;
+          transition: transform 0.2s ease;
+      }
+      #xmind_container .jsmind-inner.dragging {
+          cursor: grabbing !important;
+      }
+      #xmind_container svg.jsmind {
+          display: block;
+      }
+      #xmind_container jmnode {
+          white-space: normal !important;
+          word-wrap: break-word !important;
+          overflow-wrap: break-word !important;
+      }
+      #xmind_container jmnode:hover {
+          transform: scale(1.08);
+          z-index: 10;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+      }
+      #xmind_container jmnode.root {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          color: white !important;
+          font-weight: 700 !important;
+          font-size: 20px !important;
+          padding: 15px 20px !important;
+          border: 3px solid rgba(255, 255, 255, 0.5) !important;
+      }
+      #xmind_container jmexpander {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          border: 2px solid white !important;
+          color: white !important;
+          font-weight: bold !important;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+      }
+      #xmind_container jmexpander:hover {
+          background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+          transform: scale(1.1);
+      }
+  `;
+  document.head.appendChild(xmindStyle);
+
+  function waitForXMindJsMind() {
+      if (typeof jsMind !== 'undefined') {
+          loadXMindMap();
+      } else {
+          setTimeout(waitForXMindJsMind, 100);
+      }
+  }
+
+  if (document.getElementById('xmind_container')) {
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', waitForXMindJsMind);
+      } else {
+          waitForXMindJsMind();
+      }
+  }
+
+  // ============================================
+  // NEW CREATIVE VISUALIZATIONS
+  // ============================================
+
+  // Variation 6: Radial/Circular Layout
+  let radialData = null;
+  let radialFullData = null; // Store complete data structure
+  let radialNodeMap = {}; // Map to find nodes by their data
+  let radialCurrentCenter = null; // Current center node
+  let radialRootNode = null; // Root node reference
+  let radialZoom = 1;
+  let radialTransform = { x: 0, y: 0 };
+
+  async function loadRadialMindmap() {
+      const careerId = {{ career.id }};
+      const careerSlug = '{{ career.slug }}';
+      const apiUrl = `/careers/api/career/${careerSlug}-${careerId}-mindmap/json/`;
+      
+      try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+              document.getElementById('loading-radial').style.display = 'none';
+              return;
+          }
+          const data = await response.json();
+          if (data.available === false) {
+              document.getElementById('loading-radial').style.display = 'none';
+              return;
+          }
+          
+          radialData = data;
+          radialFullData = data;
+          radialRootNode = data.data;
+          radialCurrentCenter = data.data;
+          
+          // Build node map for quick lookup
+          buildRadialNodeMap(data.data, null);
+          
+          renderRadialMindmap(data.data);
+      } catch (error) {
+          document.getElementById('loading-radial').style.display = 'none';
+      }
+  }
+
+  function buildRadialNodeMap(node, parent) {
+      // Store node with parent reference
+      const nodeKey = node.topic || node.id || 'root';
+      radialNodeMap[nodeKey] = {
+          node: node,
+          parent: parent,
+          children: node.children || []
+      };
+      
+      // Recursively build map for children
+      if (node.children && node.children.length > 0) {
+          node.children.forEach(child => {
+              buildRadialNodeMap(child, node);
+          });
+      }
+  }
+
+  function renderRadialMindmap(centerNode) {
+      const svg = document.getElementById('radial-svg');
+      const container = document.querySelector('.radial-mindmap-container');
+      if (!svg || !container) return;
+      
+      svg.style.display = 'block';
+      document.getElementById('loading-radial').style.display = 'none';
+      document.getElementById('radial-controls').style.display = 'block';
+      
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      svg.setAttribute('width', width);
+      svg.setAttribute('height', height);
+      svg.innerHTML = '';
+      
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const centerRadius = 100; // Increased from 80 for better visibility
+      
+      // Helper function to wrap text into lines that fit within a circle
+      function wrapTextForCircle(text, maxWidth, fontSize) {
+          const words = text.split(' ');
+          const lines = [];
+          let currentLine = '';
+          const charWidth = fontSize * 0.6; // Approximate character width
+          
+          words.forEach(word => {
+              const testLine = currentLine ? currentLine + ' ' + word : word;
+              const testWidth = testLine.length * charWidth;
+              
+              if (testWidth > maxWidth && currentLine) {
+                  lines.push(currentLine);
+                  currentLine = word;
+              } else {
+                  currentLine = testLine;
+              }
+          });
+          if (currentLine) {
+              lines.push(currentLine);
+          }
+          return lines;
+      }
+      
+      // Helper function to calculate minimum circle radius for text
+      function calculateMinRadius(text, baseRadius, fontSize) {
+          const charWidth = fontSize * 0.6;
+          const maxTextWidth = baseRadius * 1.5; // 75% of diameter for padding
+          const lines = wrapTextForCircle(text, maxTextWidth, fontSize);
+          const lineHeight = fontSize * 1.3;
+          const textHeight = lines.length * lineHeight;
+          const minRadius = Math.max(baseRadius, textHeight / 2 + fontSize);
+          return { radius: minRadius, lines: lines };
+      }
+      
+      // Helper function to bring circle and its text to front (on top)
+      function bringToFront(circleElement, textElement) {
+          if (circleElement && svg.contains(circleElement)) {
+              svg.appendChild(circleElement); // Move circle to end (top layer)
+          }
+          if (textElement && svg.contains(textElement)) {
+              svg.appendChild(textElement); // Move text to end (top layer)
+          }
+      }
+      
+      // Add gradients and definitions
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      
+      // Center gradient
+      const centerGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+      centerGradient.setAttribute('id', 'centerGradient');
+      centerGradient.setAttribute('x1', '0%');
+      centerGradient.setAttribute('y1', '0%');
+      centerGradient.setAttribute('x2', '100%');
+      centerGradient.setAttribute('y2', '100%');
+      const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop1.setAttribute('offset', '0%');
+      stop1.setAttribute('stop-color', '#667eea');
+      const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop2.setAttribute('offset', '100%');
+      stop2.setAttribute('stop-color', '#764ba2');
+      centerGradient.appendChild(stop1);
+      centerGradient.appendChild(stop2);
+      defs.appendChild(centerGradient);
+      
+      // Glow filter for center
+      const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+      filter.setAttribute('id', 'glow');
+      const feGaussianBlur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+      feGaussianBlur.setAttribute('stdDeviation', '4');
+      feGaussianBlur.setAttribute('result', 'coloredBlur');
+      const feMerge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
+      const feMergeNode1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+      feMergeNode1.setAttribute('in', 'coloredBlur');
+      const feMergeNode2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+      feMergeNode2.setAttribute('in', 'SourceGraphic');
+      feMerge.appendChild(feMergeNode1);
+      feMerge.appendChild(feMergeNode2);
+      filter.appendChild(feGaussianBlur);
+      filter.appendChild(feMerge);
+      defs.appendChild(filter);
+      
+      svg.appendChild(defs);
+      
+      // Check if center is root - compare by reference or by topic
+      const isRoot = (centerNode === radialRootNode) || 
+                     ((centerNode.topic || centerNode.id || 'root') === (radialRootNode.topic || radialRootNode.id || 'root'));
+      const centerNodeKey = centerNode.topic || centerNode.id || 'root';
+      
+      // Find node info in map - try multiple keys if needed
+      let nodeInfo = radialNodeMap[centerNodeKey];
+      if (!nodeInfo) {
+          // Try to find by searching all nodes
+          for (let key in radialNodeMap) {
+              if (radialNodeMap[key].node === centerNode) {
+                  nodeInfo = radialNodeMap[key];
+                  break;
+              }
+          }
+      }
+      
+      const parentNode = nodeInfo ? nodeInfo.parent : null;
+      
+      // Get siblings (children of parent) if not root
+      let siblings = [];
+      if (!isRoot && parentNode) {
+          const parentKey = parentNode.topic || parentNode.id || 'root';
+          const parentInfo = radialNodeMap[parentKey];
+          if (parentInfo && parentInfo.children) {
+              siblings = parentInfo.children.filter(child => {
+                  const childKey = child.topic || child.id;
+                  return childKey !== centerNodeKey;
+              });
+          }
+      }
+      
+      // STEP 1: Draw all lines FIRST (so they appear behind the center circle)
+      // Calculate final center radius based on text first
+      const centerTopic = centerNode.topic || 'Root';
+      const centerFontSize = 18;
+      const centerCalc = calculateMinRadius(centerTopic, centerRadius, centerFontSize);
+      const finalCenterRadius = Math.max(centerRadius, centerCalc.radius);
+      
+      // Calculate line start point (just outside center circle radius)
+      const lineStartRadius = finalCenterRadius + 5; // Start lines just outside center circle
+      
+      // Render sibling lines (if not root)
+      if (siblings.length > 0) {
+          const siblingRadius = 280;
+          const siblingAngleStep = (2 * Math.PI) / siblings.length;
+          
+          siblings.forEach((sibling, index) => {
+              const angle = index * siblingAngleStep;
+              const x = centerX + siblingRadius * Math.cos(angle);
+              const y = centerY + siblingRadius * Math.sin(angle);
+              
+              // Calculate line start point (outside center circle)
+              const lineStartX = centerX + lineStartRadius * Math.cos(angle);
+              const lineStartY = centerY + lineStartRadius * Math.sin(angle);
+              
+              // Draw line to sibling (starting outside center circle)
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              line.setAttribute('x1', lineStartX);
+              line.setAttribute('y1', lineStartY);
+              line.setAttribute('x2', x);
+              line.setAttribute('y2', y);
+              line.setAttribute('stroke', '#999999');
+              line.setAttribute('stroke-width', '2');
+              line.setAttribute('stroke-dasharray', '5,5');
+              line.setAttribute('opacity', '0.4');
+              svg.appendChild(line);
+          });
+      }
+      
+      // Render child lines
+      if (centerNode.children && centerNode.children.length > 0) {
+          const childRadius = 220;
+          const angleStep = (2 * Math.PI) / centerNode.children.length;
+          
+          centerNode.children.forEach((child, index) => {
+              const angle = index * angleStep;
+              const x = centerX + childRadius * Math.cos(angle);
+              const y = centerY + childRadius * Math.sin(angle);
+              
+              // Calculate line start point (outside center circle)
+              const lineStartX = centerX + lineStartRadius * Math.cos(angle);
+              const lineStartY = centerY + lineStartRadius * Math.sin(angle);
+              
+              // Draw line (starting outside center circle)
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              line.setAttribute('x1', lineStartX);
+              line.setAttribute('y1', lineStartY);
+              line.setAttribute('x2', x);
+              line.setAttribute('y2', y);
+              line.setAttribute('stroke', '#667eea');
+              line.setAttribute('stroke-width', '3');
+              line.setAttribute('opacity', '0.6');
+              svg.appendChild(line);
+          });
+      }
+      
+      // STEP 2: Draw sibling circles and text (after lines, before center)
+      if (siblings.length > 0) {
+          const siblingDistance = 280; // Distance from center
+          const siblingAngleStep = (2 * Math.PI) / siblings.length;
+          
+          siblings.forEach((sibling, index) => {
+              const angle = index * siblingAngleStep;
+              const x = centerX + siblingDistance * Math.cos(angle);
+              const y = centerY + siblingDistance * Math.sin(angle);
+              
+              // Calculate circle size and text wrapping for sibling
+              const siblingTopic = sibling.topic || 'Node';
+              const siblingBaseRadius = 50;
+              const siblingFontSize = 11;
+              const siblingCalc = calculateMinRadius(siblingTopic, siblingBaseRadius, siblingFontSize);
+              const siblingRadius = siblingCalc.radius;
+              
+              // Draw sibling circle
+              const siblingCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              siblingCircle.setAttribute('cx', x);
+              siblingCircle.setAttribute('cy', y);
+              siblingCircle.setAttribute('r', siblingRadius);
+              siblingCircle.setAttribute('fill', '#cccccc');
+              siblingCircle.setAttribute('stroke', '#999999');
+              siblingCircle.setAttribute('stroke-width', '2');
+              // Check if this is a leaf node (no children)
+              const isSiblingLeafNode = !sibling.children || sibling.children.length === 0;
+              if (!isSiblingLeafNode) {
+                  siblingCircle.style.cursor = 'pointer';
+                  siblingCircle.onclick = () => {
+                      // Navigate to sibling node (has children)
+                      radialCurrentCenter = sibling;
+                      renderRadialMindmap(sibling);
+                  };
+              } else {
+                  // Leaf node - no click, no cursor pointer, but keep color
+                  siblingCircle.style.cursor = 'default';
+              }
+              siblingCircle.setAttribute('data-node-key', sibling.topic || sibling.id);
+              siblingCircle.setAttribute('class', 'radial-sibling-node');
+              svg.appendChild(siblingCircle);
+              
+              // Sibling text with wrapping
+              const siblingText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              siblingText.setAttribute('x', x);
+              siblingText.setAttribute('y', y);
+              siblingText.setAttribute('text-anchor', 'middle');
+              siblingText.setAttribute('dominant-baseline', 'middle');
+              siblingText.setAttribute('fill', '#666666');
+              siblingText.setAttribute('font-size', siblingFontSize);
+              siblingText.setAttribute('font-weight', '600');
+              siblingText.setAttribute('style', 'pointer-events: none;');
+              
+              const siblingLines = siblingCalc.lines;
+              if (siblingLines.length === 1) {
+                  siblingText.textContent = siblingLines[0];
+              } else {
+                  const siblingLineHeight = siblingFontSize * 1.3;
+                  const siblingStartY = y - ((siblingLines.length - 1) * siblingLineHeight) / 2;
+                  siblingLines.forEach((line, lineIndex) => {
+                      const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                      tspan.setAttribute('x', x);
+                      tspan.setAttribute('y', siblingStartY + (lineIndex * siblingLineHeight));
+                      tspan.setAttribute('text-anchor', 'middle');
+                      tspan.textContent = line;
+                      siblingText.appendChild(tspan);
+                  });
+              }
+              svg.appendChild(siblingText);
+              
+              // No hover effect for sibling circles (grey circles) - they should stay in background
+          });
+      }
+      
+      // STEP 3: Draw child circles and text (after lines, before center)
+      if (centerNode.children && centerNode.children.length > 0) {
+          const childDistance = 220; // Distance from center
+          const angleStep = (2 * Math.PI) / centerNode.children.length;
+          
+          centerNode.children.forEach((child, index) => {
+              const angle = index * angleStep;
+              const x = centerX + childDistance * Math.cos(angle);
+              const y = centerY + childDistance * Math.sin(angle);
+              
+              // Calculate circle size and text wrapping for child
+              const childTopic = child.topic || 'Node';
+              const childBaseRadius = 65;
+              const childFontSize = 13;
+              const childCalc = calculateMinRadius(childTopic, childBaseRadius, childFontSize);
+              const childCircleRadius = childCalc.radius;
+              
+              // Draw child circle
+              const childCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              childCircle.setAttribute('cx', x);
+              childCircle.setAttribute('cy', y);
+              childCircle.setAttribute('r', childCircleRadius);
+              childCircle.setAttribute('fill', `hsl(${index * 360 / centerNode.children.length}, 70%, 60%)`);
+              childCircle.setAttribute('stroke', 'white');
+              childCircle.setAttribute('stroke-width', '3');
+              // Check if this is a leaf node (no children)
+              const isChildLeafNode = !child.children || child.children.length === 0;
+              if (!isChildLeafNode) {
+                  childCircle.style.cursor = 'pointer';
+                  childCircle.onclick = () => {
+                      // Navigate to child node (has children)
+                      radialCurrentCenter = child;
+                      renderRadialMindmap(child);
+                  };
+                  // Add hover effect to bring to front and scale
+                  childCircle.onmouseenter = function() {
+                      bringToFront(childCircle, childText);
+                      const currentRadius = parseFloat(this.getAttribute('r'));
+                      this.setAttribute('r', currentRadius + 10);
+                      this.setAttribute('stroke-width', '4');
+                  };
+                  childCircle.onmouseleave = function() {
+                      const currentRadius = parseFloat(this.getAttribute('r'));
+                      this.setAttribute('r', currentRadius - 10);
+                      this.setAttribute('stroke-width', '3');
+                  };
+              } else {
+                  // Leaf node - no click, no cursor pointer, but keep color and allow hover effect
+                  childCircle.style.cursor = 'default';
+                  // Still allow hover effect to bring to front (visual feedback only)
+                  childCircle.onmouseenter = function() {
+                      bringToFront(childCircle, childText);
+                  };
+              }
+              childCircle.setAttribute('data-node-key', child.topic || child.id);
+              childCircle.setAttribute('class', 'radial-child-node');
+              svg.appendChild(childCircle);
+              
+              // Child text with wrapping
+              const childText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              childText.setAttribute('x', x);
+              childText.setAttribute('y', y);
+              childText.setAttribute('text-anchor', 'middle');
+              childText.setAttribute('dominant-baseline', 'middle');
+              childText.setAttribute('fill', 'white');
+              childText.setAttribute('font-size', childFontSize);
+              childText.setAttribute('font-weight', '700');
+              childText.setAttribute('style', 'text-shadow: 1px 1px 2px rgba(0,0,0,0.5); pointer-events: none;');
+              
+              const childLines = childCalc.lines;
+              if (childLines.length === 1) {
+                  childText.textContent = childLines[0];
+              } else {
+                  const childLineHeight = childFontSize * 1.3;
+                  const childStartY = y - ((childLines.length - 1) * childLineHeight) / 2;
+                  childLines.forEach((line, lineIndex) => {
+                      const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                      tspan.setAttribute('x', x);
+                      tspan.setAttribute('y', childStartY + (lineIndex * childLineHeight));
+                      tspan.setAttribute('text-anchor', 'middle');
+                      tspan.textContent = line;
+                      childText.appendChild(tspan);
+                  });
+              }
+              svg.appendChild(childText);
+          });
+      }
+      
+      // STEP 4: Draw center circle LAST (so it appears on top of all lines)
+      // Use the already calculated finalCenterRadius from STEP 1
+      // First, draw a background circle to hide any lines that might show through
+      const centerBgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      centerBgCircle.setAttribute('cx', centerX);
+      centerBgCircle.setAttribute('cy', centerY);
+      centerBgCircle.setAttribute('r', finalCenterRadius + 2);
+      centerBgCircle.setAttribute('fill', 'url(#centerGradient)');
+      centerBgCircle.setAttribute('opacity', '1');
+      svg.appendChild(centerBgCircle);
+      
+      // Draw center circle (parent node) - IMPROVED VISIBILITY
+      const centerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      centerCircle.setAttribute('cx', centerX);
+      centerCircle.setAttribute('cy', centerY);
+      centerCircle.setAttribute('r', finalCenterRadius);
+      centerCircle.setAttribute('fill', 'url(#centerGradient)');
+      centerCircle.setAttribute('stroke', '#ffffff');
+      centerCircle.setAttribute('stroke-width', '5');
+      centerCircle.setAttribute('filter', 'url(#glow)');
+      centerCircle.setAttribute('data-node-key', centerNodeKey);
+      centerCircle.setAttribute('class', 'radial-center-node');
+      
+      // Make center circle clickable to navigate to parent if not root
+      if (!isRoot && parentNode) {
+          centerCircle.style.cursor = 'pointer';
+          centerCircle.onclick = () => {
+              radialCurrentCenter = parentNode;
+              renderRadialMindmap(parentNode);
+          };
+          centerCircle.onmouseenter = function() {
+              // Bring circle and text to front
+              svg.appendChild(centerCircle);
+              const currentRadius = parseFloat(this.getAttribute('r'));
+              this.setAttribute('r', currentRadius + 10);
+              this.setAttribute('stroke-width', '6');
+          };
+          centerCircle.onmouseleave = function() {
+              const currentRadius = parseFloat(this.getAttribute('r'));
+              this.setAttribute('r', currentRadius - 10);
+              this.setAttribute('stroke-width', '5');
+          };
+      } else {
+          centerCircle.style.cursor = 'default';
+      }
+      svg.appendChild(centerCircle);
+      
+      // STEP 5: Draw center text LAST (so it appears on top of everything)
+      const centerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      // Store reference for hover effect
+      const centerTextRef = centerText;
+      centerText.setAttribute('x', centerX);
+      centerText.setAttribute('y', centerY);
+      centerText.setAttribute('text-anchor', 'middle');
+      centerText.setAttribute('dominant-baseline', 'middle');
+      centerText.setAttribute('fill', 'white');
+      centerText.setAttribute('font-size', centerFontSize);
+      centerText.setAttribute('font-weight', 'bold');
+      centerText.setAttribute('style', 'text-shadow: 2px 2px 4px rgba(0,0,0,0.5); pointer-events: none;');
+      
+      const centerLines = centerCalc.lines;
+      if (centerLines.length === 1) {
+          centerText.textContent = centerLines[0];
+      } else {
+          const centerLineHeight = centerFontSize * 1.3;
+          const centerStartY = centerY - ((centerLines.length - 1) * centerLineHeight) / 2;
+          centerLines.forEach((line, lineIndex) => {
+              const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+              tspan.setAttribute('x', centerX);
+              tspan.setAttribute('y', centerStartY + (lineIndex * centerLineHeight));
+              tspan.setAttribute('text-anchor', 'middle');
+              tspan.textContent = line;
+              centerText.appendChild(tspan);
+          });
+      }
+      svg.appendChild(centerText);
+      
+      // Update center circle hover to also bring text to front
+      if (!isRoot && parentNode) {
+          const originalMouseEnter = centerCircle.onmouseenter;
+          centerCircle.onmouseenter = function() {
+              svg.appendChild(centerCircle);
+              svg.appendChild(centerText);
+              const currentRadius = parseFloat(this.getAttribute('r'));
+              this.setAttribute('r', currentRadius + 10);
+              this.setAttribute('stroke-width', '6');
+          };
+      } else {
+          // Even if not clickable, bring to front on hover
+          centerCircle.onmouseenter = function() {
+              svg.appendChild(centerCircle);
+              svg.appendChild(centerText);
+          };
+      }
+      
+      // Add parent link text below center if not root (as visual indicator)
+      if (!isRoot && parentNode) {
+          const parentLink = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          parentLink.setAttribute('x', centerX);
+          parentLink.setAttribute('y', centerY + 30);
+          parentLink.setAttribute('text-anchor', 'middle');
+          parentLink.setAttribute('dominant-baseline', 'middle');
+          parentLink.setAttribute('fill', '#ffffff');
+          parentLink.setAttribute('font-size', '11');
+          parentLink.setAttribute('font-weight', '600');
+          parentLink.setAttribute('style', 'text-decoration: underline; cursor: pointer; opacity: 0.85; pointer-events: all;');
+          parentLink.setAttribute('class', 'radial-parent-link');
+          parentLink.setAttribute('data-parent-key', parentNode.topic || parentNode.id || 'root');
+          parentLink.textContent = '← ' + (parentNode.topic || 'Parent');
+          parentLink.onclick = (e) => {
+              e.stopPropagation();
+              radialCurrentCenter = parentNode;
+              renderRadialMindmap(parentNode);
+          };
+          parentLink.onmouseenter = function() {
+              this.setAttribute('opacity', '1');
+              this.setAttribute('font-size', '12');
+          };
+          parentLink.onmouseleave = function() {
+              this.setAttribute('opacity', '0.85');
+              this.setAttribute('font-size', '11');
+          };
+          svg.appendChild(parentLink);
+      }
+  }
+
+  function radialZoomIn() { radialZoom = Math.min(radialZoom + 0.1, 2); applyRadialZoom(); }
+  function radialZoomOut() { radialZoom = Math.max(radialZoom - 0.1, 0.5); applyRadialZoom(); }
+  function radialReset() { 
+      radialZoom = 1; 
+      radialTransform = { x: 0, y: 0 }; 
+      radialCurrentCenter = radialRootNode;
+      if (radialRootNode) {
+          renderRadialMindmap(radialRootNode);
+      }
+      applyRadialZoom(); 
+  }
+  function applyRadialZoom() {
+      const svg = document.getElementById('radial-svg');
+      if (svg) {
+          svg.style.transform = `scale(${radialZoom}) translate(${radialTransform.x}px, ${radialTransform.y}px)`;
+          svg.style.transformOrigin = 'center center';
+      }
+  }
+  
+
+  // Variation 7: Card Grid Layout
+  let cardGridData = null;
+  let cardGridExpanded = {};
+
+  async function loadCardGridMindmap() {
+      const careerId = {{ career.id }};
+      const careerSlug = '{{ career.slug }}';
+      const apiUrl = `/careers/api/career/${careerSlug}-${careerId}-mindmap/json/`;
+      
+      try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+              document.getElementById('loading-cards').style.display = 'none';
+              return;
+          }
+          const data = await response.json();
+          if (data.available === false) {
+              document.getElementById('loading-cards').style.display = 'none';
+              return;
+          }
+          
+          cardGridData = data;
+          renderCardGrid(data);
+      } catch (error) {
+          document.getElementById('loading-cards').style.display = 'none';
+      }
+  }
+
+  function renderCardGrid(data) {
+      const container = document.getElementById('card-grid-container');
+      if (!container) return;
+      
+      container.style.display = 'block';
+      document.getElementById('loading-cards').style.display = 'none';
+      document.getElementById('card-controls').style.display = 'block';
+      container.innerHTML = '';
+      
+      const root = data.data;
+      
+      // Root card
+      const rootCard = createCard(root, 'root', 0);
+      container.appendChild(rootCard);
+      
+      // Children cards
+      if (root.children && root.children.length > 0) {
+          const childrenContainer = document.createElement('div');
+          childrenContainer.className = 'card-grid-children';
+          childrenContainer.style.display = 'grid';
+          childrenContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(250px, 1fr))';
+          childrenContainer.style.gap = '20px';
+          childrenContainer.style.marginTop = '30px';
+          childrenContainer.style.padding = '20px';
+          
+          root.children.forEach((child, index) => {
+              const childCard = createCard(child, `child-${index}`, 1);
+              childrenContainer.appendChild(childCard);
+          });
+          
+          container.appendChild(childrenContainer);
+      }
+  }
+
+  function createCard(node, id, level) {
+      const card = document.createElement('div');
+      card.className = 'mindmap-card-item';
+      card.id = `card-${id}`;
+      card.style.cssText = `
+          background: linear-gradient(135deg, ${level === 0 ? '#f093fb' : '#f5576c'} 0%, ${level === 0 ? '#f5576c' : '#fa709a'} 100%);
+          color: white;
+          padding: 20px;
+          border-radius: 16px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          position: relative;
+          min-height: 120px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+      `;
+      
+      card.innerHTML = `
+          <h5 style="margin: 0 0 10px 0; font-size: ${level === 0 ? '24px' : '18px'}; font-weight: 700;">${node.topic || 'Node'}</h5>
+          ${node.children && node.children.length > 0 ? `<small style="opacity: 0.9;">${node.children.length} sub-items</small>` : ''}
+      `;
+      
+      card.onmouseenter = () => {
+          card.style.transform = 'translateY(-5px) scale(1.02)';
+          card.style.boxShadow = '0 12px 32px rgba(0,0,0,0.25)';
+      };
+      card.onmouseleave = () => {
+          card.style.transform = 'translateY(0) scale(1)';
+          card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
+      };
+      
+      if (node.children && node.children.length > 0) {
+          card.onclick = () => {
+              const expanded = cardGridExpanded[id] || false;
+              cardGridExpanded[id] = !expanded;
+              toggleCardChildren(card, node, id, level + 1);
+          };
+      }
+      
+      return card;
+  }
+
+  function toggleCardChildren(card, node, id, level) {
+      const existing = document.getElementById(`card-children-${id}`);
+      if (existing) {
+          existing.remove();
+          return;
+      }
+      
+      const childrenContainer = document.createElement('div');
+      childrenContainer.id = `card-children-${id}`;
+      childrenContainer.style.cssText = `
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 15px;
+          margin-top: 15px;
+          padding-top: 15px;
+          border-top: 2px solid rgba(255,255,255,0.3);
+      `;
+      
+      node.children.forEach((child, index) => {
+          const childCard = createCard(child, `${id}-${index}`, level);
+          childrenContainer.appendChild(childCard);
+      });
+      
+      card.appendChild(childrenContainer);
+  }
+
+  function cardGridToggleView() {
+      const container = document.querySelector('.card-grid-children');
+      if (container) {
+          container.style.gridTemplateColumns = container.style.gridTemplateColumns === 'repeat(auto-fit, minmax(250px, 1fr))' 
+              ? '1fr' 
+              : 'repeat(auto-fit, minmax(250px, 1fr))';
+      }
+  }
+
+  function cardGridExpandAll() {
+      if (!cardGridData) return;
+      const root = cardGridData.data;
+      if (root.children) {
+          root.children.forEach((child, index) => {
+              const card = document.getElementById(`card-child-${index}`);
+              if (card && !cardGridExpanded[`child-${index}`]) {
+                  card.click();
+              }
+          });
+      }
+  }
+
+  function cardGridCollapseAll() {
+      Object.keys(cardGridExpanded).forEach(id => {
+          const existing = document.getElementById(`card-children-${id}`);
+          if (existing) existing.remove();
+          cardGridExpanded[id] = false;
+      });
+  }
+
+  // Variation 8: Minimalist Flow Layout
+  async function loadFlowMindmap() {
+      const careerId = {{ career.id }};
+      const careerSlug = '{{ career.slug }}';
+      const apiUrl = `/careers/api/career/${careerSlug}-${careerId}-mindmap/json/`;
+      
+      try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+              document.getElementById('loading-flow').style.display = 'none';
+              return;
+          }
+          const data = await response.json();
+          if (data.available === false) {
+              document.getElementById('loading-flow').style.display = 'none';
+              return;
+          }
+          
+          renderFlowMindmap(data);
+      } catch (error) {
+          document.getElementById('loading-flow').style.display = 'none';
+      }
+  }
+
+  function renderFlowMindmap(data) {
+      const svg = document.getElementById('flow-svg');
+      const container = document.querySelector('.flow-mindmap-container');
+      if (!svg || !container) return;
+      
+      svg.style.display = 'block';
+      document.getElementById('loading-flow').style.display = 'none';
+      document.getElementById('flow-controls').style.display = 'block';
+      
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      svg.setAttribute('width', width);
+      svg.setAttribute('height', height);
+      svg.innerHTML = '';
+      
+      const root = data.data;
+      const startX = 100;
+      const startY = height / 2;
+      const levelHeight = 150;
+      
+      // Draw root
+      drawFlowNode(svg, root, startX, startY, 0, true);
+      
+      // Draw children
+      if (root.children && root.children.length > 0) {
+          const childY = startY - (root.children.length - 1) * levelHeight / 2;
+          root.children.forEach((child, index) => {
+              const y = childY + index * levelHeight;
+              drawFlowNode(svg, child, startX + 300, y, 1, false);
+              
+              // Draw curved connection
+              const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              const midX = startX + 150;
+              path.setAttribute('d', `M ${startX + 100} ${startY} Q ${midX} ${(startY + y) / 2} ${startX + 300} ${y}`);
+              path.setAttribute('stroke', '#4facfe');
+              path.setAttribute('stroke-width', '2');
+              path.setAttribute('fill', 'none');
+              path.setAttribute('opacity', '0.6');
+              svg.insertBefore(path, svg.firstChild);
+          });
+      }
+  }
+
+  function drawFlowNode(svg, node, x, y, level, isRoot) {
+      const width = isRoot ? 180 : 150;
+      const height = isRoot ? 80 : 60;
+      
+      // Rounded rectangle
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', x - width/2);
+      rect.setAttribute('y', y - height/2);
+      rect.setAttribute('width', width);
+      rect.setAttribute('height', height);
+      rect.setAttribute('rx', '20');
+      rect.setAttribute('ry', '20');
+      rect.setAttribute('fill', isRoot ? '#4facfe' : '#00f2fe');
+      rect.setAttribute('stroke', 'white');
+      rect.setAttribute('stroke-width', '2');
+      rect.style.cursor = 'pointer';
+      svg.appendChild(rect);
+      
+      // Text
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', y);
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'middle');
+      text.setAttribute('fill', 'white');
+      text.setAttribute('font-size', isRoot ? '16' : '14');
+      text.setAttribute('font-weight', '600');
+      text.textContent = (node.topic || 'Node').substring(0, 20);
+      svg.appendChild(text);
+  }
+
+  let flowZoom = 1;
+  function flowZoomIn() { flowZoom = Math.min(flowZoom + 0.1, 2); applyFlowZoom(); }
+  function flowZoomOut() { flowZoom = Math.max(flowZoom - 0.1, 0.5); applyFlowZoom(); }
+  function flowReset() { flowZoom = 1; applyFlowZoom(); }
+  function applyFlowZoom() {
+      const svg = document.getElementById('flow-svg');
+      if (svg) {
+          svg.style.transform = `scale(${flowZoom})`;
+          svg.style.transformOrigin = 'top left';
+      }
+  }
+
+  // Variation 9: Network Graph Layout
+  async function loadNetworkMindmap() {
+      const careerId = {{ career.id }};
+      const careerSlug = '{{ career.slug }}';
+      const apiUrl = `/careers/api/career/${careerSlug}-${careerId}-mindmap/json/`;
+      
+      try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+              document.getElementById('loading-network').style.display = 'none';
+              return;
+          }
+          const data = await response.json();
+          if (data.available === false) {
+              document.getElementById('loading-network').style.display = 'none';
+              return;
+          }
+          
+          renderNetworkMindmap(data);
+      } catch (error) {
+          document.getElementById('loading-network').style.display = 'none';
+      }
+  }
+
+  function renderNetworkMindmap(data) {
+      const svg = document.getElementById('network-svg');
+      const container = document.querySelector('.network-mindmap-container');
+      if (!svg || !container) return;
+      
+      svg.style.display = 'block';
+      document.getElementById('loading-network').style.display = 'none';
+      document.getElementById('network-controls').style.display = 'block';
+      
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      svg.setAttribute('width', width);
+      svg.setAttribute('height', height);
+      svg.innerHTML = '';
+      
+      const root = data.data;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      
+      // Draw root
+      const rootCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      rootCircle.setAttribute('cx', centerX);
+      rootCircle.setAttribute('cy', centerY);
+      rootCircle.setAttribute('r', 50);
+      rootCircle.setAttribute('fill', '#43e97b');
+      rootCircle.setAttribute('stroke', 'white');
+      rootCircle.setAttribute('stroke-width', '3');
+      svg.appendChild(rootCircle);
+      
+      const rootText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      rootText.setAttribute('x', centerX);
+      rootText.setAttribute('y', centerY);
+      rootText.setAttribute('text-anchor', 'middle');
+      rootText.setAttribute('dominant-baseline', 'middle');
+      rootText.setAttribute('fill', 'white');
+      rootText.setAttribute('font-size', '14');
+      rootText.setAttribute('font-weight', 'bold');
+      rootText.textContent = (root.topic || 'Root').substring(0, 12);
+      svg.appendChild(rootText);
+      
+      // Draw children in network pattern
+      if (root.children && root.children.length > 0) {
+          const radius = 180;
+          const angleStep = (2 * Math.PI) / root.children.length;
+          
+          root.children.forEach((child, index) => {
+              const angle = index * angleStep - Math.PI / 2;
+              const x = centerX + radius * Math.cos(angle);
+              const y = centerY + radius * Math.sin(angle);
+              
+              // Connection line
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              line.setAttribute('x1', centerX);
+              line.setAttribute('y1', centerY);
+              line.setAttribute('x2', x);
+              line.setAttribute('y2', y);
+              line.setAttribute('stroke', '#38f9d7');
+              line.setAttribute('stroke-width', '2');
+              line.setAttribute('opacity', '0.4');
+              svg.insertBefore(line, svg.firstChild);
+              
+              // Child node
+              const childCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              childCircle.setAttribute('cx', x);
+              childCircle.setAttribute('cy', y);
+              childCircle.setAttribute('r', 40);
+              childCircle.setAttribute('fill', '#38f9d7');
+              childCircle.setAttribute('stroke', 'white');
+              childCircle.setAttribute('stroke-width', '2');
+              svg.appendChild(childCircle);
+              
+              const childText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              childText.setAttribute('x', x);
+              childText.setAttribute('y', y);
+              childText.setAttribute('text-anchor', 'middle');
+              childText.setAttribute('dominant-baseline', 'middle');
+              childText.setAttribute('fill', 'white');
+              childText.setAttribute('font-size', '11');
+              childText.setAttribute('font-weight', '600');
+              childText.textContent = (child.topic || 'Node').substring(0, 10);
+              svg.appendChild(childText);
+          });
+      }
+  }
+
+  function networkReset() {
+      renderNetworkMindmap(cardGridData || radialData);
+  }
+
+  function networkTogglePhysics() {
+      // Placeholder for physics simulation
+      alert('Physics simulation would animate nodes here!');
+  }
+
+  // Variation 10: Timeline Flow Layout
+  async function loadTimelineMindmap() {
+      const careerId = {{ career.id }};
+      const careerSlug = '{{ career.slug }}';
+      const apiUrl = `/careers/api/career/${careerSlug}-${careerId}-mindmap/json/`;
+      
+      try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+              document.getElementById('loading-timeline').style.display = 'none';
+              return;
+          }
+          const data = await response.json();
+          if (data.available === false) {
+              document.getElementById('loading-timeline').style.display = 'none';
+              return;
+          }
+          
+          renderTimelineMindmap(data);
+      } catch (error) {
+          document.getElementById('loading-timeline').style.display = 'none';
+      }
+  }
+
+  function renderTimelineMindmap(data) {
+      const container = document.getElementById('timeline-container');
+      if (!container) return;
+      
+      container.style.display = 'block';
+      document.getElementById('loading-timeline').style.display = 'none';
+      document.getElementById('timeline-controls').style.display = 'block';
+      container.innerHTML = '';
+      
+      const root = data.data;
+      let currentX = 50;
+      const stepX = 350;
+      const centerY = 200;
+      
+      // Root node
+      const rootNode = createTimelineNode(root, currentX, centerY, true);
+      container.appendChild(rootNode);
+      currentX += stepX;
+      
+      // Children nodes
+      if (root.children && root.children.length > 0) {
+          root.children.forEach((child, index) => {
+              const y = centerY + (index - root.children.length / 2) * 120;
+              const childNode = createTimelineNode(child, currentX, y, false);
+              container.appendChild(childNode);
+              
+              // Connection line
+              const line = document.createElement('div');
+              line.style.cssText = `
+                  position: absolute;
+                  left: ${currentX - stepX + 150}px;
+                  top: ${centerY}px;
+                  width: ${stepX - 200}px;
+                  height: 2px;
+                  background: linear-gradient(90deg, #fa709a 0%, #fee140 100%);
+                  transform-origin: left center;
+                  transform: rotate(${Math.atan2(y - centerY, stepX - 200) * 180 / Math.PI}deg);
+              `;
+              container.appendChild(line);
+          });
+      }
+      
+      container.style.width = (currentX + 200) + 'px';
+  }
+
+  function createTimelineNode(node, x, y, isRoot) {
+      const nodeDiv = document.createElement('div');
+      nodeDiv.style.cssText = `
+          position: absolute;
+          left: ${x}px;
+          top: ${y}px;
+          transform: translate(-50%, -50%);
+          background: linear-gradient(135deg, ${isRoot ? '#fa709a' : '#fee140'} 0%, ${isRoot ? '#fee140' : '#fa709a'} 100%);
+          color: white;
+          padding: ${isRoot ? '25px 30px' : '20px 25px'};
+          border-radius: 20px;
+          box-shadow: 0 8px 24px rgba(250, 112, 154, 0.3);
+          min-width: ${isRoot ? '200px' : '180px'};
+          text-align: center;
+          font-weight: ${isRoot ? '700' : '600'};
+          font-size: ${isRoot ? '18px' : '16px'};
+          cursor: pointer;
+          transition: all 0.3s ease;
+      `;
+      nodeDiv.textContent = node.topic || 'Node';
+      nodeDiv.onmouseenter = () => {
+          nodeDiv.style.transform = 'translate(-50%, -50%) scale(1.1)';
+          nodeDiv.style.boxShadow = '0 12px 32px rgba(250, 112, 154, 0.4)';
+      };
+      nodeDiv.onmouseleave = () => {
+          nodeDiv.style.transform = 'translate(-50%, -50%) scale(1)';
+          nodeDiv.style.boxShadow = '0 8px 24px rgba(250, 112, 154, 0.3)';
+      };
+      return nodeDiv;
+  }
+
+  function timelineScrollLeft() {
+      const container = document.querySelector('.timeline-mindmap-container');
+      if (container) container.scrollLeft -= 300;
+  }
+
+  function timelineScrollRight() {
+      const container = document.querySelector('.timeline-mindmap-container');
+      if (container) container.scrollLeft += 300;
+  }
+
+  function timelineReset() {
+      const container = document.querySelector('.timeline-mindmap-container');
+      if (container) container.scrollLeft = 0;
+  }
+
+  // Initialize new visualizations based on variation
+  const variation = '{{ variation }}';
+  if (variation === '6') {
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadRadialMindmap);
+      } else {
+          loadRadialMindmap();
+      }
+  } else if (variation === '7') {
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadCardGridMindmap);
+      } else {
+          loadCardGridMindmap();
+      }
+  } else if (variation === '8') {
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadFlowMindmap);
+      } else {
+          loadFlowMindmap();
+      }
+  } else if (variation === '9') {
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadNetworkMindmap);
+      } else {
+          loadNetworkMindmap();
+      }
+  } else if (variation === '10') {
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadTimelineMindmap);
+      } else {
+          loadTimelineMindmap();
+      }
+  }
+
+  // ============================================
+  // VERTICAL VERSIONS
+  // ============================================
+
+  // Variation 11: Vertical Radial Layout
+  let verticalRadialZoom = 1;
+
+  async function loadVerticalRadialMindmap() {
+      const careerId = {{ career.id }};
+      const careerSlug = '{{ career.slug }}';
+      const apiUrl = `/careers/api/career/${careerSlug}-${careerId}-mindmap/json/`;
+      
+      try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+              document.getElementById('loading-vertical-radial').style.display = 'none';
+              return;
+          }
+          const data = await response.json();
+          if (data.available === false) {
+              document.getElementById('loading-vertical-radial').style.display = 'none';
+              return;
+          }
+          
+          renderVerticalRadialMindmap(data);
+      } catch (error) {
+          document.getElementById('loading-vertical-radial').style.display = 'none';
+      }
+  }
+
+  function renderVerticalRadialMindmap(data) {
+      const svg = document.getElementById('vertical-radial-svg');
+      const container = document.querySelector('.vertical-radial-container');
+      if (!svg || !container) return;
+      
+      svg.style.display = 'block';
+      document.getElementById('loading-vertical-radial').style.display = 'none';
+      document.getElementById('vertical-radial-controls').style.display = 'block';
+      
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      svg.setAttribute('width', width);
+      svg.setAttribute('height', height);
+      svg.innerHTML = '';
+      
+      const centerX = width / 2;
+      const topY = 150;
+      const rootRadius = 80;
+      
+      // Draw root node at top
+      const root = data.data;
+      const rootCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      rootCircle.setAttribute('cx', centerX);
+      rootCircle.setAttribute('cy', topY);
+      rootCircle.setAttribute('r', rootRadius);
+      rootCircle.setAttribute('fill', 'url(#verticalRootGradient)');
+      rootCircle.setAttribute('stroke', '#667eea');
+      rootCircle.setAttribute('stroke-width', '3');
+      rootCircle.style.cursor = 'pointer';
+      svg.appendChild(rootCircle);
+      
+      // Root text
+      const rootText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      rootText.setAttribute('x', centerX);
+      rootText.setAttribute('y', topY);
+      rootText.setAttribute('text-anchor', 'middle');
+      rootText.setAttribute('dominant-baseline', 'middle');
+      rootText.setAttribute('fill', 'white');
+      rootText.setAttribute('font-size', '16');
+      rootText.setAttribute('font-weight', 'bold');
+      rootText.textContent = root.topic || 'Root';
+      svg.appendChild(rootText);
+      
+      // Add gradient
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+      gradient.setAttribute('id', 'verticalRootGradient');
+      gradient.setAttribute('x1', '0%');
+      gradient.setAttribute('y1', '0%');
+      gradient.setAttribute('x2', '0%');
+      gradient.setAttribute('y2', '100%');
+      const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop1.setAttribute('offset', '0%');
+      stop1.setAttribute('stop-color', '#667eea');
+      const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop2.setAttribute('offset', '100%');
+      stop2.setAttribute('stop-color', '#764ba2');
+      gradient.appendChild(stop1);
+      gradient.appendChild(stop2);
+      defs.appendChild(gradient);
+      svg.insertBefore(defs, svg.firstChild);
+      
+      // Render children in semi-circle below
+      if (root.children && root.children.length > 0) {
+          const childY = topY + 250;
+          const radius = 200;
+          const angleStep = Math.PI / (root.children.length + 1);
+          
+          root.children.forEach((child, index) => {
+              const angle = (index + 1) * angleStep;
+              const x = centerX + radius * Math.cos(angle - Math.PI / 2);
+              const y = childY + radius * Math.sin(angle - Math.PI / 2);
+              
+              // Draw line
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              line.setAttribute('x1', centerX);
+              line.setAttribute('y1', topY + rootRadius);
+              line.setAttribute('x2', x);
+              line.setAttribute('y2', y - 60);
+              line.setAttribute('stroke', '#667eea');
+              line.setAttribute('stroke-width', '2');
+              line.setAttribute('opacity', '0.5');
+              svg.appendChild(line);
+              
+              // Draw child circle
+              const childCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              childCircle.setAttribute('cx', x);
+              childCircle.setAttribute('cy', y);
+              childCircle.setAttribute('r', 60);
+              childCircle.setAttribute('fill', `hsl(${index * 360 / root.children.length}, 70%, 60%)`);
+              childCircle.setAttribute('stroke', 'white');
+              childCircle.setAttribute('stroke-width', '2');
+              childCircle.style.cursor = 'pointer';
+              svg.appendChild(childCircle);
+              
+              // Child text
+              const childText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              childText.setAttribute('x', x);
+              childText.setAttribute('y', y);
+              childText.setAttribute('text-anchor', 'middle');
+              childText.setAttribute('dominant-baseline', 'middle');
+              childText.setAttribute('fill', 'white');
+              childText.setAttribute('font-size', '12');
+              childText.setAttribute('font-weight', '600');
+              childText.textContent = (child.topic || 'Node').substring(0, 15);
+              svg.appendChild(childText);
+          });
+      }
+  }
+
+  function verticalRadialZoomIn() { verticalRadialZoom = Math.min(verticalRadialZoom + 0.1, 2); applyVerticalRadialZoom(); }
+  function verticalRadialZoomOut() { verticalRadialZoom = Math.max(verticalRadialZoom - 0.1, 0.5); applyVerticalRadialZoom(); }
+  function verticalRadialReset() { verticalRadialZoom = 1; applyVerticalRadialZoom(); }
+  function applyVerticalRadialZoom() {
+      const svg = document.getElementById('vertical-radial-svg');
+      if (svg) {
+          svg.style.transform = `scale(${verticalRadialZoom})`;
+          svg.style.transformOrigin = 'center top';
+      }
+  }
+
+  // Variation 12: Vertical Card Stack
+  let verticalCardExpanded = {};
+
+  async function loadVerticalCardMindmap() {
+      const careerId = {{ career.id }};
+      const careerSlug = '{{ career.slug }}';
+      const apiUrl = `/careers/api/career/${careerSlug}-${careerId}-mindmap/json/`;
+      
+      try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+              document.getElementById('loading-vertical-cards').style.display = 'none';
+              return;
+          }
+          const data = await response.json();
+          if (data.available === false) {
+              document.getElementById('loading-vertical-cards').style.display = 'none';
+              return;
+          }
+          
+          renderVerticalCardStack(data);
+      } catch (error) {
+          document.getElementById('loading-vertical-cards').style.display = 'none';
+      }
+  }
+
+  function renderVerticalCardStack(data) {
+      const container = document.getElementById('vertical-card-container');
+      if (!container) return;
+      
+      container.style.display = 'block';
+      document.getElementById('loading-vertical-cards').style.display = 'none';
+      document.getElementById('vertical-card-controls').style.display = 'block';
+      container.innerHTML = '';
+      
+      const root = data.data;
+      let currentY = 30;
+      const stepY = 180;
+      
+      // Root card
+      const rootCard = createVerticalCard(root, 'root', 0, currentY);
+      container.appendChild(rootCard);
+      currentY += stepY;
+      
+      // Children cards
+      if (root.children && root.children.length > 0) {
+          root.children.forEach((child, index) => {
+              const childCard = createVerticalCard(child, `child-${index}`, 1, currentY);
+              container.appendChild(childCard);
+              
+              // Connection line
+              const line = document.createElement('div');
+              line.style.cssText = `
+                  position: absolute;
+                  left: 50%;
+                  top: ${currentY - stepY + 100}px;
+                  width: 3px;
+                  height: ${stepY - 200}px;
+                  background: linear-gradient(180deg, #f093fb 0%, #f5576c 100%);
+                  transform: translateX(-50%);
+              `;
+              container.appendChild(line);
+              
+              currentY += stepY;
+          });
+      }
+      
+      container.style.height = (currentY + 50) + 'px';
+  }
+
+  function createVerticalCard(node, id, level, y) {
+      const card = document.createElement('div');
+      card.className = 'vertical-mindmap-card';
+      card.id = `vertical-card-${id}`;
+      card.style.cssText = `
+          position: absolute;
+          left: 50%;
+          top: ${y}px;
+          transform: translateX(-50%);
+          width: 90%;
+          max-width: 500px;
+          background: linear-gradient(135deg, ${level === 0 ? '#f093fb' : '#f5576c'} 0%, ${level === 0 ? '#f5576c' : '#fa709a'} 100%);
+          color: white;
+          padding: 25px;
+          border-radius: 20px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          z-index: ${10 - level};
+      `;
+      
+      card.innerHTML = `
+          <h5 style="margin: 0 0 10px 0; font-size: ${level === 0 ? '24px' : '20px'}; font-weight: 700; text-align: center;">${node.topic || 'Node'}</h5>
+          ${node.children && node.children.length > 0 ? `<small style="opacity: 0.9; display: block; text-align: center;">${node.children.length} sub-items</small>` : ''}
+      `;
+      
+      card.onmouseenter = () => {
+          card.style.transform = 'translateX(-50%) translateY(-5px) scale(1.02)';
+          card.style.boxShadow = '0 12px 32px rgba(0,0,0,0.25)';
+      };
+      card.onmouseleave = () => {
+          card.style.transform = 'translateX(-50%) translateY(0) scale(1)';
+          card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
+      };
+      
+      if (node.children && node.children.length > 0) {
+          card.onclick = () => {
+              const expanded = verticalCardExpanded[id] || false;
+              verticalCardExpanded[id] = !expanded;
+              toggleVerticalCardChildren(card, node, id, level + 1);
+          };
+      }
+      
+      return card;
+  }
+
+  function toggleVerticalCardChildren(card, node, id, level) {
+      const existing = document.getElementById(`vertical-card-children-${id}`);
+      if (existing) {
+          existing.remove();
+          return;
+      }
+      
+      const childrenContainer = document.createElement('div');
+      childrenContainer.id = `vertical-card-children-${id}`;
+      childrenContainer.style.cssText = `
+          margin-top: 15px;
+          padding-top: 15px;
+          border-top: 2px solid rgba(255,255,255,0.3);
+      `;
+      
+      let childY = 0;
+      const childStep = 120;
+      node.children.forEach((child, index) => {
+          const childCard = createVerticalCard(child, `${id}-${index}`, level, childY);
+          childCard.style.position = 'relative';
+          childCard.style.left = 'auto';
+          childCard.style.top = 'auto';
+          childCard.style.transform = 'none';
+          childCard.style.width = '100%';
+          childCard.style.marginBottom = '15px';
+          childrenContainer.appendChild(childCard);
+          childY += childStep;
+      });
+      
+      card.appendChild(childrenContainer);
+  }
+
+  function verticalCardExpandAll() {
+      Object.keys(verticalCardExpanded).forEach(id => {
+          verticalCardExpanded[id] = true;
+      });
+  }
+
+  function verticalCardCollapseAll() {
+      Object.keys(verticalCardExpanded).forEach(id => {
+          const existing = document.getElementById(`vertical-card-children-${id}`);
+          if (existing) existing.remove();
+          verticalCardExpanded[id] = false;
+      });
+  }
+
+  // Variation 13: Vertical Flow
+  async function loadVerticalFlowMindmap() {
+      const careerId = {{ career.id }};
+      const careerSlug = '{{ career.slug }}';
+      const apiUrl = `/careers/api/career/${careerSlug}-${careerId}-mindmap/json/`;
+      
+      try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+              document.getElementById('loading-vertical-flow').style.display = 'none';
+              return;
+          }
+          const data = await response.json();
+          if (data.available === false) {
+              document.getElementById('loading-vertical-flow').style.display = 'none';
+              return;
+          }
+          
+          renderVerticalFlowMindmap(data);
+      } catch (error) {
+          document.getElementById('loading-vertical-flow').style.display = 'none';
+      }
+  }
+
+  function renderVerticalFlowMindmap(data) {
+      const svg = document.getElementById('vertical-flow-svg');
+      const container = document.querySelector('.vertical-flow-container');
+      if (!svg || !container) return;
+      
+      svg.style.display = 'block';
+      document.getElementById('loading-vertical-flow').style.display = 'none';
+      document.getElementById('vertical-flow-controls').style.display = 'block';
+      
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      svg.setAttribute('width', width);
+      svg.setAttribute('height', height);
+      svg.innerHTML = '';
+      
+      const root = data.data;
+      const startX = width / 2;
+      const startY = 100;
+      const levelHeight = 200;
+      
+      // Draw root
+      drawVerticalFlowNode(svg, root, startX, startY, 0, true);
+      
+      // Draw children
+      if (root.children && root.children.length > 0) {
+          root.children.forEach((child, index) => {
+              const y = startY + levelHeight;
+              drawVerticalFlowNode(svg, child, startX, y, 1, false);
+              
+              // Draw vertical connection
+              const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              path.setAttribute('d', `M ${startX} ${startY + 40} L ${startX} ${y - 30}`);
+              path.setAttribute('stroke', '#4facfe');
+              path.setAttribute('stroke-width', '3');
+              path.setAttribute('fill', 'none');
+              path.setAttribute('opacity', '0.6');
+              svg.insertBefore(path, svg.firstChild);
+          });
+      }
+  }
+
+  function drawVerticalFlowNode(svg, node, x, y, level, isRoot) {
+      const width = isRoot ? 200 : 180;
+      const height = isRoot ? 80 : 60;
+      
+      // Rounded rectangle
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', x - width/2);
+      rect.setAttribute('y', y - height/2);
+      rect.setAttribute('width', width);
+      rect.setAttribute('height', height);
+      rect.setAttribute('rx', '20');
+      rect.setAttribute('ry', '20');
+      rect.setAttribute('fill', isRoot ? '#4facfe' : '#00f2fe');
+      rect.setAttribute('stroke', 'white');
+      rect.setAttribute('stroke-width', '2');
+      rect.style.cursor = 'pointer';
+      svg.appendChild(rect);
+      
+      // Text
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', y);
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'middle');
+      text.setAttribute('fill', 'white');
+      text.setAttribute('font-size', isRoot ? '16' : '14');
+      text.setAttribute('font-weight', '600');
+      text.textContent = (node.topic || 'Node').substring(0, 20);
+      svg.appendChild(text);
+  }
+
+  let verticalFlowZoom = 1;
+  function verticalFlowZoomIn() { verticalFlowZoom = Math.min(verticalFlowZoom + 0.1, 2); applyVerticalFlowZoom(); }
+  function verticalFlowZoomOut() { verticalFlowZoom = Math.max(verticalFlowZoom - 0.1, 0.5); applyVerticalFlowZoom(); }
+  function verticalFlowReset() { verticalFlowZoom = 1; applyVerticalFlowZoom(); }
+  function applyVerticalFlowZoom() {
+      const svg = document.getElementById('vertical-flow-svg');
+      if (svg) {
+          svg.style.transform = `scale(${verticalFlowZoom})`;
+          svg.style.transformOrigin = 'center top';
+      }
+  }
+
+  // Variation 14: Vertical Network
+  async function loadVerticalNetworkMindmap() {
+      const careerId = {{ career.id }};
+      const careerSlug = '{{ career.slug }}';
+      const apiUrl = `/careers/api/career/${careerSlug}-${careerId}-mindmap/json/`;
+      
+      try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+              document.getElementById('loading-vertical-network').style.display = 'none';
+              return;
+          }
+          const data = await response.json();
+          if (data.available === false) {
+              document.getElementById('loading-vertical-network').style.display = 'none';
+              return;
+          }
+          
+          renderVerticalNetworkMindmap(data);
+      } catch (error) {
+          document.getElementById('loading-vertical-network').style.display = 'none';
+      }
+  }
+
+  function renderVerticalNetworkMindmap(data) {
+      const svg = document.getElementById('vertical-network-svg');
+      const container = document.querySelector('.vertical-network-container');
+      if (!svg || !container) return;
+      
+      svg.style.display = 'block';
+      document.getElementById('loading-vertical-network').style.display = 'none';
+      document.getElementById('vertical-network-controls').style.display = 'block';
+      
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      svg.setAttribute('width', width);
+      svg.setAttribute('height', height);
+      svg.innerHTML = '';
+      
+      const root = data.data;
+      const centerX = width / 2;
+      const topY = 150;
+      
+      // Draw root at top
+      const rootCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      rootCircle.setAttribute('cx', centerX);
+      rootCircle.setAttribute('cy', topY);
+      rootCircle.setAttribute('r', 50);
+      rootCircle.setAttribute('fill', '#43e97b');
+      rootCircle.setAttribute('stroke', 'white');
+      rootCircle.setAttribute('stroke-width', '3');
+      svg.appendChild(rootCircle);
+      
+      const rootText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      rootText.setAttribute('x', centerX);
+      rootText.setAttribute('y', topY);
+      rootText.setAttribute('text-anchor', 'middle');
+      rootText.setAttribute('dominant-baseline', 'middle');
+      rootText.setAttribute('fill', 'white');
+      rootText.setAttribute('font-size', '14');
+      rootText.setAttribute('font-weight', 'bold');
+      rootText.textContent = (root.topic || 'Root').substring(0, 12);
+      svg.appendChild(rootText);
+      
+      // Draw children below
+      if (root.children && root.children.length > 0) {
+          const childY = topY + 250;
+          const spacing = width / (root.children.length + 1);
+          
+          root.children.forEach((child, index) => {
+              const x = spacing * (index + 1);
+              
+              // Connection line
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              line.setAttribute('x1', centerX);
+              line.setAttribute('y1', topY + 50);
+              line.setAttribute('x2', x);
+              line.setAttribute('y2', childY - 40);
+              line.setAttribute('stroke', '#38f9d7');
+              line.setAttribute('stroke-width', '2');
+              line.setAttribute('opacity', '0.4');
+              svg.insertBefore(line, svg.firstChild);
+              
+              // Child node
+              const childCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              childCircle.setAttribute('cx', x);
+              childCircle.setAttribute('cy', childY);
+              childCircle.setAttribute('r', 40);
+              childCircle.setAttribute('fill', '#38f9d7');
+              childCircle.setAttribute('stroke', 'white');
+              childCircle.setAttribute('stroke-width', '2');
+              svg.appendChild(childCircle);
+              
+              const childText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              childText.setAttribute('x', x);
+              childText.setAttribute('y', childY);
+              childText.setAttribute('text-anchor', 'middle');
+              childText.setAttribute('dominant-baseline', 'middle');
+              childText.setAttribute('fill', 'white');
+              childText.setAttribute('font-size', '11');
+              childText.setAttribute('font-weight', '600');
+              childText.textContent = (child.topic || 'Node').substring(0, 10);
+              svg.appendChild(childText);
+          });
+      }
+  }
+
+  function verticalNetworkReset() {
+      // Re-render
+      if (cardGridData || radialData) {
+          renderVerticalNetworkMindmap(cardGridData || radialData);
+      }
+  }
+
+  // Variation 15: Vertical Timeline
+  async function loadVerticalTimelineMindmap() {
+      const careerId = {{ career.id }};
+      const careerSlug = '{{ career.slug }}';
+      const apiUrl = `/careers/api/career/${careerSlug}-${careerId}-mindmap/json/`;
+      
+      try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+              document.getElementById('loading-vertical-timeline').style.display = 'none';
+              return;
+          }
+          const data = await response.json();
+          if (data.available === false) {
+              document.getElementById('loading-vertical-timeline').style.display = 'none';
+              return;
+          }
+          
+          renderVerticalTimelineMindmap(data);
+      } catch (error) {
+          document.getElementById('loading-vertical-timeline').style.display = 'none';
+      }
+  }
+
+  function renderVerticalTimelineMindmap(data) {
+      const container = document.getElementById('vertical-timeline-container');
+      if (!container) return;
+      
+      container.style.display = 'block';
+      document.getElementById('loading-vertical-timeline').style.display = 'none';
+      document.getElementById('vertical-timeline-controls').style.display = 'block';
+      container.innerHTML = '';
+      
+      const root = data.data;
+      let currentY = 50;
+      const stepY = 200;
+      const centerX = 250;
+      
+      // Root node
+      const rootNode = createVerticalTimelineNode(root, centerX, currentY, true);
+      container.appendChild(rootNode);
+      currentY += stepY;
+      
+      // Timeline line
+      const timelineLine = document.createElement('div');
+      timelineLine.style.cssText = `
+          position: absolute;
+          left: ${centerX}px;
+          top: ${currentY - stepY + 100}px;
+          width: 4px;
+          height: ${stepY - 200}px;
+          background: linear-gradient(180deg, #fa709a 0%, #fee140 100%);
+          transform: translateX(-50%);
+      `;
+      container.appendChild(timelineLine);
+      
+      // Children nodes
+      if (root.children && root.children.length > 0) {
+          root.children.forEach((child, index) => {
+              const childNode = createVerticalTimelineNode(child, centerX, currentY, false);
+              container.appendChild(childNode);
+              
+              // Connection line
+              const line = document.createElement('div');
+              line.style.cssText = `
+                  position: absolute;
+                  left: ${centerX}px;
+                  top: ${currentY - stepY + 100}px;
+                  width: 4px;
+                  height: ${stepY - 200}px;
+                  background: linear-gradient(180deg, #fa709a 0%, #fee140 100%);
+                  transform: translateX(-50%);
+              `;
+              container.appendChild(line);
+              
+              currentY += stepY;
+          });
+      }
+      
+      container.style.height = (currentY + 50) + 'px';
+  }
+
+  function createVerticalTimelineNode(node, x, y, isRoot) {
+      const nodeDiv = document.createElement('div');
+      nodeDiv.style.cssText = `
+          position: absolute;
+          left: ${x}px;
+          top: ${y}px;
+          transform: translate(-50%, -50%);
+          background: linear-gradient(135deg, ${isRoot ? '#fa709a' : '#fee140'} 0%, ${isRoot ? '#fee140' : '#fa709a'} 100%);
+          color: white;
+          padding: ${isRoot ? '25px 30px' : '20px 25px'};
+          border-radius: 20px;
+          box-shadow: 0 8px 24px rgba(250, 112, 154, 0.3);
+          min-width: ${isRoot ? '220px' : '200px'};
+          text-align: center;
+          font-weight: ${isRoot ? '700' : '600'};
+          font-size: ${isRoot ? '18px' : '16px'};
+          cursor: pointer;
+          transition: all 0.3s ease;
+      `;
+      nodeDiv.textContent = node.topic || 'Node';
+      nodeDiv.onmouseenter = () => {
+          nodeDiv.style.transform = 'translate(-50%, -50%) scale(1.1)';
+          nodeDiv.style.boxShadow = '0 12px 32px rgba(250, 112, 154, 0.4)';
+      };
+      nodeDiv.onmouseleave = () => {
+          nodeDiv.style.transform = 'translate(-50%, -50%) scale(1)';
+          nodeDiv.style.boxShadow = '0 8px 24px rgba(250, 112, 154, 0.3)';
+      };
+      return nodeDiv;
+  }
+
+  function verticalTimelineScrollUp() {
+      const container = document.querySelector('.vertical-timeline-container');
+      if (container) container.scrollTop -= 300;
+  }
+
+  function verticalTimelineScrollDown() {
+      const container = document.querySelector('.vertical-timeline-container');
+      if (container) container.scrollTop += 300;
+  }
+
+  function verticalTimelineReset() {
+      const container = document.querySelector('.vertical-timeline-container');
+      if (container) container.scrollTop = 0;
+  }
+
+  // Initialize vertical visualizations
+  if (variation === '11') {
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadVerticalRadialMindmap);
+      } else {
+          loadVerticalRadialMindmap();
+      }
+  } else if (variation === '12') {
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadVerticalCardMindmap);
+      } else {
+          loadVerticalCardMindmap();
+      }
+  } else if (variation === '13') {
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadVerticalFlowMindmap);
+      } else {
+          loadVerticalFlowMindmap();
+      }
+  } else if (variation === '14') {
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadVerticalNetworkMindmap);
+      } else {
+          loadVerticalNetworkMindmap();
+      }
+  } else if (variation === '15') {
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadVerticalTimelineMindmap);
+      } else {
+          loadVerticalTimelineMindmap();
+      }
+  }
+  </script>
+
+  {% else %}
+  <div class="container mb-4">
+    <div class="alert alert-info">
+      <h5>Mind Map Not Available</h5>
+      <p>No mind map file found for this career.</p>
+      <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}" class="btn btn-primary">Back to Career Details</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+

@@ -541,12 +541,12 @@
         <form id="modernTestForm" action="{{ submit_url|default:'#' }}" method="post">
           {% csrf_token %}
           {% for question in questions %}
-          <div class="question-card {% if forloop.first %}active{% endif %}" id="question{{ forloop.counter }}" data-question-number="{{ forloop.counter }}" data-question-type="{{ question.input_type|default:'radio' }}">
+          <div class="question-card {% if loop.first %}active{% endif %}" id="question{{ loop.index }}" data-question-number="{{ loop.index }}" data-question-type="{{ question.input_type|default:'radio' }}">
             <div class="question-meta">
               <span class="question-pill">{{ question.category|default:"Core Skill" }}</span>
               <span class="text-muted fw-semibold">{{ question.difficulty|default:"Medium" }} • {{ question.estimated_time|default:"45 sec" }}</span>
             </div>
-            <div class="question-title">Q{{ forloop.counter }}. {{ question.title|default:question.text|default:"Question title" }}</div>
+            <div class="question-title">Q{{ loop.index }}. {{ question.title|default:question.text|default:"Question title" }}</div>
             <p class="question-text">{{ question.description|default:question.text|default:"Question description comes here." }}</p>
 
             {% if question.image %}
@@ -640,7 +640,7 @@
           <p class="side-heading mb-2">Quick Navigation</p>
           <div class="question-nav-grid mb-4" id="questionNavGrid">
             {% for question in questions %}
-            <button type="button" class="question-nav-item {% if forloop.first %}active{% endif %}" data-target="{{ forloop.counter }}">{{ forloop.counter }}</button>
+            <button type="button" class="question-nav-item {% if loop.first %}active{% endif %}" data-target="{{ loop.index }}">{{ loop.index }}</button>
             {% endfor %}
           </div>
 

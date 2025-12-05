@@ -1,0 +1,189 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Payment - {{ skilllab.name }} | Top Teen{% endblock %}
+{% block description_content %}Complete payment for {{ skilllab.name }}{% endblock %}
+
+{% block bodyclass %}{{ super() }} skilllab-payment-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .skilllab-payment-page {
+    padding-top: 80px;
+  }
+  .payment-loading {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.3em;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="skilllab-payment-page pb-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <div class="payment-loading">
+              <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <h4 class="mb-2">Processing Payment</h4>
+              <p class="text-gray mb-4">Please wait while we prepare your payment...</p>
+              <p class="text-muted fs-14">Redirecting to payment gateway...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  // Payment info from backend (already JSON string)
+  {% if payment_info_json %}
+  const paymentInfo = {{ payment_info_json|safe }};
+  {% else %}
+  const paymentInfo = {};
+  console.error('Payment info not available');
+  {% endif %}
+  const successUrl = "{{ success_url }}";
+  const failUrl = "{{ fail_url }}";
+  const paymentId = {{ payment_id }};
+
+  function openRazorpay() {
+    if (typeof Razorpay === 'undefined') {
+      return;
+    }
+
+    // Create a copy of paymentInfo to avoid modifying the original
+    const rzpOptions = Object.assign({}, paymentInfo);
+    
+    // Add handler for successful payment
+    rzpOptions['handler'] = function (response) {
+      // Update payment on server
+      updatePayment(response);
+    };
+
+    // Add modal dismiss handler
+    rzpOptions['modal'] = {
+      'ondismiss': function() {
+        window.location.href = failUrl;
+      }
+    };
+
+    try {
+      var rzp1 = new Razorpay(rzpOptions);
+      
+      // Handle payment failure
+      rzp1.on('payment.failed', function (response) {
+        alert('Payment failed: ' + (response.error.description || response.error.code));
+        window.location.href = failUrl;
+      });
+
+      // Open Razorpay checkout
+      rzp1.open();
+    } catch (error) {
+      alert('Error opening payment gateway: ' + error.message);
+    }
+  }
+
+  function updatePayment(response) {
+    const data = {
+      gateway_order_id: response.razorpay_order_id,
+      gateway_payment_id: response.razorpay_payment_id,
+      gateway_signature: response.razorpay_signature,
+      payment_id: paymentId
+    };
+
+    fetch('{{ url("skilllab:updateskilllcaourseeazypay") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify(data),
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.redirect_url) {
+        window.location.href = data.redirect_url;
+      } else {
+        window.location.href = successUrl;
+      }
+    })
+    .catch(error => {
+      console.error('Error updating payment:', error);
+      // Still redirect to success URL as payment was successful
+      window.location.href = successUrl;
+    });
+  }
+
+  // Helper function to get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Load Razorpay script and auto-open when ready
+  function initRazorpay() {
+    // Check if paymentInfo is valid
+    if (!paymentInfo || !paymentInfo.key || !paymentInfo.amount) {
+      alert('Payment information is missing. Please try again.');
+      return;
+    }
+    
+    // Check if Razorpay is already loaded
+    if (typeof Razorpay !== 'undefined') {
+      openRazorpay();
+      return;
+    }
+
+    // Load Razorpay script dynamically
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = function() {
+      // Wait a tiny bit for Razorpay to initialize
+      setTimeout(function() {
+        if (typeof Razorpay !== 'undefined') {
+          openRazorpay();
+        } else {
+          alert('Payment gateway failed to load. Please refresh the page.');
+        }
+      }, 100);
+    };
+    script.onerror = function() {
+      alert('Failed to load payment gateway. Please check your internet connection and refresh the page.');
+    };
+    document.head.appendChild(script);
+  }
+
+  // Start initialization when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initRazorpay);
+  } else {
+    initRazorpay();
+  }
+</script>
+{% endblock %}
+

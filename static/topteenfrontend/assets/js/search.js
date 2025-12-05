@@ -14,6 +14,18 @@ const inputFunc = () => {
 }
 
 document.onclick = function(e){
+  // If clicking on a link in search results, let it navigate naturally
+  const clickedLink = e.target.closest('#desktopviewsearch a, #mobileviewsearch a, #searchresults a');
+  if (clickedLink) {
+    // Allow the link to navigate - don't interfere
+    return;
+  }
+  
+  // Don't close dropdown if clicking inside the search results container
+  if (e.target.closest('#searchresults') || e.target.closest('#desktopviewsearch') || e.target.closest('#mobileviewsearch')) {
+    return;
+  }
+  
   const parent = e.target.closest(".beforeType")
   
   if( !parent && !e.target.classList.contains("searchBox")){
@@ -50,8 +62,6 @@ function SearchCollegeListHtml(parameter,is_mobile=false){
             $('#mobilesearchresults').html(html);
             document.getElementById("desktopviewsearch").classList.add("hidden");
             document.getElementById("mobileviewsearch").classList.remove("hidden");
-            
-            
         }
         else{
            $('#searchresults').html(html);

@@ -1,0 +1,126 @@
+{% if infographics.institutes %}
+<!-- Top Institutes Infographic -->
+<div class="infographic-container institutes-infographic-container" style="margin: 2rem 0; padding: 2rem; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
+  <div class="institutes-infographic">
+    <div class="infographic-title">Top Institutes for {{ career.name }} Education</div>
+    <div class="institutes-grid">
+      {% for institute in infographics.institutes %}
+      <div class="institute-card">
+        <div class="institute-icon">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect x="8" y="12" width="24" height="20" rx="2" fill="#2196f3" opacity="0.2"/>
+            <path d="M20 8 L12 12 L12 28 L20 32 L28 28 L28 12 Z" fill="#2196f3" opacity="0.3"/>
+            <circle cx="20" cy="20" r="4" fill="#2196f3"/>
+          </svg>
+        </div>
+        <div class="institute-content">
+          {% if institute.institute %}
+          <div class="institute-name">{{ institute.institute }}</div>
+          {% elif institute.institution %}
+          <div class="institute-name">{{ institute.institution }}</div>
+          {% endif %}
+          
+          {% if institute.course or institute.course_program %}
+          <div class="institute-course">
+            <strong>Course:</strong> 
+            {% if institute.course %}
+              {{ institute.course }}
+            {% elif institute.course_program %}
+              {{ institute.course_program }}
+            {% endif %}
+          </div>
+          {% endif %}
+          
+          {% if institute.country %}
+          <div class="institute-country">
+            <strong>Country:</strong> {{ institute.country }}
+          </div>
+          {% endif %}
+          
+          {% if institute.official_link %}
+          <div class="institute-link">
+            <a href="{{ institute.official_link }}" target="_blank" rel="noopener">
+              Visit Website →
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+.institutes-infographic {
+  position: relative;
+}
+
+.institutes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.institute-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(33, 150, 243, 0.15);
+  border-top: 4px solid #2196f3;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  gap: 16px;
+}
+
+.institute-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 20px rgba(33, 150, 243, 0.25);
+}
+
+.institute-icon {
+  flex-shrink: 0;
+}
+
+.institute-content {
+  flex: 1;
+}
+
+.institute-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1565c0;
+  margin-bottom: 10px;
+}
+
+.institute-course,
+.institute-country {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.institute-link {
+  margin-top: 10px;
+}
+
+.institute-link a {
+  color: #2196f3;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.institute-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .institutes-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endif %}
+

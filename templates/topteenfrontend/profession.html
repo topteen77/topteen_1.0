@@ -14,10 +14,17 @@
       <div
         class="w-full lg:h-[214px] h-[192px] relative mb-[18px] rounded-[10px] overflow-hidden"
       >
+        {% if profession.image and profession.image.name %}
         <img
           src="{{profession.image.url}}"
           class="h-full w-full object-cover"
         />
+        {% else %}
+        <img
+          src="{{static('images/career-icon.png')}}"
+          class="h-full w-full object-cover"
+        />
+        {% endif %}
 
         <div
           class="absolute inset-0 h-full w-full backgroundGradient z-10"

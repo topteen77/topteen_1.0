@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404,redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from careers.document_filters import CareerDocumentFilter
 from .models import Career, CareerFAQ, CareerMedia, CareerPath, CareerTags, Profession,CareerCluster,Videos,VideoCategory,CareerShortlist,CareerRating
@@ -11,7 +11,6 @@ from core.models import Country
 from core import choices
 from colleges.views import is_ajax
 from django.template.loader import render_to_string
-from django.shortcuts import HttpResponse
 from django.urls import reverse_lazy
 from core.utils import build_breadcrumb,build_html_head
 from entrance_exams.models import EntranceExam
@@ -19,6 +18,14 @@ from .document_filters import CareerDocumentFilter
 from django.urls import reverse
 from django.utils.html import strip_tags
 from django.contrib import messages
+from pathlib import Path
+from django.conf import settings
+import xmindparser
+import logging
+import re
+from bs4 import BeautifulSoup
+
+logger = logging.getLogger(__name__)
 # Create your views here.
 class Careers(TemplateView):
     
@@ -309,6 +316,42 @@ class CareerDetail(TemplateView):
         # Generate career aspect mindmap data (like HIPPOLOGY example)
         ctx['career_aspect_mindmap'] = self._get_career_aspect_mindmap(career)
 
+        # Safely check if mindmap data exists (XMind file OR description with h2 tags)
+        try:
+            ctx['has_xmind_file'] = career.has_mindmap_data()  # Now checks both XMind and description
+            ctx['xmind_file_path'] = str(career.get_xmind_file_path()) if career.has_xmind_file() else None
+            # Pre-fetch clusters as list for Jinja2 template
+            ctx['career_clusters'] = list(career.career_cluster.all())
+        except Exception:
+            # Gracefully handle any errors
+            ctx['has_xmind_file'] = False
+            ctx['xmind_file_path'] = None
+            ctx['career_clusters'] = []
+
+        # Parse infographics from description field using generic parser
+        try:
+            from .infographic_parser import parse_infographic
+            
+            description = career.description or ''
+            eligibility = career.eligibility or ''
+            combined_content = description + eligibility
+            
+            # Parse different types of infographics
+            ctx['infographics'] = {
+                'study_route': parse_infographic(combined_content, 'study_route'),
+                'roles_responsibilities': parse_infographic(combined_content, 'roles_responsibilities'),
+                'observations': parse_infographic(combined_content, 'observations'),
+                'courses': parse_infographic(combined_content, 'courses'),
+                'institutes': parse_infographic(combined_content, 'institutes'),
+            }
+            
+            # Keep backward compatibility
+            ctx['study_routes'] = ctx['infographics'].get('study_route')
+        except Exception as e:
+            logger.warning(f'Error parsing infographics: {str(e)}')
+            ctx['infographics'] = {}
+            ctx['study_routes'] = None
+
         return ctx
     
     def _get_mindmap_data(self, current_career):
@@ -353,6 +396,404 @@ class CareerDetail(TemplateView):
                 mindmap_data["children"].append(cluster_data)
         
         return json.dumps(mindmap_data)
+    
+    def _parse_study_routes(self, career):
+        """
+        Parse study routes from career.eligibility HTML content.
+        Handles both table format (Route/Steps columns) and heading-based format.
+        Extracts routes and steps to create infographic structure.
+        Returns list of route dictionaries or None if parsing fails.
+        """
+        if not career.eligibility:
+            return None
+        
+        try:
+            soup = BeautifulSoup(career.eligibility, 'html.parser')
+            
+            # Route colors
+            route_colors = [
+                {'name': 'route-1', 'color': '#0064c8', 'display': 'Route 1'},  # Blue
+                {'name': 'route-2', 'color': '#228b22', 'display': 'Route 2'},  # Green
+                {'name': 'route-3', 'color': '#8a2be2', 'display': 'Route 3'},  # Purple
+                {'name': 'route-4', 'color': '#ff8c00', 'display': 'Route 4'}   # Orange
+            ]
+            
+            routes = []
+            
+            # METHOD 1: Try parsing table structure first (Route/Steps columns)
+            tables = soup.find_all('table')
+            for table in tables:
+                rows = table.find_all('tr')
+                
+                for row_idx, row in enumerate(rows):
+                    cells = row.find_all(['td', 'th'])
+                    if len(cells) >= 2:
+                        route_cell = cells[0].get_text(strip=True)
+                        steps_cell = cells[1].get_text(strip=True)
+                        
+                        # Skip header row (usually first row with "Route" and "Steps")
+                        if row_idx == 0 and route_cell.lower() == 'route' and steps_cell.lower() == 'steps':
+                            continue
+                        
+                        # Check if first cell contains "Route" keyword
+                        if 'route' in route_cell.lower() and route_cell.lower() != 'route':
+                            # Extract route number and name
+                            route_match = re.search(r'route\s*(\d+)[:\s]*(.*)', route_cell, re.IGNORECASE)
+                            if route_match:
+                                route_num = int(route_match.group(1))
+                                route_name = route_match.group(2).strip() if route_match.group(2) else f'Route {route_num}'
+                            else:
+                                route_num = len(routes) + 1
+                                route_name = route_cell
+                            
+                            # Parse steps from second cell (numbered list)
+                            steps = []
+                            # Split by "number. " or "number) " pattern to handle numbers in text
+                            step_parts = re.split(r'(\d+)[\.\)]\s+', steps_cell)
+                            
+                            # step_parts[0] is text before first number (usually empty)
+                            # Then pairs of (number, text) follow
+                            if len(step_parts) > 1:
+                                for i in range(1, len(step_parts), 2):
+                                    if i + 1 < len(step_parts):
+                                        step_num = int(step_parts[i])
+                                        step_text = step_parts[i + 1].strip()
+                                        
+                                        # Clean up: remove any trailing text that looks like start of next step
+                                        # But keep numbers that are part of the step (like "10+2", "4 years")
+                                        step_text = re.sub(r'\s+(?=\d+[\.\)]\s)', '', step_text)
+                                        
+                                        # Clean up extra whitespace
+                                        step_text = re.sub(r'\s+', ' ', step_text)
+                                        
+                                        # Extract duration
+                                        duration = ''
+                                        duration_patterns = [
+                                            r'\((\d+[-–]\d+\s*(?:Years?|Months?|Yrs?|Months?))\)',
+                                            r'\((\d+\s*(?:Years?|Months?|Yrs?|Months?))\)',
+                                        ]
+                                        for dur_pattern in duration_patterns:
+                                            duration_match = re.search(dur_pattern, step_text, re.IGNORECASE)
+                                            if duration_match:
+                                                duration = duration_match.group(1)
+                                                break
+                                        
+                                        # Remove duration from title
+                                        title = re.sub(r'\([^)]*\)', '', step_text).strip()
+                                        
+                                        if title:
+                                            steps.append({
+                                                'number': step_num,
+                                                'title': title,
+                                                'description': '',
+                                                'duration': duration
+                                            })
+                            else:
+                                # Fallback: Try splitting by newlines or semicolons
+                                step_lines = re.split(r'[\n;]', steps_cell)
+                                for idx, line in enumerate(step_lines, 1):
+                                    line = line.strip()
+                                    if line and not line.lower().startswith('route'):
+                                        # Extract duration
+                                        duration = ''
+                                        duration_match = re.search(r'\((\d+[-–]\d+\s*(?:Years?|Months?|Yrs?|Months?))\)', line, re.IGNORECASE)
+                                        if duration_match:
+                                            duration = duration_match.group(1)
+                                        
+                                        # Remove duration from title
+                                        title = re.sub(r'\([^)]*\)', '', line).strip()
+                                        
+                                        if title:
+                                            steps.append({
+                                                'number': idx,
+                                                'title': title,
+                                                'description': '',
+                                                'duration': duration
+                                            })
+                            
+                            if steps:
+                                route_index = route_num - 1
+                                if route_index < len(route_colors):
+                                    route_data = {
+                                        'name': route_name,
+                                        'class': route_colors[route_index]['name'],
+                                        'color': route_colors[route_index]['color'],
+                                        'display': route_colors[route_index]['display'],
+                                        'steps': steps
+                                    }
+                                else:
+                                    route_data = {
+                                        'name': route_name,
+                                        'class': 'route-default',
+                                        'color': '#666666',
+                                        'display': f'Route {route_num}',
+                                        'steps': steps
+                                    }
+                                routes.append(route_data)
+            
+            # METHOD 2: If no table found, try heading-based parsing
+            if not routes:
+                current_route = None
+                route_index = 0
+                
+                # Find all headings and content
+                all_elements = soup.find_all(['h2', 'h3', 'h4', 'p', 'ul', 'ol', 'li'])
+                
+                for element in all_elements:
+                    tag_name = element.name.lower()
+                    text = element.get_text(strip=True)
+                    
+                    if not text:
+                        continue
+                    
+                    # Check if it's a route heading (h2 or h3 with "route" keyword)
+                    is_route_heading = (
+                        (tag_name == 'h2') or 
+                        (tag_name == 'h3' and ('route' in text.lower() or text.lower().startswith('pathway')))
+                    )
+                    
+                    if is_route_heading:
+                        # Save previous route
+                        if current_route and current_route['steps']:
+                            routes.append(current_route)
+                        
+                        # Start new route
+                        route_index = len(routes)
+                        if route_index < len(route_colors):
+                            current_route = {
+                                'name': text,
+                                'class': route_colors[route_index]['name'],
+                                'color': route_colors[route_index]['color'],
+                                'display': route_colors[route_index]['display'],
+                                'steps': []
+                            }
+                        else:
+                            # Use default if more than 4 routes
+                            current_route = {
+                                'name': text,
+                                'class': 'route-default',
+                                'color': '#666666',
+                                'display': f'Route {route_index + 1}',
+                                'steps': []
+                            }
+                    
+                    elif current_route and (tag_name == 'h3' or tag_name == 'h4'):
+                        # Step heading
+                        step_text = text
+                        
+                        # Look for description in next paragraph
+                        description = ''
+                        duration = ''
+                        next_elem = element.find_next_sibling(['p', 'ul', 'ol'])
+                        
+                        if next_elem:
+                            if next_elem.name == 'p':
+                                description = next_elem.get_text(strip=True)
+                            elif next_elem.name in ['ul', 'ol']:
+                                # Get first list item as description
+                                first_li = next_elem.find('li')
+                                if first_li:
+                                    description = first_li.get_text(strip=True)
+                        
+                        # Extract duration pattern (e.g., "3-4 Years", "2 Years", "(1-2 Yrs)")
+                        duration_patterns = [
+                            r'\(?(\d+[-–]\d+\s*(?:Years?|Months?|Yrs?|Months?))\)?',
+                            r'\(?(\d+\s*(?:Years?|Months?|Yrs?|Months?))\)?',
+                            r'(\d+[-–]\d+\s*(?:Years?|Months?|Yrs?))',
+                        ]
+                        
+                        for pattern in duration_patterns:
+                            match = re.search(pattern, description, re.IGNORECASE)
+                            if match:
+                                duration = match.group(1)
+                                break
+                        
+                        current_route['steps'].append({
+                            'number': len(current_route['steps']) + 1,
+                            'title': step_text,
+                            'description': description[:200] if description else '',  # Limit length
+                            'duration': duration
+                        })
+                
+                # Add last route
+                if current_route and current_route['steps']:
+                    routes.append(current_route)
+            
+            return routes if routes else None
+        
+        except Exception as e:
+            logger.warning(f'Error parsing study routes for career {career.name}: {str(e)}')
+            return None
+    
+    def _parse_study_routes_from_description(self, career):
+        """
+        Parse study routes from career.description HTML content.
+        Looks for "Study Route" section and extracts table or heading-based routes.
+        """
+        if not career.description:
+            return None
+        
+        try:
+            soup = BeautifulSoup(career.description, 'html.parser')
+            
+            # Find "Study Route" or "Eligibility" section
+            study_route_section = None
+            for heading in soup.find_all(['h2', 'h3', 'h4', 'h5', 'h6', 'p']):
+                text = heading.get_text(strip=True).lower()
+                if 'study route' in text or ('eligibility' in text and 'route' in text):
+                    # Get the section starting from this heading
+                    study_route_section = heading
+                    break
+            
+            if not study_route_section:
+                return None
+            
+            # Get content from this heading until next major section
+            section_content = []
+            current = study_route_section
+            section_content.append(str(current))
+            
+            # Collect following elements until next major heading
+            while current:
+                current = current.find_next_sibling()
+                if not current:
+                    break
+                if current.name in ['h2', 'h3', 'h4']:
+                    # Check if it's a new major section
+                    text = (current.get_text() or '').strip().lower()
+                    if any(keyword in text for keyword in ['significant', 'observation', 'pros', 'cons', 'skills', 'employment']):
+                        break
+                section_content.append(str(current))
+            
+            # Parse the section content
+            section_soup = BeautifulSoup(''.join(section_content), 'html.parser')
+            
+            # Route colors
+            route_colors = [
+                {'name': 'route-1', 'color': '#0064c8', 'display': 'Route 1'},  # Blue
+                {'name': 'route-2', 'color': '#228b22', 'display': 'Route 2'},  # Green
+                {'name': 'route-3', 'color': '#8a2be2', 'display': 'Route 3'},  # Purple
+                {'name': 'route-4', 'color': '#ff8c00', 'display': 'Route 4'}   # Orange
+            ]
+            
+            routes = []
+            
+            # Try parsing table structure first
+            tables = section_soup.find_all('table')
+            for table in tables:
+                rows = table.find_all('tr')
+                
+                for row_idx, row in enumerate(rows):
+                    cells = row.find_all(['td', 'th'])
+                    if len(cells) >= 2:
+                        route_cell = cells[0].get_text(strip=True)
+                        steps_cell = cells[1].get_text(strip=True)
+                        
+                        # Skip header row (usually first row with "Route" and "Steps")
+                        if row_idx == 0 and route_cell.lower() == 'route' and steps_cell.lower() == 'steps':
+                            continue
+                        
+                        # Check if first cell contains "Route" keyword
+                        if 'route' in route_cell.lower() and route_cell.lower() != 'route':
+                            # Extract route number and name
+                            route_match = re.search(r'route\s*(\d+)[:\s]*(.*)', route_cell, re.IGNORECASE)
+                            if route_match:
+                                route_num = int(route_match.group(1))
+                                route_name = route_match.group(2).strip() if route_match.group(2) else f'Route {route_num}'
+                            else:
+                                route_num = len(routes) + 1
+                                route_name = route_cell
+                            
+                            # Parse steps from second cell (numbered list)
+                            steps = []
+                            # Split by "number. " or "number) " pattern to handle numbers in text
+                            step_parts = re.split(r'(\d+)[\.\)]\s+', steps_cell)
+                            
+                            # step_parts[0] is text before first number (usually empty)
+                            # Then pairs of (number, text) follow
+                            if len(step_parts) > 1:
+                                for i in range(1, len(step_parts), 2):
+                                    if i + 1 < len(step_parts):
+                                        step_num = int(step_parts[i])
+                                        step_text = step_parts[i + 1].strip()
+                                        
+                                        # Clean up: remove any trailing text that looks like start of next step
+                                        # But keep numbers that are part of the step (like "10+2", "4 years")
+                                        step_text = re.sub(r'\s+(?=\d+[\.\)]\s)', '', step_text)
+                                        
+                                        # Clean up extra whitespace
+                                        step_text = re.sub(r'\s+', ' ', step_text)
+                                        
+                                        # Extract duration
+                                        duration = ''
+                                        duration_patterns = [
+                                            r'\((\d+[-–]\d+\s*(?:Years?|Months?|Yrs?|Months?))\)',
+                                            r'\((\d+\s*(?:Years?|Months?|Yrs?|Months?))\)',
+                                        ]
+                                        for dur_pattern in duration_patterns:
+                                            duration_match = re.search(dur_pattern, step_text, re.IGNORECASE)
+                                            if duration_match:
+                                                duration = duration_match.group(1)
+                                                break
+                                        
+                                        # Remove duration from title
+                                        title = re.sub(r'\([^)]*\)', '', step_text).strip()
+                                        
+                                        if title:
+                                            steps.append({
+                                                'number': step_num,
+                                                'title': title,
+                                                'description': '',
+                                                'duration': duration
+                                            })
+                            else:
+                                # Fallback: Try splitting by newlines or semicolons
+                                step_lines = re.split(r'[\n;]', steps_cell)
+                                for idx, line in enumerate(step_lines, 1):
+                                    line = line.strip()
+                                    if line and not line.lower().startswith('route'):
+                                        # Extract duration
+                                        duration = ''
+                                        duration_match = re.search(r'\((\d+[-–]\d+\s*(?:Years?|Months?|Yrs?|Months?))\)', line, re.IGNORECASE)
+                                        if duration_match:
+                                            duration = duration_match.group(1)
+                                        
+                                        # Remove duration from title
+                                        title = re.sub(r'\([^)]*\)', '', line).strip()
+                                        
+                                        if title:
+                                            steps.append({
+                                                'number': idx,
+                                                'title': title,
+                                                'description': '',
+                                                'duration': duration
+                                            })
+                            
+                            if steps:
+                                route_index = route_num - 1
+                                if route_index < len(route_colors):
+                                    route_data = {
+                                        'name': route_name,
+                                        'class': route_colors[route_index]['name'],
+                                        'color': route_colors[route_index]['color'],
+                                        'display': route_colors[route_index]['display'],
+                                        'steps': steps
+                                    }
+                                else:
+                                    route_data = {
+                                        'name': route_name,
+                                        'class': 'route-default',
+                                        'color': '#666666',
+                                        'display': f'Route {route_num}',
+                                        'steps': steps
+                                    }
+                                routes.append(route_data)
+            
+            return routes if routes else None
+        
+        except Exception as e:
+            logger.warning(f'Error parsing study routes from description for career {career.name}: {str(e)}')
+            return None
     
     def _get_career_aspect_mindmap(self, career):
         """Generate career aspect mindmap data from description field (H1, H2, H3 structure)"""
@@ -762,6 +1203,140 @@ class CareerDetail(TemplateView):
             return HttpResponse(html)    
         return render(request, self.template_name,self.get_context(request,career_id,slug, args, kwargs))
 
+
+def convert_xmind_to_jsmind_json(xmind_data, career_name=None):
+    """
+    Convert xmindparser output to jsMind format.
+    If career_name is provided, use it as the root topic title instead of XMind file's title.
+    """
+    if not xmind_data or not isinstance(xmind_data, list) or len(xmind_data) == 0:
+        return None
+    
+    sheet = xmind_data[0]
+    root_topic = sheet.get('topic', {})
+    
+    def build_jsmind_node(topic, node_id='root', parent_id=None, is_root=False):
+        """Recursively build jsMind node structure"""
+        # Use career_name for root node if provided, otherwise use XMind title
+        if is_root and career_name:
+            title = career_name
+        else:
+            title = topic.get('title') or topic.get('label') or 'Untitled'
+        
+        node = {
+            'id': node_id,
+            'topic': str(title),
+            'expanded': True
+        }
+        
+        if parent_id:
+            node['parentid'] = parent_id
+        
+        children = []
+        topics = topic.get('topics', [])
+        
+        if isinstance(topics, list):
+            for idx, child in enumerate(topics):
+                child_id = f'{node_id}-{idx}'
+                children.append(build_jsmind_node(child, child_id, node_id, is_root=False))
+        elif isinstance(topics, dict):
+            for topic_list in topics.values():
+                if isinstance(topic_list, list):
+                    for idx, child in enumerate(topic_list):
+                        child_id = f'{node_id}-{idx}'
+                        children.append(build_jsmind_node(child, child_id, node_id, is_root=False))
+        
+        if children:
+            node['children'] = children
+        
+        return node
+    
+    root_node = build_jsmind_node(root_topic, is_root=True)
+    
+    # Use career_name in meta if provided
+    meta_name = career_name if career_name else sheet.get('title', 'Mind Map')
+    
+    return {
+        'meta': {
+            'name': meta_name,
+            'author': 'XMind Converter',
+            'version': '1.0'
+        },
+        'format': 'node_tree',
+        'data': root_node
+    }
+
+
+def career_mindmap_json_api(request, career_id, slug):
+    """
+    API endpoint: Convert career's XMind file to JSON (jsMind format)
+    Falls back to parsing HTML from career.description if XMind file not found.
+    Uses career.get_xmind_file_path() which points to /career_mindmap directory.
+    Returns graceful 404 if neither XMind file nor description available.
+    """
+    if request.method == 'OPTIONS':
+        response = HttpResponse()
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Content-Type'
+        return response
+    
+    try:
+        career = get_object_or_404(Career, id=career_id, slug=slug)
+        
+        # Try XMind file first
+        xmind_file_path = career.get_xmind_file_path()
+        
+        if xmind_file_path and xmind_file_path.exists():
+            # Process XMind file
+            try:
+                xmind_data = xmindparser.xmind_to_dict(str(xmind_file_path))
+                
+                if xmind_data:
+                    jsmind_json = convert_xmind_to_jsmind_json(xmind_data, career_name=career.name)
+                    
+                    if jsmind_json:
+                        response = JsonResponse(jsmind_json, json_dumps_params={'ensure_ascii': False})
+                        response['Access-Control-Allow-Origin'] = '*'
+                        response['Content-Type'] = 'application/json; charset=utf-8'
+                        return response
+            except Exception as e:
+                logger.warning(f'Error processing XMind file for career {career.name}: {str(e)}')
+                # Fall through to HTML parsing fallback
+        
+        # Fallback: Parse HTML from career.description using model method
+        if career.description:
+            try:
+                jsmind_json = career.convert_description_to_jsmind_json()
+                
+                if jsmind_json:
+                    response = JsonResponse(jsmind_json, json_dumps_params={'ensure_ascii': False})
+                    response['Access-Control-Allow-Origin'] = '*'
+                    response['Content-Type'] = 'application/json; charset=utf-8'
+                    return response
+            except Exception as e:
+                logger.warning(f'Error parsing HTML description for career {career.name}: {str(e)}')
+        
+        # No mindmap available from either source
+        response = JsonResponse({
+            'error': 'Mind map not available for this career',
+            'available': False
+        }, status=404)
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+    
+    except Exception as e:
+        # Catch-all for any unexpected errors
+        logger.error(f'Unexpected error in career_mindmap_json_api: {str(e)}')
+        
+        response = JsonResponse({
+            'error': 'Service temporarily unavailable',
+            'available': False
+        }, status=500)
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+
+
 class Professions(TemplateView):
     template_name = "topteenfrontend/profession.html"
     
@@ -769,9 +1344,10 @@ class Professions(TemplateView):
         title="Profession"
         return build_html_head(title=title, description=title)
 
-    def get_context(self, request,career_slug, *args, **kwargs):
+    def get_context(self, request, *args, **kwargs):
         ctx={}
-        career=Career.objects.get(slug=career_slug)
+        career_slug = kwargs.get('career_slug')
+        career=get_object_or_404(Career, slug=career_slug)
         profession=Profession.objects.filter(career=career)
         paginated_profession =Paginator(profession,12)
         page_number = request.GET.get('page')
@@ -786,8 +1362,8 @@ class Professions(TemplateView):
         ctx['html_head'] = self.html_head()
         return ctx
         
-    def get(self, request,career_slug,*args, **kwargs):     
-        return render(request, self.template_name, self.get_context(request,career_slug,args, kwargs))
+    def get(self, request, *args, **kwargs):     
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
  
 
 class CareerTagFilter(TemplateView):
@@ -1119,6 +1695,75 @@ class VideoDetail(TemplateView):
         
     def get(self, request,video_slug, *args, **kwargs):     
         return render(request, self.template_name, self.get_context(request,video_slug,args, kwargs))
+
+class CareerMindmapView(TemplateView):
+    """
+    Dedicated mindmap page with multiple layout variations for testing.
+    Access via: /careers/mindmap/<slug>-<career_id>/?variation=1
+    Variations: 1=compact, 2=minimal, 3=fullscreen, 4=sidebar, 5=bottom-controls
+    """
+    template_name = "template20/career_mindmap.html"
+    
+    def html_head(self, career):
+        titleb = f"{career.name} - Mind Map"
+        descriptionb = f"Interactive mind map for {career.name}"
+        return build_html_head(title=titleb, description=descriptionb)
+    
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        career_id = kwargs.get('career_id')
+        slug = kwargs.get('slug')
+        career = get_object_or_404(Career, id=career_id, slug=slug)
+        ctx['career'] = career
+        
+        # Get variation from query parameter (default to 1)
+        variation = request.GET.get('variation', '1')
+        ctx['variation'] = variation
+        ctx['variations'] = {
+            '1': 'Compact',
+            '2': 'Minimal',
+            '3': 'Fullscreen',
+            '4': 'Sidebar',
+            '5': 'Bottom Controls',
+            '6': 'Radial',
+            '7': 'Cards',
+            '8': 'Flow',
+            '9': 'Network',
+            '10': 'Timeline',
+            '11': 'Vertical Radial',
+            '12': 'Vertical Cards',
+            '13': 'Vertical Flow',
+            '14': 'Vertical Network',
+            '15': 'Vertical Timeline'
+        }
+        
+        # Breadcrumb
+        bread_crumb = self._breadcrumb(career)
+        ctx['breadcrumb'] = bread_crumb[1]
+        ctx['html_head'] = self.html_head(career)
+        
+        # Check if XMind file exists
+        try:
+            ctx['has_xmind_file'] = career.has_xmind_file()
+            ctx['xmind_file_path'] = str(career.get_xmind_file_path()) if career.has_xmind_file() else None
+            ctx['career_clusters'] = list(career.career_cluster.all())
+        except Exception:
+            ctx['has_xmind_file'] = False
+            ctx['xmind_file_path'] = None
+            ctx['career_clusters'] = []
+        
+        return ctx
+    
+    def _breadcrumb(self, career):
+        lst = [
+            {'title': 'Careers', 'text': 'Careers', 'url': reverse_lazy('careers:career')},
+            {'title': career.name, 'text': career.name, 'url': reverse('careers:careerdetail', args=[career.slug, career.id])},
+            {'title': 'Mind Map', 'text': 'Mind Map', 'url': ''}
+        ]
+        return build_breadcrumb(lst)
+    
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
     
 class CareerRatingView(TemplateView):
     def get(self,request):

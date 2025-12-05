@@ -1,0 +1,185 @@
+{% if infographics.roles_responsibilities %}
+<!-- Roles and Responsibilities Infographic - New Creative Design -->
+<div class="roles-infographic-v2-container" style="margin: 2rem 0; padding: 0; background: #ffffff; border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); overflow: hidden;">
+  
+  <!-- Header Section -->
+  <div class="roles-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2.5rem; text-align: center; color: white;">
+    <div style="font-size: 32px; font-weight: 800; margin-bottom: 0.5rem;">{{ career.name }}</div>
+    <div style="font-size: 20px; opacity: 0.95; font-weight: 300;">Roles and Responsibilities</div>
+  </div>
+
+  <!-- Roles Timeline/Flow Design -->
+  <div class="roles-timeline-wrapper" style="padding: 3rem 2rem; position: relative;">
+    
+    {% for role in infographics.roles_responsibilities %}
+    <div class="role-timeline-item" style="position: relative; margin-bottom: 3rem; padding-left: 60px;">
+      
+      <!-- Timeline Line -->
+      {% if not loop.last %}
+      <div class="timeline-line" style="position: absolute; left: 20px; top: 50px; width: 3px; height: calc(100% + 1rem); background: linear-gradient(180deg, #667eea 0%, #764ba2 100%); border-radius: 2px;"></div>
+      {% endif %}
+      
+      <!-- Role Icon Circle -->
+      <div class="role-icon-circle" style="position: absolute; left: 0; top: 0; width: 44px; height: 44px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); z-index: 2;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M12 2 L2 7 L12 12 L22 7 Z"/>
+          <path d="M2 17 L12 22 L22 17"/>
+          <path d="M2 12 L12 17 L22 12"/>
+        </svg>
+      </div>
+      
+      <!-- Role Content Card -->
+      <div class="role-content-card" style="background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-left: 5px solid #667eea; transition: all 0.3s ease; position: relative; overflow: hidden;">
+        
+        <!-- Decorative Background Pattern -->
+        <div class="card-pattern" style="position: absolute; top: 0; right: 0; width: 200px; height: 200px; background: radial-gradient(circle, rgba(102, 126, 234, 0.05) 0%, transparent 70%); pointer-events: none;"></div>
+        
+        <!-- Role Title -->
+        <div class="role-title-v2" style="font-size: 24px; font-weight: 700; color: #667eea; margin-bottom: 1rem; position: relative; z-index: 1;">
+          {{ role.name }}
+        </div>
+        
+        <!-- Responsibilities Grid -->
+        {% if role.responsibilities %}
+        <div class="responsibilities-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; position: relative; z-index: 1;">
+          {% for resp in role.responsibilities %}
+          <div class="responsibility-item" style="background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%); padding: 1rem 1.25rem; border-radius: 10px; border: 1px solid rgba(102, 126, 234, 0.1); transition: all 0.2s ease; position: relative;">
+            <!-- Checkmark Icon -->
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+              <div class="check-icon" style="flex-shrink: 0; width: 24px; height: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 2px;">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M3 7 L6 10 L11 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="resp-text" style="flex: 1; font-size: 14px; line-height: 1.6; color: #444; font-weight: 400;">
+                {{ resp }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        
+      </div>
+      
+    </div>
+    {% endfor %}
+    
+  </div>
+  
+  <!-- Footer Decoration -->
+  <div style="height: 4px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
+  
+</div>
+
+<style>
+.roles-infographic-v2-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.role-content-card:hover {
+  transform: translateX(8px);
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+}
+
+.responsibility-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.role-icon-circle {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  }
+}
+
+@media (max-width: 768px) {
+  .role-timeline-item {
+    padding-left: 50px !important;
+  }
+  
+  .role-icon-circle {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  .responsibilities-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .roles-header {
+    padding: 2rem 1.5rem !important;
+  }
+  
+  .roles-header div:first-child {
+    font-size: 24px !important;
+  }
+  
+  .roles-header div:last-child {
+    font-size: 16px !important;
+  }
+  
+  .role-title-v2 {
+    font-size: 20px !important;
+  }
+  
+  .roles-timeline-wrapper {
+    padding: 2rem 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .role-content-card {
+    padding: 1.5rem !important;
+  }
+  
+  .responsibility-item {
+    padding: 0.875rem 1rem !important;
+  }
+}
+</style>
+
+<script>
+// Add smooth scroll reveal animation (optional enhancement)
+document.addEventListener('DOMContentLoaded', function() {
+  const items = document.querySelectorAll('.role-timeline-item');
+  
+  if (items.length === 0) return;
+  
+  // Ensure items are visible by default
+  items.forEach((item) => {
+    item.style.opacity = '1';
+    item.style.transform = 'translateX(0)';
+    item.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+  });
+  
+  // Optional: Add fade-in animation on scroll if IntersectionObserver is supported
+  if (typeof IntersectionObserver !== 'undefined') {
+    // Only animate items that are not already in viewport
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          // Item is already visible, no need to animate
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    
+    items.forEach((item) => {
+      observer.observe(item);
+    });
+  }
+});
+</script>
+{% endif %}
+

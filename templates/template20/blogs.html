@@ -338,6 +338,8 @@
 {% endblock %}
 
 {% block additionaljs %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 // Subscribe form submission
 document.addEventListener('DOMContentLoaded', function() {
@@ -358,17 +360,35 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          alert('Thank you for subscribing!');
+          Swal.fire({
+            title: 'Thank you!',
+            text: 'Thank you for subscribing!',
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3F37C9'
+          });
           const modal = bootstrap.Modal.getInstance(document.getElementById('subscribeModal'));
           if (modal) modal.hide();
           subscribeForm.reset();
         } else {
-          alert('Please enter a valid email address.');
+          Swal.fire({
+            title: 'Invalid Email',
+            text: 'Please enter a valid email address.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3F37C9'
+          });
         }
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred. Please try again.');
+        Swal.fire({
+          title: 'Error',
+          text: 'An error occurred. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#3F37C9'
+        });
       });
     });
   }
