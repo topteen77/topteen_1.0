@@ -1,0 +1,114 @@
+{% if infographics.salary_expectations %}
+<!-- Salary Expectations Infographic - Mobile Optimized -->
+<div class="salary-infographic-container" style="margin: 1rem 0; padding: 0; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius: 16px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); overflow: hidden;">
+  
+  <!-- Compact Header -->
+  <div class="salary-header" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); padding: 1rem 1rem; text-align: center; color: white;">
+    <div style="font-size: 24px; margin-bottom: 0.25rem;">💰</div>
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 0.25rem;">{{ career.name }}</div>
+    <div style="font-size: 13px; opacity: 0.95;">💵 Salary Expectations</div>
+  </div>
+
+  <!-- Compact Salary Cards -->
+  <div class="salary-cards-wrapper" style="padding: 1rem 0.75rem;">
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
+      
+      {% for salary in infographics.salary_expectations %}
+        {% if salary.get('career_level') %}
+        <div class="salary-card" style="background: white; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(255, 152, 0, 0.12); border-top: 4px solid #ff9800;">
+          
+          <!-- Compact Career Level -->
+          <div style="font-size: 12px; font-weight: 700; color: #e65100; margin-bottom: 0.75rem; text-align: center; padding-bottom: 0.5rem; border-bottom: 1px solid #ffe0b2; line-height: 1.3;">
+            {{ salary.career_level }}
+          </div>
+          
+          <!-- Compact Salary Info -->
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            
+            <!-- India Salary -->
+            {% if salary.get('india_₹_per_annum') or salary.get('india') %}
+            <div style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #ff9800;">
+              <div style="font-size: 10px; font-weight: 600; color: #e65100; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.25rem;">
+                <span>🇮🇳</span> <span>India</span>
+              </div>
+              <div style="font-size: 13px; font-weight: 700; color: #333; line-height: 1.2;">
+                {{ salary.get('india_₹_per_annum') or salary.get('india') }}
+              </div>
+            </div>
+            {% endif %}
+            
+            <!-- International Salary -->
+            {% if salary.get('international_usd_per_annum') or salary.get('international') %}
+            <div style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); padding: 0.5rem; border-radius: 8px; border-left: 3px solid #ff9800;">
+              <div style="font-size: 10px; font-weight: 600; color: #e65100; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.25rem;">
+                <span>🌍</span> <span>International</span>
+              </div>
+              <div style="font-size: 13px; font-weight: 700; color: #333; line-height: 1.2;">
+                {{ salary.get('international_usd_per_annum') or salary.get('international') }}
+              </div>
+            </div>
+            {% endif %}
+            
+          </div>
+          
+        </div>
+        {% endif %}
+      {% endfor %}
+      
+    </div>
+    
+  </div>
+  
+  <!-- Thin Footer -->
+  <div style="height: 3px; background: linear-gradient(90deg, #ff9800 0%, #f57c00 100%);"></div>
+  
+</div>
+
+<style>
+.salary-infographic-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.salary-card:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+@media (max-width: 480px) {
+  .salary-cards-wrapper {
+    padding: 0.75rem 0.5rem !important;
+  }
+  
+  .salary-cards-wrapper > div {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+  }
+  
+  .salary-header {
+    padding: 0.75rem 0.5rem !important;
+  }
+  
+  .salary-header div:nth-child(2) {
+    font-size: 16px !important;
+  }
+  
+  .salary-card {
+    padding: 0.75rem !important;
+  }
+  
+  .salary-card > div:first-child {
+    font-size: 11px !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .salary-cards-wrapper > div {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+}
+</style>
+{% endif %}

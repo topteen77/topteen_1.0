@@ -328,31 +328,76 @@ class CareerDetail(TemplateView):
             ctx['xmind_file_path'] = None
             ctx['career_clusters'] = []
 
-        # Parse infographics from description field using generic parser
+        # Parse career description into 11 JSON sections
+        json_parser = self._parse_career_json_sections(career)
+        ctx['career_json'] = json_parser.sections if json_parser else {}
+        
+        # Parse infographics - use JSON sections for all sections
         try:
             from .infographic_parser import parse_infographic
             
-            description = career.description or ''
-            eligibility = career.eligibility or ''
-            combined_content = description + eligibility
+            # Get HTML from JSON sections
+            # For overview: try overview section first, then fallback to career_description
+            overview_html = ''
+            if json_parser:
+                overview_html = json_parser.get_section_html('overview')
+                if not overview_html:
+                    overview_html = json_parser.get_section_html('career_description')
+            roles_html = json_parser.get_section_html('roles_and_responsibilities') if json_parser else ''
+            study_route_html = json_parser.get_section_html('study_route_and_eligibility_criteria') if json_parser else ''
+            observations_html = json_parser.get_section_html('significant_observations') if json_parser else ''
+            internships_html = json_parser.get_section_html('internships_and_practical_exposure') if json_parser else ''
+            courses_html = json_parser.get_section_html('courses_and_specializations') if json_parser else ''
+            employers_html = json_parser.get_section_html('prominent_employers') if json_parser else ''
+            skills_trends_html = json_parser.get_section_html('skills_required_industry_trends') if json_parser else ''
+            advice_html = json_parser.get_section_html('advice_for_aspiring') if json_parser else ''
             
-            # Parse different types of infographics
+            # Add overview HTML to context
+            ctx['overview_html'] = overview_html
+            
+            # Parse infographics from JSON sections
             ctx['infographics'] = {
-                'study_route': parse_infographic(combined_content, 'study_route'),
-                'roles_responsibilities': parse_infographic(combined_content, 'roles_responsibilities'),
-                'observations': parse_infographic(combined_content, 'observations'),
-                'courses': parse_infographic(combined_content, 'courses'),
-                'institutes': parse_infographic(combined_content, 'institutes'),
+                'study_route': parse_infographic(study_route_html, 'study_route') if study_route_html else None,
+                'roles_responsibilities': parse_infographic(roles_html, 'roles_responsibilities') if roles_html else None,
+                'observations': parse_infographic(observations_html, 'observations') if observations_html else None,
+                'internships': parse_infographic(internships_html, 'internships') if internships_html else None,
+                'courses': parse_infographic(courses_html, 'courses') if courses_html else None,
+                'prominent_employers': parse_infographic(employers_html, 'prominent_employers') if employers_html else None,
+                'skills_industry_trends': parse_infographic(skills_trends_html, 'skills_industry_trends') if skills_trends_html else None,
+                'advice_for_aspiring': parse_infographic(advice_html, 'advice_for_aspiring') if advice_html else None,
             }
+            
+            # For institutes, still use combined content as fallback (may be in different section)
+            combined_content = (career.description or '') + (career.eligibility or '')
+            ctx['infographics']['institutes'] = parse_infographic(combined_content, 'institutes')
             
             # Keep backward compatibility
             ctx['study_routes'] = ctx['infographics'].get('study_route')
         except Exception as e:
-            logger.warning(f'Error parsing infographics: {str(e)}')
+            logger.warning(f'Error parsing infographics: {str(e)}', exc_info=True)
             ctx['infographics'] = {}
             ctx['study_routes'] = None
 
         return ctx
+    
+    def _parse_career_json_sections(self, career):
+        """Parse career description into 11 JSON sections"""
+        try:
+            from .career_json_parser import CareerDescriptionJSONParser
+            
+            parser = CareerDescriptionJSONParser(career)
+            parser.parse_all_sections()
+            
+            # Debug: Print JSON to terminal
+            try:
+                parser.print_debug_json()
+            except Exception as debug_error:
+                logger.warning(f'Error printing debug JSON: {str(debug_error)}')
+            
+            return parser
+        except Exception as e:
+            logger.error(f'Error parsing career JSON sections: {str(e)}', exc_info=True)
+            return None
     
     def _get_mindmap_data(self, current_career):
         """Generate mindmap data structure from database"""

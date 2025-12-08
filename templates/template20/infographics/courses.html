@@ -1,78 +1,92 @@
 {% if infographics.courses %}
-<!-- Courses & Specializations Infographic -->
-<div class="infographic-container courses-infographic-container" style="margin: 2rem 0; padding: 2rem; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
-  <div class="courses-infographic">
-    <div class="infographic-title">Courses & Specializations to Enter the Field</div>
-    <div class="courses-grid">
-      {% for course in infographics.courses %}
-      <div class="course-card">
-        <div class="course-icon">
-          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-            <rect x="6" y="8" width="24" height="20" rx="2" fill="#ff9800" opacity="0.2"/>
-            <path d="M12 14 L18 18 L24 14" stroke="#ff9800" stroke-width="2" fill="none"/>
-            <line x1="12" y1="22" x2="24" y2="22" stroke="#ff9800" stroke-width="2"/>
-          </svg>
-        </div>
-        <div class="course-name">{{ course.name }}</div>
-        {% if course.description %}
-        <div class="course-description">{{ course.description }}</div>
-        {% endif %}
-      </div>
-      {% endfor %}
-    </div>
+<!-- Courses & Specializations Infographic - Mobile Optimized -->
+<div class="courses-infographic-container" style="margin: 1rem 0; padding: 0; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius: 16px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); overflow: hidden;">
+  
+  <!-- Compact Header -->
+  <div style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); padding: 1rem 1rem; text-align: center; color: white;">
+    <div style="font-size: 24px; margin-bottom: 0.25rem;">📚</div>
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 0.25rem;">{{ career.name }}</div>
+    <div style="font-size: 13px; opacity: 0.95;">Courses & Specializations</div>
   </div>
+  
+  <!-- Compact Grid -->
+  <div class="courses-grid" style="padding: 1rem 0.75rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; max-height: 500px; overflow-y: auto;">
+    {% for course in infographics.courses %}
+    <div class="course-card" style="background: white; border-radius: 10px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(255, 152, 0, 0.12); border-left: 3px solid #ff9800; display: flex; align-items: flex-start; gap: 0.5rem;">
+      
+      <!-- Small Icon -->
+      <div style="flex-shrink: 0; width: 28px; height: 28px; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+        <span style="font-size: 14px;">📖</span>
+      </div>
+      
+      <!-- Compact Course Name -->
+      <div style="font-size: 11px; font-weight: 600; color: #e65100; line-height: 1.4; flex: 1;">
+        {{ course.name }}
+      </div>
+      
+    </div>
+    {% endfor %}
+  </div>
+  
+  <!-- Thin Footer -->
+  <div style="height: 3px; background: linear-gradient(90deg, #ff9800 0%, #f57c00 100%);"></div>
+  
 </div>
 
 <style>
-.courses-infographic {
-  position: relative;
+.courses-infographic-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .courses-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: #ff9800 #fff3e0;
 }
 
-.course-card {
-  background: white;
-  border-radius: 10px;
-  padding: 18px;
-  box-shadow: 0 2px 10px rgba(255, 152, 0, 0.15);
-  border-left: 3px solid #ff9800;
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+.courses-grid::-webkit-scrollbar {
+  width: 4px;
 }
 
-.course-card:hover {
-  transform: translateX(4px);
-  box-shadow: 0 4px 16px rgba(255, 152, 0, 0.25);
+.courses-grid::-webkit-scrollbar-track {
+  background: #fff3e0;
+  border-radius: 2px;
 }
 
-.course-icon {
-  flex-shrink: 0;
+.courses-grid::-webkit-scrollbar-thumb {
+  background: #ff9800;
+  border-radius: 2px;
 }
 
-.course-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #e65100;
-  line-height: 1.4;
+.course-card:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
 }
 
-.course-description {
-  font-size: 13px;
-  color: #666;
-  margin-top: 4px;
-}
-
-@media (max-width: 768px) {
+@media (max-width: 480px) {
   .courses-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    padding: 0.75rem 0.5rem !important;
+    gap: 0.5rem !important;
+    max-height: 400px !important;
+  }
+  
+  .course-card {
+    padding: 0.75rem !important;
+  }
+  
+  .course-card > div:last-child {
+    font-size: 10px !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .courses-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+    max-height: 450px !important;
   }
 }
 </style>
 {% endif %}
-

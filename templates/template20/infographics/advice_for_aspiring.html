@@ -1,0 +1,140 @@
+{% if infographics.advice_for_aspiring %}
+<!-- Advice for Aspiring Infographic - Mobile Optimized -->
+<div class="advice-infographic-container" style="margin: 1rem 0; padding: 0; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 16px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); overflow: hidden;">
+  
+  <!-- Compact Header -->
+  <div class="advice-header" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); padding: 1rem 1rem; text-align: center; color: white;">
+    <div style="font-size: 24px; margin-bottom: 0.25rem;">💡</div>
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 0.25rem;">{{ career.name }}</div>
+    <div style="font-size: 13px; opacity: 0.95;">🌟 Tips for Students & Parents</div>
+  </div>
+
+  <!-- Compact Advice Cards -->
+  <div class="advice-cards-wrapper" style="padding: 1rem 0.75rem;">
+    
+    <div class="advice-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; max-height: 500px; overflow-y: auto;">
+      
+      {% for advice in infographics.advice_for_aspiring %}
+        {% if advice.type == 'tip' %}
+        <div class="advice-card" style="background: white; border-radius: 12px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(33, 150, 243, 0.12); border-left: 4px solid #2196f3; position: relative;">
+          
+          <!-- Number Icon (replaces sparkle icon) -->
+          <div style="width: 40px; height: 40px; margin: 0 auto 0.5rem; background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 700;">
+            {{ loop.index }}
+          </div>
+          
+          <!-- Compact Advice Text -->
+          <div style="font-size: 11px; line-height: 1.4; color: #333; padding-right: 0.5rem; text-align: center;">
+            {{ advice.text }}
+          </div>
+          
+        </div>
+        {% endif %}
+      {% endfor %}
+      
+    </div>
+    
+    <!-- Compact Conclusion -->
+    {% for advice in infographics.advice_for_aspiring %}
+      {% if advice.type == 'conclusion' %}
+      <div class="advice-conclusion" style="margin-top: 1rem; background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); border-radius: 12px; padding: 1rem; color: white; box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);">
+        <div style="font-size: 16px; margin-bottom: 0.5rem; text-align: center;">
+          🎓 Final Message
+        </div>
+        <div style="font-size: 12px; line-height: 1.6; text-align: center; opacity: 0.95;">
+          {{ advice.text }}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+    
+  </div>
+  
+  <!-- Thin Footer -->
+  <div style="height: 3px; background: linear-gradient(90deg, #2196f3 0%, #1976d2 100%);"></div>
+  
+</div>
+
+<style>
+.advice-infographic-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.advice-cards-wrapper > div {
+  scrollbar-width: thin;
+  scrollbar-color: #2196f3 #e3f2fd;
+}
+
+.advice-cards-wrapper > div::-webkit-scrollbar {
+  width: 4px;
+}
+
+.advice-cards-wrapper > div::-webkit-scrollbar-track {
+  background: #e3f2fd;
+  border-radius: 2px;
+}
+
+.advice-cards-wrapper > div::-webkit-scrollbar-thumb {
+  background: #2196f3;
+  border-radius: 2px;
+}
+
+.advice-card:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+@media (max-width: 480px) {
+  .advice-cards-wrapper {
+    padding: 0.75rem 0.5rem !important;
+  }
+  
+  .advice-cards-wrapper > div {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+    max-height: 400px !important;
+  }
+  
+  .advice-header {
+    padding: 0.75rem 0.5rem !important;
+  }
+  
+  .advice-header div:nth-child(2) {
+    font-size: 16px !important;
+  }
+  
+  .advice-card {
+    padding: 0.75rem !important;
+  }
+  
+  .advice-card > div:last-child {
+    font-size: 10px !important;
+  }
+  
+  .advice-conclusion {
+    padding: 0.75rem !important;
+  }
+  
+  .advice-conclusion > div:last-child {
+    font-size: 11px !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .advice-cards-wrapper > div {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+    max-height: 450px !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .advice-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    max-width: 100%;
+  }
+}
+</style>
+{% endif %}

@@ -284,13 +284,101 @@
     }
   }
 
+  @media (max-width: 768px) {
+    .mindmap-wrapper {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .mindmap-card {
+      padding: 1rem !important;
+    }
+    
+    .mindmap-head h2 {
+      font-size: 1.5rem !important;
+    }
+    
+    .mindmap-head p {
+      font-size: 0.875rem !important;
+      line-height: 1.5;
+    }
+    
+    .mindmap-box {
+      height: 400px !important;
+    }
+    
+    .mindmap-svg {
+      transform: scale(0.85);
+      transform-origin: top left;
+    }
+    
+    /* Radial mindmap mobile styles */
+    .radial-mindmap-container {
+      height: 500px !important;
+      max-height: 70vh !important;
+      padding: 10px !important;
+      overflow: hidden !important;
+      position: relative !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+    }
+    
+    #radial-svg {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      display: block !important;
+      overflow: visible !important;
+      margin: auto !important;
+    }
+    
+    #radial-controls {
+      top: 10px !important;
+      right: 10px !important;
+      z-index: 1000 !important;
+    }
+    
+    #radial-controls .btn {
+      padding: 0.25rem 0.5rem !important;
+      font-size: 0.875rem !important;
+      min-width: 36px !important;
+      min-height: 36px !important;
+    }
+    
+    .card-header h5 {
+      font-size: 1rem !important;
+    }
+    
+    .card-header small {
+      font-size: 0.75rem !important;
+    }
+    
+    .card-body {
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      padding: 0.75rem !important;
+    }
+  }
+
   @media (max-width: 576px) {
     .mindmap-box {
-      height: 560px;
+      height: 350px !important;
     }
-
+    
+    .mindmap-svg {
+      transform: scale(0.7);
+      transform-origin: top left;
+    }
+    
+    .mindmap-head h2 {
+      font-size: 1.25rem !important;
+    }
+    
     .mindmap-head p {
-      font-size: 0.95rem;
+      font-size: 0.8rem !important;
     }
   }
   
@@ -636,12 +724,12 @@
                       {% endif %}
                     </text>
                   </g>
-                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Career Description section" data-accordion-target="Career Description">
+                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Overview section" data-accordion-target="Overview">
                     <rect class="mindmap-leaf leaf-creative" x="110" y="70" width="220" height="130" rx="28" />
                     <text class="mindmap-label" text-anchor="middle" x="220" y="120">
                       <tspan x="220" dy="0">Overview</tspan>
                       <tspan class="mindmap-subtext" x="220" dy="24">Role, mission, mindset</tspan>
-                      <tspan class="mindmap-subtext" x="220" dy="20">Career description</tspan>
+                      <tspan class="mindmap-subtext" x="220" dy="20">Introduction & Summary</tspan>
                     </text>
                   </g>
                   <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Education section" data-accordion-target="Study Route & Eligibility Criteria">
@@ -695,15 +783,15 @@
                 <h5 class="mb-0">✨ Radial Mind Map - {{ career.name }}</h5>
                 <small style="opacity: 0.9;">Nodes arranged in concentric circles</small>
               </div>
-              <div class="card-body p-3">
-                <div class="radial-mindmap-container" style="height: 700px; max-height: 80vh; overflow: auto; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 12px; position: relative;">
-                  <div id="loading-radial" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+              <div class="card-body p-3" style="display: flex; justify-content: center; align-items: center;">
+                <div class="radial-mindmap-container" style="height: 700px; max-height: 80vh; width: 100%; overflow: hidden; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 12px; position: relative; touch-action: pan-x pan-y; display: flex; justify-content: center; align-items: center;">
+                  <div id="loading-radial" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; position: absolute; top: 0; left: 0;">
                     <div style="text-align: center;">
                       <div class="spinner-border text-primary" role="status"></div>
                       <p class="mt-2">Loading radial mind map...</p>
                     </div>
                   </div>
-                  <svg id="radial-svg" style="width: 100%; height: 100%; display: none;"></svg>
+                  <svg id="radial-svg" style="width: 100%; height: 100%; display: none; margin: auto;"></svg>
                   <div id="radial-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
                     <div class="btn-group-vertical" style="gap: 8px;">
                       <button class="btn btn-sm btn-light shadow" onclick="radialZoomIn()" title="Zoom In">🔍+</button>
@@ -751,7 +839,19 @@
                   // Build node map for quick lookup
                   buildRadialNodeMap(data.data, null);
                   
+                  // Set initial zoom for mobile
+                  const isMobile = window.innerWidth <= 768;
+                  if (isMobile) {
+                      radialZoom = 0.75; // Start zoomed out on mobile to fit all content
+                  } else {
+                      radialZoom = 1;
+                  }
+                  
                   renderRadialMindmap(data.data);
+                  // Small delay to ensure SVG is rendered before applying zoom
+                  setTimeout(() => {
+                      applyRadialZoom();
+                  }, 100);
               } catch (error) {
                   document.getElementById('loading-radial').style.display = 'none';
               }
@@ -783,15 +883,33 @@
               document.getElementById('loading-radial').style.display = 'none';
               document.getElementById('radial-controls').style.display = 'block';
               
+              // Detect mobile
+              const isMobile = window.innerWidth <= 768;
+              
+              // Use full container dimensions - padding will be handled in CSS
               const width = container.clientWidth;
               const height = container.clientHeight;
+              
               svg.setAttribute('width', width);
               svg.setAttribute('height', height);
+              svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+              svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+              svg.style.width = '100%';
+              svg.style.height = '100%';
+              svg.style.maxWidth = '100%';
+              svg.style.maxHeight = '100%';
+              svg.style.display = 'block';
+              svg.style.margin = 'auto';
               svg.innerHTML = '';
               
+              // Center position - ensure content is centered
               const centerX = width / 2;
               const centerY = height / 2;
-              const centerRadius = 100; // Increased from 80 for better visibility
+              
+              // Adjust center radius and distances for mobile
+              const centerRadius = isMobile ? 70 : 100; // Smaller on mobile
+              const childDistance = isMobile ? 160 : 220; // Closer children on mobile
+              const siblingRadius = isMobile ? 200 : 280; // Closer siblings on mobile
               
               // Helper function to wrap text into lines that fit within a circle
               function wrapTextForCircle(text, maxWidth, fontSize) {
@@ -921,7 +1039,7 @@
               
               // Render sibling lines (if not root)
               if (siblings.length > 0) {
-                  const siblingRadius = 280;
+                  // siblingRadius already defined above based on mobile detection
                   const siblingAngleStep = (2 * Math.PI) / siblings.length;
                   
                   siblings.forEach((sibling, index) => {
@@ -1006,7 +1124,14 @@
                           siblingCircle.onclick = () => {
                               // Navigate to sibling node (has children)
                               radialCurrentCenter = sibling;
+                              // Reset zoom to fit when navigating to sibling
+                              const isMobile = window.innerWidth <= 768;
+                              radialZoom = isMobile ? 0.75 : 1;
+                              radialTransform = { x: 0, y: 0 };
                               renderRadialMindmap(sibling);
+                              setTimeout(() => {
+                                  applyRadialZoom();
+                              }, 100);
                           };
                       } else {
                           // Leaf node - no click, no cursor pointer, but keep color
@@ -1050,7 +1175,7 @@
               
               // STEP 3: Draw child circles and text (after lines, before center)
               if (centerNode.children && centerNode.children.length > 0) {
-                  const childDistance = 220; // Distance from center
+                  // childDistance already defined above based on mobile detection
                   const angleStep = (2 * Math.PI) / centerNode.children.length;
                   
                   centerNode.children.forEach((child, index) => {
@@ -1080,7 +1205,14 @@
                           childCircle.onclick = () => {
                               // Navigate to child node (has children)
                               radialCurrentCenter = child;
+                              // Reset zoom to fit when navigating to child
+                              const isMobile = window.innerWidth <= 768;
+                              radialZoom = isMobile ? 0.75 : 1;
+                              radialTransform = { x: 0, y: 0 };
                               renderRadialMindmap(child);
+                              setTimeout(() => {
+                                  applyRadialZoom();
+                              }, 100);
                           };
                           // Add hover effect to bring to front and scale
                           childCircle.onmouseenter = function() {
@@ -1164,7 +1296,14 @@
                   centerCircle.style.cursor = 'pointer';
                   centerCircle.onclick = () => {
                       radialCurrentCenter = parentNode;
+                      // Reset zoom to fit when navigating back to parent
+                      const isMobile = window.innerWidth <= 768;
+                      radialZoom = isMobile ? 0.75 : 1;
+                      radialTransform = { x: 0, y: 0 };
                       renderRadialMindmap(parentNode);
+                      setTimeout(() => {
+                          applyRadialZoom();
+                      }, 100);
                   };
                   centerCircle.onmouseenter = function() {
                       // Bring circle and text to front
@@ -1231,55 +1370,145 @@
                   };
               }
               
-              // Add parent link text below center if not root (as visual indicator)
+              // Add parent link arrow below center if not root (as visual indicator)
               if (!isRoot && parentNode) {
-                  const parentLink = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                  parentLink.setAttribute('x', centerX);
-                  parentLink.setAttribute('y', centerY + 30);
-                  parentLink.setAttribute('text-anchor', 'middle');
-                  parentLink.setAttribute('dominant-baseline', 'middle');
-                  parentLink.setAttribute('fill', '#ffffff');
-                  parentLink.setAttribute('font-size', '11');
-                  parentLink.setAttribute('font-weight', '600');
-                  parentLink.setAttribute('style', 'text-decoration: underline; cursor: pointer; opacity: 0.85; pointer-events: all;');
-                  parentLink.setAttribute('class', 'radial-parent-link');
-                  parentLink.setAttribute('data-parent-key', parentNode.topic || parentNode.id || 'root');
-                  parentLink.textContent = '← ' + (parentNode.topic || 'Parent');
-                  parentLink.onclick = (e) => {
+                  // Create arrow path instead of text
+                  const arrowGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                  arrowGroup.setAttribute('class', 'radial-parent-link');
+                  arrowGroup.setAttribute('data-parent-key', parentNode.topic || parentNode.id || 'root');
+                  arrowGroup.setAttribute('style', 'cursor: pointer; opacity: 0.85; pointer-events: all;');
+                  
+                  // Draw arrow shape - clean left arrow (←)
+                  const arrowSize = 28;
+                  const arrowY = centerY + finalCenterRadius + 30;
+                  const arrowHeadSize = 10;
+                  
+                  // Create arrow as a group with line and arrowhead
+                  const arrowLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                  arrowLine.setAttribute('x1', centerX);
+                  arrowLine.setAttribute('y1', arrowY);
+                  arrowLine.setAttribute('x2', centerX - arrowSize);
+                  arrowLine.setAttribute('y2', arrowY);
+                  arrowLine.setAttribute('stroke', '#ffffff');
+                  arrowLine.setAttribute('stroke-width', '3');
+                  arrowLine.setAttribute('stroke-linecap', 'round');
+                  
+                  // Arrowhead (triangle pointing left)
+                  const arrowHead = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                  arrowHead.setAttribute('d', `M ${centerX - arrowSize} ${arrowY} L ${centerX - arrowSize + arrowHeadSize} ${arrowY - arrowHeadSize/2} L ${centerX - arrowSize + arrowHeadSize} ${arrowY + arrowHeadSize/2} Z`);
+                  arrowHead.setAttribute('fill', '#ffffff');
+                  arrowHead.setAttribute('stroke', '#ffffff');
+                  arrowHead.setAttribute('stroke-width', '1');
+                  
+                  arrowGroup.appendChild(arrowLine);
+                  arrowGroup.appendChild(arrowHead);
+                  
+                  arrowGroup.onclick = (e) => {
                       e.stopPropagation();
                       radialCurrentCenter = parentNode;
+                      // Reset zoom to fit when clicking parent link
+                      const isMobile = window.innerWidth <= 768;
+                      radialZoom = isMobile ? 0.75 : 1;
+                      radialTransform = { x: 0, y: 0 };
                       renderRadialMindmap(parentNode);
+                      setTimeout(() => {
+                          applyRadialZoom();
+                      }, 100);
                   };
-                  parentLink.onmouseenter = function() {
+                  arrowGroup.onmouseenter = function() {
                       this.setAttribute('opacity', '1');
-                      this.setAttribute('font-size', '12');
+                      arrowLine.setAttribute('stroke-width', '4');
+                      arrowHead.setAttribute('fill', '#f0f0f0');
+                      arrowHead.setAttribute('stroke', '#f0f0f0');
                   };
-                  parentLink.onmouseleave = function() {
+                  arrowGroup.onmouseleave = function() {
                       this.setAttribute('opacity', '0.85');
-                      this.setAttribute('font-size', '11');
+                      arrowLine.setAttribute('stroke-width', '3');
+                      arrowHead.setAttribute('fill', '#ffffff');
+                      arrowHead.setAttribute('stroke', '#ffffff');
                   };
-                  svg.appendChild(parentLink);
+                  svg.appendChild(arrowGroup);
               }
           }
 
-          function radialZoomIn() { radialZoom = Math.min(radialZoom + 0.1, 2); applyRadialZoom(); }
-          function radialZoomOut() { radialZoom = Math.max(radialZoom - 0.1, 0.5); applyRadialZoom(); }
+          function radialZoomIn() { 
+              const isMobile = window.innerWidth <= 768;
+              const maxZoom = isMobile ? 1.5 : 2; // Lower max zoom on mobile
+              radialZoom = Math.min(radialZoom + 0.1, maxZoom); 
+              applyRadialZoom(); 
+          }
+          function radialZoomOut() { 
+              const isMobile = window.innerWidth <= 768;
+              const minZoom = isMobile ? 0.6 : 0.5; // Higher min zoom on mobile to prevent too much zoom out
+              radialZoom = Math.max(radialZoom - 0.1, minZoom); 
+              applyRadialZoom(); 
+          }
           function radialReset() { 
-              radialZoom = 1; 
+              const isMobile = window.innerWidth <= 768;
+              radialZoom = isMobile ? 0.75 : 1; // Reset to fit viewport
               radialTransform = { x: 0, y: 0 }; 
               radialCurrentCenter = radialRootNode;
               if (radialRootNode) {
                   renderRadialMindmap(radialRootNode);
+                  setTimeout(() => {
+                      applyRadialZoom();
+                  }, 100);
+              } else {
+                  applyRadialZoom();
               }
-              applyRadialZoom(); 
           }
           function applyRadialZoom() {
               const svg = document.getElementById('radial-svg');
-              if (svg) {
-                  svg.style.transform = `scale(${radialZoom}) translate(${radialTransform.x}px, ${radialTransform.y}px)`;
+              if (!svg) return;
+              
+              const isMobile = window.innerWidth <= 768;
+              
+              // Ensure SVG is centered
+              svg.style.margin = 'auto';
+              svg.style.display = 'block';
+              
+              if (isMobile) {
+                  // On mobile, use viewBox scaling to prevent cropping - centered
+                  const container = document.querySelector('.radial-mindmap-container');
+                  if (container && svg.hasAttribute('width') && svg.hasAttribute('height')) {
+                      const baseWidth = parseFloat(svg.getAttribute('width'));
+                      const baseHeight = parseFloat(svg.getAttribute('height'));
+                      
+                      if (baseWidth > 0 && baseHeight > 0) {
+                          // Calculate new viewBox based on zoom - centered
+                          const zoomedWidth = baseWidth / radialZoom;
+                          const zoomedHeight = baseHeight / radialZoom;
+                          const offsetX = Math.max(0, (baseWidth - zoomedWidth) / 2);
+                          const offsetY = Math.max(0, (baseHeight - zoomedHeight) / 2);
+                          
+                          svg.setAttribute('viewBox', `${offsetX} ${offsetY} ${zoomedWidth} ${zoomedHeight}`);
+                          svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                      }
+                  }
+              } else {
+                  // Desktop: use CSS transform with center origin
                   svg.style.transformOrigin = 'center center';
+                  svg.style.transform = `scale(${radialZoom}) translate(${radialTransform.x}px, ${radialTransform.y}px)`;
+                  // Reset viewBox for desktop - centered
+                  const container = document.querySelector('.radial-mindmap-container');
+                  if (container) {
+                      const containerWidth = container.clientWidth;
+                      const containerHeight = container.clientHeight;
+                      svg.setAttribute('viewBox', `0 0 ${containerWidth} ${containerHeight}`);
+                      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                  }
               }
           }
+          
+          // Handle window resize for mobile responsiveness
+          window.addEventListener('resize', function() {
+              if (radialData && radialCurrentCenter) {
+                  setTimeout(() => {
+                      renderRadialMindmap(radialCurrentCenter);
+                      applyRadialZoom();
+                  }, 100);
+              }
+          });
 
           // Initialize radial mindmap when page loads
           if (document.getElementById('career-xmind-mindmap-section')) {
@@ -1294,8 +1523,11 @@
 
           <!-- Accordion Content Container -->
           <div class="cat-main-content" id="careerAccordionContainer">
-            {% if career.description %}
-            <h4>Career Description</h4>
+            {% if overview_html %}
+            <h4>Overview</h4>
+            <div class="blogDetail careerDetail">{{ overview_html|safe }}</div>
+            {% elif career.description %}
+            <h4>Overview</h4>
             <div class="blogDetail careerDetail">{{ career.description|safe }}</div>
             {% endif %}
 
@@ -1407,6 +1639,36 @@
             </script>
             {% endif %}
             
+            {% if infographics.observations %}
+            <h4>Significant Observations (Academic Related Points)</h4>
+            {% include 'template20/infographics/observations.html' %}
+            {% endif %}
+            
+            {% if infographics.internships %}
+            <h4>Internships & Practical Exposure</h4>
+            {% include 'template20/infographics/internships.html' %}
+            {% endif %}
+            
+            {% if infographics.courses %}
+            <h4>Courses & Specializations to Enter the Field</h4>
+            {% include 'template20/infographics/courses.html' %}
+            {% endif %}
+            
+            {% if infographics.prominent_employers %}
+            <h4>Prominent Employers</h4>
+            {% include 'template20/infographics/prominent_employers.html' %}
+            {% endif %}
+            
+            {% if infographics.skills_industry_trends %}
+            <h4>Skills Required & Industry Trends and Future Outlook</h4>
+            {% include 'template20/infographics/skills_industry_trends.html' %}
+            {% endif %}
+            
+            {% if infographics.advice_for_aspiring %}
+            <h4>Advice for Aspiring {{ career.name }}s</h4>
+            {% include 'template20/infographics/advice_for_aspiring.html' %}
+            {% endif %}
+
             <style>
               .study-route-infographic {
                 position: relative;
@@ -1655,10 +1917,6 @@
             <div class="blogDetail careerDetail">{{ career.pros_cons|safe }}</div>
             {% endif %}
 
-            {% if career.get_max_salary() and career.get_max_salary() != 'N/A' %}
-            <h4>Salary Expectations</h4>
-            <p>{{ career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim }}</p>
-            {% endif %}
 
             {% if career.careermedia.all() %}
             <h4>Career Resources</h4>
@@ -2013,7 +2271,7 @@
         accordion.id = 'careerAccordion';
 
         const iconMap = {
-          'Career Description': 'bx bx-id-card',
+          'Overview': 'bx bx-id-card',
           'Roles and Responsibilities': 'bx bx-task',
           'Study Route & Eligibility Criteria': 'bx bx-graduation',
           'Significant Observations': 'bx bx-bulb',
@@ -2028,7 +2286,6 @@
           'Pros and Cons of the Profession': 'bx bx-traffic-cone',
           'Industry Trends and Future Outlook': 'bx bx-line-chart',
           'Notable Automobile Designers and Their Contributions': 'bx bx-user-voice',
-          'Salary Expectations': 'bx bx-money-withdraw',
           'Key Software Tools': 'bx bx-chip',
           'Professional Organizations and Networks': 'bx bx-network-chart',
           'Advice for Aspiring Automobile Designers': 'bx bx-message-dots',
@@ -2497,4 +2754,5 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 {% endblock %}
+
 

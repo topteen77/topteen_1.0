@@ -168,28 +168,39 @@ const handleOutgoingMessage = (e) => {
   }, 600);
 };
 
-// Show AI message after 2 seconds
-setTimeout(() => {
-  document.querySelector('.ai-chat-message').classList.add('show');
-}, 4000);
+// Show AI message after 2 seconds - DISABLED: Now handled by chatbot.js auto-open functionality
+// setTimeout(() => {
+//   document.querySelector('.ai-chat-message').classList.add('show');
+// }, 4000);
 
-// Handle Let's Chat button click
-document.querySelector('.lest-chart-sart').addEventListener('click', (e) => {
-  e.preventDefault();
-  document.querySelector('.ai-chat-message').style.display = 'none';
-  document.body.classList.add('show-chatbot');
-});
+// Handle Let's Chat button click - with null check
+const letsChatBtn = document.querySelector('.lest-chart-sart');
+if (letsChatBtn) {
+  letsChatBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const aiMessage = document.querySelector('.ai-chat-message');
+    if (aiMessage) aiMessage.style.display = 'none';
+    document.body.classList.add('show-chatbot');
+  });
+}
 
-// Add close functionality for the close button
-document.querySelector('.ai-chat-message .close-icon').addEventListener('click', (e) => {
-  e.stopPropagation();
-  document.querySelector('.ai-chat-message').style.display = 'none';
-});
+// Add close functionality for the close button - with null check
+const closeIcon = document.querySelector('.ai-chat-message .close-icon');
+if (closeIcon) {
+  closeIcon.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const aiMessage = document.querySelector('.ai-chat-message');
+    if (aiMessage) aiMessage.style.display = 'none';
+  });
+}
 
-// Hide AI message when chatbot is opened through toggler
-chatbotToggler.addEventListener('click', () => {
-  document.querySelector('.ai-chat-message').style.display = 'none';
-});
+// Hide AI message when chatbot is opened through toggler - with null check
+if (chatbotToggler) {
+  chatbotToggler.addEventListener('click', () => {
+    const aiMessage = document.querySelector('.ai-chat-message');
+    if (aiMessage) aiMessage.style.display = 'none';
+  });
+}
 
 // Initialize word animation
 const initWordAnimation = () => {
@@ -298,13 +309,37 @@ window.addEventListener('scroll', () => {
 
 
 
-// Toggle to show and hide navbar menu
-const navbarMenu = document.getElementById("menu");
-const burgerMenu = document.getElementById("burger");
-
-burgerMenu.addEventListener("click", () => {
-  navbarMenu.classList.toggle("is-active");
-  burgerMenu.classList.toggle("is-active");
+// Toggle to show and hide navbar menu - Cross-browser compatible
+document.addEventListener('DOMContentLoaded', function() {
+  const navbarMenu = document.getElementById("menu");
+  const burgerMenu = document.getElementById("burger");
+  
+  // Check if elements exist before adding event listeners
+  if (burgerMenu && navbarMenu) {
+    // Use both click and touchstart for better mobile support
+    burgerMenu.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      navbarMenu.classList.toggle("is-active");
+      burgerMenu.classList.toggle("is-active");
+    });
+    
+    // Touch support for mobile devices
+    burgerMenu.addEventListener("touchstart", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      navbarMenu.classList.toggle("is-active");
+      burgerMenu.classList.toggle("is-active");
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener("click", function(e) {
+      if (!burgerMenu.contains(e.target) && !navbarMenu.contains(e.target)) {
+        navbarMenu.classList.remove("is-active");
+        burgerMenu.classList.remove("is-active");
+      }
+    });
+  }
 });
 
 // Toggle to show and hide dropdown menu

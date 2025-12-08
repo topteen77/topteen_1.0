@@ -365,6 +365,248 @@ class InstitutesParser(InfographicParser):
         return institutes if institutes else None
 
 
+class InternshipsParser(InfographicParser):
+    """Parser for Internships & Practical Exposure infographics"""
+    
+    def parse(self):
+        """Parse internships"""
+        section = self.find_section(['Internships', 'Practical Exposure', 'Internships & Practical Exposure'])
+        if not section:
+            return None
+        
+        section_soup = self.get_section_content(section, ['Courses', 'Top Institutes', 'Prominent'])
+        if not section_soup:
+            return None
+        
+        return self._parse_internships(section_soup)
+    
+    def _parse_internships(self, section_soup):
+        """Parse internships from list items"""
+        internships = []
+        
+        lists = section_soup.find_all(['ul', 'ol'])
+        for ul in lists:
+            items = ul.find_all('li', recursive=False)
+            for item in items:
+                text = item.get_text(strip=True)
+                if text:
+                    internships.append({
+                        'description': text,
+                        'type': 'internship' if 'internship' in text.lower() else 'training'
+                    })
+        
+        return internships if internships else None
+
+
+class ProminentEmployersParser(InfographicParser):
+    """Parser for Prominent Employers infographics"""
+    
+    def parse(self):
+        """Parse prominent employers"""
+        section = self.find_section(['Prominent Employers', 'Leading Employers', 'Top Employers'])
+        if not section:
+            return None
+        
+        section_soup = self.get_section_content(section, ['Salary', 'Pros', 'Skills'])
+        if not section_soup:
+            return None
+        
+        return self._parse_employers(section_soup)
+    
+    def _parse_employers(self, section_soup):
+        """Parse employers from table structure"""
+        employers = []
+        
+        tables = section_soup.find_all('table')
+        for table in tables:
+            rows = table.find_all('tr')
+            headers = []
+            
+            # Get headers from first row
+            if rows:
+                header_row = rows[0]
+                headers = [th.get_text(strip=True) for th in header_row.find_all(['th', 'td'])]
+            
+            # Parse data rows
+            for row in rows[1:]:
+                cells = row.find_all(['td', 'th'])
+                if cells:
+                    employer_data = {}
+                    for idx, cell in enumerate(cells):
+                        if idx < len(headers):
+                            header = headers[idx]
+                            text = cell.get_text(strip=True)
+                            # Clean up list items
+                            if '<li>' in str(cell):
+                                items = cell.find_all('li')
+                                text = ', '.join([li.get_text(strip=True) for li in items])
+                            
+                            # Normalize header names
+                            header_key = header.lower().replace(' ', '_').replace('/', '_')
+                            employer_data[header_key] = text
+                    
+                    if employer_data:
+                        employers.append(employer_data)
+        
+        return employers if employers else None
+
+
+class SalaryExpectationsParser(InfographicParser):
+    """Parser for Salary Expectations infographics"""
+    
+    def parse(self):
+        """Parse salary expectations"""
+        section = self.find_section(['Salary Expectations', 'Salary', 'Compensation'])
+        if not section:
+            return None
+        
+        section_soup = self.get_section_content(section, ['Skills', 'Industry Trends', 'Advice'])
+        if not section_soup:
+            return None
+        
+        return self._parse_salary(section_soup)
+    
+    def _parse_salary(self, section_soup):
+        """Parse salary data from table structure"""
+        salary_data = []
+        
+        tables = section_soup.find_all('table')
+        for table in tables:
+            rows = table.find_all('tr')
+            headers = []
+            
+            # Get headers from first row
+            if rows:
+                header_row = rows[0]
+                headers = [th.get_text(strip=True) for th in header_row.find_all(['th', 'td'])]
+            
+            # Parse data rows
+            for row in rows[1:]:
+                cells = row.find_all(['td', 'th'])
+                if cells:
+                    row_data = {}
+                    for idx, cell in enumerate(cells):
+                        if idx < len(headers):
+                            header = headers[idx]
+                            text = cell.get_text(strip=True)
+                            
+                            # Skip note rows
+                            if 'note' in text.lower() or 'varies' in text.lower():
+                                continue
+                            
+                            # Normalize header names
+                            header_key = header.lower().replace(' ', '_').replace('/', '_').replace('(', '').replace(')', '').replace('₹', 'rupees').replace('$', 'usd')
+                            row_data[header_key] = text
+                    
+                    if row_data and len(row_data) > 1:  # Must have at least 2 columns
+                        salary_data.append(row_data)
+        
+        return salary_data if salary_data else None
+
+
+class SkillsIndustryTrendsParser(InfographicParser):
+    """Parser for Skills Required & Industry Trends infographics"""
+    
+    def parse(self):
+        """Parse skills and industry trends"""
+        section = self.find_section(['Skills Required', 'Industry Trends', 'Future Outlook'])
+        if not section:
+            return None
+        
+        section_soup = self.get_section_content(section, ['Advice', 'Salary', 'Pros'])
+        if not section_soup:
+            return None
+        
+        return self._parse_skills_trends(section_soup)
+    
+    def _parse_skills_trends(self, section_soup):
+        """Parse skills and trends from lists"""
+        data = {
+            'skills': [],
+            'trends': []
+        }
+        
+        # Find all headings and lists
+        headings = section_soup.find_all(['h3', 'h4', 'strong'])
+        current_section = None
+        
+        for element in section_soup.find_all(['h3', 'h4', 'ul', 'ol', 'p']):
+            if element.name in ['h3', 'h4']:
+                text = element.get_text(strip=True).lower()
+                if 'skill' in text:
+                    current_section = 'skills'
+                elif 'trend' in text or 'outlook' in text or 'future' in text:
+                    current_section = 'trends'
+            elif element.name in ['ul', 'ol'] and current_section:
+                items = element.find_all('li', recursive=False)
+                for item in items:
+                    text = item.get_text(strip=True)
+                    if text:
+                        data[current_section].append(text)
+        
+        # If no section headers found, try to parse all lists
+        if not data['skills'] and not data['trends']:
+            lists = section_soup.find_all(['ul', 'ol'])
+            for ul in lists:
+                items = ul.find_all('li', recursive=False)
+                for item in items:
+                    text = item.get_text(strip=True)
+                    if text:
+                        # Try to categorize based on content
+                        if any(keyword in text.lower() for keyword in ['skill', 'expertise', 'knowledge', 'ability', 'proficiency']):
+                            data['skills'].append(text)
+                        else:
+                            data['trends'].append(text)
+        
+        return data if (data['skills'] or data['trends']) else None
+
+
+class AdviceForAspiringParser(InfographicParser):
+    """Parser for Advice for Aspiring infographics"""
+    
+    def parse(self):
+        """Parse advice for aspiring professionals"""
+        section = self.find_section(['Advice for Aspiring', 'Advice', 'Tips for Aspiring'])
+        if not section:
+            return None
+        
+        section_soup = self.get_section_content(section, [])
+        if not section_soup:
+            return None
+        
+        return self._parse_advice(section_soup)
+    
+    def _parse_advice(self, section_soup):
+        """Parse advice from list items and paragraphs"""
+        advice_items = []
+        
+        # Parse from lists
+        lists = section_soup.find_all(['ul', 'ol'])
+        for ul in lists:
+            items = ul.find_all('li', recursive=False)
+            for item in items:
+                text = item.get_text(strip=True)
+                if text and len(text) > 20:  # Filter out very short items
+                    advice_items.append({
+                        'text': text,
+                        'type': 'tip'
+                    })
+        
+        # Parse from paragraphs (for concluding paragraphs)
+        paragraphs = section_soup.find_all('p')
+        for para in paragraphs:
+            text = para.get_text(strip=True)
+            if text and len(text) > 50:  # Only longer paragraphs
+                # Skip if it's already in a list
+                if not any(text[:50] in item['text'][:50] for item in advice_items):
+                    advice_items.append({
+                        'text': text,
+                        'type': 'conclusion'
+                    })
+        
+        return advice_items if advice_items else None
+
+
 # Registry of parsers
 INFographic_PARSERS = {
     'study_route': StudyRouteParser,
@@ -372,6 +614,11 @@ INFographic_PARSERS = {
     'observations': ObservationsParser,
     'courses': CoursesParser,
     'institutes': InstitutesParser,
+    'internships': InternshipsParser,
+    'prominent_employers': ProminentEmployersParser,
+    'salary_expectations': SalaryExpectationsParser,
+    'skills_industry_trends': SkillsIndustryTrendsParser,
+    'advice_for_aspiring': AdviceForAspiringParser,
 }
 
 

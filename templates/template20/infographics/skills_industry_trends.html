@@ -1,0 +1,144 @@
+{% if infographics.skills_industry_trends %}
+<!-- Skills Required & Industry Trends Infographic - Mobile Optimized -->
+<div class="skills-trends-infographic-container" style="margin: 1rem 0; padding: 0; background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); border-radius: 16px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); overflow: hidden;">
+  
+  <!-- Compact Header -->
+  <div class="skills-trends-header" style="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); padding: 1rem 1rem; text-align: center; color: white;">
+    <div style="font-size: 24px; margin-bottom: 0.25rem;">🎯</div>
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 0.25rem;">{{ career.name }}</div>
+    <div style="font-size: 13px; opacity: 0.95;">Skills & Future Opportunities</div>
+  </div>
+
+  <!-- Compact Content -->
+  <div class="skills-trends-content" style="padding: 1rem 0.75rem;">
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
+      
+      <!-- Skills Column -->
+      {% if infographics.skills_industry_trends.skills %}
+      <div class="skills-column">
+        <div style="font-size: 14px; font-weight: 700; color: #7b1fa2; margin-bottom: 0.75rem; text-align: center; padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(156, 39, 176, 0.12);">
+          💼 Skills
+        </div>
+        <div class="skills-list" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 400px; overflow-y: auto;">
+          {% for skill in infographics.skills_industry_trends.skills %}
+          <div class="skill-item" style="background: white; border-radius: 8px; padding: 0.5rem 0.75rem; box-shadow: 0 2px 6px rgba(156, 39, 176, 0.1); border-left: 3px solid #9c27b0; display: flex; align-items: flex-start; gap: 0.5rem;">
+            <div style="flex-shrink: 0; width: 20px; height: 20px; background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 10px; margin-top: 1px;">
+              {{ loop.index }}
+            </div>
+            <div style="font-size: 11px; line-height: 1.4; color: #333; flex: 1;">
+              {{ skill }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Trends Column -->
+      {% if infographics.skills_industry_trends.trends %}
+      <div class="trends-column">
+        <div style="font-size: 14px; font-weight: 700; color: #7b1fa2; margin-bottom: 0.75rem; text-align: center; padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(156, 39, 176, 0.12);">
+          📈 Trends
+        </div>
+        <div class="trends-list" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 400px; overflow-y: auto;">
+          {% for trend in infographics.skills_industry_trends.trends %}
+          <div class="trend-item" style="background: white; border-radius: 8px; padding: 0.5rem 0.75rem; box-shadow: 0 2px 6px rgba(156, 39, 176, 0.1); border-left: 3px solid #9c27b0; display: flex; align-items: flex-start; gap: 0.5rem;">
+            <div style="flex-shrink: 0; width: 20px; height: 20px; background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 10px; margin-top: 1px;">
+              {{ loop.index }}
+            </div>
+            <div style="font-size: 11px; line-height: 1.4; color: #333; flex: 1;">
+              {{ trend }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      
+    </div>
+    
+  </div>
+  
+  <!-- Thin Footer -->
+  <div style="height: 3px; background: linear-gradient(90deg, #9c27b0 0%, #7b1fa2 100%);"></div>
+  
+</div>
+
+<style>
+.skills-trends-infographic-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.skill-item:active,
+.trend-item:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+.skills-list::-webkit-scrollbar,
+.trends-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.skills-list::-webkit-scrollbar-track,
+.trends-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.skills-list::-webkit-scrollbar-thumb,
+.trends-list::-webkit-scrollbar-thumb {
+  background: #9c27b0;
+  border-radius: 2px;
+}
+
+@media (max-width: 480px) {
+  .skills-trends-content {
+    padding: 0.75rem 0.5rem !important;
+  }
+  
+  .skills-trends-content > div {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+  
+  .skills-trends-header {
+    padding: 0.75rem 0.5rem !important;
+  }
+  
+  .skills-trends-header div:nth-child(2) {
+    font-size: 16px !important;
+  }
+  
+  .skill-item,
+  .trend-item {
+    padding: 0.5rem !important;
+  }
+  
+  .skill-item > div:last-child,
+  .trend-item > div:last-child {
+    font-size: 10px !important;
+  }
+  
+  .skills-list,
+  .trends-list {
+    max-height: 300px !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .skills-trends-content > div {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+  
+  .skills-list,
+  .trends-list {
+    max-height: 350px !important;
+  }
+}
+</style>
+{% endif %}

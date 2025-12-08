@@ -1,39 +1,256 @@
 {% if infographics.study_route %}
-<!-- Study Route Infographic -->
-<div class="infographic-container study-route-infographic-container" style="margin: 2rem 0; padding: 2rem; background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
-  <div class="study-route-infographic">
-    <div class="study-route-title">{{ career.name }} Study Route & Eligibility Criteria</div>
-    <div class="study-routes-grid">
-      {% for route in infographics.study_route %}
-      <div class="study-route-box {{ route.class }}">
-        <div class="route-name">{{ route.name }}</div>
-        <div class="route-steps">
-          {% for step in route.steps %}
-          <div class="route-step">
-            <div class="step-number">{{ step.number }}</div>
-            <div class="step-content">
-              <div class="step-title">{{ step.title }}</div>
-              {% if step.description %}
-              <div class="step-description">{{ step.description }}</div>
+<!-- Study Route Infographic with Icons and Arrows -->
+<div class="study-route-infographic-container" style="margin: 1rem 0; padding: 0; background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); border-radius: 16px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); overflow: hidden; position: relative;">
+  
+  <!-- Header -->
+  <div style="background: linear-gradient(135deg, #0064c8 0%, #004a9f 100%); padding: 1.25rem 1rem; text-align: center; color: white; position: relative;">
+    <div style="font-size: 20px; font-weight: 700; margin-bottom: 0.25rem;">Study Route & Eligibility Criteria</div>
+    <div style="font-size: 14px; opacity: 0.95;">{{ career.name }}</div>
+  </div>
+  
+  <!-- Routes Container - Vertical Flow with Icons and Arrows -->
+  <div class="study-routes-container" style="padding: 1.5rem 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; max-height: 700px; overflow-y: auto; position: relative;">
+    {% for route in infographics.study_route %}
+    <div class="study-route-column {{ route.class }}" style="background: white; border-radius: 12px; padding: 1rem; border: 3px solid; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); position: relative; display: flex; flex-direction: column; align-items: center;">
+      
+      <!-- Route Name Header -->
+      <div class="route-header" style="font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid; width: 100%;">
+        {{ route.name }}
+      </div>
+      
+      <!-- Steps with Icons and Arrows -->
+      <div class="route-steps-vertical" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; width: 100%; position: relative;">
+        {% for step in route.steps %}
+        <div class="step-container" style="position: relative; width: 100%; display: flex; flex-direction: column; align-items: center;">
+          
+          <!-- Step Card with Icon -->
+          <div class="step-card" style="background: #f8f9fa; border-radius: 10px; padding: 0.75rem; width: 100%; text-align: center; position: relative; border: 2px solid #e0e0e0; transition: all 0.3s ease;">
+            
+            <!-- Step Icon -->
+            <div class="step-icon" style="font-size: 32px; margin-bottom: 0.5rem; display: flex; justify-content: center; align-items: center; height: 50px;">
+              {% if '10+2' in step.title or '12th' in step.title or 'diploma' in step.title|lower or 'foundation' in step.title|lower %}
+                🎓
+              {% elif 'bachelor' in step.title|lower or 'degree' in step.title|lower or 'graduation' in step.title|lower or 'university' in step.title|lower %}
+                🏛️
+              {% elif 'master' in step.title|lower or 'mba' in step.title|lower or 'postgraduate' in step.title|lower %}
+                🎓
+              {% elif 'acca' in step.title|lower or 'exam' in step.title|lower or 'qualification' in step.title|lower or 'program' in step.title|lower or 'course' in step.title|lower or 'certificate' in step.title|lower %}
+                📚
+              {% elif 'work' in step.title|lower or 'experience' in step.title|lower or 'practical' in step.title|lower or 'internship' in step.title|lower or 'practice' in step.title|lower %}
+                💼
+              {% elif 'member' in step.title|lower or 'professional' in step.title|lower or 'consultant' in step.title|lower or 'global' in step.title|lower %}
+                🌍
+              {% elif step.number == 1 %}
+                🎓
+              {% elif step.number == 2 %}
+                🏛️
+              {% elif step.number == 3 %}
+                📚
+              {% elif step.number == 4 %}
+                💼
+              {% elif step.number == 5 %}
+                🌍
+              {% else %}
+                📋
               {% endif %}
+            </div>
+            
+            <!-- Step Number Badge -->
+            <div class="step-number-badge" style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 28px; height: 28px; background: linear-gradient(135deg, #0064c8 0%, #004a9f 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+              {{ step.number }}
+            </div>
+            
+            <!-- Step Content -->
+            <div class="step-content" style="margin-top: 0.5rem;">
+              <div class="step-title" style="font-size: 12px; font-weight: 600; color: #333; line-height: 1.4; margin-bottom: 0.25rem;">
+                {{ step.title }}
+              </div>
               {% if step.duration %}
-              <div class="step-duration">({{ step.duration }})</div>
+              <div class="step-duration" style="font-size: 10px; color: #666; font-style: italic;">
+                {{ step.duration }}
+              </div>
               {% endif %}
             </div>
           </div>
-          {% endfor %}
+          
+          <!-- Arrow Down (except for last step) -->
+          {% if loop.index < route.steps|length %}
+          <div class="step-arrow" style="width: 2px; height: 20px; background: linear-gradient(180deg, #0064c8 0%, #004a9f 100%); position: relative; margin: 0.25rem 0;">
+            <!-- Arrowhead -->
+            <div style="position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #004a9f;"></div>
+          </div>
+          {% endif %}
+          
         </div>
-        <div class="route-connection"></div>
+        {% endfor %}
       </div>
-      {% endfor %}
+      
     </div>
-    <div class="final-badge">
-      <div class="badge-circle">
-        <div class="badge-title">{{ career.name }}</div>
-        <div class="badge-subtitle">Professional</div>
-      </div>
+    {% endfor %}
+  </div>
+  
+  <!-- Final Badge - Career Outcome -->
+  <div style="padding: 1rem; display: flex; justify-content: center; align-items: center;">
+    <div class="career-outcome-badge" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 1rem 2rem; border-radius: 50px; font-size: 16px; font-weight: 700; text-align: center; box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3); position: relative; display: inline-flex; align-items: center; gap: 0.5rem;">
+      <span style="font-size: 24px;">🎯</span>
+      <span>{{ career.name }} - Professional</span>
     </div>
   </div>
+  
+  <!-- Converging Arrows from Routes to Badge -->
+  <div class="converging-arrows" style="position: absolute; bottom: 80px; left: 0; right: 0; height: 40px; pointer-events: none; display: flex; justify-content: center; align-items: flex-end;">
+    <svg width="100%" height="40" style="position: absolute; bottom: 0;">
+      {% set route_count = infographics.study_route|length %}
+      {% for route in infographics.study_route %}
+      {% set route_index = loop.index0 %}
+      {% set route_position = (route_index * 100 / route_count) + (100 / route_count / 2) %}
+      <path d="M {{ route_position }}% 0 L 50% 40" 
+            stroke="#0064c8" 
+            stroke-width="2" 
+            fill="none" 
+            stroke-dasharray="5,5" 
+            opacity="0.6"
+            marker-end="url(#arrowhead-{{ route_index }})"/>
+      {% endfor %}
+      <defs>
+        {% for route in infographics.study_route %}
+        <marker id="arrowhead-{{ loop.index0 }}" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+          <polygon points="0 0, 10 5, 0 10" fill="#0064c8" />
+        </marker>
+        {% endfor %}
+      </defs>
+    </svg>
+  </div>
+  
 </div>
-{% endif %}
 
+<style>
+.study-route-infographic-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Route Colors */
+.study-route-column.route-1 { border-color: #0064c8 !important; }
+.study-route-column.route-2 { border-color: #228b22 !important; }
+.study-route-column.route-3 { border-color: #8a2be2 !important; }
+.study-route-column.route-4 { border-color: #4db6ac !important; }
+
+.route-1 .route-header { color: #0064c8 !important; border-color: #0064c8 !important; }
+.route-2 .route-header { color: #228b22 !important; border-color: #228b22 !important; }
+.route-3 .route-header { color: #8a2be2 !important; border-color: #8a2be2 !important; }
+.route-4 .route-header { color: #4db6ac !important; border-color: #4db6ac !important; }
+
+.route-1 .step-number-badge { background: linear-gradient(135deg, #0064c8 0%, #004a9f 100%) !important; }
+.route-2 .step-number-badge { background: linear-gradient(135deg, #228b22 0%, #1a6b1a 100%) !important; }
+.route-3 .step-number-badge { background: linear-gradient(135deg, #8a2be2 0%, #6a1bb2 100%) !important; }
+.route-4 .step-number-badge { background: linear-gradient(135deg, #4db6ac 0%, #26a69a 100%) !important; }
+
+.route-1 .step-arrow { background: linear-gradient(180deg, #0064c8 0%, #004a9f 100%) !important; }
+.route-2 .step-arrow { background: linear-gradient(180deg, #228b22 0%, #1a6b1a 100%) !important; }
+.route-3 .step-arrow { background: linear-gradient(180deg, #8a2be2 0%, #6a1bb2 100%) !important; }
+.route-4 .step-arrow { background: linear-gradient(180deg, #4db6ac 0%, #26a69a 100%) !important; }
+
+.route-1 .step-arrow div { border-top-color: #004a9f !important; }
+.route-2 .step-arrow div { border-top-color: #1a6b1a !important; }
+.route-3 .step-arrow div { border-top-color: #6a1bb2 !important; }
+.route-4 .step-arrow div { border-top-color: #26a69a !important; }
+
+/* Hover Effects */
+.step-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #0064c8;
+}
+
+/* Scrollbar */
+.study-routes-container {
+  scrollbar-width: thin;
+  scrollbar-color: #0064c8 #f0f8ff;
+}
+
+.study-routes-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.study-routes-container::-webkit-scrollbar-track {
+  background: #f0f8ff;
+  border-radius: 3px;
+}
+
+.study-routes-container::-webkit-scrollbar-thumb {
+  background: #0064c8;
+  border-radius: 3px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .study-routes-container {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding: 1rem 0.75rem !important;
+    max-height: 600px !important;
+  }
+  
+  .study-route-column {
+    padding: 0.75rem !important;
+  }
+  
+  .route-header {
+    font-size: 13px !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .step-card {
+    padding: 0.625rem !important;
+  }
+  
+  .step-icon {
+    font-size: 28px !important;
+    height: 45px !important;
+  }
+  
+  .step-number-badge {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 11px !important;
+    top: -10px !important;
+  }
+  
+  .step-title {
+    font-size: 11px !important;
+  }
+  
+  .step-duration {
+    font-size: 9px !important;
+  }
+  
+  .step-arrow {
+    height: 16px !important;
+  }
+  
+  .career-outcome-badge {
+    padding: 0.75rem 1.5rem !important;
+    font-size: 14px !important;
+  }
+  
+  .converging-arrows {
+    display: none !important; /* Hide on mobile for simplicity */
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .study-routes-container {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.25rem !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .study-routes-container {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+</style>
+{% endif %}

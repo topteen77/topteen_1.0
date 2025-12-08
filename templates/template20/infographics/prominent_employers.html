@@ -1,0 +1,110 @@
+{% if infographics.prominent_employers %}
+<!-- Prominent Employers Infographic - Mobile Optimized -->
+<div class="employers-infographic-container" style="margin: 1rem 0; padding: 0; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius: 16px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); overflow: hidden;">
+  
+  <!-- Compact Header -->
+  <div class="employers-header" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); padding: 1rem 1rem; text-align: center; color: white;">
+    <div style="font-size: 24px; margin-bottom: 0.25rem;">🏢</div>
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 0.25rem;">{{ career.name }}</div>
+    <div style="font-size: 13px; opacity: 0.95;">🌟 Top Companies & Organizations</div>
+  </div>
+
+  <!-- Compact Content -->
+  <div class="employers-content" style="padding: 1rem 0.75rem;">
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
+      
+      <!-- India Column -->
+      <div class="employers-column">
+        <div style="font-size: 14px; font-weight: 700; color: #2e7d32; margin-bottom: 0.75rem; text-align: center; padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(76, 175, 80, 0.12);">
+          🇮🇳 India
+        </div>
+        <div class="employers-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+          {% for employer in infographics.prominent_employers %}
+            {% if employer.get('india') %}
+            <div class="employer-card" style="background: white; border-radius: 8px; padding: 0.5rem 0.75rem; box-shadow: 0 2px 6px rgba(76, 175, 80, 0.1); border-left: 3px solid #4caf50; display: flex; align-items: center; gap: 0.5rem;">
+              <div style="font-size: 16px; flex-shrink: 0;">🏛️</div>
+              <div style="font-size: 11px; font-weight: 600; color: #333; line-height: 1.3; flex: 1;">
+                {{ employer.india }}
+              </div>
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      
+      <!-- International Column -->
+      <div class="employers-column">
+        <div style="font-size: 14px; font-weight: 700; color: #2e7d32; margin-bottom: 0.75rem; text-align: center; padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(76, 175, 80, 0.12);">
+          🌍 International
+        </div>
+        <div class="employers-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+          {% for employer in infographics.prominent_employers %}
+            {% if employer.get('international') %}
+            <div class="employer-card" style="background: white; border-radius: 8px; padding: 0.5rem 0.75rem; box-shadow: 0 2px 6px rgba(76, 175, 80, 0.1); border-left: 3px solid #4caf50; display: flex; align-items: center; gap: 0.5rem;">
+              <div style="font-size: 16px; flex-shrink: 0;">🌐</div>
+              <div style="font-size: 11px; font-weight: 600; color: #333; line-height: 1.3; flex: 1;">
+                {{ employer.international }}
+              </div>
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      
+    </div>
+    
+  </div>
+  
+  <!-- Thin Footer -->
+  <div style="height: 3px; background: linear-gradient(90deg, #4caf50 0%, #2e7d32 100%);"></div>
+  
+</div>
+
+<style>
+.employers-infographic-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.employer-card:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+@media (max-width: 480px) {
+  .employers-content {
+    padding: 0.75rem 0.5rem !important;
+  }
+  
+  .employers-content > div {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+  
+  .employers-header {
+    padding: 0.75rem 0.5rem !important;
+  }
+  
+  .employers-header div:nth-child(2) {
+    font-size: 16px !important;
+  }
+  
+  .employer-card {
+    padding: 0.5rem !important;
+  }
+  
+  .employer-card > div:last-child {
+    font-size: 10px !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .employers-content > div {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+}
+</style>
+{% endif %}
