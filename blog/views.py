@@ -1,7 +1,7 @@
 from cgitb import text
 from venv import create
 from django.shortcuts import render
-from django.urls import reverse_lazy
+from django.urls import reverse
 from core.utils import build_breadcrumb
 from django.shortcuts import get_object_or_404
 from core.utils import  build_html_head
@@ -75,8 +75,9 @@ class BlogDetail(TemplateView):
         descriptionb=blog.summary
         return build_html_head(title=titleb, description=descriptionb)
     
-    def get_context(self, request,blog_slug, *args, **kwargs):  
+    def get_context(self, request, *args, **kwargs):  
         ctx={}
+        blog_slug = kwargs.get('blog_slug')
         search_blogs =request.GET.get('search')
 
         if search_blogs:
@@ -100,17 +101,18 @@ class BlogDetail(TemplateView):
         ctx['views_count']=blog.views_count
         ctx['html_head'] = self.html_head(blog)
         bread_crumb =self._breadcrumb(blog)
-        ctx['breadcrumb']= bread_crumb[1]
+        ctx['breadcrumb']= bread_crumb
         ctx['latest_blogs']= latest_blogs[:5]
         return ctx
     
     def _breadcrumb(self,blog):
-        url=reverse_lazy('blog:blogs')
+        from django.urls import reverse
+        url=str(reverse('blog:blogs'))
         lst=[{'title':'Blogs','text':'Blogs','url':url},{'title':blog.title,'text':blog.title,'url':''}]
         return build_breadcrumb(lst)
 
-    def get(self, request,blog_slug, *args, **kwargs):     
-        return render(request, self.template_name, self.get_context(request,blog_slug,args, kwargs))
+    def get(self, request, *args, **kwargs):     
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 def category_filter(request,category_slug, *args, **kwargs):
     page_size=5

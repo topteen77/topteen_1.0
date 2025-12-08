@@ -7,6 +7,7 @@ from entrance_exams.documents import EntranceExamDocument
 from elasticsearch_dsl import Q ,Nested
 from django.core.paginator import Paginator
 from django.urls import reverse_lazy
+from django.db.models import Q as DjangoQ
 from dataclasses import dataclass,field
 
 
@@ -49,6 +50,16 @@ class ItemSearch:
             all_search['videos']=video
         else:
             all_search['videos']=[]
+        professions = self.professions
+        if professions:
+            all_search['professions']=professions
+        else:
+            all_search['professions']=[]
+        blogs = self.blogs
+        if blogs:
+            all_search['blogs']=blogs
+        else:
+            all_search['blogs']=[]
         return all_search
     
 
@@ -81,6 +92,12 @@ class AllSearch:
 
         videos = self._search_videos(value)
         searcheddata.videos = videos
+
+        professions = self._search_professions(value)
+        searcheddata.professions = professions
+
+        blogs = self._search_blogs(value)
+        searcheddata.blogs = blogs
 
         search_data = searcheddata._get_search()
         return search_data
@@ -155,7 +172,29 @@ class AllSearch:
     
     def _search_videos(self,search):
         try:
-            video=Videos.objects.filter(name__icontains=search)
+            video=Videos.objects.filter(name__icontains=search)[:10]
         except:
             video=None
         return video
+    
+    def _search_professions(self,search):
+        try:
+            from careers.models import Profession
+            professions = list(Profession.objects.filter(name__icontains=search)[:10])
+        except Exception as e:
+            print(f"Error searching professions: {e}")
+            professions = []
+        return professions
+    
+    def _search_blogs(self,search):
+        try:
+            from blog.models import Blog
+            from core import choices
+            blogs = list(Blog.objects.filter(
+                DjangoQ(title__icontains=search) | DjangoQ(summary__icontains=search),
+                publish_status=choices.PublishStatus.PUBLISHED
+            )[:10])
+        except Exception as e:
+            print(f"Error searching blogs: {e}")
+            blogs = []
+        return blogs

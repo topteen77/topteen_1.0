@@ -1,93 +1,16 @@
 {% extends 'template20/base.html' %}
 
 {% block title_content %}
-{{ cluster_name }} | Top Teen
+{{ cluster_name|title }} | Top Teen
 {% endblock %}
 
 {% block description_content %}
-Explore careers in {{ cluster_name }}. Discover diverse career paths organized by industry clusters to find the perfect fit for your interests and skills.
+Explore careers in {{ cluster_name|title }}. Discover diverse career paths organized by industry clusters to find the perfect fit for your interests and skills.
 {% endblock %}
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
 
 {% block additionalhead %}
-<style>
-  .career-category-card {
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    height: 280px;
-    background: #f8f9fa;
-  }
-
-  .career-category-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  }
-
-  .career-category-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .career-category-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.5) 50%, transparent 100%);
-    padding: 20px;
-    color: white;
-    transform: translateY(0);
-    transition: transform 0.3s ease;
-  }
-
-  .career-category-card:hover .career-category-overlay {
-    transform: translateY(0);
-  }
-
-  .career-category-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: white;
-  }
-
-  .career-category-description {
-    font-size: 0.9rem;
-    margin-bottom: 12px;
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .career-category-button {
-    background: rgba(255, 255, 255, 0.95);
-    color: #333;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-  }
-
-  .career-category-button:hover {
-    background: white;
-    transform: scale(1.05);
-  }
-
-  @media (max-width: 768px) {
-    .career-category-card {
-      height: 240px;
-    }
-
-    .career-category-title {
-      font-size: 1.25rem;
-    }
-  }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -107,7 +30,7 @@ Explore careers in {{ cluster_name }}. Discover diverse career paths organized b
           <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Exploration
         </span>
         <h1 class="heading-title mt-md-9 mt-8 mb-3">
-          {{ cluster_name }}
+          {{ cluster_name|title }}
         </h1>
         <p class="text-gray fs-16">Explore careers organized by industry clusters. Discover diverse career paths to find the perfect fit for your interests and skills.</p>
       </div>
@@ -122,47 +45,14 @@ Explore careers in {{ cluster_name }}. Discover diverse career paths organized b
 </section>
 <!-- Hero Section -->
 
-<!-- Career Clusters Section -->
-{% if clusters %}
-<section class="pb-5 bg-light">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        <h3 class="section-title mb-4">Career Categories</h3>
-      </div>
-    </div>
-    <div class="row">
-      {% for cluster in clusters %}
-      <div class="col-md-4 col-sm-6 mb-4">
-        <a href="{{ url('careers:careerlibrary', args=[cluster.slug, cluster.id]) }}" class="text-decoration-none">
-          <div class="career-category-card">
-            {% if cluster.image and cluster.image.name %}
-            <img src="{{ cluster.image.url }}" alt="{{ cluster.name }}" class="career-category-image" onerror="this.src='{{ static('images/career-icon.png') }}'">
-            {% else %}
-            <img src="{{ static('images/career-icon.png') }}" alt="{{ cluster.name }}" class="career-category-image">
-            {% endif %}
-            <div class="career-category-overlay">
-              <h3 class="career-category-title">{{ cluster.name }}</h3>
-              <p class="career-category-description">{{ cluster.get_careers().count() }} careers available in this category</p>
-              <span class="btn btn-sm btn-light career-category-button">Explore Careers</span>
-            </div>
-          </div>
-        </a>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-{% endif %}
-
-<!-- Career List Section - Only show when a specific cluster is selected -->
-{% if careers and cluster_name != "Careerlibrary" %}
+<!-- Career List Section -->
+{% if careers %}
 <section class="pb-10">
   <div class="container">
     <div class="row">
       <div class="col-md-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h3 class="section-title mb-0">Careers in {{ cluster_name }}</h3>
+          <h3 class="section-title mb-0">{% if cluster_name != "Careerlibrary" %}Careers in {{ cluster_name|title }}{% else %}All Careers{% endif %}</h3>
           <form method="GET" class="d-flex gap-2">
             <input type="text" name="careersearch" class="form-control" placeholder="Search careers..." value="{{ request.GET.careersearch if request.GET.careersearch else '' }}" style="max-width: 300px;">
             <button type="submit" class="btn custom-button purple-button">
@@ -180,7 +70,7 @@ Explore careers in {{ cluster_name }}. Discover diverse career paths organized b
             <div class="cat-header">
               {% if career.career_cluster.exists() %}
                 <a href="{{ url('careers:careerlibrary', args=[career.career_cluster.first().slug, career.career_cluster.first().id]) }}" class="blog-category category-parent">
-                  {{ career.career_cluster.first().name }}
+                  {{ career.career_cluster.first().name|title }}
                 </a>
               {% else %}
                 <span class="blog-category category-parent">Career</span>
@@ -198,10 +88,11 @@ Explore careers in {{ cluster_name }}. Discover diverse career paths organized b
             <h3 class="blog-title mt-0">
               <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">{{ career.name }}</a>
             </h3>
-            {% if career.get_max_salary() and career.get_max_salary() != 'N/A' %}
+            {% set salary_value = career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim if career.get_max_salary() else '' %}
+            {% if career.get_max_salary() and career.get_max_salary() != 'N/A' and salary_value != '0.0' and salary_value != '0' and salary_value != '' %}
             <div class="salary-range">
               <i class='bx bx-rupee'></i>
-              <span>{{ career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim }}</span>
+              <span>{{ salary_value }}</span>
             </div>
             {% endif %}
             {% if career.summary %}

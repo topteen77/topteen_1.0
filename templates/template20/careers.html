@@ -128,11 +128,11 @@ Explore our comprehensive collection of career paths organized by industry and i
                   <select name="cluster" class="form-select filter-select2" multiple id="clusterFilter" data-placeholder="Search and select clusters...">
                     {% if clusters_with_counts %}
                       {% for item in clusters_with_counts %}
-                    <option value="{{ item.cluster.id }}" {% if item.cluster.id|string in request.GET.getlist('cluster') %}selected{% endif %}>{{ item.cluster.name }} ({{ item.count }})</option>
+                    <option value="{{ item.cluster.id }}" {% if item.cluster.id|string in request.GET.getlist('cluster') %}selected{% endif %}>{{ item.cluster.name|title }} ({{ item.count }})</option>
                       {% endfor %}
                     {% else %}
                     {% for cluster in clusters %}
-                    <option value="{{ cluster.id }}" {% if cluster.id|string in request.GET.getlist('cluster') %}selected{% endif %}>{{ cluster.name }}</option>
+                    <option value="{{ cluster.id }}" {% if cluster.id|string in request.GET.getlist('cluster') %}selected{% endif %}>{{ cluster.name|title }}</option>
                     {% endfor %}
                     {% endif %}
                   </select>
@@ -153,7 +153,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                       {% for cluster in clusters %}
                         {% if cluster.id|string == request.GET.cluster %}
                         <span class="badge bg-primary">
-                          Cluster: {{ cluster.name }}
+                          Cluster: {{ cluster.name|title }}
                           <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if selected_professions %}{% for prof in selected_professions %}professions={{ prof }}&{% endfor %}{% endif %}{% if selected_skills %}{% for skill in selected_skills %}skills={{ skill }}&{% endfor %}{% endif %}" class="text-white ms-2" onclick="return false;" style="text-decoration: none;">×</a>
                         </span>
                         {% endif %}
@@ -204,7 +204,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                     <div class="cat-header">
                       {% if career.career_cluster.exists() %}
                         <a href="{{ url('careers:careerlibrary', args=[career.career_cluster.first().slug, career.career_cluster.first().id]) }}" class="blog-category category-parent">
-                          {{ career.career_cluster.first().name }}
+                          {{ career.career_cluster.first().name|title }}
                         </a>
                       {% else %}
                         <span class="blog-category category-parent">Career</span>
@@ -231,10 +231,11 @@ Explore our comprehensive collection of career paths organized by industry and i
                     <h3 class="blog-title mt-0">
                       <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">{{ career.name }}</a>
                     </h3>
-                    {% if career.get_max_salary() %}
+                    {% set salary_value = career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim if career.get_max_salary() else '' %}
+                    {% if career.get_max_salary() and career.get_max_salary() != 'N/A' and salary_value != '0.0' and salary_value != '0' and salary_value != '' %}
                     <div class="salary-range">
                       <i class='bx bx-rupee'></i>
-                      <span>{{ career.get_max_salary() }}</span>
+                      <span>{{ salary_value }}</span>
                     </div>
                     {% endif %}
                     {% if career.summary %}
@@ -348,10 +349,11 @@ Explore our comprehensive collection of career paths organized by industry and i
                               <h3 class="blog-title mt-0">
                                 <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">{{ career.name }}</a>
                               </h3>
-                              {% if career.get_max_salary() %}
+                              {% set salary_value = career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim if career.get_max_salary() else '' %}
+                              {% if career.get_max_salary() and career.get_max_salary() != 'N/A' and salary_value != '0.0' and salary_value != '0' and salary_value != '' %}
                               <div class="salary-range">
                                 <i class='bx bx-rupee'></i>
-                                <span>{{ career.get_max_salary() }}</span>
+                                <span>{{ salary_value }}</span>
                               </div>
                               {% endif %}
                               {% if career.summary %}

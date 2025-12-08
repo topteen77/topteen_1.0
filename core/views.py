@@ -6,7 +6,7 @@ from .utils import build_breadcrumb,build_html_head
 from django.db.models import Q
 from xml.etree.ElementInclude import include
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.shortcuts import redirect
 from blog.models import Blog
 from careers.models import Career, CareerTags,Videos,CareerCluster
@@ -251,21 +251,42 @@ class SearchItems(TemplateView):
         return render(request, self.template_name, self.get_context(request,args,kwargs))
     
 class AjaxSearchResult(TemplateView):
-    template_name="topteenfrontend/mainsearchresult.html"
+    template_name="template20/search_results.html"
     def html_head(self,request):
         name=request.GET.get('search')
         return build_html_head(title=name, description=name)
 
     def get_context(self,request,*args, **kwargs):
         ctx={} 
-        input=request.GET.get('search')
+        input=request.GET.get('search') or ''
 
         clf=AllSearch()
-        ctx['allsearch']=clf.get_ajax_search_Item_list(request,input)
+        search_results = clf.get_ajax_search_Item_list(request,input)
+        ctx['allsearch'] = search_results if search_results else {}
         ctx["html_head"] = self.html_head(request)
         ctx['searchname']=input
-        ctx['tranding_content']=Blog.objects.all()
+        # Get trending blogs related to search term if search exists, otherwise get all trending
+        from core import choices
+        if input:
+            related_blogs = Blog.objects.filter(
+                Q(title__icontains=input) | Q(summary__icontains=input),
+                publish_status=choices.PublishStatus.PUBLISHED
+            )[:6]
+            # If no related blogs found, show general trending
+            related_count = related_blogs.count()
+            if related_count > 0:
+                ctx['tranding_content'] = related_blogs
+            else:
+                ctx['tranding_content'] = Blog.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)[:6]
+        else:
+            ctx['tranding_content'] = Blog.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)[:6]
         ctx['user'] = request.user
+        
+        # Build breadcrumb
+        breadcrumb_items = [
+            {'title': 'Search', 'text': 'Search Results', 'url': ''}
+        ]
+        ctx['breadcrumb'] = build_breadcrumb(breadcrumb_items)
 
         return ctx
 

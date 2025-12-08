@@ -359,7 +359,26 @@
 
 <!-- Related Careers Section -->
 {% if related_careers %}
-<section class="py-10 bg-light">
+<style>
+  /* Related Careers - Align buttons at bottom */
+  .related-careers-section .blog-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .related-careers-section .blog-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  
+  .related-careers-section .read-more {
+    margin-top: auto;
+    padding-top: 15px;
+  }
+</style>
+<section class="py-10 bg-light related-careers-section">
   <div class="container">
     <div class="row">
       <div class="col-md-12">
@@ -375,7 +394,7 @@
             <div class="cat-header">
               {% if related_career.career_cluster.all() %}
                 <a href="{{ url('careers:careerlibrary', args=[related_career.career_cluster.first().slug, related_career.career_cluster.first().id]) }}" class="blog-category category-parent">
-                  {{ related_career.career_cluster.first().name }}
+                  {{ related_career.career_cluster.first().name|title }}
                 </a>
               {% else %}
                 <span class="blog-category category-parent">Career</span>
@@ -393,14 +412,16 @@
             <h3 class="blog-title mt-0">
               <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}">{{ related_career.name }}</a>
             </h3>
-            {% if related_career.get_max_salary() %}
+            {% set first_profession = related_career.profession.first() if related_career.profession.all() else None %}
+            {% if first_profession and first_profession.name|lower != related_career.name|lower %}
+            <p class="text-gray fs-14 mb-2">{{ first_profession.name }}</p>
+            {% endif %}
+            {% set salary_value = related_career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim if related_career.get_max_salary() else '' %}
+            {% if related_career.get_max_salary() and related_career.get_max_salary() != 'N/A' and salary_value != '0.0' and salary_value != '0' and salary_value != '' %}
             <div class="salary-range">
               <i class='bx bx-rupee'></i>
-              <span>{{ related_career.get_max_salary() }}</span>
+              <span>{{ salary_value }}</span>
             </div>
-            {% endif %}
-            {% if related_career.summary %}
-            <p class="blog-excerpt">{{ related_career.summary|truncate(120) }}</p>
             {% endif %}
             <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
           </div>

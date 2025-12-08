@@ -1383,7 +1383,7 @@ def career_mindmap_json_api(request, career_id, slug):
 
 
 class Professions(TemplateView):
-    template_name = "topteenfrontend/profession.html"
+    template_name = "template20/profession.html"
     
     def html_head(self):
         title="Profession"
@@ -1404,6 +1404,7 @@ class Professions(TemplateView):
             profession_page_obj = paginated_profession.get_page(paginated_profession.num_pages)
 
         ctx['professions']= profession_page_obj
+        ctx['career'] = career
         ctx['html_head'] = self.html_head()
         return ctx
         

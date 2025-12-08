@@ -388,8 +388,11 @@ window.addEventListener("resize", () => {
 
 // Fixed navbar menu on window resizing
 window.addEventListener("resize", () => {
+  const navbarMenu = document.getElementById("menu");
+  const burgerMenu = document.getElementById("burger");
+  
   if (window.innerWidth > 992) {
-    if (navbarMenu.classList.contains("is-active")) {
+    if (navbarMenu && burgerMenu && navbarMenu.classList.contains("is-active")) {
       navbarMenu.classList.remove("is-active");
       burgerMenu.classList.remove("is-active");
     }
@@ -895,139 +898,8 @@ document.addEventListener('DOMContentLoaded', function () {
  * This script handles the search functionality for the TopTeen website
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-  // Find all search toggle elements (support for both ID and class-based selectors)
-  const searchToggles = document.querySelectorAll('.search-toggle, #searchToggle');
-  const searchContainer = document.querySelector('.search-container');
-  const searchInput = document.querySelector('.search-input');
-  const searchClose = document.querySelector('.search-close');
-  const searchBtn = document.querySelector('.search-btn');
-  
-  // Only initialize search if elements exist (not on login page)
-  if (!searchContainer || !searchInput) {
-    return;
-  }
-  const searchResults = document.querySelector('.search-results');
-
-  // Check if search elements exist
-  if (!searchContainer || searchToggles.length === 0) {
-    console.warn('Search elements not found in the DOM');
-    return;
-  }
-
-  // Sample career data (replace with your actual data source)
-  const careerData = [
-    { title: 'Software Developer', category: 'Information Technology', description: 'Design and develop software applications' },
-    { title: 'Web Developer', category: 'Information Technology', description: 'Create and maintain websites' },
-    { title: 'Data Scientist', category: 'Information Technology', description: 'Analyze and interpret complex data' },
-    { title: 'Customer Service Representative', category: 'Business Management', description: 'Handle customer inquiries and complaints' },
-    { title: 'Marketing Manager', category: 'Business Management', description: 'Develop marketing strategies' },
-    { title: 'Human Resources Specialist', category: 'Human Services', description: 'Recruit and hire employees' },
-    { title: 'Financial Analyst', category: 'Finance', description: 'Analyze financial data and trends' },
-    { title: 'Nurse', category: 'Healthcare', description: 'Provide patient care' },
-    { title: 'Teacher', category: 'Education', description: 'Educate students in various subjects' }
-  ];
-
-  // Debounce function to limit how often a function can run
-  function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(this, args), wait);
-    };
-  }
-
-  // Toggle search container visibility
-  function toggleSearch(e) {
-    e.preventDefault();
-    console.log('Search toggle clicked'); // Debug log
-    searchContainer.classList.toggle('active');
-    if (searchContainer.classList.contains('active')) {
-      searchInput.focus();
-    }
-  }
-
-  // Add click event to all search toggle elements
-  searchToggles.forEach(toggle => {
-    toggle.addEventListener('click', toggleSearch);
-  });
-
-  // Close search when clicking outside
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.search-container') && 
-        !Array.from(searchToggles).some(toggle => toggle.contains(e.target))) {
-      searchContainer.classList.remove('active');
-    }
-  });
-
-  // Close search with close button
-  if (searchClose) {
-    searchClose.addEventListener('click', function() {
-      searchContainer.classList.remove('active');
-    });
-  }
-
-  // Handle search input
-  const performSearch = debounce(function() {
-    const query = searchInput.value.toLowerCase().trim();
-    
-    if (query.length < 2) {
-      searchResults.innerHTML = '';
-      return;
-    }
-    
-    const filteredResults = careerData.filter(career => 
-      career.title.toLowerCase().includes(query) ||
-      career.category.toLowerCase().includes(query) ||
-      career.description.toLowerCase().includes(query)
-    );
-    
-    displayResults(filteredResults);
-  }, 300);
-
-  if (searchInput) {
-    searchInput.addEventListener('input', performSearch);
-  }
-
-  if (searchBtn) {
-    searchBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      performSearch();
-    });
-  }
-
-  // Display search results
-  function displayResults(results) {
-    if (!searchResults) return;
-    
-    searchResults.innerHTML = '';
-    
-    if (results.length === 0) {
-      searchResults.innerHTML = '<div class="p-3 text-center"><i class="bx bx-search-alt-2"></i> No results found</div>';
-      return;
-    }
-    
-    results.forEach(result => {
-      const resultItem = document.createElement('div');
-      resultItem.className = 'search-result-item';
-      resultItem.innerHTML = `
-        <h4>${result.title}</h4>
-        <p><span class="badge bg-blue text-white">${result.category}</span> ${result.description}</p>
-      `;
-      
-      resultItem.addEventListener('click', function() {
-        // Navigate to career details page or show modal
-        alert(`You selected: ${result.title}`);
-        // Example: window.location.href = `/careers/${result.title.toLowerCase().replace(/\s+/g, '-')}`;
-      });
-      
-      searchResults.appendChild(resultItem);
-    });
-  }
-
-  // Log initialization success
-  console.log('Search functionality initialized');
-});
+// Search functionality has been moved to search.js to avoid conflicts
+// The new search.js handles all search functionality including AJAX calls
 
 // nav search
 

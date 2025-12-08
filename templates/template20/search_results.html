@@ -1,0 +1,390 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{% if searchname is defined and searchname %}Search Results for "{{ searchname }}"{% else %}Search Results{% endif %} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+{% if searchname is defined and searchname %}Search results for "{{ searchname }}" across careers, professions, videos, blogs, courses, and colleges.{% else %}Search across careers, professions, videos, blogs, courses, and colleges.{% endif %}
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block additionalhead %}
+<style>
+  .search-result-section {
+    margin-bottom: 40px;
+  }
+  
+  .search-result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+  }
+  
+  .search-result-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    cursor: pointer;
+  }
+  
+  .search-result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .search-result-card:active {
+    transform: translateY(-2px);
+  }
+  
+  .search-result-card:active {
+    transform: translateY(-2px);
+  }
+  
+  .search-result-card * {
+    pointer-events: none;
+  }
+  
+  .search-result-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+  
+  .search-result-content {
+    padding: 16px;
+  }
+  
+  .search-result-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  
+  .no-results img {
+    max-width: 200px;
+    margin-bottom: 24px;
+  }
+  
+  .no-results h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 12px;
+  }
+  
+  .no-results p {
+    color: #666;
+    font-size: 1rem;
+  }
+  
+  @media (max-width: 768px) {
+    .search-result-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    
+    .search-result-image {
+      height: 180px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      {% if breadcrumb %}
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      {% endif %}
+      <!--breadcrumb-->
+
+      <div class="col-lg-8 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Search Results
+        </span>
+        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+          {% if searchname is defined and searchname %}
+          Results for "{{ searchname }}"
+          {% else %}
+          Search Results
+          {% endif %}
+        </h1>
+        <p class="text-gray fs-16">Find careers, professions, videos, blogs, courses, and colleges matching your search.</p>
+      </div>
+
+      <div class="col-lg-4 col-md-12">
+        <div class="right-banner d-md-flex justify-content-end">
+          <img class="img-fluid" src="{{ static('images_new/careers/career-track.svg') }}" alt="Search Results Banner" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Hero Section -->
+
+<!-- Search Results Section -->
+{% if allsearch is defined and allsearch %}
+<section class="pb-10">
+  <div class="container">
+    
+    <!-- Careers -->
+    {% if allsearch and allsearch.get('career') and allsearch.get('career')|length > 0 %}
+    <div class="search-result-section">
+      <h3 class="section-title mb-0">
+        <i class='bx bx-briefcase-alt-2'></i> Careers ({{ allsearch.get('career')|length if allsearch.get('career') else 0 }})
+      </h3>
+      <div class="search-result-grid">
+        {% for car in allsearch.get('career', []) %}
+        <a href="{{ url('careers:careerdetail', args=[car.slug, car.id]) }}" class="search-result-card">
+          <div class="search-result-image-wrapper">
+            {% if car.image %}
+            <img src="{{ car.image }}" alt="{{ car.name }}" class="search-result-image" onerror="this.src='{{ static('images/career-icon.png') }}'">
+            {% else %}
+            <img src="{{ static('images/career-icon.png') }}" alt="{{ car.name }}" class="search-result-image">
+            {% endif %}
+          </div>
+          <div class="search-result-content">
+            <h4 class="search-result-title">{{ car.name }}</h4>
+            {% if car.summary %}
+            <p class="text-gray fs-14">{{ car.summary|truncate(100) }}</p>
+            {% endif %}
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Professions -->
+    {% if allsearch.get('professions') and allsearch.get('professions')|length > 0 %}
+    <div class="search-result-section">
+      <h3 class="section-title mb-0">
+        <i class='bx bx-user-circle'></i> Professions ({{ allsearch.get('professions')|length if allsearch.get('professions') else 0 }})
+      </h3>
+      <div class="search-result-grid">
+        {% for prof in allsearch.get('professions', []) %}
+        <a href="{{ get_url(prof) if prof and prof.career else '#' }}" class="search-result-card">
+          <div class="search-result-image-wrapper">
+            {% if prof.image and prof.image.name %}
+            <img src="{{ prof.image.url }}" alt="{{ prof.name }}" class="search-result-image" onerror="this.src='{{ static('images/career-icon.png') }}'">
+            {% else %}
+            <img src="{{ static('images/career-icon.png') }}" alt="{{ prof.name }}" class="search-result-image">
+            {% endif %}
+          </div>
+          <div class="search-result-content">
+            <h4 class="search-result-title">{{ prof.name }}</h4>
+            {% if prof.summary %}
+            <p class="text-gray fs-14">{{ prof.summary|truncate(100) }}</p>
+            {% endif %}
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Colleges -->
+    {% if allsearch.get('college') and allsearch.get('college')|length > 0 %}
+    <div class="search-result-section">
+      <h3 class="section-title mb-0">
+        <i class='bx bx-building-house'></i> Colleges & Schools ({{ allsearch.get('college')|length if allsearch.get('college') else 0 }})
+      </h3>
+      <div class="search-result-grid">
+        {% for col in allsearch.get('college', []) %}
+        <a href="{{ url('colleges:collegedetail', args=[col.slug]) }}" class="search-result-card">
+          <div class="search-result-image-wrapper">
+            {% if col.logo %}
+            <img src="{{ col.logo }}" alt="{{ col.name }}" class="search-result-image" onerror="this.src='{{ static('images/career-icon.png') }}'">
+            {% else %}
+            <img src="{{ static('images/career-icon.png') }}" alt="{{ col.name }}" class="search-result-image">
+            {% endif %}
+          </div>
+          <div class="search-result-content">
+            <h4 class="search-result-title">{{ col.name }}</h4>
+            {% if col.state and col.country %}
+            <p class="text-gray fs-14">{{ col.state['name'] if col.state is mapping else col.state.name }}, {{ col.country['name'] if col.country is mapping else col.country.name }}</p>
+            {% endif %}
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Videos -->
+    {% if allsearch.get('videos') and allsearch.get('videos')|length > 0 %}
+    <div class="search-result-section">
+      <h3 class="section-title mb-0">
+        <i class='bx bx-video'></i> Videos ({{ allsearch.get('videos')|length if allsearch.get('videos') else 0 }})
+      </h3>
+      <div class="search-result-grid">
+        {% for video in allsearch.get('videos', []) %}
+        <a href="{{ url('careers:videodetail', args=[video.slug]) if video.slug else '#' }}" class="search-result-card">
+          <div class="search-result-image-wrapper">
+            {% if video.upload_video %}
+            <video class="search-result-image" muted>
+              <source src="{{ video.upload_video }}" type="video/mp4">
+            </video>
+            {% elif video.link %}
+            <div class="search-result-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+              <i class='bx bx-play-circle' style="font-size: 48px; color: #5046e5;"></i>
+            </div>
+            {% else %}
+            <img src="{{ static('images/career-icon.png') }}" alt="{{ video.name }}" class="search-result-image">
+            {% endif %}
+          </div>
+          <div class="search-result-content">
+            <h4 class="search-result-title">{{ video.name }}</h4>
+            {% if video.summary %}
+            <p class="text-gray fs-14">{{ video.summary|truncate(100) }}</p>
+            {% endif %}
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Blogs -->
+    {% if allsearch.get('blogs') and allsearch.get('blogs')|length > 0 %}
+    <div class="search-result-section">
+      <h3 class="section-title mb-0">
+        <i class='bx bx-news'></i> Blogs ({{ allsearch.get('blogs')|length if allsearch.get('blogs') else 0 }})
+      </h3>
+      <div class="search-result-grid">
+        {% for blog in allsearch.get('blogs', []) %}
+        <a href="{{ get_url(blog) }}" class="search-result-card">
+          <div class="search-result-image-wrapper">
+            {% if blog.image and blog.image.name %}
+            <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="search-result-image" onerror="this.src='{{ static('images/career-icon.png') }}'">
+            {% else %}
+            <img src="{{ static('images/career-icon.png') }}" alt="{{ blog.title }}" class="search-result-image">
+            {% endif %}
+          </div>
+          <div class="search-result-content">
+            <h4 class="search-result-title">{{ blog.title }}</h4>
+            {% if blog.summary %}
+            <p class="text-gray fs-14">{{ blog.summary|truncate(100) }}</p>
+            {% endif %}
+            {% if blog.category %}
+            <div class="mt-2">
+              <span class="badge" style="background-color: #{{ blog.category.color }}; color: white;">{{ blog.category.name }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Courses -->
+    {% if allsearch.get('course') and allsearch.get('course')|length > 0 %}
+    <div class="search-result-section">
+      <h3 class="section-title mb-0">
+        <i class='bx bx-book-reader'></i> Courses ({{ allsearch.get('course')|length if allsearch.get('course') else 0 }})
+      </h3>
+      <div class="search-result-grid">
+        {% for course in allsearch.get('course', []) %}
+        <a href="#" class="search-result-card">
+          <div class="search-result-image-wrapper">
+            <img src="{{ static('images/career-icon.png') }}" alt="{{ course.name }}" class="search-result-image">
+          </div>
+          <div class="search-result-content">
+            <h4 class="search-result-title">{{ course.name }}</h4>
+            {% if course.description %}
+            <p class="text-gray fs-14">{{ course.description|truncate(100) }}</p>
+            {% endif %}
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- No Results Message -->
+    {% if (not allsearch.get('career') or allsearch.get('career')|length == 0) and (not allsearch.get('professions') or allsearch.get('professions')|length == 0) and (not allsearch.get('college') or allsearch.get('college')|length == 0) and (not allsearch.get('videos') or allsearch.get('videos')|length == 0) and (not allsearch.get('blogs') or allsearch.get('blogs')|length == 0) and (not allsearch.get('course') or allsearch.get('course')|length == 0) %}
+    <div class="no-results">
+      <img src="{{ static('images_new/icons/search-icon.svg') }}" alt="No results" onerror="this.style.display='none'">
+      <h2>No Results Found</h2>
+      <p>We couldn't find anything matching "{{ searchname if searchname is defined else '' }}". Try searching with different keywords.</p>
+    </div>
+    {% endif %}
+    
+  </div>
+</section>
+{% else %}
+<!-- Nothing Found -->
+<section class="pb-10">
+  <div class="container">
+    <div class="no-results">
+      <img src="{{ static('images_new/icons/search-icon.svg') }}" alt="No results" onerror="this.style.display='none'">
+      <h2>Nothing Found</h2>
+      <p>We couldn't find anything for that search term. Try searching for something else.</p>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Trending Content -->
+{% if tranding_content %}
+<section class="pb-10">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="section-title mb-0">Trending Content</h3>
+      <a href="{{ url('blog:blogs') }}" class="text-purple fw-semibold">View More <i class='bx bx-right-arrow-alt'></i></a>
+    </div>
+    <div class="row">
+      {% for blog in tranding_content %}
+      <div class="col-md-4 col-sm-6 mb-4">
+        <a href="{{ blog.url() }}" class="search-result-card" target="_self">
+          <div class="search-result-image-wrapper">
+            {% if blog.image and blog.image.name %}
+            <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="search-result-image" onerror="this.src='{{ static('images/career-icon.png') }}'">
+            {% else %}
+            <img src="{{ static('images/career-icon.png') }}" alt="{{ blog.title }}" class="search-result-image">
+            {% endif %}
+          </div>
+          <div class="search-result-content">
+            <h4 class="search-result-title">{{ blog.title|truncate(60) }}</h4>
+            {% if blog.summary %}
+            <p class="text-gray fs-14">{{ blog.summary|truncate(100) }}</p>
+            {% endif %}
+            {% if blog.category %}
+            <div class="mt-2">
+              <span class="badge" style="background-color: #{{ blog.category.color }}; color: white;">{{ blog.category.name }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+

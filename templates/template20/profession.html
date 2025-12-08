@@ -1,0 +1,312 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Leading Professions - {{ career.name }} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Explore leading professions in {{ career.name }}. Discover various career paths and opportunities.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block additionalhead %}
+<style>
+  .profession-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .profession-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profession-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .profession-image-wrapper {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .profession-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .profession-content {
+    padding: 1.25rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profession-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .profession-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .profession-title a:hover {
+    color: #5046e5;
+  }
+
+  .profession-summary {
+    font-size: 0.875rem;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 0;
+    flex-grow: 1;
+  }
+
+  .profession-summary.expandable {
+    cursor: pointer;
+  }
+
+  .profession-summary .expandText {
+    color: #5046e5;
+    font-weight: 600;
+    margin-left: 4px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    text-decoration: underline;
+  }
+  
+  .profession-summary .expandText:hover {
+    color: #362f78;
+  }
+
+  .pagination-wrapper {
+    margin-top: 3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .pagination {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .pagination a,
+  .pagination span.current {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .pagination a {
+    background: #f8f9fa;
+    color: #5046e5;
+    border: 1px solid #e4e7fb;
+  }
+
+  .pagination a:hover {
+    background: #5046e5;
+    color: white;
+    border-color: #5046e5;
+  }
+
+  .pagination span.current {
+    background: #5046e5;
+    color: white;
+    border: 1px solid #5046e5;
+  }
+
+  @media (max-width: 768px) {
+    .profession-grid {
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .profession-image-wrapper {
+      height: 180px;
+    }
+
+    .profession-content {
+      padding: 1rem;
+    }
+
+    .profession-title {
+      font-size: 1rem;
+    }
+
+    .profession-summary {
+      font-size: 0.8125rem;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .profession-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <!--breadcrumb-->
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+      <!--breadcrumb-->
+
+      <div class="col-lg-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> {{ career.name }}
+        </span>
+        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+          Leading Professions
+        </h1>
+        <p class="sub-heading mb-4">
+          Explore various career paths and opportunities in {{ career.name }}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Professions Grid Section -->
+<section class="py-10">
+  <div class="container">
+    {% if professions %}
+    <div class="profession-grid">
+      {% for profession in professions %}
+      <div class="profession-card">
+        <!-- Image Section - Keep images, no icons -->
+        <div class="profession-image-wrapper">
+          {% if profession.image and profession.image.name %}
+          <img src="{{ profession.image.url }}" alt="{{ profession.name }}">
+          {% else %}
+          <img src="{{ static('images/career-icon.png') }}" alt="{{ profession.name }}">
+          {% endif %}
+        </div>
+
+        <!-- Content Section -->
+        <div class="profession-content">
+          <h3 class="profession-title">
+            {{ profession.name }}
+          </h3>
+          {% if profession.summary %}
+          <div class="profession-summary">
+            <p class="profSummarypage text-[12px] text-[#4f4f4f] regularFont" style="font-size: 0.9rem; color: #666; line-height: 1.5;">
+              {{ profession.summary }}
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if professions.has_other_pages() %}
+    <div class="pagination-wrapper">
+      <div class="pagination">
+        {% if professions.has_previous() %}
+        <a href="?page=1">First</a>
+        <a href="?page={{ professions.previous_page_number() }}">Previous</a>
+        {% endif %}
+
+        <span class="current">
+          Page {{ professions.number }} of {{ professions.paginator.num_pages }}
+        </span>
+
+        {% if professions.has_next() %}
+        <a href="?page={{ professions.next_page_number() }}">Next</a>
+        <a href="?page={{ professions.paginator.num_pages }}">Last &raquo;</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-5">
+      <p class="text-muted">No professions available for this career.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}
+
+{% block additionaljs %}
+<script type="text/javascript">
+  const profSummarypage = document.querySelectorAll(".profSummarypage");
+
+  const createHtmlString = function (mode, str, length = 100) {
+    let updatedStr = str;
+    let toggle;
+    if (mode === "EXPAND") {
+      toggle = "COLLAPSE";
+    } else {
+      updatedStr = str.slice(0, length);
+      toggle = "EXPAND";
+    }
+
+    return `
+      <span>${updatedStr}</span>
+      <button class='expandText knowMore' data-toggle=${toggle} style="color: #5046e5; font-weight: 600; margin-left: 4px; cursor: pointer; background: none; border: none; padding: 0; text-decoration: underline;">${
+      toggle === "EXPAND" ? "show more" : "show less"
+    }</button>`;
+  };
+
+  profSummarypage.forEach((elem) => {
+    const summaryTextpage = elem.textContent;
+    const updatedTextpage = summaryTextpage?.slice(0, 100);
+    let htmlStr = "";
+    if (summaryTextpage?.length >= 100) {
+      htmlStr = createHtmlString("COLLAPSE", summaryTextpage, 100);
+      elem.innerHTML = htmlStr;
+    } else {
+      elem.textContent = summaryTextpage;
+    }
+
+    elem.addEventListener("click", function (e) {
+      if (!e.target.classList.contains("expandText")) return;
+      const toggle = e.target?.dataset?.toggle;
+      let str = "";
+      if (toggle?.toUpperCase() === "EXPAND") {
+        str = createHtmlString("EXPAND", summaryTextpage);
+      } else {
+        str = createHtmlString("COLLAPSE", summaryTextpage);
+      }
+      elem.innerHTML = str;
+    });
+  });
+</script>
+{% endblock %}
+
