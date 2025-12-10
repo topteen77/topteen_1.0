@@ -294,6 +294,7 @@
 {% include 'topteenfrontend/user/signupotp.html' %}
 {% include 'topteenfrontend/user/signuppassword.html' %}
 {% include 'topteenfrontend/user/loginpassword.html' %}
+{% include 'topteenfrontend/user/setpassword.html' %}
 {% include 'topteenfrontend/user/forgotpasswordform.html' %}
 {% include 'topteenfrontend/user/forgotpasswordotp.html' %}
 
@@ -340,6 +341,7 @@
   var usersforgotpassword = "{{ url('users:forgotpassword') }}";
   var usersforgotpasswordotp = "{{ url('users:forgotpasswordotp') }}";
   var usersresendotp = "{{ url('users:resendotp') }}";
+  var userssetpassword = "{{ url('users:setpassword') }}";
 </script>
 
 <!-- Load external JavaScript for login/signup functionality -->
@@ -717,16 +719,34 @@
         data: formData,
         success: function (data) {
           if (data.success) {
-            // Hide modal
-            var loginPwdDiv = document.getElementById("loginpwdDiv");
-            if (loginPwdDiv) {
-              loginPwdDiv.classList.add("hideModal");
-            }
-            // Redirect to dashboard
-            if (data.redirect_url) {
-              window.location.href = data.redirect_url;
+            // Check if user needs to set password
+            if (data.need_set_password) {
+              // Show set password popup
+              var setPasswordDiv = document.getElementById("setPasswordDiv");
+              if (setPasswordDiv) {
+                setPasswordDiv.classList.remove("hideModal");
+              }
+              // Hide login password modal
+              var loginPwdDiv = document.getElementById("loginpwdDiv");
+              if (loginPwdDiv) {
+                loginPwdDiv.classList.add("hideModal");
+              }
             } else {
-              window.location.href = "{{ url('users:userdashboard') }}";
+              // Hide modal
+              var loginPwdDiv = document.getElementById("loginpwdDiv");
+              if (loginPwdDiv) {
+                loginPwdDiv.classList.add("hideModal");
+              }
+              // Redirect to dashboard immediately
+              var redirectUrl = data.redirect_url || "{{ url('users:userdashboard') }}";
+              console.log("Login successful, redirecting to:", redirectUrl);
+              
+              // Use window.location.replace for immediate redirect (no back button)
+              if (redirectUrl) {
+                window.location.replace(redirectUrl);
+              } else {
+                window.location.href = "{{ url('users:userdashboard') }}";
+              }
             }
           }
           if (data.success == false) {

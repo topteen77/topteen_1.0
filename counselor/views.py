@@ -19,7 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse, HttpResponse
 
 
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
@@ -855,20 +855,120 @@ def Students_follow_up(request, coun_id):
 def CounselorCoursepayment(request):
     from django.conf import settings
     import razorpay
-    client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
-    data = { "amount": 500*100, "currency": "INR", "receipt": "order_rcptid_11" }
-    payment = client.order.create(data=data)
+    from payments.models import Payment
+    from core import choices
+    import uuid
+    
+    # Get course statistics
+    course_with_related_data = CounselorCourse.objects.prefetch_related(
+        'chapters__parts__quizzes__questions'
+    ).first()
+    
+    chapter_count = 0
+    part_count = 0
+    question_count = 0
+    
+    if course_with_related_data:
+        chapter_count = course_with_related_data.chapters.count()
+        for chapter in course_with_related_data.chapters.all():
+            part_count += chapter.parts.count()
+            for part in chapter.parts.all():
+                question_count += part.quizzes.values('questions').count()
+    
+    # Only create payment record and Razorpay order if user is authenticated
+    payment_record_id = None
+    razorpay_order = None
+    amount = 500  # Course amount in INR
+    
+    if request.user.is_authenticated:
+        # Create Payment record first
+        gateway_receipt = f"counselor_course_{uuid.uuid4().hex[:12]}"
+        
+        payment_record = Payment.objects.create(
+            user=request.user,
+            amount=amount,
+            gateway_receipt=gateway_receipt,
+            obj_type=choices.PaymentObjectType.COUNSELOR,
+            obj_id=course_with_related_data.id if course_with_related_data else 0,
+            is_success=choices.YesNoChoices.NO
+        )
+        
+        # Create Razorpay order
+        client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
+        data = { 
+            "amount": amount * 100,  # Convert to paise
+            "currency": "INR", 
+            "receipt": gateway_receipt
+        }
+        razorpay_order = client.order.create(data=data)
+        
+        # Update payment record with Razorpay order ID
+        payment_record.gateway_order_id = razorpay_order.get('id')
+        payment_record.save()
+        payment_record_id = payment_record.id
+    
     context = {
         'key': settings.RAZORPAY_API_KEY,
-        'payment': payment
+        'payment': razorpay_order,
+        'payment_record_id': payment_record_id,
+        'chapter_count': chapter_count,
+        'part_count': part_count,
+        'question_count': question_count,
+        'course': course_with_related_data,
+        'user_authenticated': request.user.is_authenticated
     }
     return render(request, 'template20/counselor/course_payment.html', context)
 def display_pdfs(request):
     return render(request, 'template20/counselor/display_pdfs.html')
 
+@login_required(login_url=reverse_lazy('users:login'))
+def update_counselor_course_payment(request):
+    """API endpoint to update payment details after Razorpay payment"""
+    from payments.models import Payment
+    from core import choices
+    from django.http import JsonResponse
+    import json
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        payment_id = data.get('payment_id')
+        gateway_payment_id = data.get('gateway_payment_id')
+        gateway_order_id = data.get('gateway_order_id')
+        gateway_signature = data.get('gateway_signature')
+        
+        if not all([payment_id, gateway_payment_id, gateway_order_id, gateway_signature]):
+            return JsonResponse({'success': False, 'error': 'Missing payment details'}, status=400)
+        
+        # Get payment record and verify it belongs to the user
+        payment = get_object_or_404(Payment, id=payment_id, user=request.user, obj_type=choices.PaymentObjectType.COUNSELOR)
+        
+        # Update payment with Razorpay details
+        payment_status = payment.update_payment(gateway_payment_id, gateway_order_id, gateway_signature)
+        
+        if payment_status:
+            return JsonResponse({'success': True, 'message': 'Payment verified and saved successfully'})
+        else:
+            return JsonResponse({'success': False, 'error': 'Payment verification failed'}, status=400)
+            
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
 class CourseStartsView(View):
+    """
+    Old course view - redirects to new course learning page for better UX.
+    """
     def get(self, request, counselor_id):
+        # Redirect to new course learning page
+        return redirect(reverse('counselor:course_learning', args=[counselor_id]))
+    
+    def get_old(self, request, counselor_id):
+        """Old implementation - kept for reference but not used"""
         from core import choices
         from django.http import Http404
         
@@ -886,20 +986,26 @@ class CourseStartsView(View):
                 'chapters__parts__quizzes__questions__answers'
             ).first()
 
-        part_ids = course_with_related_data.chapters.all().values_list('parts__id', flat=True)
-        progress_data = VideoProgress.objects.filter(user=user, video_id__in=[f"video-{part_id}" for part_id in part_ids])
-        video_progress = {int(progress.video_id.split('-')[1]): progress.completed for progress in progress_data}
-
-        last_part = Part.objects.filter(chapter__course=course_with_related_data).last()
-
-        completed_parts = sum(1 for completed in video_progress.values() if completed)
-
-        # Initialize counts
+        # Initialize defaults
+        part_ids = []
+        video_progress = {}
+        last_part = None
         chapter_count = 0
         part_count = 0
         question_count = 0
+        completed_parts = 0
 
         if course_with_related_data:
+            # Get part IDs and progress data only if course exists
+            part_ids = course_with_related_data.chapters.all().values_list('parts__id', flat=True)
+            if part_ids:
+                progress_data = VideoProgress.objects.filter(user=user, video_id__in=[f"video-{part_id}" for part_id in part_ids])
+                video_progress = {int(progress.video_id.split('-')[1]): progress.completed for progress in progress_data}
+
+            last_part = Part.objects.filter(chapter__course=course_with_related_data).last()
+
+            completed_parts = sum(1 for completed in video_progress.values() if completed)
+
             # Count chapters, parts, and questions
             chapter_count = course_with_related_data.chapters.count()
             for chapter in course_with_related_data.chapters.all():
@@ -907,11 +1013,63 @@ class CourseStartsView(View):
                 for part in chapter.parts.all():
                     question_count += part.quizzes.values('questions').count()  # Count questions in quizzes
 
-        # Print the counts
+        # Calculate progress percentage
         progress_percentage = int((completed_parts / part_count * 100)) if part_count > 0 else 0
         # Prepare the context for the template
 
         
+
+        # Get notes for the user
+        notes = Notes.objects.filter(user=user) if user.is_authenticated else []
+        
+        # Get certification if exists
+        certification = CounselorCertification.objects.filter(user=user).first()
+        
+        # Get quiz results and scores
+        try:
+            quiz_result = QuizResults.objects.get(user=user)
+            scores = quiz_result.scores if isinstance(quiz_result.scores, list) else []
+        except QuizResults.DoesNotExist:
+            scores = []
+        
+        # Create a dictionary to track quiz completion status by part_id
+        quiz_completion_status = {}
+        for score in scores:
+            part_id = score.get('part_id')
+            if part_id:
+                quiz_completion_status[part_id] = True
+
+        # Get current chapter index from URL parameter (default to 0)
+        current_chapter_index = int(request.GET.get('chapter', 0))
+        
+        # Get all chapters
+        chapters_list = []
+        if course_with_related_data:
+            chapters_list = list(course_with_related_data.chapters.all())
+            # Ensure index is within bounds
+            if current_chapter_index >= len(chapters_list):
+                current_chapter_index = len(chapters_list) - 1
+            if current_chapter_index < 0:
+                current_chapter_index = 0
+        
+        # Get current chapter
+        current_chapter = chapters_list[current_chapter_index] if chapters_list and current_chapter_index < len(chapters_list) else None
+        
+        # Check if current chapter is completed
+        is_chapter_completed = False
+        if current_chapter and current_chapter.parts.exists():
+            all_parts_completed = True
+            for part in current_chapter.parts.all():
+                if not video_progress.get(part.id, False):
+                    all_parts_completed = False
+                    break
+            is_chapter_completed = all_parts_completed
+        
+        # Check if this is the last chapter
+        is_last_chapter = current_chapter_index == len(chapters_list) - 1 if chapters_list else False
+        
+        # Check if next chapter exists
+        has_next_chapter = current_chapter_index < len(chapters_list) - 1 if chapters_list else False
 
         context = {
             'counselors': counselor,
@@ -919,9 +1077,19 @@ class CourseStartsView(View):
             'chapter_count': chapter_count,
             'part_count': part_count,
             'question_count': question_count,
-            'video_progress':video_progress,
-            'last':last_part,
-            'progress_percentage':progress_percentage,
+            'video_progress': video_progress,
+            'last': last_part,
+            'progress_percentage': progress_percentage,
+            'notes': notes,
+            'certification': certification,
+            'scores': scores,
+            'quiz_completion_status': quiz_completion_status,
+            'current_chapter_index': current_chapter_index,
+            'current_chapter': current_chapter,
+            'chapters_list': chapters_list,
+            'is_chapter_completed': is_chapter_completed,
+            'is_last_chapter': is_last_chapter,
+            'has_next_chapter': has_next_chapter,
             # Add other context variables as needed
         }
 
@@ -1382,7 +1550,7 @@ def _get_counselor_full_table_context(request, counselor, students_to_display, f
     }
 
 
-# @login_required(login_url=reverse_lazy('users:login'))
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
 class CounselorEnrolledCourseView(View):
     template_name = 'template20/counselor/enrolled_course.html'
 
@@ -1485,6 +1653,16 @@ class CounselorEnrolledCourseView(View):
 
             # chapter = Chapter.objects.prefetch_related('parts').get(id=chapter_id)
             user = request.user
+            
+            # Check if user is authenticated
+            if not user.is_authenticated:
+                from django.contrib.auth import redirect_to_login
+                return redirect_to_login(request.get_full_path())
+            
+            # Check if course exists
+            if not course_with_related_data:
+                from django.http import Http404
+                raise Http404("No course found.")
 
             # Prepare progress data
             # Prepare video progress
@@ -1667,11 +1845,14 @@ class CounselorEnrolledCourseView(View):
 
         return render(request, self.template_name, context)
 
-    @staticmethod
-    def get_completed_status(user, course):
+    def get_completed_status(self, user, course):
         """
         Retrieve the `completed` status for all parts in the course for the given user.
         """
+        if not user or not user.is_authenticated:
+            return {}
+        if not course:
+            return {}
         part_ids = course.chapters.all().values_list('parts__id', flat=True)
         progress_data = VideoProgress.objects.filter(user=user, video_id__in=[f"video-{part_id}" for part_id in part_ids])
         video_progress = {int(progress.video_id.split('-')[1]): progress.completed for progress in progress_data}
@@ -1705,7 +1886,12 @@ def get_progress_and_duration(request, video_id):
                 }
                 return JsonResponse({'status': 'success', **progress_data}, status=200)
             else:
-                return JsonResponse({'status': 'fail', 'error': 'Video progress not found'}, status=404)
+                # Return success with default values instead of 404 to avoid console errors
+                return JsonResponse({
+                    'status': 'success', 
+                    'progress': 0, 
+                    'duration': None
+                }, status=200)
 
         except Exception as e:
             logger.error(f"Error retrieving video progress: {e}")
@@ -1800,3 +1986,833 @@ def delete_note(request, note_id):
 
 def TestVttVideo(request):
     return render(request, 'template20/counselor/test_vtt_video.html')
+
+
+# ============================================================================
+# COURSE LEARNING MODULE - Separate dedicated learning interface
+# ============================================================================
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class CourseLearningView(View):
+    """
+    Main course learning interface with sidebar navigation.
+    No user sidebar, no chatbot - just course content.
+    """
+    template_name = 'template20/counselor/course_learning.html'
+    
+    def get(self, request, counselor_id):
+        from core import choices
+        from django.http import Http404
+        
+        # Retrieve the counselor using the provided ID
+        counselor = get_object_or_404(Counselor, id=counselor_id)
+        
+        # Security check: Ensure counselors can only access their own course
+        if request.user.user_type == choices.UserType.COUNSELOR:
+            if counselor.coun_user != request.user:
+                raise Http404("You don't have permission to access this counselor's course.")
+        
+        user = request.user
+        course_with_related_data = CounselorCourse.objects.prefetch_related(
+            'chapters__parts__quizzes__questions__answers'
+        ).first()
+        
+        if not course_with_related_data:
+            from django.http import Http404
+            raise Http404("No course found.")
+        
+        # Get video progress
+        part_ids = course_with_related_data.chapters.all().values_list('parts__id', flat=True)
+        video_progress = {}
+        if part_ids:
+            progress_data = VideoProgress.objects.filter(
+                user=user, 
+                video_id__in=[f"video-{part_id}" for part_id in part_ids]
+            )
+            video_progress = {
+                int(progress.video_id.split('-')[1]): progress.completed 
+                for progress in progress_data
+            }
+        
+        # Get quiz completion status
+        quiz_completion_status = {}
+        try:
+            quiz_result = QuizResults.objects.get(user=user)
+            scores = quiz_result.scores if isinstance(quiz_result.scores, list) else []
+            for score in scores:
+                part_id = score.get('part_id')
+                if part_id:
+                    quiz_completion_status[part_id] = True
+        except QuizResults.DoesNotExist:
+            scores = []
+        
+        # Determine what content to show based on URL parameters
+        content_type = request.GET.get('type', None)  # chapter, part, quiz
+        content_id = request.GET.get('id', None)
+        
+        current_chapter = None
+        current_part = None
+        current_quiz = None
+        current_question_index = 0
+        
+        chapters_list = list(course_with_related_data.chapters.all())
+        
+        # If no specific content requested, find the next pending part
+        if not content_type and not content_id:
+            # Find the first incomplete part
+            for chapter in chapters_list:
+                for part in chapter.parts.all():
+                    part_id = part.id
+                    is_video_completed = video_progress.get(part_id, False)
+                    
+                    # If video not completed, show this part
+                    if not is_video_completed:
+                        current_part = part
+                        current_chapter = chapter
+                        content_type = 'part'
+                        break
+                    
+                    # If video completed, check if quiz needs to be done
+                    if part.quizzes.exists():
+                        is_quiz_completed = quiz_completion_status.get(part_id, False)
+                        if not is_quiz_completed:
+                            # Show the first quiz for this part
+                            current_quiz = part.quizzes.first()
+                            current_part = part
+                            current_chapter = chapter
+                            content_type = 'quiz'
+                            current_question_index = 0
+                            break
+                
+                if current_part or current_quiz:
+                    break
+            
+            # If all parts are completed, show the last part
+            if not current_part and not current_quiz and chapters_list:
+                last_chapter = chapters_list[-1]
+                last_part = last_chapter.parts.last()
+                if last_part:
+                    current_part = last_part
+                    current_chapter = last_chapter
+                    content_type = 'part'
+        
+        elif content_type == 'chapter' and content_id:
+            try:
+                current_chapter = Chapter.objects.get(id=content_id, course=course_with_related_data)
+                # Navigate to first incomplete part of chapter, or first part if all complete
+                for part in current_chapter.parts.all():
+                    part_id = part.id
+                    is_video_completed = video_progress.get(part_id, False)
+                    if not is_video_completed:
+                        current_part = part
+                        content_type = 'part'
+                        break
+                
+                # If all parts completed, show first part
+                if not current_part:
+                    first_part = current_chapter.parts.first()
+                    if first_part:
+                        current_part = first_part
+                        content_type = 'part'
+            except Chapter.DoesNotExist:
+                pass
+        
+        elif content_type == 'part' and content_id:
+            try:
+                current_part = Part.objects.get(id=content_id)
+                current_chapter = current_part.chapter
+            except Part.DoesNotExist:
+                pass
+        
+        elif content_type == 'quiz' and content_id:
+            try:
+                current_quiz = Quiz.objects.get(id=content_id)
+                current_part = current_quiz.quiz_part
+                current_chapter = current_part.chapter if current_part else None
+                current_question_index = int(request.GET.get('q', 0))
+            except Quiz.DoesNotExist:
+                pass
+        
+        # Fallback: show first chapter's first part if nothing found
+        if not current_chapter and chapters_list:
+            current_chapter = chapters_list[0]
+            first_part = current_chapter.parts.first()
+            if first_part:
+                current_part = first_part
+                content_type = 'part'
+        
+        # Calculate overall progress
+        # A part is considered complete only if:
+        # 1. Video is completed AND
+        # 2. Quiz is completed (if quiz exists) OR no quiz exists
+        total_parts = sum(chapter.parts.count() for chapter in chapters_list)
+        completed_parts = 0
+        
+        for chapter in chapters_list:
+            for part in chapter.parts.all():
+                part_id = part.id
+                is_video_completed = video_progress.get(part_id, False)
+                
+                if is_video_completed:
+                    # Check if quiz exists and is completed
+                    if part.quizzes.exists():
+                        is_quiz_completed = quiz_completion_status.get(part_id, False)
+                        if is_quiz_completed:
+                            completed_parts += 1
+                    else:
+                        # No quiz, so video completion is enough
+                        completed_parts += 1
+        
+        progress_percentage = int((completed_parts / total_parts * 100)) if total_parts > 0 else 0
+        
+        # Get certification status - only show if course is fully completed
+        certification = None
+        is_course_complete = _is_course_fully_completed(user)
+        if is_course_complete:
+            certification = CounselorCertification.objects.filter(user=user).first()
+        
+        # Prepare quiz questions for one-by-one display
+        quiz_questions = []
+        total_questions = 0
+        quiz_score_data = None  # Store quiz score if already completed
+        
+        if current_quiz:
+            quiz_questions = list(current_quiz.questions.all().prefetch_related('answers'))
+            total_questions = len(quiz_questions)
+            # Ensure question index is valid
+            if current_question_index >= total_questions:
+                current_question_index = total_questions - 1
+            if current_question_index < 0:
+                current_question_index = 0
+            
+            # Check if quiz is already completed and get score
+            if current_part and quiz_completion_status.get(current_part.id, False):
+                try:
+                    quiz_result = QuizResults.objects.get(user=user)
+                    # Handle both string (JSON) and list formats
+                    if isinstance(quiz_result.scores, str):
+                        import json
+                        scores = json.loads(quiz_result.scores) if quiz_result.scores else []
+                    elif isinstance(quiz_result.scores, list):
+                        scores = quiz_result.scores
+                    else:
+                        scores = []
+                    
+                    # Find score for this quiz
+                    for score in scores:
+                        if isinstance(score, dict):
+                            score_quiz_id = score.get('quiz_id')
+                            score_part_id = score.get('part_id')
+                            if score_quiz_id == current_quiz.id and score_part_id == current_part.id:
+                                quiz_result_data = score.get('quiz_result', {})
+                                correct_option = score.get('correct_option', {})
+                                quiz_score_data = {
+                                    'correct': quiz_result_data.get('correct_answers', 0) if isinstance(quiz_result_data, dict) else 0,
+                                    'incorrect': quiz_result_data.get('incorrect_answers', 0) if isinstance(quiz_result_data, dict) else 0,
+                                    'total': score.get('total_questions_in_quiz', total_questions),
+                                    'correct_options': correct_option if isinstance(correct_option, dict) else {},
+                                }
+                                break
+                except QuizResults.DoesNotExist:
+                    pass
+                except Exception as e:
+                    import traceback
+                    print(f"Error getting quiz score data: {e}")
+                    print(traceback.format_exc())
+                    quiz_score_data = None
+        
+        context = {
+            'counselor': counselor,
+            'course': course_with_related_data,
+            'chapters_list': chapters_list,
+            'current_chapter': current_chapter,
+            'current_part': current_part,
+            'current_quiz': current_quiz,
+            'current_question_index': current_question_index,
+            'quiz_questions': quiz_questions,
+            'total_questions': total_questions,
+            'quiz_score_data': quiz_score_data,  # Add quiz score data
+            'content_type': content_type,
+            'video_progress': video_progress,
+            'quiz_completion_status': quiz_completion_status,
+            'progress_percentage': progress_percentage,
+            'certification': certification,
+        }
+        
+        return render(request, self.template_name, context)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class CourseResultsView(View):
+    """
+    Display quiz results after completion.
+    """
+    template_name = 'template20/counselor/course_results.html'
+    
+    def get(self, request, counselor_id):
+        from core import choices
+        from django.http import Http404
+        
+        counselor = get_object_or_404(Counselor, id=counselor_id)
+        
+        if request.user.user_type == choices.UserType.COUNSELOR:
+            if counselor.coun_user != request.user:
+                raise Http404("You don't have permission to access this counselor's course.")
+        
+        user = request.user
+        course_with_related_data = CounselorCourse.objects.prefetch_related(
+            'chapters__parts__quizzes__questions__answers'
+        ).first()
+        
+        if not course_with_related_data:
+            raise Http404("No course found.")
+        
+        # Get quiz results
+        try:
+            quiz_result = QuizResults.objects.get(user=user)
+            scores = quiz_result.scores if isinstance(quiz_result.scores, list) else []
+        except QuizResults.DoesNotExist:
+            scores = []
+        
+        # Calculate overall statistics
+        total_questions = 0
+        total_correct = 0
+        total_incorrect = 0
+        
+        results_by_part = {}
+        
+        for score in scores:
+            part_id = score.get('part_id')
+            quiz_id = score.get('quiz_id')
+            correct_answers = score.get('quiz_result', {}).get('correct_answers', 0)
+            incorrect_answers = score.get('quiz_result', {}).get('incorrect_answers', 0)
+            total_q = score.get('total_questions_in_quiz', 0)
+            
+            total_questions += total_q
+            total_correct += correct_answers
+            total_incorrect += incorrect_answers
+            
+            if part_id not in results_by_part:
+                try:
+                    part = Part.objects.get(id=part_id)
+                    results_by_part[part_id] = {
+                        'part': part,
+                        'quizzes': []
+                    }
+                except Part.DoesNotExist:
+                    continue
+            
+            results_by_part[part_id]['quizzes'].append({
+                'quiz_id': quiz_id,
+                'correct': correct_answers,
+                'incorrect': incorrect_answers,
+                'total': total_q,
+                'correct_options': score.get('correct_option', {}),
+            })
+        
+        # Calculate score percentage and grade
+        score_percentage = (total_correct / total_questions * 100) if total_questions > 0 else 0
+        
+        if score_percentage >= 80:
+            grade = "A+"
+        elif score_percentage >= 70:
+            grade = "A"
+        elif score_percentage >= 60:
+            grade = "B+"
+        elif score_percentage >= 50:
+            grade = "B"
+        elif score_percentage >= 40:
+            grade = "C"
+        else:
+            grade = "D"
+        
+        # Get certification
+        certification = CounselorCertification.objects.filter(user=user).first()
+        
+        context = {
+            'counselor': counselor,
+            'course': course_with_related_data,
+            'total_questions': total_questions,
+            'total_correct': total_correct,
+            'total_incorrect': total_incorrect,
+            'score_percentage': round(score_percentage, 2),
+            'grade': grade,
+            'results_by_part': results_by_part,
+            'certification': certification,
+        }
+        
+        return render(request, self.template_name, context)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class ViewCertificateView(View):
+    """
+    Display certificate for completed course.
+    Only accessible after all videos and quizzes are completed.
+    """
+    template_name = 'template20/counselor/view_certificate.html'
+    
+    def get(self, request, counselor_id):
+        from core import choices
+        from django.http import Http404
+        
+        counselor = get_object_or_404(Counselor, id=counselor_id)
+        
+        if request.user.user_type == choices.UserType.COUNSELOR:
+            if counselor.coun_user != request.user:
+                raise Http404("You don't have permission to access this counselor's course.")
+        
+        user = request.user
+        
+        # Check if course is fully completed (all videos + all quizzes)
+        is_complete = _is_course_fully_completed(user)
+        
+        if not is_complete:
+            messages.warning(request, "You must complete all videos and quizzes before viewing your certificate.")
+            return redirect('counselor:course_learning', counselor_id=counselor_id)
+        
+        certification = CounselorCertification.objects.filter(user=user).first()
+        
+        if not certification:
+            messages.warning(request, "Certificate not found. Please complete the course first.")
+            return redirect('counselor:course_learning', counselor_id=counselor_id)
+        
+        context = {
+            'counselor': counselor,
+            'certification': certification,
+            'user': user,
+        }
+        
+        return render(request, self.template_name, context)
+
+
+@login_required(login_url=reverse_lazy('users:login'))
+def submit_quiz_question(request, counselor_id):
+    """
+    Handle quiz question submission (one-by-one flow).
+    """
+    from core import choices
+    from django.http import JsonResponse, Http404
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+    
+    counselor = get_object_or_404(Counselor, id=counselor_id)
+    
+    if request.user.user_type == choices.UserType.COUNSELOR:
+        if counselor.coun_user != request.user:
+            raise Http404("You don't have permission.")
+    
+    try:
+        data = json.loads(request.body)
+        quiz_id = data.get('quiz_id')
+        question_id = data.get('question_id')
+        answer_id = data.get('answer_id')
+        question_index = data.get('question_index', 0)
+        is_last_question = data.get('is_last_question', False)
+        
+        if not all([quiz_id, question_id, answer_id is not None]):
+            return JsonResponse({'success': False, 'error': 'Missing required fields'}, status=400)
+        
+        quiz = get_object_or_404(Quiz, id=quiz_id)
+        question = get_object_or_404(Question, id=question_id, quiz=quiz)
+        answer = get_object_or_404(QuizAnswers, id=answer_id, question=question)
+        
+        # Store answer temporarily in session or process immediately
+        # For now, we'll process on last question submission
+        
+        if is_last_question:
+            # Get all answers from session or process all at once
+            # This is a simplified version - you may want to store answers in session
+            # and process them all when submitting the last question
+            
+            # For now, redirect to the full quiz submission
+            return JsonResponse({
+                'success': True,
+                'redirect': True,
+                'url': reverse('counselor:submit_full_quiz', args=[counselor_id, quiz_id])
+            })
+        else:
+            # Store answer and move to next question
+            return JsonResponse({
+                'success': True,
+                'next_question': question_index + 1,
+                'redirect': False
+            })
+            
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required(login_url=reverse_lazy('users:login'))
+def submit_full_quiz(request, counselor_id, quiz_id):
+    """
+    Process full quiz submission after all questions answered.
+    """
+    from core import choices
+    from django.http import Http404
+    
+    counselor = get_object_or_404(Counselor, id=counselor_id)
+    
+    if request.user.user_type == choices.UserType.COUNSELOR:
+        if counselor.coun_user != request.user:
+            raise Http404("You don't have permission.")
+    
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('counselor:course_learning', counselor_id=counselor_id)
+    
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    part = quiz.quiz_part
+    
+    # Process quiz submission (similar to existing logic)
+    results = {}
+    part_id = part.id
+    results[part_id] = {'quiz_results': [], 'correct_count': 0, 'incorrect_count': 0}
+    
+    total_questions_each_quiz = quiz.questions.count()
+    correct_answers_map = {}
+    
+    for question in quiz.questions.all():
+        user_answer_id = request.POST.get(f'question_{question.id}')
+        user_answer = None
+        
+        if user_answer_id:
+            try:
+                user_answer = QuizAnswers.objects.get(id=user_answer_id)
+            except QuizAnswers.DoesNotExist:
+                pass
+        
+        correct_answer = question.answers.filter(is_correct=True).first()
+        is_correct = user_answer == correct_answer if user_answer else False
+        
+        if is_correct:
+            results[part_id]['correct_count'] += 1
+        else:
+            results[part_id]['incorrect_count'] += 1
+        
+        correct_answers_map[f'ques_{question.id}'] = {
+            'correct_ans': correct_answer.answer_text if correct_answer else None,
+            'selected_ans': user_answer.answer_text if user_answer else None,
+        }
+    
+    results[part_id]['quiz_results'].append({
+        'quiz_id': quiz.id,
+        'total_questions_in_quiz': total_questions_each_quiz,
+        'correct_option': correct_answers_map,
+        'quiz_result': {
+            'correct_answers': results[part_id]['correct_count'],
+            'incorrect_answers': results[part_id]['incorrect_count'],
+        }
+    })
+    
+    # Save to QuizResults
+    user = request.user
+    quiz_results, created = QuizResults.objects.get_or_create(user=user)
+    
+    if isinstance(quiz_results.scores, str):
+        quiz_results.scores = json.loads(quiz_results.scores)
+    elif not isinstance(quiz_results.scores, list):
+        quiz_results.scores = []
+    
+    # Update or add score
+    for part_result in results.values():
+        for quiz_result_data in part_result['quiz_results']:
+            score_info = {
+                "part_id": part_id,
+                "quiz_id": quiz_result_data['quiz_id'],
+                "total_questions_in_quiz": quiz_result_data['total_questions_in_quiz'],
+                "correct_option": quiz_result_data['correct_option'],
+                "quiz_result": quiz_result_data['quiz_result'],
+            }
+            
+            # Check if exists
+            existing_score = None
+            for score in quiz_results.scores:
+                if score.get("part_id") == part_id and score.get("quiz_id") == quiz_result_data['quiz_id']:
+                    existing_score = score
+                    break
+            
+            if existing_score:
+                existing_score.update(score_info)
+            else:
+                quiz_results.scores.append(score_info)
+    
+    quiz_results.save()
+    
+    messages.success(request, "Quiz submitted successfully!")
+    
+    # Check if course is complete and issue certificate
+    _check_and_issue_certificate(user, counselor_id)
+    
+    # Redirect to course learning page - it will automatically find and show next pending part
+    # This ensures proper navigation to incomplete videos/quizzes
+    return redirect('counselor:course_learning', counselor_id=counselor_id)
+
+
+def _is_course_fully_completed(user):
+    """
+    Check if course is fully completed (all videos + all quizzes).
+    Returns True only if everything is done.
+    """
+    course = CounselorCourse.objects.prefetch_related(
+        'chapters__parts__quizzes__questions__answers'
+    ).first()
+    
+    if not course:
+        return False
+    
+    # Get all parts
+    all_parts = Part.objects.filter(chapter__course=course)
+    part_ids = list(all_parts.values_list('id', flat=True))
+    
+    if not part_ids:
+        return False
+    
+    # Check if all videos are completed
+    video_progress = VideoProgress.objects.filter(
+        user=user,
+        video_id__in=[f"video-{part_id}" for part_id in part_ids],
+        completed=True
+    )
+    completed_video_ids = {int(progress.video_id.split('-')[1]) for progress in video_progress}
+    
+    # Check if all quizzes are completed
+    try:
+        quiz_result = QuizResults.objects.get(user=user)
+        if isinstance(quiz_result.scores, str):
+            import json
+            scores = json.loads(quiz_result.scores) if quiz_result.scores else []
+        elif isinstance(quiz_result.scores, list):
+            scores = quiz_result.scores
+        else:
+            scores = []
+    except QuizResults.DoesNotExist:
+        scores = []
+    
+    # Get parts that have quizzes
+    parts_with_quizzes = {part.id for part in all_parts if part.quizzes.exists()}
+    
+    # Get parts with completed quizzes
+    completed_quiz_parts = set()
+    for score in scores:
+        part_id = score.get('part_id')
+        if part_id:
+            completed_quiz_parts.add(part_id)
+    
+    # Check each part:
+    # 1. Video must be completed
+    # 2. If part has quiz, quiz must be completed
+    for part_id in part_ids:
+        # Check video completion
+        if part_id not in completed_video_ids:
+            return False
+        
+        # Check quiz completion if quiz exists
+        if part_id in parts_with_quizzes:
+            if part_id not in completed_quiz_parts:
+                return False
+    
+    return True
+
+
+@login_required(login_url=reverse_lazy('users:login'))
+def autocomplete_course(request, counselor_id):
+    """
+    Autocomplete the entire course with 100% scores.
+    Shows a password form on GET, processes autocomplete on POST if password is correct.
+    Requires one-time password from .env file (autocompletepassword=shanti).
+    """
+    from core import choices
+    from django.http import Http404
+    from django.conf import settings
+    from decouple import config
+    
+    counselor = get_object_or_404(Counselor, id=counselor_id)
+    
+    # Security check: Ensure counselors can only access their own course
+    if request.user.user_type == choices.UserType.COUNSELOR:
+        if counselor.coun_user != request.user:
+            raise Http404("You don't have permission to access this counselor's course.")
+    
+    # Password verification - read from .env file (autocompletepassword=shanti)
+    required_password = config('autocompletepassword', default='')
+    
+    if not required_password:
+        messages.error(request, "Autocomplete feature is not configured. Please contact administrator.")
+        return redirect('counselor:course_learning', counselor_id=counselor_id)
+    
+    # Handle GET request - show password form
+    if request.method == 'GET':
+        context = {
+            'counselor': counselor,
+            'counselor_id': counselor_id,
+        }
+        return render(request, 'template20/counselor/autocomplete_password.html', context)
+    
+    # Handle POST request - verify password and autocomplete
+    provided_password = request.POST.get('password', '')
+    
+    if not provided_password or provided_password != required_password:
+        messages.error(request, "Invalid password. Please try again.")
+        context = {
+            'counselor': counselor,
+            'counselor_id': counselor_id,
+        }
+        return render(request, 'template20/counselor/autocomplete_password.html', context)
+    
+    # Password is correct - proceed with autocomplete
+    user = request.user
+    
+    # Get the course
+    course = CounselorCourse.objects.prefetch_related(
+        'chapters__parts__quizzes__questions__answers'
+    ).first()
+    
+    if not course:
+        messages.error(request, "No course found.")
+        return redirect('counselor:course_learning', counselor_id=counselor_id)
+    
+    # Get all parts
+    all_parts = Part.objects.filter(chapter__course=course).prefetch_related('quizzes__questions__answers')
+    
+    # Mark all videos as completed (100% progress)
+    for part in all_parts:
+        video_id = f"video-{part.id}"
+        VideoProgress.objects.update_or_create(
+            user=user,
+            video_id=video_id,
+            defaults={
+                'progress': 100,
+                'completed': True,
+                'duration': None  # Can be set if needed
+            }
+        )
+    
+    # Mark all quizzes as completed with 100% scores
+    quiz_results, created = QuizResults.objects.get_or_create(user=user)
+    
+    if isinstance(quiz_results.scores, str):
+        quiz_results.scores = json.loads(quiz_results.scores) if quiz_results.scores else []
+    elif not isinstance(quiz_results.scores, list):
+        quiz_results.scores = []
+    
+    # Process each part with quizzes
+    for part in all_parts:
+        part_id = part.id
+        
+        # Process each quiz for this part
+        for quiz in part.quizzes.all():
+            total_questions = quiz.questions.count()
+            
+            if total_questions == 0:
+                continue
+            
+            # Create correct answers map with all correct answers
+            correct_answers_map = {}
+            for question in quiz.questions.all():
+                correct_answer = question.answers.filter(is_correct=True).first()
+                if correct_answer:
+                    correct_answers_map[f'ques_{question.id}'] = {
+                        'correct_ans': correct_answer.answer_text,
+                        'selected_ans': correct_answer.answer_text,  # User selected correct answer
+                    }
+            
+            # Create score info with 100% correct
+            score_info = {
+                "part_id": part_id,
+                "quiz_id": quiz.id,
+                "total_questions_in_quiz": total_questions,
+                "correct_option": correct_answers_map,
+                "quiz_result": {
+                    'correct_answers': total_questions,  # All correct
+                    'incorrect_answers': 0,  # None incorrect
+                }
+            }
+            
+            # Check if score already exists and update, otherwise append
+            existing_score = None
+            for idx, score in enumerate(quiz_results.scores):
+                if score.get("part_id") == part_id and score.get("quiz_id") == quiz.id:
+                    existing_score = idx
+                    break
+            
+            if existing_score is not None:
+                quiz_results.scores[existing_score] = score_info
+            else:
+                quiz_results.scores.append(score_info)
+    
+    quiz_results.save()
+    
+    # Check if course is complete and issue certificate
+    _check_and_issue_certificate(user, counselor_id)
+    
+    messages.success(request, "Course autocompleted successfully with 100% scores!")
+    
+    # Redirect to course learning page
+    return redirect('counselor:course_learning', counselor_id=counselor_id)
+
+
+def _check_and_issue_certificate(user, counselor_id):
+    """
+    Check if course is complete and issue certificate if needed.
+    Uses the comprehensive completion check function.
+    """
+    # Use the comprehensive completion check
+    is_complete = _is_course_fully_completed(user)
+    
+    # Issue certificate if course is complete
+    if is_complete:
+        certification = CounselorCertification.objects.filter(user=user).first()
+        
+        if not certification:
+            # Get quiz scores for grade calculation
+            try:
+                quiz_result = QuizResults.objects.get(user=user)
+                if isinstance(quiz_result.scores, str):
+                    import json
+                    scores = json.loads(quiz_result.scores) if quiz_result.scores else []
+                elif isinstance(quiz_result.scores, list):
+                    scores = quiz_result.scores
+                else:
+                    scores = []
+            except QuizResults.DoesNotExist:
+                scores = []
+            
+            # Calculate grade
+            total_questions = 0
+            total_correct = 0
+            
+            for score in scores:
+                total_questions += score.get('total_questions_in_quiz', 0)
+                total_correct += score.get('quiz_result', {}).get('correct_answers', 0)
+            
+            score_percentage = (total_correct / total_questions * 100) if total_questions > 0 else 0
+            
+            if score_percentage >= 80:
+                grade = "A+"
+            elif score_percentage >= 70:
+                grade = "A"
+            elif score_percentage >= 60:
+                grade = "B+"
+            elif score_percentage >= 50:
+                grade = "B"
+            elif score_percentage >= 40:
+                grade = "C"
+            else:
+                grade = "D"
+            
+            # Generate certificate code
+            latest_cert = CounselorCertification.objects.last()
+            if latest_cert:
+                certificate_code = f"TPTC{latest_cert.id + 1:04d}"
+            else:
+                certificate_code = "TPTC0001"
+            
+            CounselorCertification.objects.create(
+                user=user,
+                certificate_code=certificate_code,
+                grade=grade
+            )

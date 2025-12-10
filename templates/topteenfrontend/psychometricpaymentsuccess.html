@@ -127,14 +127,14 @@
             {% if test_payment.is_success == 1 %}
             {% if test_payment.test_type == test_type.basic_test_type %}
             {# Stream Sorter - redirect to psychometric dashboard #}
-            <a href="/psychometric/dashboard/"
+            <a href="{{ url('app:test_buttons') }}"
             class="uppercase lg:w-[216px] h-[48px] bg-[#4CC9F0] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mx-auto lg:mb-[16px]"
             >
             VIEW DASHBOARD
             </a>
             {% elif test_payment.test_type == test_type.advanced_test_type %}
             {# Career Direction - redirect to tests page #}
-            <a href="/api/web/tests/"
+            <a href="{{ url('post_matric:tests') }}"
             class="uppercase lg:w-[216px] h-[48px] bg-[#4CC9F0] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mx-auto lg:mb-[16px]"
             >
             VIEW DASHBOARD

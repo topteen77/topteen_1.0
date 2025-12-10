@@ -1,15 +1,179 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/base.html' %}
 
-{% block title_content %}Course Payment | Top Teen{% endblock %}
-{% block description_content %}Pay for the Career Counseling Course.{% endblock %}
+{% block title_content %}Career Counseling Course | Top Teen{% endblock %}
+{% block description_content %}Enroll in the Career Counseling Course and enhance your counseling skills.{% endblock %}
 
-{% block bodyclass %}{{ super() }} course-payment-page{% endblock %}
+{% block bodyclass %}course-payment-page{% endblock %}
 
 {% block additionalhead %}
-{{ super() }}
 <style>
   .course-payment-page {
-    padding-top: 80px;
+    padding-top: 100px;
+  }
+  
+  .course-banner-img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .cc-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  
+  .tg-gag {
+    background: #3F37C9;
+    color: #ffffff;
+    padding: 11px 16px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .tag-badge {
+    background: rgba(63, 55, 201, 0.15);
+    color: #3F37C9;
+    padding: 11px 16px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+  }
+  
+  .price-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    position: sticky;
+    top: 100px;
+  }
+  
+  .price-header {
+    background: #3F37C9;
+    color: #ffffff;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 18px;
+    border-radius: 12px 12px 0 0;
+    margin: -24px -24px 20px -24px;
+  }
+  
+  .price-section {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+  }
+  
+  .price-strike {
+    color: #9ca3af;
+    text-decoration: line-through;
+    margin-right: 8px;
+    font-size: 16px;
+  }
+  
+  .price-current {
+    color: #3F37C9;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .feature-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+  
+  .feature-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  
+  .mobile-book-button {
+    position: fixed;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 12px;
+    background: white;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    display: none;
+  }
+  
+  @media (max-width: 991px) {
+    .mobile-book-button {
+      display: block;
+    }
+    .price-card {
+      display: none;
+    }
+  }
+  
+  .drawer-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    display: none;
+  }
+  
+  .drawer-backdrop.show {
+    display: block;
+  }
+  
+  .bottom-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    padding: 24px;
+    z-index: 1050;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .bottom-drawer.show {
+    transform: translateY(0);
+  }
+  
+  .drawer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>
 {% endblock %}
@@ -17,87 +181,403 @@
 {% block content %}
 <section class="course-payment-page pb-5">
   <div class="container">
-    <div class="row justify-content-center">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url('core:home') }}">Home</a></li>
+        <li class="breadcrumb-item"><a href="#">Counsellor Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Career Counselling Course</li>
+      </ol>
+    </nav>
+    
+    <div class="row g-4">
+      <!-- Main Content -->
       <div class="col-lg-8">
-        <h1 class="fs-24 fw-semibold mb-4">Career Counseling Course</h1>
+        <h1 class="fs-28 fw-bold mb-4">Career Counseling Course</h1>
         
         <div class="card mb-4">
           <img src="{{ static('images_new/general/career-counselling-banner.png') }}" 
-               class="card-img-top" 
-               alt="Course Banner"
-               onerror="this.style.display='none'">
+               class="course-banner-img" 
+               alt="Career Counseling Course Banner"
+               onerror="this.src='{{ static('images/career-icon.png') }}'">
           <div class="card-body">
-            <div class="d-flex flex-wrap gap-2 mb-3">
-              <span class="badge bg-primary">Tags</span>
-              <span class="badge bg-primary bg-opacity-10 text-primary">Course Detail</span>
-              <span class="badge bg-primary bg-opacity-10 text-primary">Course Delivery</span>
-              <span class="badge bg-primary bg-opacity-10 text-primary">Skills Covered</span>
-              <span class="badge bg-primary bg-opacity-10 text-primary">Assessments</span>
-              <span class="badge bg-primary bg-opacity-10 text-primary">Certification</span>
+            <div class="cc-tags">
+              <span class="tg-gag">Tags</span>
+              <a href="#" class="tag-badge">Course Detail</a>
+              <a href="#" class="tag-badge">Course Delivery</a>
+              <a href="#" class="tag-badge">Skills Covered</a>
+              <a href="#" class="tag-badge">Assessments</a>
+              <a href="#" class="tag-badge">Certification</a>
             </div>
             
             <h3 class="fs-20 fw-semibold mb-3">Course Details</h3>
+            <p class="text-gray mb-4">
+              Part-time jobs for teenagers are highly valuable as they offer opportunities for skill development,
+              responsibility, financial literacy, career exploration, confidence building, time management, networking,
+              and real-world experience. These jobs not only provide financial independence but also equip teenagers with
+              essential skills and experiences that contribute to their personal growth and future success.
+              Jobs for teens carry significant importance and offer numerous benefits that contribute to their personal
+              growth and development. Here are some benefits of part-time employment for teens:
+            </p>
+            
+            <h3 class="fs-20 fw-semibold mb-3">Course Delivery</h3>
+            <p class="text-gray mb-4">
+              Part-time jobs for teenagers are highly valuable as they offer opportunities for skill development,
+              responsibility, financial literacy, career exploration, confidence building, time management, networking,
+              and real-world experience. These jobs not only provide financial independence but also equip teenagers with
+              essential skills and experiences that contribute to their personal growth and future success.
+              Jobs for teens carry significant importance and offer numerous benefits that contribute to their personal
+              growth and development. Here are some benefits of part-time employment for teens:
+            </p>
+            
+            <h3 class="fs-20 fw-semibold mb-3">Skills Covered</h3>
             <p class="text-gray">
               Part-time jobs for teenagers are highly valuable as they offer opportunities for skill development,
               responsibility, financial literacy, career exploration, confidence building, time management, networking,
               and real-world experience. These jobs not only provide financial independence but also equip teenagers with
               essential skills and experiences that contribute to their personal growth and future success.
+              Jobs for teens carry significant importance and offer numerous benefits that contribute to their personal
+              growth and development. Here are some benefits of part-time employment for teens:
             </p>
-            
-            <h3 class="fs-20 fw-semibold mb-3 mt-4">Course Delivery</h3>
-            <p class="text-gray">
-              The course is delivered through a combination of video lectures, interactive sessions, and practical assignments.
-            </p>
-            
-            <h3 class="fs-20 fw-semibold mb-3 mt-4">Skills Covered</h3>
-            <ul class="text-gray">
-              <li>Career counseling techniques</li>
-              <li>Student assessment methods</li>
-              <li>Communication skills</li>
-              <li>Report generation</li>
-            </ul>
-            
-            <div class="mt-4">
-              <button id="rzp-button1" class="btn custom-button purple-button w-100">
-                <i class='bx bx-credit-card me-2'></i> Pay with Razorpay
-              </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sidebar - Desktop -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="price-card">
+          <div class="price-header">Book Now</div>
+          
+          <div class="price-section">
+            <div>
+              <span class="price-strike">₹2999/-</span>
+              <span class="price-current">₹ 999/-</span>
             </div>
+          </div>
+          
+          <ul class="feature-list">
+            <li class="feature-item">
+              <img src="{{ static('images_new/icons/assessment-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
+              <span>Total Assessments - <strong>{{ part_count|default(10) }}</strong></span>
+            </li>
+            <li class="feature-item">
+              <img src="{{ static('images_new/icons/chapter-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
+              <span>Number of Chapters - <strong>{{ chapter_count|default(15) }}</strong></span>
+            </li>
+            <li class="feature-item">
+              <img src="{{ static('images_new/icons/question-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
+              <span>Number of Questions - <strong>{{ question_count|default(180) }}</strong></span>
+            </li>
+            <li class="feature-item">
+              <img src="{{ static('images_new/icons/test-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
+              <span>Course Test</span>
+            </li>
+            <li class="feature-item">
+              <img src="{{ static('images_new/icons/mobile-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
+              <span>Access on Mobile</span>
+            </li>
+          </ul>
+          
+          <div class="text-center mt-4">
+            {% if user_authenticated %}
+            <button id="rzp-button1" class="btn custom-button purple-button w-100">
+              <i class='bx bx-credit-card me-2'></i> Start Now
+            </button>
+            {% else %}
+            <button id="rzp-button1" class="btn custom-button purple-button w-100">
+              <i class='bx bx-log-in me-2'></i> Login to Purchase
+            </button>
+            {% endif %}
           </div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- Mobile Book Button -->
+<div class="mobile-book-button">
+  <button id="drawerButton" class="btn custom-button purple-button w-100">
+    Book Now
+  </button>
+</div>
+
+<!-- Mobile Drawer -->
+<div id="backdrop" class="drawer-backdrop"></div>
+<div id="bottomDrawer" class="bottom-drawer">
+  <button id="closeButton" class="drawer-close" type="button">
+    <i class='bx bx-x'></i>
+  </button>
+  
+  <div class="price-header mb-4">Book Now</div>
+  
+  <div class="price-section">
+    <div>
+      <span class="price-strike">₹2999/-</span>
+      <span class="price-current">₹ 999/-</span>
+    </div>
+  </div>
+  
+  <ul class="feature-list">
+    <li class="feature-item">
+      <img src="{{ static('images_new/icons/assessment-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
+      <span>Total Assessments - <strong>{{ part_count|default(10) }}</strong></span>
+    </li>
+    <li class="feature-item">
+      <img src="{{ static('images_new/icons/chapter-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
+      <span>Number of Chapters - <strong>{{ chapter_count|default(15) }}</strong></span>
+    </li>
+    <li class="feature-item">
+      <img src="{{ static('images_new/icons/question-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
+      <span>Number of Questions - <strong>{{ question_count|default(180) }}</strong></span>
+    </li>
+    <li class="feature-item">
+      <img src="{{ static('images_new/icons/test-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
+      <span>Course Test</span>
+    </li>
+    <li class="feature-item">
+      <img src="{{ static('images_new/icons/mobile-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
+      <span>Access on Mobile</span>
+    </li>
+  </ul>
+  
+  <div class="text-center mt-4">
+    {% if user_authenticated %}
+    <button id="rzp-button-mobile" class="btn custom-button purple-button w-100">
+      <i class='bx bx-credit-card me-2'></i> Start Now
+    </button>
+    {% else %}
+    <button id="rzp-button-mobile" class="btn custom-button purple-button w-100">
+      <i class='bx bx-log-in me-2'></i> Login to Purchase
+    </button>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}
 
 {% block additionaljs %}
 {{ super() }}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-  var options = {
+  // CSRF token helper
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  
+  // SweetAlert helper function (if not already defined)
+  const fireAlert = async function (title, icon = "success", showConfirmButton = false, showCloseButton = false, isPrompt = false) {
+    if (typeof Swal !== 'undefined') {
+      const canDo = Swal.fire({
+        title,
+        icon: icon,
+        position: "top-end",
+        showCloseButton,
+        showConfirmButton,
+        toast: true,
+        showCancelButton: false,
+        ...(isPrompt ? {} : { timer: 3000 }),
+      });
+      if (isPrompt) {
+        return canDo?.isConfirmed;
+      } else {
+        return -1;
+      }
+    } else {
+      // Fallback to alert if SweetAlert is not available
+      alert(title);
+    }
+  };
+  
+  // Check if user is authenticated
+  const userAuthenticated = {% if user_authenticated %}true{% else %}false{% endif %};
+  const loginUrl = "{{ url('users:login') }}?next=" + encodeURIComponent("{{ url('counselor:CounselorCoursepayment') }}");
+  
+  // Function to handle payment button click
+  function handlePaymentClick(e) {
+    e.preventDefault();
+    
+    if (!userAuthenticated) {
+      // Show login prompt
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'Login Required',
+          html: 'Please login or register to purchase the course.<br><small>You need to be logged in to complete the payment.</small>',
+          icon: 'info',
+          showCancelButton: true,
+          confirmButtonText: 'Login / Register',
+          cancelButtonText: 'Cancel',
+          confirmButtonColor: '#5046e5',
+          cancelButtonColor: '#6c757d'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = loginUrl;
+          }
+        });
+      } else {
+        if (confirm("Please login or register to purchase the course. Click OK to go to login page.")) {
+          window.location.href = loginUrl;
+        }
+      }
+      return false;
+    }
+    
+    // User is authenticated, proceed with payment
+    if (rzp1) {
+      rzp1.open();
+    }
+  }
+  
+  // Razorpay configuration (only if user is authenticated and payment order exists)
+  var options = null;
+  var rzp1 = null;
+  
+  {% if user_authenticated and payment %}
+  options = {
     "key": "{{ key }}",
-    "amount": "50000",
+    "amount": "{{ payment.amount }}",
     "currency": "INR",
     "name": "Top Teen",
     "description": "Career Counseling Course",
     "image": "{{ static('images_new/logos/logo.svg') }}",
     "order_id": "{{ payment.id }}",
     "handler": function (response) {
-      alert("Payment successful! Payment ID: " + response.razorpay_payment_id);
-      window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
+      // Save payment details to server
+      const paymentData = {
+        payment_id: {% if payment_record_id %}{{ payment_record_id }}{% else %}0{% endif %},
+        gateway_payment_id: response.razorpay_payment_id,
+        gateway_order_id: response.razorpay_order_id,
+        gateway_signature: response.razorpay_signature
+      };
+      
+      // Send payment details to server
+      fetch("{{ url('counselor:update_counselor_course_payment') }}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(paymentData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Show styled success message
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: 'Payment Successful!',
+              html: 'Your payment has been processed successfully.<br><small>Payment ID: ' + response.razorpay_payment_id + '</small>',
+              icon: 'success',
+              confirmButtonText: 'Continue to Course',
+              confirmButtonColor: '#5046e5',
+              allowOutsideClick: false,
+              allowEscapeKey: false
+            }).then((result) => {
+              if (result.isConfirmed) {
+                // Redirect to enrolled course page after successful payment
+                window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
+              }
+            });
+          } else {
+            // Fallback if SweetAlert is not available
+            if (confirm("Payment successful! Payment ID: " + response.razorpay_payment_id + "\n\nClick OK to continue to the course.")) {
+              window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
+            }
+          }
+        } else {
+          // Payment saved but verification failed
+          alert("Payment received but verification failed. Please contact support.");
+        }
+      })
+      .catch(error => {
+        console.error('Error saving payment:', error);
+        // Still show success but warn about saving
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Payment Successful!',
+            html: 'Your payment has been processed.<br><small>Please note: Payment details may not be saved. Please contact support if you face any issues.</small>',
+            icon: 'warning',
+            confirmButtonText: 'Continue to Course',
+            confirmButtonColor: '#5046e5'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
+            }
+          });
+        } else {
+          alert("Payment successful but there was an error saving details. Please contact support.");
+        }
+      });
     },
     "theme": {
       "color": "#5046e5"
     }
   };
-  var rzp1 = new Razorpay(options);
+  {% endif %}
+  
+  {% if user_authenticated and payment %}
+  rzp1 = new Razorpay(options);
+  
   rzp1.on('payment.failed', function (response) {
-    alert("Payment failed: " + response.error.description);
+    // Show styled error message
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: 'Payment Failed',
+        text: response.error.description || 'Your payment could not be processed. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#5046e5'
+      });
+    } else {
+      alert("Payment failed: " + (response.error.description || 'Your payment could not be processed. Please try again.'));
+    }
   });
-  document.getElementById('rzp-button1').onclick = function (e) {
-    rzp1.open();
-    e.preventDefault();
+  {% endif %}
+  
+  // Desktop payment button
+  document.getElementById('rzp-button1').onclick = handlePaymentClick;
+  
+  // Mobile payment button
+  document.getElementById('rzp-button-mobile').onclick = handlePaymentClick;
+  
+  // Mobile drawer functionality
+  const drawerButton = document.getElementById('drawerButton');
+  const bottomDrawer = document.getElementById('bottomDrawer');
+  const closeButton = document.getElementById('closeButton');
+  const backdrop = document.getElementById('backdrop');
+  
+  if (drawerButton) {
+    drawerButton.addEventListener('click', function() {
+      bottomDrawer.classList.add('show');
+      backdrop.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    });
+  }
+  
+  if (closeButton) {
+    closeButton.addEventListener('click', function() {
+      bottomDrawer.classList.remove('show');
+      backdrop.classList.remove('show');
+      document.body.style.overflow = '';
+    });
+  }
+  
+  if (backdrop) {
+    backdrop.addEventListener('click', function() {
+      bottomDrawer.classList.remove('show');
+      backdrop.classList.remove('show');
+      document.body.style.overflow = '';
+    });
   }
 </script>
 {% endblock %}
-

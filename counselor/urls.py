@@ -24,4 +24,14 @@ urlpatterns = [
 
     path('update_progress/', views.update_progress, name='update_progress'),  # Update progress
     path('get_progress_and_duration/<str:video_id>/', views.get_progress_and_duration, name='get_progress_and_duration'),  # Get progress
+    path('update_counselor_course_payment/', views.update_counselor_course_payment, name='update_counselor_course_payment'),  # Update counselor course payment
+    
+    # Course Learning Module - New dedicated learning interface
+    # Note: autocomplete must come before the general course_learning pattern
+    path('course_learning/<int:counselor_id>/autocomplete/', views.autocomplete_course, name='autocomplete_course'),
+    path('course_learning/<int:counselor_id>/', views.CourseLearningView.as_view(), name='course_learning'),
+    path('course_results/<int:counselor_id>/', views.CourseResultsView.as_view(), name='course_results'),
+    path('view_certificate/<int:counselor_id>/', views.ViewCertificateView.as_view(), name='view_certificate'),
+    path('submit_quiz_question/<int:counselor_id>/', views.submit_quiz_question, name='submit_quiz_question'),
+    path('submit_full_quiz/<int:counselor_id>/<int:quiz_id>/', views.submit_full_quiz, name='submit_full_quiz'),
 ]

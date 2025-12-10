@@ -314,7 +314,16 @@ function validateotp(formData) {
   return true;
 }
 
+// Prevent double submission
+var isSubmittingSignup = false;
+
 function loginsinguppwd() {
+  // Prevent double submission
+  if (isSubmittingSignup) {
+    console.log("Signup already in progress, ignoring duplicate submission");
+    return false;
+  }
+  
   var formData = new FormData(document.getElementById("singuppwd"));
   
   // Debug: Log password values (remove in production)
@@ -334,27 +343,119 @@ function loginsinguppwd() {
     otperrtag.textContent = "";
   }
   
+  // Disable submit button and set submitting flag
+  isSubmittingSignup = true;
+  var submitButton = document.querySelector('#singuppwd button[type="submit"]');
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Creating Account...";
+    submitButton.style.opacity = "0.6";
+    submitButton.style.cursor = "not-allowed";
+  }
+  
+  // Helper function to get cookie value
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  
+  console.log("🚀 Starting AJAX request to:", usersloginsignuppwd);
+  
   $.ajax({
     type: "POST",
     url: usersloginsignuppwd,
     data: formData,
-    success: async function (data) {
-      if (data.success) {
+    dataType: 'json',  // Explicitly expect JSON response
+    beforeSend: function(xhr) {
+      console.log("📤 AJAX beforeSend called");
+      // Ensure CSRF token is included - get from form or cookies
+      var csrfToken = $('[name=csrfmiddlewaretoken]').val();
+      if (!csrfToken) {
+        // Get CSRF token from cookies
+        csrfToken = getCookie('csrftoken');
+      }
+      if (csrfToken) {
+        xhr.setRequestHeader("X-CSRFToken", csrfToken);
+        console.log("✅ CSRF token set");
+      } else {
+        console.log("⚠️ No CSRF token found");
+      }
+    },
+    success: function (data) {
+      console.log("=== SIGNUP PASSWORD RESPONSE ===");
+      console.log("✅ SUCCESS CALLBACK CALLED!");
+      console.log("Full response:", JSON.stringify(data, null, 2));
+      console.log("Response type:", typeof data);
+      console.log("Has success:", data && data.success);
+      console.log("Redirect URL:", data && data.redirect_url);
+      console.log("Message:", data && data.message);
+      
+      isSubmittingSignup = false;
+      
+      // Re-enable submit button
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "SUBMIT";
+        submitButton.style.opacity = "1";
+        submitButton.style.cursor = "pointer";
+      }
+      
+      // Check if data is a string (needs parsing) or object
+      if (typeof data === 'string') {
+        try {
+          console.log("Parsing string response...");
+          data = JSON.parse(data);
+          console.log("Parsed data:", data);
+        } catch (e) {
+          console.error("Failed to parse response:", e);
+          var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
+          if (otperrtag) {
+            otperrtag.textContent = "Error processing response. Please try again.";
+          }
+          return;
+        }
+      }
+      
+      // Check for success flag
+      if (data && (data.success === true || data.success === 'true')) {
+        console.log("✅ Success flag found, proceeding with redirect...");
+        
         // Close password modal
         var signUpPwdDiv = document.getElementById("signUpPwdDiv");
         if (signUpPwdDiv) {
           signUpPwdDiv.classList.add("hideModal");
+          console.log("✅ Modal closed");
         }
-        // Account created successfully
-        await fireAlert("Account created successfully", "success");
-        setTimeout(() => {
-          if (data.redirect_url) {
-            window.location.href = data.redirect_url;
-          } else {
-            window.location.href = '/user/dashboard';
-          }
-        }, 1000);
+        
+        // Redirect immediately
+        var redirectUrl = data.redirect_url || '/user/dashboard';
+        console.log("Redirect URL:", redirectUrl);
+        console.log("Redirect URL type:", typeof redirectUrl);
+        console.log("Redirect URL valid:", redirectUrl && redirectUrl !== 'undefined' && redirectUrl !== 'null' && redirectUrl !== '');
+        
+        // Force immediate redirect
+        if (redirectUrl && redirectUrl !== 'undefined' && redirectUrl !== 'null' && redirectUrl !== '') {
+          console.log("🚀 Redirecting to:", redirectUrl);
+          // Use replace for immediate redirect
+          window.location.replace(redirectUrl);
+        } else {
+          // Fallback redirect
+          console.log("⚠️ Using fallback URL: /user/dashboard");
+          window.location.replace('/user/dashboard');
+        }
       } else {
+        console.log("❌ No success flag found in response");
+        console.log("Response data:", data);
         // Show error message from server
         var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
         if (otperrtag && data.message) {
@@ -365,6 +466,23 @@ function loginsinguppwd() {
       }
     },
     error: function (xhr, status, error) {
+      console.log("=== AJAX ERROR CALLBACK ===");
+      console.log("Status:", status);
+      console.log("Error:", error);
+      console.log("Status code:", xhr.status);
+      console.log("Response text:", xhr.responseText);
+      console.log("Response JSON:", xhr.responseJSON);
+      
+      isSubmittingSignup = false;
+      
+      // Re-enable submit button
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "SUBMIT";
+        submitButton.style.opacity = "1";
+        submitButton.style.cursor = "pointer";
+      }
+      
       try {
         // Try to parse error response
         var errorMessage = "Unable to create your account. Please check your information and try again.";
@@ -388,10 +506,11 @@ function loginsinguppwd() {
         }
         
         if (xhr.status === 403) {
-          // Don't show message, just redirect silently
+          // CSRF token expired or invalid - refresh page to get new token
+          fireAlert("Session expired. Refreshing page...", "warning");
           setTimeout(function() {
-            window.location.href = '/user/login';
-          }, 100);
+            window.location.reload();
+          }, 1500);
         } else if (xhr.status === 400) {
           // Error message already shown above
           fireAlert(errorMessage, "error");

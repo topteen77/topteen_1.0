@@ -1,11 +1,20 @@
 <div class="profile-sidebar">
   <!-- User -->
   <div class="text-center border-bottom pb-4 mb-4">
-    <div class="mb-3">
+    <div class="mb-3 position-relative d-inline-block">
       {% if request.user.image %}
       <img src="{{ request.user.image.url }}" class="profile-image mx-auto" alt="{{ request.user.name }}" />
       {% else %}
       <img src="{{ static('images_new/icons/user-icon.svg') }}" class="profile-image mx-auto" alt="User" />
+      {% endif %}
+      {# Certified Badge #}
+      {% if request.user.user_type == 4 %}
+        {% set counselor_cert = request.user.counselorcertification_set.first() if request.user.counselorcertification_set.exists() else None %}
+        {% if counselor_cert %}
+        <div class="certified-badge" title="Certified Counselor - Grade: {{ counselor_cert.grade }}">
+          <i class='bx bx-check-circle fs-24'></i>
+        </div>
+        {% endif %}
       {% endif %}
     </div>
     <p class="fs-16 fw-semibold mb-1">{{ request.user.name|default(request.user.username) }}</p>
@@ -83,9 +92,8 @@
       </a>
     {% elif request.user.user_type == 2 %}
       {# Institute #}
-      {% set institute_list = request.user.institute_created.all() %}
-      {% if institute_list|length > 0 %}
-        {% set institute_obj = institute_list[0] %}
+      {% set institute_obj = request.user.institute_created.last() %}
+      {% if institute_obj and institute_obj.slug %}
         <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" class="d-block text-decoration-none mb-3">
           <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
             <div>

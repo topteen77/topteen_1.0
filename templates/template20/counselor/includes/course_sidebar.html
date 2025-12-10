@@ -1,0 +1,198 @@
+<div class="course-sidebar">
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="fs-18 fw-semibold mb-3">Course Chapters</h5>
+      
+      {% if course and course.chapters.exists() %}
+      <div class="chapter-list">
+        {% for chapter in course.chapters.all() %}
+        <div class="chapter-sidebar-item {% if loop.index0 == current_chapter_index %}active{% endif %}">
+          <div class="chapter-header" onclick="goToChapter({{ loop.index0 }})">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center">
+                <div class="chapter-number me-2">
+                  {% if video_progress and chapter.parts.exists() %}
+                    {% set all_parts_completed = true %}
+                    {% for part in chapter.parts.all() %}
+                      {% if not video_progress.get(part.id, False) %}
+                        {% set all_parts_completed = false %}
+                      {% endif %}
+                    {% endfor %}
+                    {% if all_parts_completed %}
+                      <i class='bx bx-check-circle text-success fs-18'></i>
+                    {% else %}
+                      <span class="chapter-index">{{ loop.index }}</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="chapter-index">{{ loop.index }}</span>
+                  {% endif %}
+                </div>
+                <div>
+                  <p class="fs-14 fw-semibold mb-0">{{ chapter.title }}</p>
+                  {% if chapter.parts.exists() %}
+                  <small class="text-gray fs-12">{{ chapter.parts.count() }} parts</small>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="d-flex align-items-center">
+                {% if loop.index0 == current_chapter_index %}
+                <i class='bx bx-chevron-down text-primary me-2'></i>
+                {% else %}
+                <i class='bx bx-chevron-right text-gray me-2'></i>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Parts List (shown when chapter is active) -->
+          {% if loop.index0 == current_chapter_index and chapter.parts.exists() %}
+          <div class="parts-list mt-2">
+            {% for part in chapter.parts.all() %}
+            <div class="part-sidebar-item">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <div class="d-flex align-items-center">
+                  <i class='bx bx-play-circle me-2 fs-16 text-primary'></i>
+                  <span class="fs-13 fw-semibold">{{ part.title }}</span>
+                </div>
+                {% set part_id = part.id %}
+                {% set is_video_completed = video_progress.get(part_id, False) %}
+                {% if is_video_completed %}
+                  <i class='bx bx-check-circle text-success fs-16'></i>
+                {% else %}
+                  <i class='bx bx-time-five text-warning fs-16'></i>
+                {% endif %}
+              </div>
+              
+              <!-- Quiz Items -->
+              {% if part.quizzes.exists() %}
+                {% for quiz in part.quizzes.all() %}
+                <div class="quiz-sidebar-item {% if is_video_completed %}enabled{% else %}disabled{% endif %}">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                      <i class='bx bx-file-blank me-2 fs-14 text-gray'></i>
+                      <span class="fs-12">Quiz: {{ quiz.title|default('Quiz ' ~ loop.index) }}</span>
+                    </div>
+                    {% set is_quiz_completed = quiz_completion_status.get(part_id, False) %}
+                    {% if is_quiz_completed %}
+                      <i class='bx bx-check-circle text-success fs-14'></i>
+                    {% elif is_video_completed %}
+                      <i class='bx bx-time-five text-primary fs-14'></i>
+                    {% else %}
+                      <i class='bx bx-lock text-gray fs-14'></i>
+                    {% endif %}
+                  </div>
+                </div>
+                {% endfor %}
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Certificate Badge -->
+  {% if certification %}
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="certificate-badge-sidebar">
+        <i class='bx bx-award fs-48 text-warning mb-2'></i>
+        <h6 class="fs-16 fw-bold mb-1">Certificate Earned!</h6>
+        <p class="fs-14 mb-1">Grade: <strong>{{ certification.grade }}</strong></p>
+        <p class="fs-12 mb-0 text-gray">Code: {{ certification.certificate_code }}</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .course-sidebar {
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  .chapter-sidebar-item {
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+  }
+  .chapter-header {
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #fff;
+  }
+  .chapter-sidebar-item.active .chapter-header {
+    background: #5046e5;
+    color: #fff;
+  }
+  .chapter-sidebar-item.active .chapter-header .text-gray {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+  .chapter-header:hover {
+    background: #f7f7fa;
+  }
+  .chapter-sidebar-item.active .chapter-header:hover {
+    background: #5046e5;
+  }
+  .chapter-number {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e9ecef;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .chapter-sidebar-item.active .chapter-number {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+  }
+  .chapter-index {
+    font-size: 14px;
+  }
+  .parts-list {
+    padding: 0 12px 12px 12px;
+    background: #f7f7fa;
+  }
+  .part-sidebar-item {
+    padding: 8px;
+    margin-bottom: 8px;
+    background: #fff;
+    border-radius: 6px;
+    border-left: 3px solid #5046e5;
+  }
+  .quiz-sidebar-item {
+    padding: 6px 8px;
+    margin-top: 4px;
+    margin-left: 20px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .quiz-sidebar-item.enabled {
+    background: #e7f3ff;
+    cursor: pointer;
+  }
+  .quiz-sidebar-item.disabled {
+    background: #f5f5f5;
+    opacity: 0.6;
+  }
+  .certificate-badge-sidebar {
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    color: #fff;
+  }
+  .certificate-badge-sidebar .text-gray {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+</style>

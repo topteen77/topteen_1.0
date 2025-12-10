@@ -12,18 +12,38 @@
   .course-information-page {
     padding-top: 80px;
   }
-  .chapter-card {
-    background: #f7f7fa;
-    border-radius: 10px;
+  .part-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
     padding: 20px;
     margin-bottom: 15px;
+    border-left: 4px solid #5046e5;
   }
-  .part-item {
+  .video-container {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .video-container video {
+    width: 100%;
+    height: auto;
+    max-height: 500px;
+  }
+  .quiz-section {
+    background: #f7f7fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+  .question-card {
     background: #fff;
     border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-left: 4px solid #5046e5;
+    padding: 20px;
+    margin-bottom: 15px;
   }
   .progress-bar-custom {
     height: 10px;
@@ -36,6 +56,32 @@
     background: #4cc9f0;
     transition: width 0.3s;
   }
+  .certificate-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .next-chapter-btn {
+    margin-top: 30px;
+    text-align: center;
+  }
+  .chapter-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+  }
+  .quiz-locked {
+    background: #f7f7fa;
+    border: 2px dashed #e9ecef;
+  }
+  .quiz-section:not(.show) {
+    display: none;
+  }
+  .quiz-section.show {
+    display: block;
+  }
 </style>
 {% endblock %}
 
@@ -43,13 +89,18 @@
 <section class="course-information-page pb-5">
   <div class="container">
     <div class="row g-4 pt-4">
-      <!-- Sidebar -->
-      <div class="col-lg-4 d-none d-lg-block">
+      <!-- Profile Sidebar -->
+      <div class="col-lg-3 d-none d-lg-block">
         {% include 'template20/user/includes/profile_sidebar.html' %}
       </div>
 
+      <!-- Course Sidebar -->
+      <div class="col-lg-3 d-none d-lg-block">
+        {% include 'template20/counselor/includes/course_sidebar.html' %}
+      </div>
+
       <!-- Main Content -->
-      <div class="col-lg-8">
+      <div class="col-lg-6">
         <h2 class="fs-24 fw-semibold mb-4">Course Information</h2>
         
         {% if course %}
@@ -94,50 +145,169 @@
           </div>
         </div>
 
-        <!-- Chapters -->
-        <div class="card">
+        <!-- Current Chapter Content -->
+        {% if current_chapter %}
+        <div class="card mb-4">
           <div class="card-body">
-            <h3 class="fs-20 fw-semibold mb-4">Course Chapters</h3>
-            {% if course.chapters.exists() %}
-              {% for chapter in course.chapters.all() %}
-              <div class="chapter-card">
-                <h4 class="fs-18 fw-semibold mb-3">{{ chapter.name|default('Chapter ' ~ loop.index) }}</h4>
-                {% if chapter.parts.exists() %}
-                  {% for part in chapter.parts.all() %}
-                  <div class="part-item">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <div>
-                        <h5 class="fs-16 fw-semibold mb-1">{{ part.name|default('Part ' + loop.index|string) }}</h5>
-                        {% if part.description %}
-                        <p class="text-gray fs-14 mb-0">{{ part.description|truncate(100) }}</p>
+            <div class="chapter-header">
+              <h4 class="fs-20 fw-semibold mb-0">{{ current_chapter.title|default('Chapter ' ~ (current_chapter_index + 1)) }}</h4>
+            </div>
+            
+            {% if current_chapter.parts.exists() %}
+              {% for part in current_chapter.parts.all() %}
+              <div class="part-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <h5 class="fs-18 fw-semibold mb-1">{{ part.title }}</h5>
+                    {% if part.description %}
+                    <p class="text-gray fs-14 mb-0">{{ part.description }}</p>
+                    {% endif %}
+                  </div>
+                  {% set part_id = part.id %}
+                  {% set is_completed = video_progress.get(part_id, False) %}
+                  <span class="badge {% if is_completed %}bg-success{% else %}bg-warning{% endif %}">
+                    {% if is_completed %}
+                      <i class='bx bx-check-circle me-1'></i> Completed
+                    {% else %}
+                      <i class='bx bx-time me-1'></i> Pending
+                    {% endif %}
+                  </span>
+                </div>
+
+                {% if part.video_url %}
+                <!-- Video Section -->
+                <div class="video-container">
+                  <video id="video-{{ part.id }}" 
+                         preload="metadata" 
+                         controls
+                         data-part-id="{{ part.id }}">
+                    <source src="{{ part.video_url }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+                {% endif %}
+
+                <!-- Quiz Section (only shown after video completion) -->
+                {% set part_id = part.id %}
+                {% set is_video_completed = video_progress.get(part_id, False) %}
+                {% if part.quizzes.exists() %}
+                  {% if is_video_completed %}
+                    {% for quiz in part.quizzes.all() %}
+                    <div class="quiz-section show" id="quiz-section-{{ part.id }}">
+                      <h6 class="fs-16 fw-semibold mb-3">
+                        <i class='bx bx-file-blank me-2'></i>Quiz: {{ quiz.title|default('Quiz ' ~ loop.index) }}
+                      </h6>
+                      <form method="POST" action="{{ url('counselor:counselor_enrolled_course') }}" id="quizForm{{ quiz.id }}">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        <input type="hidden" name="part_id" value="{{ part.id }}">
+                        
+                        {% if quiz.questions.exists() %}
+                          {% for question in quiz.questions.all() %}
+                          <div class="question-card">
+                            <p class="fs-16 fw-semibold mb-3">{{ question.question_text }}</p>
+                            {% if question.answers.exists() %}
+                              {% for answer in question.answers.all() %}
+                              <div class="form-check mb-2">
+                                <input class="form-check-input" 
+                                       type="radio" 
+                                       name="question_{{ question.id }}" 
+                                       id="answer_{{ answer.id }}" 
+                                       value="{{ answer.id }}"
+                                       required>
+                                <label class="form-check-label" for="answer_{{ answer.id }}">
+                                  {{ answer.answer_text }}
+                                </label>
+                              </div>
+                              {% endfor %}
+                            {% endif %}
+                          </div>
+                          {% endfor %}
                         {% endif %}
-                      </div>
-                      <div class="d-flex gap-2 align-items-center">
-                        {% set part_id = part.id %}
-                        {% set is_completed = video_progress.get(part_id, False) %}
-                        {% if is_completed %}
-                        <span class="badge bg-success">
-                          <i class='bx bx-check-circle me-1'></i> Completed
-                        </span>
-                        {% else %}
-                        <span class="badge bg-warning">
-                          <i class='bx bx-time me-1'></i> Pending
-                        </span>
-                        {% endif %}
-                      </div>
+                        
+                        <button type="submit" class="btn custom-button purple-button mt-3">
+                          Submit Quiz
+                        </button>
+                      </form>
+                    </div>
+                    {% endfor %}
+                  {% else %}
+                  <div class="quiz-section quiz-locked" id="quiz-locked-{{ part.id }}">
+                    <div class="text-center py-4">
+                      <i class='bx bx-lock fs-48 text-gray mb-3'></i>
+                      <p class="fs-16 fw-semibold text-gray mb-2">Quiz Locked</p>
+                      <p class="fs-14 text-gray mb-0">Complete the video to unlock this quiz</p>
                     </div>
                   </div>
-                  {% endfor %}
-                {% else %}
-                <p class="text-gray">No parts available in this chapter.</p>
+                  {% endif %}
                 {% endif %}
+
+                <!-- Notes Section -->
+                <div class="mt-3">
+                  <h6 class="fs-16 fw-semibold mb-2">Notes</h6>
+                  <div id="notesContainer{{ part.id }}">
+                    {% if notes %}
+                      {% for note in notes %}
+                        {% if note.part.id == part.id %}
+                        <div class="bg-light p-2 rounded mb-2">
+                          <small class="text-gray">{{ note.video_timestamp|default('') }}</small>
+                          <p class="mb-0 fs-14">{{ note.content }}</p>
+                        </div>
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
+                  </div>
+                  <button type="button" 
+                          class="btn btn-sm btn-outline-primary mt-2" 
+                          onclick="showAddNoteModal({{ part.id }})">
+                    <i class='bx bx-plus me-1'></i> Add Note
+                  </button>
+                </div>
               </div>
               {% endfor %}
             {% else %}
-            <p class="text-center text-gray">No chapters available for this course.</p>
+            <p class="text-gray">No parts available in this chapter.</p>
+            {% endif %}
+
+            <!-- Next Chapter Button -->
+            {% if is_chapter_completed %}
+              {% if is_last_chapter %}
+                <!-- Show Certificate on Last Chapter Completion -->
+                {% if certification %}
+                <div class="next-chapter-btn">
+                  <div class="certificate-badge">
+                    <i class='bx bx-award fs-64 mb-3'></i>
+                    <h3 class="fs-24 fw-bold mb-2">Congratulations!</h3>
+                    <p class="fs-18 mb-2">You have completed the course!</p>
+                    <p class="fs-16 mb-2">Grade: <strong>{{ certification.grade }}</strong></p>
+                    <p class="fs-14 mb-0">Certificate Code: {{ certification.certificate_code }}</p>
+                  </div>
+                </div>
+                {% else %}
+                <div class="next-chapter-btn">
+                  <div class="alert alert-info">
+                    <i class='bx bx-info-circle me-2'></i>
+                    You have completed all chapters! Certificate will be issued soon.
+                  </div>
+                </div>
+                {% endif %}
+              {% elif has_next_chapter %}
+              <div class="next-chapter-btn">
+                <button class="btn custom-button purple-button btn-lg" onclick="goToChapter({{ current_chapter_index + 1 }})">
+                  Next Chapter <i class='bx bx-chevron-right ms-2'></i>
+                </button>
+              </div>
+              {% endif %}
             {% endif %}
           </div>
         </div>
+        {% else %}
+        <div class="card">
+          <div class="card-body text-center">
+            <p class="text-gray">No chapter available.</p>
+          </div>
+        </div>
+        {% endif %}
+
         {% else %}
         <div class="card">
           <div class="card-body text-center">
@@ -149,5 +319,213 @@
     </div>
   </div>
 </section>
+
+<!-- Add Note Modal -->
+<div class="modal fade" id="addNoteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Note</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="addNoteForm">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="part_id" id="notePartId">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Video Timestamp</label>
+            <input type="text" name="time" id="noteTime" class="form-control custom-input" placeholder="00:00:00">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Note Content</label>
+            <textarea name="content" id="noteContent" class="form-control custom-input" rows="4" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Save Note</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
+{% block additionaljs %}
+{{ super() }}
+<script>
+  // Function to navigate to a specific chapter
+  function goToChapter(chapterIndex) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('chapter', chapterIndex);
+    window.location.href = url.toString();
+  }
+
+  // Check chapter completion periodically
+  function checkChapterCompletion() {
+    const currentChapterIndex = {{ current_chapter_index }};
+    const isCompleted = {{ 'true' if is_chapter_completed else 'false' }};
+    
+    if (isCompleted && !document.querySelector('.next-chapter-btn button')) {
+      // Reload page to show next button
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  }
+
+  // Video progress tracking
+  document.querySelectorAll('video').forEach(video => {
+    const partId = video.getAttribute('data-part-id');
+    
+    // Load saved progress
+    if (partId) {
+      fetch('{{ url("counselor:get_progress_and_duration", args=["video-0"]) }}'.replace('video-0', 'video-' + partId))
+        .then(response => {
+          if (!response.ok) {
+            // Handle 404 or other errors gracefully
+            return { status: 'success', progress: 0, duration: null };
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.status === 'success' && data.progress && video.duration && data.progress > 0) {
+            video.currentTime = (data.progress / 100) * video.duration;
+          }
+        })
+        .catch(err => {
+          // Silently handle errors - video will start from beginning
+          console.debug('No saved progress found for video-' + partId);
+        });
+    }
+    
+    video.addEventListener('timeupdate', function() {
+      if (this.duration) {
+        const progress = (this.currentTime / this.duration) * 100;
+        updateVideoProgress('video-' + partId, progress, this.duration);
+      }
+    });
+    
+    video.addEventListener('ended', function() {
+      if (this.duration) {
+        updateVideoProgress('video-' + partId, 100, this.duration);
+        // Hide locked quiz message and show quiz form
+        const quizLocked = document.getElementById('quiz-locked-' + partId);
+        const quizSection = document.getElementById('quiz-section-' + partId);
+        if (quizLocked) {
+          quizLocked.style.display = 'none';
+        }
+        if (quizSection) {
+          quizSection.classList.add('show');
+          // Scroll to quiz section
+          setTimeout(() => {
+            quizSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 500);
+        }
+        // Reload page to update sidebar status
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+        // Check if chapter is completed after video ends
+        setTimeout(checkChapterCompletion, 500);
+      }
+    });
+    
+    // Check if video is already completed on load
+    if (partId) {
+      fetch('{{ url("counselor:get_progress_and_duration", args=["video-0"]) }}'.replace('video-0', 'video-' + partId))
+        .then(response => {
+          if (!response.ok) {
+            return { status: 'success', progress: 0, duration: null };
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.status === 'success' && data.progress >= 100) {
+            const quizLocked = document.getElementById('quiz-locked-' + partId);
+            const quizSection = document.getElementById('quiz-section-' + partId);
+            if (quizLocked) {
+              quizLocked.style.display = 'none';
+            }
+            if (quizSection) {
+              quizSection.classList.add('show');
+            }
+          }
+        })
+        .catch(err => {
+          // Silently handle errors
+          console.debug('No saved progress found for video-' + partId);
+        });
+    }
+  });
+
+  function updateVideoProgress(videoId, progress, duration) {
+    fetch('{{ url("counselor:update_progress") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        video_id: videoId,
+        progress: progress,
+        duration: duration
+      })
+    }).then(response => {
+      if (response.ok) {
+        checkChapterCompletion();
+      }
+    }).catch(err => console.error('Error updating progress:', err));
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function showAddNoteModal(partId) {
+    document.getElementById('notePartId').value = partId;
+    const modal = new bootstrap.Modal(document.getElementById('addNoteModal'));
+    modal.show();
+  }
+
+  // Add note form submission
+  document.getElementById('addNoteForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const partId = formData.get('part_id');
+    
+    fetch('{{ url("counselor:add_note", args=[0]) }}'.replace('0', partId), {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Add note to container
+      const container = document.getElementById('notesContainer' + partId);
+      const noteHtml = `
+        <div class="bg-light p-2 rounded mb-2">
+          <small class="text-gray">${data.time || ''}</small>
+          <p class="mb-0 fs-14">${data.content}</p>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', noteHtml);
+      
+      // Close modal and reset form
+      bootstrap.Modal.getInstance(document.getElementById('addNoteModal')).hide();
+      this.reset();
+    })
+    .catch(err => console.error('Error adding note:', err));
+  });
+</script>
+{% endblock %}

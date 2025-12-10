@@ -333,4 +333,4 @@ def deletehistory(request):
 def page404(request,exception):
     ctx={}
     ctx["html_head"] = build_html_head(title="404 | Error")
-    return render(request,"topteenfrontend/404page.html",ctx)
+    return render(request,"template20/404.html",ctx)

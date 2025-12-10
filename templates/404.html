@@ -15,28 +15,62 @@
       </p>
       <p class="font-medium text-[16px] leading-[1.68em] text-[#0F0F0F] text-opacity-70 mb-[34px] lg:text-left text-center" style="font-size: 30px;margin-left: 40px;">You can visit our other pages</p>
       <div class="flex lg:flex-row lg:justify-center lg:gap-x-[29px] flex-col gap-y-[25px] mx-auto mb-6">
-        <a href="/">
+        <a href="{{ url('core:home') }}">
             <button class="uppercase w-full px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
               Home
             </button>
           </a>
         
                 
-          {% if request.user.user_type == 1 %}
-
-        <a href="/psychometric/home">
-          <button class="uppercase w-full px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
-            Stream Sorter
-          </button>
-        </a>
-
-        <a href="/api/web/home">
-          <button class="uppercase w-full px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
-            Career Direction
-          </button>
-        </a>
-
-        {% endif %}
+          {% if request.user.is_authenticated and request.user.user_type == 1 %}
+            {# Student - Show Stream Sorter and Career Direction based on class #}
+            {% set student_management = request.user.student_management.all() %}
+            {% set user_profile = request.user.user_profile %}
+            {% set user_grade = None %}
+            
+            {% if student_management|length > 0 %}
+              {% set sm = student_management[0] %}
+              {% if sm.class_and_section %}
+                {% set class_name = sm.class_and_section.class_and_section %}
+                {% if class_name %}
+                  {% set class_prefix = class_name[:2].strip() %}
+                  {% if class_prefix == "11" or class_prefix == "12" %}
+                    {% set user_grade = "12" %}
+                  {% else %}
+                    {% set user_grade = "10" %}
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            {% elif user_profile and user_profile.grade %}
+              {% set user_grade = user_profile.grade|string %}
+            {% endif %}
+            
+            {% if user_grade == "10" %}
+              <a href="{{ url('app:test_buttons') }}">
+                <button class="uppercase w-full px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
+                  Stream Sorter Dashboard
+                </button>
+              </a>
+            {% elif user_grade == "12" %}
+              <a href="{{ url('post_matric:tests') }}">
+                <button class="uppercase w-full px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
+                  Career Direction Dashboard
+                </button>
+              </a>
+            {% else %}
+              {# Show both options if grade not determined #}
+              <a href="{{ url('app:test_buttons') }}">
+                <button class="uppercase w-full px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
+                  Stream Sorter
+                </button>
+              </a>
+              <a href="{{ url('post_matric:tests') }}">
+                <button class="uppercase w-full px-[35px] py-[13px] bg-[#3F37C9] rounded-[10px] text-xs text-white boldFont tracking-[0.01em] border-b-[6px] border-[#2E289D]">
+                  Career Direction
+                </button>
+              </a>
+            {% endif %}
+          {% endif %}
       </div>
     </div>
   </div>

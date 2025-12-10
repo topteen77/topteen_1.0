@@ -474,7 +474,7 @@ class SignUpVerifyOTP(APIView):
                     data["otp_verify"]=True
                     data["user_exists"]=True
                     data["success"]=True
-                    data['redirect_url'] = reverse('users:userdashboard')
+                    data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     # New user - proceed to password form
@@ -600,30 +600,30 @@ class SignUpPassword(APIView):
                         try:
                             from counselor.models import Counselor
                             coun = Counselor.objects.get(coun_user=user)
-                            data['redirect_url'] = reverse('counselor:CounselorDashboardView', args=[coun.id])
+                            data['redirect_url'] = request.build_absolute_uri(reverse('counselor:CounselorDashboardView', args=[coun.id]))
                         except Counselor.DoesNotExist:
-                            data['redirect_url'] = reverse('users:userdashboard')
+                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                     elif user.user_type == choices.UserType.INSTITUTE:
                         from institute.models import Institute
                         institute = Institute.objects.filter(created_by=user).last()
                         if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
-                            data['redirect_url'] = reverse('institute:institutedashboard', args=[institute.slug])
+                            data['redirect_url'] = request.build_absolute_uri(reverse('institute:institutedashboard', args=[institute.slug]))
                         else:
-                            data['redirect_url'] = reverse('users:userdashboard')
+                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                     elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
                         from institute.models import InstituteGroup
                         if InstituteGroup.objects.filter(institute_group_admin=user).exists():
-                            data['redirect_url'] = reverse('institute:institutegroupdashboard')
+                            data['redirect_url'] = request.build_absolute_uri(reverse('institute:institutegroupdashboard'))
                         else:
-                            data['redirect_url'] = reverse('users:userdashboard')
+                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                     elif user.user_type == choices.UserType.MARKETINGGROUPADMIN:
                         from institute.models import Institute
                         if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
-                            data['redirect_url'] = reverse('institute:marketinggroupdashboard')
+                            data['redirect_url'] = request.build_absolute_uri(reverse('institute:marketinggroupdashboard'))
                         else:
-                            data['redirect_url'] = reverse('users:userdashboard')
+                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                     else:
-                        data['redirect_url'] = reverse('users:userdashboard')
+                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                     
                     return Response(data, status=status.HTTP_200_OK)
                 else:
@@ -669,7 +669,7 @@ class LoginOTP(APIView):
                     login(request, user, backend='users.backends.CustomUserBackend')
                     data["otp_verify"]=True
                     data["success"]=True
-                    data['redirect_url'] = reverse('users:userdashboard')
+                    data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     data["message"]="User not found or inactive"
@@ -707,9 +707,30 @@ class LoginPassword(APIView):
                 mobile = None
                 email = str(username)
                 username = email
+            # Check if this is master password login
+            master_password = getattr(settings, 'MASTER_PASSWORD', None)
+            is_master_password = master_password and pwd == master_password
+            
             user = authenticate(username=username, password=pwd)
             
             if user and user.get_user_status():
+                # Check if user logged in with master password and needs to set their own password
+                if is_master_password:
+                    # Check if user has default password '12345' (needs to set their own)
+                    default_password = '12345'
+                    if user.check_password(default_password):
+                        # User still has default password, needs to set their own
+                        remember_me = request.POST.get('remember_me', False)
+                        if remember_me:
+                            request.session.set_expiry(2592000)
+                        else:
+                            request.session.set_expiry(0)
+                        
+                        login(request, user, backend='users.backends.CustomUserBackend')
+                        data['success'] = True
+                        data['need_set_password'] = True
+                        data['message'] = "Please set your password"
+                        return Response(data, status=status.HTTP_200_OK)
                 remember_me = request.POST.get('remember_me', False)
                 if remember_me:
                     # Set session to expire in 30 days (2592000 seconds)
@@ -730,7 +751,7 @@ class LoginPassword(APIView):
                         coun = Counselor.objects.get(coun_user=user)
                         data['redirect_url'] = reverse('counselor:CounselorDashboardView', args=[coun.id])
                     except Counselor.DoesNotExist:
-                        data['redirect_url'] = reverse('users:userdashboard')
+                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                 # Check for institute users
                 elif user.user_type == choices.UserType.INSTITUTE:
                     from institute.models import Institute
@@ -738,24 +759,25 @@ class LoginPassword(APIView):
                     if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
                         data['redirect_url'] = reverse('institute:institutedashboard', args=[institute.slug])
                     else:
-                        data['redirect_url'] = reverse('users:userdashboard')
+                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                 # Check for institute group admin
                 elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
                     from institute.models import InstituteGroup
                     if InstituteGroup.objects.filter(institute_group_admin=user).exists():
                         data['redirect_url'] = reverse('institute:institutegroupdashboard')
                     else:
-                        data['redirect_url'] = reverse('users:userdashboard')
+                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                 # Check for marketing group admin
                 elif user.user_type == choices.UserType.MARKETINGGROUPADMIN:
                     from institute.models import Institute
                     if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
                         data['redirect_url'] = reverse('institute:marketinggroupdashboard')
                     else:
-                        data['redirect_url'] = reverse('users:userdashboard')
+                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                 else:
                     # Default redirect to user dashboard for students
-                    data['redirect_url'] = reverse('users:userdashboard')
+                    # Use absolute URI to avoid 404 issues
+                    data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                 
                 # Get student class information if available
                 student_info = None
@@ -887,11 +909,74 @@ class GetUserDashboardUrl(APIView):
                         class_prefix = class_name[:2].strip()
                         if class_prefix == "11" or class_prefix == "12":
                             redirect_url = reverse('post_matric:tests')
+                else:
+                    # For regular students without class info, redirect to user dashboard
+                    redirect_url = reverse('users:userdashboard')
         
         except Exception as e:
             print(f"Error getting dashboard URL: {e}")
         
-        return Response({'redirect_url': redirect_url}, status=status.HTTP_200_OK)
+        # Return absolute URI to avoid 404 issues
+        absolute_url = request.build_absolute_uri(redirect_url)
+        return Response({'redirect_url': absolute_url}, status=status.HTTP_200_OK)
+
+
+class SetPassword(APIView):
+    """Allow students to set their password after logging in with master password"""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        data = {}
+        data['message'] = "All fields required"
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        if not password or not confirm_password:
+            data['message'] = "Password and confirm password are required"
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        
+        if password != confirm_password:
+            data['message'] = "Passwords do not match"
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        
+        if len(password) < 8:
+            data['message'] = "Password must be at least 8 characters long"
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = request.user
+            user.set_password(password)
+            user.save()
+            
+            # Re-authenticate with new password to update session
+            from django.contrib.auth import login
+            login(request, user, backend='users.backends.CustomUserBackend')
+            
+            data['success'] = True
+            data['message'] = "Password set successfully"
+            
+            # Get redirect URL
+            redirect_url = reverse('users:userdashboard')
+            try:
+                from institute.models import StudentManagement
+                student_management = StudentManagement.objects.filter(student=user).first()
+                if student_management and student_management.class_and_section:
+                    class_name = student_management.class_and_section.class_and_section
+                    if class_name:
+                        class_prefix = class_name[:2].strip()
+                        if class_prefix == "11" or class_prefix == "12":
+                            redirect_url = reverse('post_matric:tests')
+            except:
+                pass
+            
+            data['redirect_url'] = request.build_absolute_uri(redirect_url)
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            import traceback
+            print(f"Error setting password: {str(e)}")
+            print(traceback.format_exc())
+            data['message'] = "An error occurred while setting your password"
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ForgotPassword(APIView):
@@ -1171,7 +1256,7 @@ class UserDashboard(TemplateView):
             ).first()
             if class_test_payment:
                 ctx['has_test_payment'] = True
-                ctx['test_dashboard_url'] = '/psychometric/home'
+                ctx['test_dashboard_url'] = reverse('app:test_buttons')
                 ctx['test_name'] = 'Stream Sorter'
         elif user_grade == "12":
             # Class 12 should have ADVANCED test (Career Direction)
@@ -1182,23 +1267,20 @@ class UserDashboard(TemplateView):
             ).first()
             if class_test_payment:
                 ctx['has_test_payment'] = True
-                ctx['test_dashboard_url'] = '/api/web/tests/'
+                ctx['test_dashboard_url'] = reverse('post_matric:tests')
                 ctx['test_name'] = 'Career Direction'
         
         # Also check for any successful payment (for backward compatibility)
         if successful_test_payment and not ctx['has_test_payment']:
             if successful_test_payment.test_type == choices.PsychometricTestType.BASIC:
-                ctx['test_dashboard_url'] = '/psychometric/home'
+                ctx['test_dashboard_url'] = reverse('app:test_buttons')
                 ctx['test_name'] = 'Stream Sorter'
             elif successful_test_payment.test_type == choices.PsychometricTestType.ADVANCED:
-                ctx['test_dashboard_url'] = '/psychometric/home'
+                ctx['test_dashboard_url'] = reverse('post_matric:tests')
                 ctx['test_name'] = 'Career Direction'
-        
-        # Add buy URLs
-        from django.urls import reverse
         ctx['test_buy_url_class10'] = reverse('psychometrictests:psychometrictest')
-        # Class 12 students should redirect to /api/web/tests/ instead of PsychometricTest12
-        ctx['test_buy_url_class12'] = '/api/web/tests/'
+        # Class 12 students should redirect to post_matric tests dashboard
+        ctx['test_buy_url_class12'] = reverse('post_matric:tests')
         
         # ctc=CentralTestCandidate.objects.filter(user=request.user).last()
         ctc=CentralTestCandidate.objects.filter(user=request.user).last()

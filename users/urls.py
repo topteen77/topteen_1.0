@@ -17,6 +17,7 @@ urlpatterns = [
    path('signuppwd/',views.SignUpPassword.as_view(),name='signuppwd'),
    path('loginotp/',views.LoginOTP.as_view(),name='loginotp'),
    path('loginpwd/',views.LoginPassword.as_view(),name="loginpwd"),
+   path('set-password/',views.SetPassword.as_view(),name="setpassword"),
    path('get-dashboard-url/',views.GetUserDashboardUrl.as_view(),name="getdashboardurl"),
    path('forgotpassword/',views.ForgotPassword.as_view(),name="forgotpassword"),
    path('forgotpasswordotp/',views.ForgotPasswordVerifyOTP.as_view(),name="forgotpasswordotp"),

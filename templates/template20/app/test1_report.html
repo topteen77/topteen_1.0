@@ -1,0 +1,488 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Personality Assessment Report | Top Teen{% endblock %}
+{% block description_content %}View your Personality Assessment report.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} report-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .report-page {
+    background: #f5f5f5;
+  }
+  
+  .report-container {
+    max-width: 1000px;
+    margin: 80px auto 0;
+    background: white;
+    padding: 20px;
+    padding-bottom: 80px;
+  }
+  
+  .report-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #3F37C9;
+  }
+  
+  .report-header h1 {
+    color: #3F37C9;
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+  
+  .download-btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background: #3F37C9;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .download-btn:hover {
+    background: #2E289D;
+  }
+  
+  .download-btn.old-download {
+    background: #6c757d;
+    margin-left: 10px;
+  }
+  
+  .download-btn.old-download:hover {
+    background: #5a6268;
+  }
+  
+  .download-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+  }
+  
+  /* Sticky Download Button */
+  .sticky-download-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 15px 20px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .sticky-download-btn {
+    padding: 12px 30px;
+    background: #3F37C9;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.3s ease;
+  }
+  
+  .sticky-download-btn:hover {
+    background: #2E289D;
+    color: white;
+  }
+  
+  
+  .chapterPage {
+    width: 100%;
+    margin: 20px 0;
+    padding: 20px;
+    clear: both;
+  }
+  
+  .text-color-top {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .top-layout {
+    background: #3F37C9;
+    color: #fff;
+    font-size: 16px;
+    padding: 11px 38px;
+    margin-top: 28px;
+    font-weight: 600;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .db-header {
+    margin-top: 10px;
+    text-align: center;
+  }
+  
+  .db-header h1 {
+    color: #3F37C9;
+    font-size: 24pt;
+    margin: 0 0 10px 0;
+  }
+  
+  .text-info-paragraph {
+    margin: 15px 0;
+  }
+  
+  .text-info-paragraph p {
+    font-size: 14px;
+    color: #494949;
+    line-height: 1.6;
+  }
+  
+  .test-title {
+    color: #000;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 10px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+  
+  table th {
+    background: #E7E5FF;
+    color: #2720A7;
+    padding: 21px 0 21px 14px;
+    text-align: left;
+  }
+  
+  table th:first-child {
+    border-top-left-radius: 15px;
+  }
+  
+  table th:last-child {
+    border-top-right-radius: 15px;
+  }
+  
+  table td {
+    padding: 10px 14px;
+    border: 1px solid #9490dd;
+  }
+  
+  .threebox-col {
+    display: inline-block;
+    margin: 20px 8px;
+  }
+  
+  .box-i.onebox {
+    background: #ffe5e6;
+    border-radius: 10px;
+    text-align: center;
+    border-right: 4px solid #3F37C9;
+    border-bottom: 4px solid #3F37C9;
+    width: 190px;
+    height: 100px;
+    padding: 15px;
+  }
+  
+  .two-box {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0;
+  }
+  
+  .two-box-in {
+    width: 300px;
+    padding: 10px;
+    margin: 10px;
+    background: #E7E5FF;
+    border-radius: 10px;
+    border-right: 3px solid #3F37CB;
+    border-bottom: 3px solid #3F37C9;
+    text-align: center;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .two-box-in .img-tow {
+    margin-top: 16px;
+  }
+  
+  .two-box-in p {
+    list-style: none;
+    margin: 10px 0 0 0;
+    padding: 0;
+  }
+  
+  .cat-box {
+    margin: 20px 0;
+  }
+  
+  .cat-head {
+    background: #3F37C9;
+    color: #fff;
+    padding: 10px;
+  }
+  
+  .cat-head h4 {
+    margin: 0;
+    font-size: 16px;
+  }
+  
+  .cat-list ul {
+    column-count: 3;
+    padding: 6px;
+  }
+  
+  .cat-list li {
+    margin: 5px 0;
+  }
+  
+  .graph {
+    width: 100%;
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  .graph img {
+    max-width: 550px;
+    height: auto;
+  }
+  
+  .no-results {
+    text-align: center;
+    padding: 40px;
+  }
+  
+  .no-results h3 {
+    color: #3F37C9;
+    margin-bottom: 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-container">
+ 
+
+  {% if no_results %}
+  <div class="no-results">
+    <h3>No Results Found</h3>
+    <p>{{ error if error else "You need to complete the Personality Assessment test to generate a report." }}</p>
+    <a href="{{ url('app:test_buttons') }}" class="download-btn">
+      <i class="fas fa-arrow-right"></i> Take Test
+    </a>
+  </div>
+  {% else %}
+  
+  <!-- Part 1: Personality Assessment Report -->
+  {% if personality_data and personality_data.results %}
+  <div class="chapterPage">
+
+    <div class="text-color-top">
+      <div class="top-layout" style="font-size: 16px;">Part -1</div>
+    </div>
+    <div class="db-header" style="margin-top: 10px;">
+      <h1 style="color: #3F37C9;">PERSONALITY ASSESSMENT REPORT</h1>
+    </div>
+    <div class="text-info-paragraph">
+      <p>This report is based on the <strong>RIASEC</strong> model, developed by John Holland, which categorizes career interests into six distinct types: <strong>Realistic, Investigative, Artistic, Social, Enterprising, and Conventional</strong>. By identifying your dominant interest types, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
+    </div>
+    <div class="test-title">Holland's Code description</div>
+    <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px;">
+      <img style="width:600px;" src="{{ static('images/riasec-ig.png') }}" alt="riasec" />
+    </div>
+  </div>
+
+  <div class="chapterPage">
+    <hr />
+    <table style="margin-bottom: 30px; margin-top:0px;">
+      <thead>
+        <tr>
+          <th style="border-top-left-radius: 15px; font-size: 14px;">Holland Code</th>
+          <th style="border-top-right-radius: 15px;">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="width: 200px; padding-left:14px; text-align: center;">
+            <div class="r-img">
+              <img style="width:45px;" src="{{ static('images/r.png') }}" alt="text" /><br>
+              <span style="color:#057190; font-size: 14px; font-weight: 600;">Realistic</span>
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+            Individuals with Realistic interests prefer hands-on activities and practical tasks. They enjoy working with tools, machines, or animals & often excel in environments that require physical activity & problem-solving. Careers that suit Realistic types include engineering, construction, agriculture, and skilled trades.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left:14px; text-align: center;">
+            <div class="1-img">
+              <img style="width:45px;" src="{{ static('images/i.png') }}" alt="text" /><br>
+              <span style="color:#A92CAF; font-size: 16px; font-weight: 600;">Investigative</span>
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+            Investigative individuals are curious and analytical, often drawn to research and intellectual challenges. They enjoy exploring ideas, conducting experiments, and solving complex problems. Suitable careers include those in science, medicine, technology, and academia, where critical thinking and data analysis are paramount.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left:14px; text-align: center;">
+            <div class="1-img">
+              <img style="width:45px;" src="{{ static('images/a.png') }}" alt="text" /><br>
+              <span style="color:#2A740E; font-size: 16px; font-weight: 600;">Artistic</span>
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">Artistic individuals thrive in creative and expressive environments. They enjoy activities that involve art, music, writing, and design, often seeking opportunities to innovate and express themselves. Careers in the arts, entertainment, fashion, and media are ideal for Artistic types, as they allow for personal expression and creativity.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left:14px; text-align: center;">
+            <div class="1-img">
+              <img style="width:45px;" src="{{ static('images/s.png') }}" alt="text" /><br>
+              <span style="color:#6D5C04; font-size: 16px; font-weight: 600;">Social</span>
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">Social individuals are empathetic and enjoy helping others. They excel in roles that involve teaching, counseling, and providing support. Careers in education, healthcare, social work, and human resources are well-suited for Social types, where they can make a positive impact on people's lives.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left:14px; text-align: center;">
+            <div class="1-img">
+              <img style="width:45px;" src="{{ static('images/e.png') }}" alt="text" /><br>
+              <span style="color:#A22717; font-size: 16px; font-weight: 600;">Enterprising</span>
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+            Enterprising individuals are natural leaders and persuaders. They enjoy activities that involve leading teams, making decisions, and taking risks. They often thrive in dynamic environments where they can influence others and achieve goals. Careers in business, management, sales, and entrepreneurship are ideal for Enterprising types, who are driven by ambition and leadership opportunities.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left:14px; text-align: center;">
+            <div class="1-img">
+              <img style="width:45px;" src="{{ static('images/c.png') }}" alt="text" /><br>
+              <span style="color:#0B5BA1; font-size: 16px; font-weight: 600;">Conventional</span>
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+            Conventional individuals prefer structured and orderly tasks. They excel in roles that involve organization, data management, and attention to detail. Careers in accounting, administration, finance, and logistics suit Conventional types, where precision and reliability is the key.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="chapterPage">
+    <hr />
+    <div class="db-header">
+      <h1>Interpretation & Recommendations</h1>
+    </div>
+    <div class="text-info-paragraph" style="margin-bottom: 0px; text-align: center;">
+      <p>Based on your test results, your strongest areas of interest are:</p>
+    </div>
+
+    {% if top_category %}
+    <div class="text-color-top">
+      <div class="top-layout" style="font-size: 16px;">
+        {{ top_category.fullname if top_category.fullname else top_category.category }}
+      </div>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; justify-content: center;">
+      {% if personality_data.top_categories %}
+      {% for result in personality_data.top_categories %}
+      <div class="threebox-col">
+        <div class="box-i onebox">
+          <p style="color: #120d77;font-weight: 700;font-size: 23px;margin-bottom: 0px;">{{ result.score }}</p>
+          <p style="color: #494949;font-size: 18px;font-weight: 600;margin-bottom: 0px;">{{ result.category }}</p>
+        </div>
+      </div>
+      {% endfor %}
+      {% endif %}
+    </div>
+
+    {% if top_category and top_category.summary %}
+    <div class="text-info-paragraph" style="background: #E5F9FF; width: 100%; border-radius:6px; float: left; padding:10px; margin:10px 0;">
+      <p style="font-size: 14px;">{{ top_category.summary }}</p>
+    </div>
+    {% endif %}
+
+    {% if user_name and user_ID %}
+    <div class="graph">
+      <img style="width:550px;" src="/media/graph_images/{{ user_name }}-{{ user_ID }}_personality_Assessment.png" alt="graph" />
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="chapterPage">
+    <div class="two-box">
+      {% if streamsubject %}
+      {% for stream, subject in streamsubject %}
+      <div class="two-box-in">
+        <div class="img-tow">
+          <img style="width:50px; margin-bottom:0px;" src="{{ static('images/pcm-icon.png') }}" alt="img">
+        </div>
+        <div style="color: #000; font-size: 14px; margin-bottom: 0px; margin-top: 0px; text-align: center; width:100%; font-weight: 600;">
+          {{ stream }}
+        </div>
+        <p style="font-size: 14px; width:100%; text-align: center; margin-top: 10px;">{{ subject }}</p>
+      </div>
+      {% endfor %}
+      {% endif %}
+    </div>
+
+    {% if courseName %}
+    <div class="cat-box cat-one-box">
+      <div class="cat-head" style="background: #3F37C9; color:#fff; margin: 0px;">
+        <h4 style="font-size: 16px; width:600px; margin: 0px;">Suggested Careers</h4>
+      </div>
+      <div class="cat-list" style="padding:6px; margin-top:0px;">
+        <ul style="column-count:3;">
+          {% for value in courseName %}
+          <li>{{ value }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+  
+  {% endif %}
+  
+  <!-- Sticky Download Button -->
+  {% if not no_results %}
+  <div class="sticky-download-container">
+    {% if viewing_as_admin and user_ID %}
+      {% set pdf_url = url('app:test1_report_pdf', args=[user_ID]) %}
+    {% else %}
+      {% set pdf_url = url('app:test1_report_pdf') %}
+    {% endif %}
+    <a href="{{ pdf_url }}" class="sticky-download-btn">
+      <i class="fas fa-download"></i> Download PDF
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+

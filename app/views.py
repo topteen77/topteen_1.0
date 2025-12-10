@@ -16,6 +16,8 @@ import shutil
 import weasyprint
 from django.conf import settings
 import csv
+from django.contrib.staticfiles import finders
+import re
 from django.shortcuts import get_object_or_404
 # from django.contrib.auth.models import User
 from .models import TestCompletion,Answer,Results
@@ -431,6 +433,315 @@ def Assessment_pdf_inst_user(request, user_id=None):
     }
     return render(request, 'Asessment_report.html',context)
 
+
+@login_required(login_url=reverse_lazy('users:login'))
+def class10_combined_report(request, user_id=None):
+    """
+    View to generate and display the combined assessment report for Class 10 students.
+    Similar to Class 12's CombinedReport but adapted for Class 10 structure.
+    """
+    try:
+        # Get the target user (student) whose report we want to view
+        if user_id:
+            target_user = get_object_or_404(User, id=user_id)
+        else:
+            target_user = request.user
+        
+        # Check if user has attempted tests
+        if not has_attempted_test(target_user):
+            return render(request, 'template20/app/class10_combined_report.html', {
+                'error': 'No completed test found. Please complete all tests first.',
+                'no_results': True,
+                'user': target_user
+            })
+        
+        # Get test completion status
+        try:
+            test_completion = TestCompletion.objects.get(user=target_user)
+        except TestCompletion.DoesNotExist:
+            test_completion = None
+        
+        # Check if all 3 tests are completed
+        test1_completed = Results.objects.filter(user=target_user, test_paper='test1').exists()
+        test2_completed = Results.objects.filter(user=target_user, test_paper='test2').exists()
+        test3_completed = Results.objects.filter(user=target_user, test_paper='test3').exists()
+        
+        all_tests_completed = test1_completed and test2_completed and test3_completed
+        
+        if not all_tests_completed:
+            return render(request, 'template20/app/class10_combined_report_new.html', {
+                'error': 'Please complete all three tests (Personality, Interest, and Intelligence) to view your combined report.',
+                'no_results': True,
+                'user': target_user,
+                'test1_completed': test1_completed,
+                'test2_completed': test2_completed,
+                'test3_completed': test3_completed
+            })
+        
+        # Get user profile
+        try:
+            user_profile = target_user.user_profile
+        except UserProfile.DoesNotExist:
+            user_profile = None
+        
+        # Get test results using db_results_inst_user function
+        try:
+            top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
+        except UserHasNotAttemptedTestException:
+            return render(request, 'template20/app/class10_combined_report_new.html', {
+                'error': 'User hasn\'t attempted the test yet. Please complete the test first.',
+                'no_results': True,
+                'user': target_user
+            })
+        except Exception as e:
+            import traceback
+            print(f"Error in db_results_inst_user for user {target_user.id}: {str(e)}")
+            print(traceback.format_exc())
+            top_category = None
+            streamsubject = set()
+            courseName = set()
+            max_length = ''
+            min_length = ''
+            below = []
+            avg = []
+            above_avg = []
+            top_categories = []
+        
+        # Get individual test results
+        test1_result = None
+        test2_result = None
+        test3_result = None
+        
+        try:
+            test1_result = Results.objects.get(user=target_user, test_paper='test1')
+        except Results.DoesNotExist:
+            pass
+        
+        try:
+            test2_result = Results.objects.get(user=target_user, test_paper='test2')
+        except Results.DoesNotExist:
+            pass
+        
+        try:
+            test3_result = Results.objects.get(user=target_user, test_paper='test3')
+        except Results.DoesNotExist:
+            pass
+        
+        # Process personality test data (test1)
+        personality_data = {}
+        if test1_result and test1_result.results:
+            sorted_results = sorted(test1_result.results.items(), key=lambda x: x[1], reverse=True)
+            personality_data = {
+                'results': dict(sorted_results),
+                'top_categories': top_categories,
+                'top_category': top_category
+            }
+        
+        # Process interest test data (test2)
+        interest_data = {}
+        if test2_result and test2_result.scores:
+            interest_data = {
+                'scores': test2_result.scores,
+                'max_category': max_length,
+                'min_category': min_length
+            }
+        
+        # Process intelligence test data (test3)
+        intelligence_data = {}
+        if test3_result and test3_result.scores:
+            scores = {label.split("_")[0].upper(): value for label, value in test3_result.scores.items()}
+            intelligence_data = {
+                'scores': scores,
+                'below_avg': below,
+                'average': avg,
+                'above_avg': above_avg
+            }
+        
+        # Build context
+        context = {
+            'user': target_user,
+            'user_profile': user_profile,
+            'all_tests_completed': all_tests_completed,
+            'test1_completed': test1_completed,
+            'test2_completed': test2_completed,
+            'test3_completed': test3_completed,
+            
+            # Test results
+            'test1_result': test1_result,
+            'test2_result': test2_result,
+            'test3_result': test3_result,
+            
+            # Processed data
+            'personality_data': personality_data,
+            'interest_data': interest_data,
+            'intelligence_data': intelligence_data,
+            
+            # Recommendations
+            'top_category': top_category,
+            'streamsubject': streamsubject,
+            'courseName': courseName,
+            'top_categories': top_categories,
+            
+            # Additional data
+            'max_length': max_length,
+            'min_length': min_length,
+            'below': below,
+            'avg': avg,
+            'above_avg': above_avg,
+            
+            'no_results': False,
+            'viewing_as_admin': user_id is not None and user_id != request.user.id,
+            'user_id': user_id if user_id else target_user.id
+        }
+        
+        return render(request, 'template20/app/class10_combined_report_new.html', context)
+        
+    except Exception as e:
+        import traceback
+        trace = traceback.format_exc()
+        print(f"Error in class10_combined_report: {str(e)}")
+        print(trace)
+        return render(request, 'template20/app/class10_combined_report_new.html', {
+            'error': f'An error occurred: {str(e)}',
+            'traceback': trace,
+            'no_results': True
+        })
+
+
+@login_required(login_url=reverse_lazy('users:login'))
+def class10_report_download_pdf(request, user_id=None):
+    """
+    Generate and download PDF for Class 10 combined report.
+    """
+    try:
+        import weasyprint
+        import ssl
+        from datetime import datetime
+        
+        # Get the target user
+        if user_id:
+            target_user = get_object_or_404(User, id=user_id)
+        else:
+            target_user = request.user
+        
+        # Check if user has attempted tests
+        if not has_attempted_test(target_user):
+            return HttpResponse('No completed test found. Please complete all tests first.', status=404)
+        
+        # Check if all tests are completed
+        test1_completed = Results.objects.filter(user=target_user, test_paper='test1').exists()
+        test2_completed = Results.objects.filter(user=target_user, test_paper='test2').exists()
+        test3_completed = Results.objects.filter(user=target_user, test_paper='test3').exists()
+        
+        if not (test1_completed and test2_completed and test3_completed):
+            return HttpResponse('Please complete all three tests to download the report.', status=400)
+        
+        # Get user profile
+        try:
+            user_profile = target_user.user_profile
+        except UserProfile.DoesNotExist:
+            user_profile = None
+        
+        # Get test results
+        try:
+            top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
+        except Exception as e:
+            import traceback
+            print(f"Error getting results: {e}")
+            print(traceback.format_exc())
+            return HttpResponse('Error generating report data.', status=500)
+        
+        # Get individual test results
+        test1_result = Results.objects.filter(user=target_user, test_paper='test1').first()
+        test2_result = Results.objects.filter(user=target_user, test_paper='test2').first()
+        test3_result = Results.objects.filter(user=target_user, test_paper='test3').first()
+        
+        # Process personality data
+        personality_data = {}
+        if test1_result and test1_result.results:
+            sorted_results = sorted(test1_result.results.items(), key=lambda x: x[1], reverse=True)
+            personality_data = {
+                'results': dict(sorted_results),
+                'top_categories': top_categories,
+                'top_category': top_category
+            }
+        
+        # Process interest data
+        interest_data = {}
+        if test2_result and test2_result.scores:
+            interest_data = {
+                'scores': test2_result.scores,
+                'max_category': max_length,
+                'min_category': min_length
+            }
+        
+        # Process intelligence data
+        intelligence_data = {}
+        if test3_result and test3_result.scores:
+            scores = {label.split("_")[0].upper(): value for label, value in test3_result.scores.items()}
+            intelligence_data = {
+                'scores': scores,
+                'below_avg': below,
+                'average': avg,
+                'above_avg': above_avg
+            }
+        
+        # Build context for PDF
+        context = {
+            'user': target_user,
+            'user_profile': user_profile,
+            'personality_data': personality_data,
+            'interest_data': interest_data,
+            'intelligence_data': intelligence_data,
+            'top_category': top_category,
+            'streamsubject': streamsubject,
+            'courseName': courseName,
+            'top_categories': top_categories,
+            'max_length': max_length,
+            'min_length': min_length,
+            'below': below,
+            'avg': avg,
+            'above_avg': above_avg,
+            'now': datetime.now(),
+        }
+        
+        # Render HTML template
+        template = get_template('template20/app/class10_combined_report_pdf.html')
+        html = template.render(context)
+        
+        # Configure SSL to disable verification for WeasyPrint
+        original_ssl_context = ssl._create_default_https_context
+        ssl._create_default_https_context = ssl._create_unverified_context
+        
+        try:
+            # Generate PDF
+            pdf_file = weasyprint.HTML(
+                string=html,
+                base_url=request.build_absolute_uri('/')
+            ).write_pdf()
+        finally:
+            # Restore original SSL context
+            ssl._create_default_https_context = original_ssl_context
+        
+        # Create response
+        response = HttpResponse(content_type='application/pdf')
+        user_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
+        # Clean filename - remove special characters
+        import re
+        safe_name = re.sub(r'[^\w\s-]', '', str(user_name))[:50]  # Limit length
+        filename = f"{safe_name}-Stream_Sorter_Combined_Report.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response.write(pdf_file)
+        
+        return response
+        
+    except Exception as e:
+        import traceback
+        print(f"Error in class10_report_download_pdf: {str(e)}")
+        print(traceback.format_exc())
+        return HttpResponse(f'Error generating PDF: {str(e)}', status=500)
+
+
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -567,15 +878,27 @@ def test_buttons(request):
         'test3_started': Results.objects.filter(user=request.user, test_paper='test3').exists(),
     }
 
-    # Check if all test3 subtests are complete
+    # Check if all test3 subtests are complete (same logic as app_submit)
     all_test3_subtests_complete = False
     if test_completion:
-        # Check if all subtests (test3_numerical, test3_logical, test3_verbal) are complete
+        # Check if all subtests are complete using TestCompletion fields
         all_test3_subtests_complete = (
-            Results.objects.filter(user=request.user, test_paper='test3_numerical').exists() and
-            Results.objects.filter(user=request.user, test_paper='test3_logical').exists() and
-            Results.objects.filter(user=request.user, test_paper='test3_verbal').exists()
+            test_completion.numerical_complete and
+            test_completion.verbal_complete and
+            test_completion.logical_complete and
+            test_completion.emotional_complete and
+            test_completion.machanical_complete and
+            test_completion.language_complete and
+            test_completion.spatial_complete
         )
+        
+        # Verify and correct test3_complete status if needed
+        if test_completion.test3_complete and not all_test3_subtests_complete:
+            test_completion.test3_complete = False
+            test_completion.save()
+        elif not test_completion.test3_complete and all_test3_subtests_complete:
+            test_completion.test3_complete = True
+            test_completion.save()
     
     context = {
         'user_profile': user_profile,
@@ -1334,14 +1657,21 @@ def gernate_graph(request):
 
     # Assuming sorted_result contains scores between 0 and 100.
     if sorted_result:
-        original_labels = list(sorted_result.keys())
-        labels = [label.upper() for label in original_labels]
-        values = list(sorted_result.values())
+        # Define RIASEC order: Realistic, Investigative, Artistic, Social, Enterprising, Conventional
+        riasec_order = ['Realistic', 'Investigative', 'Artistic', 'Social', 'Enterprising', 'Conventional']
+        
+        # Reorder labels and values according to RIASEC order
+        labels = []
+        values = []
+        for category in riasec_order:
+            if category in sorted_result:
+                labels.append(category.upper())
+                values.append(sorted_result[category])
 
         # Define figure and axis
         fig, ax = plt.subplots(figsize=(20, 10))
         
-        # Colors for the bars
+        # Colors for the bars (matching RIASEC order)
         colors = ['#53BAD8', '#D17DD6', '#67BA48', '#BBA63A', '#CC4230', '#5999D1']
         
         # Create bar plot
@@ -1381,14 +1711,21 @@ def gernate_graph(request):
 
     try:
         if lengths:
-            original_labels = list(lengths.keys())
-            labels = [label.split("_")[0].upper() for label in original_labels]
-            values = list(lengths.values())
+            # Define RIASEC order: Realistic, Investigative, Artistic, Social, Enterprising, Conventional
+            riasec_order = ['Realistic', 'Investigative', 'Artistic', 'Social', 'Enterprising', 'Conventional']
+            
+            # Reorder labels and values according to RIASEC order
+            labels = []
+            values = []
+            for category in riasec_order:
+                if category in lengths:
+                    labels.append(category.upper())
+                    values.append(lengths[category])
             
             # Create the figure and axis
             fig, ax = plt.subplots(figsize=(24, 12))
             
-            # Define colors for the bars
+            # Define colors for the bars (matching RIASEC order)
             colors = ['#53BAD8', '#D17DD6', '#67BA48', '#BBA63A', '#CC4230', '#5999D1']
             
             # Create bar plot
@@ -1700,47 +2037,724 @@ def download_pdf(request,test_paper):
 from django.http import HttpResponse, Http404
 @login_required(login_url=reverse_lazy('users:login'))
 def test_1(request, test_paper):
-        
-    if request.method == 'GET':
-        
-        user_name = request.user  # Use username for filename
-        user_ID = request.user.id
+    """
+    Legacy view - redirects to new HTML report views
+    """
+    if test_paper == 'test1':
+        return redirect('app:test1_report_html')
+    elif test_paper == 'test2':
+        return redirect('app:test2_report_html')
+    elif test_paper == 'test3':
+        return redirect('app:test3_report_html')
+    else:
+        return HttpResponse("Invalid test paper.", status=404)
 
-        #generate_pdf(request)
 
-        # Define the filename based on the test_paper value
-        if test_paper == 'test1':
-            filename = f"{user_name}-Personality_Assessment_report.pdf"
-        elif test_paper == 'test2':
-            filename = f"{user_name}-Interest_Assessment_report.pdf"
-        elif test_paper == 'test3':
-            filename = f"{user_name}-Intelligence_Assessment_report.pdf"
+@login_required(login_url=reverse_lazy('users:login'))
+def test1_report_html(request, user_id=None):
+    """
+    HTML report view for Test 1 (Personality Assessment)
+    """
+    try:
+        # Get the target user
+        if user_id:
+            target_user = get_object_or_404(User, id=user_id)
         else:
-            filename = f"{user_name}-Final_Assessment_report.pdf"
+            target_user = request.user
+        
+        # Check if test1 is completed
+        try:
+            test1_result = Results.objects.get(user=target_user, test_paper='test1')
+        except Results.DoesNotExist:
+            return render(request, 'template20/app/test1_report.html', {
+                'error': 'Please complete the Personality Assessment test first.',
+                'no_results': True,
+                'user': target_user,
+                'user_ID': target_user.id if target_user else None,
+                'viewing_as_admin': False
+            })
+        
+        # Get user profile
+        try:
+            user_profile = target_user.user_profile
+        except UserProfile.DoesNotExist:
+            user_profile = None
+        
+        # Get personality data
+        try:
+            top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
+        except Exception as e:
+            import traceback
+            print(f"Error in db_results_inst_user: {e}")
+            print(traceback.format_exc())
+            top_category = None
+            streamsubject = set()
+            courseName = set()
+            top_categories = []
+        
+        # Process personality test data
+        personality_data = {}
+        if test1_result and test1_result.results:
+            sorted_results = sorted(test1_result.results.items(), key=lambda x: x[1], reverse=True)
+            personality_data = {
+                'results': dict(sorted_results),
+                'top_categories': top_categories,
+                'top_category': top_category
+            }
+        
+        # Generate graph only if it doesn't exist (optimization)
+        user_name = target_user.name if target_user.name else target_user.email
+        user_ID = target_user.id
+        graph_filename = f"{user_name}-{user_ID}_personality_Assessment.png"
+        graph_path = os.path.join(settings.MEDIA_ROOT, 'graph_images', graph_filename)
+        
+        if not os.path.exists(graph_path):
+            try:
+                # Temporarily set request.user for graph generation
+                original_user = request.user
+                request.user = target_user
+                gernate_graph(request)
+                request.user = original_user
+            except Exception as e:
+                print(f"Error generating graph: {e}")
+                pass
+        
+        context = {
+            'user': target_user,
+            'user_profile': user_profile,
+            'personality_data': personality_data,
+            'top_category': top_category,
+            'streamsubject': streamsubject,
+            'courseName': courseName,
+            'top_categories': top_categories,
+            'user_name': target_user.name if target_user.name else target_user.email,
+            'user_ID': target_user.id,
+            'no_results': False,
+            'viewing_as_admin': user_id is not None and user_id != request.user.id
+        }
+        
+        return render(request, 'template20/app/test1_report.html', context)
+        
+    except Exception as e:
+        import traceback
+        trace = traceback.format_exc()
+        print(f"Error in test1_report_html: {str(e)}")
+        print(trace)
+        return render(request, 'template20/app/test1_report.html', {
+            'error': f'An error occurred: {str(e)}',
+            'no_results': True,
+            'user': request.user,
+            'user_ID': request.user.id if request.user.is_authenticated else None,
+            'viewing_as_admin': False
+        })
 
-        # Construct the full path to the PDF file
-        pdf_path = os.path.join(settings.MEDIA_ROOT, 'users_pdfs', str(user_ID), filename)
 
-        # print("pdf_path",pdf_path)
-
-        # Check if the file exists
-        if os.path.exists(pdf_path):
-            # Open the PDF file and return it as a response
-            with open(pdf_path, 'rb') as pdf_file:
-                response = HttpResponse(pdf_file.read(), content_type='application/pdf')
-                response['Content-Disposition'] = f'inline; filename="{filename}"'  # Use 'inline' to open in browser
-                return response
+@login_required(login_url=reverse_lazy('users:login'))
+def test2_report_html(request, user_id=None):
+    """
+    HTML report view for Test 2 (Interest Assessment)
+    """
+    try:
+        # Get the target user
+        if user_id:
+            target_user = get_object_or_404(User, id=user_id)
         else:
-            download_pdf(request,test_paper)
-            messages.success(request, message="Pdf Gernated Successfully! \n Please Click on View Report.")
-            return redirect('app:app_submit')
+            target_user = request.user
+        
+        # Check if test2 is completed
+        try:
+            test2_result = Results.objects.get(user=target_user, test_paper='test2')
+        except Results.DoesNotExist:
+            return render(request, 'template20/app/test2_report.html', {
+                'error': 'Please complete the Career Interest Assessment test first.',
+                'no_results': True,
+                'user': target_user,
+                'user_ID': target_user.id if target_user else None,
+                'viewing_as_admin': False
+            })
+        
+        # Get user profile
+        try:
+            user_profile = target_user.user_profile
+        except UserProfile.DoesNotExist:
+            user_profile = None
+        
+        # Get interest data
+        try:
+            top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
+        except Exception as e:
+            import traceback
+            print(f"Error in db_results_inst_user: {e}")
+            print(traceback.format_exc())
+            max_length = ''
+            min_length = ''
+        
+        # Process interest test data
+        interest_data = {}
+        if test2_result and test2_result.scores:
+            interest_data = {
+                'scores': test2_result.scores,
+                'max_category': max_length,
+                'min_category': min_length
+            }
+        
+        # Generate graph only if it doesn't exist (optimization)
+        user_name = target_user.name if target_user.name else target_user.email
+        user_ID = target_user.id
+        graph_filename = f"{user_name}-{user_ID}_interest_Assessment.png"
+        graph_path = os.path.join(settings.MEDIA_ROOT, 'graph_images', graph_filename)
+        
+        if not os.path.exists(graph_path):
+            try:
+                # Temporarily set request.user for graph generation
+                original_user = request.user
+                request.user = target_user
+                gernate_graph(request)
+                request.user = original_user
+            except Exception as e:
+                print(f"Error generating graph: {e}")
+                pass
+        
+        context = {
+            'user': target_user,
+            'user_profile': user_profile,
+            'interest_data': interest_data,
+            'max_length': max_length,
+            'min_length': min_length,
+            'user_name': target_user.name if target_user.name else target_user.email,
+            'user_ID': target_user.id,
+            'no_results': False,
+            'viewing_as_admin': user_id is not None and user_id != request.user.id
+        }
+        
+        return render(request, 'template20/app/test2_report.html', context)
+        
+    except Exception as e:
+        import traceback
+        trace = traceback.format_exc()
+        print(f"Error in test2_report_html: {str(e)}")
+        print(trace)
+        return render(request, 'template20/app/test2_report.html', {
+            'error': f'An error occurred: {str(e)}',
+            'no_results': True,
+            'user': request.user,
+            'user_ID': request.user.id if request.user.is_authenticated else None,
+            'viewing_as_admin': False
+        })
 
-    return HttpResponse("Invalid request method.", status=405)
+
+@login_required(login_url=reverse_lazy('users:login'))
+def test3_report_html(request, user_id=None):
+    """
+    HTML report view for Test 3 (Intelligence Assessment)
+    """
+    try:
+        # Get the target user
+        if user_id:
+            target_user = get_object_or_404(User, id=user_id)
+        else:
+            target_user = request.user
+        
+        # Check if test3 is completed
+        try:
+            test3_result = Results.objects.get(user=target_user, test_paper='test3')
+        except Results.DoesNotExist:
+            return render(request, 'template20/app/test3_report.html', {
+                'error': 'Please complete the Intelligence Assessment test first.',
+                'no_results': True,
+                'user': target_user,
+                'user_ID': target_user.id if target_user else None,
+                'viewing_as_admin': False
+            })
+        
+        # Get user profile
+        try:
+            user_profile = target_user.user_profile
+        except UserProfile.DoesNotExist:
+            user_profile = None
+        
+        # Get intelligence data
+        try:
+            top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
+        except Exception as e:
+            import traceback
+            print(f"Error in db_results_inst_user: {e}")
+            print(traceback.format_exc())
+            below = []
+            avg = []
+            above_avg = []
+        
+        # Process intelligence test data
+        intelligence_data = {}
+        if test3_result and test3_result.scores:
+            scores = {label.split("_")[0].upper(): value for label, value in test3_result.scores.items()}
+            intelligence_data = {
+                'scores': scores,
+                'below_avg': below,
+                'average': avg,
+                'above_avg': above_avg
+            }
+        
+        # Generate graph only if it doesn't exist (optimization)
+        user_name = target_user.name if target_user.name else target_user.email
+        user_ID = target_user.id
+        graph_filename = f"{user_name}-{user_ID}_intelligence_Assessment.png"
+        graph_path = os.path.join(settings.MEDIA_ROOT, 'graph_images', graph_filename)
+        
+        if not os.path.exists(graph_path):
+            try:
+                # Temporarily set request.user for graph generation
+                original_user = request.user
+                request.user = target_user
+                gernate_graph(request)
+                request.user = original_user
+            except Exception as e:
+                print(f"Error generating graph: {e}")
+                pass
+        
+        context = {
+            'user': target_user,
+            'user_profile': user_profile,
+            'intelligence_data': intelligence_data,
+            'below': below,
+            'avg': avg,
+            'above_avg': above_avg,
+            'user_name': target_user.name if target_user.name else target_user.email,
+            'user_ID': target_user.id,
+            'no_results': False,
+            'viewing_as_admin': user_id is not None and user_id != request.user.id
+        }
+        
+        return render(request, 'template20/app/test3_report.html', context)
+        
+    except Exception as e:
+        import traceback
+        trace = traceback.format_exc()
+        print(f"Error in test3_report_html: {str(e)}")
+        print(trace)
+        return render(request, 'template20/app/test3_report.html', {
+            'error': f'An error occurred: {str(e)}',
+            'no_results': True,
+            'user': request.user,
+            'user_ID': request.user.id if request.user.is_authenticated else None,
+            'viewing_as_admin': False
+        })
+
+
+def _resolve_static_urls_to_local_paths(html_content, base_url):
+    """
+    Replace /static/ and /media/ URLs in HTML with local file paths
+    to avoid HTTP requests during PDF generation.
+    This significantly speeds up PDF generation by eliminating network requests.
+    """
+    def replace_static(match):
+        quote_char = match.group(1)  # Captured quote character (" or ')
+        static_path = match.group(2)  # Path after /static/
+        # Try to find the static file using Django's staticfiles finder
+        found_path = finders.find(static_path)
+        if found_path:
+            # Normalize path separators for file:// URLs (use forward slashes)
+            normalized_path = found_path.replace('\\', '/')
+            # Convert to file:// URL with proper formatting
+            return f'{match.group(0)[:match.start(2)-match.start()]}file:///{normalized_path}{quote_char}'
+        # If not found, return original
+        return match.group(0)
+    
+    def replace_media(match):
+        quote_char = match.group(1)  # Captured quote character (" or ')
+        media_path = match.group(2)  # Path after /media/
+        # Construct full media file path
+        media_file_path = os.path.join(settings.MEDIA_ROOT, media_path)
+        if os.path.exists(media_file_path):
+            # Normalize path separators for file:// URLs (use forward slashes)
+            normalized_path = media_file_path.replace('\\', '/')
+            # Convert to file:// URL with proper formatting
+            return f'{match.group(0)[:match.start(2)-match.start()]}file:///{normalized_path}{quote_char}'
+        # If not found, return original
+        return match.group(0)
+    
+    # Replace /static/ URLs in src and href attributes (capture quote and path separately)
+    html_content = re.sub(
+        r'(src|href)=(["\'])/static/([^"\']+)\2',
+        lambda m: f'{m.group(1)}={m.group(2)}file:///{finders.find(m.group(3)).replace(chr(92), "/")}{m.group(2)}' if finders.find(m.group(3)) else m.group(0),
+        html_content
+    )
+    
+    # Replace /media/ URLs in src and href attributes (capture quote and path separately)
+    html_content = re.sub(
+        r'(src|href)=(["\'])/media/([^"\']+)\2',
+        lambda m: (lambda path, quote: f'{m.group(1)}={quote}file:///{path.replace(chr(92), "/")}{quote}' if os.path.exists(path) else m.group(0))(os.path.join(settings.MEDIA_ROOT, m.group(3)), m.group(2)),
+        html_content
+    )
+    
+    return html_content
+
+
+@login_required(login_url=reverse_lazy('users:login'))
+def test1_report_pdf(request, user_id=None):
+    """
+    PDF download view for Test 1 (Personality Assessment)
+    """
+    try:
+        import weasyprint
+        from django.template.loader import get_template
+        from datetime import datetime
+        
+        # Get the target user
+        if user_id:
+            target_user = get_object_or_404(User, id=user_id)
+        else:
+            target_user = request.user
+        
+        # Check if test1 is completed
+        try:
+            test1_result = Results.objects.get(user=target_user, test_paper='test1')
+        except Results.DoesNotExist:
+            return HttpResponse('Please complete the Personality Assessment test first.', status=404)
+        
+        # Get user profile
+        try:
+            user_profile = target_user.user_profile
+        except UserProfile.DoesNotExist:
+            user_profile = None
+        
+        # Get personality data
+        try:
+            top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
+        except Exception as e:
+            import traceback
+            print(f"Error in db_results_inst_user: {e}")
+            print(traceback.format_exc())
+            top_category = None
+            streamsubject = set()
+            courseName = set()
+            top_categories = []
+        
+        # Process personality test data
+        personality_data = {}
+        if test1_result and test1_result.results:
+            sorted_results = sorted(test1_result.results.items(), key=lambda x: x[1], reverse=True)
+            personality_data = {
+                'results': dict(sorted_results),
+                'top_categories': top_categories,
+                'top_category': top_category
+            }
+        
+        # Generate graph only if it doesn't exist (optimization)
+        user_name = target_user.name if target_user.name else target_user.email
+        user_ID = target_user.id
+        graph_filename = f"{user_name}-{user_ID}_personality_Assessment.png"
+        graph_path = os.path.join(settings.MEDIA_ROOT, 'graph_images', graph_filename)
+        
+        if not os.path.exists(graph_path):
+            try:
+                # Temporarily set request.user for graph generation
+                original_user = request.user
+                request.user = target_user
+                gernate_graph(request)
+                request.user = original_user
+            except Exception as e:
+                print(f"Error generating graph: {e}")
+                pass
+        
+        # Get created_date and student_name
+        created_date = test1_result.created if hasattr(test1_result, 'created') else target_user.created
+        student_name = target_user.name if target_user.name else target_user.email
+        
+        context = {
+            'user': target_user,
+            'user_profile': user_profile,
+            'personality_data': personality_data,
+            'top_category': top_category,
+            'streamsubject': streamsubject,
+            'courseName': courseName,
+            'top_categories': top_categories,
+            'user_name': target_user.name if target_user.name else target_user.email,
+            'user_ID': target_user.id,
+            'student_name': student_name,
+            'created_date': created_date,
+            'now': datetime.now(),
+        }
+        
+        # Render HTML template
+        template = get_template('template20/app/test1_report_pdf.html')
+        html = template.render(context)
+        
+        # Generate PDF with optimizations
+        # Keep HTTP base_url for proper static/media resolution
+        # The main optimization is graph generation check (skip if exists)
+        # and image optimization for smaller file size
+        import ssl
+        original_ssl_context = ssl._create_default_https_context
+        ssl._create_default_https_context = ssl._create_unverified_context
+        
+        try:
+            pdf_file = weasyprint.HTML(
+                string=html,
+                base_url=request.build_absolute_uri('/')
+            ).write_pdf(optimize_images=True)
+        finally:
+            ssl._create_default_https_context = original_ssl_context
+        
+        # Create response
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        filename = f"{target_user.name if target_user.name else target_user.email}-Personality_Assessment_report.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
+        
+    except Exception as e:
+        import traceback
+        trace = traceback.format_exc()
+        print(f"Error in test1_report_pdf: {str(e)}")
+        print(trace)
+        return HttpResponse(f'Error generating PDF: {str(e)}', status=500)
+
+
+@login_required(login_url=reverse_lazy('users:login'))
+def test2_report_pdf(request, user_id=None):
+    """
+    PDF download view for Test 2 (Interest Assessment)
+    """
+    try:
+        import weasyprint
+        from django.template.loader import get_template
+        from datetime import datetime
+        
+        # Get the target user
+        if user_id:
+            target_user = get_object_or_404(User, id=user_id)
+        else:
+            target_user = request.user
+        
+        # Check if test2 is completed
+        try:
+            test2_result = Results.objects.get(user=target_user, test_paper='test2')
+        except Results.DoesNotExist:
+            return HttpResponse('Please complete the Career Interest Assessment test first.', status=404)
+        
+        # Get user profile
+        try:
+            user_profile = target_user.user_profile
+        except UserProfile.DoesNotExist:
+            user_profile = None
+        
+        # Get interest data
+        try:
+            top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
+        except Exception as e:
+            import traceback
+            print(f"Error in db_results_inst_user: {e}")
+            print(traceback.format_exc())
+            max_length = ''
+            min_length = ''
+        
+        # Process interest test data
+        interest_data = {}
+        if test2_result and test2_result.scores:
+            interest_data = {
+                'scores': test2_result.scores,
+                'max_category': max_length,
+                'min_category': min_length
+            }
+        
+        # Generate graph only if it doesn't exist (optimization)
+        user_name = target_user.name if target_user.name else target_user.email
+        user_ID = target_user.id
+        graph_filename = f"{user_name}-{user_ID}_interest_Assessment.png"
+        graph_path = os.path.join(settings.MEDIA_ROOT, 'graph_images', graph_filename)
+        
+        if not os.path.exists(graph_path):
+            try:
+                # Temporarily set request.user for graph generation
+                original_user = request.user
+                request.user = target_user
+                gernate_graph(request)
+                request.user = original_user
+            except Exception as e:
+                print(f"Error generating graph: {e}")
+                pass
+        
+        # Get created_date and student_name
+        created_date = test2_result.created if hasattr(test2_result, 'created') else target_user.created
+        student_name = target_user.name if target_user.name else target_user.email
+        
+        context = {
+            'user': target_user,
+            'user_profile': user_profile,
+            'interest_data': interest_data,
+            'max_length': max_length,
+            'min_length': min_length,
+            'user_name': target_user.name if target_user.name else target_user.email,
+            'user_ID': target_user.id,
+            'student_name': student_name,
+            'created_date': created_date,
+            'now': datetime.now(),
+        }
+        
+        # Render HTML template
+        template = get_template('template20/app/test2_report_pdf.html')
+        html = template.render(context)
+        
+        # Generate PDF with optimizations
+        # Keep HTTP base_url for proper static/media resolution
+        # The main optimization is graph generation check (skip if exists)
+        # and image optimization for smaller file size
+        import ssl
+        original_ssl_context = ssl._create_default_https_context
+        ssl._create_default_https_context = ssl._create_unverified_context
+        
+        try:
+            pdf_file = weasyprint.HTML(
+                string=html,
+                base_url=request.build_absolute_uri('/')
+            ).write_pdf(optimize_images=True)
+        finally:
+            ssl._create_default_https_context = original_ssl_context
+        
+        # Create response
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        filename = f"{target_user.name if target_user.name else target_user.email}-Interest_Assessment_report.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
+        
+    except Exception as e:
+        import traceback
+        trace = traceback.format_exc()
+        print(f"Error in test2_report_pdf: {str(e)}")
+        print(trace)
+        return HttpResponse(f'Error generating PDF: {str(e)}', status=500)
+
+
+@login_required(login_url=reverse_lazy('users:login'))
+def test3_report_pdf(request, user_id=None):
+    """
+    PDF download view for Test 3 (Intelligence Assessment)
+    """
+    try:
+        import weasyprint
+        from django.template.loader import get_template
+        from datetime import datetime
+        
+        # Get the target user
+        if user_id:
+            target_user = get_object_or_404(User, id=user_id)
+        else:
+            target_user = request.user
+        
+        # Check if test3 is completed
+        try:
+            test3_result = Results.objects.get(user=target_user, test_paper='test3')
+        except Results.DoesNotExist:
+            return HttpResponse('Please complete the Intelligence Assessment test first.', status=404)
+        
+        # Get user profile
+        try:
+            user_profile = target_user.user_profile
+        except UserProfile.DoesNotExist:
+            user_profile = None
+        
+        # Get intelligence data
+        try:
+            top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
+        except Exception as e:
+            import traceback
+            print(f"Error in db_results_inst_user: {e}")
+            print(traceback.format_exc())
+            below = []
+            avg = []
+            above_avg = []
+        
+        # Process intelligence test data
+        intelligence_data = {}
+        if test3_result and test3_result.scores:
+            scores = {label.split("_")[0].upper(): value for label, value in test3_result.scores.items()}
+            intelligence_data = {
+                'scores': scores,
+                'below_avg': below,
+                'average': avg,
+                'above_avg': above_avg
+            }
+        
+        # Generate graph only if it doesn't exist (optimization)
+        user_name = target_user.name if target_user.name else target_user.email
+        user_ID = target_user.id
+        graph_filename = f"{user_name}-{user_ID}_intelligence_Assessment.png"
+        graph_path = os.path.join(settings.MEDIA_ROOT, 'graph_images', graph_filename)
+        
+        if not os.path.exists(graph_path):
+            try:
+                # Temporarily set request.user for graph generation
+                original_user = request.user
+                request.user = target_user
+                gernate_graph(request)
+                request.user = original_user
+            except Exception as e:
+                print(f"Error generating graph: {e}")
+                pass
+        
+        # Get created_date and student_name
+        created_date = test3_result.created if hasattr(test3_result, 'created') else target_user.created
+        student_name = target_user.name if target_user.name else target_user.email
+        
+        context = {
+            'user': target_user,
+            'user_profile': user_profile,
+            'intelligence_data': intelligence_data,
+            'below': below,
+            'avg': avg,
+            'above_avg': above_avg,
+            'user_name': target_user.name if target_user.name else target_user.email,
+            'user_ID': target_user.id,
+            'student_name': student_name,
+            'created_date': created_date,
+            'now': datetime.now(),
+        }
+        
+        # Render HTML template
+        template = get_template('template20/app/test3_report_pdf.html')
+        html = template.render(context)
+        
+        # Generate PDF with optimizations
+        # Keep HTTP base_url for proper static/media resolution
+        # The main optimization is graph generation check (skip if exists)
+        # and image optimization for smaller file size
+        import ssl
+        original_ssl_context = ssl._create_default_https_context
+        ssl._create_default_https_context = ssl._create_unverified_context
+        
+        try:
+            pdf_file = weasyprint.HTML(
+                string=html,
+                base_url=request.build_absolute_uri('/')
+            ).write_pdf(optimize_images=True)
+        finally:
+            ssl._create_default_https_context = original_ssl_context
+        
+        # Create response
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        filename = f"{target_user.name if target_user.name else target_user.email}-Intelligence_Assessment_report.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
+        
+    except Exception as e:
+        import traceback
+        trace = traceback.format_exc()
+        print(f"Error in test3_report_pdf: {str(e)}")
+        print(trace)
+        return HttpResponse(f'Error generating PDF: {str(e)}', status=500)
 
 
 import json
 import openpyxl
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, Http404
+from django.shortcuts import get_object_or_404
+from users.models import UserProfile
+from app.models import Results, TestCompletion
 from openpyxl.styles import Alignment
 from openpyxl import Workbook
 from .models import Results
@@ -1872,3 +2886,88 @@ def pdf_checker(request):
     response['Content-Disposition'] = f'inline; filename="your_filename.pdf"'  # Use 'inline' to open in browser
     
     return response
+
+
+@login_required(login_url=reverse_lazy('users:login'))
+def test_pdf_preview(request, test_number=1, user_id=None):
+    """
+    Preview PDF templates in browser for testing header and layout
+    Note: @page CSS rules won't render in browser, but header structure will be visible
+    """
+    from django.template.loader import get_template
+    from datetime import datetime
+    
+    # Get the target user
+    if user_id:
+        target_user = get_object_or_404(User, id=user_id)
+    else:
+        target_user = request.user
+    
+    # Select template based on test number
+    template_map = {
+        1: 'template20/app/test1_report_pdf.html',
+        2: 'template20/app/test2_report_pdf.html',
+        3: 'template20/app/test3_report_pdf.html',
+    }
+    
+    template_name = template_map.get(test_number, template_map[1])
+    
+    # Get test result if exists
+    try:
+        test_result = Results.objects.get(user=target_user, test_paper=f'test{test_number}')
+    except Results.DoesNotExist:
+        test_result = None
+    
+    # Get user profile
+    try:
+        user_profile = target_user.user_profile
+    except UserProfile.DoesNotExist:
+        user_profile = None
+    
+    # Create minimal context for preview
+    context = {
+        'user': target_user,
+        'user_profile': user_profile,
+        'user_name': target_user.name if target_user.name else target_user.email,
+        'user_ID': target_user.id,
+        'student_name': target_user.name if target_user.name else target_user.email,
+        'created_date': datetime.now(),
+        'now': datetime.now(),
+    }
+    
+    # Add test-specific context
+    if test_number == 1:
+        try:
+            top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
+            context.update({
+                'personality_data': {'results': {}, 'top_categories': top_categories, 'top_category': top_category},
+                'top_category': top_category,
+                'streamsubject': streamsubject,
+                'courseName': courseName,
+                'top_categories': top_categories,
+            })
+        except:
+            context.update({
+                'personality_data': {'results': {}, 'top_categories': [], 'top_category': None},
+                'top_category': None,
+                'streamsubject': set(),
+                'courseName': set(),
+                'top_categories': [],
+            })
+    elif test_number == 2:
+        context.update({
+            'interest_data': {},
+            'max_length': None,
+            'min_length': None,
+        })
+    elif test_number == 3:
+        context.update({
+            'intelligence_data': {},
+        })
+    
+    # Render template
+    template = get_template(template_name)
+    html = template.render(context)
+    
+    # Return HTML response (for browser preview)
+    return HttpResponse(html, content_type='text/html')

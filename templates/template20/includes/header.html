@@ -69,7 +69,7 @@
           </span>
           <div class="dropdown-content tabs-auto-fit country-menu">
             <a href="{{ url('skilllabcourse:skilllabcourselist') }}" target="_blank">Skill Lab Courses</a>
-            <a href="#" target="_blank">Counsellor Course</a>
+            <a href="{{ url('counselor:CounselorCoursepayment') }}" target="_blank">Counsellor Course</a>
           </div>
         </li>
         
@@ -108,9 +108,8 @@
                 <a href="{{ url('institute:institutegroupdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
               {% elif user.user_type == 2 %}
                 {# Institute #}
-                {% set institute_list = user.institute_created.all() %}
-                {% if institute_list|length > 0 %}
-                  {% set institute_obj = institute_list[0] %}
+                {% set institute_obj = user.institute_created.last() %}
+                {% if institute_obj and institute_obj.slug %}
                   <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" class="btn custom-button purple-button me-3">Dashboard</a>
                 {% else %}
                   <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>

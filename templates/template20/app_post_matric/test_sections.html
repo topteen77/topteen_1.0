@@ -436,8 +436,8 @@
 
             <nav aria-label="breadcrumb pt-4">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/api/web/home/">Home</a></li>
-                    <li class="breadcrumb-item"><a href="/api/web/tests/">Tests</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url('post_matric:home') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url('post_matric:tests') }}">Tests</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Aptitude Assessment</li>
                 </ol>
             </nav>
@@ -573,7 +573,7 @@
                 }
 
                 // Redirect to tests page
-                window.location.href = `/api/web/tests/`;
+                window.location.href = "{{ url('post_matric:tests') }}";
             });
         }
 

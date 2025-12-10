@@ -1,0 +1,199 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Certificate | Top Teen{% endblock %}
+{% block description_content %}View and download your counselor course certificate.{% endblock %}
+
+{% block bodyclass %}{{ super() }} view-certificate-page{% endblock %}
+
+{# Disable chatbot #}
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .view-certificate-page {
+    padding-top: 80px;
+    background: #f7f7fa;
+  }
+  .certificate-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  .certificate-header {
+    text-align: center;
+    border-bottom: 3px solid #5046e5;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+  }
+  .certificate-body {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .certificate-name {
+    font-size: 36px;
+    font-weight: 700;
+    color: #333;
+    margin: 20px 0;
+  }
+  .certificate-details {
+    margin: 30px 0;
+    font-size: 18px;
+    color: #666;
+  }
+  .certificate-code {
+    font-size: 24px;
+    font-weight: 700;
+    color: #5046e5;
+    margin: 20px 0;
+  }
+  .certificate-grade {
+    font-size: 32px;
+    font-weight: 700;
+    color: #28a745;
+    margin: 20px 0;
+  }
+  .certificate-footer {
+    text-align: center;
+    border-top: 2px solid #e9ecef;
+    padding-top: 20px;
+    margin-top: 30px;
+    color: #666;
+  }
+  .certificate-actions {
+    margin-top: 30px;
+    text-align: center;
+  }
+  @media print {
+    .certificate-actions {
+      display: none;
+    }
+    .view-certificate-page {
+      background: #fff;
+      padding: 0;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="view-certificate-page pb-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="fs-24 fw-semibold mb-0">Certificate of Completion</h2>
+          <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" 
+             class="btn btn-outline-secondary">
+            <i class='bx bx-home me-2'></i>My Dashboard
+          </a>
+        </div>
+
+        <!-- Certificate -->
+        <div class="certificate-container" id="certificateContent">
+          <div class="certificate-header">
+            <h1 class="fs-32 fw-bold text-primary mb-2">Certificate of Completion</h1>
+            <p class="fs-18 text-gray mb-0">Counselor Training Course</p>
+          </div>
+
+          <div class="certificate-body">
+            <p class="fs-16 text-gray mb-3">This is to certify that</p>
+            <div class="certificate-name">{{ user.name|default(user.username) }}</div>
+            <p class="fs-16 text-gray mb-4">has successfully completed the Counselor Training Course</p>
+            
+            <div class="certificate-details">
+              <p class="mb-2">with a grade of</p>
+              <div class="certificate-grade">{{ certification.grade }}</div>
+            </div>
+
+            <div class="certificate-code">
+              Certificate Code: {{ certification.certificate_code }}
+            </div>
+
+            <div class="certificate-details">
+              <p class="mb-0">
+                Issued on {{ date_format(certification.created_at) }}
+              </p>
+            </div>
+          </div>
+
+          <div class="certificate-footer">
+            <div class="row">
+              <div class="col-md-6 text-start">
+                <div class="border-top pt-3" style="border-top: 2px solid #333 !important;">
+                  <p class="mb-0 fw-bold">Authorized Signature</p>
+                </div>
+              </div>
+              <div class="col-md-6 text-end">
+                <div class="border-top pt-3" style="border-top: 2px solid #333 !important;">
+                  <p class="mb-0 fw-bold">Top Teen</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="certificate-actions">
+          <button onclick="window.print()" class="btn custom-button purple-button me-3">
+            <i class='bx bx-printer me-2'></i>Print Certificate
+          </button>
+          <button onclick="downloadCertificate()" class="btn btn-outline-primary">
+            <i class='bx bx-download me-2'></i>Download PDF
+          </button>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="card mt-4">
+          <div class="card-body">
+            <h5 class="fs-18 fw-semibold mb-3">Certificate Information</h5>
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong>Certificate Code:</strong> {{ certification.certificate_code }}</p>
+                <p><strong>Grade:</strong> {{ certification.grade }}</p>
+              </div>
+              <div class="col-md-6">
+                <p><strong>Issued Date:</strong> {{ date_format(certification.created_at) }}</p>
+                <p><strong>Recipient:</strong> {{ user.name|default(user.username) }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  function downloadCertificate() {
+    const element = document.getElementById('certificateContent');
+    html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false
+    }).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      
+      const imgWidth = 297; // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save('counselor-certificate-{{ certification.certificate_code }}.pdf');
+    });
+  }
+</script>
+{% endblock %}
+

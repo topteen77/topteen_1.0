@@ -315,9 +315,7 @@ p{margin-bottom: 0px;}
             </div>
             <div class="view-rr">
               {% if test_completion.test1_complete %}
-              <form id="downloadForm" action="{{ url('app:test_1', args=['test1']) }}" method="GET" target="_blank">
-                <button type="submit" class="btn blue-button ms-3" style="width: 133px;">View report</button>
-              </form>
+              <a href="{{ url('app:test1_report_html') }}" class="btn blue-button ms-3" style="width: 133px; display: inline-block; text-align: center; padding: 8px 0;">View report</a>
               {% else %}
               <form action="{{ url('app:test1-intro') }}" method="GET">
                 <button type="submit" id="startTestButton" class="btn purple-button" style="width: 133px;">Start Test</button>
@@ -334,9 +332,7 @@ p{margin-bottom: 0px;}
             </div>
             <div class="view-rr">
               {% if test_completion.test2_complete %}
-              <form id="downloadForma" action="{{ url('app:test_1', args=['test2']) }}" method="GET" target="_blank">
-                <button type="submit" class="btn blue-button ms-3" style="width: 133px;">View report</button>
-              </form>
+              <a href="{{ url('app:test2_report_html') }}" class="btn blue-button ms-3" style="width: 133px; display: inline-block; text-align: center; padding: 8px 0;">View report</a>
               {% else %}
               <form action="{{ url('app:test2-intro') }}" method="GET">
                 <button type="submit" id="startTestButton" class="btn purple-button" style="width: 133px;">
@@ -354,10 +350,8 @@ p{margin-bottom: 0px;}
               <h3>Comprehensive Aptitude assessment</h3>
             </div>
             <div class="view-rr">
-              {% if test_completion and test_completion.test3_complete and all_test3_subtests_complete %}
-              <form id="downloadForma" action="{{ url('app:test_1', args=['test3']) }}" method="GET" target="_blank">
-                <button type="submit" class="btn blue-button ms-3" style="width: 133px;">View report</button>
-              </form>
+              {% if test_completion and test_completion.test3_complete %}
+              <a href="{{ url('app:test3_report_html') }}" class="btn blue-button ms-3" style="width: 133px; display: inline-block; text-align: center; padding: 8px 0;">View report</a>
               {% else %}
               <form action="{{ url('app:test3-intro') }}" method="GET">
                 <button type="submit" id="startTestButton" class="btn purple-button" style="width: 133px;">

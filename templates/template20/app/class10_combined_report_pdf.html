@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stream Sorter Combined Assessment Report</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 2cm;
+    }
+    body {
+      font-family: 'Arial', sans-serif;
+      font-size: 11pt;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid #3f37c9;
+    }
+    .header h1 {
+      color: #3f37c9;
+      font-size: 24pt;
+      margin: 0 0 10px 0;
+    }
+    .header p {
+      color: #666;
+      font-size: 12pt;
+      margin: 5px 0;
+    }
+    .student-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 25px;
+    }
+    .student-info h3 {
+      color: #3f37c9;
+      font-size: 14pt;
+      margin: 0 0 15px 0;
+      border-bottom: 2px solid #3f37c9;
+      padding-bottom: 5px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .info-item {
+      margin-bottom: 8px;
+    }
+    .info-label {
+      font-weight: bold;
+      color: #666;
+      font-size: 9pt;
+      text-transform: uppercase;
+    }
+    .info-value {
+      color: #333;
+      font-size: 11pt;
+    }
+    .section {
+      margin-bottom: 30px;
+      page-break-inside: avoid;
+    }
+    .section-title {
+      color: #3f37c9;
+      font-size: 16pt;
+      font-weight: bold;
+      margin: 0 0 15px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e9ecef;
+    }
+    .test-card {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      border-left: 4px solid #3f37c9;
+    }
+    .test-title {
+      font-size: 14pt;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .score-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .score-table th {
+      background: #3f37c9;
+      color: white;
+      padding: 8px;
+      text-align: left;
+      font-size: 10pt;
+    }
+    .score-table td {
+      padding: 8px;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 10pt;
+    }
+    .score-table tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 9pt;
+      font-weight: bold;
+      margin: 2px;
+    }
+    .badge-success {
+      background: #d4edda;
+      color: #155724;
+    }
+    .badge-warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .badge-danger {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .recommendations {
+      background: #e7f3ff;
+      padding: 15px;
+      border-radius: 5px;
+      border-left: 4px solid #3f37c9;
+    }
+    .recommendations h4 {
+      color: #3f37c9;
+      margin: 0 0 10px 0;
+      font-size: 12pt;
+    }
+    .recommendations ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .recommendations li {
+      margin-bottom: 5px;
+    }
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid #e9ecef;
+      text-align: center;
+      color: #666;
+      font-size: 9pt;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>Stream Sorter Assessment Report</h1>
+    <p>Comprehensive Combined Report</p>
+    <p>Generated on: {{ now.strftime('%B %d, %Y') if now else '' }}</p>
+  </div>
+
+  <!-- Student Information -->
+  <div class="student-info">
+    <h3>Student Information</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-label">Name</div>
+        <div class="info-value">{{ user.name if user.name else user.email }}</div>
+      </div>
+      {% if user_profile.grade %}
+      <div class="info-item">
+        <div class="info-label">Grade/Class</div>
+        <div class="info-value">Class {{ user_profile.grade }}</div>
+      </div>
+      {% endif %}
+      {% if user_profile.schoolname %}
+      <div class="info-item">
+        <div class="info-label">School</div>
+        <div class="info-value">{{ user_profile.schoolname }}</div>
+      </div>
+      {% endif %}
+      {% if user_profile.gender %}
+      <div class="info-item">
+        <div class="info-label">Gender</div>
+        <div class="info-value">{% if user_profile.gender == 1 %}Male{% elif user_profile.gender == 2 %}Female{% else %}Other{% endif %}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Test Summary -->
+  <div class="section">
+    <h2 class="section-title">Test Summary</h2>
+    <div class="test-card">
+      <div class="test-title">✓ Personality Assessment (Test 1) - Completed</div>
+    </div>
+    <div class="test-card">
+      <div class="test-title">✓ Interest Assessment (Test 2) - Completed</div>
+    </div>
+    <div class="test-card">
+      <div class="test-title">✓ Intelligence Assessment (Test 3) - Completed</div>
+    </div>
+  </div>
+
+  <!-- Personality Assessment Results -->
+  {% if personality_data and personality_data.results %}
+  <div class="section page-break">
+    <h2 class="section-title">Personality Assessment Results</h2>
+    <div class="test-card">
+      {% if personality_data.top_categories %}
+      <h4 style="color: #3f37c9; margin-top: 0;">Top 3 Personality Traits</h4>
+      <table class="score-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Trait</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in personality_data.top_categories %}
+          <tr>
+            <td>{{ category.rank }}</td>
+            <td>{{ category.category }}</td>
+            <td>{{ category.score }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+      
+      {% if personality_data.results %}
+      <h4 style="color: #3f37c9; margin-top: 20px;">All Personality Traits</h4>
+      <table class="score-table">
+        <thead>
+          <tr>
+            <th>Trait</th>
+            <th>Score (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for trait, score in personality_data.results.items() %}
+          <tr>
+            <td>{{ trait }}</td>
+            <td>{{ "%.2f" % score }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Interest Assessment Results -->
+  {% if interest_data and interest_data.scores %}
+  <div class="section page-break">
+    <h2 class="section-title">Interest Assessment Results</h2>
+    <div class="test-card">
+      {% if interest_data.max_category %}
+      <p><strong>Highest Interest:</strong> <span style="color: #28a745;">{{ interest_data.max_category }}</span></p>
+      {% endif %}
+      {% if interest_data.min_category %}
+      <p><strong>Lowest Interest:</strong> <span style="color: #666;">{{ interest_data.min_category }}</span></p>
+      {% endif %}
+      
+      <h4 style="color: #3f37c9; margin-top: 15px;">Interest Scores</h4>
+      <table class="score-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category, score in interest_data.scores.items() %}
+          <tr>
+            <td>{{ category }}</td>
+            <td>{{ score }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Intelligence Assessment Results -->
+  {% if intelligence_data and intelligence_data.scores %}
+  <div class="section page-break">
+    <h2 class="section-title">Intelligence Assessment Results</h2>
+    <div class="test-card">
+      {% if intelligence_data.above_avg %}
+      <p><strong>Above Average:</strong> 
+        {% for item in intelligence_data.above_avg %}
+        <span class="badge badge-success">{{ item }}</span>
+        {% endfor %}
+      </p>
+      {% endif %}
+      {% if intelligence_data.average %}
+      <p><strong>Average:</strong> 
+        {% for item in intelligence_data.average %}
+        <span class="badge badge-warning">{{ item }}</span>
+        {% endfor %}
+      </p>
+      {% endif %}
+      {% if intelligence_data.below_avg %}
+      <p><strong>Below Average:</strong> 
+        {% for item in intelligence_data.below_avg %}
+        <span class="badge badge-danger">{{ item }}</span>
+        {% endfor %}
+      </p>
+      {% endif %}
+      
+      <h4 style="color: #3f37c9; margin-top: 15px;">Intelligence Scores</h4>
+      <table class="score-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category, score in intelligence_data.scores.items() %}
+          <tr>
+            <td>{{ category }}</td>
+            <td>{{ score }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Recommendations -->
+  {% if top_category or streamsubject or courseName %}
+  <div class="section page-break">
+    <h2 class="section-title">Recommendations</h2>
+    
+    {% if top_category %}
+    <div class="recommendations">
+      <h4>Top Category</h4>
+      <p style="font-size: 14pt; font-weight: bold; color: #3f37c9;">{{ top_category.category_name if top_category.category_name else top_category.category }}</p>
+    </div>
+    {% endif %}
+    
+    {% if streamsubject %}
+    <div class="recommendations" style="margin-top: 15px;">
+      <h4>Recommended Streams & Subjects</h4>
+      <ul>
+        {% for stream, subject in streamsubject %}
+        <li><strong>{{ stream }}</strong> - {{ subject }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    
+    {% if courseName %}
+    <div class="recommendations" style="margin-top: 15px;">
+      <h4>Recommended Courses</h4>
+      <ul>
+        {% for course in courseName %}
+        <li>{{ course }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>This report is generated by TopTeen Stream Sorter Assessment System</p>
+    <p>For more information, visit www.topteen.in</p>
+  </div>
+</body>
+</html>
+

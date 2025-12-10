@@ -259,9 +259,8 @@
             </a>
           {% elif request.user.user_type == 2 %}
             {# Institute #}
-            {% set institute_list = request.user.institute_created.all() %}
-            {% if institute_list|length > 0 %}
-              {% set institute_obj = institute_list[0] %}
+            {% set institute_obj = request.user.institute_created.last() %}
+            {% if institute_obj and institute_obj.slug %}
               <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" 
                  class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
                  style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">

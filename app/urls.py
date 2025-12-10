@@ -43,6 +43,31 @@ urlpatterns = [
     path('export-to-excel/<str:email>/', views.export_to_excel, name='export_to_excel'),
     path('test_1/<str:test_paper>/', views.test_1, name='test_1'),
     path('pdf-check/', views.pdf_checker, name='pdf'),
+    path('pdf-preview/test<int:test_number>/', views.test_pdf_preview, name='test_pdf_preview'),
+    path('pdf-preview/test<int:test_number>/<int:user_id>/', views.test_pdf_preview, name='test_pdf_preview'),
+    
+    # Class 10 Combined Report endpoints
+    path('web/combined_report/<int:user_id>/', views.class10_combined_report, name='class10_combined_report'),
+    path('web/combined_report/<int:user_id>/download-pdf/', views.class10_report_download_pdf, name='class10_report_download_pdf'),
+    # Allow viewing own report without user_id
+    path('web/combined_report/', views.class10_combined_report, name='class10_combined_report_own'),
+    path('web/combined_report/download-pdf/', views.class10_report_download_pdf, name='class10_report_download_pdf_own'),
+    
+    # Individual Test Report endpoints (HTML)
+    path('web/test1_report/', views.test1_report_html, name='test1_report_html'),
+    path('web/test1_report/<int:user_id>/', views.test1_report_html, name='test1_report_html'),
+    path('web/test2_report/', views.test2_report_html, name='test2_report_html'),
+    path('web/test2_report/<int:user_id>/', views.test2_report_html, name='test2_report_html'),
+    path('web/test3_report/', views.test3_report_html, name='test3_report_html'),
+    path('web/test3_report/<int:user_id>/', views.test3_report_html, name='test3_report_html'),
+    
+    # Individual Test Report endpoints (PDF)
+    path('web/test1_report/download-pdf/', views.test1_report_pdf, name='test1_report_pdf'),
+    path('web/test1_report/<int:user_id>/download-pdf/', views.test1_report_pdf, name='test1_report_pdf'),
+    path('web/test2_report/download-pdf/', views.test2_report_pdf, name='test2_report_pdf'),
+    path('web/test2_report/<int:user_id>/download-pdf/', views.test2_report_pdf, name='test2_report_pdf'),
+    path('web/test3_report/download-pdf/', views.test3_report_pdf, name='test3_report_pdf'),
+    path('web/test3_report/<int:user_id>/download-pdf/', views.test3_report_pdf, name='test3_report_pdf'),
 
 ]
     

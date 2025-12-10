@@ -1,0 +1,854 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Course Learning | Top Teen{% endblock %}
+{% block description_content %}Learn at your own pace with interactive videos and quizzes.{% endblock %}
+
+{% block bodyclass %}{{ super() }} course-learning-page{% endblock %}
+
+{# Disable chatbot #}
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .course-learning-page {
+    padding-top: 80px;
+  }
+  /* Hide any profile sidebar that might be included */
+  .course-learning-page .profile-sidebar,
+  .course-learning-page .user-profile-card {
+    display: none !important;
+  }
+  /* Hide profile sidebar columns */
+  .course-learning-page .col-lg-3:first-child:not(:has(.course-sidebar-container)),
+  .course-learning-page .col-lg-4:first-child:not(:has(.course-sidebar-container)) {
+    display: none !important;
+  }
+  /* Ensure only course sidebar is visible */
+  .course-learning-page .course-sidebar-container {
+    display: block !important;
+  }
+  /* Make sure we only have one sidebar column */
+  .course-learning-page .row > .col-lg-3:first-of-type:not(:has(.course-sidebar-container)) {
+    display: none !important;
+  }
+  .course-sidebar-container {
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  .chapter-item {
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+  }
+  .chapter-header {
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #fff;
+  }
+  .chapter-item.active .chapter-header {
+    background: #5046e5;
+    color: #fff;
+  }
+  .chapter-header:hover {
+    background: #f7f7fa;
+  }
+  .chapter-item.active .chapter-header:hover {
+    background: #5046e5;
+  }
+  .part-item {
+    padding: 8px 12px;
+    margin: 4px 0;
+    background: #f7f7fa;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .part-item:hover {
+    background: #e9ecef;
+  }
+  .part-item.active {
+    background: #5046e5;
+    color: #fff;
+  }
+  .quiz-item {
+    padding: 6px 8px;
+    margin: 4px 0 4px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .quiz-item.enabled {
+    background: #e7f3ff;
+  }
+  .quiz-item.disabled {
+    background: #f5f5f5;
+    opacity: 0.6;
+  }
+  .quiz-item.completed {
+    background: #d4edda;
+  }
+  .quiz-completed-view {
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+  }
+  .answer-review-item {
+    border-radius: 8px;
+    border-left: 4px solid;
+    margin-bottom: 15px;
+  }
+  .answer-review-item.answer-correct {
+    background: #d4edda;
+    border-left-color: #28a745;
+  }
+  .answer-review-item.answer-incorrect {
+    background: #f8d7da;
+    border-left-color: #dc3545;
+  }
+  .stat-card {
+    background: #f7f7fa;
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .quiz-completed-view {
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+  }
+  .answer-review-item {
+    border-radius: 8px;
+    border-left: 4px solid;
+  }
+  .answer-review-item.answer-correct {
+    background: #d4edda;
+    border-left-color: #28a745;
+  }
+  .answer-review-item.answer-incorrect {
+    background: #f8d7da;
+    border-left-color: #dc3545;
+  }
+  .stat-card {
+    background: #f7f7fa;
+    border-radius: 8px;
+    padding: 20px;
+  }
+  /* Submit Quiz Popup Styles */
+  .submit-quiz-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .submit-quiz-popup-overlay.show {
+    opacity: 1;
+  }
+  .submit-quiz-popup {
+    background: #fff;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+  }
+  .submit-quiz-popup-overlay.show .submit-quiz-popup {
+    transform: scale(1);
+  }
+  .popup-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .popup-body {
+    padding: 30px 24px;
+    text-align: center;
+  }
+  .popup-footer {
+    padding: 20px 24px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  .popup-footer .btn {
+    min-width: 120px;
+  }
+  .video-container {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .video-container video {
+    width: 100%;
+    height: auto;
+    max-height: 600px;
+  }
+  .quiz-container {
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    margin-bottom: 20px;
+  }
+  .question-container {
+    display: none;
+  }
+  .question-container.active {
+    display: block;
+  }
+  .question-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  .question-number {
+    color: #5046e5;
+    font-weight: 700;
+  }
+  .answer-option {
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .answer-option:hover {
+    border-color: #5046e5;
+    background: #f7f7fa;
+  }
+  .answer-option.selected {
+    border-color: #5046e5;
+    background: #e7f3ff;
+  }
+  .quiz-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+  }
+  .progress-bar-container {
+    margin-bottom: 30px;
+  }
+  .progress-bar {
+    height: 10px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #5046e5;
+    transition: width 0.3s;
+  }
+  .dashboard-btn {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    z-index: 1000;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="course-learning-page pb-5">
+  <div class="container-fluid">
+    <!-- My Dashboard Button -->
+    <div class="dashboard-btn">
+      <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" class="btn custom-button purple-button">
+        <i class='bx bx-home me-2'></i>My Dashboard
+      </a>
+    </div>
+
+    <div class="row g-4">
+      <!-- Course Sidebar -->
+      <div class="col-lg-3">
+        <div class="course-sidebar-container">
+          {% include 'template20/counselor/includes/course_learning_sidebar.html' %}
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="col-lg-9">
+          <div class="px-4">
+            <!-- Progress Bar -->
+            <div class="progress-bar-container">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fs-16 fw-semibold">Course Progress</span>
+                <span class="fs-16 fw-semibold text-primary">{{ progress_percentage }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ progress_percentage }}%"></div>
+              </div>
+            </div>
+
+            <!-- Content Display -->
+            {% if content_type == 'part' and current_part %}
+              <!-- Video Content -->
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="fs-24 fw-semibold mb-3">{{ current_part.title }}</h3>
+                  {% if current_part.description %}
+                  <p class="text-gray mb-4">{{ current_part.description }}</p>
+                  {% endif %}
+
+                  {% if current_part.video_url %}
+                  <div class="video-container">
+                    <video id="video-{{ current_part.id }}" 
+                           preload="metadata" 
+                           controls
+                           data-part-id="{{ current_part.id }}">
+                      <source src="{{ current_part.video_url }}" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                  {% endif %}
+
+                  <!-- Video completion status -->
+                  {% set part_id = current_part.id %}
+                  {% set is_completed = video_progress.get(part_id, False) %}
+                  {% if is_completed %}
+                  <div class="alert alert-success mt-3">
+                    <i class='bx bx-check-circle me-2'></i>Video completed!
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+
+            {% elif content_type == 'quiz' and current_quiz and quiz_questions %}
+              <!-- Quiz Content - One by One or Completed Score -->
+              <div class="quiz-container">
+                <h3 class="fs-24 fw-semibold mb-4">Quiz: {{ current_quiz.title|default('Quiz') }}</h3>
+                
+                {% if quiz_score_data %}
+                  <!-- Quiz Already Completed - Show Score -->
+                  <div class="quiz-completed-view">
+                    <div class="alert alert-success mb-4">
+                      <i class='bx bx-check-circle me-2'></i>
+                      <strong>Quiz Completed!</strong>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                      <div class="col-md-4">
+                        <div class="stat-card text-center">
+                          <div class="fs-32 fw-bold text-primary">{{ quiz_score_data.get('total', 0) }}</div>
+                          <div class="stat-label">Total Questions</div>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="stat-card text-center">
+                          <div class="fs-32 fw-bold text-success">{{ quiz_score_data.get('correct', 0) }}</div>
+                          <div class="stat-label">Correct</div>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="stat-card text-center">
+                          <div class="fs-32 fw-bold text-danger">{{ quiz_score_data.get('incorrect', 0) }}</div>
+                          <div class="stat-label">Incorrect</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="score-percentage mb-4 text-center">
+                      <h4 class="fs-20 fw-semibold">Score: 
+                        <span class="text-primary">
+                          {% set total = quiz_score_data.get('total', 0) %}
+                          {% set correct = quiz_score_data.get('correct', 0) %}
+                          {{ ((correct / total * 100) if total > 0 else 0)|round(1) }}%
+                        </span>
+                      </h4>
+                    </div>
+                    
+                    <!-- Answer Review -->
+                    {% if quiz_score_data.get('correct_options') %}
+                    <div class="answer-review-section">
+                      <h5 class="fs-18 fw-semibold mb-3">Answer Review:</h5>
+                      {% for question in quiz_questions %}
+                      {% set question_key = 'ques_' ~ question.id %}
+                      {% set answer_data = quiz_score_data.get('correct_options', {}).get(question_key, {}) %}
+                      {% if answer_data %}
+                      <div class="answer-review-item mb-3 p-3 {% if answer_data.get('correct_ans') == answer_data.get('selected_ans') %}answer-correct{% else %}answer-incorrect{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                          <h6 class="fs-16 fw-semibold mb-0">Question {{ loop.index }}:</h6>
+                          {% if answer_data.get('correct_ans') == answer_data.get('selected_ans') %}
+                          <span class="badge bg-success">Correct</span>
+                          {% else %}
+                          <span class="badge bg-danger">Incorrect</span>
+                          {% endif %}
+                        </div>
+                        <p class="mb-2">{{ question.question_text }}</p>
+                        <div class="mt-2">
+                          <div class="mb-1"><strong>Correct Answer:</strong> 
+                            <span class="text-success">{{ answer_data.get('correct_ans', 'N/A') }}</span>
+                          </div>
+                          <div><strong>Your Answer:</strong> 
+                            <span class="{% if answer_data.get('correct_ans') == answer_data.get('selected_ans') %}text-success{% else %}text-danger{% endif %}">
+                              {{ answer_data.get('selected_ans', 'Not answered') }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {% endif %}
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center mt-4">
+                      <button onclick="navigateToNextPart()" class="btn custom-button purple-button">
+                        Continue to Next Part <i class='bx bx-chevron-right ms-2'></i>
+                      </button>
+                    </div>
+                  </div>
+                {% else %}
+                  <!-- Quiz Not Completed - Show Questions One by One -->
+                  <form id="quizForm" method="POST" action="{{ url('counselor:submit_full_quiz', args=[counselor.id, current_quiz.id]) }}">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                    
+                    {% for question in quiz_questions %}
+                    <div class="question-container {% if loop.index0 == current_question_index %}active{% endif %}" 
+                         data-question-index="{{ loop.index0 }}">
+                      <div class="question-title">
+                        <span class="question-number">Question {{ loop.index0 + 1 }} of {{ total_questions }}:</span>
+                        {{ question.question_text }}
+                      </div>
+
+                      <div class="answer-options">
+                        {% for answer in question.answers.all() %}
+                        <div class="answer-option" 
+                             data-answer-id="{{ answer.id }}"
+                             onclick="selectAnswer({{ question.id }}, {{ answer.id }})">
+                          <input type="radio" 
+                                 name="question_{{ question.id }}" 
+                                 id="answer_{{ answer.id }}" 
+                                 value="{{ answer.id }}"
+                                 style="display: none;">
+                          <label for="answer_{{ answer.id }}" class="mb-0 cursor-pointer">
+                            {{ answer.answer_text }}
+                          </label>
+                        </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Quiz Navigation -->
+                    <div class="quiz-navigation">
+                      <button type="button" 
+                              class="btn btn-outline-secondary" 
+                              id="prevBtn"
+                              onclick="previousQuestion()"
+                              {% if current_question_index == 0 %}disabled{% endif %}>
+                        <i class='bx bx-chevron-left me-1'></i>Previous
+                      </button>
+                      
+                      <span class="d-flex align-items-center">
+                        Question {{ current_question_index + 1 }} of {{ total_questions }}
+                      </span>
+                      
+                      {% if current_question_index >= total_questions - 1 %}
+                      <button type="submit" 
+                              class="btn custom-button purple-button" 
+                              id="submitBtn"
+                              style="display: inline-block;">
+                        Submit Quiz<i class='bx bx-check ms-1'></i>
+                      </button>
+                      <button type="button" 
+                              class="btn custom-button purple-button" 
+                              id="nextBtn"
+                              onclick="nextQuestion()"
+                              style="display: none;">
+                        Next<i class='bx bx-chevron-right ms-1'></i>
+                      </button>
+                      {% else %}
+                      <button type="button" 
+                              class="btn custom-button purple-button" 
+                              id="nextBtn"
+                              onclick="nextQuestion()"
+                              style="display: inline-block;">
+                        Next<i class='bx bx-chevron-right ms-1'></i>
+                      </button>
+                      <button type="submit" 
+                              class="btn custom-button purple-button" 
+                              id="submitBtn"
+                              style="display: none;">
+                        Submit Quiz<i class='bx bx-check ms-1'></i>
+                      </button>
+                      {% endif %}
+                    </div>
+                  </form>
+                {% endif %}
+              </div>
+
+            {% else %}
+              <!-- Default: Show first chapter info -->
+              <div class="card">
+                <div class="card-body text-center py-5">
+                  <i class='bx bx-book-open fs-64 text-gray mb-3'></i>
+                  <h3 class="fs-24 fw-semibold mb-2">Welcome to the Course</h3>
+                  <p class="text-gray mb-4">Select a chapter, part, or quiz from the sidebar to begin learning.</p>
+                  {% if chapters_list|length > 0 %}
+                  <button class="btn custom-button purple-button" 
+                          onclick="navigateToChapter({{ chapters_list[0].id }})">
+                    Start Learning
+                  </button>
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  // Hide any profile sidebars that might appear
+  (function() {
+    function hideProfileSidebars() {
+      // Hide profile sidebar elements
+      const profileSidebars = document.querySelectorAll('.course-learning-page .profile-sidebar, .course-learning-page .user-profile-card');
+      profileSidebars.forEach(function(sidebar) {
+        sidebar.style.display = 'none';
+      });
+      
+      // Hide columns that contain profile sidebars (but not course sidebar)
+      const sidebarColumns = document.querySelectorAll('.course-learning-page .col-lg-3, .course-learning-page .col-lg-4');
+      sidebarColumns.forEach(function(col) {
+        const hasCourseSidebar = col.querySelector('.course-sidebar-container');
+        const hasProfileSidebar = col.querySelector('.profile-sidebar, .user-profile-card');
+        if (hasProfileSidebar && !hasCourseSidebar) {
+          col.style.display = 'none';
+        }
+      });
+    }
+    
+    // Run on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', hideProfileSidebars);
+    } else {
+      hideProfileSidebars();
+    }
+    
+    // Also run after a short delay to catch any dynamically loaded content
+    setTimeout(hideProfileSidebars, 100);
+  })();
+  
+  // Scroll sidebar to show active item (only scrolls sidebar, not full window)
+  function scrollSidebarToActive() {
+    const sidebar = document.querySelector('.course-sidebar-container');
+    if (!sidebar) return;
+    
+    // Find active items (priority: active quiz > active part > active chapter)
+    const activeQuiz = sidebar.querySelector('.quiz-item.active');
+    const activePart = sidebar.querySelector('.part-item.active');
+    const activeChapter = sidebar.querySelector('.chapter-item.active');
+    
+    const activeElement = activeQuiz || activePart || activeChapter;
+    
+    if (activeElement && sidebar) {
+      const sidebarRect = sidebar.getBoundingClientRect();
+      const elementRect = activeElement.getBoundingClientRect();
+      
+      // Check if element is visible in sidebar viewport
+      const isVisible = (
+        elementRect.top >= sidebarRect.top &&
+        elementRect.bottom <= sidebarRect.bottom
+      );
+      
+      if (!isVisible) {
+        // Calculate scroll position to center the active element in sidebar
+        const scrollOffset = elementRect.top - sidebarRect.top + sidebar.scrollTop - 100; // 100px padding from top
+        sidebar.scrollTo({
+          top: Math.max(0, scrollOffset),
+          behavior: 'smooth'
+        });
+      }
+    }
+  }
+  
+  // Run sidebar scroll on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(scrollSidebarToActive, 300);
+    });
+  } else {
+    setTimeout(scrollSidebarToActive, 300);
+  }
+
+  // Navigation functions
+  function navigateToChapter(chapterId) {
+    window.location.href = "{{ url('counselor:course_learning', args=[counselor.id]) }}?type=chapter&id=" + chapterId;
+  }
+
+  function navigateToPart(partId) {
+    window.location.href = "{{ url('counselor:course_learning', args=[counselor.id]) }}?type=part&id=" + partId;
+  }
+
+  function navigateToQuiz(quizId) {
+    window.location.href = "{{ url('counselor:course_learning', args=[counselor.id]) }}?type=quiz&id=" + quizId + "&q=0";
+  }
+
+  // Quiz navigation
+  function nextQuestion() {
+    const currentQuestion = document.querySelector('.question-container.active');
+    const nextQuestion = currentQuestion.nextElementSibling;
+    
+    if (nextQuestion && nextQuestion.classList.contains('question-container')) {
+      currentQuestion.classList.remove('active');
+      nextQuestion.classList.add('active');
+      
+      // Update navigation buttons
+      const questionIndex = parseInt(nextQuestion.dataset.questionIndex);
+      const totalQuestions = {{ total_questions }};
+      
+      if (questionIndex >= totalQuestions - 1) {
+        // Last question - show submit button
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('submitBtn').style.display = 'inline-block';
+      } else {
+        // Not last question - show next button
+        document.getElementById('nextBtn').style.display = 'inline-block';
+        document.getElementById('submitBtn').style.display = 'none';
+      }
+      
+      if (questionIndex > 0) {
+        document.getElementById('prevBtn').disabled = false;
+      }
+      
+      // Update question counter
+      const questionCounter = document.querySelector('.quiz-navigation span');
+      if (questionCounter) {
+        questionCounter.textContent = `Question ${questionIndex + 1} of ${totalQuestions}`;
+      }
+      
+      // Keep page scroll at top - don't scroll to question
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function previousQuestion() {
+    const currentQuestion = document.querySelector('.question-container.active');
+    const prevQuestion = currentQuestion.previousElementSibling;
+    
+    if (prevQuestion && prevQuestion.classList.contains('question-container')) {
+      currentQuestion.classList.remove('active');
+      prevQuestion.classList.add('active');
+      
+      // Update navigation buttons
+      const questionIndex = parseInt(prevQuestion.dataset.questionIndex);
+      const totalQuestions = {{ total_questions }};
+      
+      if (questionIndex === 0) {
+        document.getElementById('prevBtn').disabled = true;
+      } else {
+        document.getElementById('prevBtn').disabled = false;
+      }
+      
+      if (questionIndex >= totalQuestions - 1) {
+        // Last question - show submit button
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('submitBtn').style.display = 'inline-block';
+      } else {
+        // Not last question - show next button
+        document.getElementById('nextBtn').style.display = 'inline-block';
+        document.getElementById('submitBtn').style.display = 'none';
+      }
+      
+      // Update question counter
+      const questionCounter = document.querySelector('.quiz-navigation span');
+      if (questionCounter) {
+        questionCounter.textContent = `Question ${questionIndex + 1} of ${totalQuestions}`;
+      }
+      
+      // Keep page scroll at top - don't scroll to question
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function selectAnswer(questionId, answerId) {
+    // Unselect other options for this question
+    const questionContainer = document.querySelector(`input[name="question_${questionId}"]`).closest('.question-container');
+    questionContainer.querySelectorAll('.answer-option').forEach(option => {
+      option.classList.remove('selected');
+    });
+    
+    // Select this answer
+    const selectedOption = document.querySelector(`[data-answer-id="${answerId}"]`);
+    selectedOption.classList.add('selected');
+    document.getElementById(`answer_${answerId}`).checked = true;
+    
+    // Auto-forward to next question after a short delay (except on last question)
+    const currentQuestion = document.querySelector('.question-container.active');
+    if (!currentQuestion) return;
+    
+    const nextQuestionElement = currentQuestion.nextElementSibling;
+    const totalQuestions = {{ total_questions }};
+    const currentQuestionIndex = parseInt(currentQuestion.dataset.questionIndex);
+    
+    // Check if this is the last question
+    if (currentQuestionIndex >= totalQuestions - 1) {
+      // Last question - show submit popup after delay
+      setTimeout(function() {
+        showSubmitQuizPopup();
+      }, 800); // 800ms delay to let user see their selection
+    } else if (nextQuestionElement && nextQuestionElement.classList.contains('question-container')) {
+      // Not last question - auto-forward to next
+      setTimeout(function() {
+        // Call the nextQuestion function to move forward
+        nextQuestion();
+      }, 800); // 800ms delay to let user see their selection
+    }
+  }
+  
+  // Show submit quiz popup
+  function showSubmitQuizPopup() {
+    // Create popup modal
+    const popup = document.createElement('div');
+    popup.className = 'submit-quiz-popup-overlay';
+    popup.innerHTML = `
+      <div class="submit-quiz-popup">
+        <div class="popup-header">
+          <h5 class="fs-18 fw-semibold mb-0">Complete Quiz</h5>
+          <button type="button" class="btn-close" onclick="closeSubmitQuizPopup()"></button>
+        </div>
+        <div class="popup-body">
+          <i class='bx bx-check-circle fs-48 text-success mb-3'></i>
+          <p class="fs-16 mb-3">You have answered all questions. Ready to submit your quiz?</p>
+          <p class="fs-14 text-gray mb-4">You can review your answers before submitting.</p>
+        </div>
+        <div class="popup-footer">
+          <button type="button" class="btn btn-outline-secondary" onclick="closeSubmitQuizPopup()">
+            Review Answers
+          </button>
+          <button type="button" class="btn custom-button purple-button" onclick="submitQuizNow()">
+            <i class='bx bx-check me-2'></i>Submit Quiz
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(popup);
+    
+    // Add fade-in animation
+    setTimeout(() => {
+      popup.classList.add('show');
+    }, 10);
+  }
+  
+  // Close submit quiz popup
+  function closeSubmitQuizPopup() {
+    const popup = document.querySelector('.submit-quiz-popup-overlay');
+    if (popup) {
+      popup.classList.remove('show');
+      setTimeout(() => {
+        popup.remove();
+      }, 300);
+    }
+  }
+  
+  // Submit quiz immediately
+  function submitQuizNow() {
+    const form = document.getElementById('quizForm');
+    if (form) {
+      form.submit();
+    }
+  }
+
+  // Video progress tracking
+  document.querySelectorAll('video').forEach(video => {
+    const partId = video.getAttribute('data-part-id');
+    
+    if (partId) {
+      // Load saved progress
+      fetch('{{ url("counselor:get_progress_and_duration", args=["video-0"]) }}'.replace('video-0', 'video-' + partId))
+        .then(response => {
+          if (!response.ok) {
+            // Handle 404 or other errors gracefully
+            return { status: 'success', progress: 0, duration: null };
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.status === 'success' && data.progress && video.duration && data.progress > 0) {
+            video.currentTime = (data.progress / 100) * video.duration;
+          }
+        })
+        .catch(err => {
+          // Silently handle errors - video will start from beginning
+          console.debug('No saved progress found for video-' + partId);
+        });
+      
+      video.addEventListener('timeupdate', function() {
+        if (this.duration) {
+          const progress = (this.currentTime / this.duration) * 100;
+          updateVideoProgress('video-' + partId, progress, this.duration);
+        }
+      });
+      
+      video.addEventListener('ended', function() {
+        if (this.duration) {
+          updateVideoProgress('video-' + partId, 100, this.duration);
+          // Reload to update sidebar status
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
+      });
+    }
+  });
+
+  function updateVideoProgress(videoId, progress, duration) {
+    fetch('{{ url("counselor:update_progress") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        video_id: videoId,
+        progress: progress,
+        duration: duration
+      })
+    }).catch(err => console.error('Error updating progress:', err));
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+{% endblock %}
+

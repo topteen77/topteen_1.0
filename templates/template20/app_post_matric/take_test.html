@@ -1067,7 +1067,7 @@ submitTest();
       const resultData = await submitResponse.json().catch(() => ({}));
       
       // Redirect to tests page after submission
-      window.location.href = `/api/web/tests/`;
+      window.location.href = "{{ url('post_matric:tests') }}";
       
     } catch (error) {
       console.error('Error submitting test:', error);

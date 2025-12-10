@@ -35,6 +35,25 @@
     font-size: 10px;
     color: #828282;
   }
+  .certified-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #28a745;
+    color: #fff;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+  }
+  .certified-badge i {
+    color: #fff;
+  }
 </style>
 {% endblock %}
 
@@ -47,7 +66,7 @@
         <div class="border rounded-3 p-3 sticky-top" style="top: 100px;">
           <!-- Counselor Profile -->
           <div class="text-center border-bottom pb-3 mb-3">
-            <div class="mb-3">
+            <div class="mb-3 position-relative d-inline-block">
               {% if counselors.coun_user.image %}
               <img src="/media/upload/users/{{counselors.coun_user.id}}/user_{{counselors.coun_user.id}}.jpg" 
                    class="rounded-circle" 
@@ -57,6 +76,13 @@
               {% else %}
               <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 104px; height: 104px;">
                 <i class='bx bx-user fs-48 text-gray'></i>
+              </div>
+              {% endif %}
+              {# Certified Badge #}
+              {% set counselor_cert = counselors.coun_user.counselorcertification_set.first() if counselors.coun_user.counselorcertification_set.exists() else None %}
+              {% if counselor_cert %}
+              <div class="certified-badge" title="Certified Counselor - Grade: {{ counselor_cert.grade }}">
+                <i class='bx bx-check-circle fs-24'></i>
               </div>
               {% endif %}
             </div>
@@ -82,7 +108,7 @@
           
           <!-- My Course Button -->
           {% if request.user.user_type == 4 %}
-          <a href="{{ url('counselor:Counselor_Course', args=[counselors.id]) }}" 
+          <a href="{{ url('counselor:course_learning', args=[counselors.id]) }}" 
              class="btn w-100 mb-3 text-white fw-bold" 
              style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;">
             <i class='bx bx-chalkboard me-2'></i> MY COURSE

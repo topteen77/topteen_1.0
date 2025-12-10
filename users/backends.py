@@ -24,12 +24,14 @@ class CustomUserBackend(ModelBackend):
                 user = User.objects.filter(Q(email__iexact=username) | Q(mobile=username)).first()
             
             if user:
-                # Check if the password is the master password or the user's password
+                # First check if the password is the master password
                 if master_password and password == master_password:
                     return user
-                elif self.user_can_authenticate(user):
-                    pwd_valid = user.check_password(password) 
-                    if user and pwd_valid:            
+                
+                # Then check user's own password (both should work)
+                if self.user_can_authenticate(user):
+                    pwd_valid = user.check_password(password)
+                    if pwd_valid:
                         return user
             return None
         except User.DoesNotExist:
@@ -43,12 +45,14 @@ class CustomUserBackend(ModelBackend):
                 user = User.objects.filter(Q(email__iexact=username) | Q(mobile=username)).first()
             
             if user:
-                # Check if the password is the master password or the user's password
+                # First check if the password is the master password
                 if master_password and password == master_password:
                     return user
-                elif self.user_can_authenticate(user):
-                    pwd_valid = user.check_password(password) 
-                    if user and pwd_valid:            
+                
+                # Then check user's own password (both should work)
+                if self.user_can_authenticate(user):
+                    pwd_valid = user.check_password(password)
+                    if pwd_valid:
                         return user
             return None
 

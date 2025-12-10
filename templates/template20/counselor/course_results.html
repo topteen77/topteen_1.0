@@ -1,0 +1,219 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Course Results | Top Teen{% endblock %}
+{% block description_content %}View your quiz results and course performance.{% endblock %}
+
+{% block bodyclass %}{{ super() }} course-results-page{% endblock %}
+
+{# Disable chatbot #}
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .course-results-page {
+    padding-top: 80px;
+  }
+  .results-summary-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+  }
+  .stat-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #e9ecef;
+  }
+  .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #5046e5;
+  }
+  .stat-label {
+    font-size: 14px;
+    color: #666;
+    margin-top: 5px;
+  }
+  .part-results-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+  }
+  .quiz-result-item {
+    padding: 15px;
+    background: #f7f7fa;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+  .answer-review {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 4px;
+  }
+  .answer-correct {
+    background: #d4edda;
+    border-left: 3px solid #28a745;
+  }
+  .answer-incorrect {
+    background: #f8d7da;
+    border-left: 3px solid #dc3545;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="course-results-page pb-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="fs-24 fw-semibold mb-0">Course Results</h2>
+          <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" 
+             class="btn btn-outline-secondary">
+            <i class='bx bx-home me-2'></i>My Dashboard
+          </a>
+        </div>
+
+        <!-- Results Summary -->
+        <div class="results-summary-card">
+          <div class="row">
+            <div class="col-md-4 text-center mb-3 mb-md-0">
+              <div class="fs-48 fw-bold mb-2">{{ total_questions }}</div>
+              <div class="fs-16">Total Questions</div>
+            </div>
+            <div class="col-md-4 text-center mb-3 mb-md-0">
+              <div class="fs-48 fw-bold mb-2">{{ total_correct }}</div>
+              <div class="fs-16">Correct Answers</div>
+            </div>
+            <div class="col-md-4 text-center">
+              <div class="fs-48 fw-bold mb-2">{{ score_percentage }}%</div>
+              <div class="fs-16">Score</div>
+            </div>
+          </div>
+          <div class="text-center mt-4">
+            <h3 class="fs-24 fw-bold mb-2">Grade: {{ grade }}</h3>
+            {% if certification %}
+            <a href="{{ url('counselor:view_certificate', args=[counselor.id]) }}" 
+               class="btn btn-light mt-3">
+              <i class='bx bx-award me-2'></i>View Certificate
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="stat-card">
+              <div class="stat-value">{{ total_correct }}</div>
+              <div class="stat-label">Correct</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card">
+              <div class="stat-value">{{ total_incorrect }}</div>
+              <div class="stat-label">Incorrect</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card">
+              <div class="stat-value">{{ grade }}</div>
+              <div class="stat-label">Final Grade</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Results by Part -->
+        {% if results_by_part %}
+        <h3 class="fs-20 fw-semibold mb-3">Detailed Results</h3>
+        
+        {% for part_id, part_data in results_by_part.items() %}
+        <div class="part-results-card">
+          <h4 class="fs-18 fw-semibold mb-3">
+            <i class='bx bx-play-circle me-2 text-primary'></i>{{ part_data.part.title }}
+          </h4>
+          
+          {% for quiz_data in part_data.quizzes %}
+          <div class="quiz-result-item">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fs-16 fw-semibold mb-0">Quiz Results</h5>
+              <span class="badge {% if quiz_data.correct > quiz_data.incorrect %}bg-success{% else %}bg-warning{% endif %}">
+                {{ quiz_data.correct }}/{{ quiz_data.total }} Correct
+              </span>
+            </div>
+            
+            <!-- Answer Review -->
+            {% if quiz_data.correct_options %}
+            <div class="answer-review-section">
+              <h6 class="fs-14 fw-semibold mb-2">Answer Review:</h6>
+              {% for question_key, answer_data in quiz_data.correct_options.items() %}
+              <div class="answer-review {% if answer_data.correct_ans == answer_data.selected_ans %}answer-correct{% else %}answer-incorrect{% endif %}">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <strong>{{ question_key|replace('ques_', 'Question ') }}</strong>
+                  </div>
+                  {% if answer_data.correct_ans == answer_data.selected_ans %}
+                  <span class="badge bg-success">Correct</span>
+                  {% else %}
+                  <span class="badge bg-danger">Incorrect</span>
+                  {% endif %}
+                </div>
+                <div class="mt-2">
+                  <div><strong>Correct Answer:</strong> {{ answer_data.correct_ans|default('N/A') }}</div>
+                  <div><strong>Your Answer:</strong> {{ answer_data.selected_ans|default('Not answered') }}</div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="card">
+          <div class="card-body text-center py-5">
+            <i class='bx bx-info-circle fs-64 text-gray mb-3'></i>
+            <h3 class="fs-20 fw-semibold mb-2">No Results Yet</h3>
+            <p class="text-gray mb-4">Complete quizzes to see your results here.</p>
+            <a href="{{ url('counselor:course_learning', args=[counselor.id]) }}" 
+               class="btn custom-button purple-button">
+              Start Learning
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Certificate Section -->
+        {% if certification %}
+        <div class="card mt-4">
+          <div class="card-body text-center">
+            <i class='bx bx-award fs-64 text-warning mb-3'></i>
+            <h3 class="fs-24 fw-bold mb-2">Congratulations!</h3>
+            <p class="fs-16 mb-3">You have completed the course and earned a certificate.</p>
+            <p class="fs-14 mb-3">
+              <strong>Certificate Code:</strong> {{ certification.certificate_code }}<br>
+              <strong>Grade:</strong> {{ certification.grade }}
+            </p>
+            <a href="{{ url('counselor:view_certificate', args=[counselor.id]) }}" 
+               class="btn custom-button purple-button">
+              <i class='bx bx-download me-2'></i>View & Download Certificate
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

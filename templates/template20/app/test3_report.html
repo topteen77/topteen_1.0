@@ -1,0 +1,1058 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Intelligence Assessment Report | Top Teen{% endblock %}
+{% block description_content %}View your Intelligence Assessment report.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} report-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .report-page {
+    background: #f5f5f5;
+  }
+  
+  .report-container {
+    max-width: 1000px;
+    margin: 80px auto 0;
+    background: white;
+    padding: 20px;
+    padding-bottom: 80px;
+  }
+  
+  .report-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #3F37C9;
+  }
+  
+  .report-header h1 {
+    color: #3F37C9;
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+  
+  .download-btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background: #3F37C9;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .download-btn:hover {
+    background: #2E289D;
+  }
+  
+  .download-btn.old-download {
+    background: #6c757d;
+    margin-left: 10px;
+  }
+  
+  .download-btn.old-download:hover {
+    background: #5a6268;
+  }
+  
+  .download-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+  }
+  
+  /* Sticky Download Button */
+  .sticky-download-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 15px 20px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .sticky-download-btn {
+    padding: 12px 30px;
+    background: #3F37C9;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.3s ease;
+  }
+  
+  .sticky-download-btn:hover {
+    background: #2E289D;
+    color: white;
+  }
+  
+  
+  .chapterPage {
+    width: 100%;
+    margin: 20px 0;
+    padding: 20px;
+    clear: both;
+  }
+  
+  .text-color-top {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .top-layout {
+    background: #3F37C9;
+    color: #fff;
+    font-size: 16px;
+    padding: 11px 38px;
+    margin-top: 28px;
+    font-weight: 600;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .db-header {
+    margin-top: 10px;
+    text-align: center;
+  }
+  
+  .db-header h1 {
+    color: #3F37C9;
+    font-size: 24pt;
+    margin: 0 0 10px 0;
+  }
+  
+  .text-info-paragraph {
+    margin: 15px 0;
+  }
+  
+  .text-info-paragraph p {
+    font-size: 14px;
+    color: #494949;
+    line-height: 1.6;
+  }
+  
+  .test-title {
+    color: #000;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 10px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+  
+  table th {
+    background: #E7E5FF;
+    color: #2720A7;
+    padding: 21px 0 21px 14px;
+    text-align: left;
+  }
+  
+  table th:first-child {
+    border-top-left-radius: 15px;
+  }
+  
+  table th:last-child {
+    border-top-right-radius: 15px;
+  }
+  
+  table td {
+    padding: 10px 14px;
+    border: 1px solid #9490dd;
+  }
+  
+  .threebox-col {
+    display: inline-block;
+    margin: 20px 8px;
+  }
+  
+  .box-i.onebox {
+    background: #ffe5e6;
+    border-radius: 10px;
+    text-align: center;
+    border-right: 4px solid #3F37C9;
+    border-bottom: 4px solid #3F37C9;
+    width: 190px;
+    height: 180px;
+    min-height: 180px;
+    padding: 15px;
+  }
+  
+  .graph {
+    width: 100%;
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  .graph img {
+    max-width: 500px;
+    height: auto;
+  }
+  
+  .two-box {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0;
+    margin-bottom: 50px;
+    width: 100%;
+  }
+  
+  .two-box-in {
+    width: 290px;
+    min-width: 290px;
+    height: 138px;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    align-items: center;
+    background: #E7E5FF;
+    grid-gap: 1rem;
+    text-align: center;
+    margin: 0 5px;
+    padding: 10px 15px;
+    border-radius: 10px;
+    border-right: 3px solid #3F37CB;
+    border-bottom: 3px solid #3F37C9;
+  }
+  
+  .two-box-in p {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+  }
+  
+  .img-tow {
+    margin-top: 0;
+  }
+  
+  .no-results {
+    text-align: center;
+    padding: 40px;
+  }
+  
+  .no-results h3 {
+    color: #3F37C9;
+    margin-bottom: 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-container">
+
+
+  {% if no_results %}
+  <div class="no-results">
+    <h3>No Results Found</h3>
+    <p>{{ error if error else "You need to complete the Intelligence Assessment test to generate a report." }}</p>
+    <a href="{{ url('app:test_buttons') }}" class="download-btn">
+      <i class="fas fa-arrow-right"></i> Take Test
+    </a>
+  </div>
+  {% else %}
+  
+  <!-- Part 3: Aptitude Assessment Report -->
+  {% if intelligence_data and intelligence_data.scores %}
+  <div class="chapterPage">
+
+    <div class="text-color-top">
+      <div class="top-layout" style="font-size: 16px;">Part - 3</div>
+    </div>
+    <div class="db-header" style="margin-top: 0px;">
+      <h1 style="color: #3F37C9; margin-top: 10px;">INTELLIGENCE ASSESSMENT REPORT</h1>
+    </div>
+    <div class="text-info-paragraph" style="width: 100%; float: left; margin-top: 10px;">
+      <p>An intelligence test is a standardized assessment designed to measure a person's cognitive abilities and intellectual potential. These tests evaluate various factors of intelligence to provide a comprehensive understanding of an individual's mental capabilities. The key factors often assessed in an intelligence test include numerical reasoning, verbal reasoning, logical reasoning, mechanical reasoning, spatial reasoning, language usage and spelling, and critical reasoning. By identifying your dominant Reasoning type, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
+    </div>
+
+    <div class="test-title" style="color:#000; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">
+      Reasoning type description
+    </div>
+    <table style="margin-bottom: 30px; margin-top:0px;">
+      <thead>
+        <tr>
+          <th style="border-top-left-radius: 15px; font-size: 16px;">Reasoning Type</th>
+          <th style="border-top-right-radius: 15px; font-size: 16px;">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">
+            <div style="display: flex;align-items: center;">
+              <div>
+                <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/numeric.png') }}" alt="Numerical Reasoning" />
+              </div>
+              Numerical Reasoning
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            Ability to understand, interpret, and work with numerical concepts and relationships. It involves the capacity to reason with numbers and perform mathematical operations to solve problems.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left:14px; color: #000; font-weight: 700;">
+            <div style="display: flex; align-items: center;">
+              <div>
+                <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/verbal.png') }}" alt="Verbal Reasoning" />
+              </div>
+              Verbal Reasoning
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            Ability to understand, analyze, and interpret written and spoken language. It involves evaluating information and arguments presented in words to make logical conclusions.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left:14px; color: #000; font-weight: 700;">
+            <div style="display: flex; align-items: center;">
+              <div>
+                <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/logical.png') }}" alt="Logical Reasoning" />
+              </div>
+              Logical Reasoning
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            Ability to analyze and evaluate arguments, identify patterns, and solve problems using logic. It involves deducing conclusions from premises and understanding the principles of logic.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left:14px; color: #000; font-weight: 700;">
+            <div style="display: flex; align-items: center;">
+              <div>
+                <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/mechanical-reasoning.png') }}" alt="Mechanical Reasoning" />
+              </div>
+              Mechanical Reasoning
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            Ability to analyze and evaluate arguments, identify patterns, and solve problems using logic. It involves deducing conclusions from premises and understanding the principles of logic.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left:14px; color: #000; font-weight: 700;">
+            <div style="display: flex; align-items: center;">
+              <div>
+                <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/spatial-reasoning.png') }}" alt="Spatial Reasoning" />
+              </div>
+              Spatial Reasoning
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            Ability to visualize and manipulate objects in space. It involves understanding spatial relationships and properties of objects.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left:14px; color: #000; font-weight: 700;">
+            <div style="display: flex; align-items: center;">
+              <div>
+                <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/language-usage.png') }}" alt="Language Usage and Spelling" />
+              </div>
+              Language Usage and Spelling
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            Ability to understand and use language correctly, including grammar, punctuation, and spelling. It involves the accurate and effective use of words in communication.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left:14px; color: #000; font-weight: 700;">
+            <div style="display: flex; align-items: center;">
+              <div>
+                <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/emotional-reasoning.png') }}" alt="Emotional Reasoning" />
+              </div>
+              Critical Reasoning
+            </div>
+          </td>
+          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            Ability to analyze, evaluate and synthesize information objectively and systematically. It involves reasoned judgements, problem-solving ability and capability to form well-supported conclusions along with recognizing biases and considering alternative perspective.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="chapterPage">
+    <div class="db-header" style="margin-top: 10px;">
+      <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
+    </div>
+    <div class="text-info-paragraph">
+      <p>Based on your test results, your strongest Reasoning Area is:</p>
+    </div>
+    <div class="text-color-top" style="display: flex; justify-content: center;">
+      <div class="top-layout" style="background: #3F37C9; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 15px; font-weight: 600; border-radius: 10px 10px 0 0;">
+        REASONING
+      </div>
+    </div>
+    <div class="threebox-col" style="display: flex;justify-content: center; margin: 8px 0 0 0;">
+      {% if intelligence_data.above_avg %}
+      <div class="box-i onebox" style="background: #E7E5FF;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 180px; min-height: 180px;">
+        <p style="color: #3F37C9; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Above Average</p>
+        <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
+          {% for above in intelligence_data.above_avg %}
+          <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ above }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if intelligence_data.average %}
+      <div class="box-i onebox" style="background: #E5F9FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2E8AA6; border-bottom: 4px solid #2E8AA6; width:190px; height: 180px; min-height: 180px;">
+        <p style="color: #2E8AA6; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Average</p>
+        <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
+          {% for average in intelligence_data.average %}
+          <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ average }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if intelligence_data.below_avg %}
+      <div class="box-i onebox" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
+        <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Below Average</p>
+        <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
+          {% for belowavg in intelligence_data.below_avg %}
+          <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ belowavg }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if user_name and user_ID %}
+    <div class="graph" style="width:100%; text-align: center; margin-top: 10px; float: left; margin-bottom: 10px;">
+      <img style="width:500px;" src="/media/graph_images/{{ user_name }}-{{ user_ID }}_intelligence_Assessment.png" alt="graph" />
+    </div>
+    {% elif user and user_ID %}
+    <div class="graph" style="width:100%; text-align: center; margin-top: 10px; float: left; margin-bottom: 10px;">
+      <img style="width:500px;" src="/media/graph_images/{{ user.name if user.name else user.email }}-{{ user_ID }}_intelligence_Assessment.png" alt="graph" />
+    </div>
+    {% endif %}
+
+    <table style="margin-bottom: 30px; margin-top:10px; width:600px; margin: 0px auto;">
+      <thead>
+        <tr>
+          <th colspan="2" style="background: #3F37C9; color:#fff; padding: 5px 0 5px 14px; border-top-left-radius: 15px; font-size: 16px;text-align: center; border-top-right-radius: 15px;">Stream Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background: #FFFCEC;">
+          <td style="width: 200px; padding-left:14px; color: #D7B20A; font-weight: 700;">• PCM</td>
+          <td style="padding-left:14px; color: #000; font-weight: 400;">Physics, Chemistry, Mathematics</td>
+        </tr>
+        <tr style="background: #FFEDEB;">
+          <td style="width: 200px; padding-left:14px; color: #DE6E61; font-weight: 700;">• PCB</td>
+          <td style="padding-left:14px; color: #000; font-weight: 400;">Physics, Chemistry, Biology</td>
+        </tr>
+        <tr style="background: #F0FFEA;">
+          <td style="width: 200px; padding-left:14px; color: #2A740E; font-weight: 700;">• HUM</td>
+          <td style="padding-left:14px; color: #000; font-weight: 400;">Humanities</td>
+        </tr>
+        <tr style="background: #E5F9FF;">
+          <td style="width: 200px; padding-left:14px; color: #2E8AA6; font-weight: 700;">• HWL</td>
+          <td style="padding-left:14px; color: #000; font-weight: 400;">Humanities with Languages</td>
+        </tr>
+        <tr style="background: #FFF1E4;">
+          <td style="width: 200px; padding-left:14px; color: #E49B31; font-weight: 700;">• CWM</td>
+          <td style="padding-left:14px; color: #000; font-weight: 400;">Commerce with Mathematics</td>
+        </tr>
+        <tr style="background: #E7E5FF;">
+          <td style="width: 200px; padding-left:14px; color:#3F37C9; font-weight: 700;">• CWOM</td>
+          <td style="padding-left:14px; color: #000; font-weight: 400;">Commerce without Mathematics</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Above Average Reasoning Types -->
+  {% if intelligence_data.above_avg %}
+  <div class="chapterPage">
+    <div class="db-header" style="margin-top: 10px; text-align: center;">
+      <h1 style="color: #3F37C9; margin-bottom: 5px;">Best Suited Careers and Subjects for your Reasoning type</h1>
+    </div>
+
+    <!-- NUMERICAL Above Average -->
+    <div style="width: 900px; float: left; margin: 0 auto;">
+      {% if 'NUMERICAL' in intelligence_data.above_avg %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #3F37C9; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0; text-align: center;">
+          Numerical Reasoning <span style="color:#FBC343;"> (Above Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#2720A7; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background: #F5F4FF; border: 1px solid #2720A7; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Finance and Accounting</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Engineering</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Data Science and Analytics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Economics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• IT and Programming</strong></div>
+      </div>
+      <div class="test-title" style="color:#2720A7; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #F5F4FF; border: 1px solid #2720A7; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Mathematics and Physics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Statistics and Economics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Computer Science and Calculus</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Engineering and Business Mathematics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Finance and Accounting</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/cwm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">CWM</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- VERBAL Above Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'VERBAL' in intelligence_data.above_avg %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #2A740E; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; text-align: center; border-radius: 10px 10px 0 0;">
+          Verbal Reasoning <span style="color:#FBC343;"> (Above Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#2A740E; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#F7FFF3; border: 1px solid #2A740E; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Law and Legal Services</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Education</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#2A740E;">• Journalism and Writing</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Public Relations and Communications</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Human Resources</strong></div>
+      </div>
+      <div class="test-title" style="color:#2A740E; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #F7FFF3; border: 1px solid #2A740E; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• English Literature and History</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#2A740E;">• Communications and Political Science</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Foreign Language and Sociology</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E">• Creative Writing and Philosophy</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Linguistics and Education</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left; clear: both;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #F7FFF3;border-right: 3px solid #2A740E; border-bottom: 3px solid #2A740E;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/hum-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">HUM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #F7FFF3; border-right: 3px solid #2A740E; border-bottom: 3px solid #2A740E;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/cwm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">CWOM</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- LOGICAL Above Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'LOGICAL' in intelligence_data.above_avg %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #FFB100; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; text-align: center; border-radius: 10px 10px 0 0;">
+          Logical Reasoning <span style="color:#fff;"> (Above Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#FFB100; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#FFFCEC; border: 1px solid #FFB100; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Computer Science and IT</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Engineering</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#FFB100;">• Research and Development</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Mathematics and Statistics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Consulting</strong></div>
+      </div>
+      <div class="test-title" style="color:#FFB100; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #FFFCEC; border: 1px solid #FFB100; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Mathematics and Computer Science</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#FFB100;">• Philosophy and Physics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Statistics and Economics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100">• Engineering and Algorithms</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Logic and Artificial Intelligence</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Health Science</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFFCEC;border-right: 3px solid #FFB100; border-bottom: 3px solid #FFB100;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFFCEC; border-right: 3px solid #FFB100; border-bottom: 3px solid #FFB100;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcb-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCB</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- MECHANICAL Above Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'MECHANICAL' in intelligence_data.above_avg %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #DE6E61; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; text-align: center; border-radius: 10px 10px 0 0;">
+          Mechanical Reasoning <span style="color:#FBC343;"> (Above Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#DE6E61; font-weight: 900; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#FFF5F4; border: 1px solid #DE6E61; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Engineering</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Construction and Trades</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#DE6E61;">• Manufacturing</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Automotive</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Aviation</strong></div>
+      </div>
+      <div class="test-title" style="color:#DE6E61; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #FFF5F4; border: 1px solid #DE6E61; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Mechanical Engineering and Physics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#DE6E61;">• Auto Mechanics and Industrial Technology</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Robotics and Electrical Engineering</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61">• CAD (Computer-Aided Design) and Architecture</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Manufacturing Technology and Mechatronics</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFF5F4;border-right: 3px solid #DE6E61; border-bottom: 3px solid #DE6E61;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFF5F4; border-right: 3px solid #DE6E61; border-bottom: 3px solid #DE6E61;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/computer-sci-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">Computer Science</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- SPATIAL Above Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'SPATIAL' in intelligence_data.above_avg %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #057190; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; text-align: center; border-radius: 10px 10px 0 0;">
+          Spatial Reasoning <span style="color:#FBC343;"> (Above Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#057190; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#F0FBFF; border: 1px solid #057190; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Architecture and Design</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Engineering</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#057190;">• Creative Arts</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Urban Planning</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Geography and Cartography</strong></div>
+      </div>
+      <div class="test-title" style="color:#057190; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #F0FBFF; border: 1px solid #057190; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Architecture and Graphic Design</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#057190;">• Engineering and CAD</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Art and Urban Planning</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190">• Geography and Cartography</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Interior Design and 3D Modeling</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #F0FBFF;border-right: 3px solid #057190; border-bottom: 3px solid #057190;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #F0FBFF; border-right: 3px solid #057190; border-bottom: 3px solid #057190;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/fine-art-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">Fine Arts</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- LANGUAGE Above Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'LANGUAGE' in intelligence_data.above_avg %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #FF7D04; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;text-align: center;">
+          Language Usage and Spelling <span style="color:#352d1b;"> (Above Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#FF7D04; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#FFF4EA; border: 1px solid #FF7D04; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Writing and Editing</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Education</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#FF7D04;">• Communications and Media</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Publishing</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Legal Services</strong></div>
+      </div>
+      <div class="test-title" style="color:#FF7D04; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #FFF4EA; border: 1px solid #FF7D04; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• English and Creative Writing</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#FF7D04;">• Linguistics and Foreign Languages</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Communications and Media Studies</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04">• Literature and Education</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• History and Philosophy</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFF4EA;border-right: 3px solid #FF7D04; border-bottom: 3px solid #FF7D04;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/hum-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">HUM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFF4EA; border-right: 3px solid #FF7D04; border-bottom: 3px solid #FF7D04;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/hwl-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">HWL</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- CRITICAL Above Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'CRITICAL' in intelligence_data.above_avg %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #2720A7; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;text-align: center;">
+          Critical Reasoning <span style="color:#FBC343;"> (Above Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#2720A7; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#F5F4FF; border: 1px solid #2720A7; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Lawyer or Paralegal</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Journalist or Reporter</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Psychologist</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Business analyst</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Consultant</strong></div>
+      </div>
+      <div class="test-title" style="color:#2720A7; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #F5F4FF; border: 1px solid #2720A7; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Psychology and Human Services</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Social Law and Business Studies</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Mathematics and Physics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Economics and Political Science</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Human Sociology and Anthropology</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/hum-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">HUM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCM</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Average Reasoning Types -->
+  {% if intelligence_data.average %}
+  <div class="chapterPage">
+    <div class="db-header" style="margin-top: 10px; text-align: center;">
+      <h1 style="color: #3F37C9; margin-bottom: 5px;">Best Suited Careers and Subjects for your Reasoning type</h1>
+    </div>
+
+    <!-- NUMERICAL Average -->
+    <div style="width: 900px; float: left; margin: 0 auto;">
+      {% if 'NUMERICAL' in intelligence_data.average %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #3F37C9; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
+          Numerical Reasoning <span style="color:#FBC343;"> (Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#2720A7; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background: #F5F4FF; border: 1px solid #2720A7; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Finance and Accounting</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Engineering</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Data Science and Analytics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Economics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• IT and Programming</strong></div>
+      </div>
+      <div class="test-title" style="color:#2720A7; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #F5F4FF; border: 1px solid #2720A7; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Mathematics and Physics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Statistics and Economics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Computer Science and Calculus</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Engineering and Business Mathematics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #3F37C9;">• Finance and Accounting</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/cwm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">CWM</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- VERBAL Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'VERBAL' in intelligence_data.average %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #2A740E; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; text-align: center; border-radius: 10px 10px 0 0;">
+          Verbal Reasoning <span style="color:#f8e4b5;"> (Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#2A740E; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#F7FFF3; border: 1px solid #2A740E; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Law and Legal Services</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Education</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#2A740E;">• Journalism and Writing</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Public Relations and Communications</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Human Resources</strong></div>
+      </div>
+      <div class="test-title" style="color:#2A740E; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #F7FFF3; border: 1px solid #2A740E; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• English Literature and History</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#2A740E;">• Communications and Political Science</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Foreign Language and Sociology</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E">• Creative Writing and Philosophy</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2A740E;">• Linguistics and Education</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #F7FFF3;border-right: 3px solid #2A740E; border-bottom: 3px solid #2A740E;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/hum-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">HUM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #F7FFF3; border-right: 3px solid #2A740E; border-bottom: 3px solid #2A740E;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/cwm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">CWOM</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- LOGICAL Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'LOGICAL' in intelligence_data.average %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #FFB100; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
+          Logical Reasoning <span style="color:#FBC343;"> (Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#FFB100; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#FFFCEC; border: 1px solid #FFB100; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Computer Science and IT</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Engineering</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#FFB100;">• Research and Development</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Mathematics and Statistics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Consulting</strong></div>
+      </div>
+      <div class="test-title" style="color:#FFB100; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #FFFCEC; border: 1px solid #FFB100; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Mathematics and Computer Science</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#FFB100;">• Philosophy and Physics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Statistics and Economics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100">• Engineering and Algorithms</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Logic and Artificial Intelligence</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FFB100;">• Health Science</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFFCEC;border-right: 3px solid #FFB100; border-bottom: 3px solid #FFB100;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFFCEC; border-right: 3px solid #FFB100; border-bottom: 3px solid #FFB100;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcb-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCB</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- MECHANICAL Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'MECHANICAL' in intelligence_data.average %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #DE6E61; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
+          Mechanical Reasoning <span style="color:#FBC343;"> (Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#DE6E61; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#FFF5F4; border: 1px solid #DE6E61; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Engineering</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Construction and Trades</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#DE6E61;">• Manufacturing</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Automotive</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Aviation</strong></div>
+      </div>
+      <div class="test-title" style="color:#DE6E61; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #FFF5F4; border: 1px solid #DE6E61; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Mechanical Engineering and Physics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#DE6E61;">• Auto Mechanics and Industrial Technology</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Robotics and Electrical Engineering</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61">• CAD (Computer-Aided Design) and Architecture</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #DE6E61;">• Manufacturing Technology and Mechatronics</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFF5F4;border-right: 3px solid #DE6E61; border-bottom: 3px solid #DE6E61;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFF5F4; border-right: 3px solid #DE6E61; border-bottom: 3px solid #DE6E61;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/computer-sci-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">Computer Science</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- SPATIAL Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'SPATIAL' in intelligence_data.average %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #057190; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
+          Spatial Reasoning <span style="color:#FBC343;"> (Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#057190; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#F0FBFF; border: 1px solid #057190; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Architecture and Design</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Engineering</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#057190;">• Creative Arts</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Urban Planning</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Geography and Cartography</strong></div>
+      </div>
+      <div class="test-title" style="color:#057190; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #F0FBFF; border: 1px solid #057190; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Architecture and Graphic Design</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#057190;">• Engineering and CAD</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Art and Urban Planning</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190">• Geography and Cartography</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #057190;">• Interior Design and 3D Modeling</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #F0FBFF;border-right: 3px solid #057190; border-bottom: 3px solid #057190;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcm-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #F0FBFF; border-right: 3px solid #057190; border-bottom: 3px solid #057190;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/fine-art-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">Fine Arts</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- LANGUAGE Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'LANGUAGE' in intelligence_data.average %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #FF7D04; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
+          Language Usage and Spelling <span style="color:#FBC343;"> (Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#FF7D04; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#FFF4EA; border: 1px solid #FF7D04; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Writing and Editing</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Education</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#FF7D04;">• Communications and Media</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Publishing</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Legal Services</strong></div>
+      </div>
+      <div class="test-title" style="color:#FF7D04; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #FFF4EA; border: 1px solid #FF7D04; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• English and Creative Writing</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color:#FF7D04;">• Linguistics and Foreign Languages</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Communications and Media Studies</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04">• Literature and Education</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #FF7D04;">• History and Philosophy</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFF4EA;border-right: 3px solid #FF7D04; border-bottom: 3px solid #FF7D04;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/hum-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">HUM</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row; background: #FFF4EA; border-right: 3px solid #FF7D04; border-bottom: 3px solid #FF7D04;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/hwl-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">HWL</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- CRITICAL/EMOTIONAL Average -->
+    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+      {% if 'CRITICAL' in intelligence_data.average or 'EMOTIONAL' in intelligence_data.average %}
+      <div class="text-color-top" style="display: flex; justify-content: center;">
+        <div class="top-layout" style="background: #2720A7; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;text-align: center;">
+          Critical Reasoning <span style="color:#FBC343;"> (Average) </span>
+        </div>
+      </div>
+      <div class="test-title" style="color:#2720A7; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Suitable careers</div>
+      <div style="width:100%; float: left; background:#F5F4FF; border: 1px solid #2720A7; border-radius: 5px; padding: 10px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Lawyer or Paralegal</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Journalist or Reporter</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Psychologist</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Business analyst</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Consultant</strong></div>
+      </div>
+      <div class="test-title" style="color:#2720A7; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Suitable Subject combinations</div>
+      <div style="width:100%; float: left; background: #F5F4FF; border: 1px solid #2720A7; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Psychology and Human Services</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Social Law and Business Studies</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Mathematics and Physics</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Economics and Political Science</strong></div>
+        <div style="width:100%; float: left; margin: 5px 0; font-size: 14px;"><strong style="color: #2720A7;">• Human Sociology and Anthropology</strong></div>
+      </div>
+      <div class="two-box" style="margin-top: 20px; width:900px; margin: 0px auto; float: left;">
+        <div class="two-box-in" style="height: 90px; flex-direction: row;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/pcb-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">PCB</h5>
+        </div>
+        <div class="two-box-in" style="height: 90px; flex-direction: row;">
+          <div class="img-tow" style="margin-top: 0;"><img style="width:58px; margin-right: 10px;" src="{{ static('images/hum-icon.png') }}" alt="img"></div>
+          <h5 style="color: #000;font-size: 14px;margin-bottom: 0px;margin-top: 0px;">HUM</h5>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Below Average Note -->
+  {% if intelligence_data.below_avg %}
+  <div class="chapterPage">
+    <hr />
+    <div class="db-header" style="margin-top: 10px;">
+      <h1 style="color: RED; font-size: 16px; margin-bottom: 5px; text-transform: capitalize;">
+        <span>NOTE-</span> If your score is below average, you are suggested to take vocational training and guidance to improve your other reasoning areas.
+      </h1>
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+  
+  {% endif %}
+  
+  <!-- Sticky Download Button -->
+  {% if not no_results %}
+  <div class="sticky-download-container">
+    {% if viewing_as_admin and user_ID %}
+      {% set pdf_url = url('app:test3_report_pdf', args=[user_ID]) %}
+    {% else %}
+      {% set pdf_url = url('app:test3_report_pdf') %}
+    {% endif %}
+    <a href="{{ pdf_url }}" class="sticky-download-btn">
+      <i class="fas fa-download"></i> Download PDF
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
