@@ -40,4 +40,10 @@ urlpatterns = [
     path("download_student_sample_csv/",views.students_csv_sample_file,name="download_student_sample_csv"),
     path("p0ost_matric_student_sample_data/",views.post_matric_student_sample_data,name="post_matric_student_sample_csv"),
     path("<slug:slug>/",views.InstituteDashboardView.as_view(),name="institutedashboard"),
+    
+    # old code not in use - start
+    # New isolated routes for institute authentication frontend
+    # old code not in use - end
+    path("auth/register/",views.InstituteRegisterView.as_view(),name="register"),
+    path("auth/login/",views.InstituteLoginView.as_view(),name="login"),
 ]

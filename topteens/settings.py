@@ -114,7 +114,7 @@ DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 TEMPLATES = [
      {
         'BACKEND': 'django.template.backends.jinja2.Jinja2',
-        'DIRS': ['templates'],
+        'DIRS': ['templates', os.path.join(BASE_DIR, 'frontend')],  # Added frontend directory for Jinja2 templates
         'APP_DIRS': True,
         'OPTIONS': {
             'environment': 'topteens.jinja_env.environment',
@@ -134,7 +134,10 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         # 'DIRS': [],
-        'DIRS': [os.path.join(BASE_DIR, 'templates1')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates1'),
+            os.path.join(BASE_DIR, 'frontend'),  # old code not in use - start - New isolated frontend templates
+        ],  # old code not in use - end
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

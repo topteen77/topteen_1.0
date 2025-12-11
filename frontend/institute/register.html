@@ -1,0 +1,953 @@
+{% extends "institute/base.html" %}
+
+{% block title_content %}Institute Registration | Top Teen{% endblock %}
+{% block description_content %}Register your institute on TopTeen platform to manage students and career guidance.{% endblock %}
+
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}institute-register-page{% endblock %}
+
+{% block additionalhead %}
+<style>
+  .institute-register-page {
+    padding-top: 100px; /* Account for fixed header */
+    padding-bottom: 0;
+    min-height: 100vh;
+    background: #f8f9fa;
+  }
+  
+  .registration-container {
+    display: flex;
+    min-height: calc(100vh - 100px);
+    background-color: #f8f9fa;
+  }
+
+  .left-panel {
+    width: 35%;
+    background: linear-gradient(135deg, #541BCF 0%, #8662E3 100%);
+    color: white;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+  }
+  
+  @media (max-width: 767px) {
+    .left-panel {
+      display: none !important;
+    }
+  }
+
+  .left-panel-content {
+    margin-top: 60px;
+  }
+
+  .left-panel h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: white;
+  }
+
+  .left-panel p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .benefit-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .benefit-item i {
+    margin-right: 15px;
+    font-size: 20px;
+    color: #ffffff;
+    margin-top: 3px;
+  }
+
+  .benefit-item strong {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+
+  .benefit-item p {
+    margin-bottom: 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .right-panel {
+    width: 65%;
+    padding: 40px;
+    background-color: white;
+    overflow-y: auto;
+  }
+
+  .form-title {
+    text-align: center;
+    color: #541BCF;
+    font-weight: 700;
+    font-size: 24px;
+    margin-bottom: 30px;
+  }
+
+  .form-title i {
+    margin-right: 10px;
+  }
+
+  .info-alert {
+    background: #EDE4FC;
+    color: #541BCF;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .info-alert svg {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+
+  .info-alert-content {
+    flex: 1;
+    font-size: 14px;
+  }
+
+  .info-alert-close {
+    background: none;
+    border: none;
+    color: #541BCF;
+    cursor: pointer;
+    padding: 4px;
+    margin-left: 12px;
+  }
+
+  .file-upload-area {
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #f9fafb;
+    margin-bottom: 10px;
+  }
+
+  .file-upload-area:hover {
+    border-color: #541BCF;
+    background: #EDE4FC;
+  }
+
+  .file-upload-area.dragover {
+    border-color: #541BCF;
+    background: #EDE4FC;
+  }
+
+  .file-upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .file-upload-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 10px;
+    color: #666;
+  }
+
+  .file-upload-text {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+  }
+
+  .browse-button {
+    color: #541BCF;
+    border: 2px solid #541BCF;
+    border-radius: 20px;
+    padding: 6px 16px;
+    background: white;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+
+  .browse-button:hover {
+    background: #541BCF;
+    color: white;
+  }
+
+  .preview-container {
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .preview-container img {
+    max-height: 128px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+
+  .custom-input {
+    height: 50px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    font-size: 16px;
+    width: 100%;
+    transition: all 0.3s;
+  }
+
+  .custom-input:focus {
+    outline: none;
+    border-color: #541BCF;
+    box-shadow: 0 0 0 0.2rem rgba(84, 27, 207, 0.25);
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+  }
+
+  .form-group textarea.custom-input {
+    height: auto;
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .error-message {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+    display: none;
+  }
+  
+  .form-group input.invalid,
+  .form-group textarea.invalid,
+  .form-group select.invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  }
+  
+  .form-group input.valid,
+  .form-group textarea.valid,
+  .form-group select.valid {
+    border-color: #28a745;
+  }
+
+  .declaration-checkbox {
+    display: flex;
+    align-items: flex-start;
+    margin-top: 20px;
+  }
+
+  .declaration-checkbox input[type="checkbox"] {
+    margin-right: 10px;
+    margin-top: 4px;
+  }
+
+  .declaration-text {
+    font-size: 14px;
+  }
+
+  .declaration-text label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .declaration-text ol {
+    margin-top: 8px;
+    padding-left: 20px;
+    font-size: 12px;
+    color: #666;
+  }
+
+  .declaration-text ol li {
+    margin-bottom: 8px;
+  }
+
+  .declaration-text a {
+    color: #541BCF;
+    text-decoration: underline;
+  }
+
+  .purple-button {
+    background-color: #541BCF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 30px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  .purple-button:hover {
+    background-color: #4016a0;
+  }
+
+  .purple-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+
+  .purple-button i {
+    margin-right: 8px;
+  }
+
+  .file-format-info {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  @media (max-width: 992px) {
+    .registration-container {
+      flex-direction: column;
+    }
+
+    .left-panel,
+    .right-panel {
+      width: 100%;
+    }
+
+    .left-panel {
+      padding: 30px;
+      min-height: auto;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .left-panel {
+      display: flex !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="registration-container">
+  <!-- Left Panel - Branding and Benefits -->
+  <div class="left-panel">
+    <div>
+      <div style="display: flex; align-items: center; margin-bottom: 30px;">
+        <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="TopTeen Logo" style="width: 40px; height: 40px; margin-right: 10px;">
+        <span style="font-size: 24px; font-weight: 700; color: white;">TOPTEEN</span>
+      </div>
+      <div class="left-panel-content">
+        <h2>Join TopTeen as an Institute Partner</h2>
+        <p>Connect with students, showcase your programs, and grow your enrollment with TopTeen's comprehensive platform.</p>
+
+        <div class="benefits">
+          <div class="benefit-item">
+            <i class="fas fa-globe"></i>
+            <div>
+              <strong>Enhanced Visibility</strong>
+              <p>Reach thousands of students actively searching for educational opportunities</p>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <i class="fas fa-chart-line"></i>
+            <div>
+              <strong>Data-Driven Insights</strong>
+              <p>Access analytics to understand student preferences and optimize your offerings</p>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <i class="fas fa-users"></i>
+            <div>
+              <strong>Direct Student Engagement</strong>
+              <p>Connect with qualified prospects through our platform</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel - Registration Form -->
+  <div class="right-panel">
+    <h3 class="form-title">
+      <i class="fas fa-building-columns"></i> Institute Information
+    </h3>
+
+    <!-- Info Alert -->
+    <div id="infoAlert" class="info-alert">
+      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+      </svg>
+      <div class="info-alert-content">
+        Please ensure the owner of the organization completes this form and that the information below matches their business registration document.
+      </div>
+      <button type="button" class="info-alert-close" onclick="dismissAlert()" aria-label="Close">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+        </svg>
+      </button>
+    </div>
+
+
+    <form id="instituteRegisterForm" enctype="multipart/form-data">
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+      <!-- File Upload Section -->
+      <div class="file-upload-area" id="fileUploadArea">
+        <input type="file" id="institute_logo" name="institute_logo" accept="image/jpeg,image/jpg,image/png,image/gif" style="display: none;" required>
+        <div class="file-upload-content" id="uploadContent">
+          <svg class="file-upload-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+          </svg>
+          <p class="file-upload-text">
+            <strong>Add Institute Logo</strong> - Drag and drop, or
+          </p>
+          <span class="browse-button">Browse Files</span>
+        </div>
+        <div class="preview-container" id="previewContainer" style="display: none;">
+          <img id="previewImage" src="" alt="Preview">
+          <p id="fileName" style="margin: 5px 0; font-weight: 600;"></p>
+          <button type="button" onclick="removeFile()" style="color: #dc3545; background: none; border: none; cursor: pointer; font-size: 12px;">
+            <i class="fas fa-trash"></i> Remove
+          </button>
+        </div>
+      </div>
+      <p class="file-format-info">Supported formats: JPG, PNG, GIF. Maximum size: 5MB</p>
+      <div class="error-message" id="institute_logo_error"></div>
+
+      <!-- Form Fields -->
+      <div class="form-group">
+        <label for="institute_name">Institute's Name <span style="color: red;">*</span></label>
+        <input type="text" id="institute_name" name="institute_name" class="custom-input" placeholder="Institute's Name" required>
+        <div class="error-message" id="institute_name_error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="user_name">Principal's Name <span style="color: red;">*</span></label>
+        <input type="text" id="user_name" name="user_name" class="custom-input" placeholder="Principal's Name" required>
+        <div class="error-message" id="user_name_error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="institute_email">Principal's Email ID <span style="color: red;">*</span></label>
+        <input type="email" id="institute_email" name="institute_email" class="custom-input" placeholder="Principal's Email ID" required>
+        <div class="error-message" id="institute_email_error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="institute_contact">Principal's Contact No. <span style="color: red;">*</span></label>
+        <input type="tel" id="institute_contact" name="institute_contact" class="custom-input" placeholder="Principal's Contact No." required>
+        <div class="error-message" id="institute_contact_error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="institute_admin">Administrator or School Counselor Contact No. <span style="color: red;">*</span></label>
+        <input type="tel" id="institute_admin" name="institute_admin" class="custom-input" placeholder="Administrator or School Counselor Contact No." required>
+        <div class="error-message" id="institute_admin_error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="institute_address">Address <span style="color: red;">*</span></label>
+        <textarea id="institute_address" name="institute_address" class="custom-input" placeholder="Address" rows="3" required></textarea>
+        <div class="error-message" id="institute_address_error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="marketing_group">Marketing B2B Portal</label>
+        <select id="marketing_group" name="marketing_group" class="custom-input">
+          <option value="" disabled selected>Marketing Group</option>
+          {% for mrk_name in marketing_groups %}
+            <option value="{{ mrk_name.id }}">{{ mrk_name }}</option>
+          {% endfor %}
+        </select>
+        <div class="error-message" id="marketing_group_error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="institute_type">Institute Type <span style="color: red;">*</span></label>
+        <select id="institute_type" name="institute_type" class="custom-input" required>
+          <option value="" disabled selected>Institute Type</option>
+          {% for value, label in institute_types %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        <div class="error-message" id="institute_type_error"></div>
+      </div>
+
+      <!-- Declaration Checkbox -->
+      <div class="declaration-checkbox">
+        <input type="checkbox" id="declaration_checkbox" required>
+        <div class="declaration-text">
+          <label for="declaration_checkbox">Checking this box declares:</label>
+          <ol>
+            <li>The foregoing information/application/document(s) are true and complete. I understand that a false statement or supporting documents may disqualify me from becoming a Recruitment Partner for Topteen Career.</li>
+            <li>I have reviewed and consented to the Topteen Career <a href="{{ url('core:terms&condition') }}" target="_blank">Terms & Conditions</a> and <a href="{{ url('core:privacypolicy') }}" target="_blank">Privacy Policy</a> and agree to be bound by them.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="error-message" id="declaration_checkbox_error"></div>
+
+      <button type="submit" class="purple-button" id="submitBtn">
+        <i class="fas fa-building"></i> Create Institute
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <p>Already have an account?
+        <a href="{{ url('institute:login') }}" style="color: #541BCF; font-weight: 600; text-decoration: none;">
+          Sign In
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// Sweet Alert Helper
+const fireAlert = async function (title, icon = "success", showConfirmButton = false, showCloseButton = false, isPrompt = false) {
+  const canDo = Swal.fire({
+    title,
+    icon: icon,
+    position: "top-end",
+    showCloseButton,
+    showConfirmButton,
+    toast: true,
+    showCancelButton: false,
+    ...(isPrompt ? {} : { timer: 3000 }),
+  });
+
+  if (isPrompt) {
+    return canDo?.isConfirmed;
+  } else {
+    return -1;
+  }
+};
+
+// Function to show error alert (centered, with confirm button)
+const showErrorAlert = function (title, text = '') {
+  Swal.fire({
+    icon: 'error',
+    title: title,
+    text: text,
+    confirmButtonColor: '#541BCF',
+    confirmButtonText: 'OK'
+  });
+};
+
+// Function to show success alert (centered, with confirm button)
+const showSuccessAlert = function (title, text = '', callback = null) {
+  Swal.fire({
+    icon: 'success',
+    title: title,
+    text: text,
+    confirmButtonColor: '#541BCF',
+    confirmButtonText: 'OK'
+  }).then((result) => {
+    if (result.isConfirmed && callback) {
+      callback();
+    }
+  });
+};
+
+function dismissAlert() {
+  document.getElementById('infoAlert').style.display = 'none';
+}
+
+function removeFile() {
+  document.getElementById('institute_logo').value = '';
+  document.getElementById('previewContainer').style.display = 'none';
+  document.getElementById('uploadContent').style.display = 'flex';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('instituteRegisterForm');
+  const fileInput = document.getElementById('institute_logo');
+  const fileUploadArea = document.getElementById('fileUploadArea');
+  const uploadContent = document.getElementById('uploadContent');
+  const previewContainer = document.getElementById('previewContainer');
+  const previewImage = document.getElementById('previewImage');
+  const fileName = document.getElementById('fileName');
+  const submitBtn = document.getElementById('submitBtn');
+
+  // File upload handlers
+  fileUploadArea.addEventListener('click', function() {
+    fileInput.click();
+  });
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    fileUploadArea.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    fileUploadArea.addEventListener(eventName, () => fileUploadArea.classList.add('dragover'), false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    fileUploadArea.addEventListener(eventName, () => fileUploadArea.classList.remove('dragover'), false);
+  });
+
+  fileUploadArea.addEventListener('drop', function(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+  });
+
+  fileInput.addEventListener('change', function(e) {
+    handleFiles(this.files);
+  });
+
+  function handleFiles(files) {
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImage.src = e.target.result;
+          fileName.textContent = file.name;
+          uploadContent.style.display = 'none';
+          previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        fireAlert('Please upload an image file', 'error');
+        fileInput.value = '';
+      }
+    }
+  }
+
+  // Contact number restrictions and validation
+  ['institute_contact', 'institute_admin'].forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    field.addEventListener('input', function(e) {
+      this.value = this.value.replace(/[^0-9]/g, '');
+      if (this.value.length > 15) {
+        this.value = this.value.slice(0, 15);
+      }
+      validateField(this);
+    });
+    field.addEventListener('blur', function() {
+      validateField(this);
+    });
+  });
+
+  // Validation functions
+  function validateField(field) {
+    const fieldId = field.id;
+    const value = field.value.trim();
+    const errorEl = document.getElementById(fieldId + '_error');
+    let isValid = true;
+    let errorMessage = '';
+
+    // Remove previous validation classes
+    field.classList.remove('valid', 'invalid');
+    if (errorEl) {
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+    }
+
+    // Required field validation
+    if (field.hasAttribute('required') && !value) {
+      isValid = false;
+      errorMessage = 'This field is required';
+    }
+
+    // Email validation
+    if (fieldId === 'institute_email' && value) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(value)) {
+        isValid = false;
+        errorMessage = 'Please enter a valid email address';
+      }
+    }
+
+    // Name validation (Principal's Name)
+    if (fieldId === 'user_name' && value) {
+      const nameRegex = /^[A-Za-z\s]+$/;
+      if (!nameRegex.test(value)) {
+        isValid = false;
+        errorMessage = 'Name should contain only letters and spaces';
+      }
+      if (value.length < 2) {
+        isValid = false;
+        errorMessage = 'Name must be at least 2 characters long';
+      }
+    }
+
+    // Contact number validation
+    if ((fieldId === 'institute_contact' || fieldId === 'institute_admin') && value) {
+      if (value.length < 10) {
+        isValid = false;
+        errorMessage = 'Contact number must be at least 10 digits';
+      }
+      if (value.length > 15) {
+        isValid = false;
+        errorMessage = 'Contact number must not exceed 15 digits';
+      }
+    }
+
+    // Address validation
+    if (fieldId === 'institute_address' && value) {
+      if (value.length < 10) {
+        isValid = false;
+        errorMessage = 'Address must be at least 10 characters long';
+      }
+    }
+
+    // Institute name validation
+    if (fieldId === 'institute_name' && value) {
+      if (value.length < 2) {
+        isValid = false;
+        errorMessage = 'Institute name must be at least 2 characters long';
+      }
+    }
+
+    // File validation
+    if (fieldId === 'institute_logo' && field.files.length > 0) {
+      const file = field.files[0];
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      const maxSize = 5 * 1024 * 1024; // 5MB
+
+      if (!validTypes.includes(file.type)) {
+        isValid = false;
+        errorMessage = 'Please upload a valid image file (JPG, PNG, GIF)';
+      } else if (file.size > maxSize) {
+        isValid = false;
+        errorMessage = 'Image size must be less than 5MB';
+      }
+    }
+
+    // Show validation result
+    if (!isValid && errorMessage) {
+      field.classList.add('invalid');
+      if (errorEl) {
+        errorEl.textContent = errorMessage;
+        errorEl.style.display = 'block';
+      }
+    } else if (value && isValid) {
+      field.classList.add('valid');
+    }
+
+    return isValid;
+  }
+
+  // Add real-time validation to all form fields
+  const formFields = form.querySelectorAll('input, textarea, select');
+  formFields.forEach(field => {
+    if (field.id !== 'institute_logo') {
+      field.addEventListener('blur', function() {
+        validateField(this);
+      });
+      field.addEventListener('input', function() {
+        // Remove error on input
+        if (this.classList.contains('invalid')) {
+          const errorEl = document.getElementById(this.id + '_error');
+          if (errorEl) {
+            errorEl.style.display = 'none';
+          }
+          this.classList.remove('invalid');
+        }
+      });
+    }
+  });
+
+  // Form submission
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Clear previous errors
+    document.querySelectorAll('.error-message').forEach(el => {
+      el.style.display = 'none';
+      el.textContent = '';
+    });
+
+    // Remove previous validation classes
+    formFields.forEach(field => {
+      field.classList.remove('invalid', 'valid');
+    });
+
+    let isFormValid = true;
+
+    // Validate all required fields
+    const requiredFields = form.querySelectorAll('[required]');
+    requiredFields.forEach(field => {
+      if (!validateField(field)) {
+        isFormValid = false;
+      }
+    });
+
+    // Validate file upload
+    if (!fileInput.files || fileInput.files.length === 0) {
+      isFormValid = false;
+      const logoError = document.getElementById('institute_logo_error');
+      if (logoError) {
+        logoError.textContent = 'Please upload an institute logo';
+        logoError.style.display = 'block';
+      }
+      fileUploadArea.style.borderColor = '#dc3545';
+    } else {
+      fileUploadArea.style.borderColor = '';
+      if (!validateField(fileInput)) {
+        isFormValid = false;
+      }
+    }
+
+    // Validate declaration checkbox
+    const declarationCheckbox = document.getElementById('declaration_checkbox');
+    if (!declarationCheckbox.checked) {
+      isFormValid = false;
+      const checkboxError = document.getElementById('declaration_checkbox_error');
+      if (checkboxError) {
+        checkboxError.textContent = 'Please accept the declaration';
+        checkboxError.style.display = 'block';
+      }
+    }
+
+    // Validate email uniqueness (check via API if needed)
+    // This would require an additional API call, so we'll let the server handle it
+
+    if (!isFormValid) {
+      // Collect all error messages
+      const errorMessages = [];
+      const invalidFields = form.querySelectorAll('.invalid');
+      invalidFields.forEach(field => {
+        const errorEl = document.getElementById(field.id + '_error');
+        if (errorEl && errorEl.textContent) {
+          errorMessages.push(errorEl.textContent);
+        }
+      });
+      
+      // Check for file upload error
+      if (!fileInput.files || fileInput.files.length === 0) {
+        errorMessages.push('Please upload an institute logo');
+      }
+      
+      // Check for declaration checkbox error
+      if (!declarationCheckbox.checked) {
+        errorMessages.push('Please accept the declaration');
+      }
+
+      // Show SweetAlert with all errors
+      const errorText = errorMessages.length > 0 
+        ? errorMessages.join('<br>') 
+        : 'Please fill in all required fields correctly.';
+      
+      showErrorAlert('Validation Error', errorText);
+      
+      // Scroll to first error
+      const firstError = form.querySelector('.invalid, .error-message[style*="block"]');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+    // Create FormData
+    const formData = new FormData(form);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    // Submit via AJAX
+    fetch('/api/v1/institute/register/', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Show success alert
+        showSuccessAlert(
+          'Registration Successful!',
+          data.message || 'Your request for claiming this college has been sent to the admin for approval. You will receive a mail with your login credentials after approval.',
+          function() {
+            // Optionally redirect to login page
+            window.location.href = '{{ url("institute:login") }}';
+          }
+        );
+        
+        // Hide form
+        form.style.display = 'none';
+        document.getElementById('infoAlert').style.display = 'none';
+      } else {
+        // Show errors using SweetAlert
+        let errorText = '';
+        if (data.errors) {
+          const errorList = [];
+          Object.keys(data.errors).forEach(field => {
+            const fieldErrors = data.errors[field];
+            if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+              errorList.push(fieldErrors[0]);
+            }
+            
+            // Also show inline errors
+            const errorEl = document.getElementById(field + '_error');
+            if (errorEl && fieldErrors.length > 0) {
+              errorEl.textContent = fieldErrors[0];
+              errorEl.style.display = 'block';
+            }
+          });
+          errorText = errorList.join('<br>');
+        }
+        
+        if (data.message) {
+          errorText = errorText ? errorText + '<br>' + data.message : data.message;
+        }
+        
+        if (!errorText) {
+          errorText = 'An error occurred. Please try again.';
+        }
+        
+        showErrorAlert('Registration Failed', errorText);
+        
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-building"></i> Create Institute';
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showErrorAlert('Network Error', 'An error occurred while submitting the form. Please check your internet connection and try again.');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-building"></i> Create Institute';
+    });
+  });
+});
+</script>
+{% endblock %}

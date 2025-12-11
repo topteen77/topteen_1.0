@@ -1113,14 +1113,11 @@ class InstituteGroupDashboardView(TemplateView):
     def get_context(self,request,*args,**kwargs):
         ctx={}
         ctx["html_head"] = self.html_head()
-        # institute_group=InstituteGroup.objects.filter(institute_group_admin=request.user).last()
-        # group_students=StudentManagement.objects.filter(institute__institute_group=institute_group)
-        # ctx['group_institute']=institute_group
-        # ctx["group_stu_count"]=group_students.count()
-        # ctx["group_active_stu_count"]=group_students.filter(student__is_active=True).count()
-        # ctx["group_assesment_count"]=[stu for stu in group_students if stu.get_psychometric_result()]
         
-        # breakpoint()
+        # Check if this is an AJAX request for specific data
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        data_type = request.GET.get('data_type', '')
+        
         search_params = {
             'institute': request.GET.get('institute', '').strip(),
             'location': request.GET.get('location', '').strip(),
@@ -1128,31 +1125,156 @@ class InstituteGroupDashboardView(TemplateView):
         }
 
         group_admin = request.user
-        info = self.get_institute_group_info(group_admin, search_params)
-
-        institutes_list = info['institutes']        
-        total_students = info['student_count']
-        total_counselors = info['counselor_count']
-        pages=Paginator(institutes_list,3)
-        page_number=request.GET.get('page')
-
+        institute_group = InstituteGroup.objects.filter(institute_group_admin=group_admin).first()
         
-        # Update context
-        ctx.update({
-            'institutes_paginations': pages.get_page(page_number),
-            'total_institute_count': institutes_list,
-            'total_stu_count': info['student_count'],
-            'counselors_count': info['counselor_count'],
-            'institutes': info['institute_data'],
-            'total_students_count': info['tstudents'],
-            'test_result_count': [r1 for r1 in info['tstudents'] if r1.get_test_result()],
-            'streams': info['streams'],
-            'locations': info['locations'],  # Add locations for dropdown
-            'search_params': search_params,  # Add search params to maintain state
-            "institute_group": InstituteGroup.objects.filter(institute_group_admin=group_admin).first(),
-            "institute_groups": InstituteGroup.objects.all(),
-            "institute_types": choices.InstituteType.CHOICES
-        })
+        if is_ajax and data_type == 'stats':
+            # AJAX request for statistics (credits, counts)
+            if institute_group:
+                institutes_in_group = Institute.objects.filter(institute_group=institute_group)
+                total_credits = sum(inst.credit_counts for inst in institutes_in_group)
+                remaining_credits = get_global_remain_credits()
+                ctx.update({
+                    'total_stu_count': StudentManagement.objects.filter(
+                        institute__institute_group=institute_group
+                    ).count(),
+                    'counselors_count': Counselor.objects.filter(
+                        counselor_admin__institute_group=institute_group
+                    ).count(),
+                    'total_credits': total_credits,
+                    'remaining_credits': remaining_credits,
+                })
+            else:
+                ctx.update({
+                    'total_stu_count': 0,
+                    'counselors_count': 0,
+                    'total_credits': 0,
+                    'remaining_credits': get_global_remain_credits(),
+                })
+        elif is_ajax and data_type == 'charts':
+            # AJAX request for charts data - OPTIMIZED for performance
+            if not institute_group:
+                ctx.update({
+                    'institutes': [],
+                    'total_students_count': 0,
+                    'test_result_count': 0,
+                    'streams': {},
+                    'streams_chart_data': [],
+                    'seat_capacity_institutes': [],
+                })
+            else:
+                # OPTIMIZED: Get institute data for students per institute chart
+                institute_data = list(
+                    Institute.objects
+                    .filter(institute_group=institute_group)
+                    .annotate(student_count=Count('student_management'))
+                    .values('id', 'name', 'student_count')
+                    .order_by('-student_count')[:20]  # Top 20 institutes
+                )
+                
+                # Get full institute list for seat capacity table
+                seat_capacity_institutes = list(
+                    Institute.objects
+                    .filter(institute_group=institute_group)
+                    .values('id', 'name', 'address', 'pcm', 'cbm', 'comm', 'hme', 'hmb')
+                    .order_by('name')[:100]  # Limit to 100 institutes
+                )
+                
+                # OPTIMIZED: Get total student count
+                total_students_count = StudentManagement.objects.filter(
+                    institute__institute_group=institute_group
+                ).count()
+                
+                # OPTIMIZED: Get test result count
+                test_result_count = StudentManagement.objects.filter(
+                    institute__institute_group=institute_group
+                ).filter(
+                    student__results__test_paper='test3'
+                ).distinct().count()
+                
+                # OPTIMIZED: Get streams data
+                sample_students = StudentManagement.objects.filter(
+                    institute__institute_group=institute_group
+                ).select_related('student')[:200]
+                
+                student_users = [stu.student for stu in sample_students]
+                test_results_queryset = Results.objects.filter(
+                    user__in=student_users,
+                    test_paper='test3'
+                ).select_related('user')[:200]
+                
+                results_map = {result.user: result for result in test_results_queryset}
+                test_results = []
+                for stu in sample_students:
+                    if stu.student in results_map:
+                        result = results_map[stu.student]
+                        if result.results:
+                            personality_res = result.results
+                            sreams_scores = {label.split("_")[0].upper(): value for label, value in personality_res.items()}
+                            test_results.append({"streams": sreams_scores})
+                
+                streams_data = self.get_stream(test_results) if test_results else {}
+                
+                # Convert streams dict to list format for chart
+                streams_chart_data = []
+                if streams_data:
+                    sorted_streams = sorted(streams_data.items(), key=lambda x: x[1], reverse=True)[:15]
+                    for stream, count in sorted_streams:
+                        streams_chart_data.append({
+                            'stream': stream,
+                            'count': count
+                        })
+                
+                ctx.update({
+                    'institutes': institute_data,
+                    'total_students_count': total_students_count,
+                    'test_result_count': test_result_count,
+                    'streams': streams_data,
+                    'streams_chart_data': streams_chart_data,
+                    'seat_capacity_institutes': seat_capacity_institutes,
+                })
+        elif is_ajax and data_type == 'institutes':
+            # AJAX request for institute table
+            info = self.get_institute_group_info(group_admin, search_params)
+            institutes_list = info['institutes']
+            per_page = int(request.GET.get('per_page', 10))
+            if per_page == 0:
+                per_page = institutes_list.count() if institutes_list else 10
+            pages = Paginator(institutes_list, per_page)
+            page_number = request.GET.get('page', 1)
+            try:
+                ctx['institutes_paginations'] = pages.get_page(page_number)
+            except:
+                ctx['institutes_paginations'] = pages.get_page(1)
+            ctx['search_params'] = search_params
+            ctx['per_page'] = per_page
+        else:
+            # Default page load - lightweight initial data
+            info = self.get_institute_group_info(group_admin, search_params)
+            institutes_list = info['institutes']        
+            pages = Paginator(institutes_list, 3)
+            page_number = request.GET.get('page', 1)
+            
+            # Update context
+            try:
+                institutes_paginations = pages.get_page(page_number)
+            except:
+                institutes_paginations = pages.get_page(1)
+            
+            ctx.update({
+                'institutes_paginations': institutes_paginations,
+                'total_institute_count': institutes_list.count() if institutes_list else 0,
+                'total_stu_count': info['student_count'],
+                'counselors_count': info['counselor_count'],
+                'institutes': info['institute_data'],
+                'total_students_count': info['tstudents'],
+                'test_result_count': [r1 for r1 in info['tstudents'] if r1.get_test_result()],
+                'streams': info['streams'],
+                'locations': info['locations'],
+                'search_params': search_params,
+                "institute_group": institute_group,
+                "institute_groups": InstituteGroup.objects.all(),
+                "institute_types": choices.InstituteType.CHOICES
+            })
         return ctx
     
     def get_search_parameters(self, request):
@@ -1177,7 +1299,46 @@ class InstituteGroupDashboardView(TemplateView):
         return queryset
     
     def get(self,request,*args,**kwargs):
-        return render(request,self.template_name,self.get_context(request,*args,**kwargs))
+        from django.template.loader import render_to_string
+        from django.http import JsonResponse, HttpResponse
+        import json
+        
+        # Check if this is an AJAX request for specific data
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        data_type = request.GET.get('data_type', '')
+        
+        if is_ajax and data_type == 'institutes':
+            # Return institute table partial
+            context = self.get_context(request, *args, **kwargs)
+            html = render_to_string('template20/institute/institute_group_institutes_table.html', context, request=request)
+            return HttpResponse(html)
+        elif is_ajax and data_type in ['stats', 'charts']:
+            # Return JSON data for stats or charts
+            context = self.get_context(request, *args, **kwargs)
+            # Convert QuerySets to counts/lists for JSON serialization
+            json_data = {}
+            for key, value in context.items():
+                # Skip non-serializable items
+                if key in ['html_head', 'request', 'search_params', 'institute_group', 'institute_groups', 'institute_types']:
+                    continue
+                if hasattr(value, 'count') and not isinstance(value, (str, dict, list, int)):
+                    try:
+                        json_data[key] = value.count()
+                    except:
+                        json_data[key] = len(value) if hasattr(value, '__len__') else str(value)
+                elif hasattr(value, '__iter__') and not isinstance(value, (str, dict)):
+                    try:
+                        json_data[key] = list(value)
+                    except:
+                        json_data[key] = str(value)
+                elif isinstance(value, (list, dict, int, str, float, bool, type(None))):
+                    json_data[key] = value
+                else:
+                    json_data[key] = str(value)
+            return JsonResponse(json_data)
+        else:
+            # Regular page load
+            return render(request,self.template_name,self.get_context(request,*args,**kwargs))
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 @method_decorator(marketing_group_user_only,name='dispatch')
@@ -3007,3 +3168,44 @@ def post_matric_student_sample_data(request):
 
 # def CounselorCourse(request):    
 #     return render(request, 'topteenfrontend/user/app/counselor-course.html')
+
+# old code not in use - start
+# New isolated views for institute authentication frontend
+# old code not in use - end
+
+class InstituteRegisterView(TemplateView):
+    """
+    View to render institute registration page
+    """
+    template_name = 'institute/register.html'
+    
+    def html_head(self):
+        name = 'Institute Registration'
+        return build_html_head(title=name, description=name)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['html_head'] = self.html_head()
+        # old code not in use - start
+        # Add marketing groups and institute types for dropdowns
+        # old code not in use - end
+        from institute.models import InstituteMarketingGroup
+        context['marketing_groups'] = InstituteMarketingGroup.objects.all()
+        context['institute_types'] = choices.InstituteType.CHOICES
+        return context
+
+
+class InstituteLoginView(TemplateView):
+    """
+    View to render institute login page
+    """
+    template_name = 'institute/login.html'
+    
+    def html_head(self):
+        name = 'Institute Login'
+        return build_html_head(title=name, description=name)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['html_head'] = self.html_head()
+        return context

@@ -35,16 +35,14 @@
     font-size: 10px;
     color: #828282;
   }
-  .institute-card {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    transition: all 0.2s ease;
+  @media (min-width: 992px) {
+    .col-lg-2-4 {
+      flex: 0 0 auto;
+      width: 20%;
+    }
   }
-  .institute-card:hover {
-    border-color: #3f37c9;
-    box-shadow: 0 2px 8px rgba(63, 55, 201, 0.1);
+  .text-purple {
+    color: #6f42c1;
   }
   .table-card {
     background: #fff;
@@ -94,7 +92,7 @@
               <div class="d-flex flex-column gap-2">
                 <div class="d-flex justify-content-between align-items-center">
                   <span class="fs-12 text-gray">Institutes:</span>
-                  <span class="fs-14 fw-semibold">{{ total_institute_count.count if total_institute_count else 0 }}</span>
+                  <span class="fs-14 fw-semibold">{{ total_institute_count }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
                   <span class="fs-12 text-gray">Students:</span>
@@ -135,55 +133,64 @@
 
         <!-- Statistics Cards -->
         <div class="row g-3 mb-4">
-          <div class="col-12 col-md-6 col-lg-3">
+          <div class="col-12 col-md-4 col-lg-2-4">
             <div class="stat-card">
-              <i class='bx bx-building text-primary'></i>
+              <i class='bx bx-building fs-32 text-primary'></i>
               <div>
-                <p class="stat-value">{{ total_institute_count.count if total_institute_count else 0 }}</p>
+                <p class="stat-value" id="institutes-count">{{ total_institute_count }}</p>
                 <p class="stat-label">Total Institutes</p>
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-3">
+          <div class="col-12 col-md-4 col-lg-2-4">
             <div class="stat-card">
-              <i class='bx bx-user text-success'></i>
+              <i class='bx bx-user-check fs-32 text-success'></i>
               <div>
-                <p class="stat-value">{{ total_stu_count }}</p>
+                <p class="stat-value" id="students-count">
+                  <span class="spinner-border spinner-border-sm" role="status"></span>
+                </p>
                 <p class="stat-label">Total Students</p>
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-3">
+          <div class="col-12 col-md-4 col-lg-2-4">
             <div class="stat-card">
-              <i class='bx bx-user-check text-info'></i>
+              <i class='bx bx-user fs-32 text-info'></i>
               <div>
-                <p class="stat-value">{{ counselors_count }}</p>
+                <p class="stat-value" id="counselors-count">
+                  <span class="spinner-border spinner-border-sm" role="status"></span>
+                </p>
                 <p class="stat-label">Counselors</p>
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-3">
+          <div class="col-12 col-md-4 col-lg-2-4">
             <div class="stat-card">
-              <i class='bx bx-check-circle text-warning'></i>
+              <i class='bx bx-credit-card fs-32 text-warning'></i>
               <div>
-                <p class="stat-value">{{ test_result_count|length if test_result_count else 0 }}</p>
-                <p class="stat-label">Tests Completed</p>
+                <p class="stat-value" id="credits-count">
+                  <span class="spinner-border spinner-border-sm" role="status"></span>
+                </p>
+                <p class="stat-label">Total Credits</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4 col-lg-2-4">
+            <div class="stat-card">
+              <i class='bx bx-calendar-check fs-32 text-purple'></i>
+              <div>
+                <p class="stat-value" id="remaining-credits-count">
+                  <span class="spinner-border spinner-border-sm" role="status"></span>
+                </p>
+                <p class="stat-label">Remaining Credits</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Stream Distribution Chart -->
-        {% if streams %}
-        <div class="table-card mb-4">
-          <h5 class="mb-3">Stream Distribution</h5>
-          <canvas id="streamChart" height="100"></canvas>
-        </div>
-        {% endif %}
-
         <!-- Search and Filter -->
         <div class="table-card mb-4">
-          <form method="get" action="{{ url('institute:institutegroupdashboard') }}" class="row g-3">
+          <form method="get" action="{{ url('institute:institutegroupdashboard') }}" id="institute-filter-form" class="row g-3">
             <div class="col-md-4">
               <label for="institute" class="form-label">Institute Name</label>
               <input type="text" 
@@ -191,7 +198,7 @@
                      id="institute"
                      class="form-control" 
                      placeholder="Search institute..."
-                     value="{{ search_params.institute|default('') }}">
+                     value="{% if search_params and search_params.institute %}{{ search_params.institute }}{% endif %}">
             </div>
             <div class="col-md-4">
               <label for="location" class="form-label">Location</label>
@@ -199,100 +206,127 @@
                 <option value="">All Locations</option>
                 {% if locations %}
                 {% for location in locations %}
-                <option value="{{ location }}" {% if search_params.location == location %}selected{% endif %}>
+                <option value="{{ location }}" {% if search_params and search_params.location == location %}selected{% endif %}>
                   {{ location }}
                 </option>
                 {% endfor %}
                 {% endif %}
               </select>
             </div>
-            <div class="col-md-4 d-flex align-items-end gap-2">
-              <button type="submit" class="btn btn-primary flex-fill">
+            <div class="col-md-4">
+              <label for="location_search" class="form-label">Search Location</label>
+              <input type="text" 
+                     name="location_search" 
+                     id="location_search"
+                     class="form-control" 
+                     placeholder="Search by location"
+                     value="{% if search_params and search_params.location_search %}{{ search_params.location_search }}{% endif %}">
+            </div>
+            <div class="col-md-12 d-flex align-items-end gap-2">
+              <button type="submit" class="btn btn-primary">
                 <i class='bx bx-search me-2'></i> Search
               </button>
               <a href="{{ url('institute:institutegroupdashboard') }}" class="btn btn-secondary">
-                <i class='bx bx-refresh'></i>
+                <i class='bx bx-refresh'></i> Reset
               </a>
             </div>
           </form>
         </div>
 
-        <!-- Institutes List -->
-        <div class="table-card">
-          <h5 class="mb-3">Institutes ({{ institutes_paginations.paginator.count }})</h5>
-          {% if institutes_paginations %}
-          <div class="row">
-            {% for institute in institutes_paginations %}
-            <div class="col-12 col-md-6 mb-3">
-              <div class="institute-card">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <h6 class="mb-0 fw-semibold">{{ institute.name|truncate(30) }}</h6>
-                  <span class="badge bg-primary">{{ institute.student_count|default(0) }} Students</span>
+        <!-- Institutes Table (Loaded via AJAX) -->
+        <div class="table-card mb-4">
+          <h5 class="mb-3">Institute Management</h5>
+          <div id="institutes-table-loader" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+          <div id="institutes-table-container" style="display: none;">
+            <!-- Table will be loaded here via AJAX -->
+          </div>
+        </div>
+
+        <!-- Charts Section (Loaded via AJAX) -->
+        <div id="charts-section" style="display: none;">
+          <!-- Total No. of Students in each institute -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Total No. of Students in each institute</h5>
+              <div id="students-chart-loader" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
                 </div>
-                {% if institute.address %}
-                <p class="text-muted small mb-2">
-                  <i class='bx bx-map-pin me-1'></i> {{ institute.address|truncate(40) }}
-                </p>
-                {% endif %}
-                {% if institute.created_by %}
-                <p class="text-muted small mb-2">
-                  <i class='bx bx-user me-1'></i> {{ institute.created_by.email|truncate(25) }}
-                </p>
-                {% endif %}
-                <div class="d-flex gap-2 mt-3">
-                  <a href="{{ url('institute:institutedashboard', args=[institute.slug]) }}" class="btn btn-sm btn-outline-primary flex-fill">
-                    <i class='bx bx-show me-1'></i> View
-                  </a>
-                  {% if institute.institute_status == 1 %}
-                  <span class="badge bg-success">Approved</span>
-                  {% else %}
-                  <span class="badge bg-warning">Pending</span>
-                  {% endif %}
+              </div>
+              <div style="height: 300px; position: relative;">
+                <canvas id="studentsChart" style="display: none;"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Seat Capacity by Stream Table -->
+          <div class="card mb-4" id="seat-capacity-section" style="display: none;">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Seat Capacity by Stream in School</h5>
+              <div id="seat-capacity-loader" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+              <div id="seat-capacity-table-wrapper" style="display: none;">
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Sr. No.</th>
+                        <th>Name</th>
+                        <th>PCM</th>
+                        <th>CBM</th>
+                        <th>COMM</th>
+                        <th>HME</th>
+                        <th>HMB</th>
+                      </tr>
+                    </thead>
+                    <tbody id="seat-capacity-tbody">
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
-            {% endfor %}
           </div>
 
-          <!-- Pagination -->
-          {% if institutes_paginations.has_other_pages %}
-          <nav aria-label="Institutes pagination">
-            <ul class="pagination justify-content-center">
-              {% if institutes_paginations.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ institutes_paginations.previous_page_number }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}">Previous</a>
-              </li>
-              {% endif %}
-              {% for num in institutes_paginations.paginator.page_range %}
-              {% if institutes_paginations.number == num %}
-              <li class="page-item active">
-                <span class="page-link">{{ num }}</span>
-              </li>
-              {% elif num > institutes_paginations.number|add:'-3' and num < institutes_paginations.number|add:'3' %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ num }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}">{{ num }}</a>
-              </li>
-              {% endif %}
-              {% endfor %}
-              {% if institutes_paginations.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ institutes_paginations.next_page_number }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}">Next</a>
-              </li>
-              {% endif %}
-            </ul>
-          </nav>
-          {% endif %}
-          {% else %}
-          <div class="text-center py-5">
-            <i class='bx bx-building fs-48 text-muted mb-3'></i>
-            <p class="text-muted">No institutes found</p>
-            {% if search_params.institute or search_params.location %}
-            <a href="{{ url('institute:institutegroupdashboard') }}" class="btn btn-outline-primary mt-2">
-              Clear Filters
-            </a>
-            {% endif %}
+          <!-- Bottom Charts Section - Two Side by Side -->
+          <div class="row g-4 mb-4" id="bottom-charts-section" >
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title mb-3">Total No of students have attempts psychometric test</h5>
+                  <div id="personality-chart-loader" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                  <div style="height: 300px; position: relative;">
+                    <canvas id="personalityChart" style="display: none;"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title mb-3">Stream-based graph of all Institutes</h5>
+                  <div id="streams-chart-loader" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                  <div style="height: 300px; position: relative; overflow: hidden;">
+                    <canvas id="streamsChart" style="display: none; max-height: 300px; max-width: 100%;"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          {% endif %}
         </div>
       </div>
     </div>
@@ -300,43 +334,342 @@
 </section>
 {% endblock %}
 
+{# Disable chatbot for institute group admin #}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+
 {% block additionaljs %}
 {{ super() }}
-{% if streams %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('streamChart');
-    if (ctx) {
-      const streams = {{ streams|tojson }};
-      const labels = Object.keys(streams);
-      const data = Object.values(streams);
+  // Load statistics via AJAX
+  function loadStatistics() {
+    const url = window.location.pathname + '?data_type=stats';
+    fetch(url, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Update statistics cards
+      const studentsCountEl = document.getElementById('students-count');
+      const counselorsCountEl = document.getElementById('counselors-count');
+      const creditsCountEl = document.getElementById('credits-count');
+      const remainingCreditsEl = document.getElementById('remaining-credits-count');
       
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Students',
-            data: data,
-            backgroundColor: 'rgba(63, 55, 201, 0.8)',
-            borderColor: 'rgba(63, 55, 201, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          scales: {
-            y: {
-              beginAtZero: true
-            }
+      if (studentsCountEl) studentsCountEl.textContent = data.total_stu_count || 0;
+      if (counselorsCountEl) counselorsCountEl.textContent = data.counselors_count || 0;
+      if (creditsCountEl) creditsCountEl.textContent = data.total_credits || 0;
+      if (remainingCreditsEl) remainingCreditsEl.textContent = data.remaining_credits || 0;
+    })
+    .catch(error => {
+      console.error('Error loading statistics:', error);
+      const studentsCountEl = document.getElementById('students-count');
+      const counselorsCountEl = document.getElementById('counselors-count');
+      const creditsCountEl = document.getElementById('credits-count');
+      const remainingCreditsEl = document.getElementById('remaining-credits-count');
+      if (studentsCountEl) studentsCountEl.textContent = '0';
+      if (counselorsCountEl) counselorsCountEl.textContent = '0';
+      if (creditsCountEl) creditsCountEl.textContent = '0';
+      if (remainingCreditsEl) remainingCreditsEl.textContent = '0';
+    });
+  }
+  
+  // Load charts data via AJAX
+  function loadCharts() {
+    const url = window.location.pathname + '?data_type=charts';
+    fetch(url, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Charts data received:', data);
+      // Show charts section
+      document.getElementById('charts-section').style.display = 'block';
+      
+      // Load students per institute chart
+      if (data.institutes && data.institutes.length > 0) {
+        loadStudentsChart(data.institutes);
+      } else {
+        document.getElementById('students-chart-loader').innerHTML = '<p class="text-gray">No data available</p>';
+      }
+      
+      // Load seat capacity table
+      if (data.seat_capacity_institutes && data.seat_capacity_institutes.length > 0) {
+        loadSeatCapacityTable(data.seat_capacity_institutes);
+      } else {
+        const seatCapacityLoader = document.getElementById('seat-capacity-loader');
+        const seatCapacitySection = document.getElementById('seat-capacity-section');
+        if (seatCapacityLoader && seatCapacitySection) {
+          seatCapacitySection.style.display = 'block';
+          seatCapacityLoader.innerHTML = '<p class="text-gray">No seat capacity data available</p>';
+        }
+      }
+      
+      // Show bottom charts section
+      document.getElementById('bottom-charts-section').style.display = 'block';
+      
+      // Load personality chart
+      if (data.total_students_count !== undefined && data.test_result_count !== undefined) {
+        loadPersonalityChart(data.total_students_count, data.test_result_count);
+      } else {
+        document.getElementById('personality-chart-loader').innerHTML = '<p class="text-gray">No data available</p>';
+      }
+      
+      // Load streams chart
+      if (data.streams_chart_data && data.streams_chart_data.length > 0) {
+        loadStreamsChart(data.streams_chart_data);
+      } else {
+        const streamsLoader = document.getElementById('streams-chart-loader');
+        if (streamsLoader) {
+          streamsLoader.innerHTML = '<p class="text-gray">No stream data available</p>';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error loading charts:', error);
+      document.getElementById('charts-section').style.display = 'block';
+      const studentsLoader = document.getElementById('students-chart-loader');
+      const personalityLoader = document.getElementById('personality-chart-loader');
+      if (studentsLoader) {
+        studentsLoader.innerHTML = '<p class="text-danger">Error loading chart: ' + error.message + '</p>';
+      }
+      if (personalityLoader) {
+        personalityLoader.innerHTML = '<p class="text-danger">Error loading chart</p>';
+      }
+    });
+  }
+  
+  // Load students per institute chart (Bar chart)
+  function loadStudentsChart(institutes) {
+    const loader = document.getElementById('students-chart-loader');
+    const canvas = document.getElementById('studentsChart');
+    
+    if (!canvas) return;
+    
+    const labels = institutes.map(inst => inst.name || 'Unknown');
+    const data = institutes.map(inst => inst.student_count || 0);
+    
+    loader.style.display = 'none';
+    canvas.style.display = 'block';
+    
+    new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Students',
+          data: data,
+          backgroundColor: 'rgba(63, 55, 201, 0.8)',
+          borderColor: 'rgba(63, 55, 201, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true
           }
         }
+      }
+    });
+  }
+  
+  // Load seat capacity table
+  function loadSeatCapacityTable(institutes) {
+    const loader = document.getElementById('seat-capacity-loader');
+    const wrapper = document.getElementById('seat-capacity-table-wrapper');
+    const tbody = document.getElementById('seat-capacity-tbody');
+    const section = document.getElementById('seat-capacity-section');
+    
+    if (!tbody || !section) return;
+    
+    section.style.display = 'block';
+    loader.style.display = 'none';
+    wrapper.style.display = 'block';
+    
+    tbody.innerHTML = '';
+    institutes.forEach((inst, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${inst.name || '-'}</td>
+        <td>${inst.pcm || 0}</td>
+        <td>${inst.cbm || 0}</td>
+        <td>${inst.comm || 0}</td>
+        <td>${inst.hme || 0}</td>
+        <td>${inst.hmb || 0}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+  
+  // Load personality chart (Donut chart)
+  function loadPersonalityChart(totalStudents, testResultCount) {
+    const loader = document.getElementById('personality-chart-loader');
+    const canvas = document.getElementById('personalityChart');
+    
+    if (!canvas) return;
+    
+    const attempted = testResultCount || 0;
+    const notAttempted = totalStudents - attempted;
+    
+    loader.style.display = 'none';
+    canvas.style.display = 'block';
+    
+    new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Attempted', 'Not Attempted'],
+        datasets: [{
+          data: [attempted, notAttempted],
+          backgroundColor: [
+            'rgba(63, 55, 201, 0.8)',
+            'rgba(200, 200, 200, 0.8)'
+          ],
+          borderColor: [
+            'rgba(63, 55, 201, 1)',
+            'rgba(200, 200, 200, 1)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  }
+  
+  // Load streams chart (Bar chart)
+  function loadStreamsChart(streamsData) {
+    const loader = document.getElementById('streams-chart-loader');
+    const canvas = document.getElementById('streamsChart');
+    
+    if (!canvas) return;
+    
+    const labels = streamsData.map(s => s.stream || 'Unknown');
+    const data = streamsData.map(s => s.count || 0);
+    
+    loader.style.display = 'none';
+    canvas.style.display = 'block';
+    
+    new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Students',
+          data: data,
+          backgroundColor: 'rgba(111, 66, 193, 0.8)',
+          borderColor: 'rgba(111, 66, 193, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+  
+  // Load institutes table via AJAX
+  function loadInstitutesTable(url) {
+    const loader = document.getElementById('institutes-table-loader');
+    const container = document.getElementById('institutes-table-container');
+    
+    if (!container) return;
+    
+    fetch(url, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(html => {
+      loader.style.display = 'none';
+      container.style.display = 'block';
+      container.innerHTML = html;
+    })
+    .catch(error => {
+      console.error('Error loading institutes table:', error);
+      loader.innerHTML = '<p class="text-danger">Error loading institutes table</p>';
+    });
+  }
+  
+  // Load institutes table on page load
+  function loadInstitutesOnPageLoad() {
+    const urlObj = new URL(window.location.href);
+    urlObj.searchParams.set('data_type', 'institutes');
+    const url = urlObj.pathname + urlObj.search;
+    loadInstitutesTable(url);
+  }
+  
+  // Handle form submissions with AJAX
+  document.addEventListener('DOMContentLoaded', function() {
+    // Load data sequentially to avoid browser hang
+    setTimeout(function() {
+      loadStatistics();
+    }, 100);
+    
+    setTimeout(function() {
+      loadInstitutesOnPageLoad();
+    }, 200);
+    
+    setTimeout(function() {
+      loadCharts();
+    }, 1000); // Load charts last as they require most data
+    
+    // Handle search form submission
+    const searchForm = document.getElementById('institute-filter-form');
+    if (searchForm) {
+      searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const urlObj = new URL(window.location.href);
+        urlObj.searchParams.set('data_type', 'institutes');
+        formData.forEach((value, key) => {
+          if (value) {
+            urlObj.searchParams.set(key, value);
+          }
+        });
+        loadInstitutesTable(urlObj.pathname + urlObj.search);
+        // Update URL without reload
+        window.history.pushState({}, '', urlObj.pathname + urlObj.search);
       });
     }
   });
 </script>
-{% endif %}
 {% endblock %}
 
