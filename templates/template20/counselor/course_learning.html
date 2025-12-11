@@ -40,60 +40,7 @@
     max-height: calc(100vh - 120px);
     overflow-y: auto;
   }
-  .chapter-item {
-    margin-bottom: 8px;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-    overflow: hidden;
-  }
-  .chapter-header {
-    padding: 12px;
-    cursor: pointer;
-    transition: all 0.3s;
-    background: #fff;
-  }
-  .chapter-item.active .chapter-header {
-    background: #5046e5;
-    color: #fff;
-  }
-  .chapter-header:hover {
-    background: #f7f7fa;
-  }
-  .chapter-item.active .chapter-header:hover {
-    background: #5046e5;
-  }
-  .part-item {
-    padding: 8px 12px;
-    margin: 4px 0;
-    background: #f7f7fa;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  .part-item:hover {
-    background: #e9ecef;
-  }
-  .part-item.active {
-    background: #5046e5;
-    color: #fff;
-  }
-  .quiz-item {
-    padding: 6px 8px;
-    margin: 4px 0 4px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-  }
-  .quiz-item.enabled {
-    background: #e7f3ff;
-  }
-  .quiz-item.disabled {
-    background: #f5f5f5;
-    opacity: 0.6;
-  }
-  .quiz-item.completed {
-    background: #d4edda;
-  }
+  /* Sidebar styles are now in course_learning_sidebar.html */
   .quiz-completed-view {
     background: #fff;
     border-radius: 8px;
@@ -232,6 +179,7 @@
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s;
+    position: relative;
   }
   .answer-option:hover {
     border-color: #5046e5;
@@ -240,6 +188,82 @@
   .answer-option.selected {
     border-color: #5046e5;
     background: #e7f3ff;
+    box-shadow: 0 0 0 3px rgba(80, 70, 229, 0.1);
+  }
+  .answer-option.selected::after {
+    content: '✓';
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #5046e5;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    animation: checkmarkAppear 0.3s ease;
+  }
+  @keyframes checkmarkAppear {
+    0% {
+      transform: translateY(-50%) scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: translateY(-50%) scale(1.2);
+    }
+    100% {
+      transform: translateY(-50%) scale(1);
+      opacity: 1;
+    }
+  }
+  .answer-saved-indicator {
+    position: fixed;
+    top: 120px;
+    right: 20px;
+    background: #28a745;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    animation: slideInRight 0.3s ease;
+  }
+  .answer-saved-indicator.show {
+    display: flex;
+  }
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  .answer-validation-error {
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none;
+    align-items: center;
+    gap: 6px;
+  }
+  .answer-validation-error.show {
+    display: flex;
+  }
+  .question-container.has-error .answer-options {
+    border: 2px solid #dc3545;
+    border-radius: 8px;
+    padding: 10px;
   }
   .quiz-navigation {
     display: flex;
@@ -442,12 +466,17 @@
                                  name="question_{{ question.id }}" 
                                  id="answer_{{ answer.id }}" 
                                  value="{{ answer.id }}"
+                                 required
                                  style="display: none;">
                           <label for="answer_{{ answer.id }}" class="mb-0 cursor-pointer">
                             {{ answer.answer_text }}
                           </label>
                         </div>
                         {% endfor %}
+                        <div class="answer-validation-error" id="error_{{ question.id }}">
+                          <i class='bx bx-error-circle'></i>
+                          <span>Please select an answer before proceeding.</span>
+                        </div>
                       </div>
                     </div>
                     {% endfor %}
@@ -525,6 +554,8 @@
 
 {% block additionaljs %}
 {{ super() }}
+<!-- SweetAlert2 for notifications -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   // Hide any profile sidebars that might appear
   (function() {
@@ -599,21 +630,64 @@
     setTimeout(scrollSidebarToActive, 300);
   }
 
-  // Navigation functions
+  // Navigation functions with validation
   function navigateToChapter(chapterId) {
+    const chapterElement = document.querySelector(`.chapter-item[data-chapter-id="${chapterId}"]`);
+    if (chapterElement && chapterElement.classList.contains('locked')) {
+      showLockedMessage('Please complete the previous chapter before accessing this one.');
+      return;
+    }
     window.location.href = "{{ url('counselor:course_learning', args=[counselor.id]) }}?type=chapter&id=" + chapterId;
   }
 
   function navigateToPart(partId) {
+    const partElement = document.querySelector(`.part-item[data-part-id="${partId}"]`);
+    if (partElement && partElement.classList.contains('locked')) {
+      showLockedMessage('Please complete the previous part (including its quiz if any) before accessing this one.');
+      return;
+    }
     window.location.href = "{{ url('counselor:course_learning', args=[counselor.id]) }}?type=part&id=" + partId;
   }
 
   function navigateToQuiz(quizId) {
+    const quizElement = document.querySelector(`.quiz-item[data-quiz-id="${quizId}"]`);
+    if (quizElement && (quizElement.classList.contains('locked') || quizElement.classList.contains('disabled'))) {
+      if (quizElement.classList.contains('locked')) {
+        showLockedMessage('Please complete the previous part before accessing this quiz.');
+      } else {
+        showLockedMessage('Please complete the video for this part before accessing the quiz.');
+      }
+      return;
+    }
     window.location.href = "{{ url('counselor:course_learning', args=[counselor.id]) }}?type=quiz&id=" + quizId + "&q=0";
+  }
+  
+  // Show locked message
+  function showLockedMessage(message) {
+    // Use SweetAlert2 if available, otherwise use alert
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'info',
+        title: 'Section Locked',
+        text: message,
+        confirmButtonColor: '#ff6b6b',
+        confirmButtonText: 'OK',
+        customClass: {
+          popup: 'swal2-popup-locked'
+        }
+      });
+    } else {
+      alert(message);
+    }
   }
 
   // Quiz navigation
   function nextQuestion() {
+    // Validate answer before proceeding
+    if (!validateAnswerBeforeNext()) {
+      return;
+    }
+    
     const currentQuestion = document.querySelector('.question-container.active');
     const nextQuestion = currentQuestion.nextElementSibling;
     
@@ -701,6 +775,16 @@
     selectedOption.classList.add('selected');
     document.getElementById(`answer_${answerId}`).checked = true;
     
+    // Hide validation error if it was shown
+    const errorElement = document.getElementById(`error_${questionId}`);
+    if (errorElement) {
+      errorElement.classList.remove('show');
+      questionContainer.classList.remove('has-error');
+    }
+    
+    // Show visual feedback that answer was saved
+    showAnswerSavedIndicator();
+    
     // Auto-forward to next question after a short delay (except on last question)
     const currentQuestion = document.querySelector('.question-container.active');
     if (!currentQuestion) return;
@@ -714,14 +798,62 @@
       // Last question - show submit popup after delay
       setTimeout(function() {
         showSubmitQuizPopup();
-      }, 800); // 800ms delay to let user see their selection
+      }, 1200); // 1200ms delay to let user see their selection and feedback
     } else if (nextQuestionElement && nextQuestionElement.classList.contains('question-container')) {
       // Not last question - auto-forward to next
       setTimeout(function() {
         // Call the nextQuestion function to move forward
         nextQuestion();
-      }, 800); // 800ms delay to let user see their selection
+      }, 1200); // 1200ms delay to let user see their selection and feedback
     }
+  }
+  
+  // Show visual indicator that answer was saved
+  function showAnswerSavedIndicator() {
+    // Remove existing indicator if any
+    const existingIndicator = document.querySelector('.answer-saved-indicator');
+    if (existingIndicator) {
+      existingIndicator.remove();
+    }
+    
+    // Create new indicator
+    const indicator = document.createElement('div');
+    indicator.className = 'answer-saved-indicator show';
+    indicator.innerHTML = '<i class="bx bx-check-circle fs-18"></i><span>Answer saved</span>';
+    document.body.appendChild(indicator);
+    
+    // Hide after 2 seconds
+    setTimeout(function() {
+      indicator.classList.remove('show');
+      setTimeout(function() {
+        indicator.remove();
+      }, 300);
+    }, 2000);
+  }
+  
+  // Validate answer before moving to next question
+  function validateAnswerBeforeNext() {
+    const currentQuestion = document.querySelector('.question-container.active');
+    if (!currentQuestion) return false;
+    
+    const questionId = currentQuestion.querySelector('input[type="radio"]')?.name?.replace('question_', '');
+    if (!questionId) return false;
+    
+    const selectedAnswer = currentQuestion.querySelector('input[type="radio"]:checked');
+    if (!selectedAnswer) {
+      // Show validation error
+      const errorElement = document.getElementById(`error_${questionId}`);
+      if (errorElement) {
+        errorElement.classList.add('show');
+        currentQuestion.classList.add('has-error');
+        
+        // Scroll to error
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      return false;
+    }
+    
+    return true;
   }
   
   // Show submit quiz popup
@@ -771,11 +903,81 @@
   
   // Submit quiz immediately
   function submitQuizNow() {
+    // Validate all questions before submitting
+    const allQuestions = document.querySelectorAll('.question-container');
+    let allAnswered = true;
+    
+    allQuestions.forEach(function(questionContainer) {
+      const questionId = questionContainer.querySelector('input[type="radio"]')?.name?.replace('question_', '');
+      if (questionId) {
+        const selectedAnswer = questionContainer.querySelector('input[type="radio"]:checked');
+        if (!selectedAnswer) {
+          allAnswered = false;
+          // Show error for unanswered question
+          const errorElement = document.getElementById(`error_${questionId}`);
+          if (errorElement) {
+            errorElement.classList.add('show');
+            questionContainer.classList.add('has-error');
+          }
+        }
+      }
+    });
+    
+    if (!allAnswered) {
+      // Show alert and scroll to first unanswered question
+      alert('Please answer all questions before submitting the quiz.');
+      const firstError = document.querySelector('.answer-validation-error.show');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      closeSubmitQuizPopup();
+      return;
+    }
+    
     const form = document.getElementById('quizForm');
     if (form) {
       form.submit();
     }
   }
+  
+  // Add form submit validation
+  document.addEventListener('DOMContentLoaded', function() {
+    const quizForm = document.getElementById('quizForm');
+    if (quizForm) {
+      quizForm.addEventListener('submit', function(e) {
+        // Validate all questions before submitting
+        const allQuestions = document.querySelectorAll('.question-container');
+        let allAnswered = true;
+        
+        allQuestions.forEach(function(questionContainer) {
+          const questionId = questionContainer.querySelector('input[type="radio"]')?.name?.replace('question_', '');
+          if (questionId) {
+            const selectedAnswer = questionContainer.querySelector('input[type="radio"]:checked');
+            if (!selectedAnswer) {
+              allAnswered = false;
+              // Show error for unanswered question
+              const errorElement = document.getElementById(`error_${questionId}`);
+              if (errorElement) {
+                errorElement.classList.add('show');
+                questionContainer.classList.add('has-error');
+              }
+            }
+          }
+        });
+        
+        if (!allAnswered) {
+          e.preventDefault();
+          alert('Please answer all questions before submitting the quiz.');
+          // Scroll to first unanswered question
+          const firstError = document.querySelector('.answer-validation-error.show');
+          if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          return false;
+        }
+      });
+    }
+  });
 
   // Video progress tracking
   document.querySelectorAll('video').forEach(video => {

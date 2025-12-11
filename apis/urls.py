@@ -7,4 +7,5 @@ urlpatterns = [
     # New isolated API routes for institute authentication
     # old code not in use - end
     path('institute/', include('apis.institute.urls')),
+    path('counselor/', include('apis.counselor.urls')),
 ]

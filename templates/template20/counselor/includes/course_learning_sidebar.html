@@ -7,11 +7,12 @@
       <div class="chapter-list">
         {% for chapter in chapters_list %}
         {% set is_current_chapter = current_chapter and current_chapter.id == chapter.id %}
-        <div class="chapter-item {% if is_current_chapter %}active{% endif %}">
-          <div class="chapter-header" onclick="navigateToChapter({{ chapter.id }})">
+        {% set is_chapter_locked = chapter_locked_status.get(chapter.id, False) %}
+        <div class="chapter-item {% if is_current_chapter %}active{% endif %} {% if is_chapter_locked %}locked{% endif %}" data-chapter-id="{{ chapter.id }}">
+          <div class="chapter-header" {% if not is_chapter_locked %}onclick="navigateToChapter({{ chapter.id }})"{% endif %}>
             <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center">
-                <div class="chapter-number me-2">
+              <div class="d-flex align-items-center flex-grow-1">
+                <div class="chapter-number me-3">
                   {% if video_progress and chapter.parts.exists() %}
                     {% set all_parts_completed = true %}
                     {% for part in chapter.parts.all() %}
@@ -29,7 +30,7 @@
                     <span class="chapter-index">{{ loop.index }}</span>
                   {% endif %}
                 </div>
-                <div>
+                <div class="flex-grow-1">
                   <p class="fs-14 fw-semibold mb-0">{{ chapter.title }}</p>
                   {% if chapter.parts.exists() %}
                   <small class="text-gray fs-12">{{ chapter.parts.count() }} parts</small>
@@ -38,9 +39,9 @@
               </div>
               <div class="d-flex align-items-center">
                 {% if is_current_chapter %}
-                <i class='bx bx-chevron-down text-primary me-2'></i>
+                <i class='bx bx-chevron-down fs-18 me-2' style="color: rgba(255, 255, 255, 0.95); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);"></i>
                 {% else %}
-                <i class='bx bx-chevron-right text-gray me-2'></i>
+                <i class='bx bx-chevron-right text-gray fs-18 me-2'></i>
                 {% endif %}
               </div>
             </div>
@@ -53,19 +54,24 @@
             {% set part_id = part.id %}
             {% set is_current_part = current_part and current_part.id == part_id %}
             {% set is_video_completed = video_progress.get(part_id, False) %}
+            {% set is_quiz_completed = quiz_completion_status.get(part_id, False) %}
+            {% set is_part_locked = part_locked_status.get(part_id, False) %}
             
-            <div class="part-item {% if is_current_part %}active{% endif %}" 
-                 onclick="navigateToPart({{ part_id }})"
-                 style="cursor: pointer;">
+            <div class="part-item {% if is_current_part %}active{% endif %} {% if is_part_locked %}locked{% endif %}" 
+                 data-part-id="{{ part_id }}"
+                 {% if not is_part_locked %}onclick="navigateToPart({{ part_id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative; opacity: 0.6;"{% endif %}>
+              {% if is_current_part %}
+              <div style="position: absolute; left: -2px; top: 50%; transform: translateY(-50%); width: 5px; height: 65%; background: linear-gradient(180deg, #ff6b6b 0%, #ffa500 100%); border-radius: 0 6px 6px 0; box-shadow: 0 0 8px rgba(255, 107, 107, 0.5);"></div>
+              {% endif %}
               <div class="d-flex align-items-center justify-content-between mb-1">
-                <div class="d-flex align-items-center">
-                  <i class='bx bx-play-circle me-2 fs-16 text-primary'></i>
+                <div class="d-flex align-items-center flex-grow-1">
+                  <i class='bx bx-play-circle me-2 fs-16 {% if is_current_part %}text-danger{% else %}text-primary{% endif %}' style="{% if is_current_part %}color: #ff6b6b !important;{% endif %}"></i>
                   <span class="fs-13 fw-semibold">{{ part.title }}</span>
                 </div>
                 {% if is_video_completed %}
-                  <i class='bx bx-check-circle text-success fs-16'></i>
+                  <i class='bx bx-check-circle {% if is_current_part %}text-danger{% else %}text-success{% endif %} fs-16' style="{% if is_current_part %}color: #ff6b6b !important;{% endif %}"></i>
                 {% else %}
-                  <i class='bx bx-time-five text-warning fs-16'></i>
+                  <i class='bx bx-time-five {% if is_current_part %}text-danger{% else %}text-warning{% endif %} fs-16' style="{% if is_current_part %}color: #ff6b6b !important;{% endif %}"></i>
                 {% endif %}
               </div>
               
@@ -74,20 +80,25 @@
                 {% for quiz in part.quizzes.all() %}
                 {% set is_quiz_completed = quiz_completion_status.get(part_id, False) %}
                 {% set is_current_quiz = current_quiz and current_quiz.id == quiz.id %}
-                <div class="quiz-item {% if is_video_completed %}enabled{% else %}disabled{% endif %} {% if is_quiz_completed %}completed{% endif %} {% if is_current_quiz %}active{% endif %}"
-                     {% if is_video_completed %}onclick="event.stopPropagation(); navigateToQuiz({{ quiz.id }})" style="cursor: pointer;"{% else %}style="cursor: not-allowed;"{% endif %}>
+                {% set is_quiz_locked = not is_video_completed %}
+                <div class="quiz-item {% if is_video_completed and not is_part_locked %}enabled{% else %}disabled{% endif %} {% if is_quiz_completed %}completed{% endif %} {% if is_current_quiz %}active{% endif %} {% if is_quiz_locked or is_part_locked %}locked{% endif %}"
+                     data-quiz-id="{{ quiz.id }}"
+                     {% if is_video_completed and not is_part_locked %}onclick="event.stopPropagation(); navigateToQuiz({{ quiz.id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative;"{% endif %}>
+                  {% if is_current_quiz %}
+                  <div style="position: absolute; left: -2px; top: 50%; transform: translateY(-50%); width: 5px; height: 75%; background: {% if is_current_part %}linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%){% else %}linear-gradient(180deg, #ff6b6b 0%, #ffa500 100%){% endif %}; border-radius: 0 6px 6px 0; box-shadow: 0 0 8px {% if is_current_part %}rgba(255, 255, 255, 0.4){% else %}rgba(255, 107, 107, 0.5){% endif %};"></div>
+                  {% endif %}
                   <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                      <i class='bx bx-file-blank me-2 fs-14 text-gray'></i>
-                      <span class="fs-12">Quiz: {{ quiz.title|default('Quiz ' ~ loop.index) }}</span>
+                    <div class="d-flex align-items-center flex-grow-1">
+                      <i class='bx bx-file-blank me-2 fs-14 {% if is_current_quiz and is_current_part %}text-white{% elif is_current_quiz %}text-danger{% else %}text-gray{% endif %}' style="{% if is_current_quiz and not is_current_part %}color: #ff6b6b !important;{% endif %}"></i>
+                      <span class="fs-12 {% if is_current_quiz %}fw-semibold{% endif %}">Quiz: {{ quiz.title|default('Quiz ' ~ loop.index) }}</span>
                       {% if is_quiz_completed %}
-                      <span class="badge bg-success ms-2 fs-10">Done</span>
+                      <span class="badge {% if is_current_quiz and is_current_part %}bg-white text-danger{% elif is_current_quiz %}bg-danger text-white{% else %}bg-success{% endif %} ms-2 fs-10" style="{% if is_current_quiz and not is_current_part %}background: #ff6b6b !important; color: #fff !important;{% endif %}">Done</span>
                       {% endif %}
                     </div>
                     {% if is_quiz_completed %}
-                      <i class='bx bx-check-circle text-success fs-14'></i>
-                    {% elif is_video_completed %}
-                      <i class='bx bx-time-five text-primary fs-14'></i>
+                      <i class='bx bx-check-circle {% if is_current_quiz and is_current_part %}text-white{% elif is_current_quiz %}text-danger{% else %}text-success{% endif %} fs-14' style="{% if is_current_quiz and not is_current_part %}color: #ff6b6b !important;{% endif %}"></i>
+                    {% elif is_video_completed and not is_part_locked %}
+                      <i class='bx bx-time-five {% if is_current_quiz %}text-danger{% else %}text-primary{% endif %} fs-14' style="{% if is_current_quiz %}color: #ff6b6b !important;{% endif %}"></i>
                     {% else %}
                       <i class='bx bx-lock text-gray fs-14'></i>
                     {% endif %}
@@ -132,100 +143,308 @@
     max-height: calc(100vh - 120px);
     overflow-y: auto;
   }
+  
+  /* Chapter Item Styles */
   .chapter-item {
-    margin-bottom: 8px;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
     overflow: hidden;
-  }
-  .chapter-header {
-    padding: 12px;
-    cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
     background: #fff;
   }
+  .chapter-item:hover {
+    border-color: #ffd89b;
+    box-shadow: 0 2px 8px rgba(255, 184, 0, 0.15);
+  }
+  .chapter-item.active {
+    border-color: transparent;
+    border-width: 2px;
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3), 0 0 0 2px rgba(255, 107, 107, 0.1);
+    background: center;
+    position: relative;
+  }
+  .chapter-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  .chapter-item.locked {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  .chapter-item.locked .chapter-header {
+    cursor: not-allowed;
+    position: relative;
+  }
+  .chapter-item.locked .chapter-header::after {
+    content: '🔒';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    opacity: 0.8;
+    z-index: 2;
+  }
+  .chapter-item.locked:hover {
+    border-color: #ff6b6b;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.15);
+  }
+  .chapter-item.locked:hover .chapter-header {
+    background: rgba(255, 107, 107, 0.05);
+  }
+  .chapter-item.locked:hover .chapter-number {
+    background: linear-gradient(135deg, #ffe8e8 0%, #ffd9d9 100%);
+    border: 2px solid #ff6b6b;
+  }
+  
+  .chapter-header {
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: transparent;
+    position: relative;
+    z-index: 1;
+  }
   .chapter-item.active .chapter-header {
-    background: #5046e5;
     color: #fff;
   }
+  .chapter-item.active .chapter-header::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 0 6px 6px 0;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
   .chapter-item.active .chapter-header .text-gray {
-    color: rgba(255, 255, 255, 0.8) !important;
+    color: rgba(255, 255, 255, 0.95) !important;
   }
   .chapter-header:hover {
-    background: #f7f7fa;
+    background: rgba(255, 107, 107, 0.08);
   }
   .chapter-item.active .chapter-header:hover {
-    background: #5046e5;
+    background: rgba(255, 255, 255, 0.12);
   }
+  
   .chapter-number {
-    width: 30px;
-    height: 30px;
+    width: 38px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: #e9ecef;
-    font-weight: bold;
-    font-size: 14px;
+    background: linear-gradient(135deg, #f0f0f5 0%, #e8e8f0 100%);
+    font-weight: 700;
+    font-size: 15px;
+    color: #ff6b6b;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   .chapter-item.active .chapter-number {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.3);
     color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+    transform: scale(1.08);
+    border: 2px solid rgba(255, 255, 255, 0.4);
   }
   .chapter-index {
-    font-size: 14px;
+    font-size: 15px;
   }
+  
+  /* Parts List Styles */
   .parts-list {
-    padding: 0 12px 12px 12px;
-    background: #f7f7fa;
+    padding: 12px 16px 16px 16px;
+    background: rgba(247, 247, 250, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
   }
+  .chapter-item.active .parts-list {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  
   .part-item {
-    padding: 8px;
+    padding: 12px 14px;
     margin-bottom: 8px;
     background: #fff;
-    border-radius: 6px;
-    border-left: 3px solid #5046e5;
+    border-radius: 8px;
+    border-left: 4px solid #e9ecef;
     cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  .part-item:hover {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+    border-left-color: #ff6b6b;
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
   }
   .part-item.active {
-    background: #5046e5;
-    color: #fff;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 240, 0.95) 100%);
+    color: #ff6b6b;
+    border-left-width: 5px;
+    border-left-color: #ff6b6b;
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.25), inset 0 0 0 2px rgba(255, 107, 107, 0.1);
+    transform: translateX(5px);
+    font-weight: 600;
+    position: relative;
   }
+  .part-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, #ff6b6b 0%, #ffa500 100%);
+    border-radius: 8px 0 0 8px;
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.4);
+  }
+  .part-item.active .text-primary {
+    color: #ff6b6b !important;
+  }
+  .part-item.active i {
+    color: #ff6b6b !important;
+  }
+  .part-item.locked {
+    opacity: 0.7;
+    cursor: not-allowed !important;
+    background: #f9f9f9 !important;
+    border-left-color: #ddd !important;
+  }
+  .part-item.locked:hover {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%) !important;
+    border-left-color: #ff6b6b !important;
+    border-left-width: 4px !important;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2) !important;
+    transform: translateX(2px) !important;
+  }
+  .part-item.locked::after {
+    content: '🔒';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    opacity: 0.8;
+    z-index: 2;
+  }
+  
+  /* Quiz Item Styles */
   .quiz-item {
-    padding: 6px 8px;
-    margin-top: 4px;
-    margin-left: 20px;
-    border-radius: 4px;
-    font-size: 12px;
+    padding: 10px 12px;
+    margin-top: 6px;
+    margin-left: 24px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    position: relative;
   }
   .quiz-item.enabled {
-    background: #e7f3ff;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
     cursor: pointer;
+    border-left-color: #ffb3b3;
   }
-  .quiz-item.disabled {
+  .quiz-item.enabled:hover {
+    background: linear-gradient(135deg, #ffe8e8 0%, #ffd9d9 100%);
+    border-left-color: #ff6b6b;
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
+  }
+  .quiz-item.disabled,
+  .quiz-item.locked {
     background: #f5f5f5;
-    opacity: 0.6;
-    cursor: not-allowed;
+    opacity: 0.7;
+    cursor: not-allowed !important;
+    border-left-color: #ddd;
+  }
+  .quiz-item.locked:hover {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%) !important;
+    border-left-color: #ff6b6b !important;
+    border-left-width: 4px !important;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2) !important;
+    transform: translateX(2px) !important;
+  }
+  .quiz-item.locked::after {
+    content: '🔒';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    opacity: 0.8;
+    z-index: 2;
   }
   .quiz-item.completed {
-    background: #d4edda;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-left-color: #28a745;
   }
   .quiz-item.active {
-    background: #e7e5ff;
-    border-left: 3px solid #5046e5;
-    padding-left: 9px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 240, 0.95) 100%);
+    border-left-width: 5px;
+    border-left-color: #ff6b6b;
+    padding-left: 13px;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.25), inset 0 0 0 2px rgba(255, 107, 107, 0.1);
+    font-weight: 600;
+    color: #ff6b6b;
+    transform: translateX(5px);
+  }
+  .quiz-item.active::before {
+    content: '▶';
+    position: absolute;
+    left: 10px;
+    color: #ff6b6b;
+    font-size: 10px;
+    font-weight: bold;
   }
   .part-item.active .quiz-item.active {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    border-left-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2), inset 0 0 0 2px rgba(255, 255, 255, 0.3);
   }
-  .certificate-badge-sidebar {
-    padding: 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
+  .part-item.active .quiz-item.active::before {
     color: #fff;
   }
+  
+  /* Certificate Badge */
+  .certificate-badge-sidebar {
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
   .certificate-badge-sidebar .text-gray {
-    color: rgba(255, 255, 255, 0.8) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+  
+  /* Smooth scrollbar for sidebar */
+  .course-sidebar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .course-sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  .course-sidebar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+  }
+  .course-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
   }
 </style>
 

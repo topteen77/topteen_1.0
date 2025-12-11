@@ -2098,38 +2098,237 @@ class CourseLearningView(View):
         
         elif content_type == 'chapter' and content_id:
             try:
-                current_chapter = Chapter.objects.get(id=content_id, course=course_with_related_data)
-                # Navigate to first incomplete part of chapter, or first part if all complete
-                for part in current_chapter.parts.all():
-                    part_id = part.id
-                    is_video_completed = video_progress.get(part_id, False)
-                    if not is_video_completed:
-                        current_part = part
-                        content_type = 'part'
-                        break
+                requested_chapter = Chapter.objects.get(id=content_id, course=course_with_related_data)
+                chapter_index = list(chapters_list).index(requested_chapter) if requested_chapter in chapters_list else -1
                 
-                # If all parts completed, show first part
-                if not current_part:
-                    first_part = current_chapter.parts.first()
-                    if first_part:
-                        current_part = first_part
-                        content_type = 'part'
+                # Check if previous chapter is completed
+                if chapter_index > 0:
+                    prev_chapter = chapters_list[chapter_index - 1]
+                    prev_chapter_complete = True
+                    for prev_part in prev_chapter.parts.all():
+                        prev_part_id = prev_part.id
+                        prev_video_completed = video_progress.get(prev_part_id, False)
+                        if not prev_video_completed:
+                            prev_chapter_complete = False
+                            break
+                        if prev_part.quizzes.exists():
+                            prev_quiz_completed = quiz_completion_status.get(prev_part_id, False)
+                            if not prev_quiz_completed:
+                                prev_chapter_complete = False
+                                break
+                    
+                    if not prev_chapter_complete:
+                        # Redirect to first incomplete part
+                        for chapter in chapters_list[:chapter_index]:
+                            for part in chapter.parts.all():
+                                part_id = part.id
+                                is_video_completed = video_progress.get(part_id, False)
+                                if not is_video_completed:
+                                    current_part = part
+                                    current_chapter = chapter
+                                    content_type = 'part'
+                                    break
+                                if part.quizzes.exists():
+                                    is_quiz_completed = quiz_completion_status.get(part_id, False)
+                                    if not is_quiz_completed:
+                                        current_quiz = part.quizzes.first()
+                                        current_part = part
+                                        current_chapter = chapter
+                                        content_type = 'quiz'
+                                        current_question_index = 0
+                                        break
+                                if current_part or current_quiz:
+                                    break
+                            if current_part or current_quiz:
+                                break
+                
+                if not current_part and not current_quiz:
+                    current_chapter = requested_chapter
+                    # Navigate to first incomplete part of chapter, or first part if all complete
+                    for part in current_chapter.parts.all():
+                        part_id = part.id
+                        is_video_completed = video_progress.get(part_id, False)
+                        if not is_video_completed:
+                            current_part = part
+                            content_type = 'part'
+                            break
+                    
+                    # If all parts completed, show first part
+                    if not current_part:
+                        first_part = current_chapter.parts.first()
+                        if first_part:
+                            current_part = first_part
+                            content_type = 'part'
             except Chapter.DoesNotExist:
                 pass
         
         elif content_type == 'part' and content_id:
             try:
-                current_part = Part.objects.get(id=content_id)
-                current_chapter = current_part.chapter
+                requested_part = Part.objects.get(id=content_id)
+                current_chapter = requested_part.chapter
+                
+                # Check if previous part is completed
+                chapter_parts = list(current_chapter.parts.all())
+                part_index = chapter_parts.index(requested_part) if requested_part in chapter_parts else -1
+                
+                if part_index > 0:
+                    prev_part = chapter_parts[part_index - 1]
+                    prev_part_id = prev_part.id
+                    prev_video_completed = video_progress.get(prev_part_id, False)
+                    
+                    if not prev_video_completed:
+                        # Redirect to previous incomplete part
+                        current_part = prev_part
+                        content_type = 'part'
+                    else:
+                        # Check if quiz is completed
+                        if prev_part.quizzes.exists():
+                            prev_quiz_completed = quiz_completion_status.get(prev_part_id, False)
+                            if not prev_quiz_completed:
+                                # Redirect to quiz
+                                current_quiz = prev_part.quizzes.first()
+                                current_part = prev_part
+                                content_type = 'quiz'
+                                current_question_index = 0
+                            else:
+                                # Previous part complete, allow access
+                                current_part = requested_part
+                        else:
+                            # No quiz, allow access
+                            current_part = requested_part
+                else:
+                    # First part in chapter - check if previous chapter is completed
+                    chapter_index = list(chapters_list).index(current_chapter) if current_chapter in chapters_list else -1
+                    if chapter_index > 0:
+                        prev_chapter = chapters_list[chapter_index - 1]
+                        prev_chapter_complete = True
+                        for prev_part in prev_chapter.parts.all():
+                            prev_part_id = prev_part.id
+                            prev_video_completed = video_progress.get(prev_part_id, False)
+                            if not prev_video_completed:
+                                prev_chapter_complete = False
+                                break
+                            if prev_part.quizzes.exists():
+                                prev_quiz_completed = quiz_completion_status.get(prev_part_id, False)
+                                if not prev_quiz_completed:
+                                    prev_chapter_complete = False
+                                    break
+                        
+                        if not prev_chapter_complete:
+                            # Redirect to first incomplete part in previous chapter
+                            for part in prev_chapter.parts.all():
+                                part_id = part.id
+                                is_video_completed = video_progress.get(part_id, False)
+                                if not is_video_completed:
+                                    current_part = part
+                                    current_chapter = prev_chapter
+                                    content_type = 'part'
+                                    break
+                                if part.quizzes.exists():
+                                    is_quiz_completed = quiz_completion_status.get(part_id, False)
+                                    if not is_quiz_completed:
+                                        current_quiz = part.quizzes.first()
+                                        current_part = part
+                                        current_chapter = prev_chapter
+                                        content_type = 'quiz'
+                                        current_question_index = 0
+                                        break
+                                if current_part or current_quiz:
+                                    break
+                    
+                    if not current_part and not current_quiz:
+                        current_part = requested_part
             except Part.DoesNotExist:
                 pass
         
         elif content_type == 'quiz' and content_id:
             try:
-                current_quiz = Quiz.objects.get(id=content_id)
-                current_part = current_quiz.quiz_part
-                current_chapter = current_part.chapter if current_part else None
-                current_question_index = int(request.GET.get('q', 0))
+                requested_quiz = Quiz.objects.get(id=content_id)
+                requested_part = requested_quiz.quiz_part
+                current_chapter = requested_part.chapter if requested_part else None
+                
+                if requested_part:
+                    # Check if video is completed
+                    part_id = requested_part.id
+                    is_video_completed = video_progress.get(part_id, False)
+                    
+                    if not is_video_completed:
+                        # Redirect to video
+                        current_part = requested_part
+                        content_type = 'part'
+                    else:
+                        # Check if previous part is completed
+                        chapter_parts = list(current_chapter.parts.all())
+                        part_index = chapter_parts.index(requested_part) if requested_part in chapter_parts else -1
+                        
+                        if part_index > 0:
+                            prev_part = chapter_parts[part_index - 1]
+                            prev_part_id = prev_part.id
+                            prev_video_completed = video_progress.get(prev_part_id, False)
+                            
+                            if not prev_video_completed:
+                                current_part = prev_part
+                                content_type = 'part'
+                            else:
+                                if prev_part.quizzes.exists():
+                                    prev_quiz_completed = quiz_completion_status.get(prev_part_id, False)
+                                    if not prev_quiz_completed:
+                                        current_quiz = prev_part.quizzes.first()
+                                        current_part = prev_part
+                                        content_type = 'quiz'
+                                        current_question_index = 0
+                                    else:
+                                        current_quiz = requested_quiz
+                                        current_part = requested_part
+                                        current_question_index = int(request.GET.get('q', 0))
+                                else:
+                                    current_quiz = requested_quiz
+                                    current_part = requested_part
+                                    current_question_index = int(request.GET.get('q', 0))
+                        else:
+                            # First part - check previous chapter
+                            chapter_index = list(chapters_list).index(current_chapter) if current_chapter in chapters_list else -1
+                            if chapter_index > 0:
+                                prev_chapter = chapters_list[chapter_index - 1]
+                                prev_chapter_complete = True
+                                for prev_part in prev_chapter.parts.all():
+                                    prev_part_id = prev_part.id
+                                    prev_video_completed = video_progress.get(prev_part_id, False)
+                                    if not prev_video_completed:
+                                        prev_chapter_complete = False
+                                        break
+                                    if prev_part.quizzes.exists():
+                                        prev_quiz_completed = quiz_completion_status.get(prev_part_id, False)
+                                        if not prev_quiz_completed:
+                                            prev_chapter_complete = False
+                                            break
+                                
+                                if not prev_chapter_complete:
+                                    # Redirect to incomplete part
+                                    for part in prev_chapter.parts.all():
+                                        part_id = part.id
+                                        is_video_completed = video_progress.get(part_id, False)
+                                        if not is_video_completed:
+                                            current_part = part
+                                            current_chapter = prev_chapter
+                                            content_type = 'part'
+                                            break
+                                        if part.quizzes.exists():
+                                            is_quiz_completed = quiz_completion_status.get(part_id, False)
+                                            if not is_quiz_completed:
+                                                current_quiz = part.quizzes.first()
+                                                current_part = part
+                                                current_chapter = prev_chapter
+                                                content_type = 'quiz'
+                                                current_question_index = 0
+                                                break
+                                        if current_part or current_quiz:
+                                            break
+                            
+                            if not current_part and not current_quiz:
+                                current_quiz = requested_quiz
+                                current_part = requested_part
+                                current_question_index = int(request.GET.get('q', 0))
             except Quiz.DoesNotExist:
                 pass
         
@@ -2148,20 +2347,82 @@ class CourseLearningView(View):
         total_parts = sum(chapter.parts.count() for chapter in chapters_list)
         completed_parts = 0
         
-        for chapter in chapters_list:
-            for part in chapter.parts.all():
+        # Build locked status for chapters and parts
+        chapter_locked_status = {}
+        part_locked_status = {}
+        
+        for chapter_idx, chapter in enumerate(chapters_list):
+            # Check if previous chapter is completed
+            is_chapter_locked = False
+            if chapter_idx > 0:
+                prev_chapter = chapters_list[chapter_idx - 1]
+                prev_chapter_complete = True
+                for prev_part in prev_chapter.parts.all():
+                    prev_part_id = prev_part.id
+                    prev_video_completed = video_progress.get(prev_part_id, False)
+                    if not prev_video_completed:
+                        prev_chapter_complete = False
+                        break
+                    if prev_part.quizzes.exists():
+                        prev_quiz_completed = quiz_completion_status.get(prev_part_id, False)
+                        if not prev_quiz_completed:
+                            prev_chapter_complete = False
+                            break
+                if not prev_chapter_complete:
+                    is_chapter_locked = True
+            chapter_locked_status[chapter.id] = is_chapter_locked
+            
+            # Check locked status for parts
+            chapter_parts = list(chapter.parts.all())
+            for part_idx, part in enumerate(chapter_parts):
                 part_id = part.id
                 is_video_completed = video_progress.get(part_id, False)
+                is_quiz_completed = quiz_completion_status.get(part_id, False)
                 
+                # Check if part is complete
+                is_part_complete = False
                 if is_video_completed:
-                    # Check if quiz exists and is completed
                     if part.quizzes.exists():
-                        is_quiz_completed = quiz_completion_status.get(part_id, False)
                         if is_quiz_completed:
-                            completed_parts += 1
+                            is_part_complete = True
                     else:
-                        # No quiz, so video completion is enough
-                        completed_parts += 1
+                        is_part_complete = True
+                
+                # Check if previous part is completed
+                is_part_locked = False
+                if part_idx > 0:
+                    prev_part = chapter_parts[part_idx - 1]
+                    prev_part_id = prev_part.id
+                    prev_video_completed = video_progress.get(prev_part_id, False)
+                    if not prev_video_completed:
+                        is_part_locked = True
+                    else:
+                        if prev_part.quizzes.exists():
+                            prev_quiz_completed = quiz_completion_status.get(prev_part_id, False)
+                            if not prev_quiz_completed:
+                                is_part_locked = True
+                elif chapter_idx > 0:
+                    # First part in chapter - check if previous chapter's last part is completed
+                    prev_chapter = chapters_list[chapter_idx - 1]
+                    if prev_chapter.parts.exists():
+                        prev_chapter_parts = list(prev_chapter.parts.all())
+                        if prev_chapter_parts:
+                            last_prev_part = prev_chapter_parts[-1]
+                            last_prev_part_id = last_prev_part.id
+                            last_prev_video_completed = video_progress.get(last_prev_part_id, False)
+                            if not last_prev_video_completed:
+                                is_part_locked = True
+                            else:
+                                if last_prev_part.quizzes.exists():
+                                    last_prev_quiz_completed = quiz_completion_status.get(last_prev_part_id, False)
+                                    if not last_prev_quiz_completed:
+                                        is_part_locked = True
+                
+                part_locked_status[part_id] = is_part_locked
+                
+                # Count completed parts for progress
+                if is_part_complete:
+                    completed_parts += 1
         
         progress_percentage = int((completed_parts / total_parts * 100)) if total_parts > 0 else 0
         
@@ -2237,6 +2498,8 @@ class CourseLearningView(View):
             'quiz_completion_status': quiz_completion_status,
             'progress_percentage': progress_percentage,
             'certification': certification,
+            'chapter_locked_status': chapter_locked_status,  # Locked status for chapters
+            'part_locked_status': part_locked_status,  # Locked status for parts
         }
         
         return render(request, self.template_name, context)
@@ -2816,3 +3079,23 @@ def _check_and_issue_certificate(user, counselor_id):
                 certificate_code=certificate_code,
                 grade=grade
             )
+
+
+from django.views.generic import TemplateView
+from core.utils import build_html_head
+
+
+class CounselorLoginView(TemplateView):
+    """
+    View to render counselor login page
+    """
+    template_name = 'counselor/login.html'
+    
+    def html_head(self):
+        name = 'Counselor Login'
+        return build_html_head(title=name, description=name)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['html_head'] = self.html_head()
+        return context

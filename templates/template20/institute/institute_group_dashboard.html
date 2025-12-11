@@ -53,6 +53,43 @@
   .search-box {
     max-width: 400px;
   }
+  /* Ensure bottom charts display side by side */
+  #bottom-charts-section {
+    display: flex !important;
+    flex-wrap: wrap;
+  }
+  #bottom-charts-section .col-md-6 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+    display: flex;
+  }
+  #bottom-charts-section .col-md-6 .card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  #bottom-charts-section .col-md-6 .card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+  }
+  #bottom-charts-section .col-md-6 .card .card-body > div:last-child,
+  #bottom-charts-section .col-md-6 .card .card-body #personality-chart-loader,
+  #bottom-charts-section .col-md-6 .card .card-body #streams-chart-loader {
+    flex: 1;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  @media (max-width: 767.98px) {
+    #bottom-charts-section .col-md-6 {
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -247,7 +284,7 @@
         </div>
 
         <!-- Charts Section (Loaded via AJAX) -->
-        <div id="charts-section" style="display: none;">
+        <div id="charts-section" style="display: block;">
           <!-- Total No. of Students in each institute -->
           <div class="card mb-4">
             <div class="card-body">
@@ -300,12 +337,12 @@
               <div class="card">
                 <div class="card-body">
                   <h5 class="card-title mb-3">Total No of students have attempts psychometric test</h5>
-                  <div id="personality-chart-loader" class="text-center py-5">
+                  <div id="personality-chart-loader" class="text-center py-5" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
                     <div class="spinner-border text-primary" role="status">
                       <span class="visually-hidden">Loading...</span>
                     </div>
                   </div>
-                  <div style="height: 300px; position: relative;">
+                  <div style="min-height: 300px; height: 300px; position: relative;">
                     <canvas id="personalityChart" style="display: none;"></canvas>
                   </div>
                 </div>
@@ -315,12 +352,12 @@
               <div class="card">
                 <div class="card-body">
                   <h5 class="card-title mb-3">Stream-based graph of all Institutes</h5>
-                  <div id="streams-chart-loader" class="text-center py-5">
+                  <div id="streams-chart-loader" class="text-center py-5" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
                     <div class="spinner-border text-primary" role="status">
                       <span class="visually-hidden">Loading...</span>
                     </div>
                   </div>
-                  <div style="height: 300px; position: relative; overflow: hidden;">
+                  <div style="min-height: 300px; height: 300px; position: relative; overflow: hidden;">
                     <canvas id="streamsChart" style="display: none; max-height: 300px; max-width: 100%;"></canvas>
                   </div>
                 </div>
@@ -398,8 +435,12 @@
     })
     .then(data => {
       console.log('Charts data received:', data);
-      // Show charts section
-      document.getElementById('charts-section').style.display = 'block';
+      // Show charts section - ensure it's visible
+      const chartsSection = document.getElementById('charts-section');
+      if (chartsSection) {
+        chartsSection.style.display = 'block';
+        chartsSection.style.visibility = 'visible';
+      }
       
       // Load students per institute chart
       if (data.institutes && data.institutes.length > 0) {
@@ -420,9 +461,6 @@
         }
       }
       
-      // Show bottom charts section
-      document.getElementById('bottom-charts-section').style.display = 'block';
-      
       // Load personality chart
       if (data.total_students_count !== undefined && data.test_result_count !== undefined) {
         loadPersonalityChart(data.total_students_count, data.test_result_count);
@@ -436,7 +474,11 @@
       } else {
         const streamsLoader = document.getElementById('streams-chart-loader');
         if (streamsLoader) {
-          streamsLoader.innerHTML = '<p class="text-gray">No stream data available</p>';
+          streamsLoader.style.display = 'flex';
+          streamsLoader.style.alignItems = 'center';
+          streamsLoader.style.justifyContent = 'center';
+          streamsLoader.style.minHeight = '300px';
+          streamsLoader.innerHTML = '<div class="text-center w-100"><i class="bx bx-bar-chart-alt-2" style="font-size: 48px; color: #ccc; margin-bottom: 12px;"></i><p class="text-muted mb-0" style="font-size: 14px;">No stream data available</p></div>';
         }
       }
     })
@@ -530,7 +572,7 @@
     const attempted = testResultCount || 0;
     const notAttempted = totalStudents - attempted;
     
-    loader.style.display = 'none';
+    if (loader) loader.style.display = 'none';
     canvas.style.display = 'block';
     
     new Chart(canvas, {
@@ -572,7 +614,7 @@
     const labels = streamsData.map(s => s.stream || 'Unknown');
     const data = streamsData.map(s => s.count || 0);
     
-    loader.style.display = 'none';
+    if (loader) loader.style.display = 'none';
     canvas.style.display = 'block';
     
     new Chart(canvas, {

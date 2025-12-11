@@ -34,4 +34,7 @@ urlpatterns = [
     path('view_certificate/<int:counselor_id>/', views.ViewCertificateView.as_view(), name='view_certificate'),
     path('submit_quiz_question/<int:counselor_id>/', views.submit_quiz_question, name='submit_quiz_question'),
     path('submit_full_quiz/<int:counselor_id>/<int:quiz_id>/', views.submit_full_quiz, name='submit_full_quiz'),
+    
+    # Counselor authentication routes
+    path("auth/login/", views.CounselorLoginView.as_view(), name="login"),
 ]
