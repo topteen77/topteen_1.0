@@ -150,6 +150,27 @@
     height: auto;
     max-height: 600px;
   }
+  /* Hide video progress bar/seek bar */
+  .video-container video::-webkit-media-controls-timeline,
+  .video-container video::-webkit-media-controls-current-time-display,
+  .video-container video::-webkit-media-controls-time-remaining-display {
+    display: none !important;
+  }
+  .video-container video::-webkit-media-controls-timeline-container {
+    display: none !important;
+  }
+  /* For Firefox */
+  .video-container video::-moz-media-controls-timeline {
+    display: none !important;
+  }
+  /* For standard HTML5 video controls */
+  .video-container video::-webkit-media-controls-panel {
+    display: flex !important;
+  }
+  /* Hide the progress bar track */
+  .video-container video::-webkit-media-controls-timeline {
+    display: none !important;
+  }
   .quiz-container {
     background: #fff;
     border-radius: 8px;
@@ -979,9 +1000,11 @@
     }
   });
 
-  // Video progress tracking
+  // Video progress tracking and prevent seeking
   document.querySelectorAll('video').forEach(video => {
     const partId = video.getAttribute('data-part-id');
+    let lastTime = 0;
+    let isUserSeeking = false;
     
     if (partId) {
       // Load saved progress
@@ -996,6 +1019,7 @@
         .then(data => {
           if (data.status === 'success' && data.progress && video.duration && data.progress > 0) {
             video.currentTime = (data.progress / 100) * video.duration;
+            lastTime = video.currentTime;
           }
         })
         .catch(err => {
@@ -1003,10 +1027,53 @@
           console.debug('No saved progress found for video-' + partId);
         });
       
+      // Prevent seeking forward - only allow backward seeking within small range
       video.addEventListener('timeupdate', function() {
         if (this.duration) {
+          // If user tried to seek forward, reset to last valid position
+          if (!isUserSeeking && this.currentTime > lastTime + 2) {
+            // Allow small forward jumps (2 seconds) for buffering, but prevent large skips
+            this.currentTime = lastTime;
+          } else {
+            lastTime = this.currentTime;
+          }
+          
           const progress = (this.currentTime / this.duration) * 100;
           updateVideoProgress('video-' + partId, progress, this.duration);
+        }
+      });
+      
+      // Track when user tries to seek
+      video.addEventListener('seeking', function() {
+        isUserSeeking = true;
+        // If seeking forward more than 2 seconds, prevent it
+        if (this.currentTime > lastTime + 2) {
+          this.currentTime = lastTime;
+        }
+      });
+      
+      video.addEventListener('seeked', function() {
+        isUserSeeking = false;
+        // Ensure we don't go forward
+        if (this.currentTime > lastTime + 2) {
+          this.currentTime = lastTime;
+        } else {
+          lastTime = this.currentTime;
+        }
+      });
+      
+      // Prevent right-click context menu on video (which might allow seeking)
+      video.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+      });
+      
+      // Prevent keyboard seeking (arrow keys, etc.)
+      video.addEventListener('keydown', function(e) {
+        // Prevent arrow keys from seeking
+        if ([37, 38, 39, 40].includes(e.keyCode)) {
+          e.preventDefault();
+          return false;
         }
       });
       
