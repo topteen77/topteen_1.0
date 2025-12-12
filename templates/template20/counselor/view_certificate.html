@@ -74,7 +74,7 @@
   .recipient-name-overlay {
     position: absolute;
     top: 312px;
-    left: 355px;
+    left: 225px;
     transform: translateX(-50%);
     width: 60%;
     max-width: 500px;
@@ -166,12 +166,10 @@
           <div class="recipient-name-overlay">
             {% if counselor.counselor_name %}
               {{ counselor.counselor_name }}
-            {% elif user.first_name and user.last_name %}
-              {{ user.first_name }} {{ user.last_name }}
-            {% elif user.first_name %}
-              {{ user.first_name }}
+            {% elif user.name %}
+              {{ user.name }}
             {% else %}
-              {{ user.username }}
+              {{ user.email }}
             {% endif %}
           </div>
           
