@@ -357,6 +357,8 @@
 
 {% block additionaljs %}
 {{ super() }}
+<!-- SweetAlert2 for beautiful popups -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
   // CSRF token helper
@@ -375,9 +377,50 @@
     return cookieValue;
   }
   
+  // Ensure SweetAlert2 is loaded
+  if (typeof Swal === 'undefined') {
+    console.warn('SweetAlert2 not loaded. Loading from CDN...');
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+    script.onload = function() {
+      console.log('SweetAlert2 loaded successfully');
+    };
+    document.head.appendChild(script);
+  }
+  
   // SweetAlert helper function (if not already defined)
   const fireAlert = async function (title, icon = "success", showConfirmButton = false, showCloseButton = false, isPrompt = false) {
+    // Wait for SweetAlert to load if not available
+    if (typeof Swal === 'undefined') {
+      return new Promise((resolve) => {
+        const checkSwal = setInterval(() => {
     if (typeof Swal !== 'undefined') {
+            clearInterval(checkSwal);
+            const canDo = Swal.fire({
+              title,
+              icon: icon,
+              position: "top-end",
+              showCloseButton,
+              showConfirmButton,
+              toast: true,
+              showCancelButton: false,
+              ...(isPrompt ? {} : { timer: 3000 }),
+            });
+            if (isPrompt) {
+              resolve(canDo?.isConfirmed);
+            } else {
+              resolve(-1);
+            }
+          }
+        }, 100);
+        // Timeout after 2 seconds
+        setTimeout(() => {
+          clearInterval(checkSwal);
+          console.error('SweetAlert2 failed to load');
+        }, 2000);
+      });
+    }
+    
       const canDo = Swal.fire({
         title,
         icon: icon,
@@ -392,24 +435,19 @@
         return canDo?.isConfirmed;
       } else {
         return -1;
-      }
-    } else {
-      // Fallback to alert if SweetAlert is not available
-      alert(title);
     }
   };
   
   // Check if user is authenticated
   const userAuthenticated = {% if user_authenticated %}true{% else %}false{% endif %};
-  const loginUrl = "{{ url('users:login') }}?next=" + encodeURIComponent("{{ url('counselor:CounselorCoursepayment') }}");
+  const loginUrl = "{{ url('counselor:login') }}?next=" + encodeURIComponent("{{ url('counselor:CounselorCoursepayment') }}");
   
   // Function to handle payment button click
   function handlePaymentClick(e) {
     e.preventDefault();
     
     if (!userAuthenticated) {
-      // Show login prompt
-      if (typeof Swal !== 'undefined') {
+      // Show login prompt with SweetAlert
         Swal.fire({
           title: 'Login Required',
           html: 'Please login or register to purchase the course.<br><small>You need to be logged in to complete the payment.</small>',
@@ -418,17 +456,14 @@
           confirmButtonText: 'Login / Register',
           cancelButtonText: 'Cancel',
           confirmButtonColor: '#5046e5',
-          cancelButtonColor: '#6c757d'
+        cancelButtonColor: '#6c757d',
+        allowOutsideClick: true,
+        allowEscapeKey: true
         }).then((result) => {
           if (result.isConfirmed) {
             window.location.href = loginUrl;
           }
         });
-      } else {
-        if (confirm("Please login or register to purchase the course. Click OK to go to login page.")) {
-          window.location.href = loginUrl;
-        }
-      }
       return false;
     }
     
@@ -472,37 +507,52 @@
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          // Show styled success message
-          if (typeof Swal !== 'undefined') {
+          // Check if payment was already processed
+          if (data.already_paid) {
+            // Payment already processed, redirect immediately
             Swal.fire({
-              title: 'Payment Successful!',
-              html: 'Your payment has been processed successfully.<br><small>Payment ID: ' + response.razorpay_payment_id + '</small>',
-              icon: 'success',
+              title: 'Payment Already Processed',
+              html: 'This payment has already been processed successfully.<br><small>Redirecting to course...</small>',
+              icon: 'info',
               confirmButtonText: 'Continue to Course',
               confirmButtonColor: '#5046e5',
               allowOutsideClick: false,
-              allowEscapeKey: false
-            }).then((result) => {
-              if (result.isConfirmed) {
-                // Redirect to enrolled course page after successful payment
-                window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
-              }
-            });
-          } else {
-            // Fallback if SweetAlert is not available
-            if (confirm("Payment successful! Payment ID: " + response.razorpay_payment_id + "\n\nClick OK to continue to the course.")) {
+              allowEscapeKey: false,
+              timer: 2000
+            }).then(() => {
               window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
-            }
+            });
+            return;
           }
+          
+          // Show styled success message and redirect immediately
+          Swal.fire({
+            title: 'Payment Successful!',
+            html: 'Your payment has been processed successfully.<br><small>Payment ID: ' + response.razorpay_payment_id + '</small><br><small>Redirecting to course...</small>',
+            icon: 'success',
+            confirmButtonText: 'Continue to Course',
+            confirmButtonColor: '#5046e5',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            timer: 2000
+          }).then(() => {
+            // Redirect to enrolled course page after successful payment
+            window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
+          });
         } else {
           // Payment saved but verification failed
-          alert("Payment received but verification failed. Please contact support.");
+          Swal.fire({
+            title: 'Payment Verification Failed',
+            text: data.error || 'Payment received but verification failed. Please contact support.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#5046e5'
+          });
         }
       })
       .catch(error => {
         console.error('Error saving payment:', error);
         // Still show success but warn about saving
-        if (typeof Swal !== 'undefined') {
           Swal.fire({
             title: 'Payment Successful!',
             html: 'Your payment has been processed.<br><small>Please note: Payment details may not be saved. Please contact support if you face any issues.</small>',
@@ -514,9 +564,6 @@
               window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
             }
           });
-        } else {
-          alert("Payment successful but there was an error saving details. Please contact support.");
-        }
       });
     },
     "theme": {
@@ -529,18 +576,28 @@
   rzp1 = new Razorpay(options);
   
   rzp1.on('payment.failed', function (response) {
-    // Show styled error message
-    if (typeof Swal !== 'undefined') {
+    // Check if error is due to order already being paid
+    const errorDescription = response.error.description || '';
+    const isAlreadyPaid = errorDescription.toLowerCase().includes('already paid') || 
+                          errorDescription.toLowerCase().includes('order is already paid');
+    
+    // Show styled error message with SweetAlert
       Swal.fire({
         title: 'Payment Failed',
-        text: response.error.description || 'Your payment could not be processed. Please try again.',
-        icon: 'error',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#5046e5'
-      });
-    } else {
-      alert("Payment failed: " + (response.error.description || 'Your payment could not be processed. Please try again.'));
+      html: isAlreadyPaid 
+        ? 'This payment order has already been processed.<br><small>Redirecting to course...</small>'
+        : (errorDescription || 'Your payment could not be processed. Please try again.'),
+      icon: isAlreadyPaid ? 'info' : 'error',
+      confirmButtonText: isAlreadyPaid ? 'Go to Course' : 'OK',
+      confirmButtonColor: '#5046e5',
+      timer: isAlreadyPaid ? 2000 : null,
+      allowOutsideClick: !isAlreadyPaid,
+      allowEscapeKey: !isAlreadyPaid
+    }).then((result) => {
+      if (isAlreadyPaid || result.isConfirmed) {
+        window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
     }
+    });
   });
   {% endif %}
   

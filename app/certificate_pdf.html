@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+        }
+        .certificate-container {
+            position: relative;
+            width: 1123px; /* A4 Landscape width in pixels (approx) */
+            height: 794px; /* A4 Landscape height in pixels (approx) */
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        .bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .student-name {
+            position: absolute;
+            top: 42%; /* Adjust this value to move name up/down */
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-family: 'Times New Roman', serif; /* Or a script font */
+            font-size: 48px;
+            font-weight: bold;
+            color: #000;
+            text-transform: uppercase;
+        }
+        .date-text {
+            position: absolute;
+            bottom: 18%; /* Adjust based on your background image */
+            left: 22%;   /* Adjust based on your background image */
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+        }
+        .signature-img {
+            position: absolute;
+            bottom: 15%; /* Adjust based on your background image */
+            right: 20%;  /* Adjust based on your background image */
+            width: 180px; /* Adjust size */
+            height: auto;
+        }
+        .sr-no {
+            position: absolute;
+            top: 12%; /* Adjust based on your background image */
+            right: 10%; /* Adjust based on your background image */
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate-container">
+        <!-- Main Certificate Background Image -->
+        <img src="{% static 'images/certificate_bg.png' %}" class="bg-image" alt="Certificate Background">
+        
+        <!-- Dynamic Content Overlay -->
+        <div class="sr-no">
+            Sr. No: {{ sr_no }}
+        </div>
+
+        <div class="student-name">
+            {{ student_name }}
+        </div>
+        
+        <div class="date-text">
+            {{ now|date:"d/m/Y" }}
+        </div>
+        
+        <!-- Signature Image -->
+        <img src="{% static 'images/signature.png' %}" class="signature-img" alt="Signature">
+    </div>
+</body>
+</html>

@@ -297,9 +297,11 @@ class PsychometricTestType(object):
 class PaymentObjectType(object):
     PYSCHOMETRICTESTDETAIL=10
     SKILLLABCOURSE=20
+    COUNSELOR=30
     CHOICES=(
         (PYSCHOMETRICTESTDETAIL,"PsychometricTestDetail"),
         (SKILLLABCOURSE,"Skilllabcourse"),
+        (COUNSELOR,"Counselor"),
     )
 
 class GenderChoices(object):
