@@ -25,12 +25,14 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    overflow: visible; /* Ensure nothing is cut off */
   }
   
   .certificate-container {
     position: relative;
     width: 100%;
     min-height: 800px;
+    height: auto;
     background-size: contain;
     background-position: center top;
     background-repeat: no-repeat;
@@ -38,6 +40,7 @@
     border: 1px solid #e0e0e0;
     aspect-ratio: 16/11; /* Maintain certificate proportions */
     padding: 0;
+    overflow: visible; /* Ensure nothing is cut off */
   }
   
   /* Fallback background if image doesn't exist */
@@ -64,34 +67,59 @@
     height: 100%;
     min-height: 800px;
     pointer-events: none; /* Allow clicks to pass through to background */
+    overflow: visible; /* Ensure all content is visible */
   }
   
   .certificate-overlay > * {
     pointer-events: auto; /* Re-enable pointer events for text elements */
   }
   
+  /* Ensure consistent rendering across all outputs */
+  .certificate-container,
+  .certificate-overlay,
+  .recipient-name-overlay,
+  .date-overlay,
+  .serial-overlay {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
   /* Recipient Name - positioned absolutely over background image */
   .recipient-name-overlay {
     position: absolute;
     top: 312px;
-    left: 225px;
+    left: 39%;
     transform: translateX(-50%);
-    width: 60%;
-    max-width: 500px;
+    width: 45%;
+    max-width: 380px;
+    min-width: 200px;
     font-family: 'Dancing Script', cursive;
     font-size: 45px;
     font-weight: 700;
     color: #1a237e;
     line-height: 1.3;
-    text-align: center;
+    text-align: left;
     word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+    padding: 0 15px;
+    /* Ensure it doesn't overflow - constrain to left portion of certificate */
+    margin-left: -190px; /* Half of max-width to center */
+  }
+  
+  /* Ensure name doesn't overflow on smaller screens */
+  @media (max-width: 1200px) {
+    .recipient-name-overlay {
+      max-width: 350px;
+      margin-left: -175px;
+    }
   }
   
   /* Date overlay - positioned absolutely */
   .date-overlay {
     position: absolute;
-    bottom: 70px;
-    left: 108px;
+    bottom: 45px;
+    left: 80px;
     font-size: 15px;
     color: #333;
     font-weight: 500;
@@ -101,8 +129,8 @@
   /* Serial Number overlay - positioned absolutely */
   .serial-overlay {
     position: absolute;
-    bottom: 40px;
-    left: 108px;
+    bottom: 20px;
+    left: 80px;
     font-size: 15px;
     color: #333;
     font-weight: 500;
@@ -116,7 +144,7 @@
       top: 40%;
       left: 40px;
       right: 180px;
-    }
+  }
     .date-overlay,
     .serial-overlay {
       left: 40px;
@@ -131,14 +159,133 @@
   }
   
   @media print {
+    /* Hide header, navigation, footer, sidebar */
+    header,
+    nav,
+    .navbar,
+    .main-header,
+    footer,
+    .footer,
+    .sidebar,
+    aside,
     .certificate-actions,
-    .view-certificate-page {
-      background: #fff;
-      padding: 0;
+    .d-flex.justify-content-between,
+    .certificate-wrapper > .d-flex {
+      display: none !important;
+      height: 0 !important;
+      width: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      visibility: hidden !important;
+      position: absolute !important;
+      left: -9999px !important;
     }
+    
+    /* Remove page margins and padding */
+    @page {
+      margin: 0 !important;
+      size: landscape !important;
+    }
+    
+    html,
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+      height: 100% !important;
+      overflow: hidden !important;
+    }
+    
+    /* Hide page wrapper padding and background */
+    .view-certificate-page {
+      background: #fff !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      height: 100vh !important;
+      overflow: hidden !important;
+      page-break-before: avoid !important;
+      page-break-after: avoid !important;
+    }
+    
+    /* Center certificate on page */
+    .container {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      height: 100% !important;
+      page-break-before: avoid !important;
+      page-break-after: avoid !important;
+    }
+    
+    .certificate-wrapper {
+      margin: 0 !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+      height: 100% !important;
+      page-break-before: avoid !important;
+      page-break-after: avoid !important;
+      position: relative !important;
+      top: 0 !important;
+    }
+    
+    /* Style certificate container for print */
     .certificate-container {
-      box-shadow: none;
-      border: none;
+      box-shadow: none !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      page-break-inside: avoid !important;
+      page-break-before: avoid !important;
+      page-break-after: avoid !important;
+      height: 100vh !important;
+      width: 100% !important;
+      position: relative !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
+    
+    .certificate-overlay {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      page-break-inside: avoid !important;
+      page-break-before: avoid !important;
+      page-break-after: avoid !important;
+    }
+    
+    /* Force background images to print */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+    
+    /* Ensure name stays within bounds when printing */
+    .recipient-name-overlay {
+      max-width: 650px !important;
+      width: 650px !important;
+      left: 65px !important;
+      top: 310px !important;
+      margin-left: 0px !important;
+      transform: translateX(0%) !important;
+      font-size: 45px !important;
+      padding: 0 20px !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Ensure date and serial number are visible in print */
+    .date-overlay,
+    .serial-overlay {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      position: absolute !important;
+      left: 78px !important;
+      margin-bottom: 8px !important;
     }
   }
 </style>
@@ -148,19 +295,23 @@
 <section class="view-certificate-page pb-5">
   <div class="container">
     <div class="certificate-wrapper">
-      <!-- Header -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fs-24 fw-semibold mb-0">Certificate of Completion</h2>
-        <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" 
-           class="btn btn-outline-secondary">
-          <i class='bx bx-home me-2'></i>My Dashboard
-        </a>
-      </div>
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="fs-24 fw-semibold mb-0">Certificate of Completion</h2>
+          <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" 
+             class="btn btn-outline-secondary">
+            <i class='bx bx-home me-2'></i>My Dashboard
+          </a>
+        </div>
 
       <!-- Certificate with Background Image -->
       {% set bg_image_url = static('images_new/certificate_logos/certificate-background.png') %}
       <div class="certificate-container" id="certificateContent" 
-           style="background-image: url('{{ bg_image_url }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
+           data-bg-url="{{ bg_image_url }}"
+           style="background-image: url('{{ bg_image_url }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+        <!-- Background image as img element for PDF generation (hidden but captured by html2canvas) -->
+        <img src="{{ bg_image_url }}" alt="Certificate Background" id="certificateBgImage" 
+             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; min-height: 800px; object-fit: contain; object-position: center top; z-index: 0; opacity: 0; pointer-events: none; display: none;">
         <div class="certificate-overlay">
           <!-- Recipient Name Overlay -->
           <div class="recipient-name-overlay">
@@ -172,7 +323,7 @@
               {{ user.email }}
             {% endif %}
           </div>
-          
+
           <!-- Date Overlay -->
           <div class="date-overlay">
             {% if certification.created_at %}
@@ -181,22 +332,22 @@
               {{ date_format(now) }}
             {% endif %}
           </div>
-          
+
           <!-- Serial Number Overlay -->
           <div class="serial-overlay">
             Sr. No.- {{ certification.certificate_code|default("123456") }}
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Actions -->
-      <div class="certificate-actions">
-        <button onclick="window.print()" class="btn custom-button purple-button me-3">
-          <i class='bx bx-printer me-2'></i>Print Certificate
-        </button>
-        <button onclick="downloadCertificate()" class="btn btn-outline-primary">
-          <i class='bx bx-download me-2'></i>Download PDF
-        </button>
+        <!-- Actions -->
+        <div class="certificate-actions">
+          <button onclick="window.print()" class="btn custom-button purple-button me-3">
+            <i class='bx bx-printer me-2'></i>Print Certificate
+          </button>
+          <button onclick="downloadCertificate()" class="btn btn-outline-primary">
+            <i class='bx bx-download me-2'></i>Download PDF
+          </button>
       </div>
     </div>
   </div>
@@ -210,21 +361,290 @@
 <script>
   function downloadCertificate() {
     const element = document.getElementById('certificateContent');
+    const computedStyle = window.getComputedStyle(element);
+    let bgImageUrl = element.getAttribute('data-bg-url') || computedStyle.backgroundImage.replace(/url\(['"]?/, '').replace(/['"]?\)/, '');
+    
+    // Convert to absolute URL if relative
+    let absoluteBgUrl = bgImageUrl;
+    if (bgImageUrl && bgImageUrl !== 'none' && !bgImageUrl.startsWith('http') && !bgImageUrl.startsWith('data:')) {
+      if (bgImageUrl.startsWith('/')) {
+        absoluteBgUrl = window.location.origin + bgImageUrl;
+      } else {
+        absoluteBgUrl = window.location.origin + '/' + bgImageUrl;
+      }
+    }
+    
+    // Convert background image to base64 data URL for better compatibility
+    const convertImageToBase64 = (url) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          canvas.width = this.width;
+          canvas.height = this.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(this, 0, 0);
+          try {
+            const dataURL = canvas.toDataURL('image/png');
+            resolve(dataURL);
+          } catch (e) {
+            console.warn('Could not convert image to base64:', e);
+            resolve(url); // Fallback to original URL
+          }
+        };
+        img.onerror = () => resolve(url); // Fallback to original URL
+        img.src = absoluteBgUrl;
+      });
+    };
+    
+    // Process the background image
+    const processBackground = absoluteBgUrl && absoluteBgUrl !== 'none' 
+      ? convertImageToBase64(absoluteBgUrl)
+      : Promise.resolve(null);
+    
+    processBackground.then((base64BgUrl) => {
+      const finalBgUrl = base64BgUrl || absoluteBgUrl;
+      
+      // Show the background image element for capture
+      const bgImgElement = document.getElementById('certificateBgImage');
+      if (bgImgElement && finalBgUrl && finalBgUrl !== 'none') {
+        bgImgElement.src = finalBgUrl;
+        bgImgElement.style.display = 'block';
+        bgImgElement.style.opacity = '1';
+      }
+      
+      // Wait for background image to load
+      const bgLoadPromise = bgImgElement ? new Promise((resolve) => {
+        if (bgImgElement.complete && bgImgElement.naturalWidth > 0) {
+          resolve();
+        } else {
+          bgImgElement.onload = () => {
+            setTimeout(resolve, 100); // Small delay after load
+          };
+          bgImgElement.onerror = () => resolve();
+          // Timeout after 10 seconds
+          setTimeout(() => resolve(), 10000);
+        }
+      }) : Promise.resolve();
+      
+      bgLoadPromise.then(() => {
+        // Additional delay to ensure everything is ready
+        setTimeout(() => {
+          // Ensure element has proper dimensions
+          const rect = element.getBoundingClientRect();
+          let elementWidth = rect.width || element.offsetWidth || element.scrollWidth;
+          let elementHeight = rect.height || element.offsetHeight || element.scrollHeight;
+          
+          // Ensure minimum dimensions
+          if (elementWidth < 800) elementWidth = 1123; // A4 landscape width in pixels
+          if (elementHeight < 600) elementHeight = 794; // A4 landscape height in pixels
+          
+          // Ensure background image element has correct dimensions
+          if (bgImgElement) {
+            bgImgElement.style.width = elementWidth + 'px';
+            bgImgElement.style.height = elementHeight + 'px';
+          }
+          
+          console.log('Capturing certificate:', {
+            width: elementWidth,
+            height: elementHeight,
+            bgImage: finalBgUrl ? 'loaded' : 'missing',
+            bgImgElement: bgImgElement ? 'present' : 'missing'
+          });
+          
+          // Ensure all child elements are visible before capture
+          const allOverlays = element.querySelectorAll('.recipient-name-overlay, .date-overlay, .serial-overlay');
+          allOverlays.forEach(overlay => {
+            overlay.style.display = 'block';
+            overlay.style.visibility = 'visible';
+            overlay.style.opacity = '1';
+          });
+          
     html2canvas(element, {
       scale: 2,
       useCORS: true,
-      logging: false,
-      backgroundColor: null // Transparent background to preserve image
+            allowTaint: true,
+            logging: false,
+            backgroundColor: null,
+            imageTimeout: 30000,
+            removeContainer: false,
+            foreignObjectRendering: false,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: elementWidth,
+            windowHeight: elementHeight,
+            width: elementWidth,
+            height: elementHeight,
+            x: 0,
+            y: 0,
+            ignoreElements: function(element) {
+              // Don't ignore any elements - capture everything
+              return false;
+            },
+            onclone: function(clonedDoc, element) {
+              // Ensure background image is preserved in cloned document
+              const clonedElement = clonedDoc.getElementById('certificateContent');
+              const clonedBgImg = clonedDoc.getElementById('certificateBgImage');
+              const clonedName = clonedDoc.querySelector('.recipient-name-overlay');
+              const clonedDate = clonedDoc.querySelector('.date-overlay');
+              const clonedSerial = clonedDoc.querySelector('.serial-overlay');
+              
+              if (clonedElement && finalBgUrl && finalBgUrl !== 'none') {
+                // Force set background image with proper styles using !important
+                const bgSize = computedStyle.backgroundSize || 'contain';
+                const bgPosition = computedStyle.backgroundPosition || 'center top';
+                const bgRepeat = computedStyle.backgroundRepeat || 'no-repeat';
+                
+                clonedElement.style.cssText += 
+                  `background-image: url('${finalBgUrl}') !important; ` +
+                  `background-size: ${bgSize} !important; ` +
+                  `background-position: ${bgPosition} !important; ` +
+                  `background-repeat: ${bgRepeat} !important; ` +
+                  `background-attachment: scroll !important; ` +
+                  `width: ${elementWidth}px !important; ` +
+                  `height: ${elementHeight}px !important; ` +
+                  `min-height: 800px !important; ` +
+                  `overflow: visible !important;`;
+              }
+              
+              // Ensure certificate overlay is visible
+              const clonedOverlay = clonedDoc.querySelector('.certificate-overlay');
+              if (clonedOverlay) {
+                clonedOverlay.style.cssText += 
+                  `width: 100% !important; ` +
+                  `height: 100% !important; ` +
+                  `min-height: 800px !important; ` +
+                  `overflow: visible !important; ` +
+                  `display: block !important; ` +
+                  `visibility: visible !important;`;
+              }
+              
+              // Ensure background img element is visible in clone
+              if (clonedBgImg && finalBgUrl && finalBgUrl !== 'none') {
+                clonedBgImg.src = finalBgUrl;
+                clonedBgImg.style.display = 'block';
+                clonedBgImg.style.opacity = '1';
+                clonedBgImg.style.visibility = 'visible';
+                clonedBgImg.style.zIndex = '0';
+                clonedBgImg.style.width = elementWidth + 'px';
+                clonedBgImg.style.height = elementHeight + 'px';
+                clonedBgImg.style.minHeight = '800px';
+                clonedBgImg.style.objectFit = 'contain';
+                clonedBgImg.style.objectPosition = 'center top';
+              }
+              
+              // Ensure all dynamic elements are visible and properly styled
+              if (clonedName) {
+                clonedName.style.cssText += 
+                  `max-width: 380px !important; ` +
+                  `width: 45% !important; ` +
+                  `left: 33% !important; ` +
+                  `margin-left: -190px !important; ` +
+                  `transform: translateX(-50%) !important; ` +
+                  `text-align: center !important; ` +
+                  `display: block !important; ` +
+                  `visibility: visible !important;`;
+              }
+              
+              if (clonedDate) {
+                const dateStyle = window.getComputedStyle(document.querySelector('.date-overlay'));
+                clonedDate.style.cssText += 
+                  `display: block !important; ` +
+                  `visibility: visible !important; ` +
+                  `position: absolute !important; ` +
+                  // `bottom: ${dateStyle.bottom} !important; ` +
+                  `bottom: 65px !important; ` +
+                  `left: ${dateStyle.left} !important; ` +
+                  `font-size: ${dateStyle.fontSize} !important; ` +
+                  `color: ${dateStyle.color} !important;`;
+              }
+              
+              if (clonedSerial) {
+                const serialStyle = window.getComputedStyle(document.querySelector('.serial-overlay'));
+                clonedSerial.style.cssText += 
+                  `display: block !important; ` +
+                  `visibility: visible !important; ` +
+                  `position: absolute !important; ` +
+                  // `bottom: ${serialStyle.bottom} !important; ` +
+                  `bottom: 40px !important; ` +
+                  `left: ${serialStyle.left} !important; ` +
+                  `font-size: ${serialStyle.fontSize} !important; ` +
+                  `color: ${serialStyle.color} !important;`;
+              }
+            }
     }).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
+            console.log('Canvas created:', {
+              width: canvas.width,
+              height: canvas.height,
+              hasContent: canvas.width > 0 && canvas.height > 0
+            });
+            
+            // Verify canvas has content
+            if (canvas.width === 0 || canvas.height === 0) {
+              throw new Error('Canvas is empty - certificate may not have rendered properly');
+            }
+            
+            // Hide background image element after capture
+            if (bgImgElement) {
+              bgImgElement.style.display = 'none';
+              bgImgElement.style.opacity = '0';
+            }
+            
+            const imgData = canvas.toDataURL('image/png', 1.0);
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF('landscape', 'mm', 'a4');
-      
-      const imgWidth = 297; // A4 width in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      pdf.save('counselor-certificate-{{ certification.certificate_code|default("123456") }}.pdf');
+            
+            // Use A4 landscape dimensions
+            const pdfWidth = 297; // A4 landscape width in mm
+            const pdfHeight = 210; // A4 landscape height in mm
+            
+            // Calculate dimensions to fit the entire canvas
+            const canvasAspectRatio = canvas.width / canvas.height;
+            const pdfAspectRatio = pdfWidth / pdfHeight;
+            
+            let finalWidth, finalHeight, offsetX = 0, offsetY = 0;
+            
+            if (canvasAspectRatio > pdfAspectRatio) {
+              // Canvas is wider - fit to width, may need to scale down
+              finalWidth = pdfWidth;
+              finalHeight = pdfWidth / canvasAspectRatio;
+              // If height exceeds PDF height, scale down proportionally
+              if (finalHeight > pdfHeight) {
+                finalHeight = pdfHeight;
+                finalWidth = pdfHeight * canvasAspectRatio;
+                offsetX = (pdfWidth - finalWidth) / 2;
+              } else {
+                offsetY = (pdfHeight - finalHeight) / 2;
+              }
+            } else {
+              // Canvas is taller - fit to height
+              finalHeight = pdfHeight;
+              finalWidth = pdfHeight * canvasAspectRatio;
+              // If width exceeds PDF width, scale down proportionally
+              if (finalWidth > pdfWidth) {
+                finalWidth = pdfWidth;
+                finalHeight = pdfWidth / canvasAspectRatio;
+                offsetY = (pdfHeight - finalHeight) / 2;
+              } else {
+                offsetX = (pdfWidth - finalWidth) / 2;
+              }
+            }
+            
+            const pdf = new jsPDF('landscape', 'mm', 'a4');
+            // Add image to PDF, ensuring it fits completely
+            pdf.addImage(imgData, 'PNG', offsetX, offsetY, finalWidth, finalHeight, '', 'FAST');
+            pdf.save('counselor-certificate-{{ certification.certificate_code|default("123456") }}.pdf');
+          }).catch(error => {
+            console.error('Error generating PDF:', error);
+            alert('Error generating PDF. Please try again. Check console for details.');
+            // Hide background image element on error
+            if (bgImgElement) {
+              bgImgElement.style.display = 'none';
+              bgImgElement.style.opacity = '0';
+            }
+          });
+        }, 1500); // Increased delay to ensure background is fully loaded and rendered
+      });
     });
   }
 </script>
