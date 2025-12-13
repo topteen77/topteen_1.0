@@ -1,0 +1,213 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}Accounts Analytics Dashboard | Top Teen{% endblock %}
+
+{% block page_title %}Accounts Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-end align-items-center mb-4">
+        <div>
+            <select id="periodSelect" class="form-select" onchange="updatePeriod(this.value)">
+                <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
+                <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
+                <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
+                <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Registrations</h5>
+                    <h2 class="text-primary">{{ total_registrations }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Revenue</h5>
+                    <h2 class="text-success">₹{{ "%.2f"|format(total_revenue) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Prospects</h5>
+                    <h2 class="text-info">{{ total_prospects }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Converted Prospects</h5>
+                    <h2 class="text-warning">{{ converted_prospects }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Status -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5>Payment Status Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Successful: <span class="text-success">{{ payment_status.success }}</span></h6>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Failed: <span class="text-danger">{{ payment_status.failed }}</span></h6>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Pending: <span class="text-warning">{{ payment_status.pending }}</span></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prospects -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5>Prospects Overview</h5>
+                </div>
+                <div class="card-body">
+                    <p>Total Prospects: <strong>{{ total_prospects }}</strong></p>
+                    <p>Converted: <strong>{{ converted_prospects }}</strong></p>
+                    <p>Pending: <strong>{{ pending_prospects }}</strong></p>
+                    <p>Conversion Rate: 
+                        <strong>
+                            {% if total_prospects > 0 %}
+                                {{ "%.2f"|format((converted_prospects / total_prospects * 100)) }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5>Revenue by Source</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Revenue</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in revenue_by_source %}
+                            <tr>
+                                <td>{{ item.get('metadata__source', 'Unknown') }}</td>
+                                <td>₹{{ "%.2f"|format(item.get('revenue', 0)) }}</td>
+                                <td>{{ item.get('count', 0) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Failed Payments Analysis -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5>Failed Payments Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Payment Type</th>
+                                <th>Failure Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in failed_payments %}
+                            <tr>
+                                <td>{{ item.get('event_name', 'Unknown') }}</td>
+                                <td>{{ item.get('count', 0) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2">No failed payments</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Payments -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5>Pending Payments</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Event</th>
+                                <th>Value</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in pending_payments_list %}
+                            <tr>
+                                <td>{{ payment.user.email if payment.user and payment.user.email else 'N/A' }}</td>
+                                <td>{{ payment.event_name }}</td>
+                                <td>₹{{ "%.2f"|format(payment.event_value) if payment.event_value else '0.00' }}</td>
+                                <td>{{ payment.created.strftime('%Y-%m-%d %H:%M') if payment.created else 'N/A' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4">No pending payments</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updatePeriod(period) {
+    window.location.href = '/user-analytics/accounts/?period=' + period;
+}
+</script>
+{% endblock %}

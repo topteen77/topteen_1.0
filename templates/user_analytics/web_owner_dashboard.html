@@ -1,0 +1,254 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}Web Owner Analytics Dashboard | Top Teen{% endblock %}
+
+{% block page_title %}Web Owner Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-end align-items-center mb-4">
+        <div>
+            <select id="periodSelect" class="form-select" onchange="updatePeriod(this.value)">
+                <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
+                <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
+                <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
+                <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <h2 class="text-primary">{{ summary.totalUsers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Sessions</h5>
+                    <h2 class="text-info">{{ summary.totalSessions }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Pageviews</h5>
+                    <h2 class="text-success">{{ summary.totalPageviews }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Real-time Users</h5>
+                    <h2 class="text-warning">{{ summary.realTimeUsers }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Engagement Metrics -->
+    {% if engagement %}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Avg Session Duration</h5>
+                    <h3>{{ "%.2f"|format(engagement.averageSessionDuration) }} min</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">User Engagement</h5>
+                    <h3>{{ "%.2f"|format(engagement.engagementDuration) }} min</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Bounce Rate</h5>
+                    <h3>{{ "%.2f"|format(engagement.bounceRate) }}%</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Top Pages -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5>Top Pages</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Page Title</th>
+                                <th>Path</th>
+                                <th>Pageviews</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for page in top_pages %}
+                            <tr>
+                                <td>{{ page.get('title', 'Unknown') }}</td>
+                                <td>{{ page.get('path', 'N/A') }}</td>
+                                <td>{{ page.get('pageviews', 0) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Traffic Sources -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5>Traffic Sources (Database)</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Sessions</th>
+                                <th>Pageviews</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for source in db_traffic_sources %}
+                            <tr>
+                                <td>{{ source.get('utm_source', 'Unknown') }}</td>
+                                <td>{{ source.get('sessions', 0) }}</td>
+                                <td>{{ source.get('pageviews', 0) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5>Device Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Device Type</th>
+                                <th>Users</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for device in db_device_breakdown %}
+                            <tr>
+                                <td>{{ device.get('device_type', 'Unknown') }}</td>
+                                <td>{{ device.get('count', 0) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Journey Stats -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5>Top Entry Pages</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th>Sessions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for page in top_entry_pages %}
+                            <tr>
+                                <td>{{ page.get('entry_page', 'N/A') }}</td>
+                                <td>{{ page.get('count', 0) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5>Top Exit Pages</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th>Sessions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for page in top_exit_pages %}
+                            <tr>
+                                <td>{{ page.get('exit_page', 'N/A') }}</td>
+                                <td>{{ page.get('count', 0) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updatePeriod(period) {
+    window.location.href = '/user-analytics/web-owner/?period=' + period;
+}
+</script>
+{% endblock %}

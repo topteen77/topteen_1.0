@@ -1,0 +1,249 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}Business Analytics Dashboard | Top Teen{% endblock %}
+
+{% block page_title %}Business Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Period Selector -->
+    <div class="d-flex justify-content-end align-items-center mb-4">
+        <select id="periodSelect" class="form-select" style="width: auto; max-width: 200px;" onchange="updatePeriod(this.value)">
+            <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
+            <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+            <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
+            <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
+            <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+        </select>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1" style="font-size: 14px;">Total Revenue</p>
+                        <h2 class="mb-0" style="color: #10b981; font-weight: 700;">₹{{ "%.2f"|format(total_revenue) }}</h2>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-rupee-sign" style="color: #10b981; font-size: 24px;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1" style="font-size: 14px;">Successful Payments</p>
+                        <h2 class="mb-0" style="color: #3b82f6; font-weight: 700;">{{ successful_payments }}</h2>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(59, 130, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-check-circle" style="color: #3b82f6; font-size: 24px;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1" style="font-size: 14px;">Total Enrollments</p>
+                        <h2 class="mb-0" style="color: #06b6d4; font-weight: 700;">{{ total_enrollments }}</h2>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(6, 182, 212, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user-graduate" style="color: #06b6d4; font-size: 24px;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1" style="font-size: 14px;">Conversion Rate</p>
+                        <h2 class="mb-0" style="color: #f59e0b; font-weight: 700;">
+                            {% if total_visitors > 0 %}
+                                {{ "%.2f"|format((converted_leads / total_visitors * 100)) }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </h2>
+                    </div>
+                    <div style="width: 50px; height: 50px; background: rgba(245, 158, 11, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-chart-line" style="color: #f59e0b; font-size: 24px;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Status -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="admin-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1" style="font-size: 14px;">Successful Payments</p>
+                        <h3 class="mb-0" style="color: #10b981; font-weight: 600;">{{ successful_payments }}</h3>
+                    </div>
+                    <i class="fas fa-check-circle" style="color: #10b981; font-size: 32px;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="admin-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1" style="font-size: 14px;">Failed Payments</p>
+                        <h3 class="mb-0" style="color: #ef4444; font-weight: 600;">{{ failed_payments }}</h3>
+                    </div>
+                    <i class="fas fa-times-circle" style="color: #ef4444; font-size: 32px;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="admin-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1" style="font-size: 14px;">Pending Payments</p>
+                        <h3 class="mb-0" style="color: #f59e0b; font-weight: 600;">{{ pending_payments }}</h3>
+                    </div>
+                    <i class="fas fa-clock" style="color: #f59e0b; font-size: 32px;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollment Breakdown -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5 class="card-title">Enrollment Breakdown</h5>
+                </div>
+                <div class="card-body" style="padding-top: 0;">
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span>Psychometric Tests</span>
+                        <strong>{{ psychometric_enrollments }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span>Courses</span>
+                        <strong>{{ course_enrollments }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2">
+                        <span class="fw-bold">Total</span>
+                        <strong class="text-primary">{{ total_enrollments }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5 class="card-title">Conversion Funnel</h5>
+                </div>
+                <div class="card-body" style="padding-top: 0;">
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span>Total Visitors</span>
+                        <strong>{{ total_visitors }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span>Registrations</span>
+                        <strong>{{ total_registrations }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span>Leads</span>
+                        <strong>{{ total_leads }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2">
+                        <span class="fw-bold">Converted</span>
+                        <strong class="text-success">{{ converted_leads }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue by Source -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5 class="card-title">Revenue by Source</h5>
+                </div>
+                <div class="card-body" style="padding-top: 0;">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Source</th>
+                                    <th>Revenue</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in revenue_by_source %}
+                                <tr>
+                                    <td>{{ item.get('metadata__source', 'Unknown') }}</td>
+                                    <td><strong>₹{{ "%.2f"|format(item.get('revenue', 0)) }}</strong></td>
+                                    <td>{{ item.get('count', 0) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Products -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h5 class="card-title">Top Products/Services</h5>
+                </div>
+                <div class="card-body" style="padding-top: 0;">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product/Service</th>
+                                    <th>Revenue</th>
+                                    <th>Transactions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in top_products %}
+                                <tr>
+                                    <td>{{ product.get('event_name', 'Unknown') }}</td>
+                                    <td><strong>₹{{ "%.2f"|format(product.get('revenue', 0)) }}</strong></td>
+                                    <td>{{ product.get('count', 0) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updatePeriod(period) {
+    window.location.href = '/user-analytics/business/?period=' + period;
+}
+</script>
+{% endblock %}

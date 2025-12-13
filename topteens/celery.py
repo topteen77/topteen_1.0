@@ -22,4 +22,8 @@ app.conf.beat_schedule = {
         'task': 'psychometric_tests.task.central_test_automate',
         'schedule':  900,
     },
+    'aggregate-daily-analytics': {
+        'task': 'user_analytics.tasks.aggregate_daily_analytics',
+        'schedule': 86400.0,  # Run daily at midnight
+    },
 }

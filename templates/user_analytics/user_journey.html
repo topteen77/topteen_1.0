@@ -1,0 +1,64 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}User Journey Analytics | Top Teen{% endblock %}
+
+{% block page_title %}User Journey Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    
+    {% if user_id %}
+    <p>Showing journeys for user ID: {{ user_id }}</p>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>User Journeys</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Session ID</th>
+                                <th>User</th>
+                                <th>Start Time</th>
+                                <th>Duration</th>
+                                <th>Pages</th>
+                                <th>Entry Page</th>
+                                <th>Exit Page</th>
+                                <th>Converted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for journey in journeys %}
+                            <tr>
+                                <td>{{ journey.session_id[:20] if journey.session_id else '' }}...</td>
+                                <td>{{ journey.user.email if journey.user and journey.user.email else 'Anonymous' }}</td>
+                                <td>{{ journey.start_time.strftime('%Y-%m-%d %H:%M') if journey.start_time else 'N/A' }}</td>
+                                <td>{{ journey.total_time }}s</td>
+                                <td>{{ journey.total_pages }}</td>
+                                <td>{{ journey.entry_page[:30] if journey.entry_page else 'N/A' }}...</td>
+                                <td>{{ journey.exit_page[:30] if journey.exit_page else 'N/A' }}...</td>
+                                <td>
+                                    {% if journey.converted %}
+                                        <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8">No journeys found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

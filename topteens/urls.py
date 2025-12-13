@@ -40,6 +40,7 @@ urlpatterns = [
     path("api/",include('app_post_matric.urls',namespace='post_matric')),
     path("counselor/",include('counselor.urls',namespace='counselor')),
     path('analytics/', include('analytics_dashboard.urls')),
+    path('user-analytics/', include('user_analytics.urls', namespace='user_analytics')),
 
     # old code not in use - start
     # New isolated routes for marketing authentication frontend

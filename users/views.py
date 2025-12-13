@@ -669,7 +669,12 @@ class LoginOTP(APIView):
                     login(request, user, backend='users.backends.CustomUserBackend')
                     data["otp_verify"]=True
                     data["success"]=True
-                    data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
+                    
+                    # Check if user is staff or superuser - redirect to business analytics
+                    if user.is_staff or user.is_superuser:
+                        data['redirect_url'] = request.build_absolute_uri(reverse('user_analytics:business_dashboard'))
+                    else:
+                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     data["message"]="User not found or inactive"
@@ -742,6 +747,11 @@ class LoginPassword(APIView):
                 # Use CustomUserBackend for login
                 login(request, user, backend='users.backends.CustomUserBackend')
                 data['success'] = True
+                
+                # Check if user is staff or superuser - redirect to business analytics first
+                if user.is_staff or user.is_superuser:
+                    data['redirect_url'] = request.build_absolute_uri(reverse('user_analytics:business_dashboard'))
+                    return Response(data, status=status.HTTP_200_OK)
                 
                 # Redirect based on user type
                 # Check for counselor first

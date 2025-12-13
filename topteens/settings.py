@@ -67,7 +67,8 @@ INSTALLED_APPS = [
     'counselor',
     'nested_admin',
     'analytics_dashboard',
-    'app_post_matric'
+    'app_post_matric',
+    'user_analytics',
 ]
 
 # Add django_elasticsearch_dsl conditionally based on environment
@@ -87,6 +88,7 @@ MIDDLEWARE = [
     'topteens.custome_middleware.CustomeSocialAuthExceptionMiddleware',
     'topteens.custome_middleware.TopteenAdminRequireLoginCheck',
     'topteens.custome_middleware.TopteenAdminPermissionMiddleware',
+    'user_analytics.middleware.AnalyticsMiddleware',
 ]
 
 
