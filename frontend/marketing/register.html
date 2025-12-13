@@ -1,0 +1,575 @@
+{% extends "marketing/base.html" %}
+
+{% block title_content %}Marketing Registration | Top Teen{% endblock %}
+{% block description_content %}Register your marketing group on TopTeen platform to manage institutes and grow your business.{% endblock %}
+
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}marketing-register-page{% endblock %}
+
+{% block additionalhead %}
+<style>
+  .marketing-register-page {
+    padding-top: 100px; /* Account for fixed header */
+    padding-bottom: 0;
+    min-height: 100vh;
+    background: #f8f9fa;
+  }
+  
+  .registration-container {
+    display: flex;
+    min-height: calc(100vh - 100px);
+    background-color: #f8f9fa;
+  }
+
+  .left-panel {
+    width: 35%;
+    background: linear-gradient(135deg, #541BCF 0%, #8662E3 100%);
+    color: white;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+  }
+  
+  @media (max-width: 767px) {
+    .left-panel {
+      display: none !important;
+    }
+  }
+
+  .left-panel-content {
+    margin-top: 60px;
+  }
+
+  .left-panel h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: white;
+  }
+
+  .left-panel p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .benefit-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .benefit-item i {
+    margin-right: 15px;
+    font-size: 20px;
+    color: #ffffff;
+    margin-top: 3px;
+  }
+
+  .benefit-item strong {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+
+  .benefit-item p {
+    margin-bottom: 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .right-panel {
+    width: 65%;
+    padding: 40px;
+    background-color: white;
+    overflow-y: auto;
+  }
+
+  .form-title {
+    text-align: center;
+    color: #541BCF;
+    font-weight: 700;
+    font-size: 24px;
+    margin-bottom: 30px;
+  }
+
+  .form-title i {
+    margin-right: 10px;
+  }
+
+  .custom-input {
+    height: 50px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    font-size: 16px;
+    width: 100%;
+    transition: all 0.3s;
+  }
+
+  .custom-input:focus {
+    outline: none;
+    border-color: #541BCF;
+    box-shadow: 0 0 0 0.2rem rgba(84, 27, 207, 0.25);
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+  }
+
+  .error-message {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+    display: none;
+  }
+  
+  .form-group input.invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  }
+  
+  .form-group input.valid {
+    border-color: #28a745;
+  }
+
+  .purple-button {
+    background-color: #541BCF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 30px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  .purple-button:hover {
+    background-color: #4016a0;
+  }
+
+  .purple-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+
+  .purple-button i {
+    margin-right: 8px;
+  }
+
+  @media (max-width: 992px) {
+    .registration-container {
+      flex-direction: column;
+    }
+
+    .left-panel,
+    .right-panel {
+      width: 100%;
+    }
+
+    .left-panel {
+      padding: 30px;
+      min-height: auto;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .left-panel {
+      display: flex !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="registration-container">
+  <!-- Left Panel - Branding and Benefits -->
+  <div class="left-panel">
+    <div>
+      <div style="display: flex; align-items: center; margin-bottom: 30px;">
+        <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="TopTeen Logo" style="width: 40px; height: 40px; margin-right: 10px;">
+        <span style="font-size: 24px; font-weight: 700; color: white;">TOPTEEN</span>
+      </div>
+      <div class="left-panel-content">
+        <h2>Join TopTeen as a Marketing Partner</h2>
+        <p>Manage multiple institutes, track performance, and grow your business with TopTeen's comprehensive marketing platform.</p>
+
+        <div class="benefits">
+          <div class="benefit-item">
+            <i class="fas fa-chart-line"></i>
+            <div>
+              <strong>Centralized Management</strong>
+              <p>Manage all your partner institutes from a single dashboard</p>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <i class="fas fa-users"></i>
+            <div>
+              <strong>Performance Analytics</strong>
+              <p>Track enrollment, engagement, and ROI across all institutes</p>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <i class="fas fa-handshake"></i>
+            <div>
+              <strong>Business Growth</strong>
+              <p>Scale your operations and maximize revenue opportunities</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel - Registration Form -->
+  <div class="right-panel">
+    <h3 class="form-title">
+      <i class="fas fa-bullhorn"></i> Marketing Group Information
+    </h3>
+
+    <form id="marketingRegisterForm">
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+      <!-- Form Fields -->
+      <div class="form-group">
+        <label for="marketing_group_name">Marketing Group Name <span style="color: red;">*</span></label>
+        <input type="text" id="marketing_group_name" name="marketing_group_name" class="custom-input" placeholder="Marketing Group Name" required>
+        <div class="error-message" id="marketing_group_name_error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="marketing_email">Email Address <span style="color: red;">*</span></label>
+        <input type="email" id="marketing_email" name="marketing_email" class="custom-input" placeholder="Email Address" required>
+        <div class="error-message" id="marketing_email_error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password <span style="color: red;">*</span></label>
+        <input type="password" id="password" name="password" class="custom-input" placeholder="Password" required>
+        <div class="error-message" id="password_error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirm_password">Confirm Password <span style="color: red;">*</span></label>
+        <input type="password" id="confirm_password" name="confirm_password" class="custom-input" placeholder="Confirm Password" required>
+        <div class="error-message" id="confirm_password_error"></div>
+      </div>
+
+      <button type="submit" class="purple-button" id="submitBtn">
+        <i class="fas fa-user-plus"></i> Create Marketing Account
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px; padding: 20px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
+      <p style="color: #856404; margin: 0;">
+        <i class="fas fa-info-circle"></i> <strong>Note:</strong> Marketing group registration is not available. Please contact administrator to create your account.
+      </p>
+      <p style="margin-top: 10px;">
+        <a href="{{ url('marketing:login') }}" style="color: #541BCF; font-weight: 600; text-decoration: none;">
+          Go to Login
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// Sweet Alert Helper
+const fireAlert = async function (title, icon = "success", showConfirmButton = false, showCloseButton = false, isPrompt = false) {
+  const canDo = Swal.fire({
+    title,
+    icon: icon,
+    position: "top-end",
+    showCloseButton,
+    showConfirmButton,
+    toast: true,
+    showCancelButton: false,
+    ...(isPrompt ? {} : { timer: 3000 }),
+  });
+
+  if (isPrompt) {
+    return canDo?.isConfirmed;
+  } else {
+    return -1;
+  }
+};
+
+// Function to show error alert (centered, with confirm button)
+const showErrorAlert = function (title, text = '') {
+  Swal.fire({
+    icon: 'error',
+    title: title,
+    text: text,
+    confirmButtonColor: '#541BCF',
+    confirmButtonText: 'OK'
+  });
+};
+
+// Function to show success alert (centered, with confirm button)
+const showSuccessAlert = function (title, text = '', callback = null) {
+  Swal.fire({
+    icon: 'success',
+    title: title,
+    text: text,
+    confirmButtonColor: '#541BCF',
+    confirmButtonText: 'OK'
+  }).then((result) => {
+    if (result.isConfirmed && callback) {
+      callback();
+    }
+  });
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('marketingRegisterForm');
+  const submitBtn = document.getElementById('submitBtn');
+
+  // Validation functions
+  function validateField(field) {
+    const fieldId = field.id;
+    const value = field.value.trim();
+    const errorEl = document.getElementById(fieldId + '_error');
+    let isValid = true;
+    let errorMessage = '';
+
+    // Remove previous validation classes
+    field.classList.remove('valid', 'invalid');
+    if (errorEl) {
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+    }
+
+    // Required field validation
+    if (field.hasAttribute('required') && !value) {
+      isValid = false;
+      errorMessage = 'This field is required';
+    }
+
+    // Email validation
+    if (fieldId === 'marketing_email' && value) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(value)) {
+        isValid = false;
+        errorMessage = 'Please enter a valid email address';
+      }
+    }
+
+    // Password validation
+    if (fieldId === 'password' && value) {
+      if (value.length < 8) {
+        isValid = false;
+        errorMessage = 'Password must be at least 8 characters long';
+      }
+    }
+
+    // Confirm password validation
+    if (fieldId === 'confirm_password' && value) {
+      const password = document.getElementById('password').value;
+      if (value !== password) {
+        isValid = false;
+        errorMessage = 'Passwords do not match';
+      }
+    }
+
+    // Marketing group name validation
+    if (fieldId === 'marketing_group_name' && value) {
+      if (value.length < 2) {
+        isValid = false;
+        errorMessage = 'Marketing group name must be at least 2 characters long';
+      }
+    }
+
+    // Show validation result
+    if (!isValid && errorMessage) {
+      field.classList.add('invalid');
+      if (errorEl) {
+        errorEl.textContent = errorMessage;
+        errorEl.style.display = 'block';
+      }
+    } else if (value && isValid) {
+      field.classList.add('valid');
+    }
+
+    return isValid;
+  }
+
+  // Add real-time validation to all form fields
+  const formFields = form.querySelectorAll('input');
+  formFields.forEach(field => {
+    field.addEventListener('blur', function() {
+      validateField(this);
+    });
+    field.addEventListener('input', function() {
+      // Remove error on input
+      if (this.classList.contains('invalid')) {
+        const errorEl = document.getElementById(this.id + '_error');
+        if (errorEl) {
+          errorEl.style.display = 'none';
+        }
+        this.classList.remove('invalid');
+      }
+    });
+  });
+
+  // Form submission
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Clear previous errors
+    document.querySelectorAll('.error-message').forEach(el => {
+      el.style.display = 'none';
+      el.textContent = '';
+    });
+
+    // Remove previous validation classes
+    formFields.forEach(field => {
+      field.classList.remove('invalid', 'valid');
+    });
+
+    let isFormValid = true;
+
+    // Validate all required fields
+    const requiredFields = form.querySelectorAll('[required]');
+    requiredFields.forEach(field => {
+      if (!validateField(field)) {
+        isFormValid = false;
+      }
+    });
+
+    // Validate password match
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    if (password !== confirmPassword) {
+      isFormValid = false;
+      const confirmPasswordError = document.getElementById('confirm_password_error');
+      if (confirmPasswordError) {
+        confirmPasswordError.textContent = 'Passwords do not match';
+        confirmPasswordError.style.display = 'block';
+      }
+      document.getElementById('confirm_password').classList.add('invalid');
+    }
+
+    if (!isFormValid) {
+      // Collect all error messages
+      const errorMessages = [];
+      const invalidFields = form.querySelectorAll('.invalid');
+      invalidFields.forEach(field => {
+        const errorEl = document.getElementById(field.id + '_error');
+        if (errorEl && errorEl.textContent) {
+          errorMessages.push(errorEl.textContent);
+        }
+      });
+
+      // Show SweetAlert with all errors
+      const errorText = errorMessages.length > 0 
+        ? errorMessages.join('<br>') 
+        : 'Please fill in all required fields correctly.';
+      
+      showErrorAlert('Validation Error', errorText);
+      
+      // Scroll to first error
+      const firstError = form.querySelector('.invalid, .error-message[style*="block"]');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+    // Create FormData
+    const formData = new FormData(form);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    // Submit via AJAX
+    fetch('/api/v1/marketing/register/', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Show success alert
+        showSuccessAlert(
+          'Registration Successful!',
+          data.message || 'Your marketing group account has been created successfully.',
+          function() {
+            // Redirect to login page
+            window.location.href = '{{ url("marketing:login") }}';
+          }
+        );
+        
+        // Hide form
+        form.style.display = 'none';
+      } else {
+        // Show errors using SweetAlert
+        let errorText = '';
+        if (data.errors) {
+          const errorList = [];
+          Object.keys(data.errors).forEach(field => {
+            const fieldErrors = data.errors[field];
+            if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+              errorList.push(fieldErrors[0]);
+            }
+            
+            // Also show inline errors
+            const errorEl = document.getElementById(field + '_error');
+            if (errorEl && fieldErrors.length > 0) {
+              errorEl.textContent = fieldErrors[0];
+              errorEl.style.display = 'block';
+            }
+          });
+          errorText = errorList.join('<br>');
+        }
+        
+        if (data.message) {
+          errorText = errorText ? errorText + '<br>' + data.message : data.message;
+        }
+        
+        if (!errorText) {
+          errorText = 'An error occurred. Please try again.';
+        }
+        
+        showErrorAlert('Registration Failed', errorText);
+        
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Marketing Account';
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showErrorAlert('Network Error', 'An error occurred while submitting the form. Please check your internet connection and try again.');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Marketing Account';
+    });
+  });
+});
+</script>
+{% endblock %}
+

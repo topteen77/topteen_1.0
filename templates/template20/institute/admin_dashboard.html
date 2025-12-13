@@ -249,6 +249,66 @@
         {% endif %}
       </div>
 
+      <!-- Marketing Users List -->
+      <div class="table-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5>Marketing Users ({{ marketing_users.count if marketing_users else 0 }})</h5>
+          <div class="d-flex gap-2">
+            <span class="badge bg-success">Active: {{ active_marketing_users.count if active_marketing_users else 0 }}</span>
+            <span class="badge bg-danger">Inactive: {{ inactive_marketing_users.count if inactive_marketing_users else 0 }}</span>
+          </div>
+        </div>
+        {% if marketing_users %}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Marketing Group</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Last Login</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in marketing_users %}
+              {% set marketing_group = user.marketing_group.first() %}
+              <tr>
+                <td>{{ user.name or 'N/A' }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ marketing_group.m_group_name if marketing_group else 'N/A' }}</td>
+                <td>
+                  {% if user.user_status == 2 %}
+                  <span class="badge bg-success">Active</span>
+                  {% else %}
+                  <span class="badge bg-danger">Inactive</span>
+                  {% endif %}
+                </td>
+                <td>{{ user.created.strftime('%b %d, %Y') if user.created else 'N/A' }}</td>
+                <td>{{ user.last_login.strftime('%b %d, %Y') if user.last_login else 'Never' }}</td>
+                <td>
+                  <a href="{{ url('institute:marketingblock', args=[user.id]) }}" 
+                     class="btn btn-sm {% if user.user_status == 2 %}btn-danger{% else %}btn-success{% endif %}"
+                     onclick="return confirm('Are you sure you want to {% if user.user_status == 2 %}deactivate{% else %}activate{% endif %} this marketing user?');">
+                    <i class='bx {% if user.user_status == 2 %}bx-x-circle{% else %}bx-check-circle{% endif %}'></i>
+                    {% if user.user_status == 2 %}Deactivate{% else %}Activate{% endif %}
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class='bx bx-user-x fs-48 text-muted mb-3'></i>
+          <p class="text-muted">No marketing users found</p>
+        </div>
+        {% endif %}
+      </div>
+
       <!-- Students List -->
       <div class="table-card">
         <h5>Recent Students ({{ students.paginator.count }})</h5>

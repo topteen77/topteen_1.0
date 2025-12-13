@@ -1,0 +1,43 @@
+<!-- Footer Section -->
+<footer class="footer-area">
+  {% block footer_cta %}
+  {% endblock %}
+
+  <div class="footer-main border-bottom-t pt-md-8 pb-md-4 pt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 col-md-12 col-sm-12 text-center">
+          <div class="footer-logo">
+            <img class="img-fluid mb-4" src="{{ static('images_new/logos/footer-logo.svg') }}" alt="Footer Logo" />
+            <h5 class="text-gray fs-20 fw-600">
+              Empowering Every Student for <span class="text-purple">Career Success!</span>
+            </h5>
+          </div>
+          <div class="social-icon mt-md-7">
+            <ul>
+              <li>
+                <a class="facebook-icon me-md-2" href="https://www.facebook.com/topteen.in" target="_blank"></a>
+              </li>
+              <li>
+                <a class="twitter-icon me-md-2" href="https://www.instagram.com/topteen.careers/" target="_blank"></a>
+              </li>
+              <li>
+                <a class="insta-icon me-md-2" href="https://www.instagram.com/topteen.careers/" target="_blank"></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="copyright">
+    <div class="container">
+      <div class="row">
+        <p class="text-center text-gray fs-14 mb-0">© {{ now.year }} TopTeen. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+<!-- Footer Section -->
+

@@ -41,6 +41,11 @@ urlpatterns = [
     path("counselor/",include('counselor.urls',namespace='counselor')),
     path('analytics/', include('analytics_dashboard.urls')),
 
+    # old code not in use - start
+    # New isolated routes for marketing authentication frontend
+    # old code not in use - end
+    path("marketing-auth/",include('institute.marketing_urls', namespace='marketing')),
+
     path('api-auth/', include('rest_framework.urls')),
 
 

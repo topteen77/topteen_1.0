@@ -37,6 +37,10 @@ urlpatterns = [
     path("institute_student_delete/",views.InstituteStudentDeleteView.as_view(),name="institutestudentdelete"),
     path("institute_block/<int:id>/",views.InstituteBlockView.as_view(),name="instituteblock"),
     path("institute_student_block/<int:id>/",views.InstituteStudentBlockView.as_view(),name="institutestudentblock"),
+    # old code not in use - start
+    # Marketing user management routes
+    # old code not in use - end
+    path("marketing_block/<int:id>/",views.MarketingBlockView.as_view(),name="marketingblock"),
     path("download_student_sample_csv/",views.students_csv_sample_file,name="download_student_sample_csv"),
     path("p0ost_matric_student_sample_data/",views.post_matric_student_sample_data,name="post_matric_student_sample_csv"),
     path("<slug:slug>/",views.InstituteDashboardView.as_view(),name="institutedashboard"),

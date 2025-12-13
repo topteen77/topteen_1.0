@@ -155,6 +155,12 @@ class AdminDashboardView(TemplateView):
 
         ctx['total_stus']= institute_data
         ctx["institute_users"] = User.objects.filter(user_type=choices.UserType.INSTITUTE)
+        # old code not in use - start
+        # Marketing users list for admin dashboard
+        # old code not in use - end
+        ctx["marketing_users"] = User.objects.filter(user_type=choices.UserType.MARKETINGGROUPADMIN).order_by('-created')
+        ctx["active_marketing_users"] = User.objects.filter(user_type=choices.UserType.MARKETINGGROUPADMIN, user_status=choices.UserStatus.UNBLOCK)
+        ctx["inactive_marketing_users"] = User.objects.filter(user_type=choices.UserType.MARKETINGGROUPADMIN, user_status=choices.UserStatus.BLOCK)
         ctx["Total_students"] = StudentManagement.objects.all()
         ctx['counselors'] = Counselor.objects.all()
         ctx['counselors_linked_to_institute'] = counselors_linked_to_institute
@@ -1352,6 +1358,23 @@ class InstituteBlockView(TemplateView):
         else:
             ins_user.user_status=choices.UserStatus.UNBLOCK
             ins_user.save()
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
+@method_decorator(only_superuser,name='dispatch')
+class MarketingBlockView(TemplateView):
+    """
+    View to activate/deactivate marketing users (admin only)
+    """
+    def get(self,request,*args,**kwargs):
+        id=kwargs.get("id")
+        marketing_user=get_object_or_404(User,id=id, user_type=choices.UserType.MARKETINGGROUPADMIN)
+        if marketing_user.user_status==choices.UserStatus.UNBLOCK:
+            marketing_user.user_status=choices.UserStatus.BLOCK
+            marketing_user.save()
+        else:
+            marketing_user.user_status=choices.UserStatus.UNBLOCK
+            marketing_user.save()
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -3203,6 +3226,42 @@ class InstituteLoginView(TemplateView):
     
     def html_head(self):
         name = 'Institute Login'
+        return build_html_head(title=name, description=name)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['html_head'] = self.html_head()
+        return context
+
+
+# old code not in use - start
+# New isolated views for marketing authentication frontend
+# old code not in use - end
+
+class MarketingRegisterView(TemplateView):
+    """
+    View to render marketing registration page
+    """
+    template_name = 'marketing/register.html'
+    
+    def html_head(self):
+        name = 'Marketing Registration'
+        return build_html_head(title=name, description=name)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['html_head'] = self.html_head()
+        return context
+
+
+class MarketingLoginView(TemplateView):
+    """
+    View to render marketing login page
+    """
+    template_name = 'marketing/login.html'
+    
+    def html_head(self):
+        name = 'Marketing Login'
         return build_html_head(title=name, description=name)
     
     def get_context_data(self, **kwargs):
