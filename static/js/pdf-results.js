@@ -576,7 +576,10 @@ function handleAptitudeResults(result, index) {
 
   // Filter out internal sections (e.g., performance_level metadata)
   const internalSectionPattern = /performance[_\s-]?levels?/i;
-  const filteredSectionsData = sectionsData.filter(section => !internalSectionPattern.test(section.name));
+  const filteredSectionsData = sectionsData.filter(section => {
+    const normalizedName = (section.name || '').trim().toLowerCase();
+    return !internalSectionPattern.test(section.name) && !normalizedName.includes('performancelevels');
+  });
   const finalSectionsData = filteredSectionsData.length ? filteredSectionsData : sectionsData;
 
   // Populate the existing average-cards div

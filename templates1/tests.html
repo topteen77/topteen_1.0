@@ -310,6 +310,8 @@
         viewButton.style.borderColor = '#28a745';
         viewButton.style.color = 'white';
         viewButton.href = `/api/web/results/?test_id=${test.id}`;
+        viewButton.setAttribute('target', '_blank');
+        viewButton.setAttribute('rel', 'noreferrer');
     } else {
         // Default state for uncompleted tests
         statusElement.innerHTML = '<span class="badge badge-secondarys">Not Started</span>';

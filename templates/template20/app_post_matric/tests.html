@@ -670,7 +670,7 @@
         <div class="pty-footer-b mt-2 border-top pt-3">
           <div class="pty-footer d-flex justify-content-between align-items-center">
             <div> <a href="" class="custom-start btn purple-button next-button px-md-6 fw-600 ms-1 take-test-btn">Start Test</a></div>
-            <div> <a href="" class="custom-view details-btn d-none mt-1">View Result</a> </div>
+            <div> <a href="" class="custom-view details-btn d-none mt-1" target="_blank" rel="noreferrer">View Result</a> </div>
           </div>
         </div>
       </div>
@@ -993,6 +993,8 @@
         viewButton.style.borderColor = '#28a745';
         viewButton.style.color = 'white';
         viewButton.href = `/api/web/results/?test_id=${test.id}`;
+        viewButton.setAttribute('target', '_blank');
+        viewButton.setAttribute('rel', 'noreferrer');
     } else {
         // Default state for uncompleted tests
         statusElement.innerHTML = '<span class="badge badge-secondarys">Not Started</span>';
