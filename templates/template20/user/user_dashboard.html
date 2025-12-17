@@ -84,29 +84,29 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="d-flex gap-3">
             <div>
-              {% if request.user.image %}
-              <img src="{{ request.user.image.url }}" class="profile-image" style="width: 71px; height: 71px;" alt="{{ request.user.name }}" />
+              {% if profile_user and profile_user.image %}
+              <img src="{{ profile_user.image.url }}" class="profile-image" style="width: 71px; height: 71px;" alt="{{ profile_user.name }}" />
               {% else %}
               <img src="{{ static('images_new/icons/user-icon.svg') }}" class="profile-image" style="width: 71px; height: 71px;" alt="User" />
               {% endif %}
             </div>
             <div class="d-flex flex-column">
-              <p class="fs-15 fw-semibold mb-1">{{ request.user.name|default(request.user.username) }}</p>
+              <p class="fs-15 fw-semibold mb-1">{{ profile_user.name|default(profile_user.username) }}</p>
               
               <div class="d-flex flex-column gap-1">
                 <div class="d-flex align-items-center gap-1">
                   <i class='bx bx-time-five fs-12 text-gray'></i>
-                  <p class="text-gray fs-10 mb-0">Joined {{ date_format(request.user.created) }}</p>
+                  <p class="text-gray fs-10 mb-0">Joined {{ date_format(profile_user.created) }}</p>
                 </div>
                 <div class="d-flex align-items-center gap-1">
                   <i class='bx bx-book fs-12 text-gray'></i>
                   <p class="text-gray fs-10 mb-0">
-                    {% if request.user.user_profile %}
-                      {% if request.user.student_management.last() and request.user.student_management.last().class_and_section %}
-                        {{ request.user.student_management.last().class_and_section }}
+                    {% if profile_user.user_profile %}
+                      {% if profile_user.student_management.last() and profile_user.student_management.last().class_and_section %}
+                        {{ profile_user.student_management.last().class_and_section }}
                       {% endif %}
-                      {% if request.user.user_profile.schoolname %}
-                        • {{ request.user.user_profile.schoolname }}
+                      {% if profile_user.user_profile.schoolname %}
+                        • {{ profile_user.user_profile.schoolname }}
                       {% endif %}
                       {% if user_grade %}
                       Class {{ user_grade }}
@@ -361,6 +361,93 @@
         </div>
         <!-- End of Quick Links -->
 
+        {% if show_parent_suggestions %}
+        <!-- Suggested by Parent -->
+        <div class="mb-4">
+          <h2 class="fs-24 fw-semibold mb-3">Suggested by Parent</h2>
+          <div class="border rounded p-3">
+            <p class="text-gray fs-12 mb-3">
+              Based on your linked parent account bookmarks/shortlists.
+            </p>
+
+            <div class="row g-3">
+              {% if parent_suggested_careers %}
+              <div class="col-12 col-md-6">
+                <div class="p-3 rounded bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 fw-semibold">Careers</h6>
+                    <a class="fs-12 text-purple" href="{{ url('users:careerinterest') }}">View all</a>
+                  </div>
+                  <ul class="mb-0 ps-3">
+                    {% for c in parent_suggested_careers[:3] %}
+                    <li class="fs-13">
+                      <a class="text-decoration-none" href="{{ c.url() }}">{{ c.name }}</a>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+              {% endif %}
+
+              {% if parent_suggested_videos %}
+              <div class="col-12 col-md-6">
+                <div class="p-3 rounded bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 fw-semibold">Videos</h6>
+                    <a class="fs-12 text-purple" href="{{ url('users:bookmarkvideo') }}">View all</a>
+                  </div>
+                  <ul class="mb-0 ps-3">
+                    {% for v in parent_suggested_videos[:3] %}
+                    <li class="fs-13">
+                      <a class="text-decoration-none" href="{{ url('careers:videodetail', args=[v.slug]) }}">{{ v.name }}</a>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+              {% endif %}
+
+              {% if parent_suggested_colleges %}
+              <div class="col-12 col-md-6">
+                <div class="p-3 rounded bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 fw-semibold">Colleges</h6>
+                    <a class="fs-12 text-purple" href="{{ url('users:bookmarkcollege') }}">View all</a>
+                  </div>
+                  <ul class="mb-0 ps-3">
+                    {% for col in parent_suggested_colleges[:3] %}
+                    <li class="fs-13">
+                      <a class="text-decoration-none" href="{{ url('colleges:collegedetail', args=[col.slug]) }}">{{ col.name }}</a>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+              {% endif %}
+
+              {% if parent_suggested_blogs %}
+              <div class="col-12 col-md-6">
+                <div class="p-3 rounded bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 fw-semibold">Blogs</h6>
+                    <a class="fs-12 text-purple" href="{{ url('users:bookmarkblog') }}">View all</a>
+                  </div>
+                  <ul class="mb-0 ps-3">
+                    {% for b in parent_suggested_blogs[:3] %}
+                    <li class="fs-13">
+                      <a class="text-decoration-none" href="{{ url('blog:blogdetail', args=[b.slug]) }}">{{ b.title }}</a>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <!-- End Suggested by Parent -->
+        {% endif %}
+
         <!-- Recent Notes -->
         {% if notes %}
         <div class="mb-4">
@@ -588,5 +675,312 @@
     return false;
   };
 </script>
+
+{% if request.session.get('force_mobile_popup') %}
+<!-- Institute Student Mobile Gate Modal -->
+<div class="modal fade" id="mobileGateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Mobile Number</h5>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">To continue, please verify your mobile number (required for institute students).</p>
+        <div id="mobileGateError" class="text-danger fs-12 mb-2" style="display:none;"></div>
+
+        <div class="mb-3">
+          <label class="form-label fw-600">Mobile Number</label>
+          <input type="text" class="form-control" id="mobileGateMobile" placeholder="Enter 10 digit mobile number" maxlength="10" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+
+        <div class="d-flex gap-2 mb-3">
+          <button type="button" class="btn custom-button purple-button fw-600" id="mobileGateSendOtpBtn">Send OTP</button>
+        </div>
+
+        <div id="mobileGateOtpBlock" style="display:none;">
+          <label class="form-label fw-600">Enter OTP</label>
+          <div class="d-flex justify-content-between gap-2 mb-3">
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="mg1" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="mg2" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="mg3" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="mg4" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="mg5" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="mg6" />
+          </div>
+          <button type="button" class="btn custom-button purple-button fw-600 w-100" id="mobileGateVerifyBtn">Verify & Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Link Parent Modal -->
+<div class="modal fade" id="linkParentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Parent Account</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="parentLinkError" class="text-danger fs-12 mb-2" style="display:none;"></div>
+        <div class="mb-3">
+          <label class="form-label fw-600">Parent Mobile</label>
+          <input type="text" class="form-control" id="parentMobile" placeholder="Enter 10 digit mobile number" maxlength="10" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-600">Parent Name (optional)</label>
+          <input type="text" class="form-control" id="parentName" placeholder="Parent" />
+        </div>
+        <button type="button" class="btn custom-button purple-button fw-600 w-100 mb-3" id="sendParentOtpBtn">Send OTP</button>
+
+        <div id="parentOtpBlockDash" style="display:none;">
+          <label class="form-label fw-600">Enter OTP</label>
+          <div class="d-flex justify-content-between gap-2 mb-3">
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pd1" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pd2" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pd3" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pd4" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pd5" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pd6" />
+          </div>
+          <button type="button" class="btn custom-button purple-button fw-600 w-100" id="verifyParentOtpBtn">Verify & Link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Link parent modal open
+  document.addEventListener('DOMContentLoaded', function() {
+    // Enforce 10 digits only for mobile inputs on dashboard
+    function enforceTenDigits(inputEl) {
+      if (!inputEl) return;
+      inputEl.addEventListener('input', function() {
+        const digits = (inputEl.value || '').replace(/\D+/g, '').slice(0, 10);
+        inputEl.value = digits;
+      });
+    }
+
+    enforceTenDigits(document.getElementById('parentMobile'));
+    enforceTenDigits(document.getElementById('mobileGateMobile'));
+
+    document.querySelectorAll('.dashBoardParent').forEach(function(el) {
+      el.addEventListener('click', function() {
+        const m = new bootstrap.Modal(document.getElementById('linkParentModal'));
+        m.show();
+      });
+    });
+
+    const err = document.getElementById('parentLinkError');
+    function setErr(msg) {
+      err.textContent = msg;
+      err.style.display = msg ? 'block' : 'none';
+    }
+
+    const sendBtn = document.getElementById('sendParentOtpBtn');
+    const verifyBtn = document.getElementById('verifyParentOtpBtn');
+    const otpBlock = document.getElementById('parentOtpBlockDash');
+    const otpIds = ['pd1','pd2','pd3','pd4','pd5','pd6'];
+    const otpInputs = otpIds.map(id => document.getElementById(id)).filter(Boolean);
+
+    function setOtpFromString(str) {
+      const digits = (str || '').replace(/\D+/g, '').slice(0, 6);
+      for (let i = 0; i < otpInputs.length; i++) otpInputs[i].value = digits[i] || '';
+      (otpInputs.find(i => !i.value) || otpInputs[otpInputs.length-1])?.focus();
+    }
+    otpInputs.forEach((inp, idx) => {
+      inp.addEventListener('input', () => {
+        inp.value = (inp.value || '').replace(/\D+/g, '').slice(0, 1);
+        if (inp.value && idx < otpInputs.length-1) otpInputs[idx+1].focus();
+      });
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          if (inp.value) { inp.value=''; e.preventDefault(); return; }
+          if (idx>0) { otpInputs[idx-1].focus(); otpInputs[idx-1].value=''; e.preventDefault(); }
+        }
+      });
+      inp.addEventListener('paste', (e) => {
+        const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        if (text) { e.preventDefault(); setOtpFromString(text); }
+      });
+    });
+
+    if (sendBtn) {
+      sendBtn.addEventListener('click', function() {
+        const mobile = (document.getElementById('parentMobile').value || '').trim();
+        if (!/^[6-9]\d{9}$/.test(mobile)) { setErr('Please enter a valid 10-digit mobile number'); return; }
+        setErr('');
+        const fd = new FormData();
+        fd.append('parent_mobile', mobile);
+        fetch("{{ url('users:send_parent_otp') }}", {
+          method: 'POST',
+          headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+          body: fd
+        }).then(r => r.json()).then(data => {
+          if (data.success) {
+            otpBlock.style.display = 'block';
+            otpInputs.forEach(i => i.value='');
+            otpInputs[0]?.focus();
+          } else {
+            setErr(data.message || 'Unable to send OTP');
+          }
+        }).catch(() => setErr('Unable to send OTP'));
+      });
+    }
+
+    if (verifyBtn) {
+      verifyBtn.addEventListener('click', function() {
+        const mobile = (document.getElementById('parentMobile').value || '').trim();
+        const name = (document.getElementById('parentName').value || '').trim();
+        const otp = otpInputs.map(i => (i.value || '').trim()).join('');
+        if (!/^[6-9]\d{9}$/.test(mobile)) { setErr('Please enter a valid 10-digit mobile number'); return; }
+        if (otp.length !== 6) { setErr('Please enter the 6-digit OTP'); return; }
+        setErr('');
+        const fd = new FormData();
+        fd.append('parent_mobile', mobile);
+        fd.append('parent_name', name);
+        fd.append('otp', otp);
+        fetch("{{ url('users:verify_parent_otp') }}", {
+          method: 'POST',
+          headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+          body: fd
+        }).then(r => r.json()).then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            setErr(data.message || 'Invalid OTP');
+          }
+        }).catch(() => setErr('Unable to verify OTP'));
+      });
+    }
+  });
+</script>
+
+{% if request.session.get('force_mobile_popup') %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const modalEl = document.getElementById('mobileGateModal');
+    if (!modalEl) return;
+    const modal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: false });
+    modal.show();
+
+    const err = document.getElementById('mobileGateError');
+    const mobileInput = document.getElementById('mobileGateMobile');
+    const otpBlock = document.getElementById('mobileGateOtpBlock');
+
+    function setError(msg) {
+      err.textContent = msg;
+      err.style.display = msg ? 'block' : 'none';
+    }
+
+    document.getElementById('mobileGateSendOtpBtn').addEventListener('click', function() {
+      const mobile = (mobileInput.value || '').trim();
+      if (!/^[6-9]\d{9}$/.test(mobile)) {
+        setError('Please enter a valid 10-digit mobile number');
+        return;
+      }
+      setError('');
+      const fd = new FormData();
+      fd.append('mobile', mobile);
+      fetch("{{ url('users:send_mobile_otp') }}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: fd
+      }).then(r => r.json()).then(data => {
+        if (data.success) {
+          otpBlock.style.display = 'block';
+          document.getElementById('mg1').focus();
+        } else {
+          setError(data.message || 'Unable to send OTP');
+        }
+      }).catch(() => setError('Unable to send OTP'));
+    });
+
+    document.getElementById('mobileGateVerifyBtn').addEventListener('click', function() {
+      const mobile = (mobileInput.value || '').trim();
+      const otp = [
+        document.getElementById('mg1').value,
+        document.getElementById('mg2').value,
+        document.getElementById('mg3').value,
+        document.getElementById('mg4').value,
+        document.getElementById('mg5').value,
+        document.getElementById('mg6').value
+      ].join('').trim();
+      if (!/^[6-9]\d{9}$/.test(mobile)) {
+        setError('Please enter a valid 10-digit mobile number');
+        return;
+      }
+      if (otp.length !== 6) {
+        setError('Please enter the 6-digit OTP');
+        return;
+      }
+      setError('');
+      const fd = new FormData();
+      fd.append('mobile', mobile);
+      fd.append('otp', otp);
+      fetch("{{ url('users:verify_mobile_otp') }}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: fd
+      }).then(r => r.json()).then(data => {
+        if (data.success && data.redirect_url) {
+          window.location.href = data.redirect_url;
+        } else {
+          setError(data.message || 'Invalid OTP');
+        }
+      }).catch(() => setError('Unable to verify OTP'));
+    });
+
+    // OTP inputs: auto-advance + backspace support + paste 6-digit OTP
+    const otpIds = ['mg1','mg2','mg3','mg4','mg5','mg6'];
+    const otpInputs = otpIds.map(id => document.getElementById(id)).filter(Boolean);
+
+    function setOtpFromString(str) {
+      const digits = (str || '').replace(/\D+/g, '').slice(0, 6);
+      for (let i = 0; i < otpInputs.length; i++) {
+        otpInputs[i].value = digits[i] || '';
+      }
+      const firstEmpty = otpInputs.find(inp => !inp.value);
+      (firstEmpty || otpInputs[otpInputs.length - 1])?.focus();
+    }
+
+    otpInputs.forEach((inp, idx) => {
+      inp.addEventListener('input', (e) => {
+        const v = (inp.value || '').replace(/\D+/g, '').slice(0, 1);
+        inp.value = v;
+        if (v && idx < otpInputs.length - 1) {
+          otpInputs[idx + 1].focus();
+        }
+      });
+
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          if (inp.value) {
+            inp.value = '';
+            e.preventDefault();
+            return;
+          }
+          if (idx > 0) {
+            otpInputs[idx - 1].focus();
+            otpInputs[idx - 1].value = '';
+            e.preventDefault();
+          }
+        }
+      });
+
+      inp.addEventListener('paste', (e) => {
+        const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        if (text) {
+          e.preventDefault();
+          setOtpFromString(text);
+        }
+      });
+    });
+  });
+</script>
+{% endif %}
 {% endblock %}
 

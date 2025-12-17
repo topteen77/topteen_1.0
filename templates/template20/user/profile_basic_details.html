@@ -157,7 +157,7 @@
         {% for fg in figureouts %}
         <div class="w-100 d-flex justify-content-center align-items-center mb-3">
           <label class="streamTab d-flex align-items-center p-3 rounded-3 bg-light" style="width: 344px; min-height: 75px; cursor: pointer;">
-            <input type="checkbox" name="userfigureout" value="{{ fg.id }}" class="d-none" {% if request.user.user_profile and fg in request.user.user_profile.figure_out.all() %}checked{% endif %}>
+            <input type="checkbox" name="userfigureout" value="{{ fg.id }}" class="d-none" {% if profile_user.user_profile and fg in profile_user.user_profile.figure_out.all() %}checked{% endif %}>
             {% if fg.image %}
             <img src="{{ fg.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ fg.name }}" />
             {% endif %}
@@ -193,7 +193,7 @@
             <label for="username" class="form-label fs-14 fw-semibold mb-2">Full Name</label>
             <img src="{{ static('topteenfrontend/assets/images/signature.png') }}" alt="Name" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <input name="username" id="username" type="text" 
-                   value="{% if request.user.name and request.user.name != 'None' %}{{ request.user.name }}{% endif %}" 
+                   value="{% if profile_user.name and profile_user.name != 'None' %}{{ profile_user.name }}{% endif %}" 
                    class="form-control custom-input w-100" 
                    style="height: 48px; padding-left: 45px;"
                    placeholder="Enter your full name" required />
@@ -207,7 +207,7 @@
             <img src="{{ static('topteenfrontend/assets/images/calender1.png') }}" alt="Birthday" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <input name="userbirthdaydate" id="userbirthdaydate" type="text" 
                    onfocus="this.type='date'" 
-                   value="{% if request.user.user_profile and request.user.user_profile.birthdate and request.user.user_profile.birthdate != 'None' %}{{ request.user.user_profile.birthdate }}{% endif %}"
+                   value="{% if profile_user.user_profile and profile_user.user_profile.birthdate and profile_user.user_profile.birthdate != 'None' %}{{ profile_user.user_profile.birthdate }}{% endif %}"
                    class="form-control custom-input w-100" 
                    style="height: 48px; padding-left: 40px;"
                    placeholder="Select date" required />
@@ -217,9 +217,9 @@
             <img src="{{ static('topteenfrontend/assets/images/person.fill.png') }}" alt="Gender" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <select name="gender" id="gender" class="form-control custom-input w-100" style="height: 48px; padding-left: 40px;" required>
               <option value="">Select Gender</option>
-              <option value="20" {% if request.user.user_profile and request.user.user_profile.gender == 20 %}selected{% endif %}>Male</option>
-              <option value="30" {% if request.user.user_profile and request.user.user_profile.gender == 30 %}selected{% endif %}>Female</option>
-              <option value="10" {% if request.user.user_profile and request.user.user_profile.gender == 10 %}selected{% endif %}>Transgender</option>
+              <option value="20" {% if profile_user.user_profile and profile_user.user_profile.gender == 20 %}selected{% endif %}>Male</option>
+              <option value="30" {% if profile_user.user_profile and profile_user.user_profile.gender == 30 %}selected{% endif %}>Female</option>
+              <option value="10" {% if profile_user.user_profile and profile_user.user_profile.gender == 10 %}selected{% endif %}>Transgender</option>
             </select>
           </div>
         </div>
@@ -231,10 +231,74 @@
             <img src="{{ static('topteenfrontend/assets/images/phone.fill.png') }}" alt="Phone" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <input name="userphone" id="userphone" type="text" 
                    pattern="[6789][0-9]{9}" 
-                   value="{% if request.user.mobile and request.user.mobile != 'None' %}{{ request.user.mobile }}{% endif %}"
+                   value="{% if profile_user.mobile and profile_user.mobile != 'None' %}{{ profile_user.mobile }}{% endif %}"
                    class="form-control custom-input w-100" 
                    style="height: 48px; padding-left: 45px;"
                    placeholder="Enter 10 digit mobile number" required />
+          </div>
+        </div>
+
+        <!-- Parent Accounts -->
+        <div class="w-100 d-flex justify-content-center mb-3">
+          <div class="icon-input position-relative has-label" style="width: 344px;">
+            <label class="form-label fs-14 fw-semibold mb-2">Parent Mobile Number</label>
+            <div class="d-flex gap-2">
+              <input id="parent_mobile_profile" type="text"
+                     class="form-control custom-input w-100"
+                     style="height: 48px;"
+                     maxlength="10" inputmode="numeric" pattern="[0-9]*"
+                     placeholder="Enter 10 digit parent mobile" />
+              <button type="button" id="add_parent_btn" class="btn custom-button purple-button fw-600" style="height: 48px; min-width: 110px;">
+                Add
+              </button>
+            </div>
+            <div id="parent_mobile_err" class="text-danger fs-12 mt-2" style="display:none;"></div>
+            {% if linked_parents and linked_parents|length %}
+              <div class="mt-2">
+                <div class="text-muted fs-12 mb-1">Linked parent accounts:</div>
+                <ul class="list-group">
+                  {% for p in linked_parents %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      <span>{{ p.name or 'Parent' }}</span>
+                      <span class="text-muted">{{ p.mobile or '' }}</span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Parent OTP Modal -->
+        <div class="modal fade" id="parentOtpModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Verify Parent Mobile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div id="parentOtpErr" class="text-danger fs-12 mb-2" style="display:none;"></div>
+                <div class="mb-3">
+                  <label class="form-label fw-600">Parent Mobile</label>
+                  <input type="text" class="form-control" id="parentOtpMobile" maxlength="10" inputmode="numeric" pattern="[0-9]*" placeholder="Enter 10 digit mobile number" />
+                </div>
+                <button type="button" class="btn custom-button purple-button fw-600 w-100 mb-3" id="parentOtpSendBtn">Send OTP</button>
+
+                <div id="parentOtpBox" style="display:none;">
+                  <label class="form-label fw-600">Enter OTP</label>
+                  <div class="d-flex justify-content-between gap-2 mb-3">
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pp1" />
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pp2" />
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pp3" />
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pp4" />
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pp5" />
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pp6" />
+                  </div>
+                  <button type="button" class="btn custom-button purple-button fw-600 w-100" id="parentOtpVerifyBtn">Verify & Add Parent</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -244,7 +308,7 @@
             <label for="userschool" class="form-label fs-14 fw-semibold mb-2">School Name</label>
             <img src="{{ static('topteenfrontend/assets/images/person.2.crop.square.stack.fill.png') }}" alt="School" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <input name="userschool" id="userschool" type="text" 
-                   value="{% if request.user.user_profile and request.user.user_profile.schoolname and request.user.user_profile.schoolname != 'None' %}{{ request.user.user_profile.schoolname }}{% endif %}"
+                   value="{% if profile_user.user_profile and profile_user.user_profile.schoolname and profile_user.user_profile.schoolname != 'None' %}{{ profile_user.user_profile.schoolname }}{% endif %}"
                    class="form-control custom-input w-100" 
                    style="height: 48px; padding-left: 45px;"
                    placeholder="Enter your school name" required />
@@ -258,18 +322,18 @@
             <img src="{{ static('topteenfrontend/assets/images/bookmark.square.png') }}" alt="Grade" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <select name="usergrade" id="usergrade" class="form-control custom-input w-100" style="height: 48px; padding-left: 45px;" required>
               <option value="">Select Grade/Class</option>
-              <option value="1" {% if request.user.user_profile and request.user.user_profile.grade == '1' %}selected{% endif %}>Class 1</option>
-              <option value="2" {% if request.user.user_profile and request.user.user_profile.grade == '2' %}selected{% endif %}>Class 2</option>
-              <option value="3" {% if request.user.user_profile and request.user.user_profile.grade == '3' %}selected{% endif %}>Class 3</option>
-              <option value="4" {% if request.user.user_profile and request.user.user_profile.grade == '4' %}selected{% endif %}>Class 4</option>
-              <option value="5" {% if request.user.user_profile and request.user.user_profile.grade == '5' %}selected{% endif %}>Class 5</option>
-              <option value="6" {% if request.user.user_profile and request.user.user_profile.grade == '6' %}selected{% endif %}>Class 6</option>
-              <option value="7" {% if request.user.user_profile and request.user.user_profile.grade == '7' %}selected{% endif %}>Class 7</option>
-              <option value="8" {% if request.user.user_profile and request.user.user_profile.grade == '8' %}selected{% endif %}>Class 8</option>
-              <option value="9" {% if request.user.user_profile and request.user.user_profile.grade == '9' %}selected{% endif %}>Class 9</option>
-              <option value="10" {% if request.user.user_profile and request.user.user_profile.grade == '10' %}selected{% endif %}>Class 10</option>
-              <option value="11" {% if request.user.user_profile and request.user.user_profile.grade == '11' %}selected{% endif %}>Class 11</option>
-              <option value="12" {% if request.user.user_profile and request.user.user_profile.grade == '12' %}selected{% endif %}>Class 12</option>
+              <option value="1" {% if profile_user.user_profile and profile_user.user_profile.grade == '1' %}selected{% endif %}>Class 1</option>
+              <option value="2" {% if profile_user.user_profile and profile_user.user_profile.grade == '2' %}selected{% endif %}>Class 2</option>
+              <option value="3" {% if profile_user.user_profile and profile_user.user_profile.grade == '3' %}selected{% endif %}>Class 3</option>
+              <option value="4" {% if profile_user.user_profile and profile_user.user_profile.grade == '4' %}selected{% endif %}>Class 4</option>
+              <option value="5" {% if profile_user.user_profile and profile_user.user_profile.grade == '5' %}selected{% endif %}>Class 5</option>
+              <option value="6" {% if profile_user.user_profile and profile_user.user_profile.grade == '6' %}selected{% endif %}>Class 6</option>
+              <option value="7" {% if profile_user.user_profile and profile_user.user_profile.grade == '7' %}selected{% endif %}>Class 7</option>
+              <option value="8" {% if profile_user.user_profile and profile_user.user_profile.grade == '8' %}selected{% endif %}>Class 8</option>
+              <option value="9" {% if profile_user.user_profile and profile_user.user_profile.grade == '9' %}selected{% endif %}>Class 9</option>
+              <option value="10" {% if profile_user.user_profile and profile_user.user_profile.grade == '10' %}selected{% endif %}>Class 10</option>
+              <option value="11" {% if profile_user.user_profile and profile_user.user_profile.grade == '11' %}selected{% endif %}>Class 11</option>
+              <option value="12" {% if profile_user.user_profile and profile_user.user_profile.grade == '12' %}selected{% endif %}>Class 12</option>
             </select>
           </div>
         </div>
@@ -292,8 +356,8 @@
 
         <div class="d-flex justify-content-center align-items-center mt-5">
           <button type="button" class="imgBtn btn p-0 border-0 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 230px; height: 230px; overflow: hidden;">
-            {% if request.user.image %}
-            <img src="{{ request.user.image.url }}" class="w-100 h-100 rounded-circle object-fit-cover" alt="Profile" />
+            {% if profile_user.image %}
+            <img src="{{ profile_user.image.url }}" class="w-100 h-100 rounded-circle object-fit-cover" alt="Profile" />
             {% else %}
             <i class='bx bx-user fs-48 text-gray'></i>
             {% endif %}
@@ -321,7 +385,7 @@
           {% for sb in subjects %}
           <div class="col-12 col-lg-4">
             <label class="hobbiesTab d-flex align-items-center p-3 rounded-3 bg-light" style="min-height: 60px; cursor: pointer;">
-              <input type="checkbox" class="d-none" name="usersubject" value="{{ sb.id }}" {% if request.user.user_profile and sb in request.user.user_profile.subject.all() %}checked{% endif %}>
+              <input type="checkbox" class="d-none" name="usersubject" value="{{ sb.id }}" {% if profile_user.user_profile and sb in profile_user.user_profile.subject.all() %}checked{% endif %}>
               {% if sb.image %}
               <img src="{{ sb.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ sb.name }}" />
               {% endif %}
@@ -351,7 +415,7 @@
           {% for hb in hobbies %}
           <div class="col-12 col-lg-4">
             <label class="hobbiesTab d-flex align-items-center p-3 rounded-3 bg-light" style="min-height: 60px; cursor: pointer;">
-              <input type="checkbox" class="d-none" name="hobbies" value="{{ hb.id }}" {% if request.user.user_profile and hb in request.user.user_profile.hobbies.all() %}checked{% endif %}>
+              <input type="checkbox" class="d-none" name="hobbies" value="{{ hb.id }}" {% if profile_user.user_profile and hb in profile_user.user_profile.hobbies.all() %}checked{% endif %}>
               {% if hb.image %}
               <img src="{{ hb.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ hb.name }}" />
               {% endif %}
@@ -641,6 +705,130 @@
     const phoneRegex = /^[6789][0-9]{9}$/;
     return phoneRegex.test(phone);
   }
+
+  // Parent mobile linking from Profile page (does not block profile submission)
+  document.addEventListener('DOMContentLoaded', function() {
+    const parentInput = document.getElementById('parent_mobile_profile');
+    const addBtn = document.getElementById('add_parent_btn');
+    const err = document.getElementById('parent_mobile_err');
+
+    if (parentInput) {
+      parentInput.addEventListener('input', function() {
+        const digits = (parentInput.value || '').replace(/\D+/g, '').slice(0, 10);
+        parentInput.value = digits;
+      });
+    }
+
+    if (addBtn) {
+      addBtn.addEventListener('click', function() {
+        const mobile = (parentInput?.value || '').trim();
+        err.style.display = 'none';
+        if (!/^[6-9]\d{9}$/.test(mobile)) {
+          err.textContent = 'Please enter a valid 10-digit mobile number';
+          err.style.display = 'block';
+          return;
+        }
+        // Open OTP modal
+        const modal = new bootstrap.Modal(document.getElementById('parentOtpModal'));
+        document.getElementById('parentOtpMobile').value = mobile;
+        document.getElementById('parentOtpBox').style.display = 'none';
+        document.getElementById('parentOtpErr').style.display = 'none';
+        modal.show();
+      });
+    }
+
+    // OTP modal behaviors
+    const otpMobile = document.getElementById('parentOtpMobile');
+    const otpErr = document.getElementById('parentOtpErr');
+    const otpBox = document.getElementById('parentOtpBox');
+    const sendBtn = document.getElementById('parentOtpSendBtn');
+    const verifyBtn = document.getElementById('parentOtpVerifyBtn');
+
+    function setOtpErr(msg) {
+      otpErr.textContent = msg;
+      otpErr.style.display = msg ? 'block' : 'none';
+    }
+
+    function digits10(el) {
+      if (!el) return;
+      el.addEventListener('input', function() {
+        el.value = (el.value || '').replace(/\D+/g, '').slice(0, 10);
+      });
+    }
+    digits10(otpMobile);
+
+    const otpIds = ['pp1','pp2','pp3','pp4','pp5','pp6'];
+    const otpInputs = otpIds.map(id => document.getElementById(id)).filter(Boolean);
+    function setOtpFromString(str) {
+      const digits = (str || '').replace(/\D+/g, '').slice(0, 6);
+      for (let i = 0; i < otpInputs.length; i++) otpInputs[i].value = digits[i] || '';
+      (otpInputs.find(i => !i.value) || otpInputs[otpInputs.length-1])?.focus();
+    }
+    otpInputs.forEach((inp, idx) => {
+      inp.addEventListener('input', () => {
+        inp.value = (inp.value || '').replace(/\D+/g, '').slice(0, 1);
+        if (inp.value && idx < otpInputs.length-1) otpInputs[idx+1].focus();
+      });
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          if (inp.value) { inp.value=''; e.preventDefault(); return; }
+          if (idx>0) { otpInputs[idx-1].focus(); otpInputs[idx-1].value=''; e.preventDefault(); }
+        }
+      });
+      inp.addEventListener('paste', (e) => {
+        const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        if (text) { e.preventDefault(); setOtpFromString(text); }
+      });
+    });
+
+    if (sendBtn) {
+      sendBtn.addEventListener('click', function() {
+        const mobile = (otpMobile.value || '').trim();
+        if (!/^[6-9]\d{9}$/.test(mobile)) { setOtpErr('Please enter a valid 10-digit mobile number'); return; }
+        setOtpErr('');
+        const fd = new FormData();
+        fd.append('parent_mobile', mobile);
+        fetch("{{ url('users:send_parent_otp') }}", {
+          method: 'POST',
+          headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+          body: fd
+        }).then(r => r.json()).then(data => {
+          if (data.success) {
+            otpBox.style.display = 'block';
+            otpInputs.forEach(i => i.value='');
+            otpInputs[0]?.focus();
+          } else {
+            setOtpErr(data.message || 'Unable to send OTP');
+          }
+        }).catch(() => setOtpErr('Unable to send OTP'));
+      });
+    }
+
+    if (verifyBtn) {
+      verifyBtn.addEventListener('click', function() {
+        const mobile = (otpMobile.value || '').trim();
+        const otp = otpInputs.map(i => (i.value || '').trim()).join('');
+        if (!/^[6-9]\d{9}$/.test(mobile)) { setOtpErr('Please enter a valid 10-digit mobile number'); return; }
+        if (otp.length !== 6) { setOtpErr('Please enter the 6-digit OTP'); return; }
+        setOtpErr('');
+        const fd = new FormData();
+        fd.append('parent_mobile', mobile);
+        fd.append('parent_name', 'Parent');
+        fd.append('otp', otp);
+        fetch("{{ url('users:verify_parent_otp') }}", {
+          method: 'POST',
+          headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+          body: fd
+        }).then(r => r.json()).then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            setOtpErr(data.message || 'Invalid OTP');
+          }
+        }).catch(() => setOtpErr('Unable to verify OTP'));
+      });
+    }
+  });
 </script>
 {% endblock %}
 

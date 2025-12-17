@@ -42,6 +42,30 @@ class Careers(TemplateView):
         except Exception as e:
             print(f"Elasticsearch not available, using Django ORM fallback: {e}")
             ctx = self.get_fallback_context(request)
+
+        # Parent -> Student context (parent bookmarking careers for a specific linked student)
+        ctx['is_parent_student_context'] = False
+        ctx['parent_student_id'] = None
+        try:
+            student_id = request.GET.get("student_id")
+            if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
+                from users.models import ParentStudentLink, ParentStudentBookmark
+                from django.contrib.contenttypes.models import ContentType
+                from careers.models import Career
+                # only allow if linked
+                if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                    ct = ContentType.objects.get_for_model(Career)
+                    ctx['shortlisted_career_ids'] = list(
+                        ParentStudentBookmark.objects.filter(
+                            parent=request.user,
+                            student_id=int(student_id),
+                            content_type=ct,
+                        ).values_list("object_id", flat=True)
+                    )
+                    ctx['is_parent_student_context'] = True
+                    ctx['parent_student_id'] = int(student_id)
+        except Exception:
+            pass
         
         if request.GET.getlist('professions') or request.GET.getlist('skills') or request.GET.getlist('courses'):
             pro=request.GET.getlist('professions')
@@ -237,7 +261,7 @@ class Careers(TemplateView):
                 'count': count
             })
         
-        return {
+        ctx_out = {
             'careers': careers_page,
             'clusters': clusters,
             'clusters_with_counts': clusters_with_counts,  # For template display with counts
@@ -255,6 +279,29 @@ class Careers(TemplateView):
             'selected_clusters': selected_clusters,
             'shortlisted_career_ids': shortlisted_career_ids,
         }
+
+        # Parent -> Student context override for shortlist state
+        ctx_out['is_parent_student_context'] = False
+        ctx_out['parent_student_id'] = None
+        try:
+            student_id = request.GET.get("student_id")
+            if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
+                from users.models import ParentStudentLink, ParentStudentBookmark
+                from django.contrib.contenttypes.models import ContentType
+                if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                    ct = ContentType.objects.get_for_model(Career)
+                    ctx_out['shortlisted_career_ids'] = list(
+                        ParentStudentBookmark.objects.filter(
+                            parent=request.user,
+                            student_id=int(student_id),
+                            content_type=ct,
+                        ).values_list("object_id", flat=True)
+                    )
+                    ctx_out['is_parent_student_context'] = True
+                    ctx_out['parent_student_id'] = int(student_id)
+        except Exception:
+            pass
+        return ctx_out
     
 class CareerDetail(TemplateView):
     template_name = "template20/career_detail_accordion.html"
@@ -1633,12 +1680,38 @@ class CareerVideosView(TemplateView):
             ctx['page_obj'] = paginator.get_page(page_numbers)
             ctx['html_head']=self.html_head('Explore Career Videos - Page - {}'.format(ctx['page_obj'].number))
         
-        # Add bookmarked video IDs for authenticated users
-        if request.user.is_authenticated:
-            bookmarked_video_ids = list(Videos.objects.filter(shortlist=request.user).values_list('id', flat=True))
-            ctx['bookmarked_video_ids'] = bookmarked_video_ids
-        else:
-            ctx['bookmarked_video_ids'] = []
+        # Parent->Student context for suggesting videos
+        ctx['is_parent_student_context'] = False
+        ctx['parent_student_id'] = None
+        try:
+            student_id = request.GET.get("student_id")
+            if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
+                from users.models import ParentStudentLink, ParentStudentBookmark
+                from django.contrib.contenttypes.models import ContentType
+                if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                    ct = ContentType.objects.get_for_model(Videos)
+                    ctx['bookmarked_video_ids'] = list(
+                        ParentStudentBookmark.objects.filter(
+                            parent=request.user,
+                            student_id=int(student_id),
+                            content_type=ct,
+                        ).values_list("object_id", flat=True)
+                    )
+                    ctx['is_parent_student_context'] = True
+                    ctx['parent_student_id'] = int(student_id)
+                else:
+                    ctx['bookmarked_video_ids'] = []
+            else:
+                # Regular user bookmarks
+                if request.user.is_authenticated:
+                    ctx['bookmarked_video_ids'] = list(Videos.objects.filter(shortlist=request.user).values_list('id', flat=True))
+                else:
+                    ctx['bookmarked_video_ids'] = []
+        except Exception:
+            if request.user.is_authenticated:
+                ctx['bookmarked_video_ids'] = list(Videos.objects.filter(shortlist=request.user).values_list('id', flat=True))
+            else:
+                ctx['bookmarked_video_ids'] = []
         
         # Pre-evaluate thumbnail URLs for videos in page_obj
         video_thumbnails = {}
@@ -1677,12 +1750,37 @@ class CategoryCareerVideosView(TemplateView):
         ctx['heading'] = f"Videos in {category.name}"
         ctx['search_videos'] = ""
         
-        # Add bookmarked video IDs for authenticated users
-        if request.user.is_authenticated:
-            bookmarked_video_ids = list(Videos.objects.filter(shortlist=request.user).values_list('id', flat=True))
-            ctx['bookmarked_video_ids'] = bookmarked_video_ids
-        else:
-            ctx['bookmarked_video_ids'] = []
+        # Parent->Student context for suggesting videos
+        ctx['is_parent_student_context'] = False
+        ctx['parent_student_id'] = None
+        try:
+            student_id = request.GET.get("student_id")
+            if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
+                from users.models import ParentStudentLink, ParentStudentBookmark
+                from django.contrib.contenttypes.models import ContentType
+                if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                    ct = ContentType.objects.get_for_model(Videos)
+                    ctx['bookmarked_video_ids'] = list(
+                        ParentStudentBookmark.objects.filter(
+                            parent=request.user,
+                            student_id=int(student_id),
+                            content_type=ct,
+                        ).values_list("object_id", flat=True)
+                    )
+                    ctx['is_parent_student_context'] = True
+                    ctx['parent_student_id'] = int(student_id)
+                else:
+                    ctx['bookmarked_video_ids'] = []
+            else:
+                if request.user.is_authenticated:
+                    ctx['bookmarked_video_ids'] = list(Videos.objects.filter(shortlist=request.user).values_list('id', flat=True))
+                else:
+                    ctx['bookmarked_video_ids'] = []
+        except Exception:
+            if request.user.is_authenticated:
+                ctx['bookmarked_video_ids'] = list(Videos.objects.filter(shortlist=request.user).values_list('id', flat=True))
+            else:
+                ctx['bookmarked_video_ids'] = []
         
         # Pre-evaluate thumbnail URLs for videos in page_obj
         video_thumbnails = {}
@@ -1712,11 +1810,33 @@ class VideoDetail(TemplateView):
         ctx['breadcrumb']= bread_crumb[1]
         ctx['html_head']=self.html_head(video.name)
         
-        # Check if video is bookmarked by current user (for Jinja2 template compatibility)
-        if request.user.is_authenticated:
-            ctx['is_video_bookmarked'] = video.shortlist.filter(id=request.user.id).exists()
-        else:
-            ctx['is_video_bookmarked'] = False
+        # Parent->Student context for suggesting videos
+        ctx['is_parent_student_context'] = False
+        ctx['parent_student_id'] = None
+        try:
+            student_id = request.GET.get("student_id")
+            if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
+                from users.models import ParentStudentLink, ParentStudentBookmark
+                from django.contrib.contenttypes.models import ContentType
+                if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                    ct = ContentType.objects.get_for_model(Videos)
+                    ctx['is_video_bookmarked'] = ParentStudentBookmark.objects.filter(
+                        parent=request.user, student_id=int(student_id), content_type=ct, object_id=video.id
+                    ).exists()
+                    ctx['is_parent_student_context'] = True
+                    ctx['parent_student_id'] = int(student_id)
+                else:
+                    ctx['is_video_bookmarked'] = False
+            else:
+                if request.user.is_authenticated:
+                    ctx['is_video_bookmarked'] = video.shortlist.filter(id=request.user.id).exists()
+                else:
+                    ctx['is_video_bookmarked'] = False
+        except Exception:
+            if request.user.is_authenticated:
+                ctx['is_video_bookmarked'] = video.shortlist.filter(id=request.user.id).exists()
+            else:
+                ctx['is_video_bookmarked'] = False
         
         # Get related videos from same categories
         related_videos = Videos.objects.none()

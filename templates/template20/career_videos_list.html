@@ -126,7 +126,7 @@
                 <div class="col-md-8 col-sm-12">
                   <div class="video-content">
                     <h3 class="video-title mb-2">
-                      <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="text-decoration-none">{{ video.name }}</a>
+                      <a href="{{ url('careers:videodetail', args=[video.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="text-decoration-none">{{ video.name }}</a>
                     </h3>
                     <div class="video-meta mb-2">
                       <span class="text-gray fs-14">
@@ -144,7 +144,7 @@
                     {% if video.description %}
                     <p class="video-description text-gray mb-3">{{ video.description|striptags|truncate(200) }}</p>
                     {% endif %}
-                    <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="read-more">Watch Video <i class="bx bx-right-arrow-alt"></i></a>
+                    <a href="{{ url('careers:videodetail', args=[video.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="read-more">Watch Video <i class="bx bx-right-arrow-alt"></i></a>
                   </div>
                 </div>
               </div>
@@ -170,7 +170,7 @@
               <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous() %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.previous_page_number() }}{% if search_videos %}&search={{ search_videos }}{% endif %}" aria-label="Previous">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number() }}{% if search_videos %}&search={{ search_videos }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" aria-label="Previous">
                     <i class='bx bx-chevron-left'></i>
                   </a>
                 </li>
@@ -187,14 +187,14 @@
                     <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
                   {% elif page_num > (page_obj.number - 3) and page_num < (page_obj.number + 3) %}
                     <li class="page-item">
-                      <a class="page-link" href="?page={{ page_num }}{% if search_videos %}&search={{ search_videos }}{% endif %}">{{ page_num }}</a>
+                      <a class="page-link" href="?page={{ page_num }}{% if search_videos %}&search={{ search_videos }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}">{{ page_num }}</a>
                     </li>
                   {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next() %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.next_page_number() }}{% if search_videos %}&search={{ search_videos }}{% endif %}" aria-label="Next">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number() }}{% if search_videos %}&search={{ search_videos }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" aria-label="Next">
                     <i class='bx bx-chevron-right'></i>
                   </a>
                 </li>
@@ -271,6 +271,9 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+// Parent->Student context for suggesting videos
+window.PARENT_STUDENT_ID = {% if is_parent_student_context and parent_student_id %}{{ parent_student_id }}{% else %}null{% endif %};
+
 // Generate thumbnails from first frame (0:00:00) for S3 videos
 function generateVideoThumbnails() {
   const videoElements = document.querySelectorAll('.video-thumb-source');
@@ -412,19 +415,33 @@ function shortlistVideo(videoId) {
     return cookieValue;
   }
 
-  // Use GET request as expected by the backend
-  fetch('{{ url("careers:shortlist_video") }}?id=' + videoId, {
-    method: 'GET',
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken')
-    }
-  })
+  const csrf = getCookie('csrftoken');
+  const targetUrl = (window.PARENT_STUDENT_ID
+    ? ('/parents/student/' + window.PARENT_STUDENT_ID + '/bookmark/video/')
+    : ('{{ url("careers:shortlist_video") }}?id=' + videoId)
+  );
+  const method = (window.PARENT_STUDENT_ID ? 'POST' : 'GET');
+  const headers = (window.PARENT_STUDENT_ID
+    ? {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': csrf,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    : { 'X-CSRFToken': csrf }
+  );
+  const body = (window.PARENT_STUDENT_ID
+    ? ('video_id=' + encodeURIComponent(videoId) + '&csrfmiddlewaretoken=' + encodeURIComponent(csrf))
+    : undefined
+  );
+
+  fetch(targetUrl, { method, headers, body })
   .then(response => response.json())
   .then(data => {
     const btn = document.getElementById('shortlist_' + videoId);
     if (btn) {
       const icon = btn.querySelector('i');
-      if (data.success === 'true' || data.success === true) {
+      const isBookmarked = (data.message === 'Video Shortlisted') || (data.success === 'true' || data.success === true);
+      if (isBookmarked) {
         // Video was bookmarked
         icon.classList.remove('bx-bookmark');
         icon.classList.add('bxs-bookmark');

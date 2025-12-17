@@ -69,3 +69,17 @@ class Blog(BaseModel,SlugModel,SeoModel,PublishableModel):
 
 class SubscriptionEmail(BaseModel):
     email=models.CharField(max_length=50,null=True,blank=True)
+
+
+class BlogShortlist(BaseModel):
+    """
+    Simple bookmark/shortlist for blogs.
+    Used by both Parents and Students; Students can also see linked parents' blog bookmarks.
+    """
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE, related_name="blog_shortlists")
+    blog = models.ForeignKey(Blog, null=True, on_delete=models.CASCADE, related_name="shortlists")
+
+    class Meta(BaseModel.Meta):
+        unique_together = ("user", "blog")
+        verbose_name = "Blog Bookmark"
+        verbose_name_plural = "Blog Bookmarks"

@@ -15,6 +15,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from core.utils import build_breadcrumb,build_html_head,date_format
 from html import unescape
+from core import choices
 # Create your views here.
 
 
@@ -83,16 +84,42 @@ class CollegeDetails(TemplateView):
             })
         ctx['colleges'] = colleges_with_location
         
+        # Parent->Student context for suggesting colleges
+        ctx['is_parent_student_context'] = False
+        ctx['parent_student_id'] = None
         try:
-            if request.user.is_authenticated:
-                ctx['shortlisted_college']=CollegeShortlist.objects.filter(user=request.user,college__slug=ctx['college'].slug).first()
-                ctx['is_bookmarked'] = ctx['shortlisted_college'] is not None
+            student_id = request.GET.get("student_id")
+            if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
+                from users.models import ParentStudentLink, ParentStudentBookmark
+                from django.contrib.contenttypes.models import ContentType
+                if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                    ct = ContentType.objects.get_for_model(College)
+                    ctx['is_bookmarked'] = ParentStudentBookmark.objects.filter(
+                        parent=request.user, student_id=int(student_id), content_type=ct, object_id=college.id
+                    ).exists()
+                    ctx['is_parent_student_context'] = True
+                    ctx['parent_student_id'] = int(student_id)
+                else:
+                    ctx['is_bookmarked'] = False
+                ctx['shortlisted_college'] = None
             else:
+                if request.user.is_authenticated:
+                    ctx['shortlisted_college']=CollegeShortlist.objects.filter(user=request.user,college__slug=ctx['college'].slug).first()
+                    ctx['is_bookmarked'] = ctx['shortlisted_college'] is not None
+                else:
+                    ctx['shortlisted_college']=None
+                    ctx['is_bookmarked'] = False
+        except Exception:
+            try:
+                if request.user.is_authenticated:
+                    ctx['shortlisted_college']=CollegeShortlist.objects.filter(user=request.user,college__slug=ctx['college'].slug).first()
+                    ctx['is_bookmarked'] = ctx['shortlisted_college'] is not None
+                else:
+                    ctx['shortlisted_college']=None
+                    ctx['is_bookmarked'] = False
+            except Exception:
                 ctx['shortlisted_college']=None
                 ctx['is_bookmarked'] = False
-        except:
-            ctx['shortlisted_college']=None
-            ctx['is_bookmarked'] = False
         return ctx
 
     def _breadcrumb(self,college):
@@ -153,6 +180,27 @@ class CollegeList(TemplateView):
         ctx['query_list']=state_list+city
         ctx['get_updated_url']=queries
         ctx['breadcrumb'] = {'text': 'Colleges', 'url': reverse('colleges:college')}
+        # Parent->Student context for suggesting colleges
+        ctx['is_parent_student_context'] = False
+        ctx['parent_student_id'] = None
+        try:
+            student_id = request.GET.get("student_id")
+            if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
+                from users.models import ParentStudentLink, ParentStudentBookmark
+                from django.contrib.contenttypes.models import ContentType
+                if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                    ct = ContentType.objects.get_for_model(College)
+                    bookmarked_ids = list(
+                        ParentStudentBookmark.objects.filter(
+                            parent=request.user, student_id=int(student_id), content_type=ct
+                        ).values_list("object_id", flat=True)
+                    )
+                    ctx['bookmarked_college_ids'] = bookmarked_ids
+                    ctx['bookmarked_college_slugs'] = list(College.objects.filter(id__in=bookmarked_ids).values_list("slug", flat=True))
+                    ctx['is_parent_student_context'] = True
+                    ctx['parent_student_id'] = int(student_id)
+        except Exception:
+            pass
         return ctx
     
     def get_fallback_context(self, request, state=None):

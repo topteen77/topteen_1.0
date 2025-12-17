@@ -22,6 +22,14 @@ urlpatterns = [
    path('forgotpassword/',views.ForgotPassword.as_view(),name="forgotpassword"),
    path('forgotpasswordotp/',views.ForgotPasswordVerifyOTP.as_view(),name="forgotpasswordotp"),
    path('resendotp/',views.ResendOtp.as_view(),name="resendotp"),
+   # Post-login: enforce institute-student mobile verification
+   path('send-mobile-otp/', views.SendMobileOtp.as_view(), name='send_mobile_otp'),
+   path('verify-mobile-otp/', views.VerifyMobileOtp.as_view(), name='verify_mobile_otp'),
+
+   # Student: link parent accounts
+   path('send-parent-otp/', views.SendParentOtp.as_view(), name='send_parent_otp'),
+   path('verify-parent-otp/', views.VerifyParentOtp.as_view(), name='verify_parent_otp'),
+   path('link-parent-mobile/', views.LinkParentMobile.as_view(), name='link_parent_mobile'),
    path('dashboard/',views.UserDashboard.as_view(),name="userdashboard"),
    path('user-feeds/',views.UserFeeds.as_view(),name="userfeeds"),
    path('logout/',views.logout,name="logout"),
@@ -46,6 +54,7 @@ urlpatterns = [
    path('bookmarkvideo/',views.BookmarkVideo.as_view(),name="bookmarkvideo"),
    path('bookmarkexam/',views.BookmarkExam.as_view(),name="bookmarkexam"),
    path('bookmarkcollege/',views.BookmarkCollege.as_view(),name="bookmarkcollege"),
+   path('bookmarkblog/',views.BookmarkBlog.as_view(),name="bookmarkblog"),
    path('refer/',views.ReferView.as_view(),name="refer"),
 
 

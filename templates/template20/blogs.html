@@ -84,7 +84,7 @@
               {{ blog.category.name }}
             </a>
             {% endif %}
-            <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}">
+            <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
               {% if blog.image %}
               <img src="{{ blog.image.url }}" alt="{{ blog.title }}">
               {% else %}
@@ -94,12 +94,20 @@
           </div>
           <div class="blog-content">
             <h3 class="blog-title mt-0">
-              <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}">{{ blog.title }}</a>
+              <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">{{ blog.title }}</a>
             </h3>
             {% if blog.summary %}
             <p class="blog-excerpt">{{ blog.summary|truncate(120) }}</p>
             {% endif %}
-            <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}" class="read-more">Read More <i class="bx bx-right-arrow-alt"></i></a>
+                    {% if request.user.is_authenticated %}
+                    <button type="button"
+                            class="btn btn-sm {% if blog.id in (bookmarked_blog_ids or []) %}btn-success{% else %}btn-outline-success{% endif %} mt-2 blog-bookmark-btn"
+                            data-blog-id="{{ blog.id }}">
+                      <i class="bx {% if blog.id in (bookmarked_blog_ids or []) %}bxs-bookmark{% else %}bx-bookmark{% endif %}"></i>
+                      <span>{% if blog.id in (bookmarked_blog_ids or []) %}Bookmarked{% else %}Bookmark{% endif %}</span>
+                    </button>
+                    {% endif %}
+            <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="read-more">Read More <i class="bx bx-right-arrow-alt"></i></a>
           </div>
         </div>
       </div>
@@ -158,12 +166,12 @@
                       </div>
                     </div>
                     <h3 class="blog-title">
-                      <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}">{{ blog.title }}</a>
+                      <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">{{ blog.title }}</a>
                     </h3>
                     {% if blog.summary %}
                     <p class="blog-excerpt">{{ blog.summary|truncate(200) }}</p>
                     {% endif %}
-                    <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}" class="read-more">Read More <i class="bx bx-right-arrow-alt"></i></a>
+                    <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="read-more">Read More <i class="bx bx-right-arrow-alt"></i></a>
                   </div>
                 </div>
               </div>
@@ -189,7 +197,7 @@
               <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous() %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.previous_page_number() }}{% if search_blogs %}&search={{ search_blogs }}{% endif %}" aria-label="Previous">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number() }}{% if search_blogs %}&search={{ search_blogs }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" aria-label="Previous">
                     <i class='bx bx-chevron-left'></i>
                   </a>
                 </li>
@@ -206,14 +214,14 @@
                     <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
                   {% elif page_num > (page_obj.number - 3) and page_num < (page_obj.number + 3) %}
                     <li class="page-item">
-                      <a class="page-link" href="?page={{ page_num }}{% if search_blogs %}&search={{ search_blogs }}{% endif %}">{{ page_num }}</a>
+                      <a class="page-link" href="?page={{ page_num }}{% if search_blogs %}&search={{ search_blogs }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}">{{ page_num }}</a>
                     </li>
                   {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next() %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.next_page_number() }}{% if search_blogs %}&search={{ search_blogs }}{% endif %}" aria-label="Next">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number() }}{% if search_blogs %}&search={{ search_blogs }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" aria-label="Next">
                     <i class='bx bx-chevron-right'></i>
                   </a>
                 </li>
@@ -256,7 +264,7 @@
               <div class="latest-blog-item mb-3">
                 <div class="row g-2">
                   <div class="col-4">
-                    <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}">
+                    <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
                       {% if blog.image %}
                       <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;">
                       {% else %}
@@ -266,7 +274,7 @@
                   </div>
                   <div class="col-8">
                     <h5 class="latest-blog-title">
-                      <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}">{{ blog.title|truncate(60) }}</a>
+                      <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">{{ blog.title|truncate(60) }}</a>
                     </h5>
                     <span class="text-gray fs-12">{{ date_format(blog.created) }}</span>
                   </div>
@@ -338,9 +346,69 @@
 {% endblock %}
 
 {% block additionaljs %}
+{{ super() }}
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Blog bookmark buttons
+  document.addEventListener('DOMContentLoaded', function () {
+    const buttons = document.querySelectorAll('.blog-bookmark-btn');
+    if (!buttons || !buttons.length) return;
+    buttons.forEach(btn => {
+      btn.addEventListener('click', function () {
+        const blogId = this.getAttribute('data-blog-id');
+        const csrfToken = getCookie('csrftoken');
+        const params = new URLSearchParams(window.location.search || '');
+        const studentId = params.get('student_id');
+        this.disabled = true;
+        const targetUrl = (studentId ? ('/parents/student/' + studentId + '/bookmark/blog/') : '{{ url("blog:toggle_blog_bookmark") }}');
+        fetch(targetUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: 'blog_id=' + encodeURIComponent(blogId) + '&csrfmiddlewaretoken=' + csrfToken
+        })
+        .then(r => r.json())
+        .then(data => {
+          this.disabled = false;
+          if (!data || !data.success) return;
+          const icon = this.querySelector('i');
+          const text = this.querySelector('span');
+          if (data.bookmarked) {
+            this.classList.remove('btn-outline-success');
+            this.classList.add('btn-success');
+            if (icon) { icon.classList.remove('bx-bookmark'); icon.classList.add('bxs-bookmark'); }
+            if (text) { text.textContent = 'Bookmarked'; }
+          } else {
+            this.classList.remove('btn-success');
+            this.classList.add('btn-outline-success');
+            if (icon) { icon.classList.remove('bxs-bookmark'); icon.classList.add('bx-bookmark'); }
+            if (text) { text.textContent = 'Bookmark'; }
+          }
+        })
+        .catch(() => { this.disabled = false; });
+      });
+    });
+  });
+
 // Subscribe form submission
 document.addEventListener('DOMContentLoaded', function() {
   const subscribeForm = document.getElementById('subscribeForm');

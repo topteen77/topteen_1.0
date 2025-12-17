@@ -357,12 +357,14 @@ class UserType(object):
     INSTITUTEGROUPADMIN=3
     COUNSELOR=4
     MARKETINGGROUPADMIN=5
+    PARENT=6
     CHOICES=(
         (STUDENT,"Student"),
         (INSTITUTE,"Institute"),
         (INSTITUTEGROUPADMIN,"Institute group admin"),
         (COUNSELOR,"Counselor"),
-        (MARKETINGGROUPADMIN,"Marketing Group Admin")
+        (MARKETINGGROUPADMIN,"Marketing Group Admin"),
+        (PARENT,"Parent"),
     )
 
 class UserStatus(object):

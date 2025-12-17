@@ -710,7 +710,10 @@ document.addEventListener('DOMContentLoaded', function() {
       // Disable button during request
       this.disabled = true;
       
-      fetch('/api/v1/user/shortlistcollege', {
+      const params = new URLSearchParams(window.location.search || '');
+      const studentId = params.get('student_id');
+      const targetUrl = (studentId ? ('/parents/student/' + studentId + '/bookmark/college/') : '/api/v1/user/shortlistcollege');
+      fetch(targetUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

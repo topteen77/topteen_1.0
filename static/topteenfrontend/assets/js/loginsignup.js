@@ -2,7 +2,9 @@ function loginsingup() {
   let phoneEmail = document.getElementById("mobileEmail").value;
   if (validateLoginSignup(phoneEmail) == false) {
     document.getElementById("errorMsgSinguplogin").innerHTML =
-      "Please enter valid email ";
+      (window.LOGIN_MODE === 'parent'
+        ? "Please enter valid mobile number"
+        : "Please enter valid email or mobile number");
     return false;
   }
   var formData = new FormData();
@@ -35,6 +37,39 @@ function loginsingup() {
         }, 100);
       }
       if (data.show_password) {
+        // Institute-student accounts should use password login (not OTP)
+        if (data.is_institute_student) {
+          loginremoveunusetag();
+          var xPwd = document.createElement("input");
+          xPwd.setAttribute("type", "hidden");
+          xPwd.setAttribute("value", data.enc_user_name);
+          xPwd.setAttribute("id", "encloginusername");
+          xPwd.setAttribute("name", "enc_user_name");
+          document.getElementById("loginpwd").appendChild(xPwd);
+          document.getElementById("loginpwdname").textContent = data.user_name;
+          document.getElementById("loginpwdDiv").classList.remove("hideModal");
+          setTimeout(function() {
+            const passwordInput = document.querySelector('#loginpwd input[name="password"]');
+            if (passwordInput) passwordInput.focus();
+          }, 100);
+          return;
+        }
+
+        // For template20 OTP-first pages, jump straight to OTP login flow
+        if (typeof showLoginWithOtp === 'function' && document.getElementById('loginOtpEmail')) {
+          try {
+            showLoginWithOtp();
+            document.getElementById('loginOtpEmail').value = data.user_name;
+            if (typeof sendLoginOtp === 'function') {
+              sendLoginOtp();
+              return;
+            }
+          } catch (e) {
+            // fallback to old modal flow below
+          }
+        }
+
+        // Fallback: old password modal flow
         loginremoveunusetag();
         var x = document.createElement("input");
         x.setAttribute("type", "hidden");
@@ -115,10 +150,11 @@ function validateLoginSignup(phoneEmail) {
   if (phoneEmail == "") {
     return false;
   }
-  if (validateEmail(phoneEmail)) {
-    return true;
+  phoneEmail = (phoneEmail || '').trim();
+  if (window.LOGIN_MODE === 'parent') {
+    return validatePhone(phoneEmail);
   }
-  return false;
+  return validateEmail(phoneEmail) || validatePhone(phoneEmail);
 }
 
 function validateEmail(phoneEmail) {
@@ -131,6 +167,11 @@ function validateEmail(phoneEmail) {
   } else {
     return false;
   }
+}
+
+function validatePhone(value) {
+  // Strict Indian 10-digit mobile
+  return /^[6-9]\d{9}$/.test(value);
 }
 
 // function validatepPhone(phoneEmail) {

@@ -28,6 +28,8 @@ from dateutil import relativedelta
 from django.core.signing import Signer
 from core.models import SoftDeletionQuerySet
 from core import choices
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 class PermissionsMixin(models.Model):
     """
     A mixin class that adds the fields and methods necessary to support
@@ -291,6 +293,61 @@ class UserProfile(BaseModel):
     hobbies=models.ManyToManyField(Hobbies,related_name='hobbies',blank=True)
     subject=models.ManyToManyField(Subject,related_name='subject',blank=True)
     figure_out=models.ManyToManyField(UserFigureOut,related_name='figureout',blank=True)
+
+
+class ParentStudentLink(BaseModel):
+    """
+    Link a parent user account to one or more student accounts.
+    A parent can have multiple linked students; a student can have multiple parents.
+    """
+    parent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="parent_links",
+        limit_choices_to={'user_type': choices.UserType.PARENT},
+    )
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="student_parent_links",
+        limit_choices_to={'user_type': choices.UserType.STUDENT},
+    )
+
+    class Meta:
+        unique_together = ('parent', 'student')
+        verbose_name = "Parent Student Link"
+        verbose_name_plural = "Parent Student Links"
+
+    def __str__(self):
+        return f"{self.parent_id} -> {self.student_id}"
+
+
+class ParentStudentBookmark(BaseModel):
+    """
+    Parent-suggested bookmark scoped to a specific linked student.
+    Example: parent bookmarks a Career *for* Student A; that should not automatically
+    appear for Student B.
+    """
+    parent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="parent_student_bookmarks",
+        limit_choices_to={'user_type': choices.UserType.PARENT},
+    )
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="student_parent_bookmarks",
+        limit_choices_to={'user_type': choices.UserType.STUDENT},
+    )
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey("content_type", "object_id")
+
+    class Meta(BaseModel.Meta):
+        unique_together = ("parent", "student", "content_type", "object_id")
+        verbose_name = "Parent Student Bookmark"
+        verbose_name_plural = "Parent Student Bookmarks"
 
 def user_note_icon_directory(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>

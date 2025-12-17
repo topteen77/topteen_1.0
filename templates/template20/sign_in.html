@@ -144,7 +144,7 @@
           <form class="start-form" id="loginSignupForm">
             <div class="login-screen text-center p-5">
               <!-- Get Started Form -->
-              <div class="get-started-form" id="loginSignupFormSection">
+              <div class="get-started-form" id="loginSignupFormSection" {% if login_mode in ['student','parent'] %}style="display: none;"{% endif %}>
                 <div class="logo-header text-center my-4">
                   <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
                 </div>
@@ -160,7 +160,7 @@
                            class="form-control custom-input" 
                            id="mobileEmail"
                            name="user_name"
-                           placeholder="Enter Email Id"
+                           placeholder="{% if login_mode == 'parent' %}Enter Mobile Number{% else %}Enter Email or Mobile{% endif %}"
                            required>
                     <div class="invalid-feedback float-start text-start mt-0 py-1" style="display: none;">
                       Please Enter Correct Email Id.
@@ -182,11 +182,11 @@
                     </button>
                   </div>
                   
-                  <div class="divider-section position-relative mb-3">
+                  <div class="divider-section position-relative mb-3" {% if login_mode == 'parent' %}style="display:none;"{% endif %}>
                     <div class="tor">OR</div>
                   </div>
                   
-                  <div class="social-button">
+                  <div class="social-button" {% if login_mode == 'parent' %}style="display:none;"{% endif %}>
                     <button type="button"
                             class="btn custom-button google-btn mb-3 fw-600"
                             onclick="window.location='{{ url('social:begin', args=['google-oauth2']) }}'">
@@ -213,12 +213,18 @@
               </div>
               
               <!-- Login with OTP Form (Hidden by default) -->
-              <div class="login-otp-form" id="loginOtpFormSection" style="display: none;">
+              <div class="login-otp-form" id="loginOtpFormSection" {% if login_mode in ['student','parent'] %}style="display: block;"{% else %}style="display: none;"{% endif %}>
                 <div class="logo-header text-center my-4">
                   <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
                 </div>
                 <h2 class="fs-22 mt-2 mb-2 fw-700 text-purple">Login with OTP</h2>
-                <p class="text-gray fs-15">Enter your email/mobile to receive OTP</p>
+                <p class="text-gray fs-15">
+                  {% if login_mode == 'parent' %}
+                    Enter your mobile number to receive OTP
+                  {% else %}
+                    Enter your email/mobile to receive OTP
+                  {% endif %}
+                </p>
                 
                 <div id="errorMsgLoginOtp" class="text-danger fs-12 mb-2" style="display: none;"></div>
                 
@@ -230,7 +236,7 @@
                              class="form-control custom-input" 
                              id="loginOtpEmail"
                              name="user_name"
-                             placeholder="Enter Email or Mobile"
+                             placeholder="{% if login_mode == 'parent' %}Enter Mobile Number{% else %}Enter Email or Mobile{% endif %}"
                              required>
                     </div>
                     <div class="setting-button d-flex flex-column w-100">
@@ -241,9 +247,17 @@
                       </button>
                       <button type="button"
                               class="btn custom-button outline-button mb-3 fw-600"
-                              onclick="return backToLoginSignup()">
+                              onclick="return backToLoginSignup()"
+                              {% if login_mode == 'parent' %}style="display:none;"{% endif %}>
                         Back
                       </button>
+                      {% if login_mode == 'student' %}
+                      <button type="button"
+                              class="btn custom-button outline-button mb-3 fw-600"
+                              onclick="return backToLoginSignup()">
+                        Create account
+                      </button>
+                      {% endif %}
                     </div>
                   </div>
                   
@@ -350,6 +364,7 @@
 <script>
   // Login with OTP functions
   var loginOtpEmailValue = '';
+  window.LOGIN_MODE = "{{ login_mode|default('default') }}";
   
   function showLoginWithOtp() {
     document.getElementById('loginSignupFormSection').style.display = 'none';
@@ -383,6 +398,13 @@
       errorMsg.style.display = 'block';
       return false;
     }
+
+    if (window.LOGIN_MODE === 'parent' && !/^[6-9]\d{9}$/.test(email)) {
+      var errorMsgP = document.getElementById('errorMsgLoginOtp');
+      errorMsgP.textContent = 'Please enter a valid 10-digit mobile number';
+      errorMsgP.style.display = 'block';
+      return false;
+    }
     
     loginOtpEmailValue = email;
     var formData = new FormData();
@@ -391,6 +413,94 @@
     // Clear error message
     document.getElementById('errorMsgLoginOtp').style.display = 'none';
     
+    // Student mode: first check if this is an institute-student; if yes, show password modal
+    if (window.LOGIN_MODE === 'student') {
+      $.ajax({
+        type: 'POST',
+        url: usersloginsignup,
+        data: formData,
+        success: function(data) {
+          if (data.show_password && data.is_institute_student) {
+            // Open password modal instead of OTP for institute students
+            try {
+              if (typeof loginremoveunusetag === 'function') {
+                loginremoveunusetag();
+              }
+              var x = document.createElement("input");
+              x.setAttribute("type", "hidden");
+              x.setAttribute("value", data.enc_user_name);
+              x.setAttribute("id", "encloginusername");
+              x.setAttribute("name", "enc_user_name");
+              document.getElementById("loginpwd").appendChild(x);
+              document.getElementById("loginpwdname").textContent = data.user_name;
+              document.getElementById("loginpwdDiv").classList.remove("hideModal");
+              return;
+            } catch (e) {
+              // fallback to OTP send below
+            }
+          }
+
+          // Otherwise proceed with OTP send as usual
+          $.ajax({
+            type: 'POST',
+            url: usersresendotp,
+            data: formData,
+            success: function(_) {
+              document.getElementById('loginOtpEmailStep').style.display = 'none';
+              document.getElementById('loginOtpInputStep').style.display = 'block';
+              document.getElementById('loginOtpEmailDisplay').textContent = email;
+              var otpInputs = document.querySelectorAll('#loginOtpInputStep input[name="otp"]');
+              otpInputs.forEach(function(input) { input.value = ''; });
+              setTimeout(function() {
+                const firstOtpInput = document.querySelector('#loginOtpInputStep .otpSource');
+                if (firstOtpInput) firstOtpInput.focus();
+              }, 100);
+            },
+            error: function() {
+              var errorMsg = document.getElementById('errorMsgLoginOtp');
+              errorMsg.textContent = 'Unable to send OTP. Please check your email/mobile and try again';
+              errorMsg.style.display = 'block';
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+          });
+        },
+        error: function() {
+          // If pre-check fails, fallback to OTP send
+          $.ajax({
+            type: 'POST',
+            url: usersresendotp,
+            data: formData,
+            success: function(_) {
+              document.getElementById('loginOtpEmailStep').style.display = 'none';
+              document.getElementById('loginOtpInputStep').style.display = 'block';
+              document.getElementById('loginOtpEmailDisplay').textContent = email;
+              var otpInputs = document.querySelectorAll('#loginOtpInputStep input[name="otp"]');
+              otpInputs.forEach(function(input) { input.value = ''; });
+              setTimeout(function() {
+                const firstOtpInput = document.querySelector('#loginOtpInputStep .otpSource');
+                if (firstOtpInput) firstOtpInput.focus();
+              }, 100);
+            },
+            error: function() {
+              var errorMsg = document.getElementById('errorMsgLoginOtp');
+              errorMsg.textContent = 'Unable to send OTP. Please check your email/mobile and try again';
+              errorMsg.style.display = 'block';
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+          });
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+      return false;
+    }
+
+    // Parent/default mode: send OTP directly
     $.ajax({
       type: 'POST',
       url: usersresendotp,
@@ -435,6 +545,13 @@
     sendLoginOtp();
     return false;
   }
+
+  // Default OTP-first for student/parent role pages
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.LOGIN_MODE === 'student' || window.LOGIN_MODE === 'parent') {
+      try { showLoginWithOtp(); } catch (e) {}
+    }
+  });
   
   function verifyLoginOtp() {
     var formData = new FormData();

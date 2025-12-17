@@ -1,0 +1,100 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}My Blogs | Top Teen{% endblock %}
+{% block description_content %}View your bookmarked blogs.{% endblock %}
+
+{% block bodyclass %}{{ super() }} bookmark-blog-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<style>
+  .bookmark-blog-page { padding-top: 80px; }
+  .blog-bookmark-card {
+    background: #fff;
+    border: 1px solid #efefee;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .blog-bookmark-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  }
+  .blog-thumb {
+    width: 100%;
+    height: 180px;
+    background: #f7f7fa;
+    object-fit: cover;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="bookmark-blog-page pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
+      </div>
+
+      <div class="col-lg-8">
+        {% if breadcrumb %}
+        {% include 'template20/includes/breadcrumb.html' %}
+        {% endif %}
+
+        <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+          <h1 class="fs-24 fw-semibold mb-0">My Blogs</h1>
+          {% if blogs %}
+          <a href="{{ url('blog:blogs') }}" class="btn custom-button purple-button">Browse Blogs</a>
+          {% endif %}
+        </div>
+
+        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+          <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+            <i class='bx bx-arrow-left fs-18 text-gray'></i>
+          </button>
+          <h2 class="fs-16 fw-normal text-center mb-0">My Blogs</h2>
+        </div>
+
+        {% if blogs %}
+        <div class="row g-4">
+          {% for blog in blogs %}
+          <div class="col-12 col-md-6">
+            <div class="blog-bookmark-card">
+              <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}" class="text-decoration-none">
+                {% if blog.image and blog.image.name %}
+                <img class="blog-thumb" src="{{ blog.image.url }}" alt="{{ blog.title }}" />
+                {% else %}
+                <div class="blog-thumb d-flex align-items-center justify-content-center">
+                  <i class='bx bx-book fs-48 text-gray'></i>
+                </div>
+                {% endif %}
+              </a>
+              <div class="p-3">
+                <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}" class="text-decoration-none">
+                  <h5 class="fs-18 fw-semibold text-dark mb-1">{{ blog.title }}</h5>
+                </a>
+                {% if blog.summary %}
+                <p class="fs-14 text-gray mb-0">{{ blog.summary|truncate(140) }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class='bx bx-bookmark fs-64 text-gray mb-3'></i>
+          <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Blogs</h3>
+          <p class="text-gray fs-14 mb-4">You haven't bookmarked any blogs yet.</p>
+          <a href="{{ url('blog:blogs') }}" class="btn custom-button purple-button">Browse Blogs</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+

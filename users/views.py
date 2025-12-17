@@ -48,6 +48,7 @@ from django.conf import settings
 from institute.models import Institute, InstituteGroup, InstituteMarketingGroup,StudentManagement, get_global_remain_credits
 from django.middleware.csrf import get_token
 # from .forms import InstituteRegistrationForm
+import re
 
 # def create_institute(request):
 #     if request.method == 'POST':      
@@ -389,6 +390,638 @@ class LoginView(TemplateView):
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
+
+class StudentLoginView(LoginView):
+    """
+    Student login landing page (/student/login/).
+    OTP-first by default via template context.
+    """
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('users:userdashboard')
+        ctx = self.get_context(request, *args, **kwargs)
+        ctx['login_mode'] = 'student'
+        return render(request, self.template_name, ctx)
+
+
+class ParentsLoginView(LoginView):
+    """
+    Parents login landing page (/parents/login/).
+    Mobile + OTP only.
+    """
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            if getattr(request.user, 'user_type', None) == choices.UserType.PARENT:
+                return redirect('parents_dashboard')
+            return redirect('users:userdashboard')
+        ctx = self.get_context(request, *args, **kwargs)
+        ctx['login_mode'] = 'parent'
+        return render(request, self.template_name, ctx)
+
+
+class ParentsDashboardView(TemplateView):
+    template_name = 'template20/parents/dashboard.html'
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('parents_login')
+        if request.user.user_type != choices.UserType.PARENT:
+            return redirect('users:userdashboard')
+        from users.models import ParentStudentLink
+        linked = ParentStudentLink.objects.filter(parent=request.user).select_related('student')
+        students = [x.student for x in linked if x.student]
+
+        # Build result status for each linked student (psychometric report availability)
+        students_info = []
+        try:
+            from psychometric_tests.models import CentralTestCandidate
+            for s in students:
+                results_enabled = False
+                try:
+                    ctc = CentralTestCandidate.objects.filter(user=s).first()
+                    if ctc:
+                        test = ctc.candidate_test.last()
+                        if test and getattr(test, "is_success", None) == choices.YesNoChoices.YES:
+                            if hasattr(test, "psychometric_test_results") and test.psychometric_test_results:
+                                results_enabled = True
+                except Exception:
+                    results_enabled = False
+                students_info.append({"student": s, "results_enabled": results_enabled})
+        except Exception:
+            students_info = [{"student": s, "results_enabled": False} for s in students]
+
+        ctx = {
+            "linked_students": students,
+            "linked_students_info": students_info,
+        }
+        return render(request, self.template_name, ctx)
+
+
+def _get_parent_linked_student_or_404(request, student_id: int):
+    from users.models import ParentStudentLink
+    if not request.user.is_authenticated or request.user.user_type != choices.UserType.PARENT:
+        raise Http404("Not allowed")
+    link = ParentStudentLink.objects.filter(parent=request.user, student_id=student_id).select_related('student').first()
+    if not link or not link.student:
+        raise Http404("Student not linked")
+    return link.student
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentDashboardView(TemplateView):
+    """
+    Parent view of a specific linked student's dashboard.
+    """
+    template_name = "template20/user/user_dashboard.html"
+
+    def get(self, request, student_id, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        # Reuse existing dashboard view context but with profile_user injected
+        dash = UserDashboard()
+        ctx = dash.get_context(request, profile_user=student, is_parent_view=True)
+        return render(request, self.template_name, ctx)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentViewProfileView(TemplateView):
+    template_name = "template20/user/view_profile.html"
+
+    def get(self, request, student_id, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        # Reuse ViewProfile context but with profile_user injected
+        vp = ViewProfile()
+        ctx = vp.get_context(request, profile_user=student, is_parent_view=True)
+        return render(request, self.template_name, ctx)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentEditProfileView(TemplateView):
+    template_name = "template20/user/profile_basic_details.html"
+
+    def get(self, request, student_id, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        pb = ProfileBasicDetails()
+        ctx = pb.get_context(request, profile_user=student, is_parent_view=True)
+        return render(request, self.template_name, ctx)
+
+    def post(self, request, student_id, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        # Apply the same logic as ProfileBasicDetails.post, but update the student user/profile
+        name=request.POST.get("username",False)
+        mobile=request.POST.get("userphone",False)
+        image= request.FILES.get('image',False)
+        birthdate=request.POST.get('userbirthdaydate',False)
+        gender=request.POST.get('gender',False)
+        school=request.POST.get('userschool',False)
+        grade=request.POST.get('usergrade',False)
+        figure_outs=request.POST.getlist("userfigureout",False)
+        subjects=request.POST.getlist("usersubject",False)
+        hobbies=request.POST.getlist("hobbies",False)
+        if name and mobile and birthdate and gender and grade and school and figure_outs and subjects and hobbies and figure_outs:
+            # Student mobile must be unique + not conflict with parent mobiles
+            if student.user_type == choices.UserType.STUDENT and _student_mobile_exists(mobile, exclude_user_id=student.id):
+                messages.error(request, "This mobile number is already used by another student.")
+                pb = ProfileBasicDetails()
+                return render(request, self.template_name, pb.get_context(request, profile_user=student, is_parent_view=True))
+            if student.user_type == choices.UserType.STUDENT and _mobile_conflicts_student_parent(mobile, current_user=student, intended_user_type=choices.UserType.STUDENT):
+                messages.error(request, "This mobile number is already used by a parent account.")
+                pb = ProfileBasicDetails()
+                return render(request, self.template_name, pb.get_context(request, profile_user=student, is_parent_view=True))
+
+            hobbies_qs=Hobbies.objects.filter(id__in=hobbies)
+            subjects_qs=Subject.objects.filter(id__in=subjects)
+            figure_qs=UserFigureOut.objects.filter(id__in=figure_outs)
+            student.mobile=mobile
+            student.name=name
+            if image:
+                student.image=image
+            student.save()
+            user_profile,_=UserProfile.objects.get_or_create(user=student)
+            user_profile.birthdate=birthdate
+            user_profile.gender=gender
+            user_profile.schoolname=school
+            user_profile.grade=grade
+            user_profile.save()
+            user_profile.hobbies.set(hobbies_qs)
+            user_profile.subject.set(subjects_qs)
+            user_profile.figure_out.set(figure_qs)
+            student.is_completed=True
+            student.save()
+            return redirect('parents_student_dashboard', student_id=student.id)
+        pb = ProfileBasicDetails()
+        return render(request, self.template_name, pb.get_context(request, profile_user=student, is_parent_view=True))
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentPsychometricResultView(TemplateView):
+    """
+    Parent redirect to a linked student's psychometric result (RIASEC report).
+    """
+
+    def get(self, request, student_id, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        from psychometric_tests.models import CentralTestCandidate
+
+        ctc = CentralTestCandidate.objects.filter(user=student).first()
+        if not ctc:
+            return redirect('parents_dashboard')
+
+        test = ctc.candidate_test.last()
+        if not test or getattr(test, "is_success", None) != choices.YesNoChoices.YES:
+            return redirect('parents_dashboard')
+
+        try:
+            url = test.get_pyschometric_test_result_url()
+        except Exception:
+            url = "#"
+
+        if not url or url == "#":
+            return redirect('parents_dashboard')
+        return redirect(url)
+
+
+def _parent_student_bookmark_user_ids(request, student):
+    """
+    For a parent viewing a specific linked student, show combined bookmarks:
+    - the parent (request.user)
+    - that student (student)
+    """
+    ids = []
+    try:
+        if request.user and request.user.is_authenticated:
+            ids.append(request.user.id)
+    except Exception:
+        pass
+    try:
+        if student:
+            ids.append(student.id)
+    except Exception:
+        pass
+    # de-dupe
+    out, seen = [], set()
+    for x in ids:
+        if x and x not in seen:
+            out.append(x)
+            seen.add(x)
+    return out
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentBookmarkCareersView(TemplateView):
+    template_name = "template20/user/career_interests.html"
+
+    def get(self, request, student_id, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        from careers.models import CareerShortlist
+        user_ids = _parent_student_bookmark_user_ids(request, student)
+        career_interests_qs = CareerShortlist.objects.filter(
+            user_id__in=user_ids,
+            career__isnull=False
+        ).select_related('career')
+        career_interests_list = list(career_interests_qs)
+        ids = [ci.career_id for ci in career_interests_list if ci and ci.career and ci.career_id]
+        if ids:
+            clstrs = CareerCluster.objects.filter(career_clusters__in=ids).distinct()
+        else:
+            clstrs = CareerCluster.objects.none()
+        ctx = {
+            "html_head": build_html_head(title="Career Interests", description="Career interests"),
+            "breadcrumb": build_breadcrumb([
+                {"title": "Parent Dashboard", "text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
+                {"title": "Career Interests", "text": "Career Interests", "url": ""},
+            ]),
+            "career_interests": career_interests_list,
+            "career_ids": ids,
+            "clstrs": clstrs,
+            "is_parent_view": True,
+        }
+        return render(request, self.template_name, ctx)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentBookmarkVideosView(TemplateView):
+    template_name = "template20/user/bookmark_video.html"
+
+    def get(self, request, student_id, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        user_ids = _parent_student_bookmark_user_ids(request, student)
+        videos = Videos.objects.filter(shortlist__in=user_ids).distinct()
+        ctx = {
+            "html_head": build_html_head(title="My Videos", description="Bookmarked videos"),
+            "breadcrumb": build_breadcrumb([
+                {"title": "Parent Dashboard", "text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
+                {"title": "My Videos", "text": "My Videos", "url": ""},
+            ]),
+            "videos": videos,
+            "is_parent_view": True,
+        }
+        return render(request, self.template_name, ctx)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentBookmarkCollegesView(TemplateView):
+    template_name = "template20/user/bookmark_college.html"
+
+    def get(self, request, student_id, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        from colleges.models import CollegeShortlist
+        user_ids = _parent_student_bookmark_user_ids(request, student)
+        college_shortlists = CollegeShortlist.objects.filter(user_id__in=user_ids).select_related('college')
+        colleges = []
+        seen = set()
+        for cs in college_shortlists:
+            if cs.college_id and cs.college_id not in seen and cs.college:
+                colleges.append(cs.college)
+                seen.add(cs.college_id)
+        ctx = {
+            "html_head": build_html_head(title="My Colleges", description="Bookmarked colleges"),
+            "breadcrumb": build_breadcrumb([
+                {"title": "Parent Dashboard", "text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
+                {"title": "My Colleges", "text": "My Colleges", "url": ""},
+            ]),
+            "colleges": colleges,
+            "is_parent_view": True,
+        }
+        return render(request, self.template_name, ctx)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentBookmarkBlogsView(TemplateView):
+    template_name = "template20/user/bookmark_blog.html"
+
+    def get(self, request, student_id, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        from blog.models import BlogShortlist, Blog as BlogModel
+        user_ids = _parent_student_bookmark_user_ids(request, student)
+        shortlisted = BlogShortlist.objects.filter(user_id__in=user_ids, blog__isnull=False).select_related('blog')
+        blogs = []
+        seen = set()
+        for bs in shortlisted:
+            if bs.blog_id and bs.blog_id not in seen and bs.blog:
+                blogs.append(bs.blog)
+                seen.add(bs.blog_id)
+        published_ids = set(BlogModel.get_published_objects().filter(id__in=list(seen)).values_list('id', flat=True))
+        blogs = [b for b in blogs if b and b.id in published_ids]
+        ctx = {
+            "html_head": build_html_head(title="My Blogs", description="Bookmarked blogs"),
+            "breadcrumb": build_breadcrumb([
+                {"title": "Parent Dashboard", "text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
+                {"title": "My Blogs", "text": "My Blogs", "url": ""},
+            ]),
+            "blogs": blogs,
+            "is_parent_view": True,
+        }
+        return render(request, self.template_name, ctx)
+
+
+class ParentStudentToggleCareerBookmark(APIView):
+    """
+    Parent toggles a Career bookmark *for a specific linked student*.
+    This is what feeds the student's 'Suggested by Parent' section.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, student_id, *args, **kwargs):
+        if request.user.user_type != choices.UserType.PARENT:
+            return Response({"message": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+
+        student = _get_parent_linked_student_or_404(request, student_id)
+        career_slug = (request.POST.get("careerslug") or "").strip()
+        if not career_slug:
+            return Response({"message": "Career slug is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        from careers.models import Career
+        from users.models import ParentStudentBookmark
+        from django.contrib.contenttypes.models import ContentType
+
+        career = get_object_or_404(Career, slug=career_slug)
+        ct = ContentType.objects.get_for_model(Career)
+
+        obj = ParentStudentBookmark.objects.filter(
+            parent=request.user,
+            student=student,
+            content_type=ct,
+            object_id=career.id,
+        ).first()
+        data = {}
+        if obj:
+            obj.delete()
+            data["message"] = "Removed Shortlisted"
+            data["value"] = "Shortlist Career"
+            return Response(data, status=status.HTTP_200_OK)
+
+        ParentStudentBookmark.objects.create(
+            parent=request.user,
+            student=student,
+            content_type=ct,
+            object_id=career.id,
+        )
+        data["message"] = "Career Shortlisted"
+        data["value"] = "Remove Shortlisted"
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class ParentStudentToggleVideoBookmark(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, student_id, *args, **kwargs):
+        if request.user.user_type != choices.UserType.PARENT:
+            return Response({"message": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+        student = _get_parent_linked_student_or_404(request, student_id)
+        video_id = (request.POST.get("video_id") or request.POST.get("id") or "").strip()
+        if not video_id:
+            return Response({"message": "Video id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            video_id_int = int(video_id)
+        except Exception:
+            return Response({"message": "Invalid video id"}, status=status.HTTP_400_BAD_REQUEST)
+
+        from careers.models import Videos
+        from users.models import ParentStudentBookmark
+        from django.contrib.contenttypes.models import ContentType
+        video = get_object_or_404(Videos, id=video_id_int)
+        ct = ContentType.objects.get_for_model(Videos)
+
+        obj = ParentStudentBookmark.objects.filter(
+            parent=request.user, student=student, content_type=ct, object_id=video.id
+        ).first()
+        if obj:
+            obj.delete()
+            return Response({"message": "Removed Shortlisted", "value": "Bookmark"}, status=status.HTTP_200_OK)
+        ParentStudentBookmark.objects.create(
+            parent=request.user, student=student, content_type=ct, object_id=video.id
+        )
+        return Response({"message": "Video Shortlisted", "value": "Remove Bookmark"}, status=status.HTTP_200_OK)
+
+
+class ParentStudentToggleCollegeBookmark(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, student_id, *args, **kwargs):
+        if request.user.user_type != choices.UserType.PARENT:
+            return Response({"message": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+        student = _get_parent_linked_student_or_404(request, student_id)
+        college_slug = (request.POST.get("collegeslug") or request.POST.get("college_slug") or "").strip()
+        if not college_slug:
+            return Response({"message": "College slug is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        from colleges.models import College
+        from users.models import ParentStudentBookmark
+        from django.contrib.contenttypes.models import ContentType
+        college = get_object_or_404(College, slug=college_slug)
+        ct = ContentType.objects.get_for_model(College)
+
+        obj = ParentStudentBookmark.objects.filter(
+            parent=request.user, student=student, content_type=ct, object_id=college.id
+        ).first()
+        if obj:
+            obj.delete()
+            return Response({"message": "Removed Shortlisted", "value": "Shortlist College"}, status=status.HTTP_200_OK)
+        ParentStudentBookmark.objects.create(
+            parent=request.user, student=student, content_type=ct, object_id=college.id
+        )
+        return Response({"message": "College Shortlisted", "value": "Remove Shortlisted"}, status=status.HTTP_200_OK)
+
+
+class ParentStudentToggleBlogBookmark(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, student_id, *args, **kwargs):
+        if request.user.user_type != choices.UserType.PARENT:
+            return Response({"message": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+        student = _get_parent_linked_student_or_404(request, student_id)
+        blog_id = (request.POST.get("blog_id") or "").strip()
+        blog_slug = (request.POST.get("blog_slug") or "").strip()
+        if not blog_id and not blog_slug:
+            return Response({"message": "Blog id or slug is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        from blog.models import Blog
+        from users.models import ParentStudentBookmark
+        from django.contrib.contenttypes.models import ContentType
+
+        blogs_qs = Blog.get_published_objects()
+        blog = get_object_or_404(blogs_qs, id=int(blog_id)) if blog_id else get_object_or_404(blogs_qs, slug=blog_slug)
+        ct = ContentType.objects.get_for_model(Blog)
+
+        obj = ParentStudentBookmark.objects.filter(
+            parent=request.user, student=student, content_type=ct, object_id=blog.id
+        ).first()
+        if obj:
+            obj.delete()
+            return Response({"success": True, "bookmarked": False, "message": "Removed Bookmark"}, status=status.HTTP_200_OK)
+        ParentStudentBookmark.objects.create(
+            parent=request.user, student=student, content_type=ct, object_id=blog.id
+        )
+        return Response({"success": True, "bookmarked": True, "message": "Blog Bookmarked"}, status=status.HTTP_200_OK)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentSuggestedListView(TemplateView):
+    template_name = "template20/parents/student_suggestions_list.html"
+
+    def get(self, request, student_id, kind, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        from users.models import ParentStudentBookmark
+        from django.contrib.contenttypes.models import ContentType
+
+        kind = (kind or "").lower()
+        model = None
+        title = ""
+        browse_url = "#"
+        remove_endpoint = "#"
+        id_field = "object_id"
+
+        if kind == "careers":
+            from careers.models import Career
+            model = Career
+            title = "Suggested Careers"
+            browse_url = reverse("careers:career") + f"?student_id={student.id}"
+            remove_endpoint = reverse("parents_student_toggle_career_bookmark", args=[student.id])
+            id_field = "careerslug"
+        elif kind == "videos":
+            from careers.models import Videos
+            model = Videos
+            title = "Suggested Videos"
+            browse_url = reverse("careers:careervideos") + f"?student_id={student.id}"
+            remove_endpoint = reverse("parents_student_toggle_video_bookmark", args=[student.id])
+            id_field = "video_id"
+        elif kind == "colleges":
+            from colleges.models import College
+            model = College
+            title = "Suggested Colleges"
+            browse_url = reverse("colleges:college") + f"?student_id={student.id}"
+            remove_endpoint = reverse("parents_student_toggle_college_bookmark", args=[student.id])
+            id_field = "collegeslug"
+        elif kind == "blogs":
+            from blog.models import Blog
+            model = Blog
+            title = "Suggested Blogs"
+            browse_url = reverse("blog:blogs") + f"?student_id={student.id}"
+            remove_endpoint = reverse("parents_student_toggle_blog_bookmark", args=[student.id])
+            id_field = "blog_id"
+        else:
+            raise Http404("Invalid kind")
+
+        ct = ContentType.objects.get_for_model(model)
+        bookmarks = ParentStudentBookmark.objects.filter(
+            parent=request.user, student=student, content_type=ct
+        ).order_by("-created")
+
+        obj_ids = [b.object_id for b in bookmarks]
+        objs = model.objects.filter(id__in=obj_ids)
+        obj_map = {o.id: o for o in objs}
+
+        items = []
+        for b in bookmarks:
+            o = obj_map.get(b.object_id)
+            if not o:
+                continue
+            if kind == "careers":
+                items.append({"id": o.id, "slug": o.slug, "title": o.name, "url": o.url()})
+            elif kind == "videos":
+                items.append({"id": o.id, "slug": o.slug, "title": o.name, "url": reverse("careers:videodetail", args=[o.slug]) + f"?student_id={student.id}"})
+            elif kind == "colleges":
+                items.append({"id": o.id, "slug": o.slug, "title": o.name, "url": reverse("colleges:collegedetail", args=[o.slug]) + f"?student_id={student.id}"})
+            elif kind == "blogs":
+                # blog:blogdetail is under /blogs/<slug>/ in this project
+                items.append({"id": o.id, "slug": o.slug, "title": getattr(o, "title", str(o)), "url": reverse("blog:blogdetail", args=[o.slug]) + f"?student_id={student.id}"})
+
+        ctx = {
+            "student": student,
+            "kind": kind,
+            "title": title,
+            "items": items,
+            "browse_url": browse_url,
+            "remove_endpoint": remove_endpoint,
+            "id_field": id_field,
+        }
+        return render(request, self.template_name, ctx)
+
+
+def _compute_student_destination(user):
+    """
+    Returns a *relative* destination path for student users.
+    - Class 11/12 -> post_matric:tests
+    - Else -> users:userdashboard
+    """
+    try:
+        sm = StudentManagement.objects.filter(student=user).first()
+        if sm and sm.class_and_section and sm.class_and_section.class_and_section:
+            class_prefix = sm.class_and_section.class_and_section[:2].strip()
+            if class_prefix in ("11", "12"):
+                return reverse('post_matric:tests')
+    except Exception:
+        pass
+    return reverse('users:userdashboard')
+
+
+def _apply_institute_student_mobile_gate(request, user, desired_redirect):
+    """
+    If student belongs to an institute and has no mobile, force redirect to student dashboard
+    and show a popup to collect + verify mobile (OTP). Store original destination in session.
+    """
+    try:
+        if user.user_type != choices.UserType.STUDENT:
+            return desired_redirect
+        is_institute_student = StudentManagement.objects.filter(student=user).exists()
+        has_mobile = bool(user.mobile and str(user.mobile).strip())
+        if is_institute_student and not has_mobile:
+            request.session['force_mobile_popup'] = True
+            request.session['post_mobile_redirect'] = desired_redirect
+            return reverse('users:userdashboard')
+    except Exception:
+        return desired_redirect
+    return desired_redirect
+
+
+def _normalize_mobile_digits(value: str) -> str:
+    return re.sub(r"\D+", "", str(value or "")).strip()
+
+
+def _student_mobile_exists(mobile: str, exclude_user_id: int | None = None) -> bool:
+    """
+    Enforce unique mobile for student accounts.
+    We consider the mobile as digits-only for comparisons.
+    """
+    digits = _normalize_mobile_digits(mobile)
+    if not digits:
+        return False
+    qs = User.objects.filter(user_type=choices.UserType.STUDENT, mobile__isnull=False)
+    if exclude_user_id:
+        qs = qs.exclude(id=exclude_user_id)
+    # Compare by digits-only: use a conservative exact match on common formatting
+    # Most records store plain digits; also check for "+91" prefixed formatting.
+    return qs.filter(Q(mobile=digits) | Q(mobile=f"+91{digits}") | Q(mobile=f"91{digits}")).exists()
+
+
+def _parent_mobile_exists(mobile: str, exclude_user_id: int | None = None) -> bool:
+    """
+    Check if a mobile is already used by a parent account.
+    """
+    digits = _normalize_mobile_digits(mobile)
+    if not digits:
+        return False
+    qs = User.objects.filter(user_type=choices.UserType.PARENT, mobile__isnull=False)
+    if exclude_user_id:
+        qs = qs.exclude(id=exclude_user_id)
+    return qs.filter(Q(mobile=digits) | Q(mobile=f"+91{digits}") | Q(mobile=f"91{digits}")).exists()
+
+
+def _mobile_conflicts_student_parent(mobile: str, current_user: User | None = None, intended_user_type: int | None = None) -> bool:
+    """
+    Enforce: Parent and Student mobile numbers must not be the same.
+    - If intended_user_type is STUDENT, mobile must not exist on any PARENT.
+    - If intended_user_type is PARENT, mobile must not exist on any STUDENT.
+    """
+    exclude_id = getattr(current_user, "id", None) if current_user else None
+    if intended_user_type == choices.UserType.STUDENT:
+        return _parent_mobile_exists(mobile, exclude_user_id=exclude_id)
+    if intended_user_type == choices.UserType.PARENT:
+        return _student_mobile_exists(mobile, exclude_user_id=exclude_id)
+    return False
+
 def logout(request):
     auth_logout(request)
     return redirect("/")
@@ -418,6 +1051,14 @@ class LoginSignUp(APIView):
                 data["show_password"]=True
                 data["show_otp"]=False
                 data['user_name']=username
+                # For institute-student accounts, UI should prefer password login (not OTP)
+                try:
+                    data['is_institute_student'] = bool(
+                        user.user_type == choices.UserType.STUDENT and
+                        StudentManagement.objects.filter(student=user).exists()
+                    )
+                except Exception:
+                    data['is_institute_student'] = False
                 return Response(data, status=status.HTTP_200_OK)
             else:   
                 otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
@@ -474,7 +1115,16 @@ class SignUpVerifyOTP(APIView):
                     data["otp_verify"]=True
                     data["user_exists"]=True
                     data["success"]=True
-                    data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
+                    if user.is_staff or user.is_superuser:
+                        redirect_url = reverse('user_analytics:business_dashboard')
+                    elif user.user_type == choices.UserType.PARENT:
+                        redirect_url = reverse('parents_dashboard')
+                    elif user.user_type == choices.UserType.STUDENT:
+                        redirect_url = _compute_student_destination(user)
+                    else:
+                        redirect_url = reverse('users:userdashboard')
+                    redirect_url = _apply_institute_student_mobile_gate(request, user, redirect_url)
+                    data['redirect_url'] = request.build_absolute_uri(redirect_url)
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     # New user - proceed to password form
@@ -672,9 +1322,16 @@ class LoginOTP(APIView):
                     
                     # Check if user is staff or superuser - redirect to business analytics
                     if user.is_staff or user.is_superuser:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('user_analytics:business_dashboard'))
+                        redirect_url = reverse('user_analytics:business_dashboard')
+                    elif user.user_type == choices.UserType.PARENT:
+                        redirect_url = reverse('parents_dashboard')
+                    elif user.user_type == choices.UserType.STUDENT:
+                        redirect_url = _compute_student_destination(user)
                     else:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
+                        redirect_url = reverse('users:userdashboard')
+
+                    redirect_url = _apply_institute_student_mobile_gate(request, user, redirect_url)
+                    data['redirect_url'] = request.build_absolute_uri(redirect_url)
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     data["message"]="User not found or inactive"
@@ -862,6 +1519,22 @@ class LoginPassword(APIView):
                     except Counselor.DoesNotExist:
                         pass
 
+                elif user.user_type == choices.UserType.PARENT:
+                    data['redirect_url'] = reverse('parents_dashboard')
+
+                # Apply institute-student mobile gate + ensure absolute redirect
+                try:
+                    if user.user_type == choices.UserType.STUDENT:
+                        # If not already redirected to post_matric, compute it consistently
+                        desired = data.get('redirect_url') or reverse('users:userdashboard')
+                        desired = _compute_student_destination(user) if desired == reverse('users:userdashboard') else desired
+                        data['redirect_url'] = _apply_institute_student_mobile_gate(request, user, desired)
+                except Exception:
+                    pass
+
+                if data.get('redirect_url') and not str(data['redirect_url']).startswith('http'):
+                    data['redirect_url'] = request.build_absolute_uri(data['redirect_url'])
+
                 return Response(data, status=status.HTTP_200_OK)
                 
             data['success'] = False
@@ -909,19 +1582,15 @@ class GetUserDashboardUrl(APIView):
                     redirect_url = reverse('counselor:CounselorDashboardView', args=[coun.id])
                 except Counselor.DoesNotExist:
                     pass  # Keep default
+
+            elif user.user_type == choices.UserType.PARENT:
+                redirect_url = reverse('parents_dashboard')
             
             # Check for students - check if in class 11 or 12
             else:
-                student_management = StudentManagement.objects.filter(student=user).first()
-                if student_management and student_management.class_and_section:
-                    class_name = student_management.class_and_section.class_and_section
-                    if class_name:
-                        class_prefix = class_name[:2].strip()
-                        if class_prefix == "11" or class_prefix == "12":
-                            redirect_url = reverse('post_matric:tests')
-                else:
-                    # For regular students without class info, redirect to user dashboard
-                    redirect_url = reverse('users:userdashboard')
+                redirect_url = _compute_student_destination(user)
+
+            redirect_url = _apply_institute_student_mobile_gate(request, user, redirect_url)
         
         except Exception as e:
             print(f"Error getting dashboard URL: {e}")
@@ -929,6 +1598,217 @@ class GetUserDashboardUrl(APIView):
         # Return absolute URI to avoid 404 issues
         absolute_url = request.build_absolute_uri(redirect_url)
         return Response({'redirect_url': absolute_url}, status=status.HTTP_200_OK)
+
+
+class SendMobileOtp(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        mobile = (request.POST.get('mobile') or '').strip()
+        if not mobile:
+            return Response({'success': False, 'message': 'Mobile is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not re.match(r'^[6-9]\d{9}$', mobile):
+            return Response({'success': False, 'message': 'Please enter a valid 10-digit mobile number'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Student mobile must be unique
+        if request.user.user_type == choices.UserType.STUDENT and _student_mobile_exists(mobile, exclude_user_id=request.user.id):
+            return Response({'success': False, 'message': 'This mobile number is already used by another student'}, status=status.HTTP_200_OK)
+        # Student vs Parent mobile conflict
+        if request.user.user_type == choices.UserType.STUDENT and _mobile_conflicts_student_parent(mobile, current_user=request.user, intended_user_type=choices.UserType.STUDENT):
+            return Response({'success': False, 'message': 'This mobile number is already used by a parent account'}, status=status.HTTP_200_OK)
+
+        cs = ComService()
+        otp_type = choices.CommunicationTypeChooices.SMS
+        otp = cs.get_otp(int(mobile), otp_type)
+        print(f"Mobile Update - SMS OTP for {mobile}: {otp}")
+        send_otp_mail(int(mobile), otp_type)
+        return Response({'success': True, 'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
+
+
+class VerifyMobileOtp(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        mobile = (request.POST.get('mobile') or '').strip()
+        otp_list = request.POST.getlist('otp', [])
+        otp_str = (request.POST.get('otp') or '').strip()
+        otp_value = ''.join(otp_list).strip() if otp_list else otp_str
+
+        if not mobile or len(otp_value) != 6:
+            return Response({'success': False, 'message': 'Mobile and 6-digit OTP are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not re.match(r'^[6-9]\d{9}$', mobile):
+            return Response({'success': False, 'message': 'Please enter a valid 10-digit mobile number'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Student mobile must be unique
+        if request.user.user_type == choices.UserType.STUDENT and _student_mobile_exists(mobile, exclude_user_id=request.user.id):
+            return Response({'success': False, 'message': 'This mobile number is already used by another student'}, status=status.HTTP_200_OK)
+        # Student vs Parent mobile conflict
+        if request.user.user_type == choices.UserType.STUDENT and _mobile_conflicts_student_parent(mobile, current_user=request.user, intended_user_type=choices.UserType.STUDENT):
+            return Response({'success': False, 'message': 'This mobile number is already used by a parent account'}, status=status.HTTP_200_OK)
+
+        cs = ComService()
+        otp_type = choices.CommunicationTypeChooices.SMS
+        is_ok = cs.verify_otp(int(mobile), otp_value, otp_type, delete=False)
+        if not is_ok:
+            return Response({'success': False, 'message': 'Invalid OTP'}, status=status.HTTP_200_OK)
+
+        user = request.user
+        user.mobile = mobile
+        user.save()
+
+        request.session.pop('force_mobile_popup', None)
+        redirect_url = request.session.pop('post_mobile_redirect', reverse('users:userdashboard'))
+
+        return Response({'success': True, 'redirect_url': request.build_absolute_uri(redirect_url)}, status=status.HTTP_200_OK)
+
+
+class LinkParentMobile(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        if request.user.user_type != choices.UserType.STUDENT:
+            return Response({'success': False, 'message': 'Only students can add parent accounts'}, status=status.HTTP_403_FORBIDDEN)
+
+        parent_mobile = (request.POST.get('parent_mobile') or '').strip()
+        parent_name = (request.POST.get('parent_name') or 'Parent').strip() or 'Parent'
+
+        if not re.match(r'^[6-9]\d{9}$', parent_mobile):
+            return Response({'success': False, 'message': 'Please enter a valid 10-digit parent mobile number'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Parent vs Student mobile conflict
+        if _mobile_conflicts_student_parent(parent_mobile, current_user=None, intended_user_type=choices.UserType.PARENT):
+            return Response({'success': False, 'message': 'This mobile number is already used by a student account'}, status=status.HTTP_200_OK)
+
+        # Require OTP verification for adding parent
+        otp_list = request.POST.getlist('otp', [])
+        otp_str = (request.POST.get('otp') or '').strip()
+        otp_value = ''.join(otp_list).strip() if otp_list else otp_str
+        if len(otp_value) != 6:
+            return Response({'success': False, 'message': 'OTP is required to add parent mobile'}, status=status.HTTP_400_BAD_REQUEST)
+
+        cs = ComService()
+        otp_type = choices.CommunicationTypeChooices.SMS
+        is_ok = cs.verify_otp(int(parent_mobile), otp_value, otp_type, delete=False)
+        if not is_ok:
+            return Response({'success': False, 'message': 'Invalid OTP'}, status=status.HTTP_200_OK)
+
+        from users.models import ParentStudentLink
+
+        # Create or get a dedicated parent user account
+        parent_email = f"p{parent_mobile}@parent.topteen.local"
+        parent_user = User.objects.filter(mobile=parent_mobile, user_type=choices.UserType.PARENT).last()
+        if not parent_user:
+            parent_user = User.objects.filter(email=parent_email).last()
+        if not parent_user:
+            parent_user = User.create_user(email=parent_email, mobile=parent_mobile, name=parent_name, user_type=choices.UserType.PARENT)
+        else:
+            parent_user.user_type = choices.UserType.PARENT
+            parent_user.mobile = parent_mobile
+            if parent_name and (not parent_user.name or parent_user.name == 'Student'):
+                parent_user.name = parent_name
+            parent_user.save()
+
+        ParentStudentLink.objects.get_or_create(parent=parent_user, student=request.user)
+
+        return Response({'success': True, 'message': 'Parent linked successfully'}, status=status.HTTP_200_OK)
+
+
+class SendParentOtp(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        if request.user.user_type != choices.UserType.STUDENT:
+            return Response({'success': False, 'message': 'Only students can add parent accounts'}, status=status.HTTP_403_FORBIDDEN)
+
+        mobile = (request.POST.get('parent_mobile') or request.POST.get('mobile') or '').strip()
+        if not mobile:
+            return Response({'success': False, 'message': 'Parent mobile is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not re.match(r'^[6-9]\d{9}$', mobile):
+            return Response({'success': False, 'message': 'Please enter a valid 10-digit parent mobile number'}, status=status.HTTP_400_BAD_REQUEST)
+        # Parent vs Student mobile conflict
+        if _mobile_conflicts_student_parent(mobile, current_user=None, intended_user_type=choices.UserType.PARENT):
+            return Response({'success': False, 'message': 'This mobile number is already used by a student account'}, status=status.HTTP_200_OK)
+
+        cs = ComService()
+        otp_type = choices.CommunicationTypeChooices.SMS
+        otp = cs.get_otp(int(mobile), otp_type)
+        print(f"Parent Link - SMS OTP for {mobile}: {otp}")
+        send_otp_mail(int(mobile), otp_type)
+        return Response({'success': True, 'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
+
+
+class VerifyParentOtp(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        if request.user.user_type != choices.UserType.STUDENT:
+            return Response({'success': False, 'message': 'Only students can add parent accounts'}, status=status.HTTP_403_FORBIDDEN)
+
+        parent_mobile = (request.POST.get('parent_mobile') or '').strip()
+        parent_name = (request.POST.get('parent_name') or 'Parent').strip() or 'Parent'
+        otp_list = request.POST.getlist('otp', [])
+        otp_str = (request.POST.get('otp') or '').strip()
+        otp_value = ''.join(otp_list).strip() if otp_list else otp_str
+
+        if not parent_mobile or len(otp_value) != 6:
+            return Response({'success': False, 'message': 'Parent mobile and 6-digit OTP are required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not re.match(r'^[6-9]\d{9}$', parent_mobile):
+            return Response({'success': False, 'message': 'Please enter a valid 10-digit parent mobile number'}, status=status.HTTP_400_BAD_REQUEST)
+        # Parent vs Student mobile conflict
+        if _mobile_conflicts_student_parent(parent_mobile, current_user=None, intended_user_type=choices.UserType.PARENT):
+            return Response({'success': False, 'message': 'This mobile number is already used by a student account'}, status=status.HTTP_200_OK)
+
+        cs = ComService()
+        otp_type = choices.CommunicationTypeChooices.SMS
+        is_ok = cs.verify_otp(int(parent_mobile), otp_value, otp_type, delete=False)
+        if not is_ok:
+            return Response({'success': False, 'message': 'Invalid OTP'}, status=status.HTTP_200_OK)
+
+        # Create/link after successful OTP
+        from users.models import ParentStudentLink
+        parent_email = f"p{parent_mobile}@parent.topteen.local"
+        parent_user = User.objects.filter(mobile=parent_mobile, user_type=choices.UserType.PARENT).last()
+        if not parent_user:
+            parent_user = User.objects.filter(email=parent_email).last()
+        if not parent_user:
+            parent_user = User.create_user(email=parent_email, mobile=parent_mobile, name=parent_name, user_type=choices.UserType.PARENT)
+        else:
+            parent_user.user_type = choices.UserType.PARENT
+            parent_user.mobile = parent_mobile
+            if parent_name and (not parent_user.name or parent_user.name == 'Student'):
+                parent_user.name = parent_name
+            parent_user.save()
+
+        ParentStudentLink.objects.get_or_create(parent=parent_user, student=request.user)
+        return Response({'success': True, 'message': 'Parent linked successfully'}, status=status.HTTP_200_OK)
+
+
+def _bookmark_owner_user_ids(request_user):
+    """
+    For a STUDENT, include linked parents' bookmarks in lists.
+    For all other roles, only include their own bookmarks.
+    """
+    if not request_user or not getattr(request_user, "is_authenticated", False):
+        return []
+    user_ids = [request_user.id]
+    try:
+        if getattr(request_user, "user_type", None) == choices.UserType.STUDENT:
+            from users.models import ParentStudentLink
+            parent_ids = ParentStudentLink.objects.filter(student=request_user).values_list("parent_id", flat=True)
+            user_ids.extend(list(parent_ids))
+    except Exception:
+        # Safe fallback: show only user's own bookmarks
+        pass
+    # de-dupe while keeping order
+    seen = set()
+    out = []
+    for uid in user_ids:
+        if uid and uid not in seen:
+            out.append(uid)
+            seen.add(uid)
+    return out
 
 
 class SetPassword(APIView):
@@ -1121,11 +2001,20 @@ class ProfileBasicDetails(TemplateView):
         name='User profile update'
         return build_html_head(title=name, description=name)
 
-    def get_context(self,request,*args, **kwargs):
+    def get_context(self,request, profile_user=None, is_parent_view: bool = False, *args, **kwargs):
         ctx={}
+        ctx['profile_user'] = profile_user or request.user
+        ctx['is_parent_view'] = is_parent_view
         ctx['hobbies']=Hobbies.objects.all()
         ctx['subjects']=Subject.objects.all()
         ctx['figureouts']=UserFigureOut.objects.all()
+        # Linked parent accounts (for adding/viewing parent mobile(s) in profile)
+        try:
+            from users.models import ParentStudentLink
+            links = ParentStudentLink.objects.filter(student=ctx['profile_user']).select_related('parent')
+            ctx['linked_parents'] = [x.parent for x in links if x.parent]
+        except Exception:
+            ctx['linked_parents'] = []
         ctx["html_head"] = self.html_head()
         return ctx
 
@@ -1145,6 +2034,14 @@ class ProfileBasicDetails(TemplateView):
         subjects=request.POST.getlist("usersubject",False)
         hobbies=request.POST.getlist("hobbies",False)
         if name and mobile and birthdate and gender and grade and school and figure_outs and subjects and hobbies and figure_outs:
+            # Student mobile must be unique
+            if request.user.user_type == choices.UserType.STUDENT and _student_mobile_exists(mobile, exclude_user_id=request.user.id):
+                messages.error(request, "This mobile number is already used by another student.")
+                return render(request,self.template_name, self.get_context(request,args, kwargs))
+            # Student vs Parent mobile conflict
+            if request.user.user_type == choices.UserType.STUDENT and _mobile_conflicts_student_parent(mobile, current_user=request.user, intended_user_type=choices.UserType.STUDENT):
+                messages.error(request, "This mobile number is already used by a parent account.")
+                return render(request,self.template_name, self.get_context(request,args, kwargs))
             hobbies=Hobbies.objects.filter(id__in=hobbies)
             subjects=Subject.objects.filter(id__in=subjects)
             figure_outs=UserFigureOut.objects.filter(id__in=figure_outs)
@@ -1178,8 +2075,17 @@ class ViewProfile(TemplateView):
         name='View Profile'
         return build_html_head(title=name, description=name)
 
-    def get_context(self,request,*args, **kwargs):
+    def get_context(self,request, profile_user=None, is_parent_view: bool = False, *args, **kwargs):
         ctx={}
+        ctx['profile_user'] = profile_user or request.user
+        ctx['is_parent_view'] = is_parent_view
+        # Linked parent accounts for display
+        try:
+            from users.models import ParentStudentLink
+            links = ParentStudentLink.objects.filter(student=ctx['profile_user']).select_related('parent')
+            ctx['linked_parents'] = [x.parent for x in links if x.parent]
+        except Exception:
+            ctx['linked_parents'] = []
         ctx["html_head"] = self.html_head()
         return ctx
 
@@ -1195,12 +2101,15 @@ class UserDashboard(TemplateView):
         name='User Profile'
         return build_html_head(title=name, description=name)
 
-    def get_context(self,request,*args,**kwargs):
+    def get_context(self,request, profile_user=None, is_parent_view: bool = False, *args,**kwargs):
         from psychometric_tests.models import PsychometricTestPayment
+        profile_user = profile_user or request.user
         
         tags=CareerTags.objects.all().order_by('priority')[:5]
         country=Country.objects.all().order_by('priority')
         ctx={}
+        ctx['profile_user'] = profile_user
+        ctx['is_parent_view'] = is_parent_view
         ctx['blogs'] = Blog.get_published_objects().all()
         ctx['colleges'] = College.get_all_colleges()
         ctx['careers'] = Career.get_all_careers()
@@ -1215,7 +2124,7 @@ class UserDashboard(TemplateView):
         from institute.models import StudentManagement
         user_grade = None
         try:
-            user_profile = request.user.user_profile
+            user_profile = profile_user.user_profile
             if user_profile and user_profile.grade:
                 user_grade = str(user_profile.grade)
         except:
@@ -1224,7 +2133,7 @@ class UserDashboard(TemplateView):
         # If no grade from UserProfile, check StudentManagement
         if not user_grade:
             try:
-                student_management = StudentManagement.objects.filter(student=request.user).first()
+                student_management = StudentManagement.objects.filter(student=profile_user).first()
                 if student_management and student_management.class_and_section:
                     class_name = student_management.class_and_section.class_and_section
                     if class_name:
@@ -1247,7 +2156,7 @@ class UserDashboard(TemplateView):
         
         # Check for successful psychometric test payments
         successful_test_payment = PsychometricTestPayment.objects.filter(
-            user=request.user,
+            user=profile_user,
             is_success=choices.YesNoChoices.YES
         ).order_by('-created').first()
         
@@ -1260,7 +2169,7 @@ class UserDashboard(TemplateView):
         if user_grade == "10":
             # Class 10 should have BASIC test (Stream Sorter)
             class_test_payment = PsychometricTestPayment.objects.filter(
-                user=request.user,
+                user=profile_user,
                 test_type=choices.PsychometricTestType.BASIC,
                 is_success=choices.YesNoChoices.YES
             ).first()
@@ -1271,7 +2180,7 @@ class UserDashboard(TemplateView):
         elif user_grade == "12":
             # Class 12 should have ADVANCED test (Career Direction)
             class_test_payment = PsychometricTestPayment.objects.filter(
-                user=request.user,
+                user=profile_user,
                 test_type=choices.PsychometricTestType.ADVANCED,
                 is_success=choices.YesNoChoices.YES
             ).first()
@@ -1293,14 +2202,128 @@ class UserDashboard(TemplateView):
         ctx['test_buy_url_class12'] = reverse('post_matric:tests')
         
         # ctc=CentralTestCandidate.objects.filter(user=request.user).last()
-        ctc=CentralTestCandidate.objects.filter(user=request.user).last()
+        ctc=CentralTestCandidate.objects.filter(user=profile_user).last()
         try:
             ctc.last_test_is_success()
             ctx['central_test_candidate']=ctc
         except:
             ctx['central_test_candidate']=False
         ctx["html_head"] = self.html_head()
-        ctx["notes"]=UserNote.objects.filter(user=request.user)[:3]
+        ctx["notes"]=UserNote.objects.filter(user=profile_user)[:3]
+
+        # Parent suggestions (show parent bookmarks/shortlists as suggestions to STUDENTS)
+        ctx["show_parent_suggestions"] = False
+        ctx["suggested_by_parents"] = []  # list of parent users
+        ctx["parent_suggested_careers"] = []
+        ctx["parent_suggested_videos"] = []
+        ctx["parent_suggested_colleges"] = []
+        ctx["parent_suggested_blogs"] = []
+        try:
+            if (
+                request.user.is_authenticated
+                and request.user.user_type == choices.UserType.STUDENT
+                and not is_parent_view
+                and profile_user.id == request.user.id
+            ):
+                from users.models import ParentStudentLink
+                parent_links = ParentStudentLink.objects.filter(student=request.user).select_related("parent")
+                parent_users = [l.parent for l in parent_links if l.parent]
+                parent_ids = [p.id for p in parent_users if p and p.id]
+                ctx["suggested_by_parents"] = parent_users
+
+                if parent_ids:
+                    # Careers (student-scoped suggestions from ParentStudentBookmark)
+                    from users.models import ParentStudentBookmark
+                    from django.contrib.contenttypes.models import ContentType
+                    from careers.models import Career as CareerModel
+                    ct = ContentType.objects.get_for_model(CareerModel)
+                    suggested_qs = ParentStudentBookmark.objects.filter(
+                        student=request.user,
+                        content_type=ct,
+                    ).order_by("-created")
+                    careers = []
+                    seen = set()
+                    for bm in suggested_qs:
+                        cid = bm.object_id
+                        if cid and cid not in seen:
+                            obj = CareerModel.objects.filter(id=cid).first()
+                            if obj:
+                                careers.append(obj)
+                                seen.add(cid)
+                        if len(careers) >= 6:
+                            break
+                    ctx["parent_suggested_careers"] = careers
+
+                    # Videos (student-scoped suggestions from ParentStudentBookmark)
+                    from users.models import ParentStudentBookmark
+                    from django.contrib.contenttypes.models import ContentType
+                    from careers.models import Videos as VideosModel
+                    ct_v = ContentType.objects.get_for_model(VideosModel)
+                    bqs_v = ParentStudentBookmark.objects.filter(
+                        student=request.user,
+                        content_type=ct_v,
+                    ).order_by("-created")
+                    vids = []
+                    seen_v = set()
+                    for bm in bqs_v:
+                        vid = bm.object_id
+                        if vid and vid not in seen_v:
+                            obj = VideosModel.objects.filter(id=vid).first()
+                            if obj:
+                                vids.append(obj)
+                                seen_v.add(vid)
+                        if len(vids) >= 6:
+                            break
+                    ctx["parent_suggested_videos"] = vids
+
+                    # Colleges (student-scoped suggestions from ParentStudentBookmark)
+                    from colleges.models import College as CollegeModel
+                    ct_c = ContentType.objects.get_for_model(CollegeModel)
+                    bqs_c = ParentStudentBookmark.objects.filter(
+                        student=request.user,
+                        content_type=ct_c,
+                    ).order_by("-created")
+                    colleges = []
+                    seen_c = set()
+                    for bm in bqs_c:
+                        cid = bm.object_id
+                        if cid and cid not in seen_c:
+                            obj = CollegeModel.objects.filter(id=cid).first()
+                            if obj:
+                                colleges.append(obj)
+                                seen_c.add(cid)
+                        if len(colleges) >= 6:
+                            break
+                    ctx["parent_suggested_colleges"] = colleges
+
+                    # Blogs (student-scoped suggestions from ParentStudentBookmark)
+                    from blog.models import Blog as BlogModel
+                    ct_b = ContentType.objects.get_for_model(BlogModel)
+                    bqs_b = ParentStudentBookmark.objects.filter(
+                        student=request.user,
+                        content_type=ct_b,
+                    ).order_by("-created")
+                    blogs = []
+                    seen_b = set()
+                    for bm in bqs_b:
+                        bid = bm.object_id
+                        if bid and bid not in seen_b:
+                            obj = BlogModel.get_published_objects().filter(id=bid).first()
+                            if obj:
+                                blogs.append(obj)
+                                seen_b.add(bid)
+                        if len(blogs) >= 6:
+                            break
+                    ctx["parent_suggested_blogs"] = blogs
+
+                ctx["show_parent_suggestions"] = bool(
+                    ctx["parent_suggested_careers"]
+                    or ctx["parent_suggested_videos"]
+                    or ctx["parent_suggested_colleges"]
+                    or ctx["parent_suggested_blogs"]
+                )
+        except Exception:
+            pass
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -1485,9 +2508,16 @@ class UserColleges(TemplateView):
         from colleges.models import CollegeShortlist
         ctx={}
         ctx["html_head"] = self.html_head()
-        # Get bookmarked colleges from CollegeShortlist
-        college_shortlists = CollegeShortlist.objects.filter(user=request.user).select_related('college')
-        ctx["colleges"] = [cs.college for cs in college_shortlists]
+        user_ids = _bookmark_owner_user_ids(request.user)
+        # Get bookmarked colleges from CollegeShortlist for user + linked parents
+        college_shortlists = CollegeShortlist.objects.filter(user_id__in=user_ids).select_related('college')
+        colleges = []
+        seen = set()
+        for cs in college_shortlists:
+            if cs.college_id and cs.college_id not in seen and cs.college:
+                colleges.append(cs.college)
+                seen.add(cs.college_id)
+        ctx["colleges"] = colleges
         ctx['breadcrumb']=self.__breadcrumb()
         return ctx
 
@@ -1513,7 +2543,12 @@ class CareerInterests(TemplateView):
         ctx['breadcrumb']=self.__breadcrumb()
         # Use select_related to optimize query and ensure career data is loaded
         # Filter out any career_shortlists where career is None
-        career_interests_qs = request.user.career_shortlists.select_related('career').filter(career__isnull=False).all()
+        user_ids = _bookmark_owner_user_ids(request.user)
+        from careers.models import CareerShortlist
+        career_interests_qs = CareerShortlist.objects.filter(
+            user_id__in=user_ids,
+            career__isnull=False
+        ).select_related('career')
         # Convert to list to ensure queryset is evaluated for Jinja2 template
         career_interests_list = list(career_interests_qs)
         ctx['career_interests'] = career_interests_list
@@ -1764,7 +2799,8 @@ class BookmarkVideo(TemplateView):
 
     def get_context(self,request,*args,**kwargs):
         ctx={}
-        videos=Videos.objects.filter(shortlist=request.user)
+        user_ids = _bookmark_owner_user_ids(request.user)
+        videos = Videos.objects.filter(shortlist__in=user_ids).distinct()
         ctx["html_head"] = self.html_head()
         ctx["videos"] = videos
         ctx['breadcrumb']=self.__breadcrumb()
@@ -1787,7 +2823,8 @@ class BookmarkExam(TemplateView):
 
     def get_context(self,request,*args,**kwargs):
         ctx={}
-        exams=EntranceExam.objects.filter(shortlist=request.user)
+        user_ids = _bookmark_owner_user_ids(request.user)
+        exams = EntranceExam.objects.filter(shortlist__in=user_ids).distinct()
         ctx["html_head"] = self.html_head()
         ctx["exams"] = exams
         ctx['breadcrumb']=self.__breadcrumb()
@@ -1813,11 +2850,58 @@ class BookmarkCollege(TemplateView):
         from colleges.models import CollegeShortlist
         ctx={}
         ctx["html_head"] = self.html_head()
-        # Get bookmarked colleges from CollegeShortlist
-        college_shortlists = CollegeShortlist.objects.filter(user=request.user).select_related('college')
-        ctx["colleges"] = [cs.college for cs in college_shortlists]
+        user_ids = _bookmark_owner_user_ids(request.user)
+        # Get bookmarked colleges from CollegeShortlist for user + linked parents
+        college_shortlists = CollegeShortlist.objects.filter(user_id__in=user_ids).select_related('college')
+        # de-dupe colleges while keeping order
+        colleges = []
+        seen = set()
+        for cs in college_shortlists:
+            if cs.college_id and cs.college_id not in seen and cs.college:
+                colleges.append(cs.college)
+                seen.add(cs.college_id)
+        ctx["colleges"] = colleges
         ctx['breadcrumb']=self.__breadcrumb()
 
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
+class BookmarkBlog(TemplateView):
+    template_name="template20/user/bookmark_blog.html"
+
+    def __breadcrumb(self):
+        l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},
+           {'title':'My Bookmarks','text':'My Bookmarks','url':reverse_lazy('users:bookmark')},
+           {'title':'My Blogs','text':'My Blogs','url':''}]
+        return build_breadcrumb(l)
+
+    def html_head(self):
+        name='My Blogs'
+        return build_html_head(title=name, description=name)
+
+    def get_context(self,request,*args,**kwargs):
+        ctx={}
+        ctx["html_head"] = self.html_head()
+        ctx['breadcrumb']=self.__breadcrumb()
+        user_ids = _bookmark_owner_user_ids(request.user)
+        try:
+            from blog.models import BlogShortlist, Blog
+            shortlisted = BlogShortlist.objects.filter(user_id__in=user_ids, blog__isnull=False).select_related('blog')
+            blogs = []
+            seen = set()
+            for bs in shortlisted:
+                if bs.blog_id and bs.blog_id not in seen and bs.blog:
+                    blogs.append(bs.blog)
+                    seen.add(bs.blog_id)
+            # Keep only published blogs (safety)
+            published_ids = set(Blog.get_published_objects().filter(id__in=list(seen)).values_list('id', flat=True))
+            ctx["blogs"] = [b for b in blogs if b and b.id in published_ids]
+        except Exception:
+            ctx["blogs"] = []
         return ctx
 
     def get(self, request, *args, **kwargs):

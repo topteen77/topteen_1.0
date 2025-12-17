@@ -12,6 +12,7 @@ from django.db.models import Q
 from django.http import HttpResponse,JsonResponse
 from django.template.loader import render_to_string
 from rest_framework.views import APIView
+from core import choices
 # Create your views here.
 class Blogs(TemplateView):
     template_name = "template20/blogs.html"
@@ -54,6 +55,47 @@ class Blogs(TemplateView):
             user_page_obj = paginated_blogs.get_page(paginated_blogs.num_pages)
         
         ctx['page_obj']=user_page_obj
+        # Blog bookmark state
+        ctx['is_parent_student_context'] = False
+        ctx['parent_student_id'] = None
+        try:
+            student_id = request.GET.get("student_id")
+            if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
+                from users.models import ParentStudentLink, ParentStudentBookmark
+                from django.contrib.contenttypes.models import ContentType
+                if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                    ct = ContentType.objects.get_for_model(Blog)
+                    ctx['bookmarked_blog_ids'] = list(
+                        ParentStudentBookmark.objects.filter(
+                            parent=request.user,
+                            student_id=int(student_id),
+                            content_type=ct,
+                        ).values_list("object_id", flat=True)
+                    )
+                    ctx['is_parent_student_context'] = True
+                    ctx['parent_student_id'] = int(student_id)
+                else:
+                    ctx['bookmarked_blog_ids'] = []
+            else:
+                # regular bookmarks
+                if request.user.is_authenticated:
+                    from .models import BlogShortlist
+                    ctx['bookmarked_blog_ids'] = list(
+                        BlogShortlist.objects.filter(user=request.user, blog__isnull=False).values_list('blog_id', flat=True)
+                    )
+                else:
+                    ctx['bookmarked_blog_ids'] = []
+        except Exception:
+            try:
+                if request.user.is_authenticated:
+                    from .models import BlogShortlist
+                    ctx['bookmarked_blog_ids'] = list(
+                        BlogShortlist.objects.filter(user=request.user, blog__isnull=False).values_list('blog_id', flat=True)
+                    )
+                else:
+                    ctx['bookmarked_blog_ids'] = []
+            except Exception:
+                ctx['bookmarked_blog_ids'] = []
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -103,7 +145,62 @@ class BlogDetail(TemplateView):
         bread_crumb =self._breadcrumb(blog)
         ctx['breadcrumb']= bread_crumb
         ctx['latest_blogs']= latest_blogs[:5]
+        # Bookmark state
+        ctx['is_parent_student_context'] = False
+        ctx['parent_student_id'] = None
+        try:
+            student_id = request.GET.get("student_id")
+            if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
+                from users.models import ParentStudentLink, ParentStudentBookmark
+                from django.contrib.contenttypes.models import ContentType
+                if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                    ct = ContentType.objects.get_for_model(Blog)
+                    ctx['is_blog_bookmarked'] = ParentStudentBookmark.objects.filter(
+                        parent=request.user, student_id=int(student_id), content_type=ct, object_id=blog.id
+                    ).exists()
+                    ctx['is_parent_student_context'] = True
+                    ctx['parent_student_id'] = int(student_id)
+                else:
+                    ctx['is_blog_bookmarked'] = False
+            else:
+                if request.user.is_authenticated:
+                    from .models import BlogShortlist
+                    ctx['is_blog_bookmarked'] = BlogShortlist.objects.filter(user=request.user, blog=blog).exists()
+                else:
+                    ctx['is_blog_bookmarked'] = False
+        except Exception:
+            try:
+                if request.user.is_authenticated:
+                    from .models import BlogShortlist
+                    ctx['is_blog_bookmarked'] = BlogShortlist.objects.filter(user=request.user, blog=blog).exists()
+                else:
+                    ctx['is_blog_bookmarked'] = False
+            except Exception:
+                ctx['is_blog_bookmarked'] = False
         return ctx
+
+
+class ToggleBlogBookmark(APIView):
+    """
+    Toggle blog bookmark for the logged-in user.
+    """
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({"success": False, "message": "Login required"}, status=401)
+        blog_id = request.POST.get("blog_id")
+        blog_slug = request.POST.get("blog_slug")
+        blogs = Blog.get_published_objects()
+        if blog_id:
+            blog = get_object_or_404(blogs, id=blog_id)
+        else:
+            blog = get_object_or_404(blogs, slug=blog_slug)
+        from .models import BlogShortlist
+        obj = BlogShortlist.objects.filter(user=request.user, blog=blog).first()
+        if obj:
+            obj.delete()
+            return JsonResponse({"success": True, "bookmarked": False, "message": "Removed Bookmark"})
+        BlogShortlist.objects.create(user=request.user, blog=blog)
+        return JsonResponse({"success": True, "bookmarked": True, "message": "Blog Bookmarked"})
     
     def _breadcrumb(self,blog):
         from django.urls import reverse

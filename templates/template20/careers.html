@@ -219,7 +219,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                       </button>
                       {% endif %}
                     </div>
-                    <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">
+                    <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
                       {% if career.image and career.image.name %}
                         <img src="{{ career.image.url }}" alt="{{ career.name }}">
                       {% else %}
@@ -229,7 +229,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                   </div>
                   <div class="blog-content">
                     <h3 class="blog-title mt-0">
-                      <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">{{ career.name }}</a>
+                      <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">{{ career.name }}</a>
                     </h3>
                     {% set salary_value = career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim if career.get_max_salary() else '' %}
                     {% if career.get_max_salary() and career.get_max_salary() != 'N/A' and salary_value != '0.0' and salary_value != '0' and salary_value != '' %}
@@ -241,7 +241,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                     {% if career.summary %}
                     <p class="blog-excerpt">{{ career.summary|truncate(120) }}</p>
                     {% endif %}
-                    <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
+                    <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
                   </div>
                 </div>
               </div>
@@ -256,7 +256,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                   <ul class="pagination career-pagination justify-content-center">
                     {% if careers.has_previous() %}
                     <li class="page-item">
-                      <a class="page-link" href="?page={{ careers.previous_page_number() }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.professions %}{% for prof in request.GET.getlist('professions') %}&professions={{ prof }}{% endfor %}{% endif %}{% if request.GET.skills %}{% for skill in request.GET.getlist('skills') %}&skills={{ skill }}{% endfor %}{% endif %}{% if request.GET.cluster %}&cluster={{ request.GET.cluster }}{% endif %}" aria-label="Previous">
+                      <a class="page-link" href="?page={{ careers.previous_page_number() }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.professions %}{% for prof in request.GET.getlist('professions') %}&professions={{ prof }}{% endfor %}{% endif %}{% if request.GET.skills %}{% for skill in request.GET.getlist('skills') %}&skills={{ skill }}{% endfor %}{% endif %}{% if request.GET.cluster %}&cluster={{ request.GET.cluster }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" aria-label="Previous">
                         <i class='bx bx-chevron-left'></i>
                       </a>
                     </li>
@@ -273,14 +273,14 @@ Explore our comprehensive collection of career paths organized by industry and i
                         <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
                       {% elif page_num > (careers.number - 3) and page_num < (careers.number + 3) %}
                         <li class="page-item">
-                          <a class="page-link" href="?page={{ page_num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.professions %}{% for prof in request.GET.getlist('professions') %}&professions={{ prof }}{% endfor %}{% endif %}{% if request.GET.skills %}{% for skill in request.GET.getlist('skills') %}&skills={{ skill }}{% endfor %}{% endif %}{% if request.GET.cluster %}&cluster={{ request.GET.cluster }}{% endif %}">{{ page_num }}</a>
+                          <a class="page-link" href="?page={{ page_num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.professions %}{% for prof in request.GET.getlist('professions') %}&professions={{ prof }}{% endfor %}{% endif %}{% if request.GET.skills %}{% for skill in request.GET.getlist('skills') %}&skills={{ skill }}{% endfor %}{% endif %}{% if request.GET.cluster %}&cluster={{ request.GET.cluster }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}">{{ page_num }}</a>
                         </li>
                       {% endif %}
                     {% endfor %}
 
                     {% if careers.has_next() %}
                     <li class="page-item">
-                      <a class="page-link" href="?page={{ careers.next_page_number() }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.professions %}{% for prof in request.GET.getlist('professions') %}&professions={{ prof }}{% endfor %}{% endif %}{% if request.GET.skills %}{% for skill in request.GET.getlist('skills') %}&skills={{ skill }}{% endfor %}{% endif %}{% if request.GET.cluster %}&cluster={{ request.GET.cluster }}{% endif %}" aria-label="Next">
+                      <a class="page-link" href="?page={{ careers.next_page_number() }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.professions %}{% for prof in request.GET.getlist('professions') %}&professions={{ prof }}{% endfor %}{% endif %}{% if request.GET.skills %}{% for skill in request.GET.getlist('skills') %}&skills={{ skill }}{% endfor %}{% endif %}{% if request.GET.cluster %}&cluster={{ request.GET.cluster }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" aria-label="Next">
                         <i class='bx bx-chevron-right'></i>
                       </a>
                     </li>
@@ -337,7 +337,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                                   <i class='bx bx-bookmark'></i>
                                 </button>
                               </div>
-                              <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">
+                              <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
                                 {% if career.image and career.image.name %}
                                   <img src="{{ career.image.url }}" alt="{{ career.name }}">
                                 {% else %}
@@ -347,7 +347,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                             </div>
                             <div class="blog-content">
                               <h3 class="blog-title mt-0">
-                                <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">{{ career.name }}</a>
+                                <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">{{ career.name }}</a>
                               </h3>
                               {% set salary_value = career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim if career.get_max_salary() else '' %}
                               {% if career.get_max_salary() and career.get_max_salary() != 'N/A' and salary_value != '0.0' and salary_value != '0' and salary_value != '' %}
@@ -359,7 +359,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                               {% if career.summary %}
                               <p class="blog-excerpt">{{ career.summary|truncate(120) }}</p>
                               {% endif %}
-                              <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
+                              <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
                             </div>
                           </div>
                         </div>
@@ -392,6 +392,9 @@ Explore our comprehensive collection of career paths organized by industry and i
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+  // Parent->Student context for bookmarking (when parent is suggesting for a specific student)
+  window.PARENT_STUDENT_ID = {% if is_parent_student_context and parent_student_id %}{{ parent_student_id }}{% else %}null{% endif %};
+
   // Helper function to get CSRF token from cookies
   function getCookie(name) {
     let cookieValue = null;
@@ -447,7 +450,7 @@ Explore our comprehensive collection of career paths organized by industry and i
         this.style.opacity = '0.6';
         
         $.ajax({
-          url: "/api/v1/user/shortlistcareer",
+          url: (window.PARENT_STUDENT_ID ? ("/parents/student/" + window.PARENT_STUDENT_ID + "/bookmark/career/") : "/api/v1/user/shortlistcareer"),
           type: 'POST',
           data: {
             'careerslug': careerSlug,

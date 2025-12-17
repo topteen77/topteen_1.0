@@ -123,6 +123,9 @@
                 {% else %}
                   <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
                 {% endif %}
+              {% elif user.user_type == 6 %}
+                {# Parent #}
+                <a href="{{ url('parents_dashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
               {% elif user.user_type == 1 %}
                 {# Student - Check if class 11/12 for post_matric dashboard, else user dashboard #}
                 {% set student_management = user.student_management.all() %}

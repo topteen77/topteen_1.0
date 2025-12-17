@@ -96,35 +96,35 @@
             <div class="col-md-6">
               <div class="profile-field">
                 <div class="profile-label">Full Name</div>
-                <div class="profile-value">{{ request.user.name|default('Not set') }}</div>
+                <div class="profile-value">{{ profile_user.name|default('Not set') }}</div>
               </div>
             </div>
             <div class="col-md-6">
               <div class="profile-field">
                 <div class="profile-label">Email</div>
-                <div class="profile-value">{{ request.user.email|default('Not set') }}</div>
+                <div class="profile-value">{{ profile_user.email|default('Not set') }}</div>
               </div>
             </div>
             <div class="col-md-6">
               <div class="profile-field">
                 <div class="profile-label">Mobile Number</div>
-                <div class="profile-value">{{ request.user.mobile|default('Not set') }}</div>
+                <div class="profile-value">{{ profile_user.mobile|default('Not set') }}</div>
               </div>
             </div>
-            {% if request.user.user_profile %}
+            {% if profile_user.user_profile %}
             <div class="col-md-6">
               <div class="profile-field">
                 <div class="profile-label">Birthday</div>
-                <div class="profile-value">{{ request.user.user_profile.birthdate|default('Not set') }}</div>
+                <div class="profile-value">{{ profile_user.user_profile.birthdate|default('Not set') }}</div>
               </div>
             </div>
             <div class="col-md-6">
               <div class="profile-field">
                 <div class="profile-label">Gender</div>
                 <div class="profile-value">
-                  {% if request.user.user_profile.gender == 20 %}Male
-                  {% elif request.user.user_profile.gender == 30 %}Female
-                  {% elif request.user.user_profile.gender == 10 %}Transgender
+                  {% if profile_user.user_profile.gender == 20 %}Male
+                  {% elif profile_user.user_profile.gender == 30 %}Female
+                  {% elif profile_user.user_profile.gender == 10 %}Transgender
                   {% else %}Not set
                   {% endif %}
                 </div>
@@ -133,22 +133,79 @@
             <div class="col-md-6">
               <div class="profile-field">
                 <div class="profile-label">School Name</div>
-                <div class="profile-value">{{ request.user.user_profile.schoolname|default('Not set') }}</div>
+                <div class="profile-value">{{ profile_user.user_profile.schoolname|default('Not set') }}</div>
               </div>
             </div>
             <div class="col-md-6">
               <div class="profile-field">
                 <div class="profile-label">Grade/Class</div>
-                <div class="profile-value">Class {{ request.user.user_profile.grade|default('Not set') }}</div>
+                <div class="profile-value">Class {{ profile_user.user_profile.grade|default('Not set') }}</div>
               </div>
             </div>
             {% endif %}
           </div>
         </div>
 
-        {% if request.user.user_profile %}
+        <!-- Parent Accounts -->
+        <div class="profile-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="profile-section-title mb-0">Parent Accounts</h3>
+            <button type="button" class="edit-profile-btn" id="openParentOtpModal">
+              Add Parent Mobile
+            </button>
+          </div>
+          {% if linked_parents and linked_parents|length %}
+            <div class="row">
+              {% for p in linked_parents %}
+              <div class="col-md-6">
+                <div class="profile-field">
+                  <div class="profile-label">{{ p.name or 'Parent' }}</div>
+                  <div class="profile-value">{{ p.mobile|default('Not set') }}</div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-muted">No parent accounts linked yet. Add parent mobile from Edit Profile.</div>
+          {% endif %}
+        </div>
+
+        <!-- Parent OTP Modal -->
+        <div class="modal fade" id="parentOtpModalView" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Verify Parent Mobile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div id="parentOtpErrView" class="text-danger fs-12 mb-2" style="display:none;"></div>
+                <div class="mb-3">
+                  <label class="form-label fw-600">Parent Mobile</label>
+                  <input type="text" class="form-control" id="parentOtpMobileView" maxlength="10" inputmode="numeric" pattern="[0-9]*" placeholder="Enter 10 digit mobile number" />
+                </div>
+                <button type="button" class="btn custom-button purple-button fw-600 w-100 mb-3" id="parentOtpSendBtnView">Send OTP</button>
+
+                <div id="parentOtpBoxView" style="display:none;">
+                  <label class="form-label fw-600">Enter OTP</label>
+                  <div class="d-flex justify-content-between gap-2 mb-3">
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv1" />
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv2" />
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv3" />
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv4" />
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv5" />
+                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv6" />
+                  </div>
+                  <button type="button" class="btn custom-button purple-button fw-600 w-100" id="parentOtpVerifyBtnView">Verify & Add Parent</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% if profile_user.user_profile %}
         <!-- What are you here for? -->
-        {% set figure_outs = request.user.user_profile.figure_out.all() %}
+        {% set figure_outs = profile_user.user_profile.figure_out.all() %}
         {% if figure_outs|length > 0 %}
         <div class="profile-card">
           <h3 class="profile-section-title">What are you here for?</h3>
@@ -166,7 +223,7 @@
         {% endif %}
 
         <!-- Subjects -->
-        {% set subjects = request.user.user_profile.subject.all() %}
+        {% set subjects = profile_user.user_profile.subject.all() %}
         {% if subjects|length > 0 %}
         <div class="profile-card">
           <h3 class="profile-section-title">Subjects</h3>
@@ -184,7 +241,7 @@
         {% endif %}
 
         <!-- Hobbies -->
-        {% set hobbies_list = request.user.user_profile.hobbies.all() %}
+        {% set hobbies_list = profile_user.user_profile.hobbies.all() %}
         {% if hobbies_list|length > 0 %}
         <div class="profile-card">
           <h3 class="profile-section-title">Hobbies</h3>
@@ -206,5 +263,108 @@
     </div>
   </div>
 </section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const openBtn = document.getElementById('openParentOtpModal');
+    const modalEl = document.getElementById('parentOtpModalView');
+    if (!openBtn || !modalEl) return;
+
+    const modal = new bootstrap.Modal(modalEl);
+    const mobileEl = document.getElementById('parentOtpMobileView');
+    const errEl = document.getElementById('parentOtpErrView');
+    const boxEl = document.getElementById('parentOtpBoxView');
+    const sendBtn = document.getElementById('parentOtpSendBtnView');
+    const verifyBtn = document.getElementById('parentOtpVerifyBtnView');
+    const otpIds = ['pv1','pv2','pv3','pv4','pv5','pv6'];
+    const otpInputs = otpIds.map(id => document.getElementById(id)).filter(Boolean);
+
+    function setErr(msg) {
+      errEl.textContent = msg;
+      errEl.style.display = msg ? 'block' : 'none';
+    }
+    function onlyDigits10() {
+      mobileEl.value = (mobileEl.value || '').replace(/\D+/g, '').slice(0, 10);
+    }
+    mobileEl.addEventListener('input', onlyDigits10);
+
+    function setOtpFromString(str) {
+      const digits = (str || '').replace(/\D+/g, '').slice(0, 6);
+      for (let i = 0; i < otpInputs.length; i++) otpInputs[i].value = digits[i] || '';
+      (otpInputs.find(i => !i.value) || otpInputs[otpInputs.length-1])?.focus();
+    }
+    otpInputs.forEach((inp, idx) => {
+      inp.addEventListener('input', () => {
+        inp.value = (inp.value || '').replace(/\D+/g, '').slice(0, 1);
+        if (inp.value && idx < otpInputs.length-1) otpInputs[idx+1].focus();
+      });
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          if (inp.value) { inp.value=''; e.preventDefault(); return; }
+          if (idx>0) { otpInputs[idx-1].focus(); otpInputs[idx-1].value=''; e.preventDefault(); }
+        }
+      });
+      inp.addEventListener('paste', (e) => {
+        const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        if (text) { e.preventDefault(); setOtpFromString(text); }
+      });
+    });
+
+    openBtn.addEventListener('click', function() {
+      setErr('');
+      boxEl.style.display = 'none';
+      otpInputs.forEach(i => i.value='');
+      modal.show();
+      setTimeout(() => mobileEl.focus(), 50);
+    });
+
+    sendBtn.addEventListener('click', function() {
+      const mobile = (mobileEl.value || '').trim();
+      if (!/^[6-9]\d{9}$/.test(mobile)) { setErr('Please enter a valid 10-digit mobile number'); return; }
+      setErr('');
+      const fd = new FormData();
+      fd.append('parent_mobile', mobile);
+      fetch("{{ url('users:send_parent_otp') }}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: fd
+      }).then(r => r.json()).then(data => {
+        if (data.success) {
+          boxEl.style.display = 'block';
+          otpInputs.forEach(i => i.value='');
+          otpInputs[0]?.focus();
+        } else {
+          setErr(data.message || 'Unable to send OTP');
+        }
+      }).catch(() => setErr('Unable to send OTP'));
+    });
+
+    verifyBtn.addEventListener('click', function() {
+      const mobile = (mobileEl.value || '').trim();
+      const otp = otpInputs.map(i => (i.value || '').trim()).join('');
+      if (!/^[6-9]\d{9}$/.test(mobile)) { setErr('Please enter a valid 10-digit mobile number'); return; }
+      if (otp.length !== 6) { setErr('Please enter the 6-digit OTP'); return; }
+      setErr('');
+      const fd = new FormData();
+      fd.append('parent_mobile', mobile);
+      fd.append('parent_name', 'Parent');
+      fd.append('otp', otp);
+      fetch("{{ url('users:verify_parent_otp') }}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: fd
+      }).then(r => r.json()).then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          setErr(data.message || 'Invalid OTP');
+        }
+      }).catch(() => setErr('Unable to verify OTP'));
+    });
+  });
+</script>
 {% endblock %}
 

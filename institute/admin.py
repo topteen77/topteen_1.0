@@ -2,6 +2,9 @@ from django.contrib import admin
 from institute.models import Institute,StudentManagement,InstituteAccountDeletion,InstituteLog,ClassAndSection,InstituteGroup,InstituteMarketingGroup
 from users.models import User
 from core import choices
+from django.utils.html import format_html
+import re
+from django.urls import reverse
 # Register your models here.
 
 class UserStatusFilter(admin.SimpleListFilter):
@@ -82,8 +85,31 @@ class InstituteMarketingGroupAdmin(admin.ModelAdmin):
 admin.site.register(InstituteMarketingGroup,InstituteMarketingGroupAdmin)
 
 class InstituteAdmin(admin.ModelAdmin):
-    list_display=["name","created_by","logo"]
-    readonly_fields=["created","modified","slug"]
+    list_display=["name","created_by_name","created_by_email","logo_preview","modified"]
+    readonly_fields=["created","modified","slug","logo_preview"]
+    search_fields=["name","created_by__name","created_by__email"]
+    list_select_related = ("created_by",)
+
+    @admin.display(description="Institute User Name", ordering="created_by__name")
+    def created_by_name(self, obj):
+        return getattr(obj.created_by, "name", "") if obj.created_by else ""
+
+    @admin.display(description="Institute User Email", ordering="created_by__email")
+    def created_by_email(self, obj):
+        return getattr(obj.created_by, "email", "") if obj.created_by else ""
+
+    @admin.display(description="Logo")
+    def logo_preview(self, obj):
+        if obj and getattr(obj, "logo", None):
+            try:
+                if obj.logo.url:
+                    return format_html(
+                        '<img src="{}" style="height:40px;width:auto;border-radius:4px;object-fit:contain;" />',
+                        obj.logo.url,
+                    )
+            except Exception:
+                pass
+        return "-"
 
 admin.site.register(Institute,InstituteAdmin)
 
@@ -97,8 +123,64 @@ class ClassAndSectionAdmin(admin.ModelAdmin):
 admin.site.register(ClassAndSection,ClassAndSectionAdmin)
 
 class StudentManagementAdmin(admin.ModelAdmin):
-    list_display=["institute","student","class_and_section"]
+    list_display=["institute","student_email","student_mobile_masked","parent_mobiles_masked","class_and_section"]
     readonly_fields=["created","modified"]
+    list_select_related = ("student", "institute", "class_and_section")
+    search_fields = ["student__email", "student__mobile", "institute__name", "class_and_section__class_and_section"]
+
+    def _mask_mobile(self, mobile):
+        if not mobile:
+            return "-"
+        # keep only digits
+        digits = re.sub(r"\D+", "", str(mobile))
+        if not digits:
+            return "-"
+        # Expected format: 99XXXX1234 (first 2 + XXXX + last 4)
+        if len(digits) >= 6:
+            return f"{digits[:2]}XXXX{digits[-4:]}"
+        # fallback for short numbers
+        return f"XX{digits[-2:]}"
+
+    @admin.display(description="Student Email", ordering="student__email")
+    def student_email(self, obj):
+        if not obj.student:
+            return ""
+        email = getattr(obj.student, "email", "") or ""
+        try:
+            url = reverse("admin:users_user_change", args=[obj.student.id])
+            return format_html('<a href="{}">{}</a>', url, email or f"User #{obj.student.id}")
+        except Exception:
+            return email
+
+    @admin.display(description="Student Mobile", ordering="student__mobile")
+    def student_mobile_masked(self, obj):
+        return self._mask_mobile(getattr(obj.student, "mobile", None)) if obj.student else "-"
+
+    @admin.display(description="Parent Mobile(s)")
+    def parent_mobiles_masked(self, obj):
+        """
+        Parent mobiles are derived from ParentStudentLink (parents can link to multiple students).
+        """
+        if not obj.student:
+            return "-"
+        try:
+            from users.models import ParentStudentLink
+            parents = (
+                ParentStudentLink.objects
+                .filter(student=obj.student)
+                .select_related("parent")
+                .values_list("parent__mobile", flat=True)
+            )
+            masked = [self._mask_mobile(m) for m in parents if m]
+            masked = [m for m in masked if m and m != "-"]
+            if not masked:
+                return "-"
+            # Avoid overly long columns
+            if len(masked) > 3:
+                return ", ".join(masked[:3]) + f" (+{len(masked)-3} more)"
+            return ", ".join(masked)
+        except Exception:
+            return "-"
     
 admin.site.register(StudentManagement,StudentManagementAdmin)
 

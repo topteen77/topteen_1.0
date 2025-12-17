@@ -164,7 +164,7 @@ Find the perfect college for your career goals. Explore colleges by country, sta
               </button>
               {% endif %}
               <div class="college-image" style="height: 200px; background: #f8f9fa; border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 15px;">
-                <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}" class="w-100 h-100 d-flex align-items-center justify-content-center">
+                <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="w-100 h-100 d-flex align-items-center justify-content-center">
                   {% if college.logo %}
                     {% if college.logo.name %}
                       {# Django ORM result - ImageField object #}
@@ -180,7 +180,7 @@ Find the perfect college for your career goals. Explore colleges by country, sta
               </div>
               <div class="college-content mt-3">
                 <h4 class="college-name mb-2">
-                  <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}" class="text-decoration-none">{{ college.name }}</a>
+                  <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="text-decoration-none">{{ college.name }}</a>
                 </h4>
                 <div class="college-location d-flex align-items-center mb-2">
                   <i class='bx bx-map-pin me-2 text-gray'></i>
@@ -216,7 +216,7 @@ Find the perfect college for your career goals. Explore colleges by country, sta
               <ul class="pagination justify-content-center">
                 {% if colleges.has_previous() %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ colleges.previous_page_number() }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}" aria-label="Previous">
+                  <a class="page-link" href="?page={{ colleges.previous_page_number() }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" aria-label="Previous">
                     <i class='bx bx-chevron-left'></i>
                   </a>
                 </li>
@@ -233,14 +233,14 @@ Find the perfect college for your career goals. Explore colleges by country, sta
                     <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
                   {% elif page_num > (colleges.number - 3) and page_num < (colleges.number + 3) %}
                     <li class="page-item">
-                      <a class="page-link" href="?page={{ page_num }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}">{{ page_num }}</a>
+                      <a class="page-link" href="?page={{ page_num }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}">{{ page_num }}</a>
                     </li>
                   {% endif %}
                 {% endfor %}
 
                 {% if colleges.has_next() %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ colleges.next_page_number() }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}" aria-label="Next">
+                  <a class="page-link" href="?page={{ colleges.next_page_number() }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" aria-label="Next">
                     <i class='bx bx-chevron-right'></i>
                   </a>
                 </li>
@@ -271,6 +271,10 @@ Find the perfect college for your career goals. Explore colleges by country, sta
 <script>
 // Auto-submit form when filters change
 document.addEventListener('DOMContentLoaded', function() {
+  // Parent->Student context for suggesting colleges
+  const params = new URLSearchParams(window.location.search || '');
+  const parentStudentId = params.get('student_id');
+
   const filterForm = document.getElementById('collegeFilterForm');
   if (filterForm) {
     const checkboxes = filterForm.querySelectorAll('input[type="checkbox"]');
@@ -300,7 +304,8 @@ document.addEventListener('DOMContentLoaded', function() {
       this.disabled = true;
       this.style.opacity = '0.6';
       
-      fetch('/api/v1/user/shortlistcollege', {
+      const targetUrl = (parentStudentId ? ('/parents/student/' + parentStudentId + '/bookmark/college/') : '/api/v1/user/shortlistcollege');
+      fetch(targetUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

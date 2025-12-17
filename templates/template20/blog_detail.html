@@ -79,6 +79,18 @@
             <a href="#" class="blog-share-icon copy-link" data-url="{{ url('blog:blogdetail', args=[blog.slug]) }}"><i class="bx bx-link"></i></a>
           </div>
         </div>
+
+        {% if request.user.is_authenticated %}
+        <div class="mt-3">
+          <button id="blogBookmarkBtn"
+                  type="button"
+                  class="btn btn-sm {% if is_blog_bookmarked %}btn-success{% else %}btn-outline-success{% endif %}"
+                  data-blog-id="{{ blog.id }}">
+            <i class="bx {% if is_blog_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}"></i>
+            <span>{% if is_blog_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}</span>
+          </button>
+        </div>
+        {% endif %}
         
         {% if blog.image %}
         <div class="blog-featured-image">
@@ -268,9 +280,67 @@
 {% endblock %}
 
 {% block additionaljs %}
+{{ super() }}
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Blog bookmark toggle (supports parent->student context via ?student_id=)
+  document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('blogBookmarkBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      const blogId = this.getAttribute('data-blog-id');
+      const csrfToken = getCookie('csrftoken');
+      const params = new URLSearchParams(window.location.search || '');
+      const studentId = params.get('student_id');
+      const targetUrl = (studentId ? ('/parents/student/' + studentId + '/bookmark/blog/') : '{{ url("blog:toggle_blog_bookmark") }}');
+      this.disabled = true;
+      fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'blog_id=' + encodeURIComponent(blogId) + '&csrfmiddlewaretoken=' + csrfToken
+      })
+      .then(r => r.json())
+      .then(data => {
+        this.disabled = false;
+        if (!data || !data.success) return;
+        const icon = this.querySelector('i');
+        const text = this.querySelector('span');
+        if (data.bookmarked) {
+          this.classList.remove('btn-outline-success');
+          this.classList.add('btn-success');
+          if (icon) { icon.classList.remove('bx-bookmark'); icon.classList.add('bxs-bookmark'); }
+          if (text) { text.textContent = 'Bookmarked'; }
+        } else {
+          this.classList.remove('btn-success');
+          this.classList.add('btn-outline-success');
+          if (icon) { icon.classList.remove('bxs-bookmark'); icon.classList.add('bx-bookmark'); }
+          if (text) { text.textContent = 'Bookmark'; }
+        }
+      })
+      .catch(() => { this.disabled = false; });
+    });
+  });
+
 // Copy Link Functionality
 document.addEventListener('DOMContentLoaded', function() {
   const copyLinks = document.querySelectorAll('.copy-link');

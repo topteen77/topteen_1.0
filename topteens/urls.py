@@ -18,6 +18,7 @@ from django.urls import path,include
 from django.conf.urls.static import static
 from django.conf import settings
 from django.conf.urls import handler404
+from users import views as users_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("topteenadmin/",include("topteenadmin.urls",namespace="topteenadmin")),
@@ -33,6 +34,23 @@ urlpatterns = [
     path("blogs/",include('blog.urls')),
     
     path('user/', include('users.urls',namespace='users')),
+    # Role-specific auth landing pages (Jinja templates)
+    path('student/login/', users_views.StudentLoginView.as_view(), name='student_login'),
+    path('parents/login/', users_views.ParentsLoginView.as_view(), name='parents_login'),
+    path('parents/dashboard/', users_views.ParentsDashboardView.as_view(), name='parents_dashboard'),
+    path('parents/student/<int:student_id>/dashboard/', users_views.ParentStudentDashboardView.as_view(), name='parents_student_dashboard'),
+    path('parents/student/<int:student_id>/profile/view/', users_views.ParentStudentViewProfileView.as_view(), name='parents_student_view_profile'),
+    path('parents/student/<int:student_id>/profile/edit/', users_views.ParentStudentEditProfileView.as_view(), name='parents_student_edit_profile'),
+    path('parents/student/<int:student_id>/results/', users_views.ParentStudentPsychometricResultView.as_view(), name='parents_student_results'),
+    path('parents/student/<int:student_id>/bookmarks/careers/', users_views.ParentStudentBookmarkCareersView.as_view(), name='parents_student_bookmark_careers'),
+    path('parents/student/<int:student_id>/bookmarks/videos/', users_views.ParentStudentBookmarkVideosView.as_view(), name='parents_student_bookmark_videos'),
+    path('parents/student/<int:student_id>/bookmarks/colleges/', users_views.ParentStudentBookmarkCollegesView.as_view(), name='parents_student_bookmark_colleges'),
+    path('parents/student/<int:student_id>/bookmarks/blogs/', users_views.ParentStudentBookmarkBlogsView.as_view(), name='parents_student_bookmark_blogs'),
+    path('parents/student/<int:student_id>/bookmark/career/', users_views.ParentStudentToggleCareerBookmark.as_view(), name='parents_student_toggle_career_bookmark'),
+    path('parents/student/<int:student_id>/bookmark/video/', users_views.ParentStudentToggleVideoBookmark.as_view(), name='parents_student_toggle_video_bookmark'),
+    path('parents/student/<int:student_id>/bookmark/college/', users_views.ParentStudentToggleCollegeBookmark.as_view(), name='parents_student_toggle_college_bookmark'),
+    path('parents/student/<int:student_id>/bookmark/blog/', users_views.ParentStudentToggleBlogBookmark.as_view(), name='parents_student_toggle_blog_bookmark'),
+    path('parents/student/<int:student_id>/suggestions/<str:kind>/', users_views.ParentStudentSuggestedListView.as_view(), name='parents_student_suggestions'),
     path('oauth/', include('social_django.urls', namespace='social')),
     path('api/v1/', include('apis.urls')),
     path("institute/",include('institute.urls', namespace='institute')),

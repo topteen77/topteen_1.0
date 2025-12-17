@@ -256,20 +256,36 @@ function shortlistVideo(videoId) {
     return cookieValue;
   }
 
-  // Use GET request as expected by the backend
-  fetch('{{ url("careers:shortlist_video") }}?id=' + videoId, {
-    method: 'GET',
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken')
-    }
-  })
+  const params = new URLSearchParams(window.location.search || '');
+  const studentId = params.get('student_id');
+  const csrf = getCookie('csrftoken');
+  const targetUrl = (studentId
+    ? ('/parents/student/' + studentId + '/bookmark/video/')
+    : ('{{ url("careers:shortlist_video") }}?id=' + videoId)
+  );
+  const method = (studentId ? 'POST' : 'GET');
+  const headers = (studentId
+    ? {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': csrf,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    : { 'X-CSRFToken': csrf }
+  );
+  const body = (studentId
+    ? ('video_id=' + encodeURIComponent(videoId) + '&csrfmiddlewaretoken=' + encodeURIComponent(csrf))
+    : undefined
+  );
+
+  fetch(targetUrl, { method, headers, body })
   .then(response => response.json())
   .then(data => {
     const btn = document.getElementById('shortlist_' + videoId);
     if (btn) {
       const icon = btn.querySelector('i');
       const span = btn.querySelector('.buttontext');
-      if (data.success === 'true' || data.success === true) {
+      const isBookmarked = (data.message === 'Video Shortlisted') || (data.success === 'true' || data.success === true);
+      if (isBookmarked) {
         // Video was bookmarked
         icon.classList.remove('bx-bookmark');
         icon.classList.add('bxs-bookmark');
