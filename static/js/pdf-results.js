@@ -574,19 +574,24 @@ function handleAptitudeResults(result, index) {
     });
   }
 
+  // Filter out internal sections (e.g., performance_level metadata)
+  const internalSectionPattern = /performance[_\s-]?levels?/i;
+  const filteredSectionsData = sectionsData.filter(section => !internalSectionPattern.test(section.name));
+  const finalSectionsData = filteredSectionsData.length ? filteredSectionsData : sectionsData;
+
   // Populate the existing average-cards div
-  populateAverageCards(sectionsData);
+  populateAverageCards(finalSectionsData);
 
   // Create individual section cards
-  sectionsData.forEach(section => {
+  finalSectionsData.forEach(section => {
     const sectionCard = createEnhancedAptitudeSectionCard(section);
     sectionsContainer.appendChild(sectionCard);
   });
 
   // Create aptitude chart
   createAptitudeChart(
-    sectionsData.map(s => s.name),
-    sectionsData.map(s => s.score),
+    finalSectionsData.map(s => s.name),
+    finalSectionsData.map(s => s.score),
     index
   );
 }
