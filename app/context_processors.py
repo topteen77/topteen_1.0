@@ -16,6 +16,7 @@ def user_profile(request):
 def has_payment(request):
     """Check if user has made a payment for psychometric test"""
     payment_status = False
+    payments = None
     if request.user.is_authenticated:
         try:
             from psychometric_tests.models import PsychometricTestPayment
@@ -46,7 +47,7 @@ def has_payment(request):
             # If there's any error, default to False
             payment_status = False
     # Debug: Print payment status (remove in production)
-    if payment_status:
+    if payment_status and payments is not None:
         print(f"[DEBUG] User {request.user.id} has payment: {payment_status}")
         print(f"[DEBUG] Payment count: {payments.count()}")
     

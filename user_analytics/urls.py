@@ -7,8 +7,11 @@ from . import views
 app_name = 'user_analytics'
 
 urlpatterns = [
-    # Main dashboard (redirects to business)
-    path('', views.dashboard, name='dashboard'),
+    # Main admin dashboard (superuser only)
+    path('', views.admin_dashboard, name='admin_dashboard'),
+    
+    # Main dashboard (redirects to business) - for staff
+    path('dashboard/', views.dashboard, name='dashboard'),
     
     # Business Owner Dashboard
     path('business/', views.business_dashboard, name='business_dashboard'),
@@ -25,5 +28,18 @@ urlpatterns = [
     
     # API Endpoints
     path('api/dashboard-data/', views.api_dashboard_data, name='api_dashboard_data'),
+    
+    # Detail Pages with Filters
+    path('business/payments/successful/', views.successful_payments_detail, name='successful_payments_detail'),
+    path('business/payments/failed/', views.failed_payments_detail, name='failed_payments_detail'),
+    path('business/payments/pending/', views.pending_payments_detail, name='pending_payments_detail'),
+    path('business/enrollments/', views.enrollments_detail, name='enrollments_detail'),
+    
+    # API Endpoints for AJAX
+    path('api/payments/successful/', views.successful_payments_api, name='successful_payments_api'),
+    path('api/payments/failed/', views.failed_payments_api, name='failed_payments_api'),
+    path('api/payments/pending/', views.pending_payments_api, name='pending_payments_api'),
+    path('api/enrollments/', views.enrollments_api, name='enrollments_api'),
+    path('api/business-metrics/', views.business_metrics_api, name='business_metrics_api'),
 ]
 

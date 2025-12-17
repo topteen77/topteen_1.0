@@ -2637,11 +2637,12 @@
             </div>
 
             <!-- Strength Narrative -->
+            {% if aptitude_strength_narrative %}
+            {% with strength_items=aptitude_strength_narrative|slice:":7" %}
             <div class="chapterPage result-four">
-                {% if aptitude_strength_narrative %}
                 <p class="section-title">Strength Narrative</p>
-                <div class="card-container ">
-                    {% for strength in aptitude_strength_narrative %}
+                <div class="card-container">
+                    {% for strength in strength_items|slice:":4" %}
                     {% if strength.Area in above_list|slice:":7" %}
                     <!-- Above Average -->
                     <div class="card above-card">
@@ -2675,22 +2676,58 @@
                     {% endif %}
                     {% endfor %}
                 </div>
-                {% endif %}
             </div>
+            {% if strength_items|length > 4 %}
+            <div class="chapterPage result-four">
+                <div class="card-container card-container--split">
+                    {% for strength in strength_items|slice:"4:7" %}
+                    {% if strength.Area in above_list|slice:":7" %}
+                    <div class="card above-card">
+                        <h3>{{ strength.Area }}</h3>
+                        <ul>
+                            {% for remark in strength.Major_points %}
+                            <li><i style=" color: #3F37C9;"  class="fas fa-briefcase me-2 icon-above"></i> {{ remark }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% elif strength.Area in average_list|slice:":7" %}
+                    <div class="card average-card">
+                        <h3>{{ strength.Area }}</h3>
+                        <ul>
+                            {% for remark in strength.Major_points %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ remark }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <div class="card average-card">
+                        <h3>{{ strength.Area }}</h3>
+                        <ul>
+                            {% for remark in strength.Major_points %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ remark }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
 
             
             <!-- Recommended College Courses -->
+            {% if aptitude_Recommended_College_Courses %}
+            {% with college_items=aptitude_Recommended_College_Courses|slice:":7" %}
             <div class="chapterPage result-four">
-
-                {% if aptitude_Recommended_College_Courses %}
                 <p class="section-title">Recommended College Courses</p>
 
                 <p style="text-align:center;width:100% !important; margin-top:5px;">
                     Based on your strongest domains, here are programme options after Class 12.
                 </p>
-
                 <div class="card-container strenght-report">
-                    {% for college in aptitude_Recommended_College_Courses %}
+                    {% for college in college_items|slice:":4" %}
                     {% if college.Area in above_list|slice:":7" %}
                     <!-- Above Average -->
                     <div class="card above-card">
@@ -2725,17 +2762,56 @@
                     {% endif %}
                     {% endfor %}
                 </div>
-                {% endif %}
             </div>
+            {% if college_items|length > 4 %}
+            <div class="chapterPage result-four">
+                <div class="card-container strenght-report card-container--split">
+                    {% for college in college_items|slice:"4:7" %}
+                    {% if college.Area in above_list|slice:":7" %}
+                    <div class="card above-card">
+                        <h3>{{ college.Area }}</h3>
+                        <ul>
+                            {% for course in college.Recommended_College %}
+                            <li><i style=" color: #3F37C9;" class="fas fa-briefcase me-2 icon-above"></i> {{ course }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% elif college.Area in average_list|slice:":7" %}
+                    <div class="card average-card">
+                        <h3>{{ college.Area }}</h3>
+                        <ul>
+                            {% for course in college.Recommended_College %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ course }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <div class="card average-card">
+                        <h3>{{ college.Area }}</h3>
+                        <ul>
+                            {% for course in college.Recommended_College %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ course }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
 
             
 
             <!-- Career Role Guidance 1-4 Areas -->
+            {% if aptitude_roles_guidance %}
+            {% with career_items=aptitude_roles_guidance|slice:":7" %}
             <div class="chapterPage result-four">
-                {% if aptitude_roles_guidance %}
                 <p class="section-title">Career Recommendations — Aptitude Report</p>
                 <div class="card-container strenght-report">
-                    {% for item in aptitude_roles_guidance|slice:":7" %}
+                    {% for item in career_items|slice:":4" %}
 
                     {% if item.Area in above_list %}
                     <!-- Above Average -->
@@ -2785,8 +2861,61 @@
 
                     {% endfor %}
                 </div>
-                {% endif %}
             </div>
+            {% if career_items|length > 4 %}
+            <div class="chapterPage result-four">
+                <div class="card-container strenght-report card-container--split">
+                    {% for item in career_items|slice:"4:7" %}
+
+                    {% if item.Area in above_list %}
+                    <div class="card above-card">
+                        <h3>{{ item.Area }}</h3>
+                        <p><strong>{{ item.Guidance }}</strong></p>
+                        <ul>
+                            {% for rec in item.Recommendations %}
+                            <li>
+                                <i style=" color: #3F37C9;" class="fas fa-briefcase me-2 icon-above"></i>
+                                {{ rec.Role }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    {% elif item.Area in average_list|slice:":7" %}
+                    <div class="card average-card">
+                        <h3>{{ item.Area }}</h3>
+                        <p><strong>{{ item.Guidance }}</strong></p>
+                        <ul>
+                            {% for rec in item.Recommendations %}
+                            <li>
+                                <i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i>
+                                {{ rec.Role }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    {% else %}
+                    <div class="card average-card">
+                        <h3>{{ item.Area }}</h3>
+                        <p><strong>{{ item.Guidance }}</strong></p>
+                        <ul>
+                            {% for rec in item.Recommendations %}
+                            <li>
+                                <i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i>
+                                <strong>{{ rec.Role }}</strong>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
 
             <!-- Improvement Plan 1-4 reas -->
             <div class="chapterPage result-four">                
@@ -3066,16 +3195,6 @@
         document.getElementById('downloadPDF').addEventListener('click', downloadPDF);
     </script>
 
-    <!-- Set testResults from Django context BEFORE loading pdf-results.js -->
-    <script>
-        // Set testResults from Django context if available
-        {% if test_results_json %}
-        window.testResults = {{ test_results_json|safe }};
-        {% else %}
-        window.testResults = [];
-        {% endif %}
-    </script>
-
     <!-- Include the JavaScript functionality -->
     <script src="{% static 'js/pdf-results.js' %}"></script>
 
@@ -3085,6 +3204,21 @@
             await loadTestResults(); // Ensure this function is async or returns a Promise
             document.getElementById('downloadPDF').disabled = false; // Enable button after loading
         });
+    </script>
+    <div id="test-results-data"
+        data-results-json='{{ test_results_json|default:"[]"|escapejs }}'
+        style="display:none;"></div>
+    <script>
+        const _testResultsEl = document.getElementById('test-results-data');
+        let _parsedResults = [];
+        if (_testResultsEl) {
+            try {
+                _parsedResults = JSON.parse(_testResultsEl.getAttribute('data-results-json') || '[]');
+            } catch (err) {
+                _parsedResults = [];
+            }
+        }
+        window.testResults = _parsedResults;
     </script>
 </body>
 
@@ -3113,6 +3247,12 @@
         justify-content: center;
     }
 
+    .card-container--split {
+        margin-top: 12px;
+        page-break-before: always;
+        break-before: always;
+    }
+
     .card {
         background-color: #fff;
         border-radius: 12px;
@@ -3123,6 +3263,8 @@
         border-top: 8px solid #ccc !important;
         /* default border, overridden by category */
         border: 1px solid #ccc;
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .card ul {
@@ -3217,6 +3359,10 @@
         /* Prevent content from being cut off */
         * {
             overflow: visible !important;
+        }
+
+        .card-container--split {
+            page-break-before: always;
         }
 
         /* Ensure images and other elements scale correctly */

@@ -37,7 +37,11 @@
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <p class="text-muted mb-1" style="font-size: 14px;">Successful Payments</p>
-                        <h2 class="mb-0" style="color: #3b82f6; font-weight: 700;">{{ successful_payments }}</h2>
+                        <h2 class="mb-0" style="color: #3b82f6; font-weight: 700;">
+                            <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #3b82f6; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ successful_payments }}
+                            </a>
+                        </h2>
                     </div>
                     <div style="width: 50px; height: 50px; background: rgba(59, 130, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-check-circle" style="color: #3b82f6; font-size: 24px;"></i>
@@ -50,7 +54,11 @@
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <p class="text-muted mb-1" style="font-size: 14px;">Total Enrollments</p>
-                        <h2 class="mb-0" style="color: #06b6d4; font-weight: 700;">{{ total_enrollments }}</h2>
+                        <h2 class="mb-0" style="color: #06b6d4; font-weight: 700;">
+                            <a href="{{ url('user_analytics:enrollments_detail') }}?period={{ time_period }}" style="color: #06b6d4; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ total_enrollments }}
+                            </a>
+                        </h2>
                     </div>
                     <div style="width: 50px; height: 50px; background: rgba(6, 182, 212, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-user-graduate" style="color: #06b6d4; font-size: 24px;"></i>
@@ -79,38 +87,193 @@
         </div>
     </div>
 
+    <!-- Summary Statistics -->
+    <div class="admin-card mb-4">
+        <h3 class="mb-4" style="font-weight: 600; color: #2d3748;">
+            <i class="fas fa-calculator text-primary"></i> Key Metrics Summary
+        </h3>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="p-3" style="background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">TOTAL REVENUE</p>
+                            <h3 class="mb-0" style="color: #10b981; font-weight: 700;">₹{{ "%.2f"|format(total_revenue) }}</h3>
+                            <small class="text-muted">From {{ successful_payments }} successful payment{{ 's' if successful_payments != 1 else '' }}</small>
+                        </div>
+                        <i class="fas fa-rupee-sign" style="color: #10b981; font-size: 32px; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3" style="background: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">SUCCESSFUL PAYMENTS</p>
+                            <h3 class="mb-0" style="color: #3b82f6; font-weight: 700;">
+                                <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #3b82f6; text-decoration: none;">
+                                    {{ successful_payments }}
+                                </a>
+                            </h3>
+                            <small class="text-muted">Total: ₹{{ "%.2f"|format(total_revenue) }} revenue</small>
+                        </div>
+                        <i class="fas fa-check-circle" style="color: #3b82f6; font-size: 32px; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3" style="background: #ecfeff; border-radius: 8px; border-left: 4px solid #06b6d4;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">TOTAL ENROLLMENTS</p>
+                            <h3 class="mb-0" style="color: #06b6d4; font-weight: 700;">
+                                <a href="{{ url('user_analytics:enrollments_detail') }}?period={{ time_period }}" style="color: #06b6d4; text-decoration: none;">
+                                    {{ total_enrollments }}
+                                </a>
+                            </h3>
+                            <small class="text-muted">
+                                {% if course_enrollments > 0 or psychometric_enrollments > 0 %}
+                                    {{ course_enrollments }} course{{ 's' if course_enrollments != 1 else '' }}, {{ psychometric_enrollments }} test{{ 's' if psychometric_enrollments != 1 else '' }}
+                                {% else %}
+                                    No enrollments yet
+                                {% endif %}
+                            </small>
+                        </div>
+                        <i class="fas fa-user-graduate" style="color: #06b6d4; font-size: 32px; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Psychometric Test Revenue Breakdown -->
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="p-3" style="background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">CLASS 12 PSYCHOMETRIC TEST</p>
+                            <h4 class="mb-0" style="color: #f59e0b; font-weight: 700;">₹{{ "%.2f"|format(class12_psychometric_revenue) }}</h4>
+                            <small class="text-muted">{{ class12_psychometric_count }} Career Direction payment{{ 's' if class12_psychometric_count != 1 else '' }}</small>
+                        </div>
+                        <i class="fas fa-graduation-cap" style="color: #f59e0b; font-size: 24px; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3" style="background: #dbeafe; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">STREAM SORTER (CLASS 10-11)</p>
+                            <h4 class="mb-0" style="color: #3b82f6; font-weight: 700;">₹{{ "%.2f"|format(stream_sorter_revenue) }}</h4>
+                            <small class="text-muted">{{ stream_sorter_count }} Stream Sorter payment{{ 's' if stream_sorter_count != 1 else '' }}</small>
+                        </div>
+                        <i class="fas fa-book-reader" style="color: #3b82f6; font-size: 24px; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Payment Status -->
     <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="admin-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1" style="font-size: 14px;">Successful Payments</p>
-                        <h3 class="mb-0" style="color: #10b981; font-weight: 600;">{{ successful_payments }}</h3>
+                        </div>
+                        <i class="fas fa-user-graduate" style="color: #06b6d4; font-size: 32px; opacity: 0.3;"></i>
                     </div>
-                    <i class="fas fa-check-circle" style="color: #10b981; font-size: 32px;"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="admin-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1" style="font-size: 14px;">Failed Payments</p>
-                        <h3 class="mb-0" style="color: #ef4444; font-weight: 600;">{{ failed_payments }}</h3>
+    </div>
+
+    <!-- Payment Status with Revenue -->
+    <div class="admin-card mb-4">
+        <h3 class="mb-4" style="font-weight: 600; color: #2d3748;">
+            <i class="fas fa-credit-card text-primary"></i> Payment Status & Revenue
+        </h3>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="p-4" style="background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">CONFIRMED PAYMENTS</p>
+                            <h2 class="mb-0" style="color: #10b981; font-weight: 700;">
+                                <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #10b981; text-decoration: none;">
+                                    {{ successful_payments }}
+                                </a>
+                            </h2>
+                        </div>
+                        <i class="fas fa-check-circle" style="color: #10b981; font-size: 32px; opacity: 0.3;"></i>
                     </div>
-                    <i class="fas fa-times-circle" style="color: #ef4444; font-size: 32px;"></i>
+                    <div class="mt-3 pt-3" style="border-top: 1px solid rgba(16, 185, 129, 0.2);">
+                        <p class="text-muted mb-0" style="font-size: 11px;">REVENUE</p>
+                        <h4 class="mb-0" style="color: #10b981; font-weight: 700;">₹{{ "%.2f"|format(total_revenue) }}</h4>
+                        <small class="text-muted">Average: ₹{{ "%.2f"|format((total_revenue / successful_payments) if successful_payments > 0 else 0) }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4" style="background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444;">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">FAILED PAYMENTS</p>
+                            <h2 class="mb-0" style="color: #ef4444; font-weight: 700;">
+                                <a href="{{ url('user_analytics:failed_payments_detail') }}?period={{ time_period }}" style="color: #ef4444; text-decoration: none;">
+                                    {{ failed_payments }}
+                                </a>
+                            </h2>
+                        </div>
+                        <i class="fas fa-times-circle" style="color: #ef4444; font-size: 32px; opacity: 0.3;"></i>
+                    </div>
+                    <div class="mt-3 pt-3" style="border-top: 1px solid rgba(239, 68, 68, 0.2);">
+                        <p class="text-muted mb-0" style="font-size: 11px;">ATTEMPTED REVENUE</p>
+                        <h4 class="mb-0" style="color: #ef4444; font-weight: 700;">₹{{ "%.2f"|format(failed_payments_revenue) }}</h4>
+                        <small class="text-muted">Lost revenue</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4" style="background: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">PENDING PAYMENTS</p>
+                            <h2 class="mb-0" style="color: #f59e0b; font-weight: 700;">
+                                <a href="{{ url('user_analytics:pending_payments_detail') }}?period={{ time_period }}" style="color: #f59e0b; text-decoration: none;">
+                                    {{ pending_payments }}
+                                </a>
+                            </h2>
+                        </div>
+                        <i class="fas fa-clock" style="color: #f59e0b; font-size: 32px; opacity: 0.3;"></i>
+                    </div>
+                    <div class="mt-3 pt-3" style="border-top: 1px solid rgba(245, 158, 11, 0.2);">
+                        <p class="text-muted mb-0" style="font-size: 11px;">POTENTIAL REVENUE</p>
+                        <h4 class="mb-0" style="color: #f59e0b; font-weight: 700;">₹{{ "%.2f"|format(pending_payments_revenue) }}</h4>
+                        <small class="text-muted">Awaiting confirmation</small>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="admin-card">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1" style="font-size: 14px;">Pending Payments</p>
-                        <h3 class="mb-0" style="color: #f59e0b; font-weight: 600;">{{ pending_payments }}</h3>
+        
+        <!-- Revenue Summary -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="p-3" style="background: #f8fafc; border-radius: 8px;">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <p class="text-muted mb-1" style="font-size: 11px; font-weight: 600;">TOTAL CONFIRMED</p>
+                            <h5 class="mb-0" style="color: #10b981; font-weight: 700;">₹{{ "%.2f"|format(total_revenue) }}</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="text-muted mb-1" style="font-size: 11px; font-weight: 600;">TOTAL ATTEMPTED</p>
+                            <h5 class="mb-0" style="color: #64748b; font-weight: 700;">₹{{ "%.2f"|format(total_attempted_revenue) }}</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="text-muted mb-1" style="font-size: 11px; font-weight: 600;">SUCCESS RATE</p>
+                            <h5 class="mb-0" style="color: #3b82f6; font-weight: 700;">{{ "%.1f"|format(success_rate) }}%</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="text-muted mb-1" style="font-size: 11px; font-weight: 600;">CONVERSION VALUE</p>
+                            <h5 class="mb-0" style="color: #10b981; font-weight: 700;">{{ "%.1f"|format(conversion_value_rate) }}%</h5>
+                        </div>
                     </div>
-                    <i class="fas fa-clock" style="color: #f59e0b; font-size: 32px;"></i>
                 </div>
             </div>
         </div>
@@ -134,7 +297,11 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2">
                         <span class="fw-bold">Total</span>
-                        <strong class="text-primary">{{ total_enrollments }}</strong>
+                        <strong class="text-primary">
+                            <a href="{{ url('user_analytics:enrollments_detail') }}?period={{ time_period }}" style="color: #0d6efd; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ total_enrollments }}
+                            </a>
+                        </strong>
                     </div>
                 </div>
             </div>

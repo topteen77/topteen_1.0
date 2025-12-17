@@ -1,0 +1,330 @@
+{% extends 'user_analytics/admin_base.html' %}
+
+{% block title_content %}Admin Dashboard | Top Teen Analytics{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <h1 class="page-title">
+            <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+        </h1>
+        <div class="page-actions">
+            <select id="period-select" class="form-select form-select-sm">
+                <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
+                <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
+                <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
+                <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="admin-card stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">{{ total_users|default(0) }}</h3>
+                    <p class="stat-label">Total Users</p>
+                    <small class="stat-sublabel">{{ active_users|default(0) }} active</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">{{ successful_payments|default(0) }}</h3>
+                    <p class="stat-label">Successful Payments</p>
+                    <small class="stat-sublabel">{{ total_payments|default(0) }} total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">₹{{ "%.2f"|format(total_revenue|default(0)) }}</h3>
+                    <p class="stat-label">Total Revenue</p>
+                    <small class="stat-sublabel">Period: {{ time_period }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">{{ total_page_views|default(0) }}</h3>
+                    <p class="stat-label">Page Views</p>
+                    <small class="stat-sublabel">{{ total_sessions|default(0) }} sessions</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="admin-card stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">{{ total_leads|default(0) }}</h3>
+                    <p class="stat-label">Total Leads</p>
+                    <small class="stat-sublabel">Period: {{ time_period }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="admin-card">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-link"></i> Quick Links
+                </h5>
+                <div class="d-grid gap-2">
+                    <a href="{{ url('user_analytics:business_dashboard') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-briefcase"></i> Business Dashboard
+                    </a>
+                    <a href="{{ url('user_analytics:accounts_dashboard') }}" class="btn btn-outline-success">
+                        <i class="fas fa-calculator"></i> Accounts Dashboard
+                    </a>
+                    <a href="{{ url('user_analytics:web_owner_dashboard') }}" class="btn btn-outline-info">
+                        <i class="fas fa-globe"></i> Web Owner Dashboard
+                    </a>
+                    <a href="{{ url('user_analytics:user_journey') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-route"></i> User Journey
+                    </a>
+                    <a href="/admin/" class="btn btn-outline-dark">
+                        <i class="fas fa-cog"></i> Django Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="admin-card">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-user-plus"></i> Recent Registrations
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Name</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_registrations %}
+                            <tr>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.name|default("N/A") }}</td>
+                                <td>{{ user.created.strftime('%b %d, %Y') if user.created else 'N/A' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No recent registrations</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="admin-card">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-money-bill-wave"></i> Recent Payments
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in recent_payments %}
+                            <tr>
+                                <td>{{ payment.user.email|default("N/A") }}</td>
+                                <td>₹{{ "%.2f"|format(payment.amount|default(0)) }}</td>
+                                <td>
+                                    {% if payment.is_success == 1 %}
+                                        <span class="badge bg-success">Success</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Failed</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ payment.created.strftime('%b %d, %Y') if payment.created else 'N/A' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No recent payments</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 24px;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: #2d3748;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #718096;
+    margin: 5px 0 0 0;
+    font-weight: 500;
+}
+
+.stat-sublabel {
+    font-size: 12px;
+    color: #a0aec0;
+    display: block;
+    margin-top: 2px;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-title i {
+    color: #3f37c9;
+}
+
+.page-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.form-select-sm {
+    width: 200px;
+}
+
+.admin-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-title i {
+    color: #3f37c9;
+}
+
+.table th {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 12px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.table td {
+    font-size: 14px;
+    color: #2d3748;
+    vertical-align: middle;
+}
+
+.badge {
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const periodSelect = document.getElementById('period-select');
+    if (periodSelect) {
+        periodSelect.addEventListener('change', function() {
+            const period = this.value;
+            const url = new URL(window.location.href);
+            url.searchParams.set('period', period);
+            window.location.href = url.toString();
+        });
+    }
+});
+</script>
+{% endblock %}
+

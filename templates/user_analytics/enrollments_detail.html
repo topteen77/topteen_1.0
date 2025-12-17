@@ -1,0 +1,374 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}{{ page_title }} | Top Teen Analytics{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="page-title">
+                    <i class="fas fa-user-graduate text-info"></i> 
+                    {{ page_title }}
+                </h1>
+                <p class="text-muted mb-0">Total: <strong>{{ total_count }}</strong> enrollments</p>
+            </div>
+            <a href="{{ url('user_analytics:business_dashboard') }}?period={{ time_period }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="admin-card mb-4">
+        <form id="filter-form" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Time Period</label>
+                <select name="period" id="period-select" class="form-select">
+                    <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
+                    <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                    <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
+                    <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
+                    <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Event Type</label>
+                <select name="event_type" id="event-type-select" class="form-select">
+                    {% for value, label in event_type_choices %}
+                    <option value="{{ value }}" {% if event_type_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" id="search-input" class="form-control" placeholder="Search by user email, event name..." value="{{ search_query|default('') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="button" id="filter-btn" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                    <button type="button" id="clear-btn" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Enrollments Table -->
+    <div class="admin-card">
+        <div id="loading-indicator" class="text-center py-5" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading data...</p>
+        </div>
+        
+        <div id="enrollments-table-container">
+            <div class="table-responsive">
+                <table class="table table-hover" id="enrollments-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>User</th>
+                            <th>Event Type</th>
+                            <th>Event Name</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="enrollments-tbody">
+                        <!-- Data loaded via AJAX -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation" class="mt-4" id="pagination-container">
+                <!-- Pagination loaded via AJAX -->
+            </nav>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.content-header {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.admin-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.table th {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 12px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e2e8f0;
+    background-color: #f7fafc;
+}
+
+.table td {
+    font-size: 14px;
+    color: #2d3748;
+    vertical-align: middle;
+}
+
+.pagination .page-link {
+    color: #3f37c9;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #3f37c9;
+    border-color: #3f37c9;
+}
+
+.badge {
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const apiUrl = '{{ url("user_analytics:enrollments_api") }}';
+    
+    let currentPage = 1;
+    let currentPeriod = '{{ time_period|default("30days") }}';
+    let currentEventType = '{{ event_type_filter|default("") }}';
+    let currentSearch = '{{ search_query|default("") }}';
+    
+    // Load initial data
+    loadEnrollments();
+    
+    // Filter button click
+    document.getElementById('filter-btn').addEventListener('click', function() {
+        currentPage = 1;
+        currentPeriod = document.getElementById('period-select').value;
+        currentEventType = document.getElementById('event-type-select').value;
+        currentSearch = document.getElementById('search-input').value;
+        loadEnrollments();
+    });
+    
+    // Clear button click
+    document.getElementById('clear-btn').addEventListener('click', function() {
+        document.getElementById('search-input').value = '';
+        document.getElementById('event-type-select').value = '';
+        currentPage = 1;
+        currentEventType = '';
+        currentSearch = '';
+        loadEnrollments();
+    });
+    
+    // Enter key on search
+    document.getElementById('search-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('filter-btn').click();
+        }
+    });
+    
+    // Period and event type change
+    document.getElementById('period-select').addEventListener('change', function() {
+        currentPage = 1;
+        currentPeriod = this.value;
+        loadEnrollments();
+    });
+    
+    document.getElementById('event-type-select').addEventListener('change', function() {
+        currentPage = 1;
+        currentEventType = this.value;
+        loadEnrollments();
+    });
+    
+    function loadEnrollments() {
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const tableContainer = document.getElementById('enrollments-table-container');
+        const tbody = document.getElementById('enrollments-tbody');
+        const paginationContainer = document.getElementById('pagination-container');
+        
+        // Show loading
+        loadingIndicator.style.display = 'block';
+        tableContainer.style.opacity = '0.5';
+        
+        // Build URL
+        let url = apiUrl + '?period=' + currentPeriod + '&page=' + currentPage;
+        if (currentEventType) {
+            url += '&event_type=' + encodeURIComponent(currentEventType);
+        }
+        if (currentSearch) {
+            url += '&search=' + encodeURIComponent(currentSearch);
+        }
+        
+        // Fetch data
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update totals
+                const totalCount = data.totals.total_count;
+                document.querySelector('.content-header p').innerHTML = 
+                    'Total: <strong>' + totalCount + '</strong> enrollments';
+                
+                // Render table
+                tbody.innerHTML = '';
+                if (data.enrollments.length > 0) {
+                    data.enrollments.forEach((enrollment, index) => {
+                        const rowNum = index + 1 + (data.pagination.current_page - 1) * 25;
+                        const row = `
+                            <tr>
+                                <td>${rowNum}</td>
+                                <td>${enrollment.user_email}</td>
+                                <td><span class="badge bg-info">${enrollment.event_type_display}</span></td>
+                                <td>${enrollment.event_name}</td>
+                                <td>${enrollment.date}</td>
+                                <td>${enrollment.amount > 0 ? '<strong>₹' + enrollment.amount.toFixed(2) + '</strong>' : '<span class="text-muted">-</span>'}</td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-2x mb-2"></i>
+                                <p>No enrollments found for the selected period</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+                
+                // Render pagination
+                renderPagination(data.pagination);
+                
+                // Hide loading
+                loadingIndicator.style.display = 'none';
+                tableContainer.style.opacity = '1';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading enrollments:', error);
+            loadingIndicator.style.display = 'none';
+            tableContainer.style.opacity = '1';
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p>Error loading data. Please try again.</p>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    
+    function renderPagination(pagination) {
+        const container = document.getElementById('pagination-container');
+        
+        if (pagination.total_pages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        let paginationHTML = '<ul class="pagination justify-content-center">';
+        
+        // Previous button
+        if (pagination.has_previous) {
+            paginationHTML += `
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="${pagination.previous_page}">Previous</a>
+                </li>
+            `;
+        } else {
+            paginationHTML += `
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+            `;
+        }
+        
+        // Page numbers
+        for (let num = 1; num <= pagination.total_pages; num++) {
+            if (num === pagination.current_page) {
+                paginationHTML += `
+                    <li class="page-item active">
+                        <span class="page-link">${num}</span>
+                    </li>
+                `;
+            } else if (num <= 3 || num > pagination.total_pages - 3 || 
+                      (num >= pagination.current_page - 1 && num <= pagination.current_page + 1)) {
+                paginationHTML += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="${num}">${num}</a>
+                    </li>
+                `;
+            } else if (num === 4 || num === pagination.total_pages - 2) {
+                paginationHTML += `
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                `;
+            }
+        }
+        
+        // Next button
+        if (pagination.has_next) {
+            paginationHTML += `
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="${pagination.next_page}">Next</a>
+                </li>
+            `;
+        } else {
+            paginationHTML += `
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+            `;
+        }
+        
+        paginationHTML += '</ul>';
+        container.innerHTML = paginationHTML;
+        
+        // Add click handlers
+        container.querySelectorAll('a.page-link[data-page]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                currentPage = parseInt(this.getAttribute('data-page'));
+                loadEnrollments();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
+

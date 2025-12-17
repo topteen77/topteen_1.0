@@ -48,13 +48,30 @@ def track_user_registration(sender, instance, created, **kwargs):
 def track_payment_event(sender, instance, created, **kwargs):
     """
     Track payment events (success, failure, pending).
+    Note: For psychometric test payments, the PsychometricTestPayment model also creates events
+    with more detailed test type information. This Payment event is kept for gateway tracking.
     """
     try:
+        # Skip creating event if this is a psychometric test payment
+        # The PsychometricTestPayment signal will handle it with better metadata
+        if instance.obj_type == choices.PaymentObjectType.PYSCHOMETRICTESTDETAIL:
+            # Check if PsychometricTestPayment exists and will create its own event
+            try:
+                from psychometric_tests.models import PsychometricTestPayment
+                psych_payment = PsychometricTestPayment.objects.filter(id=instance.obj_id).first()
+                if psych_payment:
+                    # Skip Payment event - PsychometricTestPayment signal will handle it
+                    logger.debug(f"Skipping Payment event {instance.id} - PsychometricTestPayment {psych_payment.id} will create event")
+                    return
+            except Exception:
+                pass  # Continue with Payment event if we can't check
+        
         # Determine event type based on payment status
         if instance.is_success == choices.YesNoChoices.YES:
             event_type = 'payment_success'
             event_name = f'Payment Success - {instance.get_obj_type_display()}'
-            event_value = float(instance.amount) if hasattr(instance, 'amount') else 0
+            # Payment.amount is stored in paise, convert to rupees
+            event_value = float(instance.amount / 100) if hasattr(instance, 'amount') and instance.amount else 0
         else:
             # Check if this is a new payment (pending) or failed
             if created:
@@ -67,6 +84,27 @@ def track_payment_event(sender, instance, created, **kwargs):
         
         content_type = ContentType.objects.get_for_model(instance)
         
+        # Build metadata
+        metadata = {
+            'gateway': instance.get_gateway_display() if hasattr(instance, 'get_gateway_display') else 'Unknown',
+            'obj_type': instance.get_obj_type_display(),
+            'obj_id': instance.obj_id,
+            'gateway_order_id': instance.gateway_order_id or '',
+        }
+        
+        # If this is a psychometric test payment, try to get test type info
+        if instance.obj_type == choices.PaymentObjectType.PYSCHOMETRICTESTDETAIL:
+            try:
+                from psychometric_tests.models import PsychometricTestPayment
+                psych_payment = PsychometricTestPayment.objects.filter(id=instance.obj_id).first()
+                if psych_payment:
+                    metadata['test_type'] = psych_payment.get_test_type_display()
+                    metadata['test_name'] = psych_payment.get_test_name()
+                    # Update event name to include test type
+                    event_name = f'Payment Success - {psych_payment.get_test_name()}'
+            except Exception:
+                pass
+        
         track_user_event_async.delay(
             event_type=event_type,
             event_name=event_name,
@@ -74,12 +112,7 @@ def track_payment_event(sender, instance, created, **kwargs):
             event_value=event_value,
             content_type_id=content_type.id,
             object_id=instance.id,
-            metadata={
-                'gateway': instance.get_gateway_display() if hasattr(instance, 'get_gateway_display') else 'Unknown',
-                'obj_type': instance.get_obj_type_display(),
-                'obj_id': instance.obj_id,
-                'gateway_order_id': instance.gateway_order_id or '',
-            }
+            metadata=metadata
         )
         logger.info(f"Tracked payment event: {event_type} for payment {instance.id}")
     except Exception as e:
@@ -95,7 +128,8 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
         if instance.is_success == choices.YesNoChoices.YES:
             event_type = 'payment_success'
             event_name = f'Psychometric Test Payment - {instance.get_test_name()}'
-            event_value = float(instance.amount) if hasattr(instance, 'amount') else 0
+            # Amount is stored in paise, convert to rupees
+            event_value = float(instance.amount / 100) if hasattr(instance, 'amount') and instance.amount else 0
         else:
             event_type = 'payment_pending' if created else 'payment_failed'
             event_name = f'Psychometric Test Payment - {instance.get_test_name()}'
