@@ -65,9 +65,16 @@ Explore careers in {{ cluster_name|title }}. Discover educational requirements, 
     <div class="row mt-4">
       <div class="col-12 d-flex flex-wrap gap-2 justify-content-center">
         {% for child in clusters %}
-        <a class="btn btn-sm btn-outline-secondary" href="{{ url('careers:careerlibrary', args=[child.slug, child.id]) }}">
-          {{ child.name|title }}
-        </a>
+        {% set child_active = (child.active_career_count|default(0) > 0) %}
+        {% if child_active %}
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url('careers:careerlibrary', args=[child.slug, child.id]) }}">
+            {{ child.name|title }}
+          </a>
+        {% else %}
+          <span class="btn btn-sm btn-outline-secondary disabled" style="pointer-events:none; opacity:0.6;">
+            {{ child.name|title }} (Inactive)
+          </span>
+        {% endif %}
         {% endfor %}
       </div>
     </div>

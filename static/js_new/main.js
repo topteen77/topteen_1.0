@@ -7,6 +7,9 @@
 // const API_URL = `http://demo.topteen.in/bot/`;
 
 // Chat bot
+// NOTE: Chatbot markup is not present on some pages (e.g. login pages where chatbot is disabled).
+// Guard initialization to avoid JS runtime errors that break other page scripts.
+if (document.querySelector("#chatbot-toggler")) {
 let API_URL;
 if (window.location.hostname === "http://localhost/topteen/") {
   API_URL = "http://demo.topteen.in/bot/";
@@ -290,6 +293,8 @@ sendMessage.addEventListener("click", (e) => handleOutgoingMessage(e));
 document.querySelector("#file-upload").addEventListener("click", () => fileInput.click());
 closeChatbot.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
 chatbotToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));
+
+} // end chatbot guard
 
 
 // Close chatbot when clicking outside of it

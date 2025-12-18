@@ -300,3 +300,89 @@ class Contact(BaseModel):
 class Lead(BaseModel):
     name=models.CharField(max_length=100)
     mobile=models.CharField(max_length=20,null=True)
+
+
+class ExtracurricularActivityCategory(BaseModel, SlugModel):
+    """
+    A section/card on the Extracurricular Activities page (e.g. Sports, Arts, Technology).
+    """
+    name = models.CharField(max_length=250)
+    icon_class = models.CharField(
+        max_length=120,
+        default="bx bx-star",
+        help_text="Boxicons class, e.g. 'bx bx-brain', 'bx bx-football'",
+    )
+    css_class = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+        help_text="Optional extra CSS class for the card wrapper, e.g. 'academic', 'sports', 'arts'.",
+    )
+    priority = models.PositiveSmallIntegerField(default=1, help_text="Lower comes first")
+    image = models.ImageField(upload_to="upload/core/extracurricular/category/", blank=True, null=True)
+
+    class Meta(BaseModel.Meta):
+        ordering = ("priority", "name")
+        verbose_name = "Extracurricular Category"
+        verbose_name_plural = "Extracurricular Categories"
+
+
+class ExtracurricularActivity(BaseModel, SlugModel):
+    """
+    A single activity row under a category (e.g. 'Debating & Public Speaking Events').
+    """
+    category = models.ForeignKey(
+        ExtracurricularActivityCategory,
+        on_delete=models.CASCADE,
+        related_name="activities",
+    )
+    name = models.CharField(max_length=300)
+    image = models.ImageField(upload_to="upload/core/extracurricular/activity/", blank=True, null=True)
+    url = models.URLField(blank=True, null=True, help_text="Optional external link")
+    content_html = RichTextField(blank=True, null=True, help_text="Optional detailed content (HTML) for the activity detail page")
+    priority = models.PositiveSmallIntegerField(default=1, help_text="Lower comes first")
+
+    class Meta(BaseModel.Meta):
+        ordering = ("priority", "name")
+        verbose_name = "Extracurricular Activity"
+        verbose_name_plural = "Extracurricular Activities"
+
+
+class VocationalCourseCategory(BaseModel, SlugModel):
+    """
+    Category hierarchy for vocational courses, derived from folder structure like:
+    - after 10 / after 12
+      - ITI certificate courses / diploma courses / ...
+    """
+    name = models.CharField(max_length=250)
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="children",
+    )
+    priority = models.PositiveSmallIntegerField(default=1, help_text="Lower comes first")
+    image = models.ImageField(upload_to="upload/core/vocational/category/", blank=True, null=True)
+
+    class Meta(BaseModel.Meta):
+        ordering = ("priority", "name")
+        verbose_name = "Vocational Course Category"
+        verbose_name_plural = "Vocational Course Categories"
+
+
+class VocationalCourse(BaseModel, SlugModel):
+    category = models.ForeignKey(
+        VocationalCourseCategory,
+        on_delete=models.CASCADE,
+        related_name="courses",
+    )
+    name = models.CharField(max_length=300)
+    image = models.ImageField(upload_to="upload/core/vocational/course/", blank=True, null=True)
+    content_html = RichTextField(blank=True, null=True)
+    priority = models.PositiveSmallIntegerField(default=1, help_text="Lower comes first")
+
+    class Meta(BaseModel.Meta):
+        ordering = ("priority", "name")
+        verbose_name = "Vocational Course"
+        verbose_name_plural = "Vocational Courses"

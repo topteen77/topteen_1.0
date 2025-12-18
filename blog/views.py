@@ -117,6 +117,11 @@ class BlogDetail(TemplateView):
         descriptionb=blog.summary
         return build_html_head(title=titleb, description=descriptionb)
     
+    def _breadcrumb(self, blog):
+        url = str(reverse('blog:blogs'))
+        lst = [{'title': 'Blogs', 'text': 'Blogs', 'url': url}, {'title': blog.title, 'text': blog.title, 'url': ''}]
+        return build_breadcrumb(lst)
+    
     def get_context(self, request, *args, **kwargs):  
         ctx={}
         blog_slug = kwargs.get('blog_slug')
@@ -178,6 +183,11 @@ class BlogDetail(TemplateView):
             except Exception:
                 ctx['is_blog_bookmarked'] = False
         return ctx
+
+    def get(self, request, *args, **kwargs):
+        # This codebase uses get_context() (not TemplateView.get_context_data),
+        # so we must render explicitly.
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
 class ToggleBlogBookmark(APIView):

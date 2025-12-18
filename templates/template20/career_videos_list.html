@@ -69,7 +69,13 @@
             <div class="video-item mb-4 pb-4 border-bottom">
               <div class="row">
                 <div class="col-md-4 col-sm-12 mb-3 mb-md-0">
-                  <div class="video-thumbnail position-relative" style="height: 200px; overflow: hidden; background: #f0f0f0;">
+                  <div class="video-thumbnail position-relative js-video-open"
+                       data-video="{{ video.get_video_or_url() }}"
+                       data-title="{{ video.name|e }}"
+                       role="button"
+                       tabindex="0"
+                       aria-label="Play video: {{ video.name|e }}"
+                       style="height: 200px; overflow: hidden; background: #f0f0f0; cursor: pointer;">
                     {% set video_url = video.get_video_or_url() %}
                     {% set is_youtube = video_url and ('youtube.com' in video_url or 'youtu.be' in video_url) %}
                     {% set is_s3_video = video.upload_video or (video_url and not is_youtube and ('.mp4' in video_url.lower() or '.webm' in video_url.lower() or '.mov' in video_url.lower())) %}
@@ -93,25 +99,30 @@
                               data-video-id="{{ video.id }}"
                               style="display: none;"></canvas>
                       <div class="video-thumb-placeholder bg-light d-flex align-items-center justify-content-center w-100 h-100" data-video-id="{{ video.id }}">
-                        <i class='bx bx-play-circle fs-48 text-gray'></i>
+                        <i class='bx bx-play-circle' style="font-size: 72px; opacity: 0.85;"></i>
                       </div>
                     {% else %}
                       {# For YouTube/external videos: Use existing thumbnail logic #}
                       {% if video_thumbnails and video.id in video_thumbnails and video_thumbnails[video.id] %}
                         <img src="{{ video_thumbnails[video.id] }}" alt="{{ video.name }}" class="img-fluid w-100" style="height: 200px; object-fit: cover; width: 100%;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <div class="bg-light d-flex align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100" style="display: none;">
-                          <i class='bx bx-play-circle fs-48 text-gray'></i>
+                          <i class='bx bx-play-circle' style="font-size: 72px; opacity: 0.85;"></i>
                         </div>
                       {% else %}
                         <div class="bg-light d-flex align-items-center justify-content-center w-100 h-100">
-                          <i class='bx bx-play-circle fs-48 text-gray'></i>
+                          <i class='bx bx-play-circle' style="font-size: 72px; opacity: 0.85;"></i>
                         </div>
                       {% endif %}
                     {% endif %}
                     {# Play button overlay #}
                     <div class="video-play-overlay position-absolute top-50 start-50 translate-middle" style="z-index: 2;">
-                      <button class="btn btn-link text-white p-0" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="{{ video.get_video_or_url() }}">
-                        <i class='bx bx-play-circle fs-48' style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);"></i>
+                      <button class="btn btn-link text-white p-0 js-video-open-btn"
+                              data-bs-toggle="modal"
+                              data-bs-target="#videoModal"
+                              data-video="{{ video.get_video_or_url() }}"
+                              data-title="{{ video.name|e }}"
+                              aria-label="Play video: {{ video.name|e }}">
+                        <i class='bx bx-play-circle' style="font-size: 84px; text-shadow: 0 2px 6px rgba(0,0,0,0.6);"></i>
                       </button>
                     </div>
                     {% if request.user.is_authenticated %}
@@ -258,7 +269,10 @@
       </div>
       <div class="modal-body p-0">
         <div class="ratio ratio-16x9">
-          <iframe id="videoFrame" src="" allowfullscreen></iframe>
+          <iframe id="videoFrame" src="" allowfullscreen style="display:none;"></iframe>
+          <video id="videoPlayer" controls playsinline style="width: 100%; height: 100%; display:none; background:#000;">
+            <source id="videoPlayerSource" src="" type="video/mp4">
+          </video>
         </div>
       </div>
     </div>
@@ -270,17 +284,27 @@
 {% block additionaljs %}
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<div id="video-page-config"
+     data-parent-student-id="{% if is_parent_student_context and parent_student_id %}{{ parent_student_id }}{% endif %}"
+     data-is-authenticated="{% if request.user.is_authenticated %}1{% else %}0{% endif %}"
+     data-login-url="{{ url('student_login') }}"
+     data-shortlist-video-url="{{ url('careers:shortlist_video') }}"
+     style="display:none;"></div>
 <script>
-// Parent->Student context for suggesting videos
-window.PARENT_STUDENT_ID = {% if is_parent_student_context and parent_student_id %}{{ parent_student_id }}{% else %}null{% endif %};
+// Read template-driven flags from DOM (keeps JS free of Jinja syntax)
+(function() {
+  const cfg = document.getElementById('video-page-config');
+  const psid = cfg && cfg.dataset ? (cfg.dataset.parentStudentId || '') : '';
+  window.PARENT_STUDENT_ID = psid ? parseInt(psid, 10) : null;
+  window.IS_AUTHENTICATED = !!(cfg && cfg.dataset && cfg.dataset.isAuthenticated === '1');
+  window.LOGIN_URL = (cfg && cfg.dataset && cfg.dataset.loginUrl) ? cfg.dataset.loginUrl : '';
+  window.SHORTLIST_VIDEO_URL = (cfg && cfg.dataset && cfg.dataset.shortlistVideoUrl) ? cfg.dataset.shortlistVideoUrl : '';
+})();
 
 // Generate thumbnails from first frame (0:00:00) for S3 videos
 function generateVideoThumbnails() {
   const videoElements = document.querySelectorAll('.video-thumb-source');
-  console.log('Found ' + videoElements.length + ' video elements for thumbnail generation');
-  
   if (videoElements.length === 0) {
-    console.log('No S3 videos found - all videos might be YouTube/external links');
     return;
   }
   
@@ -289,7 +313,6 @@ function generateVideoThumbnails() {
     
     const videoId = video.getAttribute('data-video-id');
     if (!videoId) {
-      console.warn('Video element missing data-video-id');
       return;
     }
     
@@ -298,11 +321,8 @@ function generateVideoThumbnails() {
     const placeholder = document.querySelector('.video-thumb-placeholder[data-video-id="' + videoId + '"]');
     
     if (!canvas || !thumbnailImg || !placeholder) {
-      console.warn('Missing elements for video ID: ' + videoId);
       return;
     }
-    
-    console.log('Processing video ID: ' + videoId);
     
     video.addEventListener('loadedmetadata', function() {
       try {
@@ -310,10 +330,8 @@ function generateVideoThumbnails() {
         const height = video.videoHeight || 360;
         canvas.width = width;
         canvas.height = height;
-        console.log('Video metadata loaded for ID ' + videoId + ': ' + width + 'x' + height);
         video.currentTime = 0.1;
       } catch (e) {
-        console.error('Error loading metadata for video ' + videoId + ':', e);
         placeholder.style.display = 'flex';
         thumbnailImg.style.display = 'none';
       }
@@ -328,26 +346,19 @@ function generateVideoThumbnails() {
           thumbnailImg.src = imgData;
           placeholder.style.display = 'none';
           thumbnailImg.style.display = 'block';
-          console.log('Thumbnail generated successfully for video ID: ' + videoId);
           // Clean up video element after successful capture
           video.pause();
           video.removeAttribute('src');
-          video.load(); // Reload to clear
+          video.load();
         }
       } catch (e) {
-        console.error('Error capturing thumbnail for video ' + videoId + ':', e);
-        console.error('This might be a CORS issue. Check S3 bucket CORS settings.');
         placeholder.style.display = 'flex';
         thumbnailImg.style.display = 'none';
       }
     }, { once: true });
     
-    video.addEventListener('error', function(e) {
-      // Only show error if thumbnail wasn't already generated
+    video.addEventListener('error', function() {
       if (thumbnailImg.style.display !== 'block') {
-        console.error('Video load error for ID ' + videoId + ':', e);
-        console.error('Video source:', video.querySelector('source') ? video.querySelector('source').src : 'No source');
-        console.error('CORS Error: S3 bucket needs CORS configuration to allow thumbnail generation from this domain.');
         placeholder.style.display = 'flex';
         thumbnailImg.style.display = 'none';
       }
@@ -355,10 +366,7 @@ function generateVideoThumbnails() {
     
     try {
       video.load();
-      console.log('Loading video for ID: ' + videoId);
-    } catch (e) {
-      console.error('Error loading video ' + videoId + ':', e);
-    }
+    } catch (e) {}
   });
 }
 
@@ -369,28 +377,120 @@ document.addEventListener('DOMContentLoaded', function() {
   
   const videoModal = document.getElementById('videoModal');
   if (videoModal) {
-    videoModal.addEventListener('show.bs.modal', function(event) {
-      const button = event.relatedTarget;
-      const videoUrl = button.getAttribute('data-video');
-      const videoFrame = document.getElementById('videoFrame');
-      if (videoFrame && videoUrl) {
-        // Convert YouTube URLs to embed format if needed
-        let embedUrl = videoUrl;
-        if (videoUrl.includes('youtube.com/watch')) {
-          const videoId = videoUrl.split('v=')[1]?.split('&')[0];
-          embedUrl = 'https://www.youtube.com/embed/' + videoId;
-        } else if (videoUrl.includes('youtu.be/')) {
-          const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
-          embedUrl = 'https://www.youtube.com/embed/' + videoId;
+    const modalTitleEl = document.getElementById('videoModalLabel');
+    const videoFrame = document.getElementById('videoFrame');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoPlayerSource = document.getElementById('videoPlayerSource');
+
+    function toYouTubeEmbed(url) {
+      if (!url) return '';
+      if (url.includes('youtube.com/watch')) {
+        const videoId = url.split('v=')[1]?.split('&')[0];
+        return videoId ? ('https://www.youtube.com/embed/' + videoId) : url;
+      }
+      if (url.includes('youtu.be/')) {
+        const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+        return videoId ? ('https://www.youtube.com/embed/' + videoId) : url;
+      }
+      return url;
+    }
+
+    function isYouTube(url) {
+      return !!(url && (url.includes('youtube.com') || url.includes('youtu.be')));
+    }
+
+    function isDirectVideo(url) {
+      if (!url) return false;
+      const u = String(url).toLowerCase();
+      return (u.includes('.mp4') || u.includes('.webm') || u.includes('.mov'));
+    }
+
+    function setModalTitle(title) {
+      if (!modalTitleEl) return;
+      modalTitleEl.textContent = title && String(title).trim() ? title : 'Video Player';
+    }
+
+    // Make the entire thumbnail clickable (not just the play icon)
+    document.querySelectorAll('.js-video-open').forEach(function(el) {
+      function open() {
+        const url = el.getAttribute('data-video');
+        const title = el.getAttribute('data-title');
+        // store on modal for programmatic open (no relatedTarget)
+        videoModal.dataset.video = url || '';
+        videoModal.dataset.title = title || '';
+        const bsModal = bootstrap.Modal.getOrCreateInstance(videoModal);
+        bsModal.show();
+      }
+
+      el.addEventListener('click', function(e) {
+        // Don't hijack clicks on shortlist button
+        if (e.target && (e.target.closest('.video-shortlist') || e.target.closest('a'))) return;
+        open();
+      });
+
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          open();
         }
-        videoFrame.src = embedUrl;
+      });
+    });
+
+    videoModal.addEventListener('show.bs.modal', function(event) {
+      const trigger = event.relatedTarget;
+      const videoUrl = (trigger && trigger.getAttribute)
+        ? trigger.getAttribute('data-video')
+        : (videoModal.dataset.video || '');
+      const title = (trigger && trigger.getAttribute)
+        ? trigger.getAttribute('data-title')
+        : (videoModal.dataset.title || '');
+
+      setModalTitle(title);
+
+      // Decide player
+      if (isYouTube(videoUrl)) {
+        if (videoPlayer) {
+          try { videoPlayer.pause(); } catch (e) {}
+          videoPlayer.style.display = 'none';
+        }
+        if (videoPlayerSource) videoPlayerSource.src = '';
+        if (videoFrame) {
+          videoFrame.style.display = 'block';
+          videoFrame.src = toYouTubeEmbed(videoUrl);
+        }
+      } else if (isDirectVideo(videoUrl)) {
+        if (videoFrame) {
+          videoFrame.src = '';
+          videoFrame.style.display = 'none';
+        }
+        if (videoPlayer && videoPlayerSource) {
+          videoPlayerSource.src = videoUrl;
+          videoPlayer.load();
+          videoPlayer.style.display = 'block';
+          // Autoplay if allowed by browser (will be ignored if blocked)
+          try { videoPlayer.play(); } catch (e) {}
+        }
+      } else {
+        // Fallback: try iframe
+        if (videoPlayer) {
+          try { videoPlayer.pause(); } catch (e) {}
+          videoPlayer.style.display = 'none';
+        }
+        if (videoPlayerSource) videoPlayerSource.src = '';
+        if (videoFrame) {
+          videoFrame.style.display = 'block';
+          videoFrame.src = videoUrl || '';
+        }
       }
     });
     
     videoModal.addEventListener('hide.bs.modal', function() {
-      const videoFrame = document.getElementById('videoFrame');
-      if (videoFrame) {
-        videoFrame.src = '';
+      setModalTitle('Video Player');
+      if (videoFrame) videoFrame.src = '';
+      if (videoPlayer) {
+        try { videoPlayer.pause(); } catch (e) {}
+        if (videoPlayerSource) videoPlayerSource.src = '';
+        try { videoPlayer.load(); } catch (e) {}
       }
     });
   }
@@ -398,7 +498,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Shortlist Video Function
 function shortlistVideo(videoId) {
-  {% if request.user.is_authenticated %}
+  if (!window.IS_AUTHENTICATED) {
+    window.location.href = window.LOGIN_URL;
+    return;
+  }
   // Helper function to get CSRF token from cookies
   function getCookie(name) {
     let cookieValue = null;
@@ -418,7 +521,7 @@ function shortlistVideo(videoId) {
   const csrf = getCookie('csrftoken');
   const targetUrl = (window.PARENT_STUDENT_ID
     ? ('/parents/student/' + window.PARENT_STUDENT_ID + '/bookmark/video/')
-    : ('{{ url("careers:shortlist_video") }}?id=' + videoId)
+    : (window.SHORTLIST_VIDEO_URL + '?id=' + videoId)
   );
   const method = (window.PARENT_STUDENT_ID ? 'POST' : 'GET');
   const headers = (window.PARENT_STUDENT_ID
@@ -490,9 +593,6 @@ function shortlistVideo(videoId) {
       });
     }
   });
-  {% else %}
-  window.location.href = '{{ url("users:loginsingup") }}';
-  {% endif %}
 }
 </script>
 {% endblock %}

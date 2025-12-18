@@ -4,6 +4,9 @@
 {% block description_content %}Login or sign up to TopTeen to access your career guidance dashboard and personalized resources.{% endblock %}
 
 {% block footer_cta %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
 
 {% block bodyclass %}login-page{% endblock %}
 
@@ -187,18 +190,16 @@
                   </div>
                   
                   <div class="social-button" {% if login_mode == 'parent' %}style="display:none;"{% endif %}>
-                    <button type="button"
-                            class="btn custom-button google-btn mb-3 fw-600"
-                            onclick="window.location='{{ url('social:begin', args=['google-oauth2']) }}'">
+                    <a class="btn custom-button google-btn mb-3 fw-600"
+                       href="{{ url('social:begin', args=['google-oauth2']) }}">
                       <img class="me-1" src="{{ static('images_new/icons/google-icon.svg') }}" alt="google icon">
                       Continue with Google
-                    </button>
-                    <button type="button"
-                            class="btn custom-button google-btn mb-3 fw-600"
-                            onclick="window.location='{{ url('social:begin', args=['facebook']) }}'">
+                    </a>
+                    <a class="btn custom-button google-btn mb-3 fw-600"
+                       href="{{ url('social:begin', args=['facebook']) }}">
                       <img class="me-1" src="{{ static('images_new/icons/fb-icon.svg') }}" alt="facebook icon">
                       Continue with Facebook
-                    </button>
+                    </a>
                   </div>
 
                   <div class="privacy-test">
@@ -929,40 +930,6 @@
     };
   });
 
-  // Check if user is already logged in and redirect
-  {% if request.user.is_authenticated %}
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-  
-  fetch("{{ url('users:getdashboardurl') }}", {
-    method: 'GET',
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken')
-    }
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.redirect_url) {
-      window.location.href = data.redirect_url;
-    }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    window.location.href = "{{ url('app:test_buttons') }}";
-  });
-  {% endif %}
 </script>
 {% endblock %}
 

@@ -82,17 +82,28 @@ Explore careers in {{ cluster_name|title }}. Discover diverse career paths organ
         <div class="row">
           {% for cluster in clusters %}
           <div class="col-md-4 col-sm-6 mb-4">
-            <div class="career-category-card">
+            {% set is_active = (cluster.active_career_count|default(0) > 0) %}
+            <div class="career-category-card{% if not is_active %} opacity-75{% endif %}">
               <img src="{{ cluster.get_image_url() }}" alt="{{ cluster.name|title }}" class="career-category-image"
                    onerror="this.src='{{ static('images/career-cluster-default.png') }}'">
-              <div class="career-category-overlay">
+              <div class="career-category-overlay{% if not is_active %} opacity-75{% endif %}">
                 <h3 class="career-category-title">{{ cluster.name|title }}</h3>
                 <p class="career-category-description">
-                  Explore careers in {{ cluster.name|title }}.
+                  {% if is_active %}
+                    Explore careers in {{ cluster.name|title }}.
+                  {% else %}
+                    No active careers available.
+                  {% endif %}
                 </p>
-                <a href="{{ url('careers:careerlibrary', args=[cluster.slug, cluster.id]) }}" class="btn btn-sm btn-light career-category-button">
-                  Explore Careers
-                </a>
+                {% if is_active %}
+                  <a href="{{ url('careers:careerlibrary', args=[cluster.slug, cluster.id]) }}" class="btn btn-sm btn-light career-category-button">
+                    Explore Careers
+                  </a>
+                {% else %}
+                  <span class="btn btn-sm btn-light career-category-button disabled" style="pointer-events:none; opacity:0.8;">
+                    Inactive
+                  </span>
+                {% endif %}
               </div>
             </div>
           </div>

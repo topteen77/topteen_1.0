@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.shortcuts import get_object_or_404
 import random
 from users.models import User
-from django.db.models import Q,Avg
+from django.db.models import Q,Avg,Count,F,ExpressionWrapper,IntegerField
 from django.core.validators import MaxValueValidator,MinValueValidator
 # Create your models here.
     
@@ -39,18 +39,55 @@ class CareerCluster(BaseModel,SlugModel):
     def get_career_library_context(cls,request,cluster_slug=None,cluster_id=None):
         q=request.GET.get("careersearch",None)
         ctx={}
+        published_status = choices.PublishStatus.PUBLISHED
         if cluster_slug and cluster_id:
             clstr=get_object_or_404(CareerCluster,slug=cluster_slug,id=cluster_id)
             ctx['current_cluster'] = clstr
-            ctx['clusters']=clstr.children.all()
+            # Child clusters (show all, but mark inactive if they have no active careers).
+            ctx['clusters'] = clstr.children.all().annotate(
+                direct_active_careers=Count(
+                    'career_clusters',
+                    filter=Q(career_clusters__publish_status=published_status),
+                    distinct=True,
+                ),
+                child_active_careers=Count(
+                    'children__career_clusters',
+                    filter=Q(children__career_clusters__publish_status=published_status),
+                    distinct=True,
+                ),
+            ).annotate(
+                active_career_count=ExpressionWrapper(
+                    F('direct_active_careers') + F('child_active_careers'),
+                    output_field=IntegerField(),
+                )
+            )
             if q:
-                ctx['clusters']=ctx['clusters'].filter(name__icontains=q)
+                # When searching, do not show inactive clusters in results.
+                ctx['clusters'] = ctx['clusters'].filter(name__icontains=q).filter(active_career_count__gt=0)
             ctx['careers']=clstr.get_careers()
             ctx["cluster_name"]=clstr.name
         else:
-            ctx['clusters']=cls.objects.filter(parent__isnull=True)
+            # Top-level tracks (show all, but mark inactive if they have no active careers).
+            ctx['clusters'] = cls.objects.filter(parent__isnull=True).annotate(
+                direct_active_careers=Count(
+                    'career_clusters',
+                    filter=Q(career_clusters__publish_status=published_status),
+                    distinct=True,
+                ),
+                child_active_careers=Count(
+                    'children__career_clusters',
+                    filter=Q(children__career_clusters__publish_status=published_status),
+                    distinct=True,
+                ),
+            ).annotate(
+                active_career_count=ExpressionWrapper(
+                    F('direct_active_careers') + F('child_active_careers'),
+                    output_field=IntegerField(),
+                )
+            )
             if q:
-                ctx['clusters']=ctx['clusters'].filter(name__icontains=q)
+                # When searching, do not show inactive tracks in results.
+                ctx['clusters'] = ctx['clusters'].filter(name__icontains=q).filter(active_career_count__gt=0)
             ctx['careers']=Career.objects.filter(career_cluster__in=ctx['clusters']).exclude(publish_status=choices.PublishStatus.DRAFT)
             ctx['cluster_name']="Career Tracks"
         if q:

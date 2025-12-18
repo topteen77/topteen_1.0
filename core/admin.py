@@ -1,5 +1,20 @@
 from django.contrib import admin
-from .models import Configuration,City, Review,State,Country,CommonFAQ,APILog,Stories,Contact,Lead
+from .models import (
+    Configuration,
+    City,
+    Review,
+    State,
+    Country,
+    CommonFAQ,
+    APILog,
+    Stories,
+    Contact,
+    Lead,
+    ExtracurricularActivityCategory,
+    ExtracurricularActivity,
+    VocationalCourseCategory,
+    VocationalCourse,
+)
 # Register your models here.
 
 
@@ -98,4 +113,59 @@ admin.site.register(CommonFAQ)
 admin.site.register(APILog)
 admin.site.register(Stories)
 admin.site.register(Contact,ContactAdmin)
+
+
+class ExtracurricularActivityInline(admin.TabularInline):
+    model = ExtracurricularActivity
+    extra = 1
+    fields = ("name", "image", "url", "priority", "object_status")
+    ordering = ("priority", "name")
+    show_change_link = True
+
+
+@admin.register(ExtracurricularActivityCategory)
+class ExtracurricularActivityCategoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "priority", "object_status", "image")
+    list_filter = ("object_status",)
+    search_fields = ("name",)
+    ordering = ("priority", "name")
+    inlines = (ExtracurricularActivityInline,)
+
+
+@admin.register(ExtracurricularActivity)
+class ExtracurricularActivityAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "category", "priority", "object_status", "image")
+    list_filter = ("object_status", "category")
+    search_fields = ("name", "category__name")
+    ordering = ("category__priority", "category__name", "priority", "name")
+    fields = ("category", "name", "slug", "image", "url", "content_html", "priority", "object_status", "created", "modified")
+    readonly_fields = ("created", "modified")
+
+
+class VocationalCourseInline(admin.TabularInline):
+    model = VocationalCourse
+    extra = 0
+    fields = ("name", "image", "priority", "object_status")
+    ordering = ("priority", "name")
+    show_change_link = True
+
+
+@admin.register(VocationalCourseCategory)
+class VocationalCourseCategoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "parent", "priority", "object_status", "image")
+    list_filter = ("object_status", "parent")
+    search_fields = ("name", "parent__name")
+    ordering = ("parent__name", "priority", "name")
+    inlines = (VocationalCourseInline,)
+
+
+@admin.register(VocationalCourse)
+class VocationalCourseAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "category", "priority", "object_status", "image")
+    list_filter = ("object_status", "category")
+    search_fields = ("name", "category__name")
+    ordering = ("category__name", "priority", "name")
+    fields = ("category", "name", "slug", "image", "content_html", "priority", "object_status", "created", "modified")
+    readonly_fields = ("created", "modified")
+
 

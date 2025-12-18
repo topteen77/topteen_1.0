@@ -446,7 +446,7 @@ function loginsinguppwd() {
       // Re-enable submit button
       if (submitButton) {
         submitButton.disabled = false;
-        submitButton.textContent = "SUBMIT";
+        submitButton.textContent = "Create account";
         submitButton.style.opacity = "1";
         submitButton.style.cursor = "pointer";
       }
@@ -519,7 +519,7 @@ function loginsinguppwd() {
       // Re-enable submit button
       if (submitButton) {
         submitButton.disabled = false;
-        submitButton.textContent = "SUBMIT";
+        submitButton.textContent = "Create account";
         submitButton.style.opacity = "1";
         submitButton.style.cursor = "pointer";
       }

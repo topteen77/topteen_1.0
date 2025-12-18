@@ -215,6 +215,189 @@ class AllFaqView(TemplateView):
     def get(self, request,*args, **kwargs):
         return render(request, self.template_name, self.get_context(request,args,kwargs))
 
+
+class ExtracurricularActivitiesView(TemplateView):
+    template_name = "template20/extracurricular_activities.html"
+
+    def html_head(self):
+        name = "Extracurricular Activities"
+        return build_html_head(title=name, description=name)
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = {'text': 'Extracurricular Activities', 'url': reverse('core:extracurricular_activities')}
+        # Dynamic categories + activities (admin-managed)
+        try:
+            from django.db.models import Prefetch
+            from core.models import ExtracurricularActivityCategory, ExtracurricularActivity
+            from core import choices
+            categories = ExtracurricularActivityCategory.objects.filter(
+                object_status=choices.ObjectStatus.ACTIVE
+            ).order_by("priority", "name").prefetch_related(
+                Prefetch(
+                    "activities",
+                    queryset=ExtracurricularActivity.objects.filter(
+                        object_status=choices.ObjectStatus.ACTIVE
+                    ).order_by("priority", "name"),
+                )
+            )
+            # Only show categories with at least 1 active activity
+            categories = [c for c in categories if c.activities.all()]
+            ctx["activity_categories"] = categories
+        except Exception:
+            ctx["activity_categories"] = []
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class VocationalCoursesView(TemplateView):
+    """
+    Index page: choose After 10 / After 12.
+    """
+    template_name = "template20/vocational_courses_index.html"
+
+    def html_head(self):
+        name = "Vocational Courses & Career Tracks"
+        return build_html_head(title=name, description=name)
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = {'text': 'Vocational Courses', 'url': reverse('core:vocational_courses')}
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class VocationalCoursesLevelView(TemplateView):
+    """
+    Listing page for a specific level: after-10 or after-12.
+    """
+    template_name = "template20/vocational_courses.html"
+
+    def get_context(self, request, *args, **kwargs):
+        from django.db.models import Prefetch
+        from django.shortcuts import get_object_or_404
+        from core import choices
+        from core.models import VocationalCourseCategory, VocationalCourse
+
+        level_slug = kwargs.get("level_slug")
+        level = get_object_or_404(
+            VocationalCourseCategory,
+            slug=level_slug,
+            parent__isnull=True,
+            object_status=choices.ObjectStatus.ACTIVE,
+        )
+
+        # children (sub-categories) and their courses
+        level = VocationalCourseCategory.objects.filter(pk=level.pk).prefetch_related(
+            Prefetch(
+                "children",
+                queryset=VocationalCourseCategory.objects.filter(
+                    object_status=choices.ObjectStatus.ACTIVE
+                ).order_by("priority", "name").prefetch_related(
+                    Prefetch(
+                        "courses",
+                        queryset=VocationalCourse.objects.filter(
+                            object_status=choices.ObjectStatus.ACTIVE
+                        ).order_by("priority", "name"),
+                    )
+                ),
+            )
+        ).first()
+
+        ctx = {}
+        ctx["level"] = level
+        ctx["html_head"] = build_html_head(title=f"Vocational Courses ({level.name})", description=f"Vocational courses {level.name}")
+        ctx["breadcrumb"] = [
+            {"text": "Vocational Courses", "url": reverse("core:vocational_courses")},
+            {"text": level.name, "url": reverse("core:vocational_courses_level", args=[level.slug])},
+        ]
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class VocationalCourseDetailView(TemplateView):
+    template_name = "template20/vocational_course_detail.html"
+
+    def get_context(self, request, *args, **kwargs):
+        from django.shortcuts import get_object_or_404
+        from core.models import VocationalCourse
+
+        course = get_object_or_404(VocationalCourse, pk=kwargs.get("pk"))
+        # determine top-level (After 10 / After 12) for back link/breadcrumb
+        level = None
+        try:
+            cat = course.category
+            while cat and cat.parent_id:
+                cat = cat.parent
+            level = cat
+        except Exception:
+            level = None
+        ctx = {}
+        ctx["course"] = course
+        ctx["level"] = level
+        ctx["html_head"] = build_html_head(title=course.name, description=course.name)
+        if level:
+            ctx["breadcrumb"] = [
+                {"text": "Vocational Courses", "url": reverse("core:vocational_courses")},
+                {"text": level.name, "url": f"/vocational-courses/{level.slug}/"},
+                {"text": course.name, "url": reverse("core:vocational_course_detail", args=[course.pk])},
+            ]
+        else:
+            ctx["breadcrumb"] = [
+                {"text": "Vocational Courses", "url": reverse("core:vocational_courses")},
+                {"text": course.name, "url": reverse("core:vocational_course_detail", args=[course.pk])},
+            ]
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class ExtracurricularActivityDetailView(TemplateView):
+    template_name = "template20/extracurricular_activity_detail.html"
+
+    def get_context(self, request, *args, **kwargs):
+        from django.shortcuts import get_object_or_404
+        from core.models import ExtracurricularActivity
+
+        activity = get_object_or_404(ExtracurricularActivity, pk=kwargs.get("pk"))
+        ctx = {}
+        ctx["activity"] = activity
+        ctx["html_head"] = build_html_head(title=activity.name, description=activity.name)
+        ctx["breadcrumb"] = [
+            {"text": "Extracurricular Activities", "url": reverse("core:extracurricular_activities")},
+            {"text": activity.name, "url": reverse("core:extracurricular_activity_detail", kwargs={"pk": activity.pk})},
+        ]
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class CareerPlanningView(TemplateView):
+    template_name = "template20/career_planning.html"
+
+    def html_head(self):
+        name = "Career Planning Hub"
+        return build_html_head(title=name, description=name)
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = {"text": "Career Planning Hub", "url": reverse("core:career_planning")}
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
 class SearchItems(TemplateView):
     template_name="topteenfrontend/searchandexplore.html"
     def html_head(self):

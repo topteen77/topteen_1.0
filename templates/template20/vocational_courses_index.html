@@ -1,0 +1,60 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Vocational Courses | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Choose courses based on your class: After 10 or After 12.
+{% endblock %}
+
+{% block content %}
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+
+      <div class="col-lg-8 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Exploration
+        </span>
+        <h1 class="heading-title mt-md-9 mb-3">Vocational Courses</h1>
+        <p class="text-gray fs-16">Select the right pathway based on your current stage.</p>
+      </div>
+
+      <div class="col-lg-4 col-md-12">
+        <div class="right-banner d-md-flex justify-content-end">
+          <img class="img-fluid" src="{{ static('images_new/general/vocational-course.svg') }}" alt="Vocational Courses" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pb-10">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <a class="d-block text-decoration-none" href="/vocational-courses/after-10/">
+          <div class="p-4 border rounded-3 h-100 bg-white">
+            <h3 class="mb-2">After 10</h3>
+            <p class="text-gray mb-0">ITI trades, certificates, polytechnic diplomas and more.</p>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-6">
+        <a class="d-block text-decoration-none" href="/vocational-courses/after-12/">
+          <div class="p-4 border rounded-3 h-100 bg-white">
+            <h3 class="mb-2">After 12</h3>
+            <p class="text-gray mb-0">B.Voc programs, diplomas, certificates, integrated programs and more.</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+

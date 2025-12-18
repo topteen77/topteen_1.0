@@ -14,6 +14,12 @@ urlpatterns = [
     path("upload/",views.upload,name="upload"),
     path("about-us/",views.AboutUsView.as_view(),name="aboutus"),
     path("all-faq/",views.AllFaqView.as_view(),name="allfaq"),
+    path("extracurricular-activities/", views.ExtracurricularActivitiesView.as_view(), name="extracurricular_activities"),
+    path("extracurricular-activities/activity/<int:pk>/", views.ExtracurricularActivityDetailView.as_view(), name="extracurricular_activity_detail"),
+    path("vocational-courses/", views.VocationalCoursesView.as_view(), name="vocational_courses"),
+    path("vocational-courses/<slug:level_slug>/", views.VocationalCoursesLevelView.as_view(), name="vocational_courses_level"),
+    path("vocational-courses/course/<int:pk>/", views.VocationalCourseDetailView.as_view(), name="vocational_course_detail"),
+    path("career-planning/", views.CareerPlanningView.as_view(), name="career_planning"),
     path("delete-history/",views.deletehistory,name="deletehistory"), 
     path("lead-submit/",views.LeadData.as_view(),name="lead_submit"),  
 ]

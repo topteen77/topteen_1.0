@@ -1,0 +1,284 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Vocational Courses & Career Tracks | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Explore vocational courses and career tracks across technology, healthcare, business, creative arts, science, and education.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block additionalhead %}
+<style>
+  /* Styles from provided vocational-course.html */
+  .filter-section {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  .filter-btn {
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border-radius: 20px;
+    padding: 8px 15px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+  .filter-btn.active {
+    background-color: #5046e5;
+    color: white;
+    border-color: #5046e5;
+  }
+  .filter-btn:hover:not(.active) {
+    background-color: #e9ecef;
+  }
+  .search-career {
+    border-radius: 20px;
+    padding-left: 40px;
+    height: 45px;
+  }
+  .search-icon {
+    position: absolute;
+    left: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+  }
+  .category-header {
+    margin: 30px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  .career-bookmark-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: all 0.3s ease;
+  }
+  .career-bookmark-btn:hover {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .career-bookmark-btn i {
+    font-size: 18px;
+    color: #5046e5;
+  }
+  .blog-card {
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .blog-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  }
+  .blog-image {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px 10px 0 0;
+  }
+  .cat-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+  }
+  .blog-category {
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  .blog-category:hover {
+    background-color: #5046e5;
+    color: white;
+  }
+  .salary-range {
+    display: flex;
+    align-items: center;
+    color: #28a745;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .salary-range i {
+    font-size: 18px;
+    margin-right: 5px;
+  }
+  .read-more {
+    display: inline-flex;
+    align-items: center;
+    color: #5046e5;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  .read-more i {
+    margin-left: 5px;
+    transition: transform 0.3s ease;
+  }
+  .read-more:hover i {
+    transform: translateX(5px);
+  }
+  .no-results {
+    text-align: center;
+    padding: 50px 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+
+      <div class="col-lg-8 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Exploration
+        </span>
+        <h1 class="heading-title mt-md-9 mb-3">Vocational Courses &amp; Career Tracks</h1>
+        <p class="text-gray fs-16">
+          Explore a wide range of career opportunities across various fields and industries. Our comprehensive career tracks guide you through the education requirements, skills needed, and potential career paths in each field.
+        </p>
+      </div>
+
+      <div class="col-lg-4 col-md-12">
+        <div class="right-banner d-md-flex justify-content-end">
+          <img class="img-fluid" src="{{ static('images_new/general/vocational-course.svg') }}" alt="Vocational Courses" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Content -->
+<section class="pb-10">
+  <div class="container">
+
+    <div class="filter-section">
+      <div class="row">
+        <div class="col-md-6 mb-3 mb-md-0">
+          <div class="position-relative">
+            <i class='bx bx-search search-icon'></i>
+            <input type="text" class="form-control search-career" id="courseSearch" placeholder="Search courses...">
+          </div>
+        </div>
+        <div class="col-md-6 d-flex justify-content-md-end align-items-center">
+          <small class="text-gray">Showing courses loaded from admin-managed database</small>
+        </div>
+      </div>
+    </div>
+
+    {% if level %}
+      <div class="category-section course-category">
+        <h2 class="category-header">{{ level.name|title }}</h2>
+
+        {% for sub in level.children.all() %}
+        <div class="mb-4">
+          <h4 class="mb-3">{{ sub.name }}</h4>
+          <div class="row">
+            {% for course in sub.courses.all() %}
+            <div class="col-md-4 mb-4 course-item">
+              <div class="blog-card h-100">
+                <div class="blog-image">
+                  <div class="cat-header">
+                    <a href="#" class="blog-category category-parent">{{ sub.name }}</a>
+                  </div>
+                  {% if course.image %}
+                    <img src="{{ course.image.url }}" alt="{{ course.name }}">
+                  {% else %}
+                    <img src="{{ static('images_new/general/vocational-course.svg') }}" alt="Course">
+                  {% endif %}
+                </div>
+                <div class="blog-content">
+                  <h3 class="blog-title mt-0">{{ course.name }}</h3>
+                  <p class="blog-excerpt text-gray">Click to view full course details.</p>
+                  <a href="/vocational-courses/course/{{ course.id }}/" class="read-more">
+                    View Details <i class="bx bx-right-arrow-alt"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="no-results" style="display: block;">
+        <h3>No courses found</h3>
+        <p class="text-gray mb-0">Please check that this level exists (after-10 / after-12) and courses are imported.</p>
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+  // Bookmark demo (UI-only)
+  document.querySelectorAll('.career-bookmark-btn').forEach(function (button) {
+    button.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.classList.toggle('active');
+      const icon = this.querySelector('i');
+      if (!icon) return;
+      if (this.classList.contains('active')) {
+        icon.classList.remove('bx-bookmark');
+        icon.classList.add('bxs-bookmark');
+        icon.style.color = '#ff4757';
+      } else {
+        icon.classList.remove('bxs-bookmark');
+        icon.classList.add('bx-bookmark');
+        icon.style.color = '#5046e5';
+      }
+    });
+  });
+
+  // Simple client-side search for DB-rendered courses
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('courseSearch');
+    if (!searchInput) return;
+    const items = Array.from(document.querySelectorAll('.course-item'));
+    searchInput.addEventListener('input', function() {
+      const q = (this.value || '').toLowerCase();
+      items.forEach(item => {
+        const title = (item.querySelector('.blog-title')?.textContent || '').toLowerCase();
+        const cat = (item.querySelector('.blog-category')?.textContent || '').toLowerCase();
+        item.style.display = (title.includes(q) || cat.includes(q)) ? 'block' : 'none';
+      });
+    });
+  });
+</script>
+{% endblock %}
+
+

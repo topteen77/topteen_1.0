@@ -388,6 +388,8 @@ class LoginView(TemplateView):
         return ctx
 
     def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('users:userdashboard')
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
@@ -396,6 +398,22 @@ class StudentLoginView(LoginView):
     Student login landing page (/student/login/).
     OTP-first by default via template context.
     """
+    template_name = "template20/student_login.html"
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('users:userdashboard')
+        ctx = self.get_context(request, *args, **kwargs)
+        ctx['login_mode'] = 'student'
+        return render(request, self.template_name, ctx)
+
+
+class StudentSignupView(LoginView):
+    """
+    Student signup page (/student/signup/).
+    Dedicated flow for new accounts: OTP verify -> set password.
+    """
+    template_name = "template20/student_signup.html"
 
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:

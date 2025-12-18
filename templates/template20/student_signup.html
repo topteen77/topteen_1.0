@@ -1,0 +1,229 @@
+{% extends "template20/base.html" %}
+
+{% block title_content %}Create Account | Top Teen{% endblock %}
+{% block description_content %}Create a TopTeen student account using email or mobile. Verify OTP and set password.{% endblock %}
+
+{% block footer_cta %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block bodyclass %}login-page{% endblock %}
+
+{% block additionalhead %}
+<style>
+  .hideModal { display: none !important; }
+  .modalPopup:not(.hideModal) { display: flex !important; }
+  .modalPopup { position: fixed; inset: 0; z-index: 9999; background-color: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center; }
+  .modalContent { background: #ffffff; border-radius: 10px; padding: 24px; max-width: 395px; width: 96%; position: relative; max-height: 90vh; overflow-y: auto; }
+  .modalCloser { position: absolute; top: 16px; right: 22px; background: none; border: none; font-size: 20px; cursor: pointer; color: #333; padding: 5px; z-index: 10; }
+  .modalCloser:hover { color: #3f37c9; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="login-home d-flex align-items-center">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-5 mx-auto">
+        <div class="login-center">
+          <form class="start-form" id="studentSignupForm">
+            <div class="login-screen text-center p-5">
+              <div class="logo-header text-center my-4">
+                <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
+              </div>
+
+              <h2 class="fs-22 mt-2 mb-2 fw-700 text-purple">Create Account</h2>
+              <p class="text-gray fs-15">Sign up using your email or mobile number.</p>
+
+              <div id="errorMsgSignup" class="text-danger fs-12 mb-2" style="display:none;"></div>
+
+              <div class="form-row">
+                <div class="col mb-4 icon-input email-icon">
+                  <input
+                    type="text"
+                    class="form-control custom-input"
+                    id="mobileEmail"
+                    name="user_name"
+                    placeholder="Enter Email or Mobile"
+                    required
+                  >
+                </div>
+
+                <div class="setting-button d-flex flex-column w-100">
+                  <button type="button" class="btn custom-button purple-button mb-3 fw-600" onclick="return studentSignupContinue();">
+                    Continue
+                  </button>
+                </div>
+
+                <div class="d-flex justify-content-center align-items-center mt-2">
+                  <a href="{{ url('student_login') }}" class="text-purple fw-600 text-decoration-none">Already have an account? Login</a>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# Signup flow modals #}
+{% include 'topteenfrontend/user/signupotp.html' %}
+{% include 'topteenfrontend/user/signuppassword.html' %}
+{% endblock %}
+
+{% block additionaljs %}
+{% include 'topteenfrontend/includes/ajaxjs.html' %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  const fireAlert = async function (title, icon = "success", showConfirmButton = false, showCloseButton = false, isPrompt = false) {
+    const canDo = Swal.fire({
+      title,
+      icon: icon,
+      position: "top-end",
+      showCloseButton,
+      showConfirmButton,
+      toast: true,
+      showCancelButton: false,
+      ...(isPrompt ? {} : { timer: 2000 }),
+    });
+    if (isPrompt) return canDo?.isConfirmed;
+    return -1;
+  };
+
+  var usersloginsignup = "{{ url('users:loginsingup') }}";
+  var userssignupotpverify = "{{ url('users:signupotpverify') }}";
+  var usersloginsinguppwd = "{{ url('users:signuppwd') }}";
+  var usersloginpwd = "{{ url('users:loginpwd') }}";
+  var usersloginotp = "{{ url('users:loginotp') }}";
+  var usersforgotpassword = "{{ url('users:forgotpassword') }}";
+  var usersforgotpasswordotp = "{{ url('users:forgotpasswordotp') }}";
+  var usersresendotp = "{{ url('users:resendotp') }}";
+  var userssetpassword = "{{ url('users:setpassword') }}";
+
+  function _showSignupError(msg) {
+    const em = document.getElementById('errorMsgSignup');
+    if (!em) return;
+    em.textContent = msg;
+    em.style.display = 'block';
+  }
+  function _clearSignupError() {
+    const em = document.getElementById('errorMsgSignup');
+    if (!em) return;
+    em.textContent = '';
+    em.style.display = 'none';
+  }
+
+  function _prefillFromQuery() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const u = (params.get('u') || '').trim();
+      if (u) {
+        const input = document.getElementById('mobileEmail');
+        if (input && !input.value) input.value = u;
+      }
+    } catch (e) {}
+  }
+  document.addEventListener('DOMContentLoaded', _prefillFromQuery);
+</script>
+
+<script type="text/javascript" src="{{ static('topteenfrontend/assets/js/loginsignup.js') }}"></script>
+
+<script>
+  // Dedicated signup page: Continue should ONLY do signup.
+  function studentSignupContinue() {
+    _clearSignupError();
+    const username = (document.getElementById('mobileEmail')?.value || '').trim();
+    if (!username) {
+      _showSignupError('Please enter your email or mobile number');
+      return false;
+    }
+
+    // Use shared validator if available
+    if (typeof validateLoginSignup === 'function') {
+      if (!validateLoginSignup(username)) {
+        _showSignupError('Please enter a valid email or 10-digit mobile number');
+        return false;
+      }
+    }
+
+    const formData = new FormData();
+    formData.append('user_name', username);
+
+    $.ajax({
+      type: 'POST',
+      url: usersloginsignup,
+      data: formData,
+      success: function (data) {
+        // Only allow new-user signup here
+        if (data && data.show_otp) {
+          // Mirror loginsignup.js signup OTP modal open (signupusername + otpDiv)
+          if (typeof loginsingupremoveunusetag === 'function') {
+            try { loginsingupremoveunusetag(); } catch (e) {}
+          }
+
+          const otpForm = document.getElementById("singupotp");
+          if (!otpForm) {
+            _showSignupError('Signup form not available. Please refresh.');
+            return;
+          }
+
+          const existingSignup = document.getElementById("signupusername");
+          if (existingSignup) existingSignup.remove();
+          const existingLogin = document.getElementById("loginotpusername");
+          if (existingLogin) existingLogin.remove();
+
+          const x = document.createElement("input");
+          x.setAttribute("type", "hidden");
+          x.setAttribute("value", data.user_name || username);
+          x.setAttribute("id", "signupusername");
+          x.setAttribute("name", "user_name");
+          otpForm.appendChild(x);
+
+          const nameSpan = document.getElementById("signupotpname");
+          if (nameSpan) nameSpan.textContent = data.user_name || username;
+
+          const otpDiv = document.getElementById("otpDiv");
+          if (otpDiv) otpDiv.classList.remove("hideModal");
+
+          setTimeout(function () {
+            const first = document.querySelector('.otpSource');
+            if (first) first.focus();
+          }, 100);
+          return;
+        }
+
+        // Existing user: send them to login page
+        _showSignupError('Account already exists. Please login.');
+        setTimeout(function () {
+          window.location.href = "{{ url('student_login') }}?u=" + encodeURIComponent(username);
+        }, 600);
+      },
+      error: function () {
+        _showSignupError('Unable to continue. Please try again');
+      },
+      cache: false,
+      contentType: false,
+      processData: false,
+    });
+
+    return false;
+  }
+
+  // Enter key submits "Continue"
+  document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('mobileEmail');
+    if (input) {
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          studentSignupContinue();
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
+
+

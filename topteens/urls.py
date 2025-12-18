@@ -36,6 +36,7 @@ urlpatterns = [
     path('user/', include('users.urls',namespace='users')),
     # Role-specific auth landing pages (Jinja templates)
     path('student/login/', users_views.StudentLoginView.as_view(), name='student_login'),
+    path('student/signup/', users_views.StudentSignupView.as_view(), name='student_signup'),
     path('parents/login/', users_views.ParentsLoginView.as_view(), name='parents_login'),
     path('parents/dashboard/', users_views.ParentsDashboardView.as_view(), name='parents_dashboard'),
     path('parents/student/<int:student_id>/dashboard/', users_views.ParentStudentDashboardView.as_view(), name='parents_student_dashboard'),

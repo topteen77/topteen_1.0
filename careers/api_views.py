@@ -178,17 +178,20 @@ def autocomplete_clusters(request):
     query = request.GET.get('q', '').strip()
     limit = int(request.GET.get('limit', 30))  # Optimized default limit for better performance
     
-    # Get clusters that have published careers
-    careers_with_clusters = Career.objects.filter(
-        publish_status=1,
-        career_cluster__isnull=False
-    ).distinct()
-    
-    # Get clusters from those careers (only active ones)
-    # Note: CareerCluster uses ManyToMany relationship with related_name="career_clusters"
+    # Get clusters directly used by published careers
+    direct_cluster_ids = CareerCluster.objects.filter(
+        career_clusters__publish_status=1
+    ).values_list('id', flat=True).distinct()
+
+    # Also include their parents so top-level tracks with only child careers can still be suggested
+    parent_cluster_ids = CareerCluster.objects.filter(
+        id__in=direct_cluster_ids
+    ).exclude(parent__isnull=True).values_list('parent_id', flat=True).distinct()
+
+    # Only include clusters that have published careers either directly OR via children
     clusters = CareerCluster.objects.filter(
-        career_clusters__in=careers_with_clusters,
-        object_status=1  # Only active clusters
+        Q(id__in=direct_cluster_ids) | Q(id__in=parent_cluster_ids),
+        object_status=1
     ).distinct()
     
     # Apply search query
@@ -207,11 +210,12 @@ def autocomplete_clusters(request):
             # Skip if we've already seen this name
             if name_lower in seen_names:
                 continue
-            # Count careers with this cluster
+            # Count published careers in this cluster or its children (active careers)
             career_count = Career.objects.filter(
-                career_cluster=c,
                 publish_status=1
-            ).count()
+            ).filter(
+                Q(career_cluster=c) | Q(career_cluster__parent=c)
+            ).distinct().count()
             if career_count > 0:
                 seen_names.add(name_lower)
                 # Include count in the text

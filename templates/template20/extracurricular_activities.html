@@ -1,0 +1,326 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Extracurricular Activities | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Unlock your potential through diverse extracurricular activities that enhance your skills, build character, and create memorable experiences.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block additionalhead %}
+<style>
+  /* Activity Cards Styling (from provided HTML) */
+  .activity-card {
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s ease;
+    height: 100%;
+    background: #fff;
+    overflow: hidden;
+    position: relative;
+    border: none;
+  }
+
+  .activity-card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(90deg, var(--purple) 0%, var(--blue) 100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .activity-card:hover:before {
+    opacity: 1;
+  }
+
+  .activity-list {
+    padding-left: 0;
+    list-style-type: none;
+  }
+
+  .activity-list li {
+    padding: 9px 0;
+    border-bottom: 1px solid #eee;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .activity-list li:last-child {
+    border-bottom: none;
+  }
+
+  .activity-list li a {
+    color: #555;
+    text-decoration: none;
+    display: block;
+    padding-left: 0;
+    position: relative;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 14px;
+  }
+
+  .activity-list li:hover {
+    padding-left: 8px;
+    background: #f8f9fa;
+  }
+
+  .activity-list li:hover a {
+    color: #3F37C9;
+  }
+
+  .card-header {
+    border-bottom: none;
+    padding: 20px;
+    position: relative;
+  }
+
+  .card-header h3 {
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+
+  .card-header h3 i {
+    margin-right: 10px;
+    font-size: 1.7rem;
+    background: #fff;
+    border-radius: 50px;
+    padding: 7px;
+    color: #3f37c9;
+  }
+
+  .card-body {
+    padding: 15px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+
+      <div class="col-lg-6 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Explore Activities
+        </span>
+        <h1 class="heading-title mt-md-9 mb-md-8 mt-8 mb-3">
+          Extracurricular Activities
+          <p>Discover Your <span class="text-yellow">Hidden Talents</span> &amp; Build Your Future!</p>
+        </h1>
+        <p class="text-gray fs-16">Unlock your potential through diverse extracurricular activities that enhance
+          your skills, build character, and create memorable experiences. From academic competitions to cultural
+          pursuits, find activities that align with your interests and aspirations.</p>
+      </div>
+
+      <div class="col-lg-6 col-md-12">
+        <div class="right-banner d-md-flex d-none justify-content-end">
+          {# The provided HTML references images/extracurricular-banner.svg; use our available asset #}
+          <img class="img-fluid" src="{{ static('images_new/general/extracurricular.svg') }}" alt="Extracurricular Activities" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Activities Categories -->
+<section class="activities-section py-10">
+  <div class="container">
+    <div class="row">
+      <div class="col-12 text-center mb-5">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/d-future-icon.svg') }}" alt="icon" /> Discover Activities
+        </span>
+        <h2 class="title-two mt-3">Explore Diverse Activities</h2>
+        <p class="text-gray">Find activities that match your interests and help you grow</p>
+      </div>
+    </div>
+
+    <div class="row activity-cards">
+      {% if activity_categories %}
+        {% for cat in activity_categories %}
+        <div class="col-md-6 col-lg-4 mb-4 activity-item {{ cat.css_class }}">
+          <div class="activity-card">
+            <div class="card-header bg-purple text-white">
+              <h3>
+                {% if cat.image %}
+                  <img src="{{ cat.image.url }}" alt="{{ cat.name }}" style="width: 34px; height: 34px; object-fit: cover; border-radius: 8px; margin-right: 10px; background:#fff; padding:4px;">
+                {% else %}
+                  <i class='{{ cat.icon_class }}'></i>
+                {% endif %}
+                {{ cat.name }}
+              </h3>
+            </div>
+            <div class="card-body">
+              <ul class="activity-list">
+                {% for act in cat.activities.all() %}
+                <li>
+                  {% if act.url %}
+                    <a href="{{ act.url }}" target="_blank" rel="noopener">
+                      {% if act.image %}<img src="{{ act.image.url }}" alt="" style="width:18px;height:18px;object-fit:cover;border-radius:4px;margin-right:8px;vertical-align:-3px;">{% endif %}
+                      {{ act.name }}
+                    </a>
+                  {% elif act.content_html %}
+                    <a href="{{ url('core:extracurricular_activity_detail', args=[act.id]) }}">
+                      {% if act.image %}<img src="{{ act.image.url }}" alt="" style="width:18px;height:18px;object-fit:cover;border-radius:4px;margin-right:8px;vertical-align:-3px;">{% endif %}
+                      {{ act.name }}
+                    </a>
+                  {% else %}
+                    <a href="#">
+                      {% if act.image %}<img src="{{ act.image.url }}" alt="" style="width:18px;height:18px;object-fit:cover;border-radius:4px;margin-right:8px;vertical-align:-3px;">{% endif %}
+                      {{ act.name }}
+                    </a>
+                  {% endif %}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="col-12 text-center">
+          <p class="text-gray mb-0">No activities have been added yet. Please add categories and activities from the admin.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    {# View All Activities button intentionally hidden #}
+  </div>
+</section>
+
+<!-- Benefits of Extracurricular Activities -->
+<section class="py-8" style="background-color: #f8f9fa;">
+  <div class="container">
+    <div class="row">
+      <div class="col-12 text-center mb-5">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/gudiance-icona.svg') }}" alt="icon" /> Why Participate
+        </span>
+        <h2 class="title-two mt-3">Benefits of Extracurricular Activities</h2>
+        <p class="text-gray">Discover how extracurricular activities can enhance your personal growth and future prospects</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="mb-4">
+              <i class='bx bx-medal text-purple' style="font-size: 3rem;"></i>
+            </div>
+            <h4>Skill Development</h4>
+            <p class="text-gray">Develop crucial life skills like teamwork, leadership, time management, and problem-solving that complement academic learning.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="mb-4">
+              <i class='bx bx-user-voice text-purple' style="font-size: 3rem;"></i>
+            </div>
+            <h4>College Applications</h4>
+            <p class="text-gray">Stand out in college applications by demonstrating passion, commitment, and well-rounded personality through diverse activities.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="mb-4">
+              <i class='bx bx-network-chart text-purple' style="font-size: 3rem;"></i>
+            </div>
+            <h4>Networking Opportunities</h4>
+            <p class="text-gray">Build meaningful connections with peers, mentors, and professionals who share your interests and can support your future goals.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ Section (static, from provided HTML) -->
+<section class="blog-section py-10" id="faq">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
+        <span class="highlighter text-gray fw-400 ">
+          <img class="position-relative top--10" src="{{ static('images_new/icons/gudiance-icona.svg') }}" alt="iocn"> Frequently Asked Questions
+        </span>
+        <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Got Questions? We've Got Answers!</h3>
+        <p class="text-gray">Explore our FAQ section for quick and reliable answers to common queries. Whether you're
+          a student or a parent, find the guidance you need.</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-8 mx-auto custom-faq">
+        <div class="accordion" id="accordionStudent">
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne"
+                aria-expanded="true" aria-controls="collapseOne">
+                When should I start career counselling?
+              </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionStudent">
+              <div class="accordion-body">
+                The earlier, the better! Ideally, career counselling should start in Class 9 or 10 to help you choose the right stream.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                What if I don't know what career I want to pursue?
+              </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+              <div class="accordion-body">
+                That's completely normal! Career counselling helps you explore different fields and narrow down options through scientific assessments and expert advice.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                I have multiple interests. How do I choose one career path?
+              </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+              <div class="accordion-body">
+                Many students have diverse interests. Guidance can help you identify careers that combine your strengths and passions, and explore multi-disciplinary fields.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+
