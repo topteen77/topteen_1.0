@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
-from django.urls import path
+from django.urls import path, reverse
 from core import choices
 from .models import Career, CareerFAQ,CareerPath,CareerMedia, Skill,ProspectiveEmploymentArea,ProspectiveRecruiter,Profession,CareerPathStep,CareerCluster,RIASECCareer,CareerRating
 from nested_inline.admin import NestedStackedInline, NestedModelAdmin
@@ -234,7 +234,14 @@ class CareerAdmin(admin.ModelAdmin):
     
     def preview_link(self, obj):
         if obj.id and obj.is_valid_for_preview():
-            return format_html('<a href="/careers/career/{}-{}-detail" target="_blank" style="color: green;">View</a>', obj.slug, obj.id)
+            try:
+                url = reverse("careers:careerdetail", kwargs={"slug": obj.slug, "career_id": obj.id})
+            except Exception:
+                url = f"/careers/career/{obj.slug}-{obj.id}-detail/"
+            return format_html(
+                '<a href="{}" target="_blank" style="color: green;">View</a>',
+                url,
+            )
         elif obj.id:
             errors = obj.get_validation_errors()
             error_text = '; '.join(errors)
@@ -263,7 +270,10 @@ class CareerAdmin(admin.ModelAdmin):
     
     def preview_url(self, obj):
         if obj.id:
-            return f'/careers/career/{obj.slug}-{obj.id}-detail'
+            try:
+                return reverse("careers:careerdetail", kwargs={"slug": obj.slug, "career_id": obj.id})
+            except Exception:
+                return f"/careers/career/{obj.slug}-{obj.id}-detail/"
         return 'Save first to generate preview URL'
     
     def skills_count(self, obj):
