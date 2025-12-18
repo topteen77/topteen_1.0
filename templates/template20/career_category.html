@@ -1,0 +1,199 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{{ cluster_name|title }} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Explore careers in {{ cluster_name|title }}. Discover educational requirements, job prospects, and growth opportunities.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+
+      <div class="col-lg-12 col-md-12">
+        <span class="highlighter">
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Exploration
+        </span>
+
+        <h1 class="heading-title mt-md-9 mb-3">{{ cluster_name|title }}</h1>
+
+        <p class="text-gray fs-16">
+          Explore careers in {{ cluster_name|title }}. Use search to quickly find a career within this track.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Listing Section -->
+<section class="pb-10">
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-8 mx-auto">
+        <form method="GET" class="blog-search" style="max-width: 720px; margin: 0 auto;">
+          <input type="text"
+                 id="careersearch"
+                 name="careersearch"
+                 placeholder="Search careers in this track..."
+                 value="{{ request.GET.get('careersearch', '') }}"
+                 autocomplete="off"
+                 list="careerSuggestions" />
+          <datalist id="careerSuggestions"></datalist>
+          <button type="submit"><i class='bx bx-search'></i></button>
+        </form>
+        {% if request.GET.get('careersearch') %}
+        <div class="text-center mt-3">
+          <a href="{{ url('careers:careerlibrary', args=[current_cluster.slug, current_cluster.id]) if current_cluster else url('careers:defaultcareerlibrary') }}" class="text-decoration-underline">Reset search</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Optional: show child clusters as quick links (if any) #}
+    {% if clusters %}
+    <div class="row mt-4">
+      <div class="col-12 d-flex flex-wrap gap-2 justify-content-center">
+        {% for child in clusters %}
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url('careers:careerlibrary', args=[child.slug, child.id]) }}">
+          {{ child.name|title }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row emerging-card mt-4">
+      {% if careers %}
+        {% for career in careers %}
+        <div class="col-md-4 mb-4">
+          <div class="blog-card">
+            <div class="blog-image">
+              <div class="cat-header">
+                {% if career.career_cluster.exists() %}
+                  <a href="{{ url('careers:careerlibrary', args=[career.career_cluster.first().slug, career.career_cluster.first().id]) }}" class="blog-category category-parent">
+                    {{ career.career_cluster.first().name|title }}
+                  </a>
+                {% else %}
+                  <span class="blog-category category-parent">{{ cluster_name|title }}</span>
+                {% endif %}
+              </div>
+
+              <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">
+                {% if career.image and career.image.name %}
+                  <img src="{{ career.image.url }}" alt="{{ career.name }}" onerror="this.src='{{ static('images/career-icon.png') }}'">
+                {% else %}
+                  <img src="{{ static('images/career-icon.png') }}" alt="{{ career.name }}">
+                {% endif %}
+              </a>
+            </div>
+
+            <div class="blog-content">
+              <h3 class="blog-title mt-0">
+                <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">{{ career.name }}</a>
+              </h3>
+
+              {% set salary_value = career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim if career.get_max_salary() else '' %}
+              {% if career.get_max_salary() and career.get_max_salary() != 'N/A' and salary_value != '0.0' and salary_value != '0' and salary_value != '' %}
+              <div class="salary-range">
+                <i class='bx bx-rupee'></i>
+                <span>{{ salary_value }}</span>
+              </div>
+              {% endif %}
+
+              {% if career.summary %}
+              <p class="blog-excerpt">{{ career.summary|truncate(140) }}</p>
+              {% endif %}
+
+              <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}" class="read-more">
+                Explore Career <i class="bx bx-right-arrow-alt"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="col-12">
+        <div class="text-center py-16">
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">No careers found</h3>
+          <p class="text-gray-500 mb-8 text-lg">Try adjusting your search term.</p>
+          <a href="{{ url('careers:careerlibrary', args=[current_cluster.slug, current_cluster.id]) if current_cluster else url('careers:defaultcareerlibrary') }}" class="btn custom-button purple-button">
+            Clear search
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+  (function() {
+    const input = document.getElementById('careersearch');
+    const listEl = document.getElementById('careerSuggestions');
+    if (!input || !listEl) return;
+
+    const clusterId = {% if current_cluster %}{{ current_cluster.id }}{% else %}null{% endif %};
+    let timer = null;
+    let lastQuery = '';
+
+    function clearOptions() {
+      while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
+    }
+
+    function setOptions(items) {
+      clearOptions();
+      (items || []).forEach((t) => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        listEl.appendChild(opt);
+      });
+    }
+
+    async function fetchSuggestions(q) {
+      let url = "{{ url('careers:autocomplete_careers') }}" + "?q=" + encodeURIComponent(q) + "&limit=20";
+      if (clusterId) url += "&cluster_id=" + encodeURIComponent(String(clusterId));
+      const res = await fetch(url, { headers: { "Accept": "application/json" } });
+      if (!res.ok) return [];
+      const data = await res.json();
+      const results = (data && data.results) ? data.results : [];
+      return results.map(r => (r && r.text ? String(r.text) : '')).filter(Boolean);
+    }
+
+    input.addEventListener('input', function() {
+      const q = (input.value || '').trim();
+      if (q.length < 1) {
+        setOptions([]);
+        lastQuery = '';
+        return;
+      }
+      if (q.toLowerCase() === lastQuery.toLowerCase()) return;
+      lastQuery = q;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(async () => {
+        try {
+          const items = await fetchSuggestions(q);
+          setOptions(items);
+        } catch (e) {
+          // ignore
+        }
+      }, 200);
+    });
+  })();
+</script>
+{% endblock %}
+
+

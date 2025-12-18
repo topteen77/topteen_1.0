@@ -41,6 +41,7 @@ class CareerCluster(BaseModel,SlugModel):
         ctx={}
         if cluster_slug and cluster_id:
             clstr=get_object_or_404(CareerCluster,slug=cluster_slug,id=cluster_id)
+            ctx['current_cluster'] = clstr
             ctx['clusters']=clstr.children.all()
             if q:
                 ctx['clusters']=ctx['clusters'].filter(name__icontains=q)
@@ -51,7 +52,7 @@ class CareerCluster(BaseModel,SlugModel):
             if q:
                 ctx['clusters']=ctx['clusters'].filter(name__icontains=q)
             ctx['careers']=Career.objects.filter(career_cluster__in=ctx['clusters']).exclude(publish_status=choices.PublishStatus.DRAFT)
-            ctx['cluster_name']="Careerlibrary"
+            ctx['cluster_name']="Career Tracks"
         if q:
             ctx['careers']=ctx['careers'].filter(name__icontains=q)
         return ctx

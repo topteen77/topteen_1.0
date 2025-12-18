@@ -1625,10 +1625,17 @@ class CareerTagFilter(TemplateView):
         }
 
 class CareerLibrary(TemplateView):
-    template_name='template20/careerlibrary.html'
+    tracks_template_name = 'template20/careerlibrary.html'
+    category_template_name = 'template20/career_category.html'
 
-    def __breadcrumb(self,name):
-        l=[{'title':'Careers','text':'Careers','url':reverse_lazy('careers:career')},{'title':name,'text':name,'url':''}]
+    def __breadcrumb(self, name, is_category=False):
+        if is_category:
+            l = [
+                {'title': 'Career Tracks', 'text': 'Career Tracks', 'url': reverse_lazy('careers:defaultcareerlibrary')},
+                {'title': name, 'text': name, 'url': ''},
+            ]
+        else:
+            l = [{'title': 'Career Tracks', 'text': 'Career Tracks', 'url': ''}]
         return build_breadcrumb(l)
 
     def __html_head(self,name):
@@ -1637,12 +1644,13 @@ class CareerLibrary(TemplateView):
     def get_context(self,request,cluster_slug,cluster_id,*args,**kwargs):
         ctx=CareerCluster.get_career_library_context(request,cluster_slug,cluster_id)
         ctx['html_head']=self.__html_head(ctx["cluster_name"])
-        ctx['breadcrumb']=self.__breadcrumb(ctx["cluster_name"])
+        ctx['breadcrumb']=self.__breadcrumb(ctx["cluster_name"], is_category=bool(cluster_slug and cluster_id))
         ctx['body_css_class']="bg-white"
         return ctx
 
     def get(self, request,cluster_slug=None,cluster_id=None, *args, **kwargs):
-        return render(request, self.template_name, self.get_context(request,cluster_slug,cluster_id, *args, **kwargs))
+        template_name = self.category_template_name if (cluster_slug and cluster_id) else self.tracks_template_name
+        return render(request, template_name, self.get_context(request,cluster_slug,cluster_id, *args, **kwargs))
 
 class CareerVideosView(TemplateView):
     template_name ="template20/career_videos_list.html"

@@ -222,3 +222,47 @@ def autocomplete_clusters(request):
                 })
     
     return JsonResponse({'results': results})
+
+
+@require_http_methods(["GET"])
+def autocomplete_careers(request):
+    """API endpoint for career autocomplete - can be filtered by a cluster (track)."""
+    query = request.GET.get('q', '').strip()
+    limit = int(request.GET.get('limit', 20))
+
+    # Optional: restrict suggestions to a given cluster (and its children)
+    cluster_id = request.GET.get('cluster_id', '').strip()
+
+    careers = Career.objects.filter(publish_status=1)
+
+    if cluster_id:
+        try:
+            cluster_id_int = int(cluster_id)
+            careers = careers.filter(
+                Q(career_cluster__id=cluster_id_int) | Q(career_cluster__parent_id=cluster_id_int)
+            ).distinct()
+        except ValueError:
+            pass
+
+    if query:
+        careers = careers.filter(name__icontains=query)
+
+    careers = careers.exclude(name__isnull=True).exclude(name='').order_by('name')[:limit]
+
+    seen_names = set()
+    results = []
+    for c in careers:
+        nm = (c.name or '').strip()
+        if not nm:
+            continue
+        key = nm.lower()
+        if key in seen_names:
+            continue
+        seen_names.add(key)
+        results.append({
+            'id': c.id,
+            'text': nm,
+            'value': nm,
+        })
+
+    return JsonResponse({'results': results})
