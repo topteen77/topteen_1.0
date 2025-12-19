@@ -513,6 +513,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   window.handlePaymentSubmit = function(event) {
     event.preventDefault();
+    // Institute student: free access, skip payment
+    {% if is_student %}
+      window.location.href = "{{ url('app:test_buttons') }}";
+      return;
+    {% endif %}
     const form = document.getElementById('paymentForm');
     const button = document.getElementById('proceedToBuyBtn');
     const originalText = button.textContent;
@@ -547,6 +552,11 @@ document.addEventListener('DOMContentLoaded', function() {
       return response.json();
     })
     .then(data => {
+      // Institute-student free access response
+      if (data && data.free_access && data.redirect_url) {
+        window.location.href = data.redirect_url;
+        return;
+      }
       // Check for error in response
       if (data.error) {
         throw new Error(data.error);

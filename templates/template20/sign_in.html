@@ -164,6 +164,7 @@
                            id="mobileEmail"
                            name="user_name"
                            placeholder="{% if login_mode == 'parent' %}Enter Mobile Number{% else %}Enter Email or Mobile{% endif %}"
+                           {% if login_mode == 'parent' %}inputmode="numeric" pattern="[0-9]*" maxlength="10"{% endif %}
                            required>
                     <div class="invalid-feedback float-start text-start mt-0 py-1" style="display: none;">
                       Please Enter Correct Email Id.
@@ -238,6 +239,7 @@
                              id="loginOtpEmail"
                              name="user_name"
                              placeholder="{% if login_mode == 'parent' %}Enter Mobile Number{% else %}Enter Email or Mobile{% endif %}"
+                             {% if login_mode == 'parent' %}inputmode="numeric" pattern="[0-9]*" maxlength="10"{% endif %}
                              required>
                     </div>
                     <div class="setting-button d-flex flex-column w-100">

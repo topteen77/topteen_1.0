@@ -828,6 +828,31 @@ def test_buttons(request):
     
     # Check if user is an institute-registered student (exempt from payment check)
     is_institute_student = StudentManagement.objects.filter(student=request.user).exists()
+
+    # UPDATED: After completing all psychometric tests, institute students must add/verify mobile to continue.
+    # Allow login, but block this dashboard/action until mobile is present.
+    try:
+        if is_institute_student and (not request.user.mobile or not str(request.user.mobile).strip()):
+            tc = TestCompletion.objects.filter(user=request.user).first()
+            is_completed = bool(
+                tc and
+                tc.test1_complete and
+                tc.test2_complete and
+                tc.test3_complete and
+                tc.numerical_complete and
+                tc.verbal_complete and
+                tc.logical_complete and
+                tc.emotional_complete and
+                tc.machanical_complete and
+                tc.language_complete and
+                tc.spatial_complete
+            )
+            if is_completed:
+                request.session['force_mobile_popup'] = True
+                request.session['post_mobile_redirect'] = reverse('app:test_buttons')
+                return redirect(reverse('users:userdashboard'))
+    except Exception:
+        pass
     
     # Only check payment for non-institute students
     if not is_institute_student:

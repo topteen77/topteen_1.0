@@ -97,7 +97,19 @@ function loginsingup() {
             window.location.href = '/user/login';
           }, 100);
         } else if (xhr.status === 400) {
-          fireAlert("Invalid request. Please check your input and try again", "error");
+          // Prefer backend-provided message (e.g., mobile length validation)
+          var errorMsg400 = "Invalid request. Please check your input and try again";
+          try {
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              errorMsg400 = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              var errorData400 = JSON.parse(xhr.responseText);
+              if (errorData400.message) {
+                errorMsg400 = errorData400.message;
+              }
+            }
+          } catch (e) {}
+          fireAlert(errorMsg400, "error");
         } else if (xhr.status === 401) {
           fireAlert("Authentication failed. Please check your credentials", "error");
         } else if (xhr.status === 500) {
@@ -173,6 +185,39 @@ function validatePhone(value) {
   // Strict Indian 10-digit mobile
   return /^[6-9]\d{9}$/.test(value);
 }
+
+// Enforce "max 10 digits" only when the user is typing a mobile number.
+// Do NOT apply a hard maxlength to email inputs (same field is used for email/mobile in student flows).
+function enforceMobileMaxLengthOnInput(el, maxDigits = 10) {
+  if (!el) return;
+  el.addEventListener("input", function () {
+    const v = (this.value || "").trim();
+    if (/^\d+$/.test(v)) {
+      if (v.length > maxDigits) {
+        this.value = v.slice(0, maxDigits);
+      }
+      this.setAttribute("maxlength", String(maxDigits));
+      this.setAttribute("inputmode", "numeric");
+      this.setAttribute("pattern", "[0-9]*");
+    } else {
+      // Allow emails (remove hard 10-digit restrictions)
+      this.removeAttribute("maxlength");
+      // keep inputmode/pattern as-is (some pages set them explicitly for parent mode)
+    }
+  });
+}
+
+// Attach to common login/signup inputs if present
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    // Student login/signup: email OR mobile
+    enforceMobileMaxLengthOnInput(document.getElementById("mobileEmail"), 10);
+    // Template20 OTP-first login step
+    enforceMobileMaxLengthOnInput(document.getElementById("loginOtpEmail"), 10);
+    // Forgot password modal/input (if present in DOM)
+    enforceMobileMaxLengthOnInput(document.getElementById("forgotmobileEmail"), 10);
+  } catch (e) {}
+});
 
 // function validatepPhone(phoneEmail) {
 //   if (

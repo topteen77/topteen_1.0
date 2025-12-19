@@ -30,6 +30,7 @@ from colleges.models import College
 from core.models import Country
 from users.models import User
 from institute.models import StudentManagement
+from django.http import JsonResponse
 
 
 class PsychometricTest(TemplateView):
@@ -146,6 +147,51 @@ class CreatePsychometricTestPayment(APIView):
             if not psychometric_test_type:
                 return Response({"error": "Test type is required"}, status=status.HTTP_400_BAD_REQUEST)
             
+            # Institute students are exempt from payment: allow direct access to test dashboard.
+            try:
+                if StudentManagement.objects.filter(student=user).exists():
+                    # Keep a payment record for audit/consistency, but mark as success (free access).
+                    try:
+                        ptype_int = int(psychometric_test_type)
+                    except (ValueError, TypeError):
+                        ptype_int = None
+                    if ptype_int == choices.PsychometricTestType.BASIC:
+                        gateway_receipt = "Student_Psychometric_test_receipt_{}".format(user.id)
+                        amount = settings.STREAM_SORTER_TEST_AMOUNT
+                        test_type = choices.PsychometricTestType.BASIC
+                    elif ptype_int == choices.PsychometricTestType.ADVANCED:
+                        gateway_receipt = "Student_Psychometric_test_receipt_{}".format(user.id)
+                        amount = settings.CAREER_DIRECTION_TEST_AMOUNT
+                        test_type = choices.PsychometricTestType.ADVANCED
+                    else:
+                        # Default to BASIC for safety
+                        gateway_receipt = "Student_Psychometric_test_receipt_{}".format(user.id)
+                        amount = settings.STREAM_SORTER_TEST_AMOUNT
+                        test_type = choices.PsychometricTestType.BASIC
+
+                    test, _ = PsychometricTestPayment.objects.get_or_create(
+                        user=user,
+                        gateway_receipt=gateway_receipt,
+                        test_type=test_type,
+                        is_success=choices.YesNoChoices.NO,
+                        amount=amount,
+                        currency=choices.Currency.IND,
+                    )
+                    test.is_success = choices.YesNoChoices.YES
+                    test.save()
+
+                    return Response(
+                        {
+                            "free_access": True,
+                            "test_type": test.test_type,
+                            "redirect_url": request.build_absolute_uri(reverse("app:test_buttons")),
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+            except Exception:
+                # If exemption logic fails for any reason, fall back to normal payment flow
+                pass
+
             try:
                 psychometric_test_type = int(psychometric_test_type)
             except (ValueError, TypeError):
@@ -256,6 +302,12 @@ class CreatePsychometricTestPayment(APIView):
 class CreatePsychometricTestPaymentWithEazyPay(View):
     def get_payment_url(self,request,*args, **kwargs):
         user=request.user
+        # Institute students are exempt from payment: redirect directly to test dashboard.
+        try:
+            if StudentManagement.objects.filter(student=user).exists():
+                return reverse("app:test_buttons")
+        except Exception:
+            pass
         gateway_receipt="Psychometric_test_receipt_{}".format(user.id)
         amount=Configuration.get('EAZYPAY_PSYCHOMETRIC_TEST_AMOUNT',999,editable=True)
         test_type=choices.PsychometricTestType.BASIC

@@ -977,8 +977,10 @@ def _compute_student_destination(user):
 
 def _apply_institute_student_mobile_gate(request, user, desired_redirect):
     """
-    If student belongs to an institute and has no mobile, force redirect to student dashboard
-    and show a popup to collect + verify mobile (OTP). Store original destination in session.
+    UPDATED (per requirements):
+    If student belongs to an institute AND has completed all psychometric tests (TestCompletion flags)
+    AND has no mobile, allow login but gate actions by forcing a dashboard modal to collect + verify mobile (OTP).
+    Store original destination in session.
     """
     try:
         if user.user_type != choices.UserType.STUDENT:
@@ -986,6 +988,29 @@ def _apply_institute_student_mobile_gate(request, user, desired_redirect):
         is_institute_student = StudentManagement.objects.filter(student=user).exists()
         has_mobile = bool(user.mobile and str(user.mobile).strip())
         if is_institute_student and not has_mobile:
+            # Only require mobile AFTER the student has completed all psychometric tests.
+            try:
+                from app.models import TestCompletion
+                tc = TestCompletion.objects.filter(user=user).first()
+                is_completed = bool(
+                    tc and
+                    tc.test1_complete and
+                    tc.test2_complete and
+                    tc.test3_complete and
+                    tc.numerical_complete and
+                    tc.verbal_complete and
+                    tc.logical_complete and
+                    tc.emotional_complete and
+                    tc.machanical_complete and
+                    tc.language_complete and
+                    tc.spatial_complete
+                )
+            except Exception:
+                is_completed = False
+
+            if not is_completed:
+                return desired_redirect
+
             request.session['force_mobile_popup'] = True
             request.session['post_mobile_redirect'] = desired_redirect
             return reverse('users:userdashboard')
@@ -996,6 +1021,18 @@ def _apply_institute_student_mobile_gate(request, user, desired_redirect):
 
 def _normalize_mobile_digits(value: str) -> str:
     return re.sub(r"\D+", "", str(value or "")).strip()
+
+def _validate_login_mobile_max_digits(raw_username: str, max_digits: int = 10) -> tuple[bool, str | None]:
+    """
+    Validation for login inputs that can be either email or mobile.
+    If the submitted value is digits-only, treat it as a mobile and enforce max length.
+    """
+    raw = str(raw_username or "").strip()
+    if not raw:
+        return False, "All fields required"
+    if re.fullmatch(r"\d+", raw) and len(raw) > max_digits:
+        return False, f"Mobile number must be at most {max_digits} digits"
+    return True, None
 
 
 def _student_mobile_exists(mobile: str, exclude_user_id: int | None = None) -> bool:
@@ -1052,6 +1089,10 @@ class LoginSignUp(APIView):
         data['message']="All fields required"
         username=request.POST.get('user_name')
         if username:
+            ok, err = _validate_login_mobile_max_digits(username, 10)
+            if not ok:
+                data["message"] = err or data["message"]
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
             try:
                 mobile = int(username)
                 email=str(username)
@@ -1112,6 +1153,10 @@ class SignUpVerifyOTP(APIView):
         otp = request.POST.getlist('otp',[]) 
         username=request.POST.get("user_name")
         if username and len(otp)==6:
+            ok, err = _validate_login_mobile_max_digits(username, 10)
+            if not ok:
+                data["message"] = err or data["message"]
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
             try:
                 mobile = int(username)
                 email=str(username)
@@ -1194,6 +1239,10 @@ class SignUpPassword(APIView):
                 signobj=sign.unsign_object(username)
                 username=signobj.get('enc_user_name')
                 try:
+                    ok, err = _validate_login_mobile_max_digits(username, 10)
+                    if not ok:
+                        data["message"] = err or data["message"]
+                        return Response(data, status=status.HTTP_400_BAD_REQUEST)
                     mobile = int(username)
                     email=None
                     username=mobile
@@ -1317,6 +1366,10 @@ class LoginOTP(APIView):
         otp = request.POST.getlist('otp',[]) 
         username=request.POST.get("user_name")
         if username and len(otp)==6:
+            ok, err = _validate_login_mobile_max_digits(username, 10)
+            if not ok:
+                data["message"] = err or data["message"]
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
             try:
                 mobile = int(username)
                 email=str(username)
@@ -1380,6 +1433,10 @@ class LoginPassword(APIView):
             username = signobj.get('enc_user_name')
             
             try:
+                ok, err = _validate_login_mobile_max_digits(username, 10)
+                if not ok:
+                    data["message"] = err or data["message"]
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
                 mobile = int(username)
                 email = None
                 username = mobile
@@ -1896,6 +1953,10 @@ class ForgotPassword(APIView):
         cs=ComService()
         username=request.POST.get('user_name')
         if username:
+            ok, err = _validate_login_mobile_max_digits(username, 10)
+            if not ok:
+                data["message"] = err or data["message"]
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
             try:
                 mobile = int(username)
                 email=str(username)
@@ -1947,6 +2008,10 @@ class ForgotPasswordVerifyOTP(APIView):
             signobj=sign.unsign_object(username)
             username=signobj.get('enc_user_name')
             try:
+                ok, err = _validate_login_mobile_max_digits(username, 10)
+                if not ok:
+                    data["message"] = err or data["message"]
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
                 mobile = int(username)
                 email=str(username)
                 username=mobile
@@ -1979,6 +2044,10 @@ class ResendOtp(APIView):
         cs=ComService()
         username=request.POST.get('user_name')
         if username:
+            ok, err = _validate_login_mobile_max_digits(username, 10)
+            if not ok:
+                data["message"] = err or data["message"]
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
             try:
                 mobile = int(username)
                 email=str(username)
@@ -2182,6 +2251,21 @@ class UserDashboard(TemplateView):
         ctx['test_dashboard_url'] = None
         ctx['test_name'] = None
         ctx['has_test_payment'] = False
+
+        # Institute students are exempt from payment: allow access to test dashboard even if
+        # no payment record exists yet. (Class 10 -> app:test_buttons, Class 12 -> post_matric:tests)
+        try:
+            is_institute_student = StudentManagement.objects.filter(student=profile_user).exists()
+        except Exception:
+            is_institute_student = False
+        if is_institute_student:
+            ctx['has_test_payment'] = True
+            if user_grade == "12":
+                ctx['test_dashboard_url'] = reverse('post_matric:tests')
+                ctx['test_name'] = 'Career Direction'
+            else:
+                ctx['test_dashboard_url'] = reverse('app:test_buttons')
+                ctx['test_name'] = 'Stream Sorter'
         
         # Check if user has purchased test for their class
         if user_grade == "10":
