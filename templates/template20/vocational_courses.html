@@ -145,6 +145,80 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     text-align: center;
     padding: 50px 0;
   }
+  /* Tab Styling */
+  .nav-tabs {
+    border-bottom: 2px solid #e9ecef;
+  }
+  .nav-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 12px 24px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  .nav-tabs .nav-link:hover {
+    border-bottom-color: #dee2e6;
+    color: #5046e5;
+  }
+  .nav-tabs .nav-link.active {
+    color: #5046e5;
+    background-color: transparent;
+    border-bottom-color: #5046e5;
+    font-weight: 600;
+  }
+  .tab-content {
+    margin-top: 20px;
+  }
+  /* Search Suggestions */
+  .search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: 5px;
+  }
+  .suggestion-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s;
+  }
+  .suggestion-item:last-child {
+    border-bottom: none;
+  }
+  .suggestion-item:hover {
+    background: #f8f9fa;
+  }
+  .suggestion-item.active {
+    background: #e7e9fd;
+  }
+  .suggestion-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+  }
+  .suggestion-category {
+    font-size: 12px;
+    color: #6c757d;
+  }
+  .suggestion-tab {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 8px;
+    background: #5046e5;
+    color: white;
+  }
 </style>
 {% endblock %}
 
@@ -186,7 +260,8 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         <div class="col-md-6 mb-3 mb-md-0">
           <div class="position-relative">
             <i class='bx bx-search search-icon'></i>
-            <input type="text" class="form-control search-career" id="courseSearch" placeholder="Search courses...">
+            <input type="text" class="form-control search-career" id="courseSearch" placeholder="Search courses..." autocomplete="off">
+            <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
           </div>
         </div>
         <div class="col-md-6 d-flex justify-content-md-end align-items-center">
@@ -195,47 +270,114 @@ Explore vocational courses and career tracks across technology, healthcare, busi
       </div>
     </div>
 
-    {% if level %}
-      <div class="category-section course-category">
-        <h2 class="category-header">{{ level.name|title }}</h2>
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4" id="vocationalTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if default_tab == 'after-10' %}active{% endif %}" id="after-10-tab" data-bs-toggle="tab" data-bs-target="#after-10" type="button" role="tab" aria-controls="after-10" aria-selected="{% if default_tab == 'after-10' %}true{% else %}false{% endif %}">
+          After 10
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if default_tab == 'after-12' %}active{% endif %}" id="after-12-tab" data-bs-toggle="tab" data-bs-target="#after-12" type="button" role="tab" aria-controls="after-12" aria-selected="{% if default_tab == 'after-12' %}true{% else %}false{% endif %}">
+          After 12
+        </button>
+      </li>
+    </ul>
 
-        {% for sub in level.children.all() %}
-        <div class="mb-4">
-          <h4 class="mb-3">{{ sub.name }}</h4>
-          <div class="row">
-            {% for course in sub.courses.all() %}
-            <div class="col-md-4 mb-4 course-item">
-              <div class="blog-card h-100">
-                <div class="blog-image">
-                  <div class="cat-header">
-                    <a href="#" class="blog-category category-parent">{{ sub.name }}</a>
+    <!-- Tabs Content -->
+    <div class="tab-content" id="vocationalTabsContent">
+      <!-- After 10 Tab -->
+      <div class="tab-pane fade {% if default_tab == 'after-10' %}show active{% endif %}" id="after-10" role="tabpanel" aria-labelledby="after-10-tab">
+        {% set level = levels_data.get('after-10') %}
+        {% if level %}
+          <div class="category-section course-category">
+            <h2 class="category-header">{{ level.name|title }}</h2>
+
+            {% for sub in level.children.all() %}
+            <div class="mb-4">
+              <h4 class="mb-3">{{ sub.name }}</h4>
+              <div class="row">
+                {% for course in sub.courses.all() %}
+                <div class="col-md-4 mb-4 course-item" data-tab="after-10">
+                  <div class="blog-card h-100">
+                    <div class="blog-image">
+                      <div class="cat-header">
+                        <a href="#" class="blog-category category-parent">{{ sub.name }}</a>
+                      </div>
+                      {% if course.image %}
+                        <img src="{{ course.image.url }}" alt="{{ course.name }}">
+                      {% else %}
+                        <img src="{{ static('images_new/general/vocational-course.svg') }}" alt="Course">
+                      {% endif %}
+                    </div>
+                    <div class="blog-content">
+                      <h3 class="blog-title mt-0">{{ course.name }}</h3>
+                      <p class="blog-excerpt text-gray">Click to view full course details.</p>
+                      <a href="/vocational-courses/course/{{ course.id }}/" class="read-more">
+                        View Details <i class="bx bx-right-arrow-alt"></i>
+                      </a>
+                    </div>
                   </div>
-                  {% if course.image %}
-                    <img src="{{ course.image.url }}" alt="{{ course.name }}">
-                  {% else %}
-                    <img src="{{ static('images_new/general/vocational-course.svg') }}" alt="Course">
-                  {% endif %}
                 </div>
-                <div class="blog-content">
-                  <h3 class="blog-title mt-0">{{ course.name }}</h3>
-                  <p class="blog-excerpt text-gray">Click to view full course details.</p>
-                  <a href="/vocational-courses/course/{{ course.id }}/" class="read-more">
-                    View Details <i class="bx bx-right-arrow-alt"></i>
-                  </a>
-                </div>
+                {% endfor %}
               </div>
             </div>
             {% endfor %}
           </div>
-        </div>
-        {% endfor %}
+        {% else %}
+          <div class="no-results" style="display: block;">
+            <h3>No courses found</h3>
+            <p class="text-gray mb-0">Please check that courses are imported for After 10.</p>
+          </div>
+        {% endif %}
       </div>
-    {% else %}
-      <div class="no-results" style="display: block;">
-        <h3>No courses found</h3>
-        <p class="text-gray mb-0">Please check that this level exists (after-10 / after-12) and courses are imported.</p>
+
+      <!-- After 12 Tab -->
+      <div class="tab-pane fade {% if default_tab == 'after-12' %}show active{% endif %}" id="after-12" role="tabpanel" aria-labelledby="after-12-tab">
+        {% set level = levels_data.get('after-12') %}
+        {% if level %}
+          <div class="category-section course-category">
+            <h2 class="category-header">{{ level.name|title }}</h2>
+
+            {% for sub in level.children.all() %}
+            <div class="mb-4">
+              <h4 class="mb-3">{{ sub.name }}</h4>
+              <div class="row">
+                {% for course in sub.courses.all() %}
+                <div class="col-md-4 mb-4 course-item" data-tab="after-12">
+                  <div class="blog-card h-100">
+                    <div class="blog-image">
+                      <div class="cat-header">
+                        <a href="#" class="blog-category category-parent">{{ sub.name }}</a>
+                      </div>
+                      {% if course.image %}
+                        <img src="{{ course.image.url }}" alt="{{ course.name }}">
+                      {% else %}
+                        <img src="{{ static('images_new/general/vocational-course.svg') }}" alt="Course">
+                      {% endif %}
+                    </div>
+                    <div class="blog-content">
+                      <h3 class="blog-title mt-0">{{ course.name }}</h3>
+                      <p class="blog-excerpt text-gray">Click to view full course details.</p>
+                      <a href="/vocational-courses/course/{{ course.id }}/" class="read-more">
+                        View Details <i class="bx bx-right-arrow-alt"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="no-results" style="display: block;">
+            <h3>No courses found</h3>
+            <p class="text-gray mb-0">Please check that courses are imported for After 12.</p>
+          </div>
+        {% endif %}
       </div>
-    {% endif %}
+    </div>
 
   </div>
 </section>
@@ -264,17 +406,190 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     });
   });
 
-  // Simple client-side search for DB-rendered courses
+  // Enhanced search with suggestions across both tabs
   document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('courseSearch');
-    if (!searchInput) return;
-    const items = Array.from(document.querySelectorAll('.course-item'));
+    const suggestionsDiv = document.getElementById('searchSuggestions');
+    if (!searchInput || !suggestionsDiv) return;
+    
+    let allCourses = [];
+    let selectedIndex = -1;
+    
+    // Collect all courses from both tabs
+    function collectAllCourses() {
+      allCourses = [];
+      const tabs = ['after-10', 'after-12'];
+      
+      tabs.forEach(tabId => {
+        const tab = document.getElementById(tabId);
+        if (!tab) return;
+        
+        const items = Array.from(tab.querySelectorAll('.course-item'));
+        items.forEach(item => {
+          const title = item.querySelector('.blog-title')?.textContent?.trim() || '';
+          const category = item.querySelector('.blog-category')?.textContent?.trim() || '';
+          const link = item.querySelector('.read-more')?.getAttribute('href') || '#';
+          
+          if (title) {
+            allCourses.push({
+              title: title,
+              category: category,
+              link: link,
+              tab: tabId,
+              element: item
+            });
+          }
+        });
+      });
+    }
+    
+    // Filter courses across both tabs
+    function filterCourses(query) {
+      if (!query || query.trim() === '') {
+        // Show all courses when search is empty
+        allCourses.forEach(course => {
+          course.element.style.display = 'block';
+        });
+        suggestionsDiv.style.display = 'none';
+        return;
+      }
+      
+      const q = query.toLowerCase().trim();
+      const matchedCourses = [];
+      
+      allCourses.forEach(course => {
+        const titleMatch = course.title.toLowerCase().includes(q);
+        const categoryMatch = course.category.toLowerCase().includes(q);
+        const isMatch = titleMatch || categoryMatch;
+        
+        // Show/hide course in its tab
+        course.element.style.display = isMatch ? 'block' : 'none';
+        
+        // Collect matches for suggestions
+        if (isMatch) {
+          matchedCourses.push(course);
+        }
+      });
+      
+      // Show suggestions
+      showSuggestions(matchedCourses.slice(0, 10), q);
+    }
+    
+    // Show search suggestions
+    function showSuggestions(matches, query) {
+      if (matches.length === 0 || !query) {
+        suggestionsDiv.style.display = 'none';
+        return;
+      }
+      
+      suggestionsDiv.innerHTML = '';
+      matches.forEach((course, index) => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        item.dataset.index = index;
+        item.dataset.tab = course.tab;
+        item.dataset.link = course.link;
+        
+        const title = highlightMatch(course.title, query);
+        const tabLabel = course.tab === 'after-10' ? 'After 10' : 'After 12';
+        
+        item.innerHTML = `
+          <div class="suggestion-title">${title} <span class="suggestion-tab">${tabLabel}</span></div>
+          <div class="suggestion-category">${course.category}</div>
+        `;
+        
+        item.addEventListener('click', function() {
+          // Switch to the appropriate tab
+          const tabButton = document.querySelector(`#${course.tab}-tab`);
+          if (tabButton) {
+            const tab = new bootstrap.Tab(tabButton);
+            tab.show();
+          }
+          
+          // Navigate to course detail after a short delay to allow tab switch
+          setTimeout(() => {
+            window.location.href = course.link;
+          }, 300);
+        });
+        
+        item.addEventListener('mouseenter', function() {
+          document.querySelectorAll('.suggestion-item').forEach(i => i.classList.remove('active'));
+          this.classList.add('active');
+          selectedIndex = index;
+        });
+        
+        suggestionsDiv.appendChild(item);
+      });
+      
+      suggestionsDiv.style.display = 'block';
+      selectedIndex = -1;
+    }
+    
+    // Highlight matching text in suggestions
+    function highlightMatch(text, query) {
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<strong>$1</strong>');
+    }
+    
+    // Initialize
+    collectAllCourses();
+    
+    // Search input handler
+    let searchTimeout;
     searchInput.addEventListener('input', function() {
-      const q = (this.value || '').toLowerCase();
-      items.forEach(item => {
-        const title = (item.querySelector('.blog-title')?.textContent || '').toLowerCase();
-        const cat = (item.querySelector('.blog-category')?.textContent || '').toLowerCase();
-        item.style.display = (title.includes(q) || cat.includes(q)) ? 'block' : 'none';
+      clearTimeout(searchTimeout);
+      const query = this.value;
+      
+      searchTimeout = setTimeout(() => {
+        filterCourses(query);
+      }, 200);
+    });
+    
+    // Handle keyboard navigation in suggestions
+    searchInput.addEventListener('keydown', function(e) {
+      const suggestions = Array.from(suggestionsDiv.querySelectorAll('.suggestion-item'));
+      if (suggestions.length === 0) return;
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedIndex = (selectedIndex + 1) % suggestions.length;
+        suggestions.forEach((s, i) => {
+          s.classList.toggle('active', i === selectedIndex);
+        });
+        suggestions[selectedIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedIndex = selectedIndex <= 0 ? suggestions.length - 1 : selectedIndex - 1;
+        suggestions.forEach((s, i) => {
+          s.classList.toggle('active', i === selectedIndex);
+        });
+        suggestions[selectedIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter' && selectedIndex >= 0) {
+        e.preventDefault();
+        suggestions[selectedIndex].click();
+      } else if (e.key === 'Escape') {
+        suggestionsDiv.style.display = 'none';
+        selectedIndex = -1;
+      }
+    });
+    
+    // Close suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+        suggestionsDiv.style.display = 'none';
+        selectedIndex = -1;
+      }
+    });
+    
+    // Re-collect courses when tab changes (in case content is dynamically loaded)
+    const tabButtons = document.querySelectorAll('#vocationalTabs button[data-bs-toggle="tab"]');
+    tabButtons.forEach(button => {
+      button.addEventListener('shown.bs.tab', function() {
+        collectAllCourses();
+        // Re-apply current search if any
+        if (searchInput.value) {
+          filterCourses(searchInput.value);
+        }
       });
     });
   });
