@@ -1,0 +1,38 @@
+{
+  "activity_name": "list of activities",
+  "category_name": "extracurricular activities",
+  "sections": [
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<p>Subject Olympiads &amp; Quiz Competitions:</p><p>Debating, Public Speaking &amp; Essay Competitions:</p><p>Research Projects &amp; Science Fairs:</p><p>Mathematical and Logical Puzzles:\n</p>\n<p>Team Sports:\nIndividual Sports:\nAdventure &amp; Outdoor Activities:\nFitness and Wellness Clubs:\n</p>\n<p>Robotics &amp; Coding Clubs:\nDigital Media &amp; Design:\nEntrepreneurship &amp; Business Clubs:\nTech Talks &amp; Workshops:\n</p>\n<p>Entrepreneurial &amp; Innovation Competitions:\nOnline Courses &amp; Certifications:\nHobbies &amp; Personal Development:\nCultural Exchange &amp; Study Tours:\n</p>\n<p>International Olympiads &amp; Competitions:\nGlobal Model United Nations (GMUN) Conferences:\nInternational Student Exchange Programs &amp; Summer Schools:\nGlobal Volunteer and Service Projects\nInternational Arts &amp; Cultural Competitions:\nInternational Sports Tournaments &amp; E-Sports:\nGlobal Entrepreneurship &amp; Innovation Programs:\nOnline Global Platforms &amp; Collaborations:\n</p><p><strong>It</strong><strong> include</strong><strong>s</strong><strong> </strong>Overview/Description, Objectives and Goals, Participation Details, Key Skills Developed/Benefits, Activities and Involvement, Achievements and Recognition, Time Commitment and Scheduling, Impact on Personal and Academic Development, Tips for Success/Getting Started and Additional Resources/Contact Information</p>",
+      "order": 1,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<p>Performing Arts:\nVisual Arts:\nLiterary and Creative Writing Clubs:\nCultural and Heritage Clubs:\n</p>",
+      "order": 2,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<p>National Cadet Corps (NCC) \nNational Service Scheme (NSS):\nVolunteering and Social Work:\nPeer Mentoring &amp; School Clubs:\nEnvironmental and Sustainability Initiatives:\n</p>",
+      "order": 3,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<p>Language Learning &amp; Exchange Programs:\nInternational Relations &amp; Model United Nations (MUN):\nCulinary Clubs:\n</p>",
+      "order": 4,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    }
+  ]
+}

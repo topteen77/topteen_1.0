@@ -1,0 +1,78 @@
+{
+  "activity_name": "Peer Mentoring & School Clubs",
+  "category_name": "Community Service, Leadership & Social Initiatives",
+  "sections": [
+    {
+      "section_id": "objectives",
+      "title": "Objectives & Goals",
+      "content_html": "<p>Peer Mentoring &amp; School Clubs offer high schoolers diverse opportunities to learn, lead, and connect within a supportive community. These programs include structured peer mentoring&#8212;where experienced students guide their peers&#8212;and various school clubs that cater to academic interests, cultural pursuits, hobbies, and social causes. Together, they foster a collaborative environment that promotes personal growth, leadership, and academic excellence while strengthening school spirit and community involvement.</p><ul><li><strong></strong></li><li><strong>Peer Mentoring Programs:</strong>\n(e.g., Academic Peer Tutoring, Peer Counselling, Buddy Systems)</li><li><strong>Student Council/Leadership Clubs:</strong>\n(e.g., Class Representatives, Student Government)</li><li><strong>Academic Clubs:</strong>\n(e.g., Debate Club, Science Club, Math Club, Literary Club)</li><li><strong>Cultural Clubs:</strong>\n(e.g., Language Clubs, Art &amp; Music Clubs, Heritage Clubs)</li><li><strong>Hobby &amp; Interest Clubs:</strong>\n(e.g., Chess Club, Robotics Club, Photography Club)</li><li><strong>Service &amp; Social Clubs:</strong>\n(e.g., Community Service Club, Environmental Club)</li></ul>\n<ul><li><strong>Enhance Academic Success:</strong> Provide peer support through tutoring, study groups, and academic mentoring.</li><li><strong>Develop Leadership Skills:</strong> Encourage students to take initiative by leading clubs and organizing events.</li><li><strong>Foster Communication:</strong> Improve verbal and written communication through discussions, presentations, and collaborative projects.</li><li><strong>Build a Supportive Community:</strong> Create a network where students can share interests, exchange ideas, and support one another.</li><li><strong>Promote Cultural and Personal Growth:</strong> Allow exploration of diverse interests, cultural backgrounds, and creative expression.</li><li><strong>Encourage Social Responsibility:</strong> Engage students in service projects and social initiatives that benefit the wider community.</li></ul>",
+      "order": 1,
+      "icon": "bx-target-lock",
+      "description": "Academic excellence, critical thinking, competitive edge"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<ul><li><strong>Eligibility:</strong> Open to all high school students; no prior experience is required.</li><li><strong></strong></li><li><strong>School Clubs:</strong> Many high schools host various clubs. Interested students can sign up during club fairs or through the school&#8217;s extracurricular office.</li><li><strong>Peer Mentoring Programs:</strong> Often coordinated by schools or academic departments, requiring an application and sometimes a brief training session.</li><li><strong></strong></li></ul><p>Complete a registration form either online via your school&#8217;s portal or on printed forms available at the extracurricular office.</p><p>Attend an orientation session to learn about club activities and expectations.</p><ul><li><strong>Fees:</strong> Most programs are free or involve a nominal fee to cover materials or event costs.</li></ul>",
+      "order": 2,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<ul><li><strong>Leadership:</strong> Gain experience in managing teams and organizing events.</li><li><strong>Communication:</strong> Enhance interpersonal and public speaking skills through mentoring sessions and club meetings.</li><li><strong>Teamwork:</strong> Collaborate with peers on projects, events, and initiatives.</li><li><strong>Critical Thinking:</strong> Solve problems collaboratively and think creatively in club activities.</li><li><strong>Time Management:</strong> Balance academic work with extracurricular commitments.</li><li><strong>Empathy and Mentorship:</strong> Develop compassion and guidance skills by supporting fellow students.</li></ul>",
+      "order": 3,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<ul><li><strong>Regular Meetings:</strong> Weekly or biweekly club meetings, planning sessions, and group discussions.</li><li><strong>Mentoring Sessions:</strong> One-on-one or small-group sessions where experienced students help peers with academic or personal challenges.</li><li><strong>Workshops and Seminars:</strong> Skill-building sessions on topics like leadership, public speaking, or creative problem-solving.</li><li><strong>Event Organization:</strong> Planning and executing school events, cultural fests, fundraisers, or community service drives.</li><li><strong>Collaborative Projects:</strong> Joint initiatives such as organizing academic competitions, cultural presentations, or social outreach programs.</li><li><strong>Public Performances:</strong> Opportunities to present projects, debates, or cultural performances at school assemblies or local events.</li></ul>",
+      "order": 4,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<ul><li><strong>Certificates and Awards:</strong> Recognition for leadership, outstanding mentorship, or club achievements.</li><li><strong>Leadership Roles:</strong> Earning positions such as club president, secretary, or mentor can significantly enhance your profile.</li><li><strong>Scholarship Opportunities:</strong> Active involvement and notable contributions may improve prospects for academic scholarships.</li><li><strong>Public Recognition:</strong> Awards and acknowledgments during school assemblies, newsletters, or local media.</li><li><strong>Portfolio Development:</strong> Documenting participation and achievements builds a strong portfolio for college applications and resumes.</li></ul>",
+      "order": 5,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    },
+    {
+      "section_id": "time",
+      "title": "Time Commitment & Scheduling",
+      "content_html": "<ul><li><strong>Regular Meetings:</strong> Generally scheduled once or twice a week, lasting about 1&#8211;2 hours per session.</li><li><strong>Event Preparation:</strong> Additional time may be required for planning and organizing events or projects.</li><li><strong>Flexible Scheduling:</strong> Activities are typically planned around school hours to ensure they complement academic responsibilities.</li><li><strong>Long-Term Engagement:</strong> Continuous participation over the school year enhances skill development and leadership opportunities.</li></ul>",
+      "order": 6,
+      "icon": "bx-time",
+      "description": "Weekly practice and intensive prep timelines"
+    },
+    {
+      "section_id": "impact",
+      "title": "Impact on Development",
+      "content_html": "<ul><li><strong>Academic Enhancement:</strong> Peer mentoring can boost academic performance through collaborative learning and support.</li><li><strong>Personal Growth:</strong> Involvement in clubs fosters self-confidence, resilience, and the ability to work in diverse teams.</li><li><strong>Improved Social Skills:</strong> Regular interaction with peers builds strong communication and interpersonal skills.</li><li><strong>Career Preparedness:</strong> Leadership and teamwork experiences are highly valued by colleges and future employers.</li><li><strong>Holistic Development:</strong> Balancing academic and extracurricular activities contributes to a well-rounded and dynamic personality.</li></ul>",
+      "order": 7,
+      "icon": "bx-heart",
+      "description": "Confidence, networking and growth mindset"
+    },
+    {
+      "section_id": "tips",
+      "title": "Tips for Success",
+      "content_html": "<ul><li><strong>Start Early:</strong> Join clubs and mentoring programs as soon as possible to build a strong foundation.</li><li><strong>Explore Interests:</strong> Choose clubs that align with your passions and strengths.</li><li><strong>Be Proactive:</strong> Volunteer for leadership roles and take initiative in organizing events.</li><li><strong>Seek Feedback:</strong> Engage with mentors and peers to continuously improve your skills.</li><li><strong>Stay Organized:</strong> Keep a planner to balance academic work, club meetings, and mentoring sessions.</li><li><strong>Network:</strong> Build relationships with fellow club members and mentors to create a supportive community.</li><li><strong>Reflect on Experiences:</strong> Maintain a journal or portfolio to document achievements and lessons learned.</li></ul>",
+      "order": 8,
+      "icon": "bx-check-shield",
+      "description": "Start early, practice consistently, join groups"
+    },
+    {
+      "section_id": "resources",
+      "title": "Resources & Contact",
+      "content_html": "<ul><li><strong>Edutopia</strong><strong> &#8211; Student Leadership</strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> Offers articles, tips, and resources on developing leadership and peer mentoring skills.</li><li><strong></strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> Provides tools and programs for student leadership development.</li><li><strong></strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> A platform that offers ideas and opportunities for social and community service projects.</li><li><strong></strong></li><li><strong>Contact:</strong> Check with your school&#8217;s extracurricular or student affairs department for club registration details and schedules.</li></ul>",
+      "order": 9,
+      "icon": "bx-link",
+      "description": "Official sites, platforms and local support"
+    }
+  ]
+}

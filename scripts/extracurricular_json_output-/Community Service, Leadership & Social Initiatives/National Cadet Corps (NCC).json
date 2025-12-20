@@ -1,0 +1,78 @@
+{
+  "activity_name": "National Cadet Corps (NCC)",
+  "category_name": "Community Service, Leadership & Social Initiatives",
+  "sections": [
+    {
+      "section_id": "objectives",
+      "title": "Objectives & Goals",
+      "content_html": "<p>The National Cadet Corps (NCC) is a youth development movement that provides students with structured military training and discipline. It aims to instill a sense of patriotism, leadership, and service through activities such as drills, physical fitness routines, camping, and adventure training. Open to high school students, NCC encourages personal growth, teamwork, and responsibility while offering an opportunity to learn military protocols and community service.</p>\n<ul><li><strong>Instil</strong><strong> Patriotism:</strong> Foster a sense of national pride and loyalty through structured training and civic awareness.</li><li><strong>Develop Leadership:</strong> Cultivate leadership qualities, discipline, and decision-making skills.</li><li><strong>Enhance Physical Fitness:</strong> Improve overall fitness through regular drills, physical training, and outdoor activities.</li><li><strong>Promote Discipline and Time Management:</strong> Teach organizational skills and personal responsibility through scheduled training and activities.</li><li><strong>Encourage Community Service:</strong> Motivate cadets to engage in community initiatives and volunteer work.</li><li><strong>Prepare for Future Challenges:</strong> Equip students with life skills such as teamwork, resilience, and problem-solving that are beneficial both academically and professionally.</li></ul>",
+      "order": 1,
+      "icon": "bx-target-lock",
+      "description": "Academic excellence, critical thinking, competitive edge"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<ul><li><strong>Eligibility:</strong> Open to high school students, typically from Class 8 to Class 12.</li><li><strong></strong></li><li><strong>School </strong><strong>Enrolment</strong><strong>:</strong> Many schools have NCC units; students can enrol through their school&#8217;s NCC coordinator.</li><li><strong>Direct Application:</strong> If your school does not have an NCC unit, you can inquire at the local NCC Regional Centre.</li><li><strong></strong></li></ul><p>Complete the NCC registration form provided by your school or regional office.</p><p>Submit required documents such as age proof, photographs, and academic records.</p><p>Undergo a basic medical fitness examination as part of the selection process.</p><ul><li><strong>Fees:</strong> The program is often subsidized by the government and schools, with minimal fees required for uniform and training materials.</li></ul>",
+      "order": 2,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<ul><li><strong>Discipline and Time Management:</strong> Regular training sessions help develop structured routines and self-discipline.</li><li><strong>Leadership and Teamwork:</strong> Opportunities to lead squads and organize group activities build leadership and collaborative skills.</li><li><strong>Physical Fitness:</strong> Rigorous physical training improves stamina, agility, and overall health.</li><li><strong>Problem-Solving:</strong> Field exercises and drills encourage quick thinking and effective decision-making.</li><li><strong>Civic Responsibility:</strong> Engagement in community service projects fosters a sense of social responsibility.</li><li><strong>Confidence and Communication:</strong> Public speaking during drills and presentations boosts self-confidence and interpersonal skills.</li></ul>",
+      "order": 3,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<ul><li><strong>Drill and Parade:</strong> Regular drill practices and parades that teach precision, teamwork, and military etiquette.</li><li><strong>Physical Training:</strong> Fitness routines, obstacle courses, and endurance drills.</li><li><strong>Camping and Outdoor Expeditions:</strong> Field camps, trekking, and adventure activities that promote survival skills and outdoor awareness.</li><li><strong>Weapon Training (Simulated):</strong> Basic training with simulated arms, focusing on safety, handling, and marksmanship.</li><li><strong>Leadership Exercises:</strong> Activities designed to develop command skills, such as planning, decision-making, and group management.</li><li><strong>Community Service Projects:</strong> Involvement in local community initiatives, including cleanliness drives and social outreach programs.</li><li><strong>National and State Camps:</strong> Participation in larger-scale camps and competitions that offer inter-school and inter-regional exposure.</li></ul>",
+      "order": 4,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<ul><li><strong>Certificates and Medals:</strong> Cadets receive certificates, medals, and awards for outstanding performance and discipline.</li><li><strong>Promotion of Ranks:</strong> Based on performance and attendance, cadets can be promoted to higher ranks, which adds significant value to their profiles.</li><li><strong>Scholarship Opportunities:</strong> Exceptional cadets may qualify for scholarships or other recognition at the state or national level.</li><li><strong>Enhanced College Applications:</strong> Active participation and achievements in NCC are highly valued by educational institutions for admissions.</li><li><strong>National Recognition:</strong> Opportunities to participate in national-level camps and events help in building a reputable profile.</li></ul>",
+      "order": 5,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    },
+    {
+      "section_id": "time",
+      "title": "Time Commitment & Scheduling",
+      "content_html": "<ul><li><strong>Regular Training:</strong> Typically, NCC training sessions are held 1&#8211;2 times a week after school hours.</li><li><strong>Weekend Camps:</strong> Occasional weekend or holiday camps that provide intensive training and adventure activities.</li><li><strong>Seasonal Events:</strong> Participation in annual parades, state, and national camps may require additional time commitment.</li><li><strong>Balanced Schedule:</strong> While demanding, the schedule is designed to accommodate academic responsibilities, with many sessions integrated into school timetables.</li></ul>",
+      "order": 6,
+      "icon": "bx-time",
+      "description": "Weekly practice and intensive prep timelines"
+    },
+    {
+      "section_id": "impact",
+      "title": "Impact on Development",
+      "content_html": "<ul><li><strong>Enhanced Academic Focus:</strong> Improved discipline and time management contribute to better academic performance.</li><li><strong>Holistic Development:</strong> NCC helps in developing a balanced personality by combining physical, mental, and social skills.</li><li><strong>Leadership Growth:</strong> Early exposure to leadership roles boosts confidence and prepares students for future professional challenges.</li><li><strong>Community Engagement:</strong> Active involvement in service projects enhances social awareness and civic responsibility.</li><li><strong>Career Preparedness:</strong> The skills and experiences gained in NCC are valued in higher education and various career paths, especially in fields requiring leadership and teamwork.</li></ul>",
+      "order": 7,
+      "icon": "bx-heart",
+      "description": "Confidence, networking and growth mindset"
+    },
+    {
+      "section_id": "tips",
+      "title": "Tips for Success",
+      "content_html": "<ul><li><strong>Stay Committed:</strong> Regular attendance and active participation are key to gaining the full benefits of NCC.</li><li><strong>Set Personal Goals:</strong> Identify specific skills you want to develop, whether in leadership, fitness, or teamwork.</li><li><strong>Engage Actively:</strong> Participate in all activities, from drills to community service, to gain diverse experiences.</li><li><strong>Seek Mentorship:</strong> Learn from senior cadets and instructors who can provide guidance and support.</li><li><strong>Balance Academics and Training:</strong> Plan your schedule carefully to ensure that your NCC involvement complements your studies.</li><li><strong>Embrace Challenges:</strong> View difficult training sessions as opportunities to improve your physical and mental resilience.</li></ul>",
+      "order": 8,
+      "icon": "bx-check-shield",
+      "description": "Start early, practice consistently, join groups"
+    },
+    {
+      "section_id": "resources",
+      "title": "Resources & Contact",
+      "content_html": "<ul><li><strong></strong></li><li><strong>Website:</strong> <a href=\"https://www.ncc.nic.in\" target=\"_blank\">https://www.ncc.nic.in</a></li><li><strong>Description:</strong> Comprehensive information on NCC programs, eligibility, training schedules, and events.</li><li><strong></strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> Offers details on the registration process, upcoming camps, and training guidelines.</li><li><strong></strong></li><li><strong>Contact:</strong> Reach out to your school&#8217;s NCC coordinator for specific details about joining the unit and upcoming activities.</li><li><strong>Regional NCC </strong><strong>Centers</strong><strong>:</strong></li><li><strong>Contact:</strong> Locate your regional center through the official NCC website for localized support and additional training opportunities.</li><li><strong></strong></li><li><strong>NCC Inquiries:</strong> info@ncc.nic.in</li></ul>",
+      "order": 9,
+      "icon": "bx-link",
+      "description": "Official sites, platforms and local support"
+    }
+  ]
+}

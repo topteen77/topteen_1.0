@@ -158,11 +158,7 @@ Unlock your potential through diverse extracurricular activities that enhance yo
           <div class="activity-card">
             <div class="card-header bg-purple text-white">
               <h3>
-                {% if cat.image %}
-                  <img src="{{ cat.image.url }}" alt="{{ cat.name }}" style="width: 34px; height: 34px; object-fit: cover; border-radius: 8px; margin-right: 10px; background:#fff; padding:4px;">
-                {% else %}
-                  <i class='{{ cat.icon_class }}'></i>
-                {% endif %}
+                <i class='{{ cat.icon_class|default("bx bx-star") }}'></i>
                 {{ cat.name }}
               </h3>
             </div>
@@ -172,17 +168,14 @@ Unlock your potential through diverse extracurricular activities that enhance yo
                 <li>
                   {% if act.url %}
                     <a href="{{ act.url }}" target="_blank" rel="noopener">
-                      {% if act.image %}<img src="{{ act.image.url }}" alt="" style="width:18px;height:18px;object-fit:cover;border-radius:4px;margin-right:8px;vertical-align:-3px;">{% endif %}
                       {{ act.name }}
                     </a>
                   {% elif act.content_html %}
                     <a href="{{ url('core:extracurricular_activity_detail', args=[act.id]) }}">
-                      {% if act.image %}<img src="{{ act.image.url }}" alt="" style="width:18px;height:18px;object-fit:cover;border-radius:4px;margin-right:8px;vertical-align:-3px;">{% endif %}
                       {{ act.name }}
                     </a>
                   {% else %}
                     <a href="#">
-                      {% if act.image %}<img src="{{ act.image.url }}" alt="" style="width:18px;height:18px;object-fit:cover;border-radius:4px;margin-right:8px;vertical-align:-3px;">{% endif %}
                       {{ act.name }}
                     </a>
                   {% endif %}

@@ -12,6 +12,7 @@ from .models import (
     Lead,
     ExtracurricularActivityCategory,
     ExtracurricularActivity,
+    ExtracurricularActivitySection,
     VocationalCourseCategory,
     VocationalCourse,
 )
@@ -132,6 +133,14 @@ class ExtracurricularActivityCategoryAdmin(admin.ModelAdmin):
     inlines = (ExtracurricularActivityInline,)
 
 
+class ExtracurricularActivitySectionInline(admin.TabularInline):
+    model = ExtracurricularActivitySection
+    extra = 0
+    fields = ("section_id", "title", "order", "icon", "description", "object_status")
+    ordering = ("order",)
+    show_change_link = True
+
+
 @admin.register(ExtracurricularActivity)
 class ExtracurricularActivityAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "category", "priority", "object_status", "image")
@@ -139,6 +148,17 @@ class ExtracurricularActivityAdmin(admin.ModelAdmin):
     search_fields = ("name", "category__name")
     ordering = ("category__priority", "category__name", "priority", "name")
     fields = ("category", "name", "slug", "image", "url", "content_html", "priority", "object_status", "created", "modified")
+    readonly_fields = ("created", "modified")
+    inlines = (ExtracurricularActivitySectionInline,)
+
+
+@admin.register(ExtracurricularActivitySection)
+class ExtracurricularActivitySectionAdmin(admin.ModelAdmin):
+    list_display = ("id", "activity", "section_id", "title", "order", "object_status")
+    list_filter = ("object_status", "section_id")
+    search_fields = ("activity__name", "title", "section_id")
+    ordering = ("activity__category__priority", "activity__category__name", "activity__priority", "activity__name", "order")
+    fields = ("activity", "section_id", "title", "content_html", "order", "icon", "description", "object_status", "created", "modified")
     readonly_fields = ("created", "modified")
 
 

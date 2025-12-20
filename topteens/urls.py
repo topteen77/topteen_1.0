@@ -87,8 +87,10 @@ from django.urls import path, include, re_path
 from django.views.generic import TemplateView
 
 # Catch-all pattern for unmatched URLs - uses template20/404.html
+# Exclude all known URL prefixes to avoid intercepting valid routes
 urlpatterns += [
-    re_path(r'^.*$', TemplateView.as_view(template_name='template20/404.html'), name='404'),
+    re_path(r'^(?!admin/|topteenadmin/|careers/|colleges/|testprep/|skilllabcourse/|psychometrictest/|payments/|blogs/|user/|student/|parents/|oauth/|api/|institute/|psychometric/|counselor/|analytics/|user-analytics/|marketing-auth/|api-auth/|static/|media/).*$', 
+            TemplateView.as_view(template_name='template20/404.html'), name='404'),
 ]
 
 handler404="core.views.page404"

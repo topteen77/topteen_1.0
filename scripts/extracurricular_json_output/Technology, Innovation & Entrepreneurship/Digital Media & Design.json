@@ -1,0 +1,86 @@
+{
+  "activity_name": "Digital Media & Design",
+  "category_name": "Technology, Innovation & Entrepreneurship",
+  "sections": [
+    {
+      "section_id": "overview",
+      "title": "Overview/Description",
+      "content_html": "<p>Digital Media &amp; Design focuses on the creative and technical aspects of modern visual communication. This activity offers high schoolers the chance to explore various digital art forms and multimedia production techniques. Participants learn to express ideas visually through graphic design, video, animation, and web development while mastering tools and software that are essential in today&#8217;s creative industries. The program encourages both artistic expression and technical skill-building in a collaborative, project-driven environment.</p><p><strong>List of Activities</strong></p><p>Graphic Design</p><p>Video Production and Editing</p><p>Animation (2D/3D)</p><p>Photography and Photo Editing</p><p>Web Design and Development</p><p>Digital Illustration</p><p>Social Media Content Creation</p><p>Podcast Production and Audio Editing</p>",
+      "order": 1,
+      "icon": "bx-info-circle",
+      "description": "Introduction and overview of the activity"
+    },
+    {
+      "section_id": "objectives",
+      "title": "Objectives & Goals",
+      "content_html": "<p><strong>Cultivate Creativity:</strong> Empower students to develop unique visual content and innovative design solutions.</p><p><strong>Develop Technical Proficiency:</strong> Teach the use of industry-standard software like Adobe Creative Suite (Photoshop, Illustrator, Premiere Pro), Final Cut Pro, or open-source alternatives.</p><p><strong>Enhance Communication:</strong> Enable students to convey messages effectively through various digital media formats.</p><p><strong>Foster Collaborative Work:</strong> Promote teamwork by engaging in group projects and multimedia campaigns.</p><p><strong>Prepare for Future Careers:</strong> Build a strong portfolio that can be used for college applications and entry into creative industries.</p><p><strong>Encourage Critical Thinking:</strong> Integrate design theory and problem-solving skills to tackle real-world challenges.</p>",
+      "order": 2,
+      "icon": "bx-target-lock",
+      "description": "Academic excellence, critical thinking, competitive edge"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<p><strong>Eligibility:</strong>\nOpen to all high school students with an interest in digital arts, multimedia production, or creative technology&#8212;no prior experience is necessary.</p><p><strong>How to Join:</strong></p><p><strong>School Clubs:</strong> Many schools offer digital media clubs or art and design programs.</p><p><strong>Community </strong><strong>Centers</strong><strong> and Local Workshops:</strong> Some local organizations offer digital media classes and boot camps.</p><p><strong>Online Platforms:</strong> Virtual clubs and online courses often welcome high school participants.</p><p><strong>Registration Process:</strong></p><p>Complete a registration form available through your school&#8217;s extracurricular portal or the club&#8217;s website.</p><p>Attend an orientation session to learn about available projects, software tools, and club expectations.</p><p><strong>Fees:</strong>\nMost programs are low-cost or free, though some specialized workshops or software licenses might incur a nominal fee.</p>",
+      "order": 3,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<p><strong>Technical Skills:</strong>\nProficiency in graphic design, video editing, animation, and web development tools.</p><p><strong>Creative Expression:</strong>\nAbility to translate ideas into visual formats and develop original multimedia content.</p><p><strong>Digital Literacy:</strong>\nUnderstanding of digital workflows, file management, and online publishing.</p><p><strong>Problem-Solving:</strong>\nLearning to troubleshoot design challenges and iteratively improve projects.</p><p><strong>Collaboration:</strong>\nWorking in teams to produce cohesive digital media projects and manage collaborative platforms.</p><p><strong>Project Management:</strong>\nPlanning, executing, and presenting projects within set deadlines.</p>",
+      "order": 4,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<p><strong>Workshops and Tutorials:</strong>\nRegular sessions focused on learning software tools (e.g., Photoshop, Illustrator, Premiere Pro) and design principles.</p><p><strong>Project-Based Learning:</strong>\nDeveloping individual or team projects such as creating digital posters, producing short films, designing websites, or developing animations.</p><p><strong>Collaborative Campaigns:</strong>\nGroup projects that may include designing a digital marketing campaign or creating multimedia content for school events.</p><p><strong>Competitions and Showcases:</strong>\nParticipation in local or national digital media contests, online challenges, and school exhibitions.</p><p><strong>Guest Lectures and Industry Talks:</strong>\nSessions led by professional designers, videographers, or digital media experts providing insights into current trends and career advice.</p><p><strong>Portfolio Development:</strong>\nGuidance on building a digital portfolio showcasing projects, designs, and multimedia productions.</p>",
+      "order": 5,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<p><strong>Certificates and Awards:</strong>\nRecognition for outstanding projects through certificates, awards at competitions, or digital badges.</p><p><strong>Portfolio and Exhibition Opportunities:</strong>\nOpportunities to display work in school galleries, online platforms, or local art shows.</p><p><strong>Scholarship Consideration:</strong>\nA strong portfolio and active participation can enhance college applications and open scholarship opportunities.</p><p><strong>Media Exposure:</strong>\nExceptional projects may be featured in school newsletters, local media, or digital platforms.</p><p><strong>Leadership Roles:</strong>\nServing as club officers or project leaders that further build a student&#8217;s resume and leadership experience.</p>",
+      "order": 6,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    },
+    {
+      "section_id": "time",
+      "title": "Time Commitment & Scheduling",
+      "content_html": "<p><strong>Regular Meetings:</strong>\nTypically, clubs meet once or twice a week for 1&#8211;2 hours per session.</p><p><strong>Project Deadlines:</strong>\nInvolvement in projects or competitions may require additional time for brainstorming, production, and editing.</p><p><strong>Flexible Scheduling:</strong>\nMany sessions are scheduled after school or on weekends to accommodate academic responsibilities.</p><p><strong>Seasonal Intensive Workshops:</strong>\nSome clubs offer summer camps or intensive weekend workshops for immersive learning experiences.</p>",
+      "order": 7,
+      "icon": "bx-time",
+      "description": "Weekly practice and intensive prep timelines"
+    },
+    {
+      "section_id": "impact",
+      "title": "Impact on Development",
+      "content_html": "<p><strong>Academic Enhancement:</strong>\nDigital media projects reinforce concepts from art, computer science, and communication studies, leading to improved academic performance.</p><p><strong>Career Readiness:</strong>\nDeveloping a professional portfolio and technical skills prepares students for future careers in design, media, marketing, and technology.</p><p><strong>Boosted Creativity and Confidence:</strong>\nRegular practice in digital design fosters creative thinking and builds confidence in presenting work.</p><p><strong>Enhanced Collaboration:</strong>\nWorking on team projects improves interpersonal skills, communication, and the ability to work in diverse groups.</p><p><strong>Problem-Solving Abilities:</strong>\nOvercoming creative and technical challenges nurtures resilience and strategic thinking.</p>",
+      "order": 8,
+      "icon": "bx-heart",
+      "description": "Confidence, networking and growth mindset"
+    },
+    {
+      "section_id": "tips",
+      "title": "Tips for Success",
+      "content_html": "<p><strong>Start with the Basics:</strong>\nFamiliarize yourself with entry-level tutorials and beginner software guides.</p><p><strong>Practice Regularly:</strong>\nSet aside dedicated time each week to work on small projects and improve your skills.</p><p><strong>Seek Feedback:</strong>\nShare your work with peers and mentors to receive constructive criticism.</p><p><strong>Build a Portfolio:</strong>\nDocument all your projects, designs, and multimedia works in a digital portfolio.</p><p><strong>Stay Updated:</strong>\nFollow online tutorials, join digital media forums, and attend webinars to keep up with the latest trends.</p><p><strong>Engage in Collaboration:</strong>\nWork on group projects to learn teamwork and gain exposure to diverse creative ideas.</p><p><strong>Experiment Boldly:</strong>\nDon&#8217;t be afraid to try new techniques, tools, or creative ideas&#8212;even if they challenge your current skill level.</p>",
+      "order": 9,
+      "icon": "bx-check-shield",
+      "description": "Start early, practice consistently, join groups"
+    },
+    {
+      "section_id": "resources",
+      "title": "Resources & Contact",
+      "content_html": "<p><strong>Adobe Creative Cloud Tutorials</strong></p><p><strong>Website:</strong> <a href=\"https://helpx.adobe.com/creative-cloud/tutorials-explore.html\" target=\"_blank\">https://helpx.adobe.com/creative-cloud/tutorials-explore.html</a></p><p><strong>Description:</strong> Official tutorials for Adobe software, covering Photoshop, Illustrator, Premiere Pro, and more.</p><p><strong>Canva</strong><strong> Design School</strong></p><p><strong>Website:</strong> <a href=\"https://www.canva.com/learn/\" target=\"_blank\">https://www.canva.com/learn/</a></p><p><strong>Description:</strong> A resource offering design tips, tutorials, and inspiration for beginners and advanced users alike.</p><p><strong>Coursera &#8211; Digital Media Courses</strong></p><p><strong>Website:</strong> <a href=\"https://www.coursera.org\" target=\"_blank\">https://www.coursera.org</a></p><p><strong>Description:</strong> Offers online courses in digital design, video production, and animation.</p><p><strong>Skillshare</strong></p><p><strong>Website:</strong> <a href=\"https://www.skillshare.com\" target=\"_blank\">https://www.skillshare.com</a></p><p><strong>Description:</strong> A platform providing courses and community projects in graphic design, photography, video editing, and more.</p><p><strong>Local School and Community Maker Spaces:</strong></p><p><strong>Contact:</strong> Check with your school&#8217;s art or technology department for details on digital media clubs and maker spaces.</p><p><strong>Sample Contact Email:</strong></p><p><strong>Digital Media &amp; Design Club Inquiries:</strong> info@digitalmediadesignclub.org</p>",
+      "order": 10,
+      "icon": "bx-link",
+      "description": "Official sites, platforms and local support"
+    }
+  ]
+}

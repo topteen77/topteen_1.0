@@ -1,0 +1,78 @@
+{
+  "activity_name": "Online Courses & Certifications",
+  "category_name": "Other Enriching Activities",
+  "sections": [
+    {
+      "section_id": "objectives",
+      "title": "Objectives & Goals",
+      "content_html": "<p>Online Courses &amp; Certifications enable high school students to expand their knowledge beyond the traditional classroom. These digital learning opportunities span a wide range of subjects and skill areas&#8212;from STEM topics like computer programming and data science to creative fields such as digital art, creative writing, and marketing. Examples of popular courses include:</p><ul><li><strong>\"Python for Everybody\"</strong> (Programming)</li><li><strong>\"Introduction to Computer Science\"</strong> (CS50 by Harvard)</li><li><strong>\"Data Science Fundamentals\"</strong> (IBM or Coursera offerings)</li><li><strong>\"Creative Writing\"</strong> (Various platforms like Coursera or edX)</li><li><strong>\"Digital Marketing\"</strong> (Google Digital Garage or Udemy)</li><li><strong>\"Graphic Design Basics\"</strong> (Skillshare or Canva Design School)</li><li><strong>\"Entrepreneurship 101\"</strong> (edX or Coursera)</li><li><strong>\"Calculus\"</strong> (Khan Academy)</li></ul><p>These courses provide high schoolers with the opportunity to learn at their own pace, earn certifications from prestigious institutions, and build a portfolio of skills that complement their academic studies and future career goals.</p>\n<ul><li><strong>Expand Knowledge Base:</strong>\nAllow students to explore topics not typically covered in school curricula, including emerging technologies and specialized academic fields.</li><li><strong>Develop Technical and Soft Skills:</strong>\nGain proficiency in digital tools, coding languages, creative arts, project management, and communication techniques through structured online learning.</li><li><strong>Enhance College and Career Readiness:</strong>\nEarn recognized certifications and build a portfolio that strengthens college applications and resumes.</li><li><strong>Foster Lifelong Learning:</strong>\nEncourage self-motivation and curiosity by developing a habit of continuous education beyond the classroom.</li><li><strong>Increase Global Competence:</strong>\nAccess courses offered by international institutions, broadening perspectives and cultural awareness.</li></ul>",
+      "order": 1,
+      "icon": "bx-target-lock",
+      "description": "Academic excellence, critical thinking, competitive edge"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<ul><li><strong>Eligibility:</strong>\nOpen to all high school students. Courses are available for various levels&#8212;from beginner to advanced.</li><li><strong></strong></li><li><strong>Online Learning Platforms:</strong> Sign up on platforms such as Coursera, edX, Udemy, or Khan Academy.</li><li><strong>School Partnerships:</strong> Some schools partner with online education providers to offer courses as part of extracurricular programs.</li><li><strong>Community Programs:</strong> Local libraries or community centers may also provide access to online courses.</li><li><strong></strong></li></ul><p>Create an account on the chosen platform.</p><p>Browse available courses and select those that align with your interests and academic goals.</p><p>Complete the enrollment process, which might include payment for premium courses (many free courses are available as well).</p><ul><li><strong>Fees:</strong>\nA wide range of options exists&#8212;from free courses to paid certifications. Scholarships or financial aid options may be available on some platforms.</li></ul>",
+      "order": 2,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<ul><li><strong>Subject Mastery:</strong>\nDeepen knowledge in specific areas such as STEM, humanities, business, or creative arts.</li><li><strong>Technical Proficiency:</strong>\nLearn digital tools, programming languages, and multimedia skills.</li><li><strong>Time Management:</strong>\nDevelop self-discipline by balancing self-paced study with academic and personal responsibilities.</li><li><strong>Problem-Solving:</strong>\nEnhance analytical thinking and critical problem-solving skills through course projects and quizzes.</li><li><strong>Communication:</strong>\nImprove writing, presentation, and digital communication skills through assignments and discussion forums.</li><li><strong>Portfolio Building:</strong>\nEarn certifications and compile project work that can be showcased in college applications or job resumes.</li></ul>",
+      "order": 3,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<ul><li><strong>Self-Paced Learning:</strong>\nEnroll in courses that allow you to learn at your own speed and revisit materials as needed.</li><li><strong>Interactive Projects and Quizzes:</strong>\nEngage with hands-on projects, interactive quizzes, and real-world case studies to reinforce learning.</li><li><strong>Discussion Forums and Peer Reviews:</strong>\nParticipate in online communities to discuss course content, collaborate on assignments, and gain diverse perspectives.</li><li><strong>Certification Exams:</strong>\nComplete end-of-course assessments to earn certificates that verify your acquired skills and knowledge.</li><li><strong>Specialization Programs:</strong>\nFollow learning paths or micro-degree programs that offer comprehensive training in a particular field.</li></ul>",
+      "order": 4,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<ul><li><strong>Certificates and Badges:</strong>\nReceive digital certificates and badges that can be shared on social media or added to your academic portfolio.</li><li><strong>Scholarship and Internship Opportunities:</strong>\nSome platforms offer scholarships, internships, or recognition programs for top-performing students.</li><li><strong>Portfolio Development:</strong>\nCompile completed projects, case studies, and certifications as part of a professional portfolio.</li><li><strong>Public Acknowledgment:</strong>\nOutstanding achievements may be recognized by school administrations, local media, or education communities.</li></ul>",
+      "order": 5,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    },
+    {
+      "section_id": "time",
+      "title": "Time Commitment & Scheduling",
+      "content_html": "<ul><li><strong>Flexible Scheduling:</strong>\nOnline courses allow you to learn at your own pace, with many courses designed to fit around a high school schedule.</li><li><strong>Weekly Time Investment:</strong>\nDepending on the course, expect to dedicate a few hours per week to lectures, assignments, and projects.</li><li><strong>Project Deadlines:</strong>\nSome courses include deadlines for assignments or exams, so planning and time management are essential.</li><li><strong>Short-Term and Long-Term Courses:</strong>\nOptions range from short introductory courses (a few weeks) to more comprehensive programs that span several months.</li></ul>",
+      "order": 6,
+      "icon": "bx-time",
+      "description": "Weekly practice and intensive prep timelines"
+    },
+    {
+      "section_id": "impact",
+      "title": "Impact on Development",
+      "content_html": "<ul><li><strong>Academic Enhancement:</strong>\nSupplement your school curriculum with specialized knowledge that can deepen your understanding of various subjects.</li><li><strong>Career Preparation:</strong>\nBuild a skill set that is highly valued in today&#8217;s digital economy, giving you a head start in career planning.</li><li><strong>Increased Confidence:</strong>\nSuccessfully completing courses and earning certifications boosts self-esteem and motivates further learning.</li><li><strong>Improved Critical Thinking:</strong>\nEngaging in diverse subjects and problem-solving activities sharpens your analytical skills.</li><li><strong>Lifelong Learning Habits:</strong>\nEstablish a foundation for continuous self-improvement and intellectual curiosity.</li><li><strong>Networking Opportunities:</strong>\nConnect with peers, instructors, and industry professionals through online forums and communities.</li></ul>",
+      "order": 7,
+      "icon": "bx-heart",
+      "description": "Confidence, networking and growth mindset"
+    },
+    {
+      "section_id": "tips",
+      "title": "Tips for Success",
+      "content_html": "<ul><li><strong>Set Clear Goals:</strong>\nDefine what you want to achieve with each course&#8212;whether it&#8217;s mastering a new skill or earning a certification.</li><li><strong>Create a Study Schedule:</strong>\nAllocate specific times during the week dedicated to online learning to ensure consistency.</li><li><strong>Engage Actively:</strong>\nParticipate in discussion forums, group projects, and peer reviews to deepen your understanding.</li><li><strong>Take Notes and Review Regularly:</strong>\nKeep a digital or physical notebook to summarize key concepts and track progress.</li><li><strong>Leverage Free Resources:</strong>\nStart with free courses or trial periods before committing to paid programs.</li><li><strong>Apply What You Learn:</strong>\nWork on practical projects or experiments that allow you to apply course concepts in real-world scenarios.</li><li><strong>Stay Organized:</strong>\nUse digital tools or planners to manage deadlines and track completed certifications.</li></ul>",
+      "order": 8,
+      "icon": "bx-check-shield",
+      "description": "Start early, practice consistently, join groups"
+    },
+    {
+      "section_id": "resources",
+      "title": "Resources & Contact",
+      "content_html": "<ul><li><strong></strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> Offers courses and professional certificates from top universities and companies.</li><li><strong></strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> Provides access to university-level courses across various subjects.</li><li><strong></strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> Features a wide range of courses on practical skills including technology, business, and creative arts.</li><li><strong></strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> Offers free courses and practice exercises in subjects like math, science, and economics.</li><li><strong></strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> A platform for online courses from global institutions.</li><li><strong></strong></li><li><strong>Contact:</strong> Reach out to your school&#8217;s guidance or extracurricular department for information on recommended online learning programs.</li></ul>",
+      "order": 9,
+      "icon": "bx-link",
+      "description": "Official sites, platforms and local support"
+    }
+  ]
+}

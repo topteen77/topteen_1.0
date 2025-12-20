@@ -1,0 +1,78 @@
+{
+  "activity_name": "Tech Talks & Workshops",
+  "category_name": "Technology, Innovation & Entrepreneurship",
+  "sections": [
+    {
+      "section_id": "objectives",
+      "title": "Objectives & Goals",
+      "content_html": "<p>Tech Talks &amp; Workshops offer students an interactive platform to learn about current technology trends, innovative ideas, and career opportunities in the tech industry. These sessions are typically hosted by industry experts, university professors, and tech entrepreneurs. They cover a broad range of topics&#8212;from coding and software development to emerging technologies like artificial intelligence and blockchain. Through these events, high schoolers gain exposure to real-world applications of technology and get inspired to explore STEM fields further.</p><ul><li><strong></strong></li></ul><p>Guest Lectures on Emerging Technologies</p><p>Coding Bootcamps &amp; Software Tutorials</p><p>Industry Panel Discussions</p><p>Tech Entrepreneurship &amp; Startup Insights</p><p>Career Guidance in STEM Fields</p><p>Workshops on AI, Machine Learning, Blockchain, etc.</p><p>Hackathon Pre-Event Workshops</p>\n<ul><li><strong>Increase Technological Literacy:</strong>\nEquip students with up-to-date knowledge on current tech trends and emerging technologies.</li><li><strong>Enhance Practical Skills:</strong>\nProvide hands-on experiences and tutorials that reinforce coding, problem-solving, and digital design.</li><li><strong>Career Exploration:</strong>\nIntroduce students to various tech careers, entrepreneurship, and higher education opportunities in STEM.</li><li><strong>Inspire Innovation:</strong>\nEncourage creative thinking and innovation through exposure to successful tech projects and startup stories.</li><li><strong>Foster Networking:</strong>\nCreate opportunities for students to connect with industry professionals, mentors, and peers who share similar interests.</li></ul>",
+      "order": 1,
+      "icon": "bx-target-lock",
+      "description": "Academic excellence, critical thinking, competitive edge"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<ul><li><strong>Eligibility:</strong>\nOpen to all high school students with an interest in technology, coding, or digital innovation&#8212;no prior experience is required.</li><li><strong></strong></li><li><strong>School Clubs:</strong> Many schools integrate tech talks and workshops into their computer science or STEM clubs.</li><li><strong>Online Platforms:</strong> Some sessions are offered virtually, making them accessible regardless of location.</li><li><strong>Local Tech Hubs:</strong> Community centers or local tech incubators often host events tailored for young enthusiasts.</li><li><strong></strong></li></ul><p>Complete a registration form through your school&#8217;s extracurricular portal or the event&#8217;s official website.</p><p>Some workshops may require pre-registration due to limited seats.</p><ul><li><strong>Fees:</strong>\nMost events are free or available at a nominal fee to cover materials and venue costs.</li></ul>",
+      "order": 2,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<ul><li><strong>Technical Proficiency:</strong>\nLearn new programming languages, tools, and software development techniques.</li><li><strong>Critical Thinking:</strong>\nEnhance problem-solving skills by analyzing real-world tech challenges.</li><li><strong>Communication:</strong>\nImprove presentation and public speaking abilities during Q&amp;A sessions and group discussions.</li><li><strong>Networking:</strong>\nBuild professional connections with experts, mentors, and peers within the tech community.</li><li><strong>Innovation:</strong>\nGain insights into innovative processes and entrepreneurial strategies that drive technological advancement.</li><li><strong>Career Guidance:</strong>\nReceive advice on academic paths and career opportunities in the technology sector.</li></ul>",
+      "order": 3,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<ul><li><strong>Interactive Lectures:</strong>\nAttend sessions where experts discuss current trends, such as advancements in AI, machine learning, and cybersecurity.</li><li><strong>Hands-On Workshops:</strong>\nParticipate in coding bootcamps or software tutorials that involve practical projects.</li><li><strong>Panel Discussions:</strong>\nJoin conversations with multiple experts sharing insights on various tech fields and industry challenges.</li><li><strong>Startup</strong><strong> and Entrepreneurship Sessions:</strong>\nLearn about the journey of launching a tech startup, including business model development and pitch strategies.</li><li><strong>Q&amp;A Sessions:</strong>\nEngage with speakers during interactive question-and-answer periods.</li><li><strong>Project Demos and Competitions:</strong>\nExperience demonstrations of innovative projects and participate in mini hackathons or idea challenges.</li></ul>",
+      "order": 4,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<ul><li><strong>Certificates of Participation:</strong>\nMany workshops and talks award certificates that can enhance college applications.</li><li><strong>Awards and Prizes:</strong>\nCompetitions and hackathons may offer recognition, prizes, or scholarships for outstanding projects.</li><li><strong>Portfolio Building:</strong>\nDocumenting projects and learning experiences creates a portfolio that showcases your technical skills and creativity.</li><li><strong>Public Recognition:</strong>\nExceptional contributions may be highlighted in school newsletters, local tech blogs, or social media.</li></ul>",
+      "order": 5,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    },
+    {
+      "section_id": "time",
+      "title": "Time Commitment & Scheduling",
+      "content_html": "<ul><li><strong>Regular Sessions:</strong>\nTypically held once or twice a week, each lasting 1&#8211;2 hours.</li><li><strong>Project Deadlines:</strong>\nAdditional time may be required for preparing projects or participating in hackathons, often scheduled during weekends or school breaks.</li><li><strong>Flexible Participation:</strong>\nMany events are designed to accommodate academic schedules, with options for both in-person and virtual attendance.</li></ul>",
+      "order": 6,
+      "icon": "bx-time",
+      "description": "Weekly practice and intensive prep timelines"
+    },
+    {
+      "section_id": "impact",
+      "title": "Impact on Development",
+      "content_html": "<ul><li><strong>Enhanced Academic Performance:</strong>\nApplying new technical skills and problem-solving methods reinforces classroom learning in STEM subjects.</li><li><strong>Career Readiness:</strong>\nExposure to real-world tech challenges and networking opportunities helps prepare students for future academic and career endeavors.</li><li><strong>Boosted Confidence:</strong>\nSuccessfully mastering new technologies and presenting your work builds self-esteem.</li><li><strong>Improved Communication:</strong>\nActive participation in discussions and Q&amp;A sessions refines public speaking and interpersonal skills.</li><li><strong>Holistic Growth:</strong>\nBalancing tech talks with academic responsibilities nurtures time management, critical thinking, and collaborative skills.</li></ul>",
+      "order": 7,
+      "icon": "bx-heart",
+      "description": "Confidence, networking and growth mindset"
+    },
+    {
+      "section_id": "tips",
+      "title": "Tips for Success",
+      "content_html": "<ul><li><strong>Start with the Basics:</strong>\nIf you&#8217;re new to tech, begin with beginner-level workshops and online tutorials.</li><li><strong>Be Curious:</strong>\nAsk questions during Q&amp;A sessions and explore topics that interest you.</li><li><strong>Practice Regularly:</strong>\nDedicate time outside of sessions to practice coding or work on small tech projects.</li><li><strong>Engage Actively:</strong>\nParticipate in discussions and group projects to maximize your learning experience.</li><li><strong>Network:</strong>\nConnect with peers and mentors during and after sessions to build lasting relationships.</li><li><strong>Document Your Journey:</strong>\nKeep a journal or digital portfolio of projects, learnings, and feedback to track your progress.</li><li><strong>Stay Updated:</strong>\nFollow tech blogs, online forums, and social media channels to remain informed about the latest trends.</li></ul>",
+      "order": 8,
+      "icon": "bx-check-shield",
+      "description": "Start early, practice consistently, join groups"
+    },
+    {
+      "section_id": "resources",
+      "title": "Resources & Contact",
+      "content_html": "<ul><li><strong></strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> Stay updated on the latest technology trends and startup news.</li><li><strong></strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> Offers resources and tutorials for beginners in coding and computer science.</li><li><strong>Coursera &#8211; Technology Courses</strong></li><li><strong>Website:</strong> </li><li><strong>Description:</strong> Provides online courses in various tech domains, including programming, AI, and data science.</li><li><strong>Local Tech Hubs and Community </strong><strong>Centers</strong><strong>:</strong></li><li><strong>Contact:</strong> Check with your school&#8217;s career or tech department for details on local tech events and maker spaces.</li><li><strong></strong></li><li><strong>Tech Talks &amp; Workshops Inquiries:</strong> info@techtalksworkshops.org</li></ul>",
+      "order": 9,
+      "icon": "bx-link",
+      "description": "Official sites, platforms and local support"
+    }
+  ]
+}

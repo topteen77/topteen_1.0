@@ -1,0 +1,86 @@
+{
+  "activity_name": "National Service Scheme (NSS)",
+  "category_name": "Community Service, Leadership & Social Initiatives",
+  "sections": [
+    {
+      "section_id": "overview",
+      "title": "Overview/Description",
+      "content_html": "<p>The National Service Scheme (NSS) is a government-sponsored public service program that aims to develop the personality and leadership qualities of young people through community service. NSS provides a structured framework for students to engage in social, cultural, and developmental activities. By participating in NSS, high schoolers can work on community projects, learn the importance of civic responsibility, and gain hands-on experience in addressing local and national issues.</p>",
+      "order": 1,
+      "icon": "bx-info-circle",
+      "description": "Introduction and overview of the activity"
+    },
+    {
+      "section_id": "objectives",
+      "title": "Objectives & Goals",
+      "content_html": "<p><strong>Community Service:</strong> Encourage active participation in community development through volunteer work in diverse areas such as education, health, sanitation, and environmental conservation.</p><p><strong>Social Responsibility:</strong> Instil a sense of duty and commitment toward societal welfare, promoting empathy and altruism.</p><p><strong>Leadership Development:</strong> Enhance leadership and teamwork skills through planning, organizing, and executing community projects.</p><p><strong>Personal Growth:</strong> Foster self-confidence, time management, and problem-solving abilities.</p><p><strong>Civic Awareness:</strong> Increase knowledge of social, cultural, and economic issues affecting the community, encouraging informed decision-making.</p><p><strong>Holistic Education:</strong> Integrate academic learning with practical experiences, preparing students for future challenges in both personal and professional arenas.</p>",
+      "order": 2,
+      "icon": "bx-target-lock",
+      "description": "Academic excellence, critical thinking, competitive edge"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<p><strong>Eligibility:</strong> Typically open to high school students (often from Classes 9 to 12), although some schools extend NSS opportunities to younger students.</p><p><strong>How to Join:</strong></p><p><strong>School </strong><strong>Enrolment</strong><strong>:</strong> Many schools have established NSS units. Interested students can join through their school&#8217;s NSS coordinator or extracurricular office.</p><p><strong>Local NSS Units:</strong> In areas without a school unit, students can contact nearby NSS centers or regional offices.</p><p><strong>Registration Process:</strong></p><p>Complete a registration form provided by the school or NSS center.</p><p>Submit required documents such as proof of age, recent photographs, and sometimes a brief statement of interest.</p><p>Undergo an orientation session that explains the program&#8217;s expectations, responsibilities, and upcoming activities.</p><p><strong>Fees:</strong> Participation is typically free or requires a minimal fee to cover administrative and material costs.</p>",
+      "order": 3,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<p><strong>Leadership and Teamwork:</strong> Gain experience in organizing projects, leading peers, and working collaboratively in diverse groups.</p><p><strong>Empathy and Social Awareness:</strong> Develop a deeper understanding of societal issues, cultivating compassion and a commitment to service.</p><p><strong>Communication Skills:</strong> Enhance both verbal and written communication through project reporting, presentations, and community interactions.</p><p><strong>Problem-Solving:</strong> Learn to identify community issues, brainstorm solutions, and implement effective strategies.</p><p><strong>Time Management:</strong> Balance academic responsibilities with extracurricular commitments, building essential organizational skills.</p><p><strong>Personal Responsibility:</strong> Cultivate discipline, accountability, and self-motivation through regular volunteer work and project involvement.</p>",
+      "order": 4,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<p><strong>Community Development Projects:</strong> Engage in activities such as teaching underprivileged children, organizing health camps, conducting cleanliness drives, or participating in rural development programs.</p><p><strong>Environmental Initiatives:</strong> Take part in tree plantation drives, recycling campaigns, and awareness programs on environmental conservation.</p><p><strong>Social Awareness Campaigns:</strong> Organize events that focus on public health, literacy, gender equality, and cultural preservation.</p><p><strong>Skill Development Workshops:</strong> Attend training sessions that focus on leadership, disaster management, first-aid, and other life skills.</p><p><strong>Cultural and Heritage Projects:</strong> Collaborate on projects that document local history, traditions, and indigenous art forms.</p><p><strong>Fundraising and Social Drives:</strong> Participate in fundraising events for causes such as disaster relief, educational support, or healthcare improvements.</p>",
+      "order": 5,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<p><strong>Certificates and Medals:</strong> Students receive certificates, commendations, and sometimes medals for active participation and exemplary service.</p><p><strong>Awards:</strong> Outstanding contributors may be honoured at school or district-level award ceremonies.</p><p><strong>Scholarship Opportunities:</strong> Exceptional performance in NSS activities can enhance college applications and may lead to scholarship considerations.</p><p><strong>Public Recognition:</strong> Participation in NSS projects can be highlighted in school newsletters, local media, or community events, adding significant value to a student&#8217;s profile.</p><p><strong>Portfolio Building:</strong> Documenting NSS projects and experiences contributes to a well-rounded portfolio for future academic and career opportunities.</p>",
+      "order": 6,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    },
+    {
+      "section_id": "time",
+      "title": "Time Commitment & Scheduling",
+      "content_html": "<p><strong>Regular Meetings:</strong> NSS units usually meet once or twice a week for planning sessions, discussions, and briefings.</p><p><strong>Project Duration:</strong> Community service projects may run from a few days to several weeks, depending on the scope.</p><p><strong>Workshops and Camps:</strong> Occasional intensive workshops or residential camps are organized during school vacations or weekends.</p><p><strong>Flexible Scheduling:</strong> While participation requires commitment, most NSS activities are scheduled around academic timetables to maintain a balanced approach.</p>",
+      "order": 7,
+      "icon": "bx-time",
+      "description": "Weekly practice and intensive prep timelines"
+    },
+    {
+      "section_id": "impact",
+      "title": "Impact on Development",
+      "content_html": "<p><strong>Enhanced Academic Performance:</strong> The discipline, time management, and critical thinking skills developed through NSS can positively influence academic studies.</p><p><strong>Personal Growth:</strong> Active involvement in community service builds resilience, empathy, and a proactive mind-set.</p><p><strong>Broadened Perspective:</strong> Exposure to diverse social issues encourages a global and inclusive outlook.</p><p><strong>Improved Leadership Skills:</strong> Experience in coordinating projects and leading teams is highly beneficial for future academic and professional endeavours.</p><p><strong>Social Networking:</strong> Connecting with peers, community leaders, and mentors can open doors to further opportunities and collaborations.</p>",
+      "order": 8,
+      "icon": "bx-heart",
+      "description": "Confidence, networking and growth mindset"
+    },
+    {
+      "section_id": "tips",
+      "title": "Tips for Success",
+      "content_html": "<p><strong>Begin with Interest:</strong> Identify community issues that resonate with you and choose projects aligned with your interests.</p><p><strong>Be Proactive:</strong> Attend all orientation sessions and actively participate in discussions and planning meetings.</p><p><strong>Set Clear Goals:</strong> Define personal objectives for what you want to achieve through your NSS involvement.</p><p><strong>Stay Organized:</strong> Keep a planner or journal to track meeting dates, project deadlines, and personal reflections.</p><p><strong>Collaborate:</strong> Work closely with your peers and mentors, sharing ideas and dividing responsibilities efficiently.</p><p><strong>Seek Feedback:</strong> Regularly ask for feedback on your performance and contributions to improve your skills.</p><p><strong>Balance Commitments:</strong> Ensure that your service activities complement your academic responsibilities, not overwhelm them.</p>",
+      "order": 9,
+      "icon": "bx-check-shield",
+      "description": "Start early, practice consistently, join groups"
+    },
+    {
+      "section_id": "resources",
+      "title": "Resources & Contact",
+      "content_html": "<p><strong>National Service Scheme (NSS) Official Website</strong></p><p><strong>Website:</strong> <a href=\"https://www.nss.gov.in\" target=\"_blank\">https://www.nss.gov.in</a></p><p><strong>Description:</strong> Offers detailed information on NSS programs, guidelines, and upcoming events.</p><p><strong>Ministry of Youth Affairs and Sports, Government of India</strong></p><p><strong>Website:</strong> <a href=\"https://yas.nic.in\" target=\"_blank\">https://yas.nic.in</a></p><p><strong>Description:</strong> Provides updates on youth programs including NSS, along with policy details.</p><p><strong>Local School NSS Coordinator:</strong></p><p><strong>Contact:</strong> Check with your school&#8217;s extracurricular department for the contact details of the NSS unit.</p><p><strong>Regional NSS </strong><strong>Centers</strong><strong>:</strong></p><p><strong>Contact:</strong> Locate your nearest NSS regional center via the official NSS website for additional training and project information.</p><p><strong>Sample Contact Email:</strong></p><p><strong>NSS Inquiries:</strong> info@nss.gov.in</p>",
+      "order": 10,
+      "icon": "bx-link",
+      "description": "Official sites, platforms and local support"
+    }
+  ]
+}

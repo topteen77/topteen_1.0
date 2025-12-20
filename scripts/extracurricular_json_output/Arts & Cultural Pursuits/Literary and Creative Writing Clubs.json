@@ -1,0 +1,86 @@
+{
+  "activity_name": "Literary and Creative Writing Clubs",
+  "category_name": "Arts & Cultural Pursuits",
+  "sections": [
+    {
+      "section_id": "overview",
+      "title": "Overview/Description",
+      "content_html": "<p>Literary and Creative Writing Clubs offer students a space to explore the art of writing in its many forms. These clubs focus on developing writing skills, encouraging creative expression, and fostering a love for literature. Common activities include:</p><p><strong>Creative Writing:</strong> Crafting short stories, flash fiction, or novels.</p><p><strong>Poetry:</strong> Writing and analyzing various forms of poetry.</p><p><strong>Essay Writing:</strong> Developing persuasive, narrative, or expository essays.</p><p><strong>Blogging and Journaling:</strong> Maintaining personal or thematic blogs and journals.</p><p><strong>Journalism:</strong> Writing news articles, opinion pieces, or investigative reports.</p><p><strong>Script Writing:</strong> Creating plays, screenplays, or dialogues for performances.</p><p><strong>Literary Criticism:</strong> Analyzing and discussing literary works.</p><p><strong>Storytelling and Spoken Word:</strong> Performing original written works in public forums.</p><p>These clubs not only enhance creative skills but also provide opportunities for collaboration, publication, and public performance.</p>",
+      "order": 1,
+      "icon": "bx-info-circle",
+      "description": "Introduction and overview of the activity"
+    },
+    {
+      "section_id": "objectives",
+      "title": "Objectives & Goals",
+      "content_html": "<p><strong>Encourage Creative Expression:</strong> Provide a platform for students to share their ideas, emotions, and stories.</p><p><strong>Develop Writing Skills:</strong> Improve grammar, structure, style, and vocabulary through practice and feedback.</p><p><strong>Enhance Critical Thinking:</strong> Cultivate the ability to analyze literature and develop original perspectives.</p><p><strong>Boost Confidence:</strong> Build self-esteem through public readings, workshops, and contests.</p><p><strong>Foster Communication:</strong> Strengthen both written and verbal communication skills.</p><p><strong>Promote Cultural Awareness:</strong> Explore diverse literary traditions and contemporary issues through writing.</p>",
+      "order": 2,
+      "icon": "bx-target-lock",
+      "description": "Academic excellence, critical thinking, competitive edge"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<p><strong>Eligibility:</strong> Open to all high school students interested in literature and writing; no prior experience is required.</p><p><strong>How to Join:</strong></p><p><strong>School Clubs:</strong> Many schools host literary and creative writing clubs as part of their extracurricular offerings.</p><p><strong>Local Libraries and Community </strong><strong>Centers</strong><strong>:</strong> Often provide creative writing workshops and literary events.</p><p><strong>Online Registrations:</strong> Some clubs and writing camps allow students to sign up via dedicated websites.</p><p><strong>Registration Process:</strong></p><p>Fill out a registration form available through your school or the club&#8217;s website.</p><p>Some clubs may host an introductory session or ask for a brief writing sample.</p><p><strong>Fees:</strong> Participation is typically free or available at a nominal cost; specialized workshops or summer camps may have additional fees.</p>",
+      "order": 3,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<p><strong>Creative and Imaginative Thinking:</strong> Enhances the ability to generate original ideas and narratives.</p><p><strong>Writing and Editing Skills:</strong> Improves drafting, revising, and finalizing written work.</p><p><strong>Critical Analysis:</strong> Develops the ability to critique and analyze literature and one's own writing.</p><p><strong>Communication:</strong> Strengthens written and oral communication through discussions and public readings.</p><p><strong>Time Management:</strong> Balances project deadlines, regular practice, and academic commitments.</p><p><strong>Collaboration:</strong> Encourages peer review and group projects, fostering a community of shared learning.</p>",
+      "order": 4,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<p><strong>Writing Workshops:</strong> Regular sessions to practice creative writing, receive feedback, and learn new techniques.</p><p><strong>Peer Review Sessions:</strong> Group meetings where members share work and provide constructive criticism.</p><p><strong>Public Readings:</strong> Opportunities to present written pieces at school events, open mics, or literary festivals.</p><p><strong>Creative Writing Contests:</strong> Participation in local, regional, or national competitions to showcase talent.</p><p><strong>Guest Lectures and Author Visits:</strong> Sessions with published authors, poets, or literary critics who provide insights and mentorship.</p><p><strong>Online Collaborations:</strong> Virtual writing challenges or blogging projects that connect students with a broader audience.</p><p><strong>Publication Projects:</strong> Creating school magazines, literary journals, or blogs featuring original work by club members.</p>",
+      "order": 5,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<p><strong>Certificates and Awards:</strong> Recognition through contests, writing competitions, and school literary events.</p><p><strong>Publication Opportunities:</strong> Chance to have work featured in school magazines, local newspapers, or online literary platforms.</p><p><strong>Scholarships:</strong> Outstanding writers may receive scholarships for further study or writing programs.</p><p><strong>Public Accolades:</strong> Winning or being shortlisted in competitions can enhance college applications and personal portfolios.</p><p><strong>Portfolio Development:</strong> A strong collection of published work serves as a significant asset for future academic or creative endeavors.</p>",
+      "order": 6,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    },
+    {
+      "section_id": "time",
+      "title": "Time Commitment & Scheduling",
+      "content_html": "<p><strong>Regular Meetings:</strong> Typically held once or twice a week, lasting 1&#8211;2 hours per session.</p><p><strong>Project Deadlines:</strong> Writing assignments or publication projects may require additional time outside regular meetings.</p><p><strong>Workshops and Special Events:</strong> Occasional intensive sessions, guest lectures, or competitions that might occur during weekends or school breaks.</p><p><strong>Flexible Integration:</strong> Most clubs schedule meetings after school hours to accommodate academic commitments.</p>",
+      "order": 7,
+      "icon": "bx-time",
+      "description": "Weekly practice and intensive prep timelines"
+    },
+    {
+      "section_id": "impact",
+      "title": "Impact on Development",
+      "content_html": "<p><strong>Enhanced Literacy:</strong> Improves overall literacy and comprehension skills, beneficial across all academic subjects.</p><p><strong>Emotional Expression:</strong> Provides a healthy outlet for expressing complex emotions and experiences.</p><p><strong>Cognitive Growth:</strong> Encourages critical thinking, problem-solving, and analytical skills.</p><p><strong>Academic Enrichment:</strong> Aids in developing research, argumentation, and writing skills that are vital for academic success.</p><p><strong>Networking:</strong> Builds connections with peers, mentors, and professionals in the literary field.</p><p><strong>Career Exploration:</strong> Opens doors to potential careers in writing, journalism, publishing, and media.</p>",
+      "order": 8,
+      "icon": "bx-heart",
+      "description": "Confidence, networking and growth mindset"
+    },
+    {
+      "section_id": "tips",
+      "title": "Tips for Success",
+      "content_html": "<p><strong>Read Widely:</strong> Develop your writing style by reading a variety of genres and authors.</p><p><strong>Write Regularly:</strong> Set aside dedicated time for writing to build discipline and improve technique.</p><p><strong>Embrace Feedback:</strong> Use critiques from peers and mentors to refine and enhance your work.</p><p><strong>Experiment with Styles:</strong> Explore different genres and forms to discover your unique voice.</p><p><strong>Join Competitions:</strong> Participate in writing contests to gain experience and recognition.</p><p><strong>Network with Fellow Writers:</strong> Engage with club members and online writing communities for support and inspiration.</p><p><strong>Keep a Journal:</strong> Document your thoughts, ideas, and progress to track your development over time.</p>",
+      "order": 9,
+      "icon": "bx-check-shield",
+      "description": "Start early, practice consistently, join groups"
+    },
+    {
+      "section_id": "resources",
+      "title": "Resources & Contact",
+      "content_html": "<p><strong>NaNoWriMo</strong><strong> (National Novel Writing Month)</strong></p><p><strong>Website:</strong> <a href=\"https://nanowrimo.org\" target=\"_blank\">https://nanowrimo.org</a></p><p><strong>Description:</strong> A global creative writing challenge that motivates writers to complete a novel in November.</p><p><strong>Wattpad</strong></p><p><strong>Website:</strong> <a href=\"https://www.wattpad.com\" target=\"_blank\">https://www.wattpad.com</a></p><p><strong>Description:</strong> A community platform for writers to share stories, gain feedback, and connect with readers.</p><p><strong>The Writer&#8217;s Digest</strong></p><p><strong>Website:</strong> <a href=\"https://www.writersdigest.com\" target=\"_blank\">https://www.writersdigest.com</a></p><p><strong>Description:</strong> Offers writing tips, contests, and resources for creative writers.</p><p><strong>Coursera &#8211; Creative Writing Courses</strong></p><p><strong>Website:</strong> <a href=\"https://www.coursera.org\" target=\"_blank\">https://www.coursera.org</a></p><p><strong>Description:</strong> Provides online courses on creative writing and storytelling from renowned institutions.</p><p><strong>Local Libraries and Community </strong><strong>Centers</strong><strong>:</strong></p><p><strong>Contact:</strong> Check with your school library or local community centers for details on writing workshops and literary events.</p>",
+      "order": 10,
+      "icon": "bx-link",
+      "description": "Official sites, platforms and local support"
+    }
+  ]
+}

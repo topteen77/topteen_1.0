@@ -1,0 +1,86 @@
+{
+  "activity_name": "Global Model United Nations (GMUN)",
+  "category_name": "International Extracurricular Activities",
+  "sections": [
+    {
+      "section_id": "overview",
+      "title": "Overview/Description",
+      "content_html": "<p>Global Model United Nations (GMUN) Conferences are international simulations of the United Nations where high school students from around the world come together to debate and resolve pressing global issues. At GMUN, participants assume the roles of diplomats representing different countries, engaging in committee sessions, crisis simulations, and negotiation exercises. These conferences provide a unique platform to understand international relations, global diplomacy, and the complexities of policymaking on an international scale. Students not only learn about the workings of the United Nations but also develop a deeper appreciation for cultural diversity and global cooperation.</p>",
+      "order": 1,
+      "icon": "bx-info-circle",
+      "description": "Introduction and overview of the activity"
+    },
+    {
+      "section_id": "objectives",
+      "title": "Objectives & Goals",
+      "content_html": "<p><strong>Develop Diplomatic Skills:</strong>\nCultivate the ability to negotiate, build consensus, and resolve conflicts through simulated diplomatic debates.</p><p><strong>Enhance Global Awareness:</strong>\nIncrease understanding of international issues, global challenges, and cultural diversity.</p><p><strong>Strengthen Public Speaking:</strong>\nImprove confidence in presenting ideas and defending positions in front of international audiences.</p><p><strong>Build Research and Analytical Skills:</strong>\nLearn to conduct in-depth research on country policies and global issues to develop informed arguments.</p><p><strong>Foster Leadership and Teamwork:</strong>\nEncourage collaboration and leadership by working in committees and delegations.</p><p><strong>Prepare for Future Careers:</strong>\nLay the groundwork for future studies and careers in international relations, law, politics, or diplomacy.</p>",
+      "order": 2,
+      "icon": "bx-target-lock",
+      "description": "Academic excellence, critical thinking, competitive edge"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<p><strong>Eligibility:</strong>\nOpen to high school students (typically grades 9&#8211;12) with an interest in global affairs and diplomacy. No prior experience is necessary, though prior participation in local or national MUN conferences can be beneficial.</p><p><strong>How to Join:</strong></p><p><strong>School MUN Clubs:</strong> Many schools have Model United Nations clubs that provide training and support for GMUN conferences.</p><p><strong>External Programs:</strong> Look for GMUN events organized by international organizations, NGOs, or academic institutions.</p><p><strong>Online Registrations:</strong> Most GMUN conferences offer online registration through their official websites.</p><p><strong>Registration Process:</strong></p><p>Complete an online application form with personal details, country preference, and sometimes a short essay or motivation statement.</p><p>Attend an orientation or preparatory workshop if required by the conference.</p><p><strong>Fees:</strong>\nFees vary by conference; some are subsidized by educational organizations or sponsors, while others may charge a registration fee. Scholarships or financial aid options are sometimes available.</p>",
+      "order": 3,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<p><strong>Diplomacy &amp; Negotiation:</strong>\nLearn the art of diplomacy through realistic negotiations and conflict resolution exercises.</p><p><strong>Public Speaking &amp; Communication:</strong>\nGain confidence in speaking before diverse audiences and articulate complex ideas clearly.</p><p><strong>Research &amp; Analytical Thinking:</strong>\nEnhance your ability to research international issues, analyze policies, and form logical arguments.</p><p><strong>Cultural Competence:</strong>\nDevelop a broader perspective by interacting with peers from different cultural backgrounds and understanding global viewpoints.</p><p><strong>Leadership &amp; Teamwork:</strong>\nBuild leadership skills by taking initiative in committee sessions and collaborating effectively with your delegation.</p><p><strong>Time Management &amp; Organization:</strong>\nPrepare effectively for intensive conference schedules and manage multiple tasks simultaneously.</p>",
+      "order": 4,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<p><strong>Committee Sessions:</strong>\nParticipate in structured debates and discussions within various UN committees (e.g., Security Council, General Assembly).</p><p><strong>Crisis Simulations:</strong>\nEngage in dynamic exercises that require quick decision-making and strategic planning to resolve emerging global crises.</p><p><strong>Resolution Drafting:</strong>\nCollaborate with fellow delegates to draft, debate, and amend resolutions addressing real-world issues.</p><p><strong>Workshops &amp; Training Sessions:</strong>\nAttend pre-conference workshops on public speaking, negotiation strategies, and research methods tailored for international diplomacy.</p><p><strong>Networking Events:</strong>\nTake part in social and networking sessions that allow you to interact with other delegates, experienced MUN participants, and diplomats.</p><p><strong>Cultural Exchange Activities:</strong>\nEngage in cultural evenings, country presentations, or informal gatherings to share and learn about different cultures.</p>",
+      "order": 5,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<p><strong>Certificates &amp; Awards:</strong>\nReceive certificates of participation, and for exceptional performance, awards such as \"Best Delegate\" or \"Outstanding Negotiator.\"</p><p><strong>Scholarships &amp; Academic Opportunities:</strong>\nSuccess in GMUN can enhance your college applications, leading to scholarship opportunities and recognition by educational institutions.</p><p><strong>Portfolio Building:</strong>\nDocument your conference experiences, research papers, and awards as part of a professional portfolio that supports your academic and career aspirations.</p><p><strong>Media and Public Recognition:</strong>\nExceptional delegates are often featured in school newsletters, local media, or on conference websites, raising your profile.</p><p><strong>Leadership Roles:</strong>\nOpportunity to serve as a committee chair or lead delegation, further enhancing your leadership experience.</p>",
+      "order": 6,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    },
+    {
+      "section_id": "time",
+      "title": "Time Commitment & Scheduling",
+      "content_html": "<p><strong>Pre-Conference Preparation:</strong>\nRegular practice sessions and research meetings (often weekly) are required in the months leading up to the conference.</p><p><strong>Conference Duration:</strong>\nGMUN conferences typically last between 2 to 3 days of intensive sessions, often scheduled over a weekend or during school breaks.</p><p><strong>Post-Conference Activities:</strong>\nDebriefing sessions or reflective meetings may be held after the conference to discuss lessons learned and future improvements.</p><p><strong>Flexible Integration:</strong>\nMost GMUN activities are scheduled to complement academic responsibilities, with many schools providing support through dedicated MUN clubs.</p>",
+      "order": 7,
+      "icon": "bx-time",
+      "description": "Weekly practice and intensive prep timelines"
+    },
+    {
+      "section_id": "impact",
+      "title": "Impact on Development",
+      "content_html": "<p><strong>Enhanced Academic Knowledge:</strong>\nDeepens understanding of international relations, history, politics, and global issues that complement classroom learning.</p><p><strong>Career Readiness:</strong>\nDevelops transferable skills such as negotiation, leadership, and critical thinking that are valuable in future academic and professional endeavors.</p><p><strong>Improved Communication Skills:</strong>\nBoosts confidence in public speaking and effective communication, essential for academic presentations and future careers.</p><p><strong>Global Perspective:</strong>\nBroadens your worldview by exposing you to diverse cultures and international policies, fostering empathy and open-mindedness.</p><p><strong>Personal Growth:</strong>\nEncourages self-discipline, time management, and resilience, leading to increased self-confidence and independence.</p>",
+      "order": 8,
+      "icon": "bx-heart",
+      "description": "Confidence, networking and growth mindset"
+    },
+    {
+      "section_id": "tips",
+      "title": "Tips for Success",
+      "content_html": "<p><strong>Start Early:</strong>\nJoin your school&#8217;s MUN club or attend local MUN workshops to build foundational skills well before participating in a GMUN conference.</p><p><strong>Research Thoroughly:</strong>\nInvest time in researching your assigned country and current global issues to build well-informed arguments.</p><p><strong>Practice Public Speaking:</strong>\nRegularly practice speaking in front of peers and mentors to improve your clarity, confidence, and persuasion skills.</p><p><strong>Collaborate:</strong>\nWork with a team, exchange ideas, and learn from experienced delegates through mock sessions and group studies.</p><p><strong>Seek Feedback:</strong>\nRequest constructive criticism from teachers, coaches, or previous MUN participants to refine your strategies and performance.</p><p><strong>Stay Informed:</strong>\nKeep up with international news and trends to better understand the issues discussed at GMUN.</p><p><strong>Be Open-Minded:</strong>\nEmbrace diverse perspectives and cultural differences to enrich your debates and solutions.</p><p><strong>Plan Your Time:</strong>\nCreate a study schedule that balances MUN preparation with academic commitments to ensure consistent progress.</p>",
+      "order": 9,
+      "icon": "bx-check-shield",
+      "description": "Start early, practice consistently, join groups"
+    },
+    {
+      "section_id": "resources",
+      "title": "Resources & Contact",
+      "content_html": "<p><strong>Best Delegate</strong></p><p><strong>Website:</strong> <a href=\"https://www.bestdelegate.com\" target=\"_blank\">https://www.bestdelegate.com</a></p><p><strong>Description:</strong> A resource hub for MUN training, tips, and conference information.</p><p><strong>MUN Planet</strong></p><p><strong>Website:</strong> <a href=\"https://www.munplanet.com\" target=\"_blank\">https://www.munplanet.com</a></p><p><strong>Description:</strong> Provides a comprehensive directory of MUN conferences and tips for delegates.</p><p><strong>Model United Nations Association (MUNA)</strong></p><p><strong>Website:</strong> <a href=\"https://www.muna.org\" target=\"_blank\">https://www.muna.org</a></p><p><strong>Description:</strong> Offers resources, training programs, and news related to MUN activities worldwide.</p><p><strong>Local School MUN Clubs:</strong></p><p><strong>Contact:</strong> Check with your school&#8217;s extracurricular or debate club coordinator for details on joining and upcoming GMUN events.</p><p><strong>Sample Contact Email:</strong></p><p><strong>MUN Inquiries:</strong> info@munclub.org</p>",
+      "order": 10,
+      "icon": "bx-link",
+      "description": "Official sites, platforms and local support"
+    }
+  ]
+}

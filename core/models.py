@@ -348,6 +348,41 @@ class ExtracurricularActivity(BaseModel, SlugModel):
         verbose_name_plural = "Extracurricular Activities"
 
 
+class ExtracurricularActivitySection(BaseModel):
+    """
+    A section within an ExtracurricularActivity (e.g., "Objectives & Goals", "Participation Details").
+    Each numbered heading from the DOCX becomes a separate section record.
+    """
+    activity = models.ForeignKey(
+        ExtracurricularActivity,
+        on_delete=models.CASCADE,
+        related_name="sections",
+    )
+    section_id = models.CharField(
+        max_length=50,
+        help_text="Standard section ID: objectives, participation, keyskills, etc."
+    )
+    title = models.CharField(max_length=300, help_text="Section title (e.g., 'Objectives & Goals')")
+    content_html = RichTextField(help_text="HTML content for this section")
+    order = models.PositiveSmallIntegerField(default=1, help_text="Display order")
+    icon = models.CharField(
+        max_length=50,
+        default="bx-target-lock",
+        help_text="Boxicons class for navigation icon"
+    )
+    description = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Short description for navigation (e.g., 'Academic excellence, critical thinking')"
+    )
+
+    class Meta(BaseModel.Meta):
+        ordering = ("order",)
+        unique_together = [("activity", "section_id")]
+        verbose_name = "Extracurricular Activity Section"
+        verbose_name_plural = "Extracurricular Activity Sections"
+
+
 class VocationalCourseCategory(BaseModel, SlugModel):
     """
     Category hierarchy for vocational courses, derived from folder structure like:

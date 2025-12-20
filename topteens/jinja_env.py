@@ -216,6 +216,9 @@ def environment(**options):
     
     # Add filters
     env.filters['tojson'] = tojson_filter
+    from core.templatetags.activity_tags import inject_activity_ids, get_all_sections
+    env.filters['inject_activity_ids'] = inject_activity_ids
+    env.filters['get_all_sections'] = get_all_sections
     
     env.globals.update({
         'static': staticfiles_storage.url,

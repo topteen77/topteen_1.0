@@ -1,0 +1,86 @@
+{
+  "activity_name": "individual sports",
+  "category_name": "Sports & Physical Activities",
+  "sections": [
+    {
+      "section_id": "overview",
+      "title": "Overview/Description",
+      "content_html": "<p>Individual Sports are competitive physical activities where athletes perform and compete primarily on their own. Unlike team sports, these disciplines require a high degree of personal responsibility and self-motivation. Popular individual sports include:</p><p><strong>Athletics (Track &amp; Field)</strong></p><p><strong>Swimming</strong></p><p><strong>Tennis</strong></p><p><strong>Badminton</strong></p><p><strong>Martial Arts (Karate, Taekwondo, Judo)</strong></p><p><strong>Table Tennis</strong></p><p><strong>Archery</strong></p><p><strong>Gymnastics</strong></p><p>These sports not only improve physical fitness and coordination but also build mental toughness as students set personal goals and continuously work to overcome challenges independently.</p>",
+      "order": 1,
+      "icon": "bx-info-circle",
+      "description": "Introduction and overview of the activity"
+    },
+    {
+      "section_id": "objectives",
+      "title": "Objectives & Goals",
+      "content_html": "<p><strong>Develop Personal Discipline:</strong> Enhance self-motivation and the ability to train independently.</p><p><strong>Improve Physical Fitness:</strong> Build strength, agility, endurance, and overall health through targeted training.</p><p><strong>Boost Mental Toughness:</strong> Cultivate focus, resilience, and the ability to handle pressure during individual performances.</p><p><strong>Refine Technical Skills:</strong> Develop sport-specific techniques and improve overall performance through continuous practice.</p><p><strong>Prepare for Competitive Success:</strong> Set personal goals and compete at school, regional, national, or even international levels.</p><p><strong>Foster Self-Improvement:</strong> Emphasize personal progress and self-assessment rather than comparison with teammates.</p>",
+      "order": 2,
+      "icon": "bx-target-lock",
+      "description": "Academic excellence, critical thinking, competitive edge"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<p><strong>Eligibility:</strong> Open to all high school students with an interest in personal sports disciplines.</p><p><strong>How to Join:</strong></p><p><strong>School Programs:</strong> Many schools offer individual sports through physical education classes or dedicated sports clubs.</p><p><strong>Local Clubs:</strong> Community centers and sports academies often provide training and competition opportunities.</p><p><strong>Online Registrations:</strong> Some competitions and training programs have dedicated websites for registration.</p><p><strong>Registration Process:</strong></p><p>Enroll via your school&#8217;s sports department or local club.</p><p>Some sports may require a trial or evaluation session before joining a formal training program.</p><p><strong>Fees:</strong> Many programs are subsidized by schools; others might have registration or membership fees that cover training sessions and equipment.</p>",
+      "order": 3,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<p><strong>Self-Discipline and Independence:</strong> Training on your own schedule builds responsibility and commitment.</p><p><strong>Technical Proficiency:</strong> Focused practice improves sport-specific techniques and overall performance.</p><p><strong>Time Management:</strong> Balancing training sessions with academic responsibilities promotes efficient time use.</p><p><strong>Resilience and Mental Strength:</strong> Facing challenges and setting personal benchmarks builds persistence.</p><p><strong>Focus and Concentration:</strong> Individual sports require keen concentration, which can enhance performance in academics and other areas.</p><p><strong>Physical Health:</strong> Regular practice improves strength, flexibility, and cardiovascular health.</p>",
+      "order": 4,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<p><strong>Regular Training Sessions:</strong> Practice under the guidance of a coach or on your own to refine techniques and improve fitness.</p><p><strong>Skill Drills and Conditioning:</strong> Participate in drills specific to your sport (e.g., sprint drills for athletics, stroke techniques for swimming).</p><p><strong>Participation in Competitions:</strong> Engage in school-level meets, district tournaments, and larger competitions.</p><p><strong>Workshops and Clinics:</strong> Attend specialized training camps and clinics to learn advanced techniques and strategies.</p><p><strong>Personal Goal-Setting:</strong> Establish benchmarks and track progress through regular assessments and performance reviews.</p>",
+      "order": 5,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<p><strong>Awards and Medals:</strong> Earn accolades in local, regional, or national competitions.</p><p><strong>Certificates:</strong> Receive certificates of participation and excellence from schools or sports associations.</p><p><strong>Scholarships:</strong> Outstanding performance may lead to sports scholarships or sponsorship opportunities.</p><p><strong>Ranking and Records:</strong> Achieving personal bests or setting new records can enhance your profile.</p><p><strong>Public Recognition:</strong> Success in individual sports often leads to recognition during school assemblies and sports events.</p>",
+      "order": 6,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    },
+    {
+      "section_id": "time",
+      "title": "Time Commitment & Scheduling",
+      "content_html": "<p><strong>Training Frequency:</strong> Typically, 2&#8211;4 practice sessions per week, each lasting 1&#8211;2 hours, depending on the sport and competition season.</p><p><strong>Competition Periods:</strong> Intensive practice periods may be required in the weeks leading up to competitions.</p><p><strong>Seasonal Engagement:</strong> Sports seasons may span several months with off-season training to maintain and improve fitness.</p><p><strong>Balancing Academics:</strong> It&#8217;s important to manage your training schedule alongside schoolwork, often necessitating early mornings, after-school sessions, or weekend practices.</p>",
+      "order": 7,
+      "icon": "bx-time",
+      "description": "Weekly practice and intensive prep timelines"
+    },
+    {
+      "section_id": "impact",
+      "title": "Impact on Development",
+      "content_html": "<p><strong>Enhanced Self-Motivation:</strong> Learning to push yourself toward personal goals translates into improved academic focus.</p><p><strong>Stress Relief:</strong> Physical activity is an effective way to manage stress and improve mental well-being.</p><p><strong>Improved Concentration:</strong> The focus required in individual sports often enhances concentration skills in academic pursuits.</p><p><strong>Character Building:</strong> Overcoming challenges builds resilience, determination, and self-confidence.</p><p><strong>Holistic Development:</strong> Balancing physical training with academic responsibilities fosters overall growth and well-roundedness.</p>",
+      "order": 8,
+      "icon": "bx-heart",
+      "description": "Confidence, networking and growth mindset"
+    },
+    {
+      "section_id": "tips",
+      "title": "Tips for Success",
+      "content_html": "<p><strong>Set Clear Goals:</strong> Establish both short-term and long-term objectives for performance and improvement.</p><p><strong>Create a Schedule:</strong> Plan your training sessions around your academic timetable to ensure consistency.</p><p><strong>Seek Expert Guidance:</strong> Work with coaches or mentors to develop proper techniques and training routines.</p><p><strong>Track Progress:</strong> Maintain a training log to monitor improvements, set benchmarks, and identify areas for improvement.</p><p><strong>Stay Balanced:</strong> Ensure that you balance your sports training with sufficient rest, academic work, and social activities.</p><p><strong>Invest in Proper Gear:</strong> Use the appropriate equipment and wear suitable attire to prevent injuries and improve performance.</p><p><strong>Stay Motivated:</strong> Join online forums or local clubs where you can share experiences and encourage one another.</p>",
+      "order": 9,
+      "icon": "bx-check-shield",
+      "description": "Start early, practice consistently, join groups"
+    },
+    {
+      "section_id": "resources",
+      "title": "Resources & Contact",
+      "content_html": "<p><strong>Sports Authority of India (SAI)</strong></p><p><strong>Website:</strong> <a href=\"https://sportsauthorityofindia.nic.in\" target=\"_blank\">https://sportsauthorityofindia.nic.in</a></p><p><strong>Description:</strong> Information on various sports programs, training centers, and events across India.</p><p><strong>Ministry of Youth Affairs &amp; Sports, Government of India</strong></p><p><strong>Website:</strong> <a href=\"https://yas.nic.in\" target=\"_blank\">https://yas.nic.in</a></p><p><strong>Description:</strong> Updates on national sports initiatives, policies, and opportunities for youth.</p><p><strong>National School Games</strong></p><p><strong>Website:</strong> <a href=\"http://nsg.gov.in\" target=\"_blank\">http://nsg.gov.in</a></p><p><strong>Description:</strong> A platform for inter-school competitions, including individual sports events.</p><p><strong>Local Sports Academies and Clubs:</strong></p><p>Check your school bulletin boards or community centers for local sports clubs specializing in athletics, swimming, tennis, martial arts, etc.</p><p><strong>Online Training Platforms:</strong></p><p><strong>CoachTube</strong><strong>:</strong>  &#8211; Offers online coaching sessions and training videos for various sports.ideos for various sports.</p><p><strong>Contact Emails:</strong></p><p><strong>SAI General Inquiries:</strong> sai-info@sportsauthorityofindia.nic.in</p><p><strong>Ministry of Youth Affairs &amp; Sports:</strong> info@yas.nic.in</p>",
+      "order": 10,
+      "icon": "bx-link",
+      "description": "Official sites, platforms and local support"
+    }
+  ]
+}

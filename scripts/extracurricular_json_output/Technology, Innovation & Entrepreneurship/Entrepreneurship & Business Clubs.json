@@ -1,0 +1,86 @@
+{
+  "activity_name": "Entrepreneurship & Business Clubs",
+  "category_name": "Technology, Innovation & Entrepreneurship",
+  "sections": [
+    {
+      "section_id": "overview",
+      "title": "Overview/Description",
+      "content_html": "<p>Entrepreneurship &amp; Business Clubs empower high school students to explore the world of business and innovation. These clubs provide a platform where students can learn about market trends, develop business ideas, and hone skills in leadership, communication, and strategic planning. Through hands-on projects, competitions, and mentorship sessions, participants gain practical experience in launching and managing business ventures, preparing them for future academic pursuits and potential entrepreneurial careers.</p><p><strong>Brief List of Activities</strong></p><p>Business Plan Competitions</p><p>Entrepreneurship Workshops &amp; Seminars</p><p>Startup Incubation Programs</p><p>Investment and Stock Market Clubs</p><p>Social Entrepreneurship Initiatives</p><p>Young Business Leaders/Student Business Councils</p><p>Pitching and Idea Generation Sessions</p>",
+      "order": 1,
+      "icon": "bx-info-circle",
+      "description": "Introduction and overview of the activity"
+    },
+    {
+      "section_id": "objectives",
+      "title": "Objectives & Goals",
+      "content_html": "<p><strong>Foster Innovation:</strong>\nEncourage creative thinking and the development of original business ideas.</p><p><strong>Develop Business Acumen:</strong>\nTeach fundamental business concepts such as marketing, finance, and management.</p><p><strong>Enhance Leadership Skills:</strong>\nBuild confidence and leadership through organizing events, managing teams, and pitching ideas.</p><p><strong>Promote Financial Literacy:</strong>\nIntroduce students to budgeting, investing, and economic decision-making.</p><p><strong>Encourage Real-World Problem Solving:</strong>\nApply academic knowledge to practical business challenges and social entrepreneurship projects.</p><p><strong>Prepare for Future Opportunities:</strong>\nEquip students with skills and a portfolio that can enhance college applications and career prospects.</p>",
+      "order": 2,
+      "icon": "bx-target-lock",
+      "description": "Academic excellence, critical thinking, competitive edge"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<p><strong>Eligibility:</strong>\nOpen to all high school students with an interest in business, innovation, or entrepreneurship; no prior experience is required.</p><p><strong>How to Join:</strong></p><p><strong>School Clubs:</strong> Many schools host entrepreneurship or business clubs through their extracurricular programs.</p><p><strong>Community Programs:</strong> Local business associations, incubators, or community centers may offer related workshops and clubs.</p><p><strong>Online Platforms:</strong> Some initiatives allow students to join virtual entrepreneurship programs or competitions.</p><p><strong>Registration Process:</strong></p><p>Fill out a registration form via your school&#8217;s extracurricular portal or the club&#8217;s dedicated website.</p><p>Attend an orientation session or introductory workshop to learn about club activities and expectations.</p><p><strong>Fees:</strong>\nMost clubs are free or require a nominal fee to cover materials, event costs, or guest speaker sessions.</p>",
+      "order": 3,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<p><strong>Business Strategy and Planning:</strong>\nLearn to develop comprehensive business plans and understand market research.</p><p><strong>Leadership and Teamwork:</strong>\nGain experience in leading projects, working with diverse teams, and managing responsibilities.</p><p><strong>Financial Literacy:</strong>\nUnderstand budgeting, investing, and basic financial management.</p><p><strong>Communication Skills:</strong>\nEnhance public speaking, persuasive writing, and presentation abilities through pitching ideas.</p><p><strong>Critical Thinking and Problem-Solving:</strong>\nTackle real-world business challenges with creative and analytical approaches.</p><p><strong>Networking:</strong>\nBuild connections with mentors, industry professionals, and like-minded peers.</p>",
+      "order": 4,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<p><strong>Workshops and Seminars:</strong>\nRegular sessions on topics such as business planning, digital marketing, financial management, and leadership.</p><p><strong>Business Plan Competitions:</strong>\nParticipate in competitions where teams develop and present business plans to a panel of judges.</p><p><strong>Pitching Sessions:</strong>\nEngage in mock pitch events to refine presentation skills and receive constructive feedback.</p><p><strong>Startup</strong><strong> Projects:</strong>\nWork on group projects that simulate the process of launching a startup, from ideation to execution.</p><p><strong>Guest Speaker Events:</strong>\nAttend talks and Q&amp;A sessions with entrepreneurs, business leaders, and industry experts.</p><p><strong>Field Trips:</strong>\nVisit local businesses, incubators, or corporate offices to gain firsthand experience of real-world operations.</p><p><strong>Social Entrepreneurship Initiatives:</strong>\nDevelop projects that address community issues through innovative business solutions.</p>",
+      "order": 5,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<p><strong>Certificates and Awards:</strong>\nEarn recognition through awards in competitions, workshops, and club events.</p><p><strong>Scholarship Opportunities:</strong>\nOutstanding participation and achievements may lead to scholarship considerations.</p><p><strong>Portfolio Development:</strong>\nBuild a comprehensive portfolio of projects, business plans, and pitch videos for college applications or future ventures.</p><p><strong>Media Exposure:</strong>\nSuccessful projects or competitions may be featured in school newsletters, local media, or online platforms.</p><p><strong>Leadership Roles:</strong>\nTake on roles such as club president or project lead to further enhance your resume.</p>",
+      "order": 6,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    },
+    {
+      "section_id": "time",
+      "title": "Time Commitment & Scheduling",
+      "content_html": "<p><strong>Regular Meetings:</strong>\nTypically, clubs meet once or twice a week for 1&#8211;2 hours per session.</p><p><strong>Project Deadlines:</strong>\nParticipation in competitions and startup projects may require additional time on weekends or during school breaks.</p><p><strong>Workshops and Special Events:</strong>\nOccasional intensive sessions, such as boot camps or summer entrepreneurship camps, provide immersive experiences.</p><p><strong>Flexible Scheduling:</strong>\nMany activities are scheduled after school hours to accommodate academic responsibilities.</p>",
+      "order": 7,
+      "icon": "bx-time",
+      "description": "Weekly practice and intensive prep timelines"
+    },
+    {
+      "section_id": "impact",
+      "title": "Impact on Development",
+      "content_html": "<p><strong>Academic Enhancement:</strong>\nApplying business concepts to real-world scenarios reinforces academic learning in subjects like economics, mathematics, and communication.</p><p><strong>Career Preparation:</strong>\nPractical experience in entrepreneurship builds skills that are highly valued in the job market and can pave the way for future business ventures.</p><p><strong>Improved Self-Confidence:</strong>\nSuccessfully presenting ideas and leading projects boosts self-esteem and public speaking skills.</p><p><strong>Holistic Skill Development:</strong>\nBalancing academic work with extracurricular activities enhances time management, critical thinking, and teamwork.</p><p><strong>Networking Opportunities:</strong>\nEstablishing connections with industry professionals and peers can open doors to internships and mentorships.</p>",
+      "order": 8,
+      "icon": "bx-heart",
+      "description": "Confidence, networking and growth mindset"
+    },
+    {
+      "section_id": "tips",
+      "title": "Tips for Success",
+      "content_html": "<p><strong>Start with Your Passion:</strong>\nIdentify business ideas or social issues you are passionate about and focus your projects around them.</p><p><strong>Engage Actively:</strong>\nParticipate in club meetings, volunteer for leadership roles, and get involved in organizing events.</p><p><strong>Learn Continuously:</strong>\nAttend workshops, read business literature, and stay updated on market trends.</p><p><strong>Collaborate:</strong>\nWork with teammates, share ideas, and learn from one another to improve your projects.</p><p><strong>Practice Your Pitch:</strong>\nRegularly practice presenting your ideas to build confidence and improve your communication skills.</p><p><strong>Document Your Work:</strong>\nKeep a record of your projects, ideas, and accomplishments to build a strong portfolio.</p><p><strong>Seek Feedback:</strong>\nAsk for constructive criticism from mentors and peers to refine your business strategies.</p>",
+      "order": 9,
+      "icon": "bx-check-shield",
+      "description": "Start early, practice consistently, join groups"
+    },
+    {
+      "section_id": "resources",
+      "title": "Resources & Contact",
+      "content_html": "<p><strong>Young Entrepreneurs Academy (YEA)</strong></p><p><strong>Website:</strong> <a href=\"https://yeausa.org\" target=\"_blank\">https://yeausa.org</a></p><p><strong>Description:</strong> Provides programs and resources for young entrepreneurs to develop business skills and launch startups.</p><p><strong>Junior Achievement (JA)</strong></p><p><strong>Website:</strong> <a href=\"https://www.juniorachievement.org\" target=\"_blank\">https://www.juniorachievement.org</a></p><p><strong>Description:</strong> Offers programs that teach business principles, financial literacy, and entrepreneurship to students.</p><p><strong>Entrepreneurship.org</strong></p><p><strong>Website:</strong> <a href=\"https://www.entrepreneurship.org\" target=\"_blank\">https://www.entrepreneurship.org</a></p><p><strong>Description:</strong> A resource hub for budding entrepreneurs with tips, courses, and inspirational success stories.</p><p><strong>Local Chamber of Commerce:</strong></p><p><strong>Contact:</strong> Inquire through your school&#8217;s career or business department for local entrepreneurship events and mentorship opportunities.</p><p><strong>Online Courses:</strong></p><p><strong>Coursera:</strong>  &#8211; Explore courses on entrepreneurship, business management, and digital marketing., and digital marketing.</p><p><strong>edX</strong><strong>:</strong>  &#8211; Offers courses from reputed institutions on various business topics.us business topics.</p>",
+      "order": 10,
+      "icon": "bx-link",
+      "description": "Official sites, platforms and local support"
+    }
+  ]
+}

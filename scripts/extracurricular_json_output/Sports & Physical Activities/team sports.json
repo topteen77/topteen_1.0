@@ -1,0 +1,86 @@
+{
+  "activity_name": "team sports",
+  "category_name": "Sports & Physical Activities",
+  "sections": [
+    {
+      "section_id": "overview",
+      "title": "Overview/Description",
+      "content_html": "<p>Team Sports involve organized physical activities where students participate as part of a team to compete, practice, and develop athletic skills. Common team sports include:</p><p><strong>Cricket</strong></p><p><strong>Football (Soccer)</strong></p><p><strong>Basketball</strong></p><p><strong>Volleyball</strong></p><p><strong>Hockey</strong></p><p><strong>Kabaddi</strong></p><p>These sports require coordination, strategic planning, and teamwork. They provide a dynamic environment where students can improve their physical fitness while learning the importance of collaboration and sportsmanship.</p>",
+      "order": 1,
+      "icon": "bx-info-circle",
+      "description": "Introduction and overview of the activity"
+    },
+    {
+      "section_id": "objectives",
+      "title": "Objectives & Goals",
+      "content_html": "<p><strong>Foster Teamwork and Collaboration:</strong> Learn to work effectively with teammates, share responsibilities, and develop mutual trust.</p><p><strong>Enhance Physical Fitness:</strong> Build strength, endurance, agility, and overall health through regular training and competition.</p><p><strong>Develop Leadership Skills:</strong> Opportunities to lead on and off the field through roles such as team captain or mentor.</p><p><strong>Boost Strategic Thinking:</strong> Improve decision-making and strategic planning in fast-paced, competitive scenarios.</p><p><strong>Promote Discipline and Time Management:</strong> Regular practice sessions and scheduled matches cultivate discipline and an ability to balance academics with sports.</p><p><strong>Build Sportsmanship:</strong> Develop fair play, respect for opponents, and the ability to handle both wins and losses gracefully.</p>",
+      "order": 2,
+      "icon": "bx-target-lock",
+      "description": "Academic excellence, critical thinking, competitive edge"
+    },
+    {
+      "section_id": "participation",
+      "title": "Participation Details",
+      "content_html": "<p><strong>Eligibility:</strong> Open to all high school students. Some sports teams may have tryouts or specific selection criteria based on skill level and fitness.</p><p><strong>How to Join:</strong></p><p><strong>School Sports Teams:</strong> Most high schools have established teams for sports like cricket, football, and basketball.</p><p><strong>Local Clubs and Leagues:</strong> Community centers or sports clubs often offer additional opportunities for training and competitive play.</p><p><strong>Inter-School Competitions:</strong> Many schools participate in local, state, and national tournaments.</p><p><strong>Registration Process:</strong> Typically involves tryouts, coach evaluations, and formal registration through school sports departments or local sports associations.</p><p><strong>Fees:</strong> Some teams require minimal fees for uniforms, equipment, or travel, while many are subsidized by the school or local sports bodies.</p>",
+      "order": 3,
+      "icon": "bx-log-in-circle",
+      "description": "Eligibility, registration and preparation steps"
+    },
+    {
+      "section_id": "keyskills",
+      "title": "Key Skills / Benefits",
+      "content_html": "<p><strong>Teamwork and Communication:</strong> Essential for coordinating plays and strategies during games.</p><p><strong>Leadership and Responsibility:</strong> Taking initiative on the field and supporting peers builds leadership qualities.</p><p><strong>Strategic and Tactical Skills:</strong> Developing game plans and adapting to opponents&#8217; strategies.</p><p><strong>Physical Health:</strong> Enhances cardiovascular fitness, muscle strength, and coordination.</p><p><strong>Stress Management:</strong> Regular physical activity helps reduce stress and promote mental well-being.</p><p><strong>Discipline and Time Management:</strong> Balancing practice, matches, and academic work fosters excellent time-management skills.</p>",
+      "order": 4,
+      "icon": "bx-brain",
+      "description": "Problem solving, time management, teamwork"
+    },
+    {
+      "section_id": "activities",
+      "title": "Activities & Involvement",
+      "content_html": "<p><strong>Training Sessions:</strong> Regular practice sessions focusing on skill development, strategy, and physical conditioning.</p><p><strong>Team Meetings:</strong> Discussions on tactics, reviewing past performances, and planning for upcoming matches.</p><p><strong>Intra-School and Inter-School Matches:</strong> Friendly games or official tournaments to test skills in competitive scenarios.</p><p><strong>Workshops and Clinics:</strong> Sessions with professional coaches or former athletes to enhance techniques and strategic understanding.</p><p><strong>Fitness and Conditioning Programs:</strong> Strength and conditioning exercises tailored to the specific demands of the sport.</p>",
+      "order": 5,
+      "icon": "bx-run",
+      "description": "Practice, workshops, bootcamps and forums"
+    },
+    {
+      "section_id": "achievements",
+      "title": "Achievements & Recognition",
+      "content_html": "<p><strong>Awards and Trophies:</strong> Winning tournaments and league championships can earn team medals, trophies, and certificates.</p><p><strong>Scholarships:</strong> Exceptional performance in sports may lead to sports scholarships or awards.</p><p><strong>Selection for Higher-Level Teams:</strong> Outstanding athletes may get opportunities to represent district, state, or national teams.</p><p><strong>School Recognition:</strong> Many schools celebrate achievements through award ceremonies, honor boards, and media coverage.</p><p><strong>Personal Accolades:</strong> Individual awards such as &#8220;Player of the Tournament&#8221; or &#8220;Best Sportsmanship&#8221; can also boost a student&#8217;s profile.</p>",
+      "order": 6,
+      "icon": "bx-trophy",
+      "description": "Awards, scholarships and national ranking"
+    },
+    {
+      "section_id": "time",
+      "title": "Time Commitment & Scheduling",
+      "content_html": "<p><strong>Regular Practices:</strong> Typically, 2&#8211;4 sessions per week lasting 1&#8211;2 hours each, depending on the season and level of competition.</p><p><strong>Match Days:</strong> Scheduled on weekends or after-school hours, which may include local and inter-school competitions.</p><p><strong>Seasonal Commitment:</strong> Participation often spans a sports season that may last several months, with off-season training to maintain fitness.</p><p><strong>Balance with Academics:</strong> Many programs are designed to work around school schedules, but effective time management is essential.</p>",
+      "order": 7,
+      "icon": "bx-time",
+      "description": "Weekly practice and intensive prep timelines"
+    },
+    {
+      "section_id": "impact",
+      "title": "Impact on Development",
+      "content_html": "<p><strong>Enhanced Academic Performance:</strong> Physical activity has been linked to improved concentration and cognitive function in academic settings.</p><p><strong>Character Building:</strong> Team sports promote resilience, perseverance, and the ability to cope with both success and failure.</p><p><strong>Social Skills:</strong> Regular interaction with teammates fosters strong interpersonal skills and helps build lasting friendships.</p><p><strong>Career Readiness:</strong> Skills such as leadership, strategic thinking, and teamwork are highly valued in any professional setting.</p><p><strong>Health and Wellness:</strong> Consistent participation in sports instills a lifelong habit of physical fitness and well-being.</p>",
+      "order": 8,
+      "icon": "bx-heart",
+      "description": "Confidence, networking and growth mindset"
+    },
+    {
+      "section_id": "tips",
+      "title": "Tips for Success",
+      "content_html": "<p><strong>Join Early:</strong> Get involved through school teams or local clubs as early as possible to build skills over time.</p><p><strong>Practice Regularly:</strong> Consistency in practice is key; work on individual skills and team strategies.</p><p><strong>Stay Committed:</strong> Balance your academic and athletic commitments by creating a structured schedule.</p><p><strong>Seek Mentorship:</strong> Learn from coaches, senior team members, or professional athletes who can offer guidance.</p><p><strong>Embrace Team Spirit:</strong> Focus on collaboration, support your teammates, and always maintain a positive attitude.</p><p><strong>Stay Informed:</strong> Keep track of training schedules, match fixtures, and local tournaments through school notice boards or club communications.</p>",
+      "order": 9,
+      "icon": "bx-check-shield",
+      "description": "Start early, practice consistently, join groups"
+    },
+    {
+      "section_id": "resources",
+      "title": "Resources & Contact",
+      "content_html": "<p><strong>Sports Authority of India (SAI)</strong></p><p><strong>Website:</strong> <a href=\"https://sportsauthorityofindia.nic.in\" target=\"_blank\">https://sportsauthorityofindia.nic.in</a></p><p><strong>Description:</strong> Provides information on various sports programs, training facilities, and upcoming events.</p><p><strong>Ministry of Youth Affairs &amp; Sports, Government of India</strong></p><p><strong>Website:</strong> <a href=\"https://yas.nic.in\" target=\"_blank\">https://yas.nic.in</a></p><p><strong>Description:</strong> Offers updates on national sports policies, scholarships, and youth sports initiatives.</p><p><strong>National School Games</strong></p><p><strong>Website:</strong> <a href=\"http://nsg.gov.in\" target=\"_blank\">http://nsg.gov.in</a></p><p><strong>Description:</strong> A platform for inter-school competitions in various sports, including team sports.</p><p><strong>Local School Sports Departments:</strong></p><p><strong>Contact:</strong> Reach out to your school&#8217;s sports coordinator or physical education department for details on joining teams.</p><p><strong>Regional Sports Clubs:</strong> Many community centers and local clubs offer registration details on their websites or through notice boards at local sports facilities.</p>",
+      "order": 10,
+      "icon": "bx-link",
+      "description": "Official sites, platforms and local support"
+    }
+  ]
+}
