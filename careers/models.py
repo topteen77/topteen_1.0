@@ -277,6 +277,54 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
         except Exception:
             return False
     
+    def validate_mindmap(self):
+        """
+        Validate mindmap file for this career.
+        Returns tuple: (is_valid: bool, errors: list)
+        Checks:
+        1. If mindmap file exists
+        2. If title in XMind file matches career name
+        """
+        errors = []
+        
+        # Check if file exists
+        xmind_path = self.get_xmind_file_path()
+        if not xmind_path or not xmind_path.exists():
+            errors.append("Mindmap file not found")
+            return (False, errors)
+        
+        # Check if title matches
+        try:
+            import xmindparser
+            xmind_data = xmindparser.xmind_to_dict(str(xmind_path))
+            
+            if not xmind_data or not isinstance(xmind_data, list) or len(xmind_data) == 0:
+                errors.append("Invalid XMind file format")
+                return (False, errors)
+            
+            sheet = xmind_data[0]
+            root_topic = sheet.get('topic', {})
+            xmind_title = root_topic.get('title') or root_topic.get('label') or ''
+            
+            # Normalize both titles for comparison (case-insensitive, strip whitespace)
+            career_name_normalized = (self.name or '').strip().lower()
+            xmind_title_normalized = xmind_title.strip().lower()
+            
+            if career_name_normalized and xmind_title_normalized:
+                if career_name_normalized != xmind_title_normalized:
+                    errors.append(f"Title mismatch: XMind has '{xmind_title}' but career name is '{self.name}'")
+                    return (False, errors)
+            
+        except ImportError:
+            errors.append("xmindparser library not available")
+            return (False, errors)
+        except Exception as e:
+            errors.append(f"Error reading XMind file: {str(e)}")
+            return (False, errors)
+        
+        # All validations passed
+        return (True, [])
+    
     def convert_description_to_jsmind_json(self):
         """
         Convert HTML content from career.description to jsMind format.

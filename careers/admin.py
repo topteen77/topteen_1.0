@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.urls import path, reverse
+from django.contrib.admin import SimpleListFilter
 from core import choices
 from .models import Career, CareerFAQ,CareerPath,CareerMedia, Skill,ProspectiveEmploymentArea,ProspectiveRecruiter,Profession,CareerPathStep,CareerCluster,RIASECCareer,CareerRating
 from nested_inline.admin import NestedStackedInline, NestedModelAdmin
@@ -16,6 +17,50 @@ from modeltranslation.admin import TranslationAdmin,TranslationStackedInline
 from .docx_utils import convert_docx_to_html, extract_career_data_from_html
 
 # Register your models here.
+
+class MindmapValidationFilter(SimpleListFilter):
+    """Custom filter for mindmap validation status"""
+    title = 'Mindmap Validation'
+    parameter_name = 'mindmap_validation'
+    
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return (
+            ('valid', 'Valid'),
+            ('errors', 'Has Errors'),
+        )
+    
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        if self.value() == 'valid':
+            # Filter careers with valid mindmaps
+            valid_ids = []
+            for career in queryset:
+                is_valid, _ = career.validate_mindmap()
+                if is_valid:
+                    valid_ids.append(career.id)
+            return queryset.filter(id__in=valid_ids)
+        elif self.value() == 'errors':
+            # Filter careers with mindmap errors
+            error_ids = []
+            for career in queryset:
+                is_valid, _ = career.validate_mindmap()
+                if not is_valid:
+                    error_ids.append(career.id)
+            return queryset.filter(id__in=error_ids)
+        return queryset
+
+
 class CareerPathInline(NestedStackedInline,TranslationStackedInline):
     model = CareerPath
     extra = 1
@@ -132,8 +177,8 @@ class CareerAdminForm(forms.ModelForm):
 
 class CareerAdmin(admin.ModelAdmin):
     form = CareerAdminForm
-    list_display = ['id', 'name', 'career_clusters_display', 'publish_status_display', 'preview_link', 'skills_count', 'created_date']
-    list_filter = ['publish_status', 'created', 'career_cluster']
+    list_display = ['id', 'name', 'career_clusters_display', 'publish_status_display', 'preview_link', 'mindmap_validation', 'skills_count', 'created_date']
+    list_filter = ['publish_status', 'created', 'career_cluster', MindmapValidationFilter]
     search_fields = ['name', 'summary', 'description']
     list_per_page = 25
     ordering = ['-created']
@@ -284,6 +329,32 @@ class CareerAdmin(admin.ModelAdmin):
         return obj.created.strftime('%Y-%m-%d %H:%M') if obj.created else '-'
     created_date.short_description = 'Created'
     
+    def mindmap_validation(self, obj):
+        """Display mindmap validation status with error icon and hover tooltip"""
+        is_valid, errors = obj.validate_mindmap()
+        
+        if is_valid:
+            # Show nothing if validated
+            return format_html('')
+        else:
+            # Show error icon with hover tooltip
+            error_text = '; '.join(errors) if errors else 'Mindmap validation failed'
+            # Escape HTML in error text for title attribute
+            from django.utils.html import escape
+            escaped_error = escape(error_text)
+            return format_html(
+                '<span class="mindmap-validation-error" style="color: #dc3545; cursor: help; display: inline-block;" '
+                'title="{}" data-bs-toggle="tooltip" data-bs-placement="top">'
+                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle;">'
+                '<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>'
+                '<path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>'
+                '</svg>'
+                '</span>',
+                escaped_error
+            )
+    mindmap_validation.short_description = 'Mindmap'
+    mindmap_validation.admin_order_field = 'name'
+    
     def make_published(self, request, queryset):
         updated = queryset.update(publish_status=1)
         self.message_user(request, f'{updated} career(s) marked as published.')
@@ -409,7 +480,7 @@ class CareerAdmin(admin.ModelAdmin):
     
     class Media:
         css = {
-            'all': ('admin/css/docx_processing.css',)
+            'all': ('admin/css/docx_processing.css', 'admin/css/mindmap_validation.css',)
         }
         js = ('admin/js/docx_processing.js', 'admin/js/career_cluster_dropdown.js',)
     

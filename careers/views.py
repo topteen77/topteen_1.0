@@ -403,6 +403,14 @@ class CareerDetail(TemplateView):
             ctx['overview_html'] = overview_html
             
             # Parse infographics from JSON sections
+            # For skills_industry_trends, try section first, then fallback to full description
+            skills_industry_trends_data = None
+            if skills_trends_html:
+                skills_industry_trends_data = parse_infographic(skills_trends_html, 'skills_industry_trends')
+            elif career.description:
+                # Fallback: try parsing from full description
+                skills_industry_trends_data = parse_infographic(career.description, 'skills_industry_trends')
+            
             ctx['infographics'] = {
                 'study_route': parse_infographic(study_route_html, 'study_route') if study_route_html else None,
                 'roles_responsibilities': parse_infographic(roles_html, 'roles_responsibilities') if roles_html else None,
@@ -410,7 +418,7 @@ class CareerDetail(TemplateView):
                 'internships': parse_infographic(internships_html, 'internships') if internships_html else None,
                 'courses': parse_infographic(courses_html, 'courses') if courses_html else None,
                 'prominent_employers': parse_infographic(employers_html, 'prominent_employers') if employers_html else None,
-                'skills_industry_trends': parse_infographic(skills_trends_html, 'skills_industry_trends') if skills_trends_html else None,
+                'skills_industry_trends': skills_industry_trends_data,
                 'advice_for_aspiring': parse_infographic(advice_html, 'advice_for_aspiring') if advice_html else None,
             }
             

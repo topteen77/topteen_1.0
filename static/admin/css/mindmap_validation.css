@@ -1,0 +1,38 @@
+/* Mindmap Validation Tooltip Styles */
+.mindmap-validation-error {
+    position: relative;
+    display: inline-block;
+}
+
+.mindmap-validation-error:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: normal;
+    max-width: 300px;
+    word-wrap: break-word;
+    z-index: 10000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 5px;
+    pointer-events: none;
+}
+
+.mindmap-validation-error:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    margin-bottom: -5px;
+    z-index: 10001;
+}
+
