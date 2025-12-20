@@ -285,5 +285,90 @@
       </div>
     </div>
   </section>
+
+  <!-- Blog Section -->
+  <section class="blog-section pb-10">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
+          <span class="highlighter text-gray fw-400 ">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/gudiance-icona.svg') }}" alt="icon"> Guidance for Every
+            Step
+          </span>
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Explore
+            Expert Blogs for Parents & Students!</h3>
+          <p class="text-gray">Stay informed with insights, tips, and
+            resources to help students make confident career
+            and academic choices.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+
+          <div class="grid-3 blog-grid pt-5">
+            {% if blogs %}
+              {% for blog in blogs[:3] %}
+              <a class="blog-box" href="{{ url('blog:blogdetail', args=[blog.slug]) }}" title="{{ blog.title }}">
+                <div class="blog-img-d">
+                  {% if blog.image %}
+                  <img src="{{ blog.image.url }}" alt="{{ blog.title }}" />
+                  {% else %}
+                  <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ blog.title }}" />
+                  {% endif %}
+                </div>
+                <div class="blog-info">
+                  {% if blog.category %}
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">{{ blog.category.name }}</span>
+                  {% else %}
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">Blog</span>
+                  {% endif %}
+                  <h4 class="blog-title text-white fs-22 fw-600">{{ blog.title }}</h4>
+                </div>
+              </a>
+              {% endfor %}
+            {% else %}
+              {# Fallback to static content if no blogs available #}
+              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Blog Title">
+                <div class="blog-img-d">
+                  <img src="{{ static('images_new/blogs/blog-image-1.svg') }}" alt="Blog Title" />
+                </div>
+                <div class="blog-info">
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">For Student</span>
+                  <h4 class="blog-title text-white fs-22 fw-600">Your Definitive Guide To Choosing The Perfect Stream In Class 11</h4>
+                </div>
+              </a>
+              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Blog Title">
+                <div class="blog-img-d">
+                  <img src="{{ static('images_new/blogs/blog-image-2.svg') }}" alt="Blog Title" />
+                </div>
+                <div class="blog-info">
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">For Parents</span>
+                  <h4 class="blog-title text-white fs-22 fw-600">Career in Machine learning</h4>
+                </div>
+              </a>
+              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Blog Title">
+                <div class="blog-img-d">
+                  <img src="{{ static('images_new/blogs/blog-image-3.svg') }}" alt="Blog Title" />
+                </div>
+                <div class="blog-info">
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">For Student</span>
+                  <h4 class="blog-title text-white fs-22 fw-600">Career in Artificial Intelligence</h4>
+                </div>
+              </a>
+            {% endif %}
+          </div>
+
+          <div class="text-center pt-5">
+            <a class="text-purple text-decoration-underline fs-17" href="{{ url('blog:blogs') }}">Explore More <i
+                class="bx bx-chevrons-right"></i></a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Blog Section -->
+
 </main>
 {% endblock %}

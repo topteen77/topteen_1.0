@@ -255,18 +255,59 @@ class ExtracurricularActivitiesView(TemplateView):
 
 class VocationalCoursesView(TemplateView):
     """
-    Index page: choose After 10 / After 12.
+    Combined page with tabs for After 10 / After 12.
     """
-    template_name = "template20/vocational_courses_index.html"
+    template_name = "template20/vocational_courses.html"
 
     def html_head(self):
         name = "Vocational Courses & Career Tracks"
         return build_html_head(title=name, description=name)
 
     def get_context(self, request, *args, **kwargs):
+        from django.db.models import Prefetch
+        from core import choices
+        from core.models import VocationalCourseCategory, VocationalCourse
+
+        # Get default tab from URL parameter or default to after-10
+        default_tab = request.GET.get('tab', 'after-10')
+        if default_tab not in ['after-10', 'after-12']:
+            default_tab = 'after-10'
+
+        # Load both levels
+        levels_data = {}
+        for level_slug in ['after-10', 'after-12']:
+            try:
+                level = VocationalCourseCategory.objects.filter(
+                    slug=level_slug,
+                    parent__isnull=True,
+                    object_status=choices.ObjectStatus.ACTIVE,
+                ).prefetch_related(
+                    Prefetch(
+                        "children",
+                        queryset=VocationalCourseCategory.objects.filter(
+                            object_status=choices.ObjectStatus.ACTIVE
+                        ).order_by("priority", "name").prefetch_related(
+                            Prefetch(
+                                "courses",
+                                queryset=VocationalCourse.objects.filter(
+                                    object_status=choices.ObjectStatus.ACTIVE
+                                ).order_by("priority", "name"),
+                            )
+                        ),
+                    )
+                ).first()
+                
+                if level:
+                    levels_data[level_slug] = level
+            except Exception:
+                levels_data[level_slug] = None
+
         ctx = {}
         ctx["html_head"] = self.html_head()
         ctx["breadcrumb"] = {'text': 'Vocational Courses', 'url': reverse('core:vocational_courses')}
+        ctx["levels_data"] = levels_data
+        ctx["default_tab"] = default_tab
+        ctx["active_level"] = levels_data.get(default_tab)
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -275,52 +316,13 @@ class VocationalCoursesView(TemplateView):
 
 class VocationalCoursesLevelView(TemplateView):
     """
-    Listing page for a specific level: after-10 or after-12.
+    Redirect to main vocational courses page with appropriate tab selected.
     """
-    template_name = "template20/vocational_courses.html"
-
-    def get_context(self, request, *args, **kwargs):
-        from django.db.models import Prefetch
-        from django.shortcuts import get_object_or_404
-        from core import choices
-        from core.models import VocationalCourseCategory, VocationalCourse
-
-        level_slug = kwargs.get("level_slug")
-        level = get_object_or_404(
-            VocationalCourseCategory,
-            slug=level_slug,
-            parent__isnull=True,
-            object_status=choices.ObjectStatus.ACTIVE,
-        )
-
-        # children (sub-categories) and their courses
-        level = VocationalCourseCategory.objects.filter(pk=level.pk).prefetch_related(
-            Prefetch(
-                "children",
-                queryset=VocationalCourseCategory.objects.filter(
-                    object_status=choices.ObjectStatus.ACTIVE
-                ).order_by("priority", "name").prefetch_related(
-                    Prefetch(
-                        "courses",
-                        queryset=VocationalCourse.objects.filter(
-                            object_status=choices.ObjectStatus.ACTIVE
-                        ).order_by("priority", "name"),
-                    )
-                ),
-            )
-        ).first()
-
-        ctx = {}
-        ctx["level"] = level
-        ctx["html_head"] = build_html_head(title=f"Vocational Courses ({level.name})", description=f"Vocational courses {level.name}")
-        ctx["breadcrumb"] = [
-            {"text": "Vocational Courses", "url": reverse("core:vocational_courses")},
-            {"text": level.name, "url": reverse("core:vocational_courses_level", args=[level.slug])},
-        ]
-        return ctx
-
     def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+        from django.shortcuts import redirect
+        level_slug = kwargs.get("level_slug")
+        # Redirect to main page with tab parameter
+        return redirect(f"{reverse('core:vocational_courses')}?tab={level_slug}")
 
 
 class VocationalCourseDetailView(TemplateView):
@@ -367,10 +369,16 @@ class ExtracurricularActivityDetailView(TemplateView):
     def get_context(self, request, *args, **kwargs):
         from django.shortcuts import get_object_or_404
         from core.models import ExtracurricularActivity
+        from blog.models import Blog
 
         activity = get_object_or_404(ExtracurricularActivity, pk=kwargs.get("pk"))
+        
+        # Get latest blogs for the blog section
+        blogs = Blog.get_published_objects().order_by('-created')[:3]
+        
         ctx = {}
         ctx["activity"] = activity
+        ctx["blogs"] = blogs
         ctx["html_head"] = build_html_head(title=activity.name, description=activity.name)
         ctx["breadcrumb"] = [
             {"text": "Extracurricular Activities", "url": reverse("core:extracurricular_activities")},
