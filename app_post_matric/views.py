@@ -511,6 +511,8 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
         'careers_to_avoid': [],
         'high_trait_descriptions': {},
         'low_trait_descriptions': {},
+        'dominant_trait_explanations': [],
+        'combined_code_explanation': None,
 
         'riasec_careers_to_opt': {
             "Traditional": [],
@@ -597,6 +599,27 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                 # Add descriptions to the result
                 result['high_trait_descriptions'] = high_trait_descriptions
                 result['low_trait_descriptions'] = low_trait_descriptions
+                
+                # Get dominant trait explanations for high categories
+                dominant_explanations = []
+                for category_code in high_categories:
+                    for explanation in hexaco_data.get('HEXACO_Dominant_Trait_Explanations', []):
+                        if explanation.get('Trait Code') == category_code:
+                            dominant_explanations.append(explanation)
+                            break
+                result['dominant_trait_explanations'] = dominant_explanations
+                
+                # Get combined code explanation if we have 2 high categories
+                if len(high_categories) >= 2:
+                    # Create combined code (e.g., "H & C")
+                    combined_code = f"{high_categories[0]} & {high_categories[1]}"
+                    # Also try reverse order
+                    combined_code_reverse = f"{high_categories[1]} & {high_categories[0]}"
+                    
+                    for explanation in hexaco_data.get('HEXACO_Combined_Code_Explanations', []):
+                        if explanation.get('Combined Code') == combined_code or explanation.get('Combined Code') == combined_code_reverse:
+                            result['combined_code_explanation'] = explanation
+                            break
 
         elif latest_session.test.title == 'Motivation Assessment':
             domain = map_motivation_domain_to_trait(high_categories)
@@ -1010,7 +1033,9 @@ def Results(request):
                 'high_trait_descriptions': hexaco_recommendations['high_trait_descriptions'],
                 'low_trait_descriptions': hexaco_recommendations['low_trait_descriptions'],
                 'high_traits': [map_hexaco_code_to_trait(cat) for cat in high_categories],
-                'low_trait': map_hexaco_code_to_trait(low_category) if low_category else None
+                'low_trait': map_hexaco_code_to_trait(low_category) if low_category else None,
+                'dominant_trait_explanations': hexaco_recommendations.get('dominant_trait_explanations', []),
+                'combined_code_explanation': hexaco_recommendations.get('combined_code_explanation', None)
             })
 
         elif latest_session.test.title == 'Career Interest Inventory' and high_categories:
@@ -2116,7 +2141,9 @@ def Test_results(request, id):
                 'high_trait_descriptions': hexaco_recommendations['high_trait_descriptions'],
                 'low_trait_descriptions': hexaco_recommendations['low_trait_descriptions'],
                 'high_traits': [map_hexaco_code_to_trait(cat) for cat in high_categories],
-                'low_trait': map_hexaco_code_to_trait(low_category) if low_category else None
+                'low_trait': map_hexaco_code_to_trait(low_category) if low_category else None,
+                'dominant_trait_explanations': hexaco_recommendations.get('dominant_trait_explanations', []),
+                'combined_code_explanation': hexaco_recommendations.get('combined_code_explanation', None)
             })
 
         elif latest_session.test.title == 'Career Interest Inventory' and high_categories:
@@ -2361,6 +2388,8 @@ def download_test_results_pdf(request, id):
                 'careers_to_avoid': list(hexaco_recommendations.get('careers_to_avoid', {}).values())[0] if hexaco_recommendations.get('careers_to_avoid') else [],
                 'high_trait_descriptions': hexaco_recommendations.get('high_trait_descriptions', {}),
                 'low_trait_descriptions': hexaco_recommendations.get('low_trait_descriptions', {}),
+                'dominant_trait_explanations': hexaco_recommendations.get('dominant_trait_explanations', []),
+                'combined_code_explanation': hexaco_recommendations.get('combined_code_explanation', None)
             })
         elif latest_session.test.title == 'Career Interest Inventory' and high_categories:
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
