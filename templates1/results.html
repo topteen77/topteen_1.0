@@ -245,6 +245,30 @@
             border-bottom: none;
         }
 
+        .description-content {
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        .description-content p {
+            margin-bottom: 12px;
+        }
+        .description-content ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        .description-content li {
+            margin-bottom: 8px;
+            border-bottom: none;
+        }
+        .description-content strong {
+            font-weight: 600;
+            color: #3f37c9;
+        }
+        .description-content em {
+            font-style: italic;
+            color: #555;
+        }
+
         .career-box {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -334,6 +358,509 @@
         .motivation-categories .time-duration-display {
             width: 50%;
         }
+    </style>
+    <style>
+        /** updated css **/
+        .scard-bodys {
+            display: flex;
+            padding: 8px;
+            padding-top: 8px;
+            margin-bottom: 14px;
+            border-radius: 10px;
+            padding-top: 21px;
+            position: relative;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+
+
+
+        .honesty-humility::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: url('/static/images/H%20-%20Quiet%20lighthouse.png') no-repeat center center;
+            background-size: cover;
+            z-index: 1;
+            opacity: 0.03;
+        }
+
+
+        .conscientiousness::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: url('/static/images/C- Mountain path.png') no-repeat center center;
+            background-size: cover;
+            z-index: 1;
+            opacity: 0.03;
+        }
+
+
+
+
+        .scard-bodys.card-one {
+            border: 1px solid #5952d6;
+            border-top: 7px solid #5952d6;
+            background: #eff5ff;
+
+        }
+
+
+
+        .scard-bodys.card-two {
+            border: 1px solid #d6a852;
+            border-top: 7px solid #d6a852;
+            background: #fff7e8;
+        }
+
+
+        .summary-card-header {
+            margin-right: 23px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .summary-card-header-img {
+            width: 150px;
+            height: 150px;
+            background: #ffff;
+            border-radius: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .summary-card-header-img img {
+            width: 56%;
+        }
+
+        .summary-card-description p {
+            line-height: 16px;
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .summary-card-header p {
+            text-align: center;
+            font-weight: 800;
+            line-height: 18px;
+            margin-top: 11px;
+            color: #3F37C9;
+        }
+
+        .summary-card-description ul {
+            list-style: disc;
+            margin-bottom: 4px;
+            margin-top: 0px;
+        }
+
+        .summary-card-description ul li {
+            font-size: 13px;
+            border-bottom: 0px;
+            margin-bottom: 0px;
+        }
+
+        .small-margin .time-duration-display {
+            height: 60px;
+        }
+
+        .small-margin .hexaco-code-display {
+            height: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        .small-margin .time-duration-display h3,
+        .small-margin .hexaco-code-display h3 {
+            margin: 0px !important;
+        }
+
+        .pr-combined-reportright {
+            display: flex;
+            background: #f1faff;
+            border: 1px solid #013954;
+            border-radius: 11px;
+            padding: 8px;
+            border-top: 7px solid #013e5d;
+        }
+
+        .pr-combined-report-left {
+            margin-right: 15px;
+        }
+
+
+        .pr-combined-report-header h1 {
+            font-size: 18px;
+            margin-top: 2px !important;
+            color: #013E5D;
+            display: flex;
+        }
+
+        .pr-combined-report-header h1 span {
+            background: #013E5D;
+            padding: 7px 8px;
+            font-size: 21px;
+            margin-right: 7px;
+            border-radius: 10px;
+            color: #fff;
+            width: 108px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .highlighted-description-filter ul {
+            list-style: disc;
+        }
+
+        .hexaco-code-explanation {
+            display: flex;
+            justify-content: center;
+        }
+
+
+        /** motivation update **/
+        .motivation-summary {
+            background: #fff;
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid #d7d7d7;
+            display: flex;
+            border-top: 7px solid #d7d7d7;
+        }
+
+
+        .left-m-su {
+            width: 316px;
+            background: #eceef5;
+        }
+
+        .s-motivation-summary h3 {
+            background: #f0f4ff;
+            padding: 7px;
+            margin-top: 0px;
+            color: #08079d;
+            border-radius: 7px;
+        }
+
+
+        .left-m-su img {
+            width: 238px;
+        }
+
+        .s-motivation-summary {
+            margin-left: 15px;
+        }
+
+
+        .s-motivation-summary h4 {
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: #5756ce;
+        }
+
+        .motivation-key-drive .d-em-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px;
+            align-items: start;
+        }
+
+        .motivation-key-drive .env-grid {
+            display: flex;
+            align-items: flex-start;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(34, 34, 90, 0.05);
+            transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .motivation-key-drive .env-grid .img-mg {
+            flex: 0 0 72px;
+            height: 72px;
+            overflow: hidden;
+            border-radius: 10px;
+            margin-right: 12px;
+            background: #f6f7ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .motivation-key-drive .env-grid .img-mg img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .motivation-key-drive .env-grid {
+            cursor: pointer;
+        }
+
+        .motivation-key-drive .text-emn p {
+            margin: 0;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.35;
+        }
+
+        .motivation-key-drive h4 {
+            position: relative;
+            font-size: 21px;
+            margin-bottom: 26px;
+        }
+
+        .motivation-key-drive h4::after {
+            content: "";
+            background: #08079d;
+            width: 50px;
+            height: 5px;
+            position: absolute;
+            left: 0;
+            bottom: -8px;
+        }
+
+        .motivation-summrize {
+            margin-top: 10px;
+            background: #f4f4ff;
+            border: 1px solid #5952d6;
+            padding: 11px;
+            border-radius: 10px;
+            margin-top: 43px;
+        }
+
+
+        .motivation-summrize h4 {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            background: #fff;
+            width: 145px;
+            justify-content: center;
+            padding: 2px;
+            border-radius: 50px;
+            margin-bottom: 13px;
+        }
+
+        .motivation-summrize h4 img {
+            width: 30px;
+            margin-right: 6px;
+        }
+
+        /** motivation update **/
+
+
+
+
+
+
+        /** interest test updated **/
+
+
+        .personality-card {
+            display: flex;
+            flex-direction: column;
+            background: #f0f2fb;
+            border: 1px solid #3f37c9;
+            padding: 9px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+
+        .top-card {
+            display: flex;
+        }
+
+        .card-p-left {
+            margin-right: 20px;
+        }
+
+        .icon-box {
+            background: #fff;
+            border-radius: 10px;
+            width: 81px;
+            padding: 3px;
+            margin-bottom: 20px;
+        }
+
+        .icon-box img {
+            width: 75px;
+        }
+
+        .card-p-right h3 {
+            margin-top: 0px;
+            margin-bottom: 5px;
+        }
+
+        .card-p-right p {
+            margin-bottom: 7px;
+        }
+
+        .hm-text {
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .hm-text ul {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            list-style: disc;
+            margin-top: 0px;
+        }
+
+
+        .hm-text ul li {
+            border: 0px;
+            margin-bottom: 0px;
+        }
+
+        .hm-text h4 {
+            color: #4a41cb;
+            font-size: 16px;
+        }
+
+
+        /** aptitude test updated **/
+
+
+        .recommended-courses-info {
+            background: #e5f9ff;
+            border: 1px solid #2e8aa6;
+            border-radius: 10px;
+            padding: 16px;
+            border-top: 7px solid #2e8aa6;
+        }
+
+        .recommended-courses-info .header-text h3 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            color: #2e8aa6;
+            margin: 0 0 5px 0;
+        }
+
+        .recommended-courses-info .header-text .imgpact {
+            width: 60px;
+            height: 60px;
+            background: #ffff;
+            border-radius: 100px;
+            padding: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 12px;
+        }
+
+
+        .recommended-courses-info .header-text .imgpact img {
+            width: 50px;
+            height: 50px;
+        }
+
+        .real-description h4 {
+            display: flex;
+            align-items: center;
+            font-size: 17px;
+        }
+
+        .real-sign {
+            width: 35px;
+            margin-right: 9px;
+        }
+
+        .real-sign img {
+            width: 100%;
+        }
+
+        .real-description ul {
+            list-style: disc;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0 20px;
+            margin-bottom: 10px;
+
+        }
+
+        .real-description ul li {
+            font-size: 14px;
+            margin-bottom: 0px;
+            padding: 0px;
+            border: 0px;
+            line-height: 18px;
+        }
+
+
+        .impact-box {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 13px;
+        }
+
+        .impact-info {
+            background: #fff;
+            padding: 17px;
+            border-radius: 17px;
+        }
+
+        .impact-info h4 {
+            display: flex;
+            align-items: center;
+            font-size: 17px;
+            color: #433ccb;
+            margin-bottom: 15px;
+        }
+
+        .real-sign-box {
+            background: #c0e2ff8c;
+            padding: 5px;
+            margin-bottom: 13px;
+            border-radius: 16px;
+            border: 1px solid #add9f6;
+        }
+
+        .impact-info h4 .car-img {
+            width: 30px;
+            height: 30px;
+            margin-right: 11px;
+        }
+
+        .impact-info h4 .car-img img {
+            width: 100%;
+        }
+
+        .impact-info ul {
+            list-style: disc;
+        }
+
+        .impact-info ul li {
+            border: 0px;
+            font-size: 14px;
+            margin-bottom: 0;
+            padding: 1px 0px;
+        }
+
+
+
+        /** updated css **/
     </style>
 
     <style>
@@ -1775,6 +2302,61 @@
                         <!-- Dynamic personality dimensions will be inserted here -->
                     </div>
 
+                    <!-- explanation of your dominant personality dimensions -->
+                    <div class="summary-card">
+
+
+                        <div class="hexaco-code-explanation">
+                            <h3>Explanation of your Dominent Personality Dimensions</h3>
+                        </div>
+
+                        {% for explanation in dominant_trait_explanations %}
+                        <div class="scard-bodys card-one {{ explanation|get_item:'HEXACO Trait'|lower|slugify }}">
+                            <div class="summary-card-header">
+                                <div class="summary-card-header-img"> <img
+                                        src="{% static explanation|get_item:"key_image" %}" alt="logo" /> </div>
+
+                                <p>{{ explanation|get_item:"HEXACO Trait"|upper }} ({{ explanation|get_item:"Trait Code" }}) - "{{ explanation|get_item:"Metaphorical Title" }}"</p>
+                            </div>
+                            <div class="summary-card-description">
+                                {{ explanation|get_item:"Description"|safe }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- explanation of your dominant personality dimensions -->
+                     
+
+
+                    <!-- explanation of your combined code -->
+                    <div class="hexaco-code-explanation">
+                        <h3>Combined Code Explanation</h3>
+                    </div>
+
+
+                    <div class="pr-combined-reportright">
+
+
+
+
+                        <div class="pr-combined-report-left"> <img src="{% static combined_code_explanation|get_item:"key_image" %}"
+                                alt="logo" /> </div>
+
+                        <div class="pr-combined-report-right">
+                            <div class="pr-combined-report-header">
+                                <h1><span>{{ combined_code_explanation|get_item:"Combined Code" }}</span> ({{ combined_code_explanation|get_item:"Trait Names" }})</h1>
+                            </div>
+                            <div class="pr-combined-report-body">
+                                {{ combined_code_explanation|get_item:"Description"|safe }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- explanation of your combined code -->
+
+
+
+
 
 
                     <div class="chart-container">
@@ -1783,6 +2365,8 @@
                     </div>
                 </div>
             </div>
+
+            
 
             <!-- Career Recommendations -->
 
