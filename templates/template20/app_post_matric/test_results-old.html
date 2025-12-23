@@ -1,5 +1,4 @@
 {% extends 'template20/logged-in-base.html' %}
-{% load custom_filters_post_matric %}
 
 {% block title_content %}Test Results - Assessment Dashboard | Top Teen{% endblock %}
 {% block description_content %}View your test results and detailed analysis.{% endblock %}
@@ -211,28 +210,6 @@
   .no-results p {
     color: #999;
   }
-  .description-content {
-    font-size: 16px;
-    line-height: 1.8;
-  }
-  .description-content p {
-    margin-bottom: 12px;
-  }
-  .description-content ul {
-    margin: 10px 0;
-    padding-left: 25px;
-  }
-  .description-content li {
-    margin-bottom: 8px;
-  }
-  .description-content strong {
-    font-weight: 600;
-    color: #3f37c9;
-  }
-  .description-content em {
-    font-style: italic;
-    color: #555;
-  }
 </style>
 {% endblock %}
 
@@ -314,38 +291,6 @@
               {% endif %}
             </div>
             {% endif %}
-          </div>
-        </div>
-        {% endif %}
-
-        <!-- Explanation of Your Dominant Personality Dimensions -->
-        {% if dominant_trait_explanations %}
-        <div class="categories-section" style="margin-top: 30px;">
-          <h3 class="section-title" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">Explanation of Your Dominant Personality Dimensions</h3>
-          {% for explanation in dominant_trait_explanations %}
-          <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3f37c9;">
-            <h4 style="color: #3f37c9; font-size: 18px; margin-bottom: 15px;">
-              {{ explanation|get_item:"HEXACO Trait"|upper }} ({{ explanation|get_item:"Trait Code" }}) - "{{ explanation|get_item:"Metaphorical Title" }}"
-            </h4>
-            <div class="description-content" style="margin-bottom: 15px; text-align: justify; line-height: 1.8; color: #333; font-size: 16px;">
-              {{ explanation|get_item:"Description"|safe }}
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Combined Code Explanation -->
-        {% if combined_code_explanation %}
-        <div class="categories-section" style="margin-top: 30px;">
-          <h3 class="section-title" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">Combined Code Explanation</h3>
-          <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3f37c9;">
-            <h4 style="color: #3f37c9; font-size: 18px; margin-bottom: 15px;">
-              {{ combined_code_explanation|get_item:"Combined Code" }} ({{ combined_code_explanation|get_item:"Trait Names" }})
-            </h4>
-            <div class="description-content" style="margin-bottom: 15px; text-align: justify; line-height: 1.8; color: #333; font-size: 16px;">
-              {{ combined_code_explanation|get_item:"Description"|safe }}
-            </div>
           </div>
         </div>
         {% endif %}
