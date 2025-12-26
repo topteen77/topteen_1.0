@@ -219,3 +219,6 @@ Migrations for 'institute':
     - Add field marketing_group to institute
     - Create index institute_i_name_44590d_idx on field(s) name of model institute
     - Create index institute_i_address_513b94_idx on field(s) address of model institute
+
+
+.
