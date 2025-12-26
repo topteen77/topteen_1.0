@@ -37,56 +37,22 @@ function loginsingup() {
         }, 100);
       }
       if (data.show_password) {
-        // Institute-student accounts should use password login (not OTP)
-        if (data.is_institute_student) {
-          loginremoveunusetag();
-          var xPwd = document.createElement("input");
-          xPwd.setAttribute("type", "hidden");
-          xPwd.setAttribute("value", data.enc_user_name);
-          xPwd.setAttribute("id", "encloginusername");
-          xPwd.setAttribute("name", "enc_user_name");
-          document.getElementById("loginpwd").appendChild(xPwd);
-          document.getElementById("loginpwdname").textContent = data.user_name;
-          document.getElementById("loginpwdDiv").classList.remove("hideModal");
-          setTimeout(function() {
-            const passwordInput = document.querySelector('#loginpwd input[name="password"]');
-            if (passwordInput) passwordInput.focus();
-          }, 100);
-          return;
-        }
-
-        // For template20 OTP-first pages, jump straight to OTP login flow
-        if (typeof showLoginWithOtp === 'function' && document.getElementById('loginOtpEmail')) {
-          try {
-            showLoginWithOtp();
-            document.getElementById('loginOtpEmail').value = data.user_name;
-            if (typeof sendLoginOtp === 'function') {
-              sendLoginOtp();
-              return;
-            }
-          } catch (e) {
-            // fallback to old modal flow below
-          }
-        }
-
-        // Fallback: old password modal flow
+        // If show_password is true, user has set a password - always show password modal
+        // Don't use OTP-first flow for users who have passwords set
         loginremoveunusetag();
-        var x = document.createElement("input");
-        x.setAttribute("type", "hidden");
-        x.setAttribute("value", data.enc_user_name);
-        x.setAttribute("id", "encloginusername");
-        x.setAttribute("name", "enc_user_name");
-        document.getElementById("loginpwd").appendChild(x);
+        var xPwd = document.createElement("input");
+        xPwd.setAttribute("type", "hidden");
+        xPwd.setAttribute("value", data.enc_user_name);
+        xPwd.setAttribute("id", "encloginusername");
+        xPwd.setAttribute("name", "enc_user_name");
+        document.getElementById("loginpwd").appendChild(xPwd);
         document.getElementById("loginpwdname").textContent = data.user_name;
         document.getElementById("loginpwdDiv").classList.remove("hideModal");
-        
-        // Auto-focus on password input when modal is shown
         setTimeout(function() {
           const passwordInput = document.querySelector('#loginpwd input[name="password"]');
-          if (passwordInput) {
-            passwordInput.focus();
-          }
+          if (passwordInput) passwordInput.focus();
         }, 100);
+        return;
       }
     },
     error: function (xhr, status, error) {
@@ -255,20 +221,36 @@ function loginsingupotp() {
     success: function (data) {
       if (data.otp_verify != true) {
         var otperrtag = document.getElementById("errorMsgOtpSinguplogin");
-        otperrtag.textContent = "The otp you entered is incorrect. Try Again";
+        if (otperrtag) {
+          otperrtag.textContent = data.message || "The otp you entered is incorrect. Try Again";
+          otperrtag.style.display = "block";
+          otperrtag.style.color = "#ef4444";
+        }
+        if (typeof fireAlert === 'function') {
+          fireAlert(data.message || "Invalid OTP. Please try again", "error");
+        }
       }
 
       if (data.otp_verify == true) {
         // Check if user already exists (returning user)
         if (data.user_exists === true && data.success === true) {
           // User exists and is logged in - redirect to dashboard
-          loginsingupotpremoveunusetag();
-          if (data.redirect_url) {
-            window.location.href = data.redirect_url;
-          } else {
-            window.location.href = '/user/dashboard';
+          if (typeof fireAlert === 'function') {
+            fireAlert("OTP verified successfully! Redirecting...", "success");
           }
+          loginsingupotpremoveunusetag();
+          setTimeout(function() {
+            if (data.redirect_url) {
+              window.location.href = data.redirect_url;
+            } else {
+              window.location.href = '/user/dashboard';
+            }
+          }, 500);
         } else {
+          // OTP verified for new user - show success message
+          if (typeof fireAlert === 'function') {
+            fireAlert("OTP verified successfully! Please set your password", "success");
+          }
           // New user (user_exists is false or undefined) - proceed to password form
           // This handles both explicit false and cases where user_exists might be undefined
           if (data.enc_user_name) {
@@ -427,6 +409,7 @@ function loginsinguppwd() {
   var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
   if (otperrtag) {
     otperrtag.textContent = "";
+    otperrtag.style.display = "none"; // Hide error message initially
   }
   
   // Disable submit button and set submitting flag
@@ -455,11 +438,15 @@ function loginsinguppwd() {
     return cookieValue;
   }
   
-  console.log("🚀 Starting AJAX request to:", usersloginsignuppwd);
+  // Get the signup password URL - check both possible variable names
+  var signupPwdUrl = typeof usersloginsinguppwd !== 'undefined' ? usersloginsinguppwd : 
+                     (typeof window.usersloginsinguppwd !== 'undefined' ? window.usersloginsinguppwd : '/user/signuppwd/');
+  
+  console.log("🚀 Starting AJAX request to:", signupPwdUrl);
   
   $.ajax({
     type: "POST",
-    url: usersloginsignuppwd,
+    url: signupPwdUrl,
     data: formData,
     dataType: 'json',  // Explicitly expect JSON response
     beforeSend: function(xhr) {
@@ -507,6 +494,8 @@ function loginsinguppwd() {
           var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
           if (otperrtag) {
             otperrtag.textContent = "Error processing response. Please try again.";
+            otperrtag.style.display = "block"; // Make sure error is visible
+            otperrtag.style.color = "#ef4444"; // Ensure red color
           }
           return;
         }
@@ -516,6 +505,11 @@ function loginsinguppwd() {
       if (data && (data.success === true || data.success === 'true')) {
         console.log("✅ Success flag found, proceeding with redirect...");
         
+        // Show success message
+        if (typeof fireAlert === 'function') {
+          fireAlert("Account created successfully! Redirecting...", "success");
+        }
+        
         // Close password modal
         var signUpPwdDiv = document.getElementById("signUpPwdDiv");
         if (signUpPwdDiv) {
@@ -523,31 +517,43 @@ function loginsinguppwd() {
           console.log("✅ Modal closed");
         }
         
-        // Redirect immediately
+        // Redirect after short delay to show success message
         var redirectUrl = data.redirect_url || '/user/dashboard';
         console.log("Redirect URL:", redirectUrl);
         console.log("Redirect URL type:", typeof redirectUrl);
         console.log("Redirect URL valid:", redirectUrl && redirectUrl !== 'undefined' && redirectUrl !== 'null' && redirectUrl !== '');
         
         // Force immediate redirect
-        if (redirectUrl && redirectUrl !== 'undefined' && redirectUrl !== 'null' && redirectUrl !== '') {
-          console.log("🚀 Redirecting to:", redirectUrl);
-          // Use replace for immediate redirect
-          window.location.replace(redirectUrl);
-        } else {
-          // Fallback redirect
-          console.log("⚠️ Using fallback URL: /user/dashboard");
-          window.location.replace('/user/dashboard');
-        }
+        setTimeout(function() {
+          if (redirectUrl && redirectUrl !== 'undefined' && redirectUrl !== 'null' && redirectUrl !== '') {
+            console.log("🚀 Redirecting to:", redirectUrl);
+            // Use replace for immediate redirect
+            window.location.replace(redirectUrl);
+          } else {
+            // Fallback redirect
+            console.log("⚠️ Using fallback URL: /user/dashboard");
+            window.location.replace('/user/dashboard');
+          }
+        }, 500);
       } else {
         console.log("❌ No success flag found in response");
         console.log("Response data:", data);
         // Show error message from server
         var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
-        if (otperrtag && data.message) {
-          otperrtag.textContent = data.message;
-        } else if (otperrtag) {
-          otperrtag.textContent = "Unable to create account. Please check your information and try again.";
+        if (otperrtag) {
+          var errorMsg = "Unable to create account. Please check your information and try again.";
+          if (data && data.message) {
+            errorMsg = data.message;
+          }
+          otperrtag.textContent = errorMsg;
+          otperrtag.style.display = "block"; // Make sure error is visible
+          otperrtag.style.color = "#ef4444"; // Ensure red color
+          // Scroll to error message
+          otperrtag.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          // Also show alert
+          if (typeof fireAlert === 'function') {
+            fireAlert(errorMsg, "error");
+          }
         }
       }
     },
@@ -589,6 +595,10 @@ function loginsinguppwd() {
         var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
         if (otperrtag) {
           otperrtag.textContent = errorMessage;
+          otperrtag.style.display = "block"; // Make sure error is visible
+          otperrtag.style.color = "#ef4444"; // Ensure red color
+          // Scroll to error message
+          otperrtag.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
         
         if (xhr.status === 403) {
@@ -621,26 +631,37 @@ function loginsinguppwd() {
 }
 
 function validatepwd(formData) {
+  var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
+  
   // Validate class/grade selection
   var grade = formData.get("grade");
   if (!grade || grade === "") {
-    var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
-    otperrtag.textContent = "Please select your class. Try Again";
+    if (otperrtag) {
+      otperrtag.textContent = "Please select your class. Try Again";
+      otperrtag.style.display = "block";
+      otperrtag.style.color = "#ef4444";
+    }
     return false;
   }
   
   // Validate password
   if (formData.get("password") == "") {
-    var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
-    otperrtag.textContent = "All fields required. Try Again";
+    if (otperrtag) {
+      otperrtag.textContent = "All fields required. Try Again";
+      otperrtag.style.display = "block";
+      otperrtag.style.color = "#ef4444";
+    }
     return false;
   }
   
   // Validate confirm password field exists
   var confirmPassword = formData.get("confirm_password");
   if (!confirmPassword || confirmPassword === "") {
-    var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
-    otperrtag.textContent = "Please confirm your password. Try Again";
+    if (otperrtag) {
+      otperrtag.textContent = "Please confirm your password. Try Again";
+      otperrtag.style.display = "block";
+      otperrtag.style.color = "#ef4444";
+    }
     return false;
   }
   
@@ -657,8 +678,11 @@ function validatepwd(formData) {
   confirmPwd = confirmPwd.trim();
   
   if (password !== confirmPwd) {
-    var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
-    otperrtag.textContent = "Passwords do not match. Please make sure both passwords are the same.";
+    if (otperrtag) {
+      otperrtag.textContent = "Passwords do not match. Please make sure both passwords are the same.";
+      otperrtag.style.display = "block";
+      otperrtag.style.color = "#ef4444";
+    }
     // Also update the visual match indicator
     var matchMsg = document.getElementById("passwordMatchMsg");
     if (matchMsg) {
@@ -668,6 +692,13 @@ function validatepwd(formData) {
     }
     return false;
   }
+  
+  // Clear error message if validation passes
+  if (otperrtag) {
+    otperrtag.textContent = "";
+    otperrtag.style.display = "none";
+  }
+  
   return true;
 }
 
@@ -676,18 +707,128 @@ function loginpwd() {
   if (validateloginpwd(formData) == false) {
     return false;
   }
+  
+  // Clear previous error messages
+  var otperrtag = document.getElementById("errorMsgloginpwd");
+  if (otperrtag) {
+    otperrtag.textContent = "";
+    otperrtag.style.display = "none";
+  }
+  
   $.ajax({
     type: "POST",
     url: usersloginpwd,
     data: formData,
     success: function (data) {
       if (data.success) {
-        document.getElementById("loginpwdDiv").classList.add("hideModal");
-        window.location.href = data.redirect_url;
-      }
-      if (data.success == false) {
-        var otperrtag = document.getElementById("errorMsgloginpwd");
-        otperrtag.textContent = data.errMsg;
+        // Check if user needs to set password (master password login)
+        if (data.need_set_password) {
+          // Show set password modal
+          var setPasswordDiv = document.getElementById("setPasswordDiv");
+          if (setPasswordDiv) {
+            setPasswordDiv.classList.remove("hideModal");
+          }
+          // Hide login password modal
+          var loginPwdDiv = document.getElementById("loginpwdDiv");
+          if (loginPwdDiv) {
+            loginPwdDiv.classList.add("hideModal");
+          }
+          // Show success message
+          if (typeof fireAlert === 'function') {
+            fireAlert("Login successful! Please set your password", "success");
+          }
+        } else {
+          // Normal login success
+          if (typeof fireAlert === 'function') {
+            fireAlert("Login successful! Redirecting...", "success");
+          }
+          document.getElementById("loginpwdDiv").classList.add("hideModal");
+          setTimeout(function() {
+            window.location.href = data.redirect_url || '/user/dashboard';
+          }, 500);
+        }
+      } else {
+        // Login failed - Check if OTP fallback is offered (for students)
+        if (data.show_otp_fallback) {
+          console.log("Password login failed - Showing OTP fallback option");
+          // Show error message with OTP option
+          var errorMsg = data.message || "Password doesn't match. Switching to OTP login...";
+          if (otperrtag) {
+            otperrtag.textContent = errorMsg;
+            otperrtag.style.display = "block";
+            otperrtag.style.color = "#ef4444";
+          }
+          
+          // Hide password modal and show OTP modal
+          var loginPwdDiv = document.getElementById("loginpwdDiv");
+          var otpDiv = document.getElementById("otpDiv");
+          
+          if (data.enc_user_name && data.user_name) {
+            // Prepare OTP form with user info
+            var existingInput = document.getElementById("loginotpusername");
+            if (existingInput) existingInput.remove();
+            
+            var x = document.createElement("input");
+            x.setAttribute("type", "hidden");
+            x.setAttribute("value", data.user_name);
+            x.setAttribute("id", "loginotpusername");
+            x.setAttribute("name", "user_name");
+            
+            const otpForm = document.getElementById("singupotp");
+            if (otpForm) {
+              otpForm.appendChild(x);
+              const nameSpan = document.getElementById("signupotpname");
+              if (nameSpan) nameSpan.textContent = data.user_name;
+              
+              // Hide password modal and show OTP modal
+              if (loginPwdDiv) {
+                loginPwdDiv.classList.add("hideModal");
+              }
+              if (otpDiv) {
+                otpDiv.classList.remove("hideModal");
+                // Send OTP automatically
+                setTimeout(function() {
+                  if (typeof usersresendotp !== 'undefined') {
+                    // Send OTP via AJAX
+                    var otpFormData = new FormData();
+                    otpFormData.append('user_name', data.user_name);
+                    $.ajax({
+                      type: 'POST',
+                      url: usersresendotp,
+                      data: otpFormData,
+                      success: function(otpData) {
+                        if (typeof fireAlert === 'function') {
+                          fireAlert('OTP sent successfully to ' + data.user_name, 'success');
+                        }
+                        const firstOtpInput = document.querySelector('.otpSource');
+                        if (firstOtpInput) firstOtpInput.focus();
+                      },
+                      error: function() {
+                        if (typeof fireAlert === 'function') {
+                          fireAlert('Unable to send OTP. Please try again', 'error');
+                        }
+                      },
+                      cache: false,
+                      contentType: false,
+                      processData: false,
+                    });
+                  }
+                }, 300);
+              }
+            }
+          }
+        } else {
+          // Regular login failure (non-student or no OTP fallback)
+          var errorMsg = data.message || data.errMsg || "Invalid password. Please try again.";
+          if (otperrtag) {
+            otperrtag.textContent = errorMsg;
+            otperrtag.style.display = "block";
+            otperrtag.style.color = "#ef4444";
+          }
+          if (typeof fireAlert === 'function') {
+            fireAlert(errorMsg, "error");
+          }
+        }
       }
     },
     error: function (xhr, status, error) {
@@ -838,11 +979,21 @@ function loginwithotp() {
 
       if (data.otp_verify == true && data.success == true) {
         // OTP verified and user logged in - redirect to dashboard
+        if (typeof fireAlert === 'function') {
+          fireAlert("OTP verified successfully! Redirecting...", "success");
+        }
         loginsingupotpremoveunusetag();
-        if (data.redirect_url) {
-          window.location.href = data.redirect_url;
-        } else {
-          window.location.href = '/user/dashboard';
+        setTimeout(function() {
+          if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+          } else {
+            window.location.href = '/user/dashboard';
+          }
+        }, 500);
+      } else {
+        // OTP verification failed
+        if (typeof fireAlert === 'function') {
+          fireAlert(data.message || "Invalid OTP. Please try again", "error");
         }
       }
     },
@@ -1016,22 +1167,43 @@ function forgotpassword() {
     data: formData,
     success: function (data) {
       if (data.success) {
+        if (typeof fireAlert === 'function') {
+          fireAlert("OTP sent successfully to " + (data.user_name || "your email"), "success");
+        }
         forgotpwdremoveunusetag();
         var x = document.createElement("input");
         x.setAttribute("type", "hidden");
         x.setAttribute("value", data.enc_user_name);
         x.setAttribute("id", "forgotpwdusername");
         x.setAttribute("name", "user_name");
-        document.getElementById("forgototppwd").appendChild(x);
-        document.getElementById("forgototppwdname").textContent =
-          data.user_name;
-        document
-          .getElementById("forgotpwdotpDiv")
-          .classList.remove("hideModal");
+        var forgotOtpForm = document.getElementById("forgototppwd");
+        if (forgotOtpForm) {
+          forgotOtpForm.appendChild(x);
+          var forgotOtpName = document.getElementById("forgototppwdname");
+          if (forgotOtpName) {
+            forgotOtpName.textContent = data.user_name;
+          }
+          var forgotOtpDiv = document.getElementById("forgotpwdotpDiv");
+          if (forgotOtpDiv) {
+            forgotOtpDiv.classList.remove("hideModal");
+          }
+        }
       }
       if (data.success == false) {
-        document.getElementById("errorMsgforgot").textContent = data.message;
-        document.getElementById("forgotpwdname").textContent = data.user_name;
+        var errorMsg = data.message || "Unable to send OTP. Please try again.";
+        var errorTag = document.getElementById("errorMsgforgot");
+        if (errorTag) {
+          errorTag.textContent = errorMsg;
+          errorTag.style.display = "block";
+          errorTag.style.color = "#ef4444";
+        }
+        var forgotPwdName = document.getElementById("forgotpwdname");
+        if (forgotPwdName && data.user_name) {
+          forgotPwdName.textContent = data.user_name;
+        }
+        if (typeof fireAlert === 'function') {
+          fireAlert(errorMsg, "error");
+        }
       }
     },
     error: function (xhr, status, error) {
@@ -1095,13 +1267,24 @@ function forgotpasswordotp() {
     success: function (data) {
       if (data.success != true) {
         var otperrtag = document.getElementById("errorMsgfotgototp");
-        otperrtag.textContent = "The otp you entered is incorrect. Try Again";
+        if (otperrtag) {
+          otperrtag.textContent = data.message || "The otp you entered is incorrect. Try Again";
+          otperrtag.style.display = "block";
+          otperrtag.style.color = "#ef4444";
+        }
+        if (typeof fireAlert === 'function') {
+          fireAlert(data.message || "Invalid OTP. Please try again", "error");
+        }
       }
       if (data.success == true) {
+        if (typeof fireAlert === 'function') {
+          fireAlert("Password updated successfully!", "success");
+        }
         document.getElementById("forgotpwdotpDiv").classList.add("hideModal");
-        document
-          .getElementById("successotpPopUp")
-          .classList.remove("hideModal");
+        var successPopup = document.getElementById("successotpPopUp");
+        if (successPopup) {
+          successPopup.classList.remove("hideModal");
+        }
       }
     },
     error: function (xhr, status, error) {

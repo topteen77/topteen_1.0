@@ -468,6 +468,9 @@ _razorpay_api_secret = config('RAZORPAY_API_SECRET', default='')
 RAZORPAY_API_KEY = _razorpay_api_key if _razorpay_api_key else RAZORPAY_KEY
 RAZORPAY_API_SECRET = _razorpay_api_secret if _razorpay_api_secret else RAZORPAY_SECRET
 
+# Default password for new users (can be overridden via .env)
+DEFAULT_PASSWORD = config('DEFAULT_PASSWORD', default='12345')
+
 # ICICI Eazypay Configuration - Select URLs and keys based on environment
 if ICICI_EAZYPAY_ENVIRONMENT == 'production':
     ICICI_EAZYPAY_DEFAULT_BASE_URL = config('ICICI_EAZYPAY_PRODUCTION_BASE_URL', default=config('ICICI_EAZYPAY_DEFAULT_BASE_URL', default='https://eazypay.icicibank.com/EazyPG?'))

@@ -150,12 +150,19 @@
 
     const formData = new FormData();
     formData.append('user_name', username);
+    formData.append('is_signup', 'true'); // Flag to indicate this is a signup request
 
     $.ajax({
       type: 'POST',
       url: usersloginsignup,
       data: formData,
       success: function (data) {
+        // Check for error message first (account already exists)
+        if (data && data.message && (data.message.includes('already exists') || data.message.includes('Account already'))) {
+          _showSignupError(data.message || 'Account already exists. Please login.');
+          return;
+        }
+        
         // Only allow new-user signup here
         if (data && data.show_otp) {
           // Mirror loginsignup.js signup OTP modal open (signupusername + otpDiv)
@@ -194,14 +201,28 @@
           return;
         }
 
-        // Existing user: send them to login page
+        // Existing user: show error message
         _showSignupError('Account already exists. Please login.');
         setTimeout(function () {
           window.location.href = "{{ url('student_login') }}?u=" + encodeURIComponent(username);
-        }, 600);
+        }, 2000);
       },
-      error: function () {
-        _showSignupError('Unable to continue. Please try again');
+      error: function (xhr, status, error) {
+        // Handle error response from server
+        let errorMessage = 'Unable to continue. Please try again';
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+          errorMessage = xhr.responseJSON.message;
+        } else if (xhr.responseText) {
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          } catch (e) {
+            // Use default message
+          }
+        }
+        _showSignupError(errorMessage);
       },
       cache: false,
       contentType: false,

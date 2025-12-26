@@ -1,51 +1,150 @@
 {% extends "template20/base.html" %}
 
 {% block title_content %}Student Login | Top Teen{% endblock %}
-{% block description_content %}Student login with email or mobile. Continue to login via OTP or password, reset password, or create an account.{% endblock %}
+{% block description_content %}Login to your TopTeen student account using email and password or mobile OTP.{% endblock %}
 
 {% block footer_cta %}{% endblock %}
 {% block chatbot %}{% endblock %}
 {% block chatbot_css %}{% endblock %}
 {% block chatbot_js %}{% endblock %}
+
 {% block bodyclass %}login-page{% endblock %}
 
-{# NOTE: This is a dedicated template for /student/login/ (independent from /user/login/). #}
-
 {% block additionalhead %}
-{# Reuse the same modal CSS used in sign_in.html so existing OTP/password/forgot/signup modals render properly #}
 <style>
-  .hideModal { display: none !important; }
-  .modalPopup:not(.hideModal) { display: flex !important; }
+  /* Simple hideModal class like old template */
+  .hideModal {
+    display: none !important;
+  }
+  
+  /* Modal popup styling - show when hideModal is removed */
   .modalPopup {
-    position: fixed; inset: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 9999;
     background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
     align-items: center;
     justify-content: center;
   }
+  
+  .modalPopup.hideModal {
+    display: none !important;
+  }
+  
   .modalContent {
-    background: #ffffff;
-    border-radius: 10px;
+    background: #fff;
+    border-radius: 12px;
     padding: 24px;
-    max-width: 395px;
+    max-width: 420px;
     width: 96%;
     position: relative;
     max-height: 90vh;
     overflow-y: auto;
   }
+  
   .modalCloser {
     position: absolute;
     top: 16px;
-    right: 22px;
-    background: none;
+    right: 16px;
+    background: transparent;
     border: none;
-    font-size: 20px;
+    font-size: 24px;
     cursor: pointer;
-    color: #333;
-    padding: 5px;
+    color: #494949;
     z-index: 10;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    transition: background 0.2s;
   }
-  .modalCloser:hover { color: #3f37c9; }
+  
+  .modalCloser:hover {
+    background: #f5f5f5;
+  }
+  
+  .login-tabs {
+    display: flex;
+    border-bottom: 2px solid #e4e4e4;
+    margin-bottom: 24px;
+  }
+  .login-tab {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #494949;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .login-tab.active {
+    color: #3f37c9;
+    border-bottom-color: #3f37c9;
+  }
+  .login-tab:hover {
+    color: #3f37c9;
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  .divider-section {
+    position: relative;
+    text-align: center;
+    margin: 24px 0;
+  }
+  .divider-section .tor {
+    position: relative;
+    display: inline-block;
+    padding: 0 16px;
+    background: #fff;
+    color: #494949;
+    font-size: 12px;
+  }
+  .divider-section::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #e4e4e4;
+  }
+  .social-button {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #DCDCDC;
+    background: #fff;
+    color: #494949;
+  }
+  .google-btn:hover {
+    background: #f8f8f8;
+    border-color: #3f37c9;
+  }
+  .google-btn img {
+    width: 20px;
+    height: 20px;
+  }
 </style>
 {% endblock %}
 
@@ -64,29 +163,92 @@
               <h2 class="fs-22 mt-2 mb-2 fw-700 text-purple">Student Login</h2>
               <p class="text-gray fs-15">Login using your email or mobile number.</p>
 
-              <div id="errorMsg" class="text-danger fs-12 mb-2" style="display: none;"></div>
+              <div id="errorMsg" class="text-danger fs-12 mb-2" style="display: none; min-height: 20px;"></div>
 
-              <div class="form-row">
-                <div class="col mb-4 icon-input email-icon">
-                  <input
-                    type="text"
-                    class="form-control custom-input"
-                    id="mobileEmail"
-                    name="user_name"
-                    placeholder="Enter Email or Mobile"
-                    required
-                  >
-                </div>
+              <!-- Tabs -->
+              <div class="login-tabs">
+                <button type="button" class="login-tab active" onclick="switchTab('email')" id="emailTab">
+                  Email Login
+                </button>
+                <button type="button" class="login-tab" onclick="switchTab('mobile')" id="mobileTab">
+                  Mobile OTP
+                </button>
+              </div>
 
-                <div class="setting-button d-flex flex-column w-100">
-                  <button type="button" class="btn custom-button purple-button mb-3 fw-600" onclick="return studentContinue()">
-                    Continue
-                  </button>
-                </div>
+              <!-- Email Login Tab -->
+              <div class="tab-content active" id="emailTabContent">
+                <div class="form-row">
+                  <div class="col mb-3 icon-input email-icon">
+                    <input
+                      type="email"
+                      class="form-control custom-input"
+                      id="mobileEmail"
+                      name="email"
+                      placeholder="Enter Email"
+                      required
+                      autocomplete="email"
+                    >
+                  </div>
 
-                <div class="d-flex justify-content-center align-items-center mt-2">
-                  <a href="{{ url('student_signup') }}" class="text-purple fw-600 text-decoration-none">Create account</a>
+                  <p id="errorMsgSinguplogin" class="text-danger fs-12 mb-2" style="display: none; min-height: 20px;"></p>
+                  
+                  <div class="setting-button d-flex flex-column w-100">
+                    <button type="button"
+                            onclick="return loginsingup()"
+                            class="btn custom-button purple-button mb-3 fw-600">
+                      CONTINUE
+                    </button>
+                  </div>
+
+                    <div class="divider-section">
+                      <div class="tor">OR</div>
+                    </div>
+
+                    <div class="social-button">
+                      <a class="btn custom-button google-btn mb-3 fw-600"
+                         href="{{ url('social:begin', args=['google-oauth2']) }}">
+                        <img src="{{ static('images_new/icons/google-icon.svg') }}" alt="google icon">
+                        Continue with Google
+                      </a>
+                      <a class="btn custom-button google-btn mb-3 fw-600"
+                         href="{{ url('social:begin', args=['facebook']) }}">
+                        <img src="{{ static('images_new/icons/fb-icon.svg') }}" alt="facebook icon">
+                        Continue with Facebook
+                      </a>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Mobile OTP Tab -->
+              <div class="tab-content" id="mobileTabContent">
+                <div class="form-row">
+                  <div class="col mb-4 icon-input phone-icon">
+                    <input
+                      type="tel"
+                      class="form-control custom-input"
+                      id="mobileInput"
+                      name="mobile"
+                      placeholder="Enter Mobile Number"
+                      inputmode="numeric"
+                      pattern="[0-9]*"
+                      maxlength="10"
+                      required
+                    >
+                  </div>
+
+                  <div class="setting-button d-flex flex-column w-100">
+                    <button type="button"
+                            class="btn custom-button purple-button mb-3 fw-600"
+                            onclick="return sendMobileOtp()">
+                      Send OTP
+                    </button>
+                  </div>
                 </div>
+              </div>
+
+              <div class="d-flex justify-content-center align-items-center mt-2">
+                <a href="{{ url('student_signup') }}" class="text-purple fw-600 text-decoration-none">Create account</a>
               </div>
             </div>
           </form>
@@ -96,8 +258,9 @@
   </div>
 </section>
 
-{# Reuse existing modals/flows (OTP, password, forgot password, signup) #}
+{# Include modals #}
 {% include 'topteenfrontend/user/signupotp.html' %}
+{% include 'topteenfrontend/user/signuppassword.html' %}
 {% include 'topteenfrontend/user/loginpassword.html' %}
 {% include 'topteenfrontend/user/setpassword.html' %}
 {% include 'topteenfrontend/user/forgotpasswordform.html' %}
@@ -105,11 +268,12 @@
 {% endblock %}
 
 {% block additionaljs %}
-{% include 'topteenfrontend/includes/ajaxjs.html' %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="{{ static('topteenfrontend/assets/js/generalModal.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  // Keep same helper + endpoints used by existing loginsignup.js and modal templates
+  // TRIGGER SWEET ALERT POPUP - same as old template
   const fireAlert = async function (title, icon = "success", showConfirmButton = false, showCloseButton = false, isPrompt = false) {
     const canDo = Swal.fire({
       title,
@@ -124,7 +288,12 @@
     if (isPrompt) return canDo?.isConfirmed;
     return -1;
   };
+</script>
 
+{% include 'topteenfrontend/includes/ajaxjs.html' %}
+
+<script type="text/javascript">
+  // Define AJAX URLs - same as old template
   var usersloginsignup = "{{ url('users:loginsingup') }}";
   var userssignupotpverify = "{{ url('users:signupotpverify') }}";
   var usersloginsinguppwd = "{{ url('users:signuppwd') }}";
@@ -139,206 +308,100 @@
 <script type="text/javascript" src="{{ static('topteenfrontend/assets/js/loginsignup.js') }}"></script>
 
 <script>
-  // Force student mode behavior in shared JS helpers where relevant
-  window.LOGIN_MODE = "student";
-
-  function _getUsername() {
-    const v = (document.getElementById('mobileEmail')?.value || '').trim();
-    return v;
+  // Tab switching
+  function switchTab(tab) {
+    // Update tabs
+    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    if (tab === 'email') {
+      document.getElementById('emailTab').classList.add('active');
+      document.getElementById('emailTabContent').classList.add('active');
+    } else {
+      document.getElementById('mobileTab').classList.add('active');
+      document.getElementById('mobileTabContent').classList.add('active');
+    }
+    
+    // Clear errors
+    const errorMsg = document.getElementById('errorMsg');
+    if (errorMsg) {
+      errorMsg.textContent = '';
+      errorMsg.style.display = 'none';
+    }
   }
 
-  function _isLikelyPhone(value) {
-    // 10-digit Indian mobile (basic heuristic)
-    return /^[6-9]\d{9}$/.test(value);
-  }
-
-  function _isLikelyEmail(value) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-  }
-
-  function _showError(msg) {
-    const em = document.getElementById('errorMsg');
-    if (!em) return;
-    em.textContent = msg;
-    em.style.display = 'block';
-  }
-
-  function _clearError() {
-    const em = document.getElementById('errorMsg');
-    if (!em) return;
-    em.textContent = '';
-    em.style.display = 'none';
-  }
-
-  function _openOtpModal(username) {
-    const otpForm = document.getElementById("singupotp");
-    if (!otpForm) return;
-
-    // Remove old hidden inputs
-    const existingLogin = document.getElementById("loginotpusername");
-    if (existingLogin) existingLogin.remove();
-    const existingSignup = document.getElementById("signupusername");
-    if (existingSignup) existingSignup.remove();
-
-    const x = document.createElement("input");
-    x.setAttribute("type", "hidden");
-    x.setAttribute("value", username);
-    x.setAttribute("id", "loginotpusername");
-    x.setAttribute("name", "user_name");
-    otpForm.appendChild(x);
-
-    const nameSpan = document.getElementById("signupotpname");
-    if (nameSpan) nameSpan.textContent = username;
-
-    const otpDiv = document.getElementById("otpDiv");
-    if (otpDiv) otpDiv.classList.remove("hideModal");
-
-    otpForm.querySelectorAll('input[name="otp"]').forEach(function (i) { i.value = ""; });
-    setTimeout(function () {
-      const first = document.querySelector('.otpSource');
-      if (first) first.focus();
-    }, 100);
-  }
-
-  function _openSignupOtpModal(username) {
-    const otpForm = document.getElementById("singupotp");
-    if (!otpForm) return;
-
-    // Remove old hidden inputs
-    const existingLogin = document.getElementById("loginotpusername");
-    if (existingLogin) existingLogin.remove();
-    const existingSignup = document.getElementById("signupusername");
-    if (existingSignup) existingSignup.remove();
-
-    const x = document.createElement("input");
-    x.setAttribute("type", "hidden");
-    x.setAttribute("value", username);
-    x.setAttribute("id", "signupusername");
-    x.setAttribute("name", "user_name");
-    otpForm.appendChild(x);
-
-    const nameSpan = document.getElementById("signupotpname");
-    if (nameSpan) nameSpan.textContent = username;
-
-    const otpDiv = document.getElementById("otpDiv");
-    if (otpDiv) otpDiv.classList.remove("hideModal");
-
-    otpForm.querySelectorAll('input[name="otp"]').forEach(function (i) { i.value = ""; });
-    setTimeout(function () {
-      const first = document.querySelector('.otpSource');
-      if (first) first.focus();
-    }, 100);
-  }
-
-  function _openPasswordModal(username, encUserName) {
-    try {
-      if (typeof loginremoveunusetag === 'function') {
-        loginremoveunusetag();
+  // Send mobile OTP - use same approach as old template
+  function sendMobileOtp() {
+    const mobile = document.getElementById('mobileInput').value.trim();
+    
+    if (!mobile || mobile.length !== 10) {
+      const errorMsg = document.getElementById('errorMsg');
+      if (errorMsg) {
+        errorMsg.textContent = 'Please enter a valid 10-digit mobile number';
+        errorMsg.style.display = 'block';
       }
-    } catch (e) {}
-
-    const form = document.getElementById("loginpwd");
-    if (!form) return;
-
-    // Remove existing hidden input (if any)
-    const existing = document.getElementById("encloginusername");
-    if (existing) existing.remove();
-
-    const x = document.createElement("input");
-    x.setAttribute("type", "hidden");
-    x.setAttribute("value", encUserName || "");
-    x.setAttribute("id", "encloginusername");
-    x.setAttribute("name", "enc_user_name");
-    form.appendChild(x);
-
-    const nameEl = document.getElementById("loginpwdname");
-    if (nameEl) nameEl.textContent = username;
-
-    const div = document.getElementById("loginpwdDiv");
-    if (div) div.classList.remove("hideModal");
-
-    setTimeout(function () {
-      const passwordInput = document.querySelector('#loginpwd input[name="password"]');
-      if (passwordInput) passwordInput.focus();
-    }, 100);
-  }
-
-  // Single continue button:
-  // - detect email/phone (for validation only)
-  // - call usersloginsignup to detect institute-student
-  // - if institute-student => open password modal
-  // - else => send OTP and open OTP modal
-  function studentContinue() {
-    const username = _getUsername();
-    _clearError();
-
-    if (!username) {
-      _showError('Please enter your email or mobile number');
+      if (typeof fireAlert === 'function') {
+        fireAlert('Please enter a valid 10-digit mobile number', 'error');
+      }
       return false;
     }
 
-    const isPhone = _isLikelyPhone(username);
-    const isEmail = _isLikelyEmail(username);
-    if (!isPhone && !isEmail) {
-      _showError('Please enter a valid email or 10-digit mobile number');
-      return false;
+    // Clear error message
+    const errorMsg = document.getElementById('errorMsg');
+    if (errorMsg) {
+      errorMsg.textContent = '';
+      errorMsg.style.display = 'none';
     }
 
-    const formData = new FormData();
-    formData.append('user_name', username);
+    // Send OTP using resend OTP endpoint
+    var formData = new FormData();
+    formData.append('user_name', mobile);
 
-    // Pre-check determines if institute student should use password
     $.ajax({
       type: 'POST',
-      url: usersloginsignup,
+      url: usersresendotp,
       data: formData,
       success: function (data) {
-        // New user => not a login. Redirect to signup page.
-        if (data && data.show_otp) {
-          _showError('Account not found. Please create an account.');
-          setTimeout(function() {
-            window.location.href = "{{ url('student_signup') }}?u=" + encodeURIComponent(username);
-          }, 400);
-          return;
-        }
+        // Remove any existing username input from OTP form
+        var existingInput = document.getElementById("signupusername");
+        if (existingInput) existingInput.remove();
+        var existingLogin = document.getElementById("loginotpusername");
+        if (existingLogin) existingLogin.remove();
 
-        if (data && data.show_password && data.is_institute_student) {
-          _openPasswordModal(data.user_name || username, data.enc_user_name || '');
-          return;
+        // For mobile login, use loginotpusername so handleOtpSubmit() calls loginwithotp()
+        // Add username to OTP form for LOGIN flow (not signup)
+        var x = document.createElement("input");
+        x.setAttribute("type", "hidden");
+        x.setAttribute("value", mobile);
+        x.setAttribute("id", "loginotpusername");
+        x.setAttribute("name", "user_name");
+        const otpForm = document.getElementById("singupotp");
+        if (otpForm) {
+          otpForm.appendChild(x);
+          const nameSpan = document.getElementById("signupotpname");
+          if (nameSpan) nameSpan.textContent = mobile;
+          const otpDiv = document.getElementById("otpDiv");
+          if (otpDiv) {
+            otpDiv.classList.remove("hideModal");
+            setTimeout(function() {
+              const firstOtpInput = document.querySelector('.otpSource');
+              if (firstOtpInput) firstOtpInput.focus();
+            }, 100);
+          }
+          // Show success message
+          if (typeof fireAlert === 'function') {
+            fireAlert('OTP sent successfully to ' + mobile, 'success');
+          }
         }
-
-        // Default student: OTP
-        $.ajax({
-          type: "POST",
-          url: usersresendotp,
-          data: formData,
-          success: function () {
-            _openOtpModal(username);
-          },
-          error: function () {
-            _showError('Unable to send OTP. Please try again');
-          },
-          cache: false,
-          contentType: false,
-          processData: false,
-        });
       },
-      error: function () {
-        // If pre-check fails, still try OTP
-        $.ajax({
-          type: "POST",
-          url: usersresendotp,
-          data: formData,
-          success: function () {
-            _openOtpModal(username);
-          },
-          error: function () {
-            _showError('Unable to continue. Please try again');
-          },
-          cache: false,
-          contentType: false,
-          processData: false,
-        });
+      error: function (xhr) {
+        let errorMessage = 'Unable to send OTP. Please try again';
+        if (xhr.responseJSON && xhr.responseJSON.message) {
+          errorMessage = xhr.responseJSON.message;
+        }
+        if (typeof fireAlert === 'function') {
+          fireAlert(errorMessage, 'error');
+        }
       },
       cache: false,
       contentType: false,
@@ -347,20 +410,18 @@
 
     return false;
   }
-
-  // Enter key submits "Continue"
+  
+  // Add Enter key support for email input
   document.addEventListener('DOMContentLoaded', function() {
-    const input = document.getElementById('mobileEmail');
-    if (input) {
-      input.addEventListener('keydown', function(e) {
+    const emailInput = document.getElementById('mobileEmail');
+    if (emailInput) {
+      emailInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
           e.preventDefault();
-          studentContinue();
+          loginsingup();
         }
       });
     }
   });
 </script>
 {% endblock %}
-
-

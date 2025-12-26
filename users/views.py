@@ -254,8 +254,8 @@ def create_institute(request):
                     except:
                         pass
 
-                # Generate random password
-                password = "12345"
+                # Generate random password (use default from settings)
+                password = settings.DEFAULT_PASSWORD
 
                 # Create user
                 user_dict = {
@@ -1086,8 +1086,9 @@ class LoginSignUp(APIView):
 
     def post(self,request,*args,**kwargs):
         data={}  
-        data['message']="All fields required"
         username=request.POST.get('user_name')
+        is_signup = request.POST.get('is_signup', 'false').lower() == 'true'  # Check if this is a signup request
+        
         if username:
             ok, err = _validate_login_mobile_max_digits(username, 10)
             if not ok:
@@ -1103,22 +1104,94 @@ class LoginSignUp(APIView):
                 username=email
             user=User.objects.filter(Q(mobile=mobile) | Q(email=email)).last()
 
-            if user:                
-                sign = Signer()
-                enc_user_name=sign.sign_object(({"enc_user_name":username}))
-                data['enc_user_name']=enc_user_name  
-                data["show_password"]=True
-                data["show_otp"]=False
-                data['user_name']=username
-                # For institute-student accounts, UI should prefer password login (not OTP)
+            if user:
+                # If this is a signup request and user already exists, return error
+                if is_signup:
+                    data['message'] = "Account with this email/mobile already exists. Please login instead."
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                
+                # For login requests: ALL STUDENTS see password popup FIRST, OTP as fallback
+                # Priority: Password popup first, then OTP if password fails or not set
                 try:
-                    data['is_institute_student'] = bool(
-                        user.user_type == choices.UserType.STUDENT and
-                        StudentManagement.objects.filter(student=user).exists()
-                    )
-                except Exception:
-                    data['is_institute_student'] = False
-                return Response(data, status=status.HTTP_200_OK)
+                    is_institute_student = False
+                    has_usable_password = False
+                    is_default_password = False
+                    
+                    # Debug logging helper (only in DEBUG mode)
+                    def debug_log(message):
+                        if settings.DEBUG:
+                            print(f"[DEBUG] {message}")
+                    
+                    # Check if user is an institute student
+                    try:
+                        is_institute_student = StudentManagement.objects.filter(student=user).exists()
+                        if is_institute_student:
+                            sm = StudentManagement.objects.filter(student=user).first()
+                            institute_name = sm.institute.name if sm and sm.institute else "Unknown"
+                            debug_log(f"User {user.email or user.mobile}: Is Institute Student = True (Institute: {institute_name})")
+                        else:
+                            debug_log(f"User {user.email or user.mobile}: Is Institute Student = False")
+                    except Exception as e:
+                        debug_log(f"Error checking institute student status: {str(e)}")
+                        is_institute_student = False
+                    
+                    # Check if user has a usable password
+                    has_usable_password = user.has_usable_password()
+                    debug_log(f"User {user.email or user.mobile}: has_usable_password={has_usable_password}")
+                    
+                    if has_usable_password:
+                        # Check if password is default (from settings)
+                        default_password = settings.DEFAULT_PASSWORD
+                        try:
+                            is_default_password = user.check_password(default_password)
+                            if is_default_password:
+                                debug_log(f"User {user.email or user.mobile}: Password is DEFAULT ('{default_password}')")
+                            else:
+                                debug_log(f"User {user.email or user.mobile}: Password is CUSTOM (not default)")
+                        except Exception as pwd_check_error:
+                            debug_log(f"Password check error for user {user.email or user.mobile}: {str(pwd_check_error)}")
+                    else:
+                        debug_log(f"User {user.email or user.mobile}: has_usable_password=False (no password hash)")
+                    
+                    sign = Signer()
+                    enc_user_name=sign.sign_object(({"enc_user_name":username}))
+                    data['enc_user_name']=enc_user_name
+                    data['user_name']=username
+                    data['is_institute_student'] = is_institute_student
+                    
+                    # NEW LOGIC: ALL STUDENTS see password popup FIRST
+                    # OTP will be shown as fallback if password login fails
+                    if user.user_type == choices.UserType.STUDENT:
+                        # All students see password popup first
+                        data["show_password"]=True
+                        data["show_otp"]=False
+                        data.pop('message', None)
+                        default_password = settings.DEFAULT_PASSWORD
+                        password_status = f"default ({default_password})" if is_default_password else "custom"
+                        debug_log(f"User {user.email or user.mobile}: STUDENT - Showing PASSWORD popup FIRST (password: {password_status}, OTP available as fallback)")
+                    elif has_usable_password and not is_default_password:
+                        # Non-student users with custom password - show password form
+                        data["show_password"]=True
+                        data["show_otp"]=False
+                        data.pop('message', None)
+                        debug_log(f"User {user.email or user.mobile}: NON-STUDENT - Showing PASSWORD popup (custom password set)")
+                    else:
+                        # Non-student users without password or with default - show OTP popup
+                        data["show_password"]=False
+                        data["show_otp"]=True
+                        data.pop('message', None)
+                        default_password = settings.DEFAULT_PASSWORD
+                        reason = f"default password ({default_password})" if has_usable_password and is_default_password else "no password set"
+                        debug_log(f"User {user.email or user.mobile}: NON-STUDENT - Showing OTP popup (reason: {reason})")
+                    
+                    return Response(data, status=status.HTTP_200_OK)
+                except Exception as e:
+                    # Log the error and return a proper error response
+                    import traceback
+                    print(f"Error in LoginSignUp for user {username}: {str(e)}")
+                    print(traceback.format_exc())
+                    data['message'] = f"An error occurred while processing your request. Please try again."
+                    return Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:   
                 otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
                 print()
@@ -1197,6 +1270,8 @@ class SignUpVerifyOTP(APIView):
                     data["otp_verify"]=True
                     data["user_exists"]=False
                     data['user_name']=username
+                    # Clear error message on success
+                    data.pop('message', None)
                     return  Response(data, status=status.HTTP_200_OK)
             else:
                 data["message"]="Invalid OTP"
@@ -1250,25 +1325,42 @@ class SignUpPassword(APIView):
                     mobile=None
                     email=str(username)
                     username=email
-                if mobile and email is None:
-                    # user_dict={'mobile':username,'password': pwd}
-                    user_dict={'mobile':username,'password': pwd,'referral':refer_user_id}
-                else:
-                    # user_dict={'email':username,'password': pwd}
-                    user_dict={'email':username,'password': pwd,'referral':refer_user_id}
-                
-                # Check if user already exists
+                # Check if user already exists (check both mobile and email using Q objects)
+                query = Q()
                 if mobile:
-                    existing_user = User.objects.filter(mobile=mobile).first()
-                else:
-                    existing_user = User.objects.filter(email=email).first()
+                    query |= Q(mobile=mobile)
+                if email:
+                    query |= Q(email=email)
                 
-                if existing_user:
-                    data['message'] = "User with this email/mobile already exists. Please login instead."
-                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                if query:
+                    existing_user = User.objects.filter(query).first()
+                    if existing_user:
+                        data['message'] = "Account with this email/mobile already exists. Please login instead."
+                        return Response(data, status=status.HTTP_400_BAD_REQUEST)
                 
                 try:
-                    user=User.create_user(**user_dict)
+                    # Create user - Note: create_user method ignores password, so we set it manually
+                    # The User model's save() method will set default name="Student" if not provided
+                    if mobile and email is None:
+                        user = User.objects.create(
+                            mobile=mobile, 
+                            referral=refer_user_id, 
+                            user_type=choices.UserType.STUDENT,
+                            name="Student"  # Set default name
+                        )
+                    else:
+                        user = User.objects.create(
+                            email=email, 
+                            referral=refer_user_id, 
+                            user_type=choices.UserType.STUDENT,
+                            name="Student"  # Set default name
+                        )
+                    
+                    # Set password manually since create_user doesn't use the password parameter
+                    user.set_password(pwd)
+                    user.save()
+                    
+                    print(f"✅ User created successfully: {user.email or user.mobile}, ID: {user.id}")
                 except Exception as create_error:
                     # Handle duplicate email/mobile or other creation errors
                     import traceback
@@ -1448,37 +1540,60 @@ class LoginPassword(APIView):
             master_password = getattr(settings, 'MASTER_PASSWORD', None)
             is_master_password = master_password and pwd == master_password
             
-            user = authenticate(username=username, password=pwd)
+            # Try to find user first
+            try:
+                mobile = int(username)
+                user = User.objects.filter(Q(mobile=mobile) | Q(email__iexact=str(username))).first()
+            except (ValueError, TypeError):
+                user = User.objects.filter(Q(email__iexact=username) | Q(mobile=username)).first()
             
-            if user and user.get_user_status():
-                # Check if user logged in with master password and needs to set their own password
-                if is_master_password:
-                    # Check if user has default password '12345' (needs to set their own)
-                    default_password = '12345'
+            # If master password is provided, authenticate with it
+            if is_master_password and user:
+                # Master password login - authenticate user directly
+                if user.get_user_status():
+                    remember_me = request.POST.get('remember_me', False)
+                    if remember_me:
+                        request.session.set_expiry(2592000)
+                    else:
+                        request.session.set_expiry(0)
+                    
+                    login(request, user, backend='users.backends.CustomUserBackend')
+                    data['success'] = True
+                    data['message'] = "Login successful"
+                    # Check if user needs to set password (has default password)
+                    default_password = settings.DEFAULT_PASSWORD
                     if user.check_password(default_password):
-                        # User still has default password, needs to set their own
-                        remember_me = request.POST.get('remember_me', False)
-                        if remember_me:
-                            request.session.set_expiry(2592000)
-                        else:
-                            request.session.set_expiry(0)
-                        
-                        login(request, user, backend='users.backends.CustomUserBackend')
-                        data['success'] = True
                         data['need_set_password'] = True
                         data['message'] = "Please set your password"
+                        # Set redirect URL but user needs to set password first
+                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                         return Response(data, status=status.HTTP_200_OK)
-                remember_me = request.POST.get('remember_me', False)
-                if remember_me:
-                    # Set session to expire in 30 days (2592000 seconds)
-                    request.session.set_expiry(2592000)
+                    # Continue with redirect logic below for master password login
                 else:
-                    # Use default session expiry (browser session)
-                    request.session.set_expiry(0)
-                
-                # Use CustomUserBackend for login
-                login(request, user, backend='users.backends.CustomUserBackend')
-                data['success'] = True
+                    data['success'] = False
+                    data['message'] = "Account is blocked or inactive"
+                    data['errMsg'] = "Account is blocked or inactive"
+                    return Response(data, status=status.HTTP_200_OK)
+            else:
+                # Normal password authentication
+                user = authenticate(username=username, password=pwd)
+            
+            # Process redirect for both master password and normal authentication
+            if user and user.get_user_status():
+                # If master password was not used, do normal authentication
+                if not is_master_password:
+                    remember_me = request.POST.get('remember_me', False)
+                    if remember_me:
+                        # Set session to expire in 30 days (2592000 seconds)
+                        request.session.set_expiry(2592000)
+                    else:
+                        # Use default session expiry (browser session)
+                        request.session.set_expiry(0)
+                    
+                    # Use CustomUserBackend for login
+                    login(request, user, backend='users.backends.CustomUserBackend')
+                    data['success'] = True
+                # If master password was used, data['success'] is already set above
                 
                 # Check if user is staff or superuser - redirect to business analytics first
                 if user.is_staff or user.is_superuser:
@@ -1517,108 +1632,73 @@ class LoginPassword(APIView):
                     else:
                         data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                 else:
-                    # Default redirect to user dashboard for students
-                    # Use absolute URI to avoid 404 issues
-                    data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                
-                # Get student class information if available
-                student_info = None
-                try:
-                    if user.user_type != choices.UserType.INSTITUTE and user.user_type != choices.UserType.INSTITUTEGROUPADMIN and user.user_type != choices.UserType.MARKETINGGROUPADMIN and user.user_type != choices.UserType.COUNSELOR:
-                        student_management = StudentManagement.objects.filter(student=user).first()
-                        if student_management and student_management.class_and_section:
-                            class_name = student_management.class_and_section.class_and_section
-                            stream = student_management.class_and_section.stream
-                            
-                            # Check if class is 11 or 12 and redirect to post_matric
-                            if class_name:
-                                # Extract first 2 characters from class_name and check if it's 11 or 12
-                                class_prefix = class_name[:2].strip()
-                                if class_prefix == "11" or class_prefix == "12":
-                                    data['redirect_url'] = reverse('post_matric:tests')
-                                    print(f"Student in class {class_prefix} redirected to post_matric:home")
-                            
-                            # Format student info for display
-                            if stream:
-                                student_info = f"Class: {class_name}, Stream: {stream}"
-                            else:
-                                student_info = f"Class: {class_name}"
-                            data['student_class'] = student_info
-                            print(f"Student logged in - {student_info}")
-                except Exception as e:
-                    print(f"Error retrieving student class information: {str(e)}")
-
-                
-                if user.user_type == choices.UserType.INSTITUTE:
-                    # Handle institute user
-                    institute = Institute.objects.filter(created_by=user).last()
-                    if institute:
-                        if institute.institute_status == choices.InstituteStatus.PENDING:
-                            data['success'] = False
-                            data['errMsg'] = "You don't have any approval to login yet. Please connect with the administrator."
-                            return Response(data, status=status.HTTP_200_OK)
-                        elif institute.institute_status == choices.InstituteStatus.REJECTED:
-                            data['success'] = False
-                            data['errMsg'] = "Your account has been rejected. Please contact the administrator for further assistance."
-                            return Response(data, status=status.HTTP_200_OK)
-                        elif institute.institute_status == choices.InstituteStatus.APPROVED:
-                            data['redirect_url'] = reverse('institute:institutedashboard', args=[institute.slug])
-
-                elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
-                    try:
-                        institute_groups = InstituteGroup.objects.filter(institute_group_admin=user)
-                        if institute_groups.exists():
-                            first_institute_group = institute_groups.first()
-                            data['redirect_url'] = reverse('institute:institutegroupdashboard')                    
-                        else:
-                            data['success'] = False
-                            data['errMsg'] = "No institute group found for this administrator."
-                    except Exception as e:
-                        data['success'] = False
-                        data['errMsg'] = f"Error retrieving institute group: {str(e)}"
-                
-                elif user.user_type == choices.UserType.MARKETINGGROUPADMIN:
-                    # Handle marketing group admin
-                    marketing_group = Institute.objects.filter(marketing_group__marketing_group_admin=user)
-                    if marketing_group.exists():
-                        data['redirect_url'] = reverse('institute:marketinggroupdashboard')
-                    else:
-                        data['success'] = False
-                        data['errMsg'] = "No Marketing group found for this administrator."
-
-                elif user.user_type == choices.UserType.COUNSELOR:
-                    # Handle counselor
-                    try:
-                        coun = Counselor.objects.get(coun_user=user)
-                        data['redirect_url'] = reverse('counselor:CounselorDashboardView', args=[coun.id])
-                    except Counselor.DoesNotExist:
-                        pass
-
-                elif user.user_type == choices.UserType.PARENT:
-                    data['redirect_url'] = reverse('parents_dashboard')
-
-                # Apply institute-student mobile gate + ensure absolute redirect
-                try:
+                    # For students, use _compute_student_destination to determine correct dashboard
+                    # This will redirect 11th/12th grade students to post_matric:tests (student dashboard)
+                    # and others to users:userdashboard
                     if user.user_type == choices.UserType.STUDENT:
-                        # If not already redirected to post_matric, compute it consistently
-                        desired = data.get('redirect_url') or reverse('users:userdashboard')
-                        desired = _compute_student_destination(user) if desired == reverse('users:userdashboard') else desired
-                        data['redirect_url'] = _apply_institute_student_mobile_gate(request, user, desired)
-                except Exception:
-                    pass
-
-                if data.get('redirect_url') and not str(data['redirect_url']).startswith('http'):
-                    data['redirect_url'] = request.build_absolute_uri(data['redirect_url'])
-
+                        redirect_url = _compute_student_destination(user)
+                        data['redirect_url'] = request.build_absolute_uri(redirect_url)
+                    else:
+                        # Default redirect to user dashboard for other user types
+                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
+                
+                # Apply institute student mobile gate if needed
+                if user.user_type == choices.UserType.STUDENT:
+                    redirect_url = data.get('redirect_url', reverse('users:userdashboard'))
+                    if isinstance(redirect_url, str) and not redirect_url.startswith('http'):
+                        redirect_url = reverse('users:userdashboard') if redirect_url == reverse('users:userdashboard') else redirect_url
+                    data['redirect_url'] = _apply_institute_student_mobile_gate(request, user, redirect_url)
+                    if not str(data['redirect_url']).startswith('http'):
+                        data['redirect_url'] = request.build_absolute_uri(data['redirect_url'])
+                
                 return Response(data, status=status.HTTP_200_OK)
                 
+            # Password authentication failed - for students, offer OTP as fallback
             data['success'] = False
+            
+            # Debug logging helper (only in DEBUG mode)
+            def debug_log(message):
+                if settings.DEBUG:
+                    print(f"[DEBUG] {message}")
+            
+            # Check if user exists and is a student
+            user_exists = User.objects.filter(Q(mobile=username) | Q(email__iexact=str(username))).exists() if username else False
+            if user_exists:
+                try:
+                    try:
+                        mobile = int(username)
+                        check_user = User.objects.filter(Q(mobile=mobile) | Q(email__iexact=str(username))).first()
+                    except (ValueError, TypeError):
+                        check_user = User.objects.filter(Q(email__iexact=username) | Q(mobile=username)).first()
+                    
+                    if check_user and check_user.user_type == choices.UserType.STUDENT:
+                        # Student with failed password - offer OTP as fallback
+                        debug_log(f"Password login failed for student {check_user.email or check_user.mobile} - Offering OTP fallback")
+                        data['show_otp_fallback'] = True
+                        data['errMsg'] = "Password doesn't match. You can try OTP login instead."
+                        data['message'] = "Password doesn't match. You can try OTP login instead."
+                        # Return encrypted username for OTP flow
+                        sign = Signer()
+                        enc_user_name = sign.sign_object(({"enc_user_name": username}))
+                        data['enc_user_name'] = enc_user_name
+                        data['user_name'] = username
+                        return Response(data, status=status.HTTP_200_OK)
+                except Exception as e:
+                    debug_log(f"Error checking user for OTP fallback: {str(e)}")
+            
+            # Non-student or other error cases
             if not user:
+                debug_log(f"Password login failed - User not found or password incorrect for: {username}")
                 data['errMsg'] = "Password doesn't match try again"
+                data['message'] = "Invalid password. Please try again."
             elif not user.get_user_status():
+                debug_log(f"Password login failed - Account blocked/inactive for: {username}")
                 data['errMsg'] = "Account Blocked: Sorry, but your access has been restricted. For more information, kindly get in touch with our support team."
+                data['message'] = "Account Blocked: Sorry, but your access has been restricted. For more information, kindly get in touch with our support team."
             else:
+                debug_log(f"Password login failed - Invalid password for: {username}")
                 data['errMsg'] = "Password doesn't match try again"
+                data['message'] = "Invalid password. Please try again."
                 
             return Response(data, status=status.HTTP_200_OK)
             
@@ -2065,7 +2145,8 @@ class ResendOtp(APIView):
             else:
                 print(f"Resend - SMS OTP for {username}: {otp}")
             send_otp_mail(username,otp_type)
-            data['message']="Otp Send Successfully"
+            data['message']="OTP sent successfully"
+            data['success']=True
             return Response(data, status=status.HTTP_200_OK)
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
