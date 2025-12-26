@@ -1,0 +1,103 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Career Clusters Information | Top Teen{% endblock %}
+{% block description_content %}Explore the 16 National Career Clusters and discover career paths.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} career-clusters-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .career-clusters-page {
+    padding-top: 80px;
+    background: #f8f9fa;
+    min-height: 100vh;
+  }
+  .clusters-header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+  }
+  .cluster-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+  .cluster-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
+  .career-count-badge {
+    background: #e9ecef;
+    color: #333;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="clusters-header">
+  <div class="container text-center">
+    <h1 class="mb-3">📊 16 National Career Clusters</h1>
+    <p class="fs-18 mb-0">Explore career paths organized by industry clusters</p>
+  </div>
+</div>
+
+<div class="container py-4">
+  {% if cluster_data %}
+    <div class="row">
+      {% for item in cluster_data %}
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="cluster-card">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <h4 class="mb-0">{{ item.cluster.name }}</h4>
+            <span class="career-count-badge">{{ item.career_count }} careers</span>
+          </div>
+          
+          {% if item.sample_careers %}
+          <div class="mb-3">
+            <p class="text-muted fs-12 mb-2"><strong>Sample Careers:</strong></p>
+            <ul class="list-unstyled mb-0">
+              {% for career in item.sample_careers %}
+              <li class="mb-1">
+                <i class='bx bx-right-arrow-alt text-primary'></i>
+                <a href="{{ career.url() }}" class="text-decoration-none">{{ career.name }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+          
+          {% if item.cluster.slug and item.cluster.id %}
+          <a href="/careers/careerlibrary/{{ item.cluster.slug }}-{{ item.cluster.id }}/" 
+             class="btn btn-sm btn-primary w-100">Explore Cluster</a>
+          {% else %}
+          <a href="{{ url('careers:defaultcareerlibrary') }}" 
+             class="btn btn-sm btn-primary w-100">Explore Cluster</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-5">
+      <i class='bx bx-bar-chart-alt-2 fs-64 text-muted mb-3'></i>
+      <h3>No clusters available</h3>
+      <p class="text-muted">Career clusters will be displayed here.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+

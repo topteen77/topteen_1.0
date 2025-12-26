@@ -11,8 +11,9 @@ from users.models import UserProfile
 from .models import (
     TestCategory, Test, Question, Answer,
     TestSession, UserResponse, TestResult, Sections, SectionSession, TestTopCategories,
-    TestCompletionPopup
+    TestCompletionPopup, CareerMatch
 )
+from careers.models import Career
 from .serializers import (
     TestCategorySerializer, TestCategoryDetailSerializer,
     TestSerializer, TestDetailSerializer,
@@ -474,12 +475,16 @@ def get_hexaco_or_riasec_career_mapping(latest_session):
         with open(path, 'r') as file:
             CombinedReport_data = json.load(file)
 
-        return hexaco_data, riasec_data.get('code'), motivation_data.get('rows'), aptitude_weak_areas_data.get('rows'), aptitude_strength_narrative_data.get('rows'), Aptitude_report_main_data.get('rows'),aptitude_recommendations_data.get('rows'), career_mergerd_path, CombinedReport_data.get('rows')
+        path = os.path.join(settings.BASE_DIR, 'static', 'data', 'aptitute interpretation.json')
+        with open(path, 'r') as file:
+            aptitude_interpretation_data = json.load(file)
+
+        return hexaco_data, riasec_data.get('code'), motivation_data.get('rows'), aptitude_weak_areas_data.get('rows'), aptitude_strength_narrative_data.get('rows'), Aptitude_report_main_data.get('rows'),aptitude_recommendations_data.get('rows'), career_mergerd_path, CombinedReport_data.get('rows'), aptitude_interpretation_data
         
 
     except Exception as e:
         print("exception: ",e)
-        return None, None, None, None, None, None , None, None
+        return None, None, None, None, None, None , None, None, None
 
 def map_hexaco_code_to_trait(code):
     """Map single letter code to full trait name"""
@@ -519,6 +524,9 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
             "Trending": [],
             "Futuristic": []
         },
+        'riasec_key_descriptions': [],
+        'riasec_key_drivers': [],
+        'riasec_summaries': [],
 
         'career_code_discription':[],
 
@@ -527,6 +535,9 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
             "Career Category & Roles": [],
             "Key Characteristics & Details": []
         },
+        'motivation_key_description': None,
+        'motivation_key_drivers': [],
+        'motivation_summary': None,
         
         'aptitude_improvement_plan': [],
         'aptitude_strength_narrative': [],
@@ -536,13 +547,19 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
         }
     
     try:        
-        hexaco_data, riasec_data, motivation_data, aptitude_weak_areas_data , aptitude_strength_narrative_data, Aptitude_report_main_data, aptitude_recommendations_data, career_mergerd_path, CombinedReport_data = get_hexaco_or_riasec_career_mapping(latest_session)
+        hexaco_data, riasec_data, motivation_data, aptitude_weak_areas_data , aptitude_strength_narrative_data, Aptitude_report_main_data, aptitude_recommendations_data, career_mergerd_path, CombinedReport_data, aptitude_interpretation_data = get_hexaco_or_riasec_career_mapping(latest_session)
+        
+        # Store aptitude_interpretation_data in a variable accessible in the function
+        if aptitude_interpretation_data is None:
+            aptitude_interpretation_data = {}
         
         
         if latest_session.test.title == 'Career Interest Inventory':
             # Process RIASEC codes
             
             riasec_code_categories = high_categories
+            print(f"\n=== RIASEC DEBUG ===")
+            print(f"high_categories (RIASEC Code): {high_categories}")
 
             if high_categories in career_mergerd_path:
                 ris_data = {f"{high_categories}": career_mergerd_path[high_categories]}
@@ -562,6 +579,53 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                         result['riasec_careers_to_opt'][category] = [c.strip() for c in careers if c.strip()]
             else:
                 print(f"Warning: RIASEC code {riasec_code_categories} not found in data.")
+            
+            # Load RIASEC key descriptions, drivers, and summaries
+            # Extract individual letters from RIASEC code (e.g., "CES" -> ["C", "E", "S"])
+            if high_categories and len(high_categories) >= 1:
+                riasec_letters = list(high_categories.upper()[:3])  # Get first 3 letters
+                print(f"Extracted RIASEC letters: {riasec_letters}")
+                
+                # Load interest_riasec.json to get the new sections (using the already loaded hexaco_data structure)
+                # We need to load the full JSON to access the new top-level keys
+                interest_json_path = os.path.join(settings.BASE_DIR, 'static', 'data', 'interest_riasec.json')
+                with open(interest_json_path, 'r') as file:
+                    interest_json_data = json.load(file)
+                
+                # Get key descriptions for each letter in the code
+                key_descriptions_list = interest_json_data.get('RIASEC_Key_Descriptions', [])
+                print(f"Found {len(key_descriptions_list)} key descriptions")
+                for letter in riasec_letters:
+                    desc = next((d for d in key_descriptions_list if d.get('RIASEC_Code') == letter), None)
+                    if desc:
+                        print(f"✓ Found key_description for {letter}")
+                        result['riasec_key_descriptions'].append(desc)
+                    else:
+                        print(f"✗ No key_description found for {letter}")
+                
+                # Get key drivers for each letter in the code
+                key_drivers_list = interest_json_data.get('RIASEC_Key_Drivers', [])
+                print(f"Found {len(key_drivers_list)} key drivers lists")
+                for letter in riasec_letters:
+                    drivers = next((d for d in key_drivers_list if d.get('RIASEC_Code') == letter), None)
+                    if drivers:
+                        print(f"✓ Found key_drivers for {letter} with {len(drivers.get('Key Drivers', []))} drivers")
+                        result['riasec_key_drivers'].append(drivers)
+                    else:
+                        print(f"✗ No key_drivers found for {letter}")
+                
+                # Get summaries for each letter in the code
+                summaries_list = interest_json_data.get('RIASEC_Summaries', [])
+                print(f"Found {len(summaries_list)} summaries")
+                for letter in riasec_letters:
+                    summary = next((s for s in summaries_list if s.get('RIASEC_Code') == letter), None)
+                    if summary:
+                        print(f"✓ Found summary for {letter}")
+                        result['riasec_summaries'].append(summary)
+                    else:
+                        print(f"✗ No summary found for {letter}")
+            
+            print(f"=== END RIASEC DEBUG ===\n")
 
 
         elif latest_session.test.title == 'Personality Assessment':
@@ -623,7 +687,15 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
 
         elif latest_session.test.title == 'Motivation Assessment':
             domain = map_motivation_domain_to_trait(high_categories)
+            print(f"\n=== MOTIVATION DEBUG ===")
+            print(f"high_categories: {high_categories}")
+            print(f"Mapped domain: {domain}")
+            
             domain_data = next((row for row in motivation_data if row['Domain'] == domain), None)
+            if not domain_data:
+                print(f"ERROR: domain_data is None for domain: {domain}")
+            else:
+                print(f"Found domain_data for: {domain}")
 
             # Ensure Motivation Style is a list
             motivation_style = domain_data['Motivation Style']
@@ -638,6 +710,70 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
             details = domain_data.get('Key Characteristics & Details', ['No details available'])
             cleaned_details = [detail.rstrip('.') for detail in details]
             result['motivation_careers_to_opt']['Key Characteristics & Details'] = cleaned_details
+            
+            # Load Motivation_Career.json to get the new sections
+            motivation_json_path = os.path.join(settings.BASE_DIR, 'static', 'data', 'Motivation_Career.json')
+            with open(motivation_json_path, 'r') as file:
+                motivation_json_data = json.load(file)
+            
+            # Get motivation key description
+            key_descriptions = motivation_json_data.get('Motivation_Key_Descriptions', [])
+            print(f"Found {len(key_descriptions)} key descriptions")
+            key_description = next((desc for desc in key_descriptions if desc['Domain'] == domain), None)
+            if key_description:
+                print(f"✓ Found key_description for domain: {domain}")
+                result['motivation_key_description'] = key_description
+            else:
+                print(f"✗ No key_description found for domain: {domain}")
+                print(f"Available domains in key_descriptions: {[d.get('Domain') for d in key_descriptions]}")
+            
+            # Get motivation key drivers
+            key_drivers_list = motivation_json_data.get('Motivation_Key_Drivers', [])
+            print(f"Found {len(key_drivers_list)} key drivers lists")
+            key_drivers = next((drivers for drivers in key_drivers_list if drivers['Domain'] == domain), None)
+            if key_drivers:
+                print(f"✓ Found key_drivers for domain: {domain}")
+                # Check if Key Drivers is a list of objects or strings
+                drivers_data = key_drivers.get('Key Drivers', [])
+                if drivers_data and isinstance(drivers_data[0], dict):
+                    # New format with Title, Description, Icon
+                    print(f"Using new format with {len(drivers_data)} drivers")
+                    result['motivation_key_drivers'] = drivers_data
+                else:
+                    # Old format - convert strings to objects
+                    print(f"Converting old format with {len(drivers_data)} drivers")
+                    converted_drivers = []
+                    for driver_str in drivers_data:
+                        if ':' in driver_str:
+                            parts = driver_str.split(':', 1)
+                            converted_drivers.append({
+                                'Title': parts[0].strip(),
+                                'Description': parts[1].strip(),
+                                'Icon': 'fas fa-circle'  # Default icon
+                            })
+                        else:
+                            converted_drivers.append({
+                                'Title': driver_str,
+                                'Description': '',
+                                'Icon': 'fas fa-circle'
+                            })
+                    result['motivation_key_drivers'] = converted_drivers
+            else:
+                print(f"✗ No key_drivers found for domain: {domain}")
+                print(f"Available domains in key_drivers: {[d.get('Domain') for d in key_drivers_list]}")
+            
+            # Get motivation summary
+            summaries = motivation_json_data.get('Motivation_Summaries', [])
+            print(f"Found {len(summaries)} summaries")
+            summary = next((summ for summ in summaries if summ['Domain'] == domain), None)
+            if summary:
+                print(f"✓ Found summary for domain: {domain}")
+                result['motivation_summary'] = summary
+            else:
+                print(f"✗ No summary found for domain: {domain}")
+                print(f"Available domains in summaries: {[s.get('Domain') for s in summaries]}")
+            
+            print(f"=== END MOTIVATION DEBUG ===\n")
 
         elif latest_session.test.title == 'Aptitude Assessment':
             try:
@@ -1023,6 +1159,12 @@ def Results(request):
         else:
             pass
         
+        # Load JSON data for all test types
+        hexaco_data, riasec_data, motivation_data, aptitude_weak_areas_data , aptitude_strength_narrative_data, Aptitude_report_main_data, aptitude_recommendations_data, career_mergerd_path, CombinedReport_data, aptitude_interpretation_data = get_hexaco_or_riasec_career_mapping(latest_session)
+        
+        if aptitude_interpretation_data is None:
+            aptitude_interpretation_data = {}
+        
         # If it's a personality test (HEXACO), get career recommendations
         if latest_session.test.title == 'Personality Assessment' and high_categories:
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
@@ -1044,23 +1186,57 @@ def Results(request):
             context.update({
                 'riasec_careers_to_opt': hexaco_recommendations['riasec_careers_to_opt'],
                 'career_code_discription': hexaco_recommendations['career_code_discription'],
+                'riasec_key_descriptions': hexaco_recommendations.get('riasec_key_descriptions', []),
+                'riasec_key_drivers': hexaco_recommendations.get('riasec_key_drivers', []),
+                'riasec_summaries': hexaco_recommendations.get('riasec_summaries', []),
             })
         elif latest_session.test.title == 'Motivation Assessment' and high_categories:
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
             
             context.update({
+                'high_categories': high_categories,
                 'motivation_careers_to_opt': hexaco_recommendations['motivation_careers_to_opt'],
+                'motivation_key_description': hexaco_recommendations.get('motivation_key_description', None),
+                'motivation_key_drivers': hexaco_recommendations.get('motivation_key_drivers', []),
+                'motivation_summary': hexaco_recommendations.get('motivation_summary', None),
             })
         elif latest_session.test.title == 'Aptitude Assessment' and high_categories:
             
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
             # breakpoint()
+            # Get aptitude interpretation data for above average and average areas
+            aptitude_interpretations = []
+            if aptitude_interpretation_data and 'Aptitude_Interpretations' in aptitude_interpretation_data:
+                above_areas = high_categories.get("Above Average", []) if isinstance(high_categories, dict) else []
+                average_areas = high_categories.get("Average", []) if isinstance(high_categories, dict) else []
+                all_areas = above_areas + average_areas
+                
+                area_mapping = {
+                    'Verbal & Language Reasoning': 'Verbal & Language Reasoning',
+                    'Language & Verbal Reasoning': 'Verbal & Language Reasoning',
+                    'Mechanical Reasoning': 'Mechanical Reasoning',
+                    'Spatial Reasoning': 'Spatial Reasoning',
+                    'Abstract Reasoning': 'Abstract Reasoning',
+                    'Logical Reasoning': 'Logical Reasoning',
+                    'Clerical speed & Accuracy': 'Clerical speed & Accuracy',
+                    'Clerical Speed & Accuracy': 'Clerical speed & Accuracy',
+                    'Numerical Reasoning': 'Numerical Reasoning'
+                }
+                
+                for area in all_areas:
+                    mapped_area = area_mapping.get(area, area)
+                    for interpretation in aptitude_interpretation_data['Aptitude_Interpretations']:
+                        if interpretation['Area'] == mapped_area:
+                            aptitude_interpretations.append(interpretation)
+                            break
+            
             context.update({
                 'aptitude_improvement_plan': hexaco_recommendations['aptitude_improvement_plan'],
                 'aptitude_strength_narrative': hexaco_recommendations['aptitude_strength_narrative'],
                 'aptitude_Recommended_College_Courses': hexaco_recommendations['aptitude_Recommended_College_Courses'],
                 'aptitude_roles_guidance': hexaco_recommendations['aptitude_roles_guidance'],
                 'career_guidance_selected': hexaco_recommendations['career_guidance_selected'],
+                'aptitude_interpretations': aptitude_interpretations,
             })
         
         # Build test_results_data for JavaScript (pdf-results.js)
@@ -1527,6 +1703,9 @@ def CombinedReport(request, user_id=None):
                         context.update({
                             'motivation_high_category': high_categories,
                             'motivation_careers_to_opt': hexaco_recommendations['motivation_careers_to_opt'],
+                            'motivation_key_description': hexaco_recommendations.get('motivation_key_description', None),
+                            'motivation_key_drivers': hexaco_recommendations.get('motivation_key_drivers', []),
+                            'motivation_summary': hexaco_recommendations.get('motivation_summary', None),
                         })
                     except Exception as e:
                         print(f"Error processing motivation data: {e}")
@@ -2131,6 +2310,12 @@ def Test_results(request, id):
         else:
             pass
         
+        # Load JSON data for all test types
+        hexaco_data, riasec_data, motivation_data, aptitude_weak_areas_data , aptitude_strength_narrative_data, Aptitude_report_main_data, aptitude_recommendations_data, career_mergerd_path, CombinedReport_data, aptitude_interpretation_data = get_hexaco_or_riasec_career_mapping(latest_session)
+        
+        if aptitude_interpretation_data is None:
+            aptitude_interpretation_data = {}
+        
         # If it's a personality test (HEXACO), get career recommendations
         if latest_session.test.title == 'Personality Assessment' and high_categories:
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
@@ -2152,23 +2337,57 @@ def Test_results(request, id):
             context.update({
                 'riasec_careers_to_opt': hexaco_recommendations['riasec_careers_to_opt'],
                 'career_code_discription': hexaco_recommendations['career_code_discription'],
+                'riasec_key_descriptions': hexaco_recommendations.get('riasec_key_descriptions', []),
+                'riasec_key_drivers': hexaco_recommendations.get('riasec_key_drivers', []),
+                'riasec_summaries': hexaco_recommendations.get('riasec_summaries', []),
             })
         elif latest_session.test.title == 'Motivation Assessment' and high_categories:
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
             
             context.update({
+                'high_categories': high_categories,
                 'motivation_careers_to_opt': hexaco_recommendations['motivation_careers_to_opt'],
+                'motivation_key_description': hexaco_recommendations.get('motivation_key_description', None),
+                'motivation_key_drivers': hexaco_recommendations.get('motivation_key_drivers', []),
+                'motivation_summary': hexaco_recommendations.get('motivation_summary', None),
             })
         elif latest_session.test.title == 'Aptitude Assessment' and high_categories:
             
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
             # breakpoint()
+            # Get aptitude interpretation data for above average and average areas
+            aptitude_interpretations = []
+            if aptitude_interpretation_data and 'Aptitude_Interpretations' in aptitude_interpretation_data:
+                above_areas = high_categories.get("Above Average", []) if isinstance(high_categories, dict) else []
+                average_areas = high_categories.get("Average", []) if isinstance(high_categories, dict) else []
+                all_areas = above_areas + average_areas
+                
+                area_mapping = {
+                    'Verbal & Language Reasoning': 'Verbal & Language Reasoning',
+                    'Language & Verbal Reasoning': 'Verbal & Language Reasoning',
+                    'Mechanical Reasoning': 'Mechanical Reasoning',
+                    'Spatial Reasoning': 'Spatial Reasoning',
+                    'Abstract Reasoning': 'Abstract Reasoning',
+                    'Logical Reasoning': 'Logical Reasoning',
+                    'Clerical speed & Accuracy': 'Clerical speed & Accuracy',
+                    'Clerical Speed & Accuracy': 'Clerical speed & Accuracy',
+                    'Numerical Reasoning': 'Numerical Reasoning'
+                }
+                
+                for area in all_areas:
+                    mapped_area = area_mapping.get(area, area)
+                    for interpretation in aptitude_interpretation_data['Aptitude_Interpretations']:
+                        if interpretation['Area'] == mapped_area:
+                            aptitude_interpretations.append(interpretation)
+                            break
+            
             context.update({
                 'aptitude_improvement_plan': hexaco_recommendations['aptitude_improvement_plan'],
                 'aptitude_strength_narrative': hexaco_recommendations['aptitude_strength_narrative'],
                 'aptitude_Recommended_College_Courses': hexaco_recommendations['aptitude_Recommended_College_Courses'],
                 'aptitude_roles_guidance': hexaco_recommendations['aptitude_roles_guidance'],
                 'career_guidance_selected': hexaco_recommendations['career_guidance_selected'],
+                'aptitude_interpretations': aptitude_interpretations,
             })
         
         # Build test_results_data for JavaScript (pdf-results.js)
@@ -2377,6 +2596,12 @@ def download_test_results_pdf(request, id):
             
             low_category = categories_record.low_category
         
+        # Load JSON data for all test types
+        hexaco_data, riasec_data, motivation_data, aptitude_weak_areas_data , aptitude_strength_narrative_data, Aptitude_report_main_data, aptitude_recommendations_data, career_mergerd_path, CombinedReport_data, aptitude_interpretation_data = get_hexaco_or_riasec_career_mapping(latest_session)
+        
+        if aptitude_interpretation_data is None:
+            aptitude_interpretation_data = {}
+        
         # Add test-specific context based on test type
         if latest_session.test.title == 'Personality Assessment' and high_categories:
             # Use the function that generates recommendations (defined in this file)
@@ -2401,9 +2626,39 @@ def download_test_results_pdf(request, id):
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
             context.update({
                 'motivation_careers_to_opt': list(hexaco_recommendations.get('motivation_careers_to_opt', {}).values())[0] if hexaco_recommendations.get('motivation_careers_to_opt') else [],
+                'motivation_key_description': hexaco_recommendations.get('motivation_key_description', None),
+                'motivation_key_drivers': hexaco_recommendations.get('motivation_key_drivers', []),
+                'motivation_summary': hexaco_recommendations.get('motivation_summary', None),
             })
         elif latest_session.test.title == 'Aptitude Assessment' and high_categories:
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
+            
+            # Get aptitude interpretation data for above average and average areas
+            aptitude_interpretations = []
+            if aptitude_interpretation_data and 'Aptitude_Interpretations' in aptitude_interpretation_data:
+                above_areas = high_categories.get("Above Average", []) if isinstance(high_categories, dict) else []
+                average_areas = high_categories.get("Average", []) if isinstance(high_categories, dict) else []
+                all_areas = above_areas + average_areas
+                
+                area_mapping = {
+                    'Verbal & Language Reasoning': 'Verbal & Language Reasoning',
+                    'Language & Verbal Reasoning': 'Verbal & Language Reasoning',
+                    'Mechanical Reasoning': 'Mechanical Reasoning',
+                    'Spatial Reasoning': 'Spatial Reasoning',
+                    'Abstract Reasoning': 'Abstract Reasoning',
+                    'Logical Reasoning': 'Logical Reasoning',
+                    'Clerical speed & Accuracy': 'Clerical speed & Accuracy',
+                    'Clerical Speed & Accuracy': 'Clerical speed & Accuracy',
+                    'Numerical Reasoning': 'Numerical Reasoning'
+                }
+                
+                for area in all_areas:
+                    mapped_area = area_mapping.get(area, area)
+                    for interpretation in aptitude_interpretation_data['Aptitude_Interpretations']:
+                        if interpretation['Area'] == mapped_area:
+                            aptitude_interpretations.append(interpretation)
+                            break
+            
             context.update({
                 'aptitude_improvement_plan': hexaco_recommendations.get('aptitude_improvement_plan', []),
                 'aptitude_strength_narrative': hexaco_recommendations.get('aptitude_strength_narrative', []),
@@ -2412,6 +2667,7 @@ def download_test_results_pdf(request, id):
                 'above_list': high_categories.get("Above Average", []) if isinstance(high_categories, dict) else [],
                 'average_list': high_categories.get("Average", []) if isinstance(high_categories, dict) else [],
                 'below_list': high_categories.get("Below Average", []) if isinstance(high_categories, dict) else [],
+                'aptitude_interpretations': aptitude_interpretations,
             })
         
         # Render PDF template
@@ -3540,3 +3796,219 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+@login_required
+def career_swipe(request):
+    """
+    Career swipe demo view - Jinja2 compatible
+    Shows Tinder-style career discovery interface
+    """
+    from careers.models import Career
+    from core import choices
+    
+    # Get published careers - convert to list for Jinja2 compatibility
+    careers_queryset = Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED).select_related().prefetch_related(
+        'career_cluster', 'skills', 'career_tags'
+    )[:20]  # Limit for demo
+    
+    # Prepare career data for template (Jinja2 compatible)
+    careers = []
+    for career in careers_queryset:
+        career_data = {
+            'career': career,
+            'image_url': career.get_image_url() if career.get_image_url() else '/static/images/career-icon.png',
+            'url': career.url(),
+            'clusters': [c.name for c in career.career_cluster.all()],
+            'skills': [s.name for s in career.skills.all()[:5]]
+        }
+        careers.append(career_data)
+    
+    # Check if user has completed tests
+    has_tests = TestSession.objects.filter(
+        user=request.user,
+        is_completed=True
+    ).exists()
+    
+    # Get user profile data
+    user_profile_data = None
+    if hasattr(request.user, 'user_profile') and request.user.user_profile:
+        profile = request.user.user_profile
+        user_profile_data = {
+            'hobbies': [h.name for h in profile.hobbies.all()],
+            'subjects': [s.name for s in profile.subject.all()],
+            'figure_out': [f.name for f in profile.figure_out.all()],
+            'grade': profile.grade if profile.grade else None
+        }
+    
+    context = {
+        'careers': careers,
+        'has_tests': has_tests,
+        'user_profile_data': user_profile_data,
+        'user': request.user
+    }
+    
+    return render(request, 'template20/app_post_matric/career_swipe.html', context)
+
+
+@login_required
+def view_matches(request):
+    """
+    View My Matches - Display all careers user has liked
+    """
+    from careers.models import Career
+    from .models import CareerMatch
+    
+    # Get all liked careers for the user
+    matches = CareerMatch.objects.filter(
+        user=request.user,
+        action='like'
+    ).select_related('career').order_by('-created_at')
+    
+    context = {
+        'matches': matches,
+        'match_count': matches.count()
+    }
+    
+    return render(request, 'template20/app_post_matric/career_matches.html', context)
+
+
+@login_required
+def top_recommendations(request):
+    """
+    Top Recommendations - Show top N career matches based on user profile/test results
+    """
+    from careers.models import Career
+    from core import choices
+    from .models import CareerMatch
+    
+    # Check if user has completed tests
+    has_tests = TestSession.objects.filter(
+        user=request.user,
+        is_completed=True
+    ).exists()
+    
+    # Get user profile data for matching
+    user_profile_data = None
+    if hasattr(request.user, 'user_profile') and request.user.user_profile:
+        profile = request.user.user_profile
+        user_profile_data = {
+            'hobbies': [h.name for h in profile.hobbies.all()],
+            'subjects': [s.name for s in profile.subject.all()],
+            'figure_out': [f.name for f in profile.figure_out.all()],
+            'grade': profile.grade if profile.grade else None
+        }
+    
+    # Get all published careers
+    careers_queryset = Career.objects.filter(
+        publish_status=choices.PublishStatus.PUBLISHED
+    ).select_related().prefetch_related('career_cluster', 'skills', 'career_tags')
+    
+    # Simple scoring based on profile data (can be enhanced with actual matching algorithm)
+    scored_careers = []
+    for career in careers_queryset[:50]:  # Limit for performance
+        score = 50.0  # Base score
+        
+        # Add score based on user profile if available
+        if user_profile_data:
+            # Simple matching logic (can be enhanced)
+            if user_profile_data.get('hobbies'):
+                # Check if career tags match hobbies
+                career_tags = [tag.name.lower() for tag in career.career_tags.all()]
+                hobby_matches = sum(1 for hobby in user_profile_data['hobbies'] if hobby.lower() in ' '.join(career_tags))
+                score += hobby_matches * 10
+        
+        scored_careers.append((career, min(score, 100.0)))
+    
+    # Sort by score descending and take top 10
+    scored_careers.sort(key=lambda x: x[1], reverse=True)
+    top_careers = scored_careers[:10]
+    
+    context = {
+        'top_careers': top_careers,
+        'has_tests': has_tests,
+        'user_profile_data': user_profile_data
+    }
+    
+    return render(request, 'template20/app_post_matric/top_recommendations.html', context)
+
+
+@login_required
+def career_clusters_info(request):
+    """
+    Career Clusters Info - Display information about all 16 career clusters
+    """
+    from careers.models import CareerCluster, Career
+    from core import choices
+    
+    # Get all top-level career clusters
+    clusters = CareerCluster.objects.filter(parent__isnull=True).prefetch_related('career_clusters')
+    
+    # Get sample careers for each cluster
+    cluster_data = []
+    for cluster in clusters:
+        careers = Career.objects.filter(
+            career_cluster=cluster,
+            publish_status=choices.PublishStatus.PUBLISHED
+        )[:3]  # Get 3 sample careers
+        cluster_data.append({
+            'cluster': cluster,
+            'sample_careers': list(careers),
+            'career_count': Career.objects.filter(
+                career_cluster=cluster,
+                publish_status=choices.PublishStatus.PUBLISHED
+            ).count()
+        })
+    
+    context = {
+        'cluster_data': cluster_data,
+        'total_clusters': len(cluster_data)
+    }
+    
+    return render(request, 'template20/app_post_matric/career_clusters.html', context)
+
+
+@login_required
+def swipe_career_api(request):
+    """
+    API endpoint to handle swipe actions (like/pass)
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        import json
+        data = json.loads(request.body)
+        career_id = data.get('career_id')
+        action = data.get('action')  # 'like' or 'pass'
+        match_score = data.get('match_score', 0)
+        notes = data.get('notes', '')
+        
+        if not career_id or action not in ['like', 'pass']:
+            return JsonResponse({'error': 'Invalid data'}, status=400)
+        
+        from careers.models import Career
+        career = Career.objects.get(id=career_id)
+        
+        # Create or update match
+        match, created = CareerMatch.objects.update_or_create(
+            user=request.user,
+            career=career,
+            defaults={
+                'action': action,
+                'match_score': match_score,
+                'notes': notes
+            }
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'action': action,
+            'career_id': career_id,
+            'created': created
+        })
+        
+    except Career.DoesNotExist:
+        return JsonResponse({'error': 'Career not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

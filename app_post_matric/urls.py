@@ -57,6 +57,11 @@ urlpatterns = [
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/register/', views.RegisterView.as_view(), name='auth_register'),
     path('users/me/', views.CurrentUserView.as_view(), name='current_user'),
+    path('web/career-swipe/', views.career_swipe, name='career_swipe'),
+    path('web/career-matches/', views.view_matches, name='view_matches'),
+    path('web/top-recommendations/', views.top_recommendations, name='top_recommendations'),
+    path('web/career-clusters/', views.career_clusters_info, name='career_clusters_info'),
+    path('api/career-swipe/action/', views.swipe_career_api, name='swipe_career_api'),
 ]
 
 # urlpatterns = router.urls

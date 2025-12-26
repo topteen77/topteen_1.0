@@ -7125,6 +7125,8 @@ a:hover {
     display: flex;
     justify-content: space-around;
     align-items: center;
+    max-width: none;
+    min-width: fit-content;
   }
 }
 
@@ -7165,6 +7167,11 @@ a:hover {
   padding-inline: 1.5rem;
   color: var(--color-black-500);
   transition: color 0.3s ease;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-width: none !important;
+  width: auto !important;
 }
 
 .tt-header .dropdown-toggle::after {
@@ -7190,10 +7197,28 @@ a:hover {
     height: 64px;
     justify-content: center;
     align-items: center;
+    min-width: fit-content;
+    flex-shrink: 0;
+    max-width: none;
+    width: auto;
   }
 
   .menu-link {
     padding: unset;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: none !important;
+    width: auto !important;
+  }
+  
+  .menu-item.single-link .menu-link,
+  .menu-item.dropdown .dropdown-toggle.menu-link {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: none !important;
+    width: auto !important;
   }
 }
 
@@ -7201,6 +7226,9 @@ a:hover {
   cursor: pointer;
   outline: none;
   user-select: none;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .dropdown-toggle .bx.bx-chevron-down {
@@ -7254,6 +7282,10 @@ a:hover {
   line-height: inherit;
   color: var(--color-black-500);
   transition: color 0.3s ease;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-wrap: break-word;
 }
 
 .dropdown-show>.dropdown-toggle .bx.bx-chevron-down {
@@ -7482,6 +7514,10 @@ a:hover {
   float: left;
   color: rgba(71, 71, 71, 1);
   width: 100%;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-wrap: break-word;
 }
 
 

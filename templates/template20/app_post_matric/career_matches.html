@@ -1,0 +1,119 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}My Career Matches | Top Teen{% endblock %}
+{% block description_content %}View all careers you've liked and matched with.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} career-matches-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .career-matches-page {
+    padding-top: 80px;
+    background: #f8f9fa;
+    min-height: 100vh;
+  }
+  .matches-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+  }
+  .match-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+  .match-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
+  .match-score-badge {
+    background: #3f37c9;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-block;
+  }
+  .career-image {
+    width: 100%;
+    max-width: 200px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="matches-header">
+  <div class="container text-center">
+    <h1 class="mb-3">💼 My Career Matches</h1>
+    <p class="fs-18 mb-0">You've liked {{ match_count }} career{{ 's' if match_count != 1 else '' }}</p>
+  </div>
+</div>
+
+<div class="container py-4">
+  {% if matches %}
+    <div class="row">
+      {% for match in matches %}
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="match-card">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <h4 class="mb-0">{{ match.career.name }}</h4>
+            <span class="match-score-badge">Match: {{ match.match_score|default(85) }}%</span>
+          </div>
+          
+          <img src="{{ match.career.get_image_url() if match.career.get_image_url else static('images/career-icon.png') }}" 
+               alt="{{ match.career.name }}" class="career-image mb-3">
+          
+          <div class="mb-2">
+            {% set clusters = match.career.career_cluster.all() %}
+            {% if clusters %}
+              {% for cluster in clusters %}
+                {% if loop.first %}
+                  <span class="text-muted">{{ cluster.name }}</span>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          </div>
+          
+          <p class="text-muted mb-3">
+            {{ match.career.summary if match.career.summary else (match.career.description[:100] + '...' if match.career.description else 'No description available') }}
+          </p>
+          
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">{{ date_format(match.created_at) }}</small>
+            <a href="{{ match.career.url() }}" class="btn btn-sm btn-primary">View Details</a>
+          </div>
+          
+          {% if match.notes %}
+          <div class="mt-3 p-2 bg-light rounded">
+            <small><strong>Your notes:</strong> {{ match.notes }}</small>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-5">
+      <i class='bx bx-briefcase fs-64 text-muted mb-3'></i>
+      <h3>No matches yet</h3>
+      <p class="text-muted">Start swiping to discover careers you love!</p>
+      <a href="{{ url('post_matric:career_swipe') }}" class="btn btn-primary">Start Swiping</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+

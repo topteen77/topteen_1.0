@@ -429,3 +429,26 @@ class TestCompletionPopup(TimeStampedModel):
     
     def __str__(self):
         return f"{self.user.username} - {self.get_test_type_display()}: {self.answer}"
+
+
+class CareerMatch(TimeStampedModel):
+    """Store user's career swipe actions (like/pass) and match scores"""
+    ACTION_CHOICES = [
+        ('like', 'Like'),
+        ('pass', 'Pass'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='career_matches')
+    career = models.ForeignKey('careers.Career', on_delete=models.CASCADE, related_name='matches')
+    match_score = models.FloatField(null=True, blank=True, help_text="Compatibility score (0-100)")
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES, default='like')
+    notes = models.TextField(blank=True, help_text="Optional notes from user")
+    
+    class Meta:
+        unique_together = ['user', 'career']
+        verbose_name = "Career Match"
+        verbose_name_plural = "Career Matches"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.career.name} ({self.action})"

@@ -1,3 +1,4 @@
+{% load custom_filters_post_matric %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,6 +20,7 @@
             margin-bottom: 30px;
             border-bottom: 2px solid #3f37c9;
             padding-bottom: 20px;
+            page-break-after: avoid;
         }
         .header h1 {
             color: #3f37c9;
@@ -39,6 +41,7 @@
             padding: 15px;
             background: #f8f9fa;
             border-radius: 8px;
+            page-break-after: avoid;
         }
         .student-info p {
             margin: 5px 0;
@@ -54,6 +57,10 @@
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 2px solid #e9ecef;
+            page-break-after: avoid;
+        }
+        .section-title.page-break-before {
+            page-break-before: always;
         }
         .category-grid {
             display: grid;
@@ -111,11 +118,62 @@
             text-align: center;
             font-size: 10px;
             color: #999;
+            page-break-inside: avoid;
         }
         @media print {
             .no-print {
                 display: none;
             }
+        }
+        .description-content {
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        .description-content p {
+            margin-bottom: 12px;
+        }
+        .description-content ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        .description-content li {
+            margin-bottom: 8px;
+        }
+        .description-content strong {
+            font-weight: 600;
+            color: #3f37c9;
+        }
+        .description-content em {
+            font-style: italic;
+            color: #555;
+        }
+        /* Page break controls for major sections */
+        .major-section {
+            page-break-before: always;
+        }
+        .major-section:first-of-type {
+            page-break-before: auto;
+        }
+        .explanation-item {
+            page-break-inside: avoid;
+            margin-bottom: 30px;
+        }
+        .explanation-item h4 {
+            page-break-after: avoid;
+        }
+        .combined-code-wrapper {
+            page-break-inside: avoid;
+        }
+        .combined-code-wrapper h4 {
+            page-break-after: avoid;
+        }
+        /* Keep 2nd and 3rd RIASEC items together on same page */
+        .riasec-item-group {
+            page-break-inside: avoid;
+        }
+        /* Force page break before 2nd item, keep 2nd and 3rd together */
+        .riasec-item-2 {
+            page-break-before: always;
         }
     </style>
 </head>
@@ -165,9 +223,41 @@
         </div>
         {% endif %}
 
+        <!-- Explanation of Your Dominant Personality Dimensions -->
+        {% if dominant_trait_explanations %}
+        <div class="section major-section">
+            <h3 class="section-title page-break-before" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">Explanation of Your Dominant Personality Dimensions</h3>
+            {% for explanation in dominant_trait_explanations %}
+            <div class="explanation-item">
+                <h4 style="color: #3f37c9; font-size: 16px; margin-bottom: 10px;">
+                    {{ explanation|get_item:"HEXACO Trait"|upper }} ({{ explanation|get_item:"Trait Code" }}) - "{{ explanation|get_item:"Metaphorical Title" }}"
+                </h4>
+                <div class="description-content" style="margin-bottom: 15px; text-align: justify;">
+                    {{ explanation|get_item:"Description"|safe }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Combined Code Explanation -->
+        {% if combined_code_explanation %}
+        <div class="section major-section">
+            <h3 class="section-title page-break-before" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">Combined Code Explanation</h3>
+            <div class="combined-code-wrapper" style="margin-bottom: 30px;">
+                <h4 style="color: #3f37c9; font-size: 16px; margin-bottom: 10px;">
+                    {{ combined_code_explanation|get_item:"Combined Code" }} ({{ combined_code_explanation|get_item:"Trait Names" }})
+                </h4>
+                <div class="description-content" style="margin-bottom: 15px; text-align: justify;">
+                    {{ combined_code_explanation|get_item:"Description"|safe }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {% if careers_to_opt %}
-        <div class="section">
-            <h3 class="section-title">Recommended Careers</h3>
+        <div class="section major-section">
+            <h3 class="section-title page-break-before">Recommended Careers</h3>
             <div class="career-list">
                 {% for career in careers_to_opt %}
                 <div class="career-item recommended">{{ career }}</div>
@@ -177,8 +267,8 @@
         {% endif %}
 
         {% if careers_to_avoid %}
-        <div class="section">
-            <h3 class="section-title">Careers to Avoid</h3>
+        <div class="section major-section">
+            <h3 class="section-title page-break-before">Careers to Avoid</h3>
             <div class="career-list">
                 {% for career in careers_to_avoid %}
                 <div class="career-item avoid">{{ career }}</div>
@@ -189,8 +279,57 @@
 
     {% elif test_type == 'Career Interest Inventory' %}
         <!-- Career Interest Results -->
+        
+        <!-- Key Description -->
+        {% if riasec_key_descriptions %}
+        <div class="section major-section">
+            <h3 class="section-title" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">INTERPRETATION & RECOMMENDATIONS</h3>
+            {% for key_desc in riasec_key_descriptions %}
+            <div {% if forloop.counter >= 2 %}class="riasec-item-group{% if forloop.counter == 2 %} riasec-item-2{% endif %}" {% endif %}style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3f37c9;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    {% if key_desc.key_image %}
+                    <div style="color: #3f37c9; font-size: 32px;">
+                        <i class="{{ key_desc.key_image }}"></i>
+                    </div>
+                    {% endif %}
+                    <h4 style="color: #1a237e; font-size: 22px; margin: 0; font-weight: 700;">
+                        {{ key_desc.Trait_Name }} — {{ key_desc.Subtitle }}
+                    </h4>
+                </div>
+                <div class="description-content" style="margin-bottom: 15px; text-align: justify; line-height: 1.8; color: #333; font-size: 16px;">
+                    {{ key_desc|get_item:"Narrative Explanation"|safe }}
+                </div>
+                
+                {% if key_desc|get_item:"Your natural strengths include:" %}
+                <div style="margin-top: 20px; margin-bottom: 15px;">
+                    <h5 style="color: #362C64; font-size: 16px; font-weight: 600; margin-bottom: 10px;">
+                        <strong>strengths:</strong> Your natural strengths include:
+                    </h5>
+                    <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                        {% for strength in key_desc|get_item:"Your natural strengths include:" %}
+                        <li>{{ strength }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if key_desc|get_item:"How your personality feels in daily life:" %}
+                <div style="margin-top: 15px; padding: 15px; background: #fff; border-radius: 5px; border-left: 3px solid #3f37c9;">
+                    <h5 style="color: #362C64; font-size: 16px; font-weight: 600; margin-bottom: 8px; margin-top: 0;">
+                        <strong>personality:</strong> How your personality feels in daily life:
+                    </h5>
+                    <p style="color: #333; line-height: 1.6; margin: 0;">
+                        {{ key_desc|get_item:"How your personality feels in daily life:" }}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         {% if riasec_careers_to_opt %}
-        <div class="section">
+        <div class="section major-section page-break-before">
             <h3 class="section-title">Recommended Careers Based on Your Interests</h3>
             <div class="career-list">
                 {% for career in riasec_careers_to_opt %}
@@ -209,6 +348,58 @@
 
     {% elif test_type == 'Aptitude Assessment' %}
         <!-- Aptitude Assessment Results -->
+        
+        <!-- Aptitude Interpretations -->
+        {% if aptitude_interpretations %}
+        <div class="section major-section">
+            <h3 class="section-title" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">Explanation of your Aptitude Areas</h3>
+            
+            {% for interpretation in aptitude_interpretations %}
+            <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3f37c9;">
+                <h4 style="color: #1a237e; font-size: 22px; margin-bottom: 15px; font-weight: 700;">
+                    {{ interpretation.Title }}
+                </h4>
+                <div class="description-content" style="margin-bottom: 15px; text-align: justify; line-height: 1.8; color: #333; font-size: 16px;">
+                    {{ interpretation.Description|safe }}
+                </div>
+                
+                {% if interpretation|get_item:"Real life signs" %}
+                <div style="margin-top: 20px; margin-bottom: 15px;">
+                    <h5 style="color: #362C64; font-size: 16px; font-weight: 600; margin-bottom: 10px;">How it shows in real life:</h5>
+                    <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                        {% for sign in interpretation|get_item:"Real life signs" %}
+                        <li>{{ sign }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if interpretation|get_item:"Career impact" %}
+                <div style="margin-top: 20px; margin-bottom: 15px;">
+                    <h5 style="color: #362C64; font-size: 16px; font-weight: 600; margin-bottom: 10px;">Career impact:</h5>
+                    <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                        {% for career in interpretation|get_item:"Career impact" %}
+                        <li>{{ career }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if interpretation|get_item:"Daily life impact" %}
+                <div style="margin-top: 15px; padding: 15px; background: #fff; border-radius: 5px; border-left: 3px solid #3f37c9;">
+                    <h5 style="color: #362C64; font-size: 16px; font-weight: 600; margin-bottom: 8px; margin-top: 0;">Daily life impact:</h5>
+                    <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                        {% for impact in interpretation|get_item:"Daily life impact" %}
+                        <li>{{ impact }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
         {% if above_list or average_list or below_list %}
         <div class="section">
             <h3 class="section-title">Your Aptitude Scores</h3>
@@ -265,9 +456,72 @@
 
     {% elif test_type == 'Motivation Assessment' %}
         <!-- Motivation Assessment Results -->
+        
+        <!-- Key Description -->
+        {% if motivation_key_description %}
+        <div class="section major-section">
+            <h3 class="section-title page-break-before" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">INTERPRETATION & RECOMMENDATIONS</h3>
+            <div class="explanation-item">
+                <h4 style="color: #1a237e; font-size: 18px; margin-bottom: 10px; font-weight: 700; text-transform: uppercase;">
+                    {% if high_categories == 'Medical' %}MEDICAL PRACTITIONER / HEALTHCARE{% elif high_categories == 'Business' %}BUSINESS PROFESSIONAL{% elif high_categories == 'Engineer' %}ENGINEERING / IIT & TECH FIELD{% elif high_categories == 'Social' %}HUMANITIES / ARTS / SOCIAL SCIENCES{% endif %} ({{ motivation_key_description|get_item:"Motivation Style" }})
+                </h4>
+                <div style="margin-bottom: 10px;">
+                    <h5 style="color: #3f37c9; font-size: 14px; margin-bottom: 8px; font-weight: 600;">Narrative Explanation</h5>
+                </div>
+                <div class="description-content" style="margin-bottom: 15px; text-align: justify;">
+                    {{ motivation_key_description|get_item:"Narrative Explanation"|safe }}
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background: #fff; border-left: 3px solid #3f37c9; border-radius: 4px;">
+                    <p style="margin: 0; font-weight: 600; color: #3f37c9; font-size: 11px;">What This Says About Your Motivation Style</p>
+                    <p style="margin: 5px 0 0 0; color: #555; font-size: 11px;">
+                        {% if 'Intrinsic' in motivation_key_description|get_item:"Motivation Style" %}
+                        You thrive when your actions feel meaningful, helpful, or emotionally fulfilling.
+                        {% else %}
+                        You are energised by external rewards and outcomes. You work best when you can see the direct payoff of your effort.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Key Drivers for You -->
+        {% if motivation_key_drivers %}
+        <div class="section major-section">
+            <h3 class="section-title page-break-before" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">Key Drivers for You</h3>
+            <div class="explanation-item">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    {% for driver in motivation_key_drivers %}
+                    <div style="display: flex; align-items: flex-start; background: #ffffff; border-radius: 8px; padding: 15px; border: 1px solid #e9ecef;">
+                        <div style="flex: 0 0 50px; height: 50px; overflow: hidden; border-radius: 8px; margin-right: 12px; background: #f6f7ff; display: flex; justify-content: center; align-items: center;">
+                            <i class="{{ driver.Icon }}" style="font-size: 24px; color: #3f37c9;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <h5 style="margin: 0 0 5px 0; color: #3f37c9; font-size: 13px; font-weight: 600;">{{ driver.Title }}</h5>
+                            <p style="margin: 0; color: #222; font-size: 11px; line-height: 1.4;">{{ driver.Description }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Summary -->
+        {% if motivation_summary %}
+        <div class="section major-section">
+            <h3 class="section-title page-break-before" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">Summary</h3>
+            <div class="explanation-item">
+                <p style="margin-bottom: 15px; text-align: justify; line-height: 1.8; font-size: 12px;">
+                    {{ motivation_summary|get_item:"Summary"|safe }}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
         {% if motivation_careers_to_opt %}
-        <div class="section">
-            <h3 class="section-title">Recommended Careers Based on Your Motivation</h3>
+        <div class="section major-section">
+            <h3 class="section-title page-break-before">Recommended Careers Based on Your Motivation</h3>
             <div class="career-list">
                 {% for career in motivation_careers_to_opt %}
                 <div class="career-item recommended">{{ career }}</div>

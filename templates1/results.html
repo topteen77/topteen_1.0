@@ -741,12 +741,27 @@
         /** aptitude test updated **/
 
 
+        .recommended-courses-info-above-average .real-sign-box {
+            background: #d2d1f2;
+            padding: 5px;
+            margin-bottom: 13px;
+            border-radius: 16px;
+            border: 1px solid #9592d3;
+        }
+
         .recommended-courses-info {
             background: #e5f9ff;
             border: 1px solid #2e8aa6;
             border-radius: 10px;
             padding: 16px;
             border-top: 7px solid #2e8aa6;
+        }
+        .recommended-courses-info-above-average {
+            background: #e4e3f5;
+            border: 1px solid rgb(63, 55, 201);
+            border-radius: 10px;
+            padding: 16px;
+            border-top: 7px solid rgb(63, 55, 201);
         }
 
         .recommended-courses-info .header-text h3 {
@@ -757,8 +772,17 @@
             color: #2e8aa6;
             margin: 0 0 5px 0;
         }
+        
+        .recommended-courses-info-above-average .header-text h3 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            color: rgb(63, 55, 201);
+            margin: 0 0 5px 0;
+        }
 
-        .recommended-courses-info .header-text .imgpact {
+        .recommended-courses-info .header-text .imgpact, .recommended-courses-info-above-average .header-text .imgpact {
             width: 60px;
             height: 60px;
             background: #ffff;
@@ -771,7 +795,7 @@
         }
 
 
-        .recommended-courses-info .header-text .imgpact img {
+        .recommended-courses-info .header-text .imgpact img, .recommended-courses-info-above-average .header-text .imgpact img {
             width: 50px;
             height: 50px;
         }
@@ -2302,6 +2326,13 @@
                         <!-- Dynamic personality dimensions will be inserted here -->
                     </div>
 
+                </div>
+            </div>
+            <div class="chapterPage" id="personality-results-page" style="display: block;">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
                     <!-- explanation of your dominant personality dimensions -->
                     <div class="summary-card">
 
@@ -2325,6 +2356,14 @@
                         {% endfor %}
                     </div>
                     <!-- explanation of your dominant personality dimensions -->
+
+                
+            </div>
+            <div class="chapterPage" id="personality-results-page" style="display: block;">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
                      
 
 
@@ -2364,7 +2403,7 @@
                         <canvas id="personality-chart"></canvas>
                     </div>
                 </div>
-            </div>
+            
 
             
 
@@ -2501,10 +2540,11 @@
 
 
             </div>
-
+            
 
         </div>
         <!-- Page 9 -->
+         
 
         {% elif test_id == 2 %}
         <div data-test-id="2" class="test-content">
@@ -2611,14 +2651,128 @@
                     <div id="motivation-categories" class="motivation-categories">
                         <!-- Dynamic motivation categories will be inserted here -->
                     </div>
+                </div>
+            
+            <div class="dynamic-results">
 
-                    <div class="chart-container">
-                        <h4>Motivation Categories Distribution</h4>
-                        <canvas id="motivation-chart"></canvas>
+                {% if motivation_key_description %}
+                <div class="motivation-summary">
+
+                    <div class="left-m-su">
+                        <img src="{% static motivation_key_description|get_item:"Icon" %}" alt="motivation" />
+                    </div>
+
+
+
+
+                    <div class="s-motivation-summary">
+
+                        <h3>
+                            {% if high_categories == 'Medical' %}MEDICAL PRACTITIONER / HEALTHCARE{% elif high_categories == 'Business' %}BUSINESS PROFESSIONAL{% elif high_categories == 'Engineer' %}ENGINEERING / IIT & TECH FIELD{% elif high_categories == 'Social' %}HUMANITIES / ARTS / SOCIAL SCIENCES{% endif %} ({{ motivation_key_description|get_item:"Motivation Style" }})
+                        </h3>
+
+                        <h4>Narrative Explanation</h4>
+
+                        {{ motivation_key_description|get_item:"Narrative Explanation"|safe }}
+
+
+                        {% if 'Intrinsic' in motivation_key_description|get_item:"Motivation Style" %}
+                        You thrive when your actions feel meaningful, helpful, or emotionally fulfilling.
+                        {% else %}
+                        You are energised by external rewards and outcomes. You work best when you can see the direct payoff of your effort.
+                        {% endif %}
                     </div>
                 </div>
-            </div>
+                {% endif %}
 
+
+
+
+
+
+
+
+            </div>
+        </div>
+
+        
+
+        
+
+
+        <!-- Page 10 End-->
+          <!-- Key Drivers, Summary, and Chart on same page -->
+            <!-- DEBUG: motivation_key_drivers = {{ motivation_key_drivers|default:"NOT SET"|length|default:"0" }} items -->
+            <!-- DEBUG: motivation_summary = {{ motivation_summary|default:"NOT SET" }} -->
+            {% if motivation_key_drivers or motivation_summary %}
+        <div class="chapterPage">
+            <div class="fixex-top-logo" style="width: 100%;">
+                <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+            </div>
+            <hr />
+
+
+
+
+
+            <div class="dynamic-results">
+
+                 <!-- Key Drivers for You -->
+                 {% if motivation_key_drivers %}
+                 <div class="motivation-key-drive">
+                    <h4> Key Drivers for You:</h4>
+                    <div class="d-em-box">
+
+                        {% for driver in motivation_key_drivers %}
+                        <div class="env-grid">
+                            <div class="img-mg">
+                                <img src="{% static driver.Icon%}" alt="drive" />
+                            </div>
+                            <div class="text-emn">
+                                <p><strong> {{ driver.Title }}</strong> {{ driver.Description }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+                <!-- Summary -->
+                {% if motivation_summary %}
+                <div class="motivation-summrize">
+                    <h4> <img src="{% static 'images/test-t-icon.png'%}" alt="test" /> Summary:</h4>
+
+                    <p>{{ motivation_summary|get_item:"Summary"|safe }}</p>
+
+
+                </div>
+                {% endif %}
+
+
+                <div class="chart-container">
+                    <h4>Motivation Categories Distribution</h4>
+                    <canvas id="motivation-chart"></canvas>
+                </div>
+
+
+            </div>
+            {% endif %}
+
+
+
+
+        </div>
+        {% endif %}
+
+
+
+
+
+
+
+        
+            
 
             <div class="chapterPage motive-report">
                 <div class="fixex-top-logo" style="width: 100%;">
@@ -2849,7 +3003,6 @@
             </div>
             <!-- page 12 end-->
             <!-- page 13 -->
-
             <div class="chapterPage" id="career-results-page" style="display: none;">
                 <div class="fixex-top-logo" style="width: 100%;">
                     <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
@@ -2858,34 +3011,90 @@
                 <div class="db-header" style="margin-top: 10px; text-align: center;">
                     <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
                 </div>
-
                 <div class="dynamic-results">
                     <div class="text-info-paragraph" style="text-align: center;">
                         <p><strong>Your RIASEC Profile:</strong> Career interests based on Holland's model</p>
                     </div>
-
                     <div id="career-dimensions" class="career-dimensions">
                         <!-- Dynamic career dimensions will be inserted here -->
                     </div>
 
+                    {% if riasec_key_descriptions %}
+                    <!-- INTERPRETATION & RECOMMENDATIONS Section -->
+                    <div class="hexaco-code-explanation"
+                        style="border-top:1px solid #f9d7d7;margin-top: 39px;float: left;width: 100%;">
+                        <h3>Explanation of your Career Interest Code</h3>
+                    </div>
+                    <div class="cards-wrapper">
+                        {# Page break logic for PDF: Every 2 key_desc on a new page #}
+                        {% for key_desc in riasec_key_descriptions %}
+                            {% if forloop.counter0 == 1 %}
+                    </div>
+                </div>
+            </div>
+            <!-- Page Break-->
+            <div class="chapterPage" id="career-results-page">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="dynamic-results">
+                    <div class="cards-wrapper">
+                        
+
+                            {% endif %}
+                            <div class="personality-card">
+                                <div class="top-card">
+                                    {% if key_desc.key_image %}
+                                    <div class="card-p-left">
+                                        <div class="icon-box">
+                                            <img src="{% static key_desc.key_image %}" alt="{{ key_desc.Subtitle }}" />
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    <div class="card-p-right">
+                                        <h3> {{ key_desc.Trait_Name }} — {{ key_desc.Subtitle }}</h3>
+                                        {{ key_desc|get_item:"Narrative Explanation"|safe }}
+                                    </div>
+                                </div>
+                                <div class="hm-text">
+                                    {% if key_desc|get_item:"Your natural strengths include:" %}
+                                    <h4>Your natural strengths include:</h4>
+                                    <ul>
+                                        {% for strength in key_desc|get_item:"Your natural strengths include:" %}
+                                        <li>{{ strength }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                    {% if key_desc|get_item:"How your personality feels in daily life:" %}
+                                    <h4> How your personality feels in daily life:</h4>
+                                    {{ key_desc|get_item:"How your personality feels in daily life:" }}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    
+
+                    
+                </div>
+            </div>
+            <div class="chapterPage" id="career-results-page">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="dynamic-results">
                     <div class="chart-container">
                         <h4>RIASEC Career Dimensions</h4>
                         <canvas id="career-chart"></canvas>
                     </div>
 
                 </div>
-
-            </div>
-            <!-- page 13 -->
-
-            <!-- page 13 n -->
-
-            <div class="chapterPage">
-                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
-                        src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
-
                 <div class="accordion-body">
 
 
@@ -2924,6 +3133,24 @@
                         {% endfor %}
                         {% endfor %}
                     </div>
+                </div>
+            </div>
+
+
+            <!-- page 13/14/15 (paginated for PDF only via .page-break-pdf) -->
+
+            <!-- page 13 n -->
+
+            <div class="chapterPage">
+                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                        src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+
+                <div class="accordion-body">
+
+
+                    
 
 
                     <div class="career-categories rs">
@@ -3077,6 +3304,9 @@
 
 
                 </div>
+                <div class="img-appitute" style="text-align: center; margin-bottom: 10px;">
+                <img style="width:500px;" src="{% static 'images/aptitude-ig.png' %}" alt="aptitude" />
+                </div>
             </div>
 
             <!-- page 15 end -->
@@ -3090,24 +3320,28 @@
                     <p class="section-title"
                         style="background: #E8FBFF;  width: 250px;  margin: 0px auto;  padding: 9px 7px;  border-radius: 7px;  color: #063D48;">
                         Aptitude Area and Description</p>
-
+    
                 </div>
                 <table style="margin-bottom: 30px; margin-top:25px; ">
                     <thead style="border:1px solid #9490DD;">
                         <tr>
                             <th
                                 style="background:
-                            #E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-right:1px solid #9490DD;">
+                                #E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-right:1px solid #9490DD;">
                                 Aptitude Type
                             </th>
                             <th style="background:
-                            #E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; ">Description</th>
+                                #E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; ">Description</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr style="border:1px solid #9490DD;">
                             <td
-                                style=" width: 200px; padding-left:14px; color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
+                                style=" width: 200px; padding:14px; color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9; text-align: center;">
+    
+                                <img src="{% static 'images/Aptitude-abstract.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
                                 Abstract Reasoning
                             </td>
                             <td
@@ -3118,7 +3352,13 @@
                         </tr>
                         <tr style="border:1px solid #9490DD; width: 200px; ">
                             <td
-                                style=" padding-left:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD;color: #3F37C9;">
+                                style="text-align: center; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD;color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitudenumerical.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+    
+    
                                 Numerical Reasoning
                             </td>
                             <td
@@ -3129,8 +3369,16 @@
                         </tr>
                         <tr style="border:1px solid #9490DD;">
                             <td
-                                style=" width: 200px; padding-left:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD;color: #3F37C9;">
-                                Logical Reasoning</td>
+                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD;color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitudelogical.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+    
+    
+                                Logical Reasoning
+    
+                            </td>
                             <td
                                 style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
                                 Ability to evaluate arguments, detect inconsistencies, and draw conclusions based on
@@ -3139,8 +3387,14 @@
                         </tr>
                         <tr style="border:1px solid #9490DD;">
                             <td
-                                style=" width: 200px; padding-left:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
-                                Language and Verbal Reasoning</td>
+                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitudelanguage.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+    
+                                Language and Verbal Reasoning
+                            </td>
                             <td
                                 style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
                                 Ability to comprehend, interpret, and analyse written or spoken language. Involves
@@ -3148,8 +3402,15 @@
                         </tr>
                         <tr style="border:1px solid #9490DD;">
                             <td
-                                style=" width: 200px; padding-left:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
-                                Clerical Speed and Accuracy</td>
+                                style="text-align: center; width: 200px; padding:14px; color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitude-clerical.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+    
+    
+                                Clerical Speed and Accuracy
+                            </td>
                             <td
                                 style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
                                 Ability to quickly and accurately process detailed information. Includes comparing data,
@@ -3157,8 +3418,13 @@
                         </tr>
                         <tr style="border:1px solid #9490DD;">
                             <td
-                                style=" width: 200px; padding-left:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
-                                Mechanical Reasoning</td>
+                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitudemechanical.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+                                Mechanical Reasoning
+                            </td>
                             <td
                                 style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
                                 Ability to understand mechanical concepts and physical principles. Involves analysing
@@ -3166,8 +3432,14 @@
                         </tr>
                         <tr style="border:1px solid #9490DD;">
                             <td
-                                style=" width: 200px; padding-left:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
-                                Spatial Reasoning</td>
+                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitudespatial.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+    
+                                Spatial Reasoning
+                            </td>
                             <td
                                 style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
                                 Ability to mentally visualize, manipulate, and rotate objects in space. Involves
@@ -3177,7 +3449,7 @@
                 </table>
             </div>
 
-            <div class="chapterPage" id="aptitude-results-page" style="display: none;">
+            <div class="chapterPage" >
                 <div class="fixex-top-logo" style="width: 100%;">
                     <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
                 </div>
@@ -3196,13 +3468,126 @@
 
                 <div class="average-cards" style="display: flex; justify-content: center; margin: 30px 0;">
                 </div>
-
                 <div class="dynamic-results">
                     <div class="text-info-paragraph">
                         <p><strong>Your Aptitude Profile:</strong> Natural abilities across 7 key areas</p>
                     </div>
+                </div>
 
-                    <div id="timer-sections" class="text-info-paragraph d-none">
+               
+            </div>
+
+                    <!-- Aptitude Interpretations -->
+                    {% if aptitude_interpretations %}
+
+            {% for interpretation in aptitude_interpretations %}
+            <div class="chapterPage"  >
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+
+                    
+                    
+                    <div class="{% if interpretation.Area in above_list %} recommended-courses-info-above-average{% else %} recommended-courses-info{% endif %}" style="margin-top: 20px;margin-bottom: 10px;">
+
+                        <div class="header-text">
+        
+                            <h3>
+                                <div class="imgpact">
+                                    <img src="{% static interpretation.Image %}" alt="img">
+                                </div>
+        
+                                {{ interpretation.Title }}
+                            </h3>
+        
+                        </div>
+        
+        
+                        <div class="real-description">
+        
+                            {{ interpretation.Description|safe }}
+        
+                            {% if interpretation|get_item:"Real life signs" %}
+                            <div class="real-sign-box">
+        
+                                <h4>
+                                    <div class="real-sign"> <img src="{% static 'images/real-sign.webp'%}" alt="img"> </div>
+                                    Real-life signs:
+                                </h4>
+                                <ul>
+                                    {% for sign in interpretation|get_item:"Real life signs" %}
+                                    <li>{{ interpretation|get_item:"Real life signs"|first }}</li>
+                                    {% endfor %}
+                                </ul>
+        
+                            </div>
+                            {% endif %}
+        
+                        </div>
+        
+        
+                        
+                        <div class="impact-box">
+        
+                            {% if interpretation|get_item:"Career impact" %}
+                            <div class="impact-info">
+        
+                                <h4>
+                                    <div class="car-img"> <img src="{% static 'images/3d-grad-cap.webp'%}" alt="img"> </div>
+                                    Career Impact:
+                                </h4>
+        
+                                <p>This ability is a major foundation for:</p>
+                                <ul>
+                                    {% for career in interpretation|get_item:"Career impact" %}
+                                    <li>{{ career }}</li>
+                                    {% endfor %}
+                                </ul>
+                                
+                            </div>
+                            {% endif %}
+                            {% if interpretation|get_item:"Daily life impact" %}
+                            <div class="impact-info">
+                                <h4>
+                                    <div class="car-img"> <img src="{% static 'images/3d-insight.webp'%}" alt="img"> </div>
+                                    Daily life impact:
+                                </h4>
+                                <ul>
+                                    {% for impact in interpretation|get_item:"Daily life impact" %}
+                                    <li>{{ impact }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+            </div>
+            {% endfor %}
+ 
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+            {% endif %}
+            <div class="chapterPage" id="aptitude-results-page" >
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+            
+
+                <div id="timer-sections" class="text-info-paragraph d-none">
 
                     </div>
 
@@ -3212,9 +3597,6 @@
                     </div>
 
                 </div>
-            </div>
-
-            <div class="chapterPage">
                 <div id="aptitude-sections" class="section-resultsn">
                     <!-- Dynamic aptitude sections will be inserted here -->
                 </div>

@@ -374,6 +374,55 @@
 
       {% elif test_type == 'Career Interest Inventory' %}
         <!-- Career Interest Results -->
+        
+        <!-- Key Description -->
+        {% if riasec_key_descriptions %}
+        <div class="categories-section" style="margin-top: 30px;">
+          <h3 class="section-title" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">INTERPRETATION & RECOMMENDATIONS</h3>
+          {% for key_desc in riasec_key_descriptions %}
+          <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3f37c9;">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+              {% if key_desc.key_image %}
+              <div style="color: #3f37c9; font-size: 32px;">
+                <i class="{{ key_desc.key_image }}"></i>
+              </div>
+              {% endif %}
+              <h4 style="color: #1a237e; font-size: 22px; margin: 0; font-weight: 700;">
+                {{ key_desc.Trait_Name }} — {{ key_desc.Subtitle }}
+              </h4>
+            </div>
+            <div class="description-content" style="margin-bottom: 15px; text-align: justify; line-height: 1.8; color: #333; font-size: 16px;">
+              {{ key_desc|get_item:"Narrative Explanation"|safe }}
+            </div>
+            
+            {% if key_desc|get_item:"Your natural strengths include:" %}
+            <div style="margin-top: 20px; margin-bottom: 15px;">
+              <h5 style="color: #362C64; font-size: 16px; font-weight: 600; margin-bottom: 10px;">
+                <strong>strengths:</strong> Your natural strengths include:
+              </h5>
+              <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                {% for strength in key_desc|get_item:"Your natural strengths include:" %}
+                <li>{{ strength }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+            
+            {% if key_desc|get_item:"How your personality feels in daily life:" %}
+            <div style="margin-top: 15px; padding: 15px; background: #fff; border-radius: 5px; border-left: 3px solid #3f37c9;">
+              <h5 style="color: #362C64; font-size: 16px; font-weight: 600; margin-bottom: 8px; margin-top: 0;">
+                <strong>personality:</strong> How your personality feels in daily life:
+              </h5>
+              <p style="color: #333; line-height: 1.6; margin: 0;">
+                {{ key_desc|get_item:"How your personality feels in daily life:" }}
+              </p>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
         {% if riasec_careers_to_opt %}
         <div class="careers-section">
           <h3 class="section-title">Recommended Careers Based on Your Interests</h3>
@@ -394,6 +443,58 @@
 
       {% elif test_type == 'Aptitude Assessment' %}
         <!-- Aptitude Assessment Results -->
+        
+        <!-- Aptitude Interpretations -->
+        {% if aptitude_interpretations %}
+        <div class="categories-section" style="margin-top: 30px;">
+          <h3 class="section-title" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">Explanation of your Aptitude Areas</h3>
+          
+          {% for interpretation in aptitude_interpretations %}
+          <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3f37c9;">
+            <h4 style="color: #1a237e; font-size: 22px; margin-bottom: 15px; font-weight: 700;">
+              {{ interpretation.Title }}
+            </h4>
+            <div class="description-content" style="margin-bottom: 15px; text-align: justify; line-height: 1.8; color: #333; font-size: 16px;">
+              {{ interpretation.Description|safe }}
+            </div>
+            
+            {% if interpretation|get_item:"Real life signs" %}
+            <div style="margin-top: 20px; margin-bottom: 15px;">
+              <h5 style="color: #362C64; font-size: 16px; font-weight: 600; margin-bottom: 10px;">How it shows in real life:</h5>
+              <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                {% for sign in interpretation|get_item:"Real life signs" %}
+                <li>{{ sign }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+            
+            {% if interpretation|get_item:"Career impact" %}
+            <div style="margin-top: 20px; margin-bottom: 15px;">
+              <h5 style="color: #362C64; font-size: 16px; font-weight: 600; margin-bottom: 10px;">Career impact:</h5>
+              <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                {% for career in interpretation|get_item:"Career impact" %}
+                <li>{{ career }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+            
+            {% if interpretation|get_item:"Daily life impact" %}
+            <div style="margin-top: 15px; padding: 15px; background: #fff; border-radius: 5px; border-left: 3px solid #3f37c9;">
+              <h5 style="color: #362C64; font-size: 16px; font-weight: 600; margin-bottom: 8px; margin-top: 0;">Daily life impact:</h5>
+              <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                {% for impact in interpretation|get_item:"Daily life impact" %}
+                <li>{{ impact }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        
         {% if above_list or average_list or below_list %}
         <div class="categories-section">
           <h3 class="section-title">Your Aptitude Scores</h3>
@@ -593,6 +694,69 @@
 
       {% elif test_type == 'Motivation Assessment' %}
         <!-- Motivation Assessment Results -->
+        
+        <!-- Key Description -->
+        {% if motivation_key_description %}
+        <div class="categories-section" style="margin-top: 30px;">
+          <h3 class="section-title" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">INTERPRETATION & RECOMMENDATIONS</h3>
+          <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3f37c9;">
+            <h4 style="color: #1a237e; font-size: 22px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase;">
+              {% if high_categories == 'Medical' %}MEDICAL PRACTITIONER / HEALTHCARE{% elif high_categories == 'Business' %}BUSINESS PROFESSIONAL{% elif high_categories == 'Engineer' %}ENGINEERING / IIT & TECH FIELD{% elif high_categories == 'Social' %}HUMANITIES / ARTS / SOCIAL SCIENCES{% endif %} ({{ motivation_key_description|get_item:"Motivation Style" }})
+            </h4>
+            <div style="margin-bottom: 15px;">
+              <h5 style="color: #3f37c9; font-size: 16px; margin-bottom: 10px; font-weight: 600;">Narrative Explanation</h5>
+            </div>
+            <div class="description-content" style="margin-bottom: 15px; text-align: justify; line-height: 1.8; color: #333; font-size: 16px;">
+              {{ motivation_key_description|get_item:"Narrative Explanation"|safe }}
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: #fff; border-left: 4px solid #3f37c9; border-radius: 4px;">
+              <p style="margin: 0; font-weight: 600; color: #3f37c9;">What This Says About Your Motivation Style</p>
+              <p style="margin: 5px 0 0 0; color: #555;">
+                {% if 'Intrinsic' in motivation_key_description|get_item:"Motivation Style" %}
+                You thrive when your actions feel meaningful, helpful, or emotionally fulfilling.
+                {% else %}
+                You are energised by external rewards and outcomes. You work best when you can see the direct payoff of your effort.
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Key Drivers for You -->
+        {% if motivation_key_drivers %}
+        <div class="categories-section" style="margin-top: 30px;">
+          <h3 class="section-title" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">Key Drivers for You</h3>
+          <div style="margin-bottom: 30px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+              {% for driver in motivation_key_drivers %}
+              <div style="display: flex; align-items: flex-start; background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 6px 18px rgba(34, 34, 90, 0.05); border: 2px solid #e9ecef; transition: all 0.3s;">
+                <div style="flex: 0 0 72px; height: 72px; overflow: hidden; border-radius: 10px; margin-right: 15px; background: #f6f7ff; display: flex; justify-content: center; align-items: center;">
+                  <i class="{{ driver.Icon }}" style="font-size: 36px; color: #3f37c9;"></i>
+                </div>
+                <div style="flex: 1;">
+                  <h4 style="margin: 0 0 8px 0; color: #3f37c9; font-size: 18px; font-weight: 600;">{{ driver.Title }}</h4>
+                  <p style="margin: 0; color: #222; font-size: 14px; line-height: 1.5;">{{ driver.Description }}</p>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Summary -->
+        {% if motivation_summary %}
+        <div class="categories-section" style="margin-top: 30px;">
+          <h3 class="section-title" style="text-align: center; color: #3f37c9; font-size: 20px; margin-bottom: 20px;">Summary</h3>
+          <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3f37c9;">
+            <p style="margin-bottom: 15px; text-align: justify; line-height: 1.8; color: #333; font-size: 16px;">
+              {{ motivation_summary|get_item:"Summary"|safe }}
+            </p>
+          </div>
+        </div>
+        {% endif %}
+
         {% if motivation_careers_to_opt %}
         <div class="careers-section">
           <h3 class="section-title">Recommended Careers Based on Your Motivation</h3>

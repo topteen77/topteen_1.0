@@ -1,0 +1,122 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Top Career Recommendations | Top Teen{% endblock %}
+{% block description_content %}Discover the top career recommendations based on your profile and test results.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} top-recommendations-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .top-recommendations-page {
+    padding-top: 80px;
+    background: #f8f9fa;
+    min-height: 100vh;
+  }
+  .recommendations-header {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+  }
+  .recommendation-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+  .rank-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #ffc107;
+    color: #333;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .score-badge {
+    background: #28a745;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="recommendations-header">
+  <div class="container text-center">
+    <h1 class="mb-3">🏆 Top Career Recommendations</h1>
+    <p class="fs-18 mb-0">
+      {% if has_tests %}
+        Based on your test results
+      {% else %}
+        Based on your profile
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+<div class="container py-4">
+  {% if top_careers %}
+    <div class="row">
+      {% for career, score in top_careers %}
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="recommendation-card">
+          <div class="rank-badge">#{{ loop.index }}</div>
+          
+          <h4 class="mb-3">{{ career.name }}</h4>
+          
+          <img src="{{ career.get_image_url() if career.get_image_url else static('images/career-icon.png') }}" 
+               alt="{{ career.name }}" 
+               style="width: 100%; height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 15px;">
+          
+          <div class="mb-2">
+            <span class="score-badge">Match Score: {{ score|round(1) }}%</span>
+          </div>
+          
+          <div class="mb-2">
+            {% set clusters = career.career_cluster.all() %}
+            {% if clusters %}
+              {% for cluster in clusters %}
+                {% if loop.first %}
+                  <span class="text-muted">{{ cluster.name }}</span>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          </div>
+          
+          <p class="text-muted mb-3">
+            {{ career.summary if career.summary else (career.description[:100] + '...' if career.description else 'No description available') }}
+          </p>
+          
+          <a href="{{ career.url() }}" class="btn btn-primary btn-sm w-100">View Details</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-5">
+      <i class='bx bx-trophy fs-64 text-muted mb-3'></i>
+      <h3>No recommendations available</h3>
+      <p class="text-muted">Complete your profile or take a test to get personalized recommendations!</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+

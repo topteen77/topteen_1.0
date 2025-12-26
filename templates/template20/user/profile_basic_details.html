@@ -145,6 +145,35 @@
       <img src="{{ static('topteenfrontend/assets/images/arrow.left.png') }}" alt="Back" style="width: 15px; height: 15px;" />
     </div>
 
+    <!-- Edit Username Popup Modal -->
+    <div class="modal fade" id="editUsernameModal" tabindex="-1" aria-labelledby="editUsernameModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none;">
+          <div class="modal-header" style="border-bottom: 1px solid #e9ecef;">
+            <h5 class="modal-title fs-18 fw-700" id="editUsernameModalLabel" style="color: #3f37c9;">Set Your Name</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" style="padding: 24px;">
+            <p class="text-gray fs-14 mb-3">Please set your full name to personalize your profile.</p>
+            <div class="mb-3">
+              <label for="editUsernameInput" class="form-label fs-14 fw-semibold mb-2">Full Name</label>
+              <input type="text" class="form-control" id="editUsernameInput" 
+                     placeholder="Enter your full name" 
+                     value="{% if profile_user.name and profile_user.name != 'None' %}{{ profile_user.name }}{% endif %}"
+                     style="height: 48px; border: 2px solid #3F37C9; border-radius: 8px;" />
+              <div id="editUsernameError" class="text-danger fs-12 mt-2" style="display: none;"></div>
+            </div>
+          </div>
+          <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 24px;">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
+            <button type="button" class="btn custom-button purple-button fw-600" id="saveUsernameBtn" style="border-radius: 8px; height: 40px;">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="newPages">
     <!-- Step 1: Choose Motive -->
     <div class="motive page">
@@ -193,7 +222,7 @@
             <label for="username" class="form-label fs-14 fw-semibold mb-2">Full Name</label>
             <img src="{{ static('topteenfrontend/assets/images/signature.png') }}" alt="Name" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <input name="username" id="username" type="text" 
-                   value="{% if profile_user.name and profile_user.name != 'None' %}{{ profile_user.name }}{% endif %}" 
+                   value="{% if profile_user.name and profile_user.name != 'None' %}{{ profile_user.name }}{% elif profile_user.mobile %}{{ profile_user.mobile }}{% endif %}" 
                    class="form-control custom-input w-100" 
                    style="height: 48px; padding-left: 45px;"
                    placeholder="Enter your full name" required />
@@ -477,7 +506,8 @@
   const backBtn = document.querySelector(".backArrow");
   if (backBtn) {
     backBtn.addEventListener("click", function() {
-      window.location.href = "{{ url('users:userfeeds') }}";
+      // window.location.href = "{{ url('users:userfeeds') }}";
+      window.location.href = "{{ url('users:userdashboard') }}";
     });
   }
 
@@ -827,6 +857,121 @@
           }
         }).catch(() => setOtpErr('Unable to verify OTP'));
       });
+    }
+
+    // Edit Username Popup
+    function initEditUsernamePopup() {
+      const editUsernameModal = document.getElementById('editUsernameModal');
+      const editUsernameInput = document.getElementById('editUsernameInput');
+      const saveUsernameBtn = document.getElementById('saveUsernameBtn');
+      const editUsernameError = document.getElementById('editUsernameError');
+      const usernameInput = document.getElementById('username');
+
+      if (!editUsernameModal) {
+        console.log('Edit username modal not found');
+        return;
+      }
+
+      // Check if username is empty and show popup
+      function checkAndShowEditPopup() {
+        if (!usernameInput) {
+          console.log('Username input not found');
+          return;
+        }
+        
+        const currentName = usernameInput.value ? usernameInput.value.trim() : '';
+        const isMobileNumber = /^[0-9]{10}$/.test(currentName);
+        const hasName = currentName && currentName !== '' && currentName !== 'None' && !isMobileNumber;
+        
+        console.log('Current name:', currentName, 'Has name:', hasName, 'Is mobile:', isMobileNumber);
+        
+        // If no name (or only mobile number), show edit popup
+        if (!hasName) {
+          console.log('Showing edit username popup');
+          // Check if Bootstrap is available
+          if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const modal = new bootstrap.Modal(editUsernameModal);
+            modal.show();
+            
+            // Focus on input after modal is shown
+            editUsernameModal.addEventListener('shown.bs.modal', function() {
+              if (editUsernameInput) {
+                setTimeout(function() {
+                  editUsernameInput.focus();
+                }, 100);
+              }
+            }, { once: true });
+          } else {
+            // Fallback: show modal manually if Bootstrap not available
+            editUsernameModal.classList.add('show');
+            editUsernameModal.style.display = 'block';
+            document.body.classList.add('modal-open');
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+            if (editUsernameInput) {
+              setTimeout(function() {
+                editUsernameInput.focus();
+              }, 100);
+            }
+          }
+        }
+      }
+
+      // Save username from popup
+      if (saveUsernameBtn && editUsernameInput) {
+        saveUsernameBtn.addEventListener('click', function() {
+          const newName = editUsernameInput.value.trim();
+          editUsernameError.style.display = 'none';
+          
+          if (!newName || newName === '') {
+            editUsernameError.textContent = 'Please enter your full name';
+            editUsernameError.style.display = 'block';
+            return;
+          }
+          
+          // Update the username field in the form
+          if (usernameInput) {
+            usernameInput.value = newName;
+          }
+          
+          // Close modal
+          if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const modal = bootstrap.Modal.getInstance(editUsernameModal);
+            if (modal) {
+              modal.hide();
+            }
+          } else {
+            // Fallback: hide modal manually
+            editUsernameModal.classList.remove('show');
+            editUsernameModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+              backdrop.remove();
+            }
+          }
+          
+          // Show success message
+          if (typeof fireAlert === 'function') {
+            fireAlert('Name updated successfully!', 'success');
+          }
+        });
+      }
+
+      // Show popup on page load if username is empty
+      // Wait for slick carousel to initialize first
+      setTimeout(function() {
+        checkAndShowEditPopup();
+      }, 1000);
+    }
+
+    // Initialize popup when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initEditUsernamePopup);
+    } else {
+      // DOM is already ready
+      initEditUsernamePopup();
     }
   });
 </script>

@@ -1,0 +1,712 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Career Demo - Discover Your Perfect Career Match | Top Teen{% endblock %}
+{% block description_content %}Swipe through careers and discover your perfect match based on your profile and test results.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} career-swipe-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .career-swipe-page {
+    padding-top: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  .swipe-container {
+    max-width: 400px;
+    margin: 40px auto;
+    position: relative;
+    height: 600px;
+  }
+  .career-card {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    cursor: grab;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .career-card.dragging {
+    transition: none;
+    cursor: grabbing;
+  }
+  .career-card:active {
+    cursor: grabbing;
+  }
+  .career-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 15px;
+    margin-bottom: 20px;
+  }
+  .career-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  .career-cluster {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+  .career-description {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.6;
+    flex-grow: 1;
+    margin-bottom: 20px;
+  }
+  .match-score {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #3f37c9;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .swipe-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+    padding: 20px;
+  }
+  .swipe-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  .swipe-btn:active {
+    transform: scale(0.9);
+  }
+  .pass-btn {
+    background: #ff4757;
+    color: white;
+  }
+  .like-btn {
+    background: #2ed573;
+    color: white;
+  }
+  .info-banner {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .info-banner h2 {
+    color: #3f37c9;
+    margin-bottom: 10px;
+  }
+  .info-banner p {
+    color: #666;
+    margin: 0;
+  }
+  .spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3f37c9;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .career-details-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .career-details-overlay.show {
+    display: block;
+  }
+  .career-details-content {
+    max-width: 800px;
+    max-height: 90vh;
+    margin: 40px auto;
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    position: relative;
+    box-shadow: 0 10px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+  }
+  .details-back-btn {
+    background: #3f37c9;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .details-back-btn:hover {
+    background: #2d26a0;
+  }
+  .details-close-btn {
+    background: #ff4757;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 24px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .details-close-btn:hover {
+    background: #ee3344;
+  }
+  .details-body {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 10px;
+  }
+  .details-body::-webkit-scrollbar {
+    width: 8px;
+  }
+  .details-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  .details-body::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+  }
+  .details-body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  .details-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    padding: 20px 0;
+    border-top: 2px solid #e9ecef;
+    flex-shrink: 0;
+    background: white;
+    border-radius: 0 0 20px 20px;
+  }
+  .details-action-btn {
+    padding: 15px 40px;
+    border: none;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .details-action-btn:hover {
+    transform: scale(1.05);
+  }
+  .details-pass-btn {
+    background: #ff4757;
+    color: white;
+  }
+  .details-like-btn {
+    background: #2ed573;
+    color: white;
+  }
+  .career-details-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 15px;
+    margin-bottom: 30px;
+  }
+  .career-details-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+  }
+  .career-details-section {
+    margin-bottom: 30px;
+  }
+  .career-details-section h4 {
+    color: #3f37c9;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+  .career-details-section p {
+    color: #555;
+    line-height: 1.8;
+    font-size: 16px;
+  }
+  .career-details-description {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+  }
+  .career-details-description::-webkit-scrollbar {
+    width: 6px;
+  }
+  .career-details-description::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  .career-details-description::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+  }
+  .career-details-description::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  .career-details-section ul {
+    list-style: none;
+    padding: 0;
+  }
+  .career-details-section ul li {
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+    color: #555;
+  }
+  .career-details-section ul li:last-child {
+    border-bottom: none;
+  }
+  .career-details-section ul li:before {
+    content: "✓ ";
+    color: #2ed573;
+    font-weight: bold;
+    margin-right: 10px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="info-banner">
+    <h2>🎯 Career Discovery</h2>
+    <p>
+      {% if has_tests %}
+        Swipe through careers matched to your test results!
+      {% else %}
+        Swipe through top careers based on your profile!
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="swipe-container">
+    {% if careers %}
+      {% for career_data in careers %}
+      {% set career = career_data.career %}
+      <div class="career-card" 
+           data-career-id="{{ career.id }}" 
+           data-career-name="{{ career.name|e }}"
+           data-career-summary="{{ (career.summary or '')|e }}"
+           data-career-description="{{ (career.description or '')|e }}"
+           data-career-image="{{ career_data.image_url }}"
+           data-career-clusters="{{ career_data.clusters|join(',') }}"
+           data-career-skills="{{ career_data.skills|join(',') }}"
+           data-career-url="{{ career_data.url }}"
+           style="z-index: {{ loop.revindex }}">
+        <div class="match-score">Match: 85%</div>
+        <img src="{{ career_data.image_url }}" alt="{{ career.name }}" class="career-image">
+        <h3 class="career-name">{{ career.name }}</h3>
+        <div class="career-cluster">
+          {% if career_data.clusters %}
+            {{ career_data.clusters[0] }}
+          {% endif %}
+        </div>
+        <p class="career-description">
+          {% if career.summary %}
+            {{ career.summary }}
+          {% elif career.description %}
+            {{ career.description[:150] }}...
+          {% else %}
+            No description available
+          {% endif %}
+        </p>
+        <div style="text-align: center; margin-top: auto; padding-top: 15px; color: #3f37c9; font-size: 12px;">
+          👆 Swipe up for details
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="career-card">
+        <h3>No careers available</h3>
+        <p>Please check back later.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="swipe-buttons">
+    <button class="swipe-btn pass-btn" onclick="swipeLeft()">✕</button>
+    <button class="swipe-btn like-btn" onclick="swipeRight()">♥</button>
+  </div>
+</div>
+
+<!-- Career Details Overlay -->
+<div class="career-details-overlay" id="careerDetailsOverlay">
+  <div class="career-details-content" id="careerDetailsContent">
+    <div class="details-header">
+      <button class="details-back-btn" onclick="closeCareerDetails()">
+        ← Back
+      </button>
+      <button class="details-close-btn" onclick="closeCareerDetails()" title="Close">
+        ×
+      </button>
+    </div>
+    <div class="details-body" id="careerDetailsBody">
+      <!-- Content will be populated by JavaScript -->
+    </div>
+    <div class="details-actions" id="careerDetailsActions" style="display: none;">
+      <button class="details-action-btn details-pass-btn" onclick="finalizeSwipe('pass')">
+        ✕ Pass
+      </button>
+      <button class="details-action-btn details-like-btn" onclick="finalizeSwipe('like')">
+        ♥ Like
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentIndex = 0;
+const cards = document.querySelectorAll('.career-card');
+
+function swipeLeft() {
+  if (currentIndex < cards.length) {
+    const card = cards[currentIndex];
+    const careerId = card.getAttribute('data-career-id');
+    const matchScore = parseFloat(card.querySelector('.match-score')?.textContent.match(/\d+/)?.[0] || 85);
+    
+    // Save swipe action to backend
+    saveSwipeAction(careerId, 'pass', matchScore);
+    
+    card.style.transform = 'translateX(-1000px) rotate(-30deg)';
+    card.style.opacity = '0';
+    setTimeout(() => {
+      card.style.display = 'none';
+      currentIndex++;
+      if (currentIndex >= cards.length) {
+        showCompletion();
+      }
+    }, 300);
+  }
+}
+
+function swipeRight() {
+  if (currentIndex < cards.length) {
+    const card = cards[currentIndex];
+    const careerId = card.getAttribute('data-career-id');
+    const matchScore = parseFloat(card.querySelector('.match-score')?.textContent.match(/\d+/)?.[0] || 85);
+    
+    // Save swipe action to backend
+    saveSwipeAction(careerId, 'like', matchScore);
+    
+    card.style.transform = 'translateX(1000px) rotate(30deg)';
+    card.style.opacity = '0';
+    setTimeout(() => {
+      card.style.display = 'none';
+      currentIndex++;
+      if (currentIndex >= cards.length) {
+        showCompletion();
+      }
+    }, 300);
+  }
+}
+
+function saveSwipeAction(careerId, action, matchScore) {
+  // Get CSRF token from cookie
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+  
+  fetch('{{ url("post_matric:swipe_career_api") }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken
+    },
+    body: JSON.stringify({
+      career_id: careerId,
+      action: action,
+      match_score: matchScore
+    })
+  }).catch(err => console.error('Error saving swipe:', err));
+}
+
+function showCompletion() {
+  const container = document.querySelector('.swipe-container');
+  container.innerHTML = '<div class="career-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;"><h2 style="color: #3f37c9; margin-bottom: 20px;">🎉 All Done!</h2><p style="font-size: 18px; margin-bottom: 30px;">You\'ve reviewed all careers!</p><p style="font-size: 16px; color: #666; margin-bottom: 30px;">Redirecting to your matches...</p><div class="spinner"></div></div>';
+  
+  // Redirect to matches page after 2 seconds
+  setTimeout(() => {
+    window.location.href = '{{ url("post_matric:view_matches") }}';
+  }, 2000);
+}
+
+// Swipe support for both touch and mouse
+let startX = 0;
+let startY = 0;
+let currentX = 0;
+let currentY = 0;
+let isDragging = false;
+let currentCard = null;
+
+cards.forEach((card, index) => {
+  // Touch events
+  card.addEventListener('touchstart', (e) => {
+    if (index === currentIndex) {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      isDragging = true;
+      currentCard = card;
+    }
+  });
+
+  card.addEventListener('touchmove', (e) => {
+    if (isDragging && index === currentIndex) {
+      currentX = e.touches[0].clientX - startX;
+      currentY = e.touches[0].clientY - startY;
+      card.style.transform = `translateX(${currentX}px) translateY(${currentY}px) rotate(${currentX / 20}deg)`;
+    }
+  });
+
+  card.addEventListener('touchend', () => {
+    if (isDragging && index === currentIndex) {
+      isDragging = false;
+      handleSwipeEnd(card, currentX, currentY);
+      currentCard = null;
+    }
+  });
+
+  // Mouse events for desktop
+  card.addEventListener('mousedown', (e) => {
+    if (index === currentIndex) {
+      e.preventDefault();
+      startX = e.clientX;
+      startY = e.clientY;
+      isDragging = true;
+      currentCard = card;
+      card.classList.add('dragging');
+      card.style.cursor = 'grabbing';
+    }
+  });
+});
+
+// Global mouse event listeners for desktop dragging
+document.addEventListener('mousemove', (e) => {
+  if (isDragging && currentCard && currentCard === cards[currentIndex]) {
+    currentX = e.clientX - startX;
+    currentY = e.clientY - startY;
+    currentCard.style.transform = `translateX(${currentX}px) translateY(${currentY}px) rotate(${currentX / 20}deg)`;
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  if (isDragging && currentCard && currentCard === cards[currentIndex]) {
+    isDragging = false;
+    handleSwipeEnd(currentCard, currentX, currentY);
+    currentCard.classList.remove('dragging');
+    currentCard.style.cursor = 'grab';
+    currentCard = null;
+  }
+});
+
+function handleSwipeEnd(card, deltaX, deltaY) {
+  const swipeThreshold = 100;
+  
+  // Check for swipe up (show details)
+  if (deltaY < -swipeThreshold && Math.abs(deltaY) > Math.abs(deltaX)) {
+    showCareerDetails(card);
+    card.style.transform = '';
+    return;
+  }
+  
+  // Check for swipe left/right
+  if (Math.abs(deltaX) > swipeThreshold) {
+    if (deltaX > 0) {
+      swipeRight();
+    } else {
+      swipeLeft();
+    }
+  } else {
+    // Snap back if not enough movement
+    card.style.transform = '';
+  }
+}
+
+let currentDetailsCareer = null;
+
+function showCareerDetails(card) {
+  // Get career data from data attributes
+  const careerData = {
+    id: card.getAttribute('data-career-id'),
+    name: card.getAttribute('data-career-name'),
+    summary: card.getAttribute('data-career-summary'),
+    description: card.getAttribute('data-career-description'),
+    image: card.getAttribute('data-career-image'),
+    clusters: card.getAttribute('data-career-clusters') ? card.getAttribute('data-career-clusters').split(',') : [],
+    skills: card.getAttribute('data-career-skills') ? card.getAttribute('data-career-skills').split(',') : [],
+    url: card.getAttribute('data-career-url')
+  };
+  
+  currentDetailsCareer = careerData;
+  
+  const overlay = document.getElementById('careerDetailsOverlay');
+  const body = document.getElementById('careerDetailsBody');
+  
+  // Build details HTML
+  let detailsHTML = `
+    <img src="${careerData.image}" alt="${careerData.name}" class="career-details-image">
+    <h1 class="career-details-title">${careerData.name}</h1>
+    
+    <div class="career-details-section">
+      <h4>Career Cluster</h4>
+      <p>${careerData.clusters && careerData.clusters.length > 0 ? careerData.clusters.join(', ') : 'Not specified'}</p>
+    </div>
+    
+    <div class="career-details-section">
+      <h4>Description</h4>
+      <div class="career-details-description">
+        <p>${careerData.description || careerData.summary || 'No description available'}</p>
+      </div>
+    </div>
+    
+    ${careerData.skills && careerData.skills.length > 0 ? `
+    <div class="career-details-section">
+      <h4>Key Skills</h4>
+      <ul>
+        ${careerData.skills.map(skill => `<li>${skill.trim()}</li>`).join('')}
+      </ul>
+    </div>
+    ` : ''}
+    
+    ${careerData.url ? `
+    <div class="career-details-section">
+      <a href="${careerData.url}" target="_blank" class="btn btn-primary">View Full Career Details</a>
+    </div>
+    ` : ''}
+  `;
+  
+  body.innerHTML = detailsHTML;
+  
+  // Show action buttons
+  const actions = document.getElementById('careerDetailsActions');
+  if (actions) {
+    actions.style.display = 'flex';
+  }
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCareerDetails() {
+  const overlay = document.getElementById('careerDetailsOverlay');
+  const actions = document.getElementById('careerDetailsActions');
+  overlay.classList.remove('show');
+  document.body.style.overflow = '';
+  if (actions) {
+    actions.style.display = 'none';
+  }
+  currentDetailsCareer = null;
+}
+
+function finalizeSwipe(action) {
+  if (!currentDetailsCareer) return;
+  
+  const careerId = currentDetailsCareer.id;
+  const matchScore = 85; // Default match score
+  
+  // Save swipe action
+  saveSwipeAction(careerId, action, matchScore);
+  
+  // Close details and move to next card
+  closeCareerDetails();
+  
+  // Find and remove the current card
+  const cards = document.querySelectorAll('.career-card');
+  if (currentIndex < cards.length) {
+    const card = cards[currentIndex];
+    if (action === 'like') {
+      card.style.transform = 'translateX(1000px) rotate(30deg)';
+    } else {
+      card.style.transform = 'translateX(-1000px) rotate(-30deg)';
+    }
+    card.style.opacity = '0';
+    setTimeout(() => {
+      card.style.display = 'none';
+      currentIndex++;
+      if (currentIndex >= cards.length) {
+        showCompletion();
+      }
+    }, 300);
+  }
+}
+
+// Close details overlay when clicking outside
+document.getElementById('careerDetailsOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'careerDetailsOverlay') {
+    closeCareerDetails();
+  }
+});
+</script>
+{% endblock %}
+
