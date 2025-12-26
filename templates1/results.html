@@ -3589,7 +3589,7 @@
 
                 <div id="timer-sections" class="text-info-paragraph d-none">
 
-                    </div>
+                    
 
                     <div class="chart-container" style="width:100%; clear: both;">
                         <h4>Aptitude Sections Performance</h4>
@@ -3606,6 +3606,10 @@
             {% if aptitude_strength_narrative %}
             {% with strength_items=aptitude_strength_narrative|slice:":7" %}
             <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
                 <p class="section-title">Strength Narrative</p>
                 <div class="card-container">
                     {% for strength in strength_items|slice:":4" %}
@@ -3645,6 +3649,10 @@
             </div>
             {% if strength_items|length > 4 %}
             <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
                 <div class="card-container card-container--split">
                     {% for strength in strength_items|slice:"4:7" %}
                     {% if strength.Area in above_list|slice:":7" %}
@@ -3687,6 +3695,10 @@
             {% if aptitude_Recommended_College_Courses %}
             {% with college_items=aptitude_Recommended_College_Courses|slice:":7" %}
             <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
                 <p class="section-title">Recommended College Courses</p>
 
                 <p style="text-align:center;width:100% !important; margin-top:5px;">
@@ -3731,6 +3743,10 @@
             </div>
             {% if college_items|length > 4 %}
             <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
                 <div class="card-container strenght-report card-container--split">
                     {% for college in college_items|slice:"4:7" %}
                     {% if college.Area in above_list|slice:":7" %}
@@ -3775,6 +3791,10 @@
             {% if aptitude_roles_guidance %}
             {% with career_items=aptitude_roles_guidance|slice:":7" %}
             <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
                 <p class="section-title">Career Recommendations — Aptitude Report</p>
                 <div class="card-container strenght-report">
                     {% for item in career_items|slice:":4" %}
@@ -3830,6 +3850,10 @@
             </div>
             {% if career_items|length > 4 %}
             <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
                 <div class="card-container strenght-report card-container--split">
                     {% for item in career_items|slice:"4:7" %}
 
@@ -3884,8 +3908,13 @@
             {% endif %}
 
             <!-- Improvement Plan 1-4 reas -->
-            <div class="chapterPage result-four">                
+            <div class="chapterPage result-four">
+                                
                 {% if aptitude_improvement_plan %}
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
                 <p class="section-title imp-title">Improvement Plan for Weaker Areas </p>
                 <div class="card-container improve-report">
                     {% for plan in aptitude_improvement_plan|slice:":4" %}
@@ -3905,8 +3934,13 @@
             </div>
 
             <!-- Improvement Plan 1-4 reas -->
-            <div class="chapterPage result-four">                
+            <div class="chapterPage result-four">
+                              
                 {% if aptitude_improvement_plan %}
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr /> 
                 <div class="card-container improve-report">
                     {% for plan in aptitude_improvement_plan|slice:"4:7" %}
                         <div class="card {% if plan.Category == 'Below Average' %}below-average{% endif %}">
