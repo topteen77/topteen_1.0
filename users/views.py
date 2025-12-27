@@ -537,7 +537,8 @@ class ParentStudentEditProfileView(TemplateView):
         figure_outs=request.POST.getlist("userfigureout",False)
         subjects=request.POST.getlist("usersubject",False)
         hobbies=request.POST.getlist("hobbies",False)
-        if name and mobile and birthdate and gender and grade and school and figure_outs and subjects and hobbies and figure_outs:
+        # Check all required fields are present (figure_outs was duplicated in original condition)
+        if name and mobile and birthdate and gender and grade and school and figure_outs and subjects and hobbies:
             # Student mobile must be unique + not conflict with parent mobiles
             if student.user_type == choices.UserType.STUDENT and _student_mobile_exists(mobile, exclude_user_id=student.id):
                 messages.error(request, "This mobile number is already used by another student.")
@@ -2106,7 +2107,13 @@ class ForgotPasswordVerifyOTP(APIView):
                 if user:
                     user.set_password(password)
                     user.save()
-                    data["success"]=True  
+                    data["success"]=True
+                    data["message"]="Password updated successfully"
+                    
+                    # Debug logging (only in DEBUG mode)
+                    if settings.DEBUG:
+                        print(f"[DEBUG] Forgot Password - Password updated successfully for user: {user.email or user.mobile}")
+                    
                     return  Response(data, status=status.HTTP_200_OK)
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
             else:
@@ -2201,7 +2208,8 @@ class ProfileBasicDetails(TemplateView):
         figure_outs=request.POST.getlist("userfigureout",False)
         subjects=request.POST.getlist("usersubject",False)
         hobbies=request.POST.getlist("hobbies",False)
-        if name and mobile and birthdate and gender and grade and school and figure_outs and subjects and hobbies and figure_outs:
+        # Check all required fields are present (figure_outs was duplicated in original condition)
+        if name and mobile and birthdate and gender and grade and school and figure_outs and subjects and hobbies:
             # Student mobile must be unique
             if request.user.user_type == choices.UserType.STUDENT and _student_mobile_exists(mobile, exclude_user_id=request.user.id):
                 messages.error(request, "This mobile number is already used by another student.")
@@ -2225,9 +2233,10 @@ class ProfileBasicDetails(TemplateView):
             user_profile.schoolname=school
             user_profile.grade=grade
             user_profile.save()
-            user_profile.hobbies.add(*hobbies)
-            user_profile.subject.add(*subjects)
-            user_profile.figure_out.add(*figure_outs)
+            # Use .set() instead of .add() to replace existing relationships, not append
+            user_profile.hobbies.set(hobbies)
+            user_profile.subject.set(subjects)
+            user_profile.figure_out.set(figure_outs)
             user_profile.save()
             user.is_completed=True
             user.save()

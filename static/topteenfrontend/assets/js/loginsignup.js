@@ -1277,13 +1277,37 @@ function forgotpasswordotp() {
         }
       }
       if (data.success == true) {
-        if (typeof fireAlert === 'function') {
-          fireAlert("Password updated successfully!", "success");
-        }
+        // Close forgot password OTP modal
         document.getElementById("forgotpwdotpDiv").classList.add("hideModal");
-        var successPopup = document.getElementById("successotpPopUp");
-        if (successPopup) {
-          successPopup.classList.remove("hideModal");
+        
+        // Show SweetAlert instead of custom modal
+        if (typeof Swal !== 'undefined') {
+          // Use SweetAlert with confirm button and redirect on close
+          Swal.fire({
+            title: "Success",
+            text: "Password Updated Successfully",
+            icon: "success",
+            confirmButtonText: "Ok",
+            confirmButtonColor: "#3f37c9",
+            allowOutsideClick: false,
+            allowEscapeKey: false
+          }).then(function(result) {
+            if (result.isConfirmed || result.isDismissed) {
+              window.location.reload();
+            }
+          });
+        } else if (typeof fireAlert === 'function') {
+          // Fallback to fireAlert (toast style)
+          fireAlert("Password updated successfully!", "success");
+          setTimeout(function() {
+            window.location.reload();
+          }, 2000);
+        } else {
+          // Final fallback - show custom modal if SweetAlert not available
+          var successPopup = document.getElementById("successotpPopUp");
+          if (successPopup) {
+            successPopup.classList.remove("hideModal");
+          }
         }
       }
     },

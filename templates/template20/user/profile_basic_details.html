@@ -705,21 +705,50 @@
     return true;
   }
 
-  // Validate form submission - only validate hobbies on the last step
+  // Validate form submission - validate all required fields
   function validateFormSubmission() {
     // Check if we're on the last step (hobbies step, index 4)
     if ($('.newPages').hasClass('slick-initialized')) {
       const currentSlide = $('.newPages').slick('slickCurrentSlide');
-      // Only validate hobbies if we're on the last step
+      // Only validate if we're on the last step
       if (currentSlide === 4) {
-        return validatehobbiesform();
+        // Validate all required fields before submission
+        if (!validatefigureoutform()) {
+          return false;
+        }
+        if (!validateuserinfoform()) {
+          // Go back to step 2 (basic details) if validation fails
+          $('.newPages').slick('slickGoTo', 1, false);
+          return false;
+        }
+        if (!validatesubjectform()) {
+          // Go back to step 4 (subjects) if validation fails
+          $('.newPages').slick('slickGoTo', 3, false);
+          return false;
+        }
+        if (!validatehobbiesform()) {
+          return false;
+        }
+        return true;
       } else {
         // Prevent form submission on intermediate steps
         return false;
       }
     }
-    // If slick is not initialized, allow normal form submission
-    return validatehobbiesform();
+    // If slick is not initialized, validate all fields
+    if (!validatefigureoutform()) {
+      return false;
+    }
+    if (!validateuserinfoform()) {
+      return false;
+    }
+    if (!validatesubjectform()) {
+      return false;
+    }
+    if (!validatehobbiesform()) {
+      return false;
+    }
+    return true;
   }
 
   function validatehobbiesform() {

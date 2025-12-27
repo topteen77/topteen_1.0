@@ -3798,6 +3798,176 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
+def get_career_recommendations_from_tests(user):
+    """
+    Get career recommendations based on user's test results (RIASEC, Motivation, Aptitude)
+    Returns a list of (Career, match_score) tuples sorted by score
+    """
+    from careers.models import Career
+    from core import choices
+    from django.conf import settings
+    import ast
+    import json
+    
+    # Debug logging helper (only in DEBUG mode)
+    def debug_log(message):
+        if settings.DEBUG:
+            print(f"[DEBUG] Career Recommendations - {message}")
+    
+    debug_log(f"Getting career recommendations for user: {user.email or user.mobile}")
+    
+    recommended_career_names = set()
+    career_scores = {}  # {career_name: score}
+    
+    # Get test sessions for Career Interest Inventory (RIASEC)
+    riasec_session = TestSession.objects.filter(
+        user=user,
+        test__title='Career Interest Inventory',
+        is_completed=True
+    ).order_by('-end_time').first()
+    
+    # Get test session for Motivation Assessment
+    motivation_session = TestSession.objects.filter(
+        user=user,
+        test__title='Motivation Assessment',
+        is_completed=True
+    ).order_by('-end_time').first()
+    
+    # Get test session for Aptitude Assessment
+    aptitude_session = TestSession.objects.filter(
+        user=user,
+        test__title='Aptitude Assessment',
+        is_completed=True
+    ).order_by('-end_time').first()
+    
+    # Process RIASEC (Career Interest Inventory) results
+    if riasec_session:
+        try:
+            categories_record = TestTopCategories.objects.filter(
+                user=user,
+                test_paper=riasec_session.test
+            ).first()
+            
+            if categories_record:
+                high_categories = categories_record.high_category.strip("[]").strip()
+                low_category = categories_record.low_category
+                
+                debug_log(f"RIASEC Code: {high_categories}")
+                
+                hexaco_recommendations = get_hexaco_career_recommendations(
+                    high_categories, low_category, riasec_session
+                )
+                
+                # Extract career names from RIASEC recommendations
+                riasec_careers = hexaco_recommendations.get('riasec_careers_to_opt', {})
+                riasec_career_list = []
+                for category in ["Traditional", "Trending", "Futuristic"]:
+                    careers = riasec_careers.get(category, [])
+                    for career_name in careers:
+                        career_name_clean = career_name.strip()
+                        recommended_career_names.add(career_name_clean)
+                        riasec_career_list.append(f"{career_name_clean} ({category})")
+                        # Higher score for Trending and Futuristic careers
+                        if category == "Futuristic":
+                            career_scores[career_name_clean] = career_scores.get(career_name_clean, 0) + 30
+                        elif category == "Trending":
+                            career_scores[career_name_clean] = career_scores.get(career_name_clean, 0) + 25
+                        else:  # Traditional
+                            career_scores[career_name_clean] = career_scores.get(career_name_clean, 0) + 20
+                
+                if riasec_career_list:
+                    debug_log(f"RIASEC Careers Found ({len(riasec_career_list)}):")
+                    for career in riasec_career_list:
+                        debug_log(f"  - {career}")
+                else:
+                    debug_log("No RIASEC careers found")
+        except Exception as e:
+            debug_log(f"Error processing RIASEC results: {e}")
+            print(f"Error processing RIASEC results: {e}")
+    
+    # Process Motivation Assessment results
+    if motivation_session:
+        try:
+            categories_record = TestTopCategories.objects.filter(
+                user=user,
+                test_paper=motivation_session.test
+            ).first()
+            
+            if categories_record:
+                high_categories = categories_record.high_category
+                low_category = categories_record.low_category
+                
+                debug_log(f"Motivation Category: {high_categories}")
+                
+                hexaco_recommendations = get_hexaco_career_recommendations(
+                    high_categories, low_category, motivation_session
+                )
+                
+                # Extract career names from Motivation recommendations
+                motivation_careers = hexaco_recommendations.get('motivation_careers_to_opt', {})
+                career_roles = motivation_careers.get('Career Category & Roles', [])
+                motivation_career_list = []
+                for role in career_roles:
+                    if role and role.strip():
+                        role_clean = role.strip()
+                        recommended_career_names.add(role_clean)
+                        motivation_career_list.append(role_clean)
+                        career_scores[role_clean] = career_scores.get(role_clean, 0) + 15
+                
+                if motivation_career_list:
+                    debug_log(f"Motivation Careers Found ({len(motivation_career_list)}):")
+                    for career in motivation_career_list:
+                        debug_log(f"  - {career}")
+                else:
+                    debug_log("No Motivation careers found")
+        except Exception as e:
+            debug_log(f"Error processing Motivation results: {e}")
+            print(f"Error processing Motivation results: {e}")
+    
+    # Match career names to Career objects in database
+    matched_careers = []
+    unmatched_careers = []
+    
+    debug_log(f"Total unique career names from tests: {len(recommended_career_names)}")
+    
+    for career_name in recommended_career_names:
+        # Try exact match first
+        career = Career.objects.filter(
+            name__iexact=career_name,
+            publish_status=choices.PublishStatus.PUBLISHED
+        ).first()
+        
+        match_type = "exact"
+        # If not found, try partial match
+        if not career:
+            career = Career.objects.filter(
+                name__icontains=career_name,
+                publish_status=choices.PublishStatus.PUBLISHED
+            ).first()
+            match_type = "partial" if career else "none"
+        
+        if career:
+            score = career_scores.get(career_name, 50.0)  # Default score if not found
+            matched_careers.append((career, min(score, 100.0)))
+            debug_log(f"  ✓ Matched ({match_type}): '{career_name}' → '{career.name}' (Score: {min(score, 100.0)})")
+        else:
+            unmatched_careers.append(career_name)
+            debug_log(f"  ✗ Not found: '{career_name}'")
+    
+    # Sort by score descending
+    matched_careers.sort(key=lambda x: x[1], reverse=True)
+    
+    debug_log(f"Successfully matched: {len(matched_careers)} careers")
+    debug_log(f"Not found in database: {len(unmatched_careers)} careers")
+    
+    if matched_careers:
+        debug_log("Final Recommended Careers (sorted by score):")
+        for idx, (career, score) in enumerate(matched_careers[:20], 1):  # Show top 20
+            debug_log(f"  {idx}. {career.name} (Score: {score:.1f}%)")
+    
+    return matched_careers
+
+
 @login_required
 def career_swipe(request):
     """
@@ -3806,23 +3976,12 @@ def career_swipe(request):
     """
     from careers.models import Career
     from core import choices
+    from django.conf import settings
     
-    # Get published careers - convert to list for Jinja2 compatibility
-    careers_queryset = Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED).select_related().prefetch_related(
-        'career_cluster', 'skills', 'career_tags'
-    )[:20]  # Limit for demo
-    
-    # Prepare career data for template (Jinja2 compatible)
-    careers = []
-    for career in careers_queryset:
-        career_data = {
-            'career': career,
-            'image_url': career.get_image_url() if career.get_image_url() else '/static/images/career-icon.png',
-            'url': career.url(),
-            'clusters': [c.name for c in career.career_cluster.all()],
-            'skills': [s.name for s in career.skills.all()[:5]]
-        }
-        careers.append(career_data)
+    # Debug logging helper (only in DEBUG mode)
+    def debug_log(message):
+        if settings.DEBUG:
+            print(f"[DEBUG] Career Swipe - {message}")
     
     # Check if user has completed tests
     has_tests = TestSession.objects.filter(
@@ -3830,22 +3989,142 @@ def career_swipe(request):
         is_completed=True
     ).exists()
     
-    # Get user profile data
+    # Get user profile data and check if hobbies/interests are completed
     user_profile_data = None
+    has_hobbies = False
+    has_interests = False
+    profile_complete = False
+    
     if hasattr(request.user, 'user_profile') and request.user.user_profile:
         profile = request.user.user_profile
+        hobbies_count = profile.hobbies.count()
+        subjects_count = profile.subject.count()
+        
+        has_hobbies = hobbies_count > 0
+        has_interests = subjects_count > 0
+        profile_complete = has_hobbies and has_interests
+        
         user_profile_data = {
             'hobbies': [h.name for h in profile.hobbies.all()],
             'subjects': [s.name for s in profile.subject.all()],
             'figure_out': [f.name for f in profile.figure_out.all()],
             'grade': profile.grade if profile.grade else None
         }
+        
+        # Debug logging - show info if student has interests/hobbies OR psychometric tests
+        if has_hobbies or has_interests or has_tests:
+            debug_log(f"User: {request.user.email or request.user.mobile}")
+            debug_log(f"  Has Hobbies: {has_hobbies} (count: {hobbies_count})")
+            debug_log(f"  Has Interests/Subjects: {has_interests} (count: {subjects_count})")
+            debug_log(f"  Has Psychometric Tests: {has_tests}")
+            debug_log(f"  Profile Complete: {profile_complete}")
+            if profile_complete:
+                debug_log(f"  ✅ Profile is complete - No popup needed")
+            else:
+                debug_log(f"  ⚠️  Profile incomplete - Showing completion popup")
+    else:
+        debug_log(f"User: {request.user.email or request.user.mobile}")
+        debug_log(f"  No UserProfile found - Showing completion popup")
+    
+    # Check if profile needs completion (missing hobbies OR interests)
+    # Popup shows if at least one (hobbies OR interests) is missing
+    show_profile_completion_popup = not (has_hobbies and has_interests)
+    
+    # Get career recommendations based on test results if available
+    recommended_careers = []
+    if has_tests:
+        try:
+            recommended_careers = get_career_recommendations_from_tests(request.user)
+            debug_log(f"Found {len(recommended_careers)} careers from test results")
+        except Exception as e:
+            debug_log(f"Error getting test-based recommendations: {e}")
+            recommended_careers = []
+    
+    # If we have test-based recommendations, use them
+    if recommended_careers:
+        # Use recommended careers from test results
+        careers_queryset = [career for career, score in recommended_careers[:20]]
+        debug_log(f"Using {len(careers_queryset)} test-recommended careers")
+    elif user_profile_data and (has_hobbies or has_interests):
+        # Fallback to profile-based recommendations if no test results but profile is complete
+        debug_log("No test results - Using profile-based recommendations")
+        all_careers = Career.objects.filter(
+            publish_status=choices.PublishStatus.PUBLISHED
+        ).select_related().prefetch_related('career_cluster', 'skills', 'career_tags')
+        
+        scored_careers = []
+        for career in all_careers[:100]:  # Check top 100 for performance
+            score = 50.0  # Base score
+            
+            # Score based on hobbies
+            if user_profile_data.get('hobbies'):
+                career_tags = [tag.name.lower() for tag in career.career_tags.all()]
+                hobby_names = [h.lower() for h in user_profile_data['hobbies']]
+                hobby_matches = sum(1 for hobby in hobby_names if hobby in ' '.join(career_tags))
+                score += hobby_matches * 10
+                if hobby_matches > 0:
+                    debug_log(f"  Career '{career.name}' matched {hobby_matches} hobbies")
+            
+            # Score based on subjects/interests
+            if user_profile_data.get('subjects'):
+                career_skills = [s.name.lower() for s in career.skills.all()]
+                subject_names = [s.lower() for s in user_profile_data['subjects']]
+                subject_matches = sum(1 for subject in subject_names if subject in ' '.join(career_skills))
+                score += subject_matches * 8
+                if subject_matches > 0:
+                    debug_log(f"  Career '{career.name}' matched {subject_matches} subjects")
+            
+            scored_careers.append((career, min(score, 100.0)))
+        
+        # Sort by score and take top 20
+        scored_careers.sort(key=lambda x: x[1], reverse=True)
+        recommended_careers = scored_careers[:20]
+        careers_queryset = [career for career, score in recommended_careers]
+        
+        debug_log(f"Profile-based recommendations: {len(careers_queryset)} careers")
+        if recommended_careers:
+            debug_log("Top profile-based careers:")
+            for idx, (career, score) in enumerate(recommended_careers[:10], 1):
+                debug_log(f"  {idx}. {career.name} (Score: {score:.1f}%)")
+    else:
+        # Fallback to all published careers if no test results and no profile data
+        careers_queryset = Career.objects.filter(
+            publish_status=choices.PublishStatus.PUBLISHED
+        ).select_related().prefetch_related(
+            'career_cluster', 'skills', 'career_tags'
+        )[:20]  # Limit for demo
+        debug_log(f"Using {len(careers_queryset)} default published careers (no test results, no profile data)")
+    
+    # Prepare career data for template (Jinja2 compatible)
+    careers = []
+    # Create score map from recommended_careers if available
+    career_score_map = {}
+    if recommended_careers:
+        for career, score in recommended_careers:
+            career_score_map[career] = score
+    
+    for career in careers_queryset:
+        # Get match score from recommendations or use default
+        match_score = career_score_map.get(career, 85.0)
+        
+        career_data = {
+            'career': career,
+            'image_url': career.get_image_url() if career.get_image_url() else '/static/images/career-icon.png',
+            'url': career.url(),
+            'clusters': [c.name for c in career.career_cluster.all()],
+            'skills': [s.name for s in career.skills.all()[:5]],
+            'match_score': round(match_score, 1)
+        }
+        careers.append(career_data)
     
     context = {
         'careers': careers,
         'has_tests': has_tests,
         'user_profile_data': user_profile_data,
-        'user': request.user
+        'user': request.user,
+        'show_profile_completion_popup': show_profile_completion_popup,
+        'has_hobbies': has_hobbies,
+        'has_interests': has_interests
     }
     
     return render(request, 'template20/app_post_matric/career_swipe.html', context)
@@ -3877,10 +4156,19 @@ def view_matches(request):
 def top_recommendations(request):
     """
     Top Recommendations - Show top N career matches based on user profile/test results
+    Uses same logic as career_swipe for consistency
     """
     from careers.models import Career
     from core import choices
     from .models import CareerMatch
+    from django.conf import settings
+    
+    # Debug logging helper (only in DEBUG mode)
+    def debug_log(message):
+        if settings.DEBUG:
+            print(f"[DEBUG] Top Recommendations - {message}")
+    
+    debug_log(f"Getting top recommendations for user: {request.user.email or request.user.mobile}")
     
     # Check if user has completed tests
     has_tests = TestSession.objects.filter(
@@ -3890,39 +4178,89 @@ def top_recommendations(request):
     
     # Get user profile data for matching
     user_profile_data = None
+    has_hobbies = False
+    has_interests = False
+    
     if hasattr(request.user, 'user_profile') and request.user.user_profile:
         profile = request.user.user_profile
+        hobbies_count = profile.hobbies.count()
+        subjects_count = profile.subject.count()
+        
+        has_hobbies = hobbies_count > 0
+        has_interests = subjects_count > 0
+        
         user_profile_data = {
             'hobbies': [h.name for h in profile.hobbies.all()],
             'subjects': [s.name for s in profile.subject.all()],
             'figure_out': [f.name for f in profile.figure_out.all()],
             'grade': profile.grade if profile.grade else None
         }
+        
+        debug_log(f"  Has Hobbies: {has_hobbies} (count: {hobbies_count})")
+        debug_log(f"  Has Interests/Subjects: {has_interests} (count: {subjects_count})")
+        debug_log(f"  Has Psychometric Tests: {has_tests}")
     
-    # Get all published careers
-    careers_queryset = Career.objects.filter(
-        publish_status=choices.PublishStatus.PUBLISHED
-    ).select_related().prefetch_related('career_cluster', 'skills', 'career_tags')
-    
-    # Simple scoring based on profile data (can be enhanced with actual matching algorithm)
+    # Get career recommendations from test results if available
     scored_careers = []
-    for career in careers_queryset[:50]:  # Limit for performance
-        score = 50.0  # Base score
+    if has_tests:
+        try:
+            recommended_careers = get_career_recommendations_from_tests(request.user)
+            scored_careers = recommended_careers[:20]  # Top 20 from test results
+            debug_log(f"Using {len(scored_careers)} test-recommended careers")
+        except Exception as e:
+            debug_log(f"Error getting test-based recommendations: {e}")
+            scored_careers = []
+    
+    # If no test results, use profile-based matching (same logic as career_swipe)
+    if not scored_careers and user_profile_data and (has_hobbies or has_interests):
+        debug_log("No test results - Using profile-based recommendations")
+        all_careers = Career.objects.filter(
+            publish_status=choices.PublishStatus.PUBLISHED
+        ).select_related().prefetch_related('career_cluster', 'skills', 'career_tags')
         
-        # Add score based on user profile if available
-        if user_profile_data:
-            # Simple matching logic (can be enhanced)
+        for career in all_careers[:100]:  # Check top 100 for performance
+            score = 50.0  # Base score
+            
+            # Score based on hobbies
             if user_profile_data.get('hobbies'):
-                # Check if career tags match hobbies
                 career_tags = [tag.name.lower() for tag in career.career_tags.all()]
-                hobby_matches = sum(1 for hobby in user_profile_data['hobbies'] if hobby.lower() in ' '.join(career_tags))
+                hobby_names = [h.lower() for h in user_profile_data['hobbies']]
+                hobby_matches = sum(1 for hobby in hobby_names if hobby in ' '.join(career_tags))
                 score += hobby_matches * 10
+                if hobby_matches > 0:
+                    debug_log(f"  Career '{career.name}' matched {hobby_matches} hobbies")
+            
+            # Score based on subjects/interests
+            if user_profile_data.get('subjects'):
+                career_skills = [s.name.lower() for s in career.skills.all()]
+                subject_names = [s.lower() for s in user_profile_data['subjects']]
+                subject_matches = sum(1 for subject in subject_names if subject in ' '.join(career_skills))
+                score += subject_matches * 8
+                if subject_matches > 0:
+                    debug_log(f"  Career '{career.name}' matched {subject_matches} subjects")
+            
+            scored_careers.append((career, min(score, 100.0)))
         
-        scored_careers.append((career, min(score, 100.0)))
+        debug_log(f"Profile-based recommendations: {len(scored_careers)} careers")
+    elif not scored_careers:
+        # Fallback to all published careers if no test results and no profile data
+        debug_log("No test results, no profile data - Using default published careers")
+        careers_queryset = Career.objects.filter(
+            publish_status=choices.PublishStatus.PUBLISHED
+        ).select_related().prefetch_related('career_cluster', 'skills', 'career_tags')
+        
+        for career in careers_queryset[:50]:  # Limit for performance
+            score = 50.0  # Base score
+            scored_careers.append((career, min(score, 100.0)))
     
     # Sort by score descending and take top 10
     scored_careers.sort(key=lambda x: x[1], reverse=True)
     top_careers = scored_careers[:10]
+    
+    if top_careers:
+        debug_log("Top 10 Recommended Careers:")
+        for idx, (career, score) in enumerate(top_careers, 1):
+            debug_log(f"  {idx}. {career.name} (Score: {score:.1f}%)")
     
     context = {
         'top_careers': top_careers,
