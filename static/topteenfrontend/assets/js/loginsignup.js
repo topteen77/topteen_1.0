@@ -219,6 +219,11 @@ function loginsingupotp() {
     url: userssignupotpverify,
     data: formData,
     success: function (data) {
+      // Log OTP to browser console for debugging (if available in response)
+      if (data.debug_otp) {
+        console.log('%c🔐 OTP: ' + data.debug_otp, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
+        console.log('OTP:', data.debug_otp);
+      }
       if (data.otp_verify != true) {
         var otperrtag = document.getElementById("errorMsgOtpSinguplogin");
         if (otperrtag) {
@@ -720,6 +725,11 @@ function loginpwd() {
     url: usersloginpwd,
     data: formData,
     success: function (data) {
+      // Log OTP to browser console for debugging
+      if (data.debug_otp) {
+        console.log('%c🔐 OTP for ' + data.user_name + ': ' + data.debug_otp, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
+        console.log('OTP:', data.debug_otp);
+      }
       if (data.success) {
         // Check if user needs to set password (master password login)
         if (data.need_set_password) {
@@ -797,6 +807,11 @@ function loginpwd() {
                       url: usersresendotp,
                       data: otpFormData,
                       success: function(otpData) {
+                        // Log OTP to browser console for debugging
+                        if (otpData.debug_otp) {
+                          console.log('%c🔐 OTP for ' + data.user_name + ': ' + otpData.debug_otp, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
+                          console.log('OTP:', otpData.debug_otp);
+                        }
                         if (typeof fireAlert === 'function') {
                           fireAlert('OTP sent successfully to ' + data.user_name, 'success');
                         }
@@ -904,6 +919,11 @@ function loginwithotpshow() {
     url: usersresendotp,
     data: formData,
     success: function (data) {
+      // Log OTP to browser console for debugging
+      if (data.debug_otp) {
+        console.log('%c🔐 OTP for ' + username + ': ' + data.debug_otp, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
+        console.log('OTP:', data.debug_otp);
+      }
       // Remove any existing username input from OTP form
       var existingInput = document.getElementById("loginotpusername");
       if (existingInput) {
@@ -970,6 +990,11 @@ function loginwithotp() {
     url: usersloginotp,
     data: formData,
     success: function (data) {
+      // Log OTP to browser console for debugging (if available in response)
+      if (data.debug_otp) {
+        console.log('%c🔐 OTP: ' + data.debug_otp, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
+        console.log('OTP:', data.debug_otp);
+      }
       if (data.otp_verify != true || data.success != true) {
         var otperrtag = document.getElementById("errorMsgOtpSinguplogin");
         if (otperrtag) {
@@ -1061,6 +1086,11 @@ function forgotpasswordshow() {
     url: usersforgotpassword,
     data: formData,
     success: function (data) {
+      // Log OTP to browser console for debugging
+      if (data.debug_otp) {
+        console.log('%c🔐 Forgot Password OTP: ' + data.debug_otp, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
+        console.log('OTP:', data.debug_otp);
+      }
       if (data.success) {
         // Remove any existing username input from forgot password OTP form
         var existingInput = document.getElementById("forgotpwdusername");
@@ -1166,6 +1196,11 @@ function forgotpassword() {
     url: usersforgotpassword,
     data: formData,
     success: function (data) {
+      // Log OTP to browser console for debugging
+      if (data.debug_otp) {
+        console.log('%c🔐 Forgot Password OTP: ' + data.debug_otp, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
+        console.log('OTP:', data.debug_otp);
+      }
       if (data.success) {
         if (typeof fireAlert === 'function') {
           fireAlert("OTP sent successfully to " + (data.user_name || "your email"), "success");

@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.utils.crypto import get_random_string
 import requests
+from urllib.parse import urlencode
 from core import choices
 from .models import OTP,CommunicationLog
 from django.core.mail import EmailMultiAlternatives
@@ -20,6 +21,55 @@ class ComService:
 
     def generate_otp(self):
         return get_random_string(6, allowed_chars='0123456789')
+
+    def format_phone_number_with_country_code(self, phone_number):
+        """
+        Format phone number with country code if needed.
+        For Indian numbers (10 digits starting with 6-9), prepend 91 (country code).
+        If number already has country code, return as is.
+        
+        Args:
+            phone_number: Phone number as int or string
+            
+        Returns:
+            Formatted phone number string with country code (without + sign for API use)
+        """
+        # Convert to string and remove any spaces or special characters
+        phone_str = str(phone_number).strip().replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        
+        # Remove leading + if present
+        if phone_str.startswith('+'):
+            phone_str = phone_str[1:]
+        
+        # If already starts with country code 91 and is 12 digits, return as is
+        if phone_str.startswith('91') and len(phone_str) == 12:
+            return phone_str
+        
+        # Remove leading 0 if present (some Indian numbers have leading 0)
+        if phone_str.startswith('0') and len(phone_str) == 11:
+            phone_str = phone_str[1:]
+        
+        # Check if it's a 10-digit Indian number (starts with 6-9)
+        if len(phone_str) == 10 and phone_str[0] in ['6', '7', '8', '9']:
+            # Add country code 91 for Indian numbers
+            return f"91{phone_str}"
+        
+        # If number already has country code (12+ digits starting with 91), return as is
+        if phone_str.startswith('91') and len(phone_str) >= 12:
+            return phone_str
+        
+        # If it's already 12+ digits (likely has country code), return as is
+        if len(phone_str) >= 12:
+            return phone_str
+        
+        # Default: assume it's an Indian number and add 91
+        # Remove any leading zeros
+        phone_str = phone_str.lstrip('0')
+        if len(phone_str) == 10 and phone_str[0] in ['6', '7', '8', '9']:
+            return f"91{phone_str}"
+        
+        # Return as is if we can't determine (fallback)
+        return phone_str
 
     def get_otp(self,user,otp_type):
         user_otp=OTP.objects.filter(user=user,type=otp_type)
@@ -93,19 +143,81 @@ class ComService:
 
     def send_mobile_otp(self,user):
         try:
-            user= int(user)
-            otp = self.get_otp(user,choices.CommunicationTypeChooices.SMS)
-            print("sending mobile otp for {} is {}".format(user,otp))
-            # message = sms_strings.OTP.format(otp=otp)
-            otp_block='{"OTP":' + otp+'}'
-            r="DEBUG"
-            url = self._SERVICE_URL.format(otp_block=otp_block,mobile=user)
+            user = int(user)
+            otp = self.get_otp(user, choices.CommunicationTypeChooices.SMS)
+            print("sending mobile otp for {} is {}".format(user, otp))
+            
+            # Format phone number with country code (default 91 for Indian numbers)
+            formatted_phone = self.format_phone_number_with_country_code(user)
+            print(f"Formatted phone number: {formatted_phone} (original: {user})")
+            
+            # SmartPing SMS API implementation
+            # Format message using template from settings
+            message_template = getattr(settings, 'SMARTPING_SMS_MESSAGE_TEMPLATE', '{otp} is your verification code for TestprepGPT AI')
+            message = message_template.format(otp=otp)
+            
+            # Prepare API parameters
+            # formatted_phone already has country code without + sign
+            params = {
+                'username': getattr(settings, 'SMARTPING_SMS_USERNAME', 'Testprepgpt.trans'),
+                'password': getattr(settings, 'SMARTPING_SMS_PASSWORD', 'sW2gV'),
+                'unicode': getattr(settings, 'SMARTPING_SMS_UNICODE', 'false'),
+                'from': getattr(settings, 'SMARTPING_SMS_FROM', 'TSTGPT'),
+                'to': formatted_phone,
+                'dltContentId': getattr(settings, 'SMARTPING_SMS_DLT_CONTENT_ID', '1707175152949044040'),
+                'dltPrincipalEntityId': getattr(settings, 'SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID', '1701172845816093698'),
+                'text': message
+            }
+            
+            # Build the API URL
+            api_url = getattr(settings, 'SMARTPING_SMS_API_URL', 'https://pgapi.smartping.ai/fe/api/v1/send')
+            url = f"{api_url}?{urlencode(params)}"
+            
+            # Send SMS
+            response_text = "DEBUG"
+            response_status = False
+            
             if settings.DEBUG is False and self.check_duplicate_sms(url) is False:
-                r = requests.get(url=url).content
-            self.make_log_entry(user,url,choices.CommunicationTypeChooices.SMS,r)
-            return r.status_code == 200
+                try:
+                    response = requests.get(url, timeout=10)
+                    # Safely extract response content
+                    if hasattr(response, 'content') and response.content:
+                        try:
+                            response_text = response.content.decode('utf-8')
+                        except (UnicodeDecodeError, AttributeError):
+                            response_text = str(response.content)
+                    else:
+                        response_text = f"Status: {response.status_code}" if hasattr(response, 'status_code') else "No content"
+                    
+                    # Check response status
+                    if hasattr(response, 'status_code'):
+                        response_status = response.status_code == 200
+                        print(f"SmartPing SMS API Response: {response_text} (Status: {response.status_code})")
+                    else:
+                        response_status = False
+                        print(f"SmartPing SMS API Response: {response_text} (No status code)")
+                except requests.exceptions.RequestException as e:
+                    print(f"Error sending SMS via SmartPing API: {str(e)}")
+                    response_text = f"Error: {str(e)}"
+                    response_status = False
+                except Exception as e:
+                    print(f"Unexpected error sending SMS via SmartPing API: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    response_text = f"Unexpected Error: {str(e)}"
+                    response_status = False
+            else:
+                print(f"DEBUG mode or duplicate SMS detected. URL: {url}")
+                response_status = True  # Return True in DEBUG mode
+            
+            # Log the communication
+            self.make_log_entry(user, url, choices.CommunicationTypeChooices.SMS, response_text)
+            return response_status
+            
         except Exception as e:
-            print("Invalid mobile_number",user,e)
+            print(f"Invalid mobile_number {user}: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def send_otp(self,user,otp_type):

@@ -362,6 +362,11 @@
       url: usersresendotp,
       data: formData,
       success: function (data) {
+        // Log OTP to browser console for debugging
+        if (data.debug_otp) {
+          console.log('%c🔐 OTP for ' + mobile + ': ' + data.debug_otp, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
+          console.log('OTP:', data.debug_otp);
+        }
         // Remove any existing username input from OTP form
         var existingInput = document.getElementById("signupusername");
         if (existingInput) existingInput.remove();

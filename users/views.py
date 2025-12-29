@@ -1212,6 +1212,9 @@ class LoginSignUp(APIView):
                 data['user_name']=username
                 data["show_otp"]=True
                 data["show_password"]=False
+                # Include OTP in response for browser console debugging (only in DEBUG mode)
+                if settings.DEBUG:
+                    data['debug_otp'] = otp
                 # return HttpResponse('data',data)
                 return Response(data, status=status.HTTP_200_OK)
             
@@ -1779,7 +1782,11 @@ class SendMobileOtp(APIView):
         otp = cs.get_otp(int(mobile), otp_type)
         print(f"Mobile Update - SMS OTP for {mobile}: {otp}")
         send_otp_mail(int(mobile), otp_type)
-        return Response({'success': True, 'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
+        response_data = {'success': True, 'message': 'OTP sent successfully'}
+        # Include OTP in response for browser console debugging (only in DEBUG mode)
+        if settings.DEBUG:
+            response_data['debug_otp'] = otp
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class VerifyMobileOtp(APIView):
@@ -1892,7 +1899,11 @@ class SendParentOtp(APIView):
         otp = cs.get_otp(int(mobile), otp_type)
         print(f"Parent Link - SMS OTP for {mobile}: {otp}")
         send_otp_mail(int(mobile), otp_type)
-        return Response({'success': True, 'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
+        response_data = {'success': True, 'message': 'OTP sent successfully'}
+        # Include OTP in response for browser console debugging (only in DEBUG mode)
+        if settings.DEBUG:
+            response_data['debug_otp'] = otp
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class VerifyParentOtp(APIView):
@@ -2065,6 +2076,9 @@ class ForgotPassword(APIView):
                 data["show_password"]=True  
                 data['success']=True
                 data['user_name']=username
+                # Include OTP in response for browser console debugging (only in DEBUG mode)
+                if settings.DEBUG:
+                    data['debug_otp'] = otp
                 return Response(data, status=status.HTTP_200_OK)
             else:        
                 data['user_name']=username
@@ -2154,6 +2168,9 @@ class ResendOtp(APIView):
             send_otp_mail(username,otp_type)
             data['message']="OTP sent successfully"
             data['success']=True
+            # Include OTP in response for browser console debugging (only in DEBUG mode)
+            if settings.DEBUG:
+                data['debug_otp'] = otp
             return Response(data, status=status.HTTP_200_OK)
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
 

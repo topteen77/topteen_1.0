@@ -364,6 +364,16 @@ QUEUE_DEFAULT = 'default'
 TOPTEEN_FROM_EMAIL="support@topteen.careers"
 MOBILE_SMS_SERVICE = ''
 
+# SmartPing SMS API Configuration
+SMARTPING_SMS_API_URL = config('SMARTPING_SMS_API_URL', default='https://pgapi.smartping.ai/fe/api/v1/send')
+SMARTPING_SMS_USERNAME = config('SMARTPING_SMS_USERNAME', default='Testprepgpt.trans')
+SMARTPING_SMS_PASSWORD = config('SMARTPING_SMS_PASSWORD', default='sW2gV')
+SMARTPING_SMS_FROM = config('SMARTPING_SMS_FROM', default='TSTGPT')
+SMARTPING_SMS_DLT_CONTENT_ID = config('SMARTPING_SMS_DLT_CONTENT_ID', default='1707175152949044040')
+SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID = config('SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID', default='1701172845816093698')
+SMARTPING_SMS_UNICODE = config('SMARTPING_SMS_UNICODE', default='false')
+SMARTPING_SMS_MESSAGE_TEMPLATE = config('SMARTPING_SMS_MESSAGE_TEMPLATE', default='{otp} is your verification code for TestprepGPT AI')
+
 # EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Email Configuration - AWS SES
