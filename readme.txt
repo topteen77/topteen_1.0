@@ -1,3 +1,8 @@
+kill port:
+
+pkill -f "manage.py runserver.*8002"
+
+
 ** testing script start ***
 python scripts/run_test_students_manager.py create --limit 1
 
@@ -38,6 +43,22 @@ python manage.py fix_career_table_tags
 # Fix <li> tags with numbers/bullets in both description and description_en  
 python manage.py fix_li_tags_with_numbers_bullets --dry-run
 python manage.py fix_li_tags_with_numbers_bullets
+
+# Populate description_json field for careers (stores parsed JSON structure from description)
+# Preview mode (no changes)
+python manage.py populate_career_description_json --dry-run
+
+# Process a specific career
+python manage.py populate_career_description_json --career-id 1790
+
+# Process with limit
+python manage.py populate_career_description_json --limit 10
+
+# Skip careers that already have JSON
+python manage.py populate_career_description_json --skip-existing
+
+# Process all careers
+python manage.py populate_career_description_json
 
 
 

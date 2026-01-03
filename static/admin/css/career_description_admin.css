@@ -1,0 +1,267 @@
+/**
+ * Career Description Admin CSS
+ * Styles for description tools, tabs, and preview
+ */
+
+.description-tools-wrapper {
+    margin-bottom: 20px;
+}
+
+.description-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+.description-toolbar button {
+    background: #417690;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: opacity 0.2s;
+}
+
+.description-toolbar button:hover {
+    opacity: 0.9;
+}
+
+.description-toolbar button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.description-tabs {
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 0;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.tab-button:hover {
+    color: #417690;
+    background: #f8f9fa;
+}
+
+.tab-button.active {
+    border-bottom: 2px solid #417690;
+    font-weight: bold;
+    color: #417690;
+}
+
+.tab-content {
+    border: 1px solid #ddd;
+    border-top: none;
+    background: #fff;
+}
+
+.tab-pane {
+    display: none;
+    padding: 20px;
+    min-height: 400px;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+#accordion-preview-container {
+    min-height: 400px;
+}
+
+/* JSON Preview Modal */
+#json-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    display: none;
+}
+
+#json-preview-modal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+#json-preview-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+#json-preview-modal h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+}
+
+#json-preview-modal #close-json-modal {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#json-preview-modal #close-json-modal:hover {
+    background: #c82333;
+}
+
+#json-preview-content {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    overflow: auto;
+    max-height: 60vh;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Accordion Preview Styles */
+.accordion-preview-wrapper {
+    padding: 20px;
+}
+
+.cat-accordion {
+    margin-top: 0;
+}
+
+.cat-accordion .accordion-item {
+    border: 1px solid #e4e7fb;
+    border-radius: 16px;
+    margin-bottom: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(12, 15, 37, 0.06);
+}
+
+.cat-accordion .accordion-button {
+    font-weight: 600;
+    font-size: 18px;
+    padding: 18px 24px;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.cat-accordion .accordion-button i {
+    font-size: 22px;
+    color: #5046e5;
+    margin-right: 10px;
+}
+
+.cat-accordion .accordion-button:not(.collapsed) {
+    color: #090b24;
+    background: #f4f3ff;
+    box-shadow: none;
+}
+
+.cat-accordion .accordion-button:focus {
+    box-shadow: none;
+    border-color: transparent;
+    outline: none;
+}
+
+.cat-accordion .accordion-button::after {
+    content: '\25BC';
+    margin-left: auto;
+    transition: transform 0.2s;
+}
+
+.cat-accordion .accordion-button:not(.collapsed)::after {
+    transform: rotate(180deg);
+}
+
+.cat-accordion .accordion-body {
+    padding: 20px 28px 28px;
+    background: #fff;
+}
+
+.cat-accordion .accordion-body p {
+    margin-bottom: 10px;
+}
+
+.cat-accordion .accordion-body ul,
+.cat-accordion .accordion-body ol {
+    margin-bottom: 15px;
+    padding-left: 20px;
+}
+
+.cat-accordion .accordion-body table {
+    width: 100%;
+    margin-bottom: 15px;
+    border-collapse: collapse;
+}
+
+.cat-accordion .accordion-body table th,
+.cat-accordion .accordion-body table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+
+.cat-accordion .accordion-body table th {
+    background: #f2f0ff;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .description-toolbar {
+        flex-direction: column;
+    }
+    
+    .description-toolbar button {
+        width: 100%;
+    }
+    
+    .tab-button {
+        padding: 8px 15px;
+        font-size: 13px;
+    }
+    
+    #json-preview-modal .modal-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+}
+

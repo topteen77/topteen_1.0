@@ -110,6 +110,7 @@ Explore careers in {{ cluster_name|title }}. Discover educational requirements, 
                 <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}">{{ career.name }}</a>
               </h3>
 
+              {# Salary display hidden
               {% set salary_value = career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim if career.get_max_salary() else '' %}
               {% if career.get_max_salary() and career.get_max_salary() != 'N/A' and salary_value != '0.0' and salary_value != '0' and salary_value != '' %}
               <div class="salary-range">
@@ -117,6 +118,7 @@ Explore careers in {{ cluster_name|title }}. Discover educational requirements, 
                 <span>{{ salary_value }}</span>
               </div>
               {% endif %}
+              #}
 
               {% if career.summary %}
               <p class="blog-excerpt">{{ career.summary|truncate(140) }}</p>

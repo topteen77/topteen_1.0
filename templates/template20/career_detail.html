@@ -109,19 +109,14 @@
                 <div class="blogDetail careerDetail">{{ career.description|safe }}</div>
                 {% endif %}
 
-                {% if career.role_description %}
+                {% if roles_html %}
                 <h4>Roles and Responsibilities</h4>
-                <div class="blogDetail careerDetail">{{ career.role_description|safe }}</div>
+                <div class="blogDetail careerDetail">{{ roles_html|safe }}</div>
                 {% endif %}
 
-                {% if career.eligibility %}
-                <h4>Eligibility</h4>
-                <div class="blogDetail careerDetail">{{ career.eligibility|safe }}</div>
-                {% endif %}
-
-                {% if career.pros_cons %}
-                <h4>Pros and Cons</h4>
-                <div class="blogDetail careerDetail">{{ career.pros_cons|safe }}</div>
+                {% if study_route_html %}
+                <h4>Study Route & Eligibility Criteria</h4>
+                <div class="blogDetail careerDetail">{{ study_route_html|safe }}</div>
                 {% endif %}
               </div>
             </div>
@@ -129,9 +124,9 @@
             <!-- Education Tab -->
             <div class="tab-pane fade" id="education" role="tabpanel" aria-labelledby="education-tab">
               <div class="cat-main-content">
-                {% if career.eligibility %}
+                {% if study_route_html %}
                 <h4>Study Route & Eligibility Criteria</h4>
-                <div class="blogDetail careerDetail">{{ career.eligibility|safe }}</div>
+                <div class="blogDetail careerDetail">{{ study_route_html|safe }}</div>
                 {% endif %}
 
                 {% if career.courses.all() %}
@@ -416,6 +411,7 @@
             {% if first_profession and first_profession.name|lower != related_career.name|lower %}
             <p class="text-gray fs-14 mb-2">{{ first_profession.name }}</p>
             {% endif %}
+            {# Salary display hidden
             {% set salary_value = related_career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim if related_career.get_max_salary() else '' %}
             {% if related_career.get_max_salary() and related_career.get_max_salary() != 'N/A' and salary_value != '0.0' and salary_value != '0' and salary_value != '' %}
             <div class="salary-range">
@@ -423,6 +419,7 @@
               <span>{{ salary_value }}</span>
             </div>
             {% endif %}
+            #}
             <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
           </div>
         </div>

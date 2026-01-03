@@ -57,8 +57,7 @@ class CareerDescriptionJSONParser:
     def __init__(self, career):
         self.career = career
         self.description = career.description or ''
-        self.eligibility = career.eligibility or ''
-        self.combined_content = self.description + self.eligibility
+        self.combined_content = self.description
         self.soup = BeautifulSoup(self.combined_content, 'html.parser')
         self.sections = {}
     

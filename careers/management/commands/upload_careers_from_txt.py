@@ -168,9 +168,7 @@ class Command(BaseCommand):
                 if not dry_run:
                     with transaction.atomic():
                         career.summary = summary
-                        career.summary_en = summary
                         career.description = description
-                        career.description_en = description
                         # Add career cluster if not already associated
                         if career_cluster and career_cluster not in career.career_cluster.all():
                             career.career_cluster.add(career_cluster)
@@ -193,11 +191,8 @@ class Command(BaseCommand):
                     with transaction.atomic():
                         career = Career.objects.create(
                             name=career_name,
-                            name_en=career_name,
                             summary=summary,
-                            summary_en=summary,
                             description=description,
-                            description_en=description,
                             slug=slugify(career_name),
                             publish_status=choices.PublishStatus.DRAFT
                             # Note: image field is optional - default will be used via get_image_url()

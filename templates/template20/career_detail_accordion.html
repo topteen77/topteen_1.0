@@ -1670,7 +1670,7 @@
             <div class="blogDetail careerDetail">{{ career.description|safe }}</div>
             {% endif %}
 
-            {% if career.role_description or infographics.roles_responsibilities %}
+            {% if roles_html or infographics.roles_responsibilities %}
             <h4>Roles and Responsibilities</h4>
             {# Choose one of the following designs: #}
             {# Option 1: Timeline Design (Currently Active) #}
@@ -1679,12 +1679,12 @@
             {# {% include 'template20/infographics/roles_responsibilities_v3.html' %} #}
             {# Option 3: Separate Page Design - Uncomment to use #}
             {# {% include 'template20/infographics/roles_responsibilities_separate.html' %} #}
-            {% if career.role_description %}
-            <div class="blogDetail careerDetail">{{ career.role_description|safe }}</div>
+            {% if roles_html %}
+            <div class="blogDetail careerDetail">{{ roles_html|safe }}</div>
             {% endif %}
             {% endif %}
 
-            {% if career.eligibility or infographics.study_route %}
+            {% if study_route_html or infographics.study_route %}
             <h4>Study Route & Eligibility Criteria</h4>
             {% include 'template20/infographics/study_route.html' %}
             
@@ -1727,10 +1727,10 @@
             </div>
             {% endif %}
             
-            {% if not study_routes %}
+            {% if not study_routes and study_route_html %}
             <!-- Original HTML content (shown only if no routes parsed) -->
-            <div class="blogDetail careerDetail">{{ career.eligibility|safe }}</div>
-            {% else %}
+            <div class="blogDetail careerDetail">{{ study_route_html|safe }}</div>
+            {% elif study_routes %}
             <!-- Hide original table when infographic is shown -->
             <style>
               /* Hide tables in eligibility section when infographic is displayed */
@@ -2264,6 +2264,7 @@
             {% if first_profession and first_profession.name|lower != related_career.name|lower %}
             <p class="text-gray fs-14 mb-2">{{ first_profession.name }}</p>
             {% endif %}
+            {# Salary display hidden
             {% set salary_value = related_career.get_max_salary()|replace('LPA', '')|replace('lpa', '')|trim if related_career.get_max_salary() else '' %}
             {% if related_career.get_max_salary() and related_career.get_max_salary() != 'N/A' and salary_value != '0.0' and salary_value != '0' and salary_value != '' %}
             <div class="salary-range">
@@ -2271,6 +2272,7 @@
               <span>{{ salary_value }}</span>
             </div>
             {% endif %}
+            #}
             <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
           </div>
         </div>

@@ -75,6 +75,24 @@ INSTALLED_APPS = [
 ENABLE_ELASTICSEARCH = config('ENABLE_ELASTICSEARCH', default=True, cast=bool)
 if ENABLE_ELASTICSEARCH:
     INSTALLED_APPS.append('django_elasticsearch_dsl')
+
+# AI Features Configuration (Optional - defaults to False)
+ENABLE_AI_FEATURES = config('ENABLE_AI_FEATURES', default=False, cast=bool)
+ENABLE_AI_SUMMARIES = config('ENABLE_AI_SUMMARIES', default=False, cast=bool)
+ENABLE_SEMANTIC_SEARCH = config('ENABLE_SEMANTIC_SEARCH', default=False, cast=bool)
+
+# AI Provider Configuration (only used if ENABLE_AI_FEATURES=True or ENABLE_SEMANTIC_SEARCH=True)
+AI_PROVIDER = config('AI_PROVIDER', default='none')  # openai, gemini, anthropic, local, none
+OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
+GOOGLE_API_KEY = config('GOOGLE_API_KEY', default='')
+ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
+AI_MODEL = config('AI_MODEL', default='gpt-3.5-turbo')  # or gemini-1.5-flash, claude-3-haiku, etc.
+GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-1.5-flash')
+
+# Embedding Cache Configuration
+ENABLE_EMBEDDING_CACHE = config('ENABLE_EMBEDDING_CACHE', default=True, cast=bool)
+EMBEDDING_CACHE_TTL = config('EMBEDDING_CACHE_TTL', default=86400, cast=int)  # 24 hours
+QUERY_EMBEDDING_CACHE_TTL = config('QUERY_EMBEDDING_CACHE_TTL', default=3600, cast=int)  # 1 hour
     
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -84,6 +102,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'topteens.admin_template_middleware.AdminTemplateMiddleware',  # Force Django templates for admin
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'topteens.custome_middleware.CustomeSocialAuthExceptionMiddleware',
     'topteens.custome_middleware.TopteenAdminRequireLoginCheck',
@@ -117,7 +136,7 @@ TEMPLATES = [
      {
         'BACKEND': 'django.template.backends.jinja2.Jinja2',
         'DIRS': ['templates', os.path.join(BASE_DIR, 'frontend')],  # Added frontend directory for Jinja2 templates
-        'APP_DIRS': True,
+        'APP_DIRS': False,  # Disable APP_DIRS - custom loader handles app directories and skips admin templates
         'OPTIONS': {
             'environment': 'topteens.jinja_env.environment',
             'context_processors': [
@@ -137,6 +156,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         # 'DIRS': [],
         'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),  # Add templates directory for Django admin templates
             os.path.join(BASE_DIR, 'templates1'),
             os.path.join(BASE_DIR, 'frontend'),  # old code not in use - start - New isolated frontend templates
         ],  # old code not in use - end

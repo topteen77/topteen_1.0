@@ -156,9 +156,7 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
     summary = models.CharField(null=True,max_length=250)
     description = RichTextField(null=True)
     image=models.ImageField(upload_to=career_media_directory,null=True,blank=True,max_length=250)
-    role_description = RichTextField(null=True)
-    eligibility = RichTextField(null=True)
-    pros_cons = RichTextField(null=True)
+    description_json = models.JSONField(null=True, blank=True, help_text="Stored JSON structure parsed from description field")
     skills = models.ManyToManyField(Skill, blank=True)
     prospective_employment_areas = models.ManyToManyField(ProspectiveEmploymentArea, blank=True)
     prospective_recruiters = models.ManyToManyField(ProspectiveRecruiter, blank=True)
@@ -421,6 +419,31 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
             logger.error(f'Error parsing HTML description for mindmap (career: {self.name}): {str(e)}')
             return None
     
+    def generate_description_json(self):
+        """Generate JSON structure from description field"""
+        try:
+            from .career_json_parser import CareerDescriptionJSONParser
+            parser = CareerDescriptionJSONParser(self)
+            parser.parse_all_sections()
+            
+            # Get the JSON structure
+            json_data = {
+                'career_id': self.id,
+                'career_name': self.name,
+                'career_slug': self.slug,
+                'sections': parser.sections,
+                'metadata': {
+                    'total_sections': len([s for s in parser.sections.values() if s.get('html')]),
+                    'sections_found': [k for k, v in parser.sections.items() if v.get('html')]
+                }
+            }
+            return json_data
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f'Error generating description JSON for career {self.id}: {str(e)}', exc_info=True)
+            return None
+    
     def save(self, *args, **kwargs):
         """Convert only non-ASCII characters to numeric entities, preserve HTML tags."""
         import html
@@ -433,6 +456,20 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
             # Replace non-ASCII with numeric entities, keep ASCII (incl. <, >, &)
             return unescaped.encode('ascii', 'xmlcharrefreplace').decode('ascii')
 
+        # Check if description changed
+        update_json = False
+        if self.pk:
+            try:
+                old_instance = Career.objects.get(pk=self.pk)
+                if old_instance.description != self.description:
+                    update_json = True
+            except Career.DoesNotExist:
+                # New instance, generate JSON if description exists
+                update_json = bool(self.description)
+        else:
+            # New instance, generate JSON if description exists
+            update_json = bool(self.description)
+
         if self.description:
             self.description = to_numeric_entities_preserve_html(self.description)
         if self.summary:
@@ -440,19 +477,27 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
             if len(converted_summary) > 250:
                 converted_summary = converted_summary[:247] + '...'
             self.summary = converted_summary
-        if self.role_description:
-            self.role_description = to_numeric_entities_preserve_html(self.role_description)
-        if self.eligibility:
-            self.eligibility = to_numeric_entities_preserve_html(self.eligibility)
-        if self.pros_cons:
-            self.pros_cons = to_numeric_entities_preserve_html(self.pros_cons)
         if self.name:
             converted_name = to_numeric_entities_preserve_html(self.name)
             if len(converted_name) > 500:
                 converted_name = converted_name[:497] + '...'
             self.name = converted_name
 
+        # Check if we're already updating description_json (to prevent recursion)
+        update_fields = kwargs.get('update_fields', None)
+        skip_json_update = update_fields and 'description_json' in update_fields
+        
+        # Save first to get the ID
         super().save(*args, **kwargs)
+        
+        # Update JSON after save (so we have the ID) - but skip if we're already updating description_json
+        if update_json and not skip_json_update:
+            json_data = self.generate_description_json()
+            if json_data:
+                # Update only the description_json field to avoid recursion
+                Career.objects.filter(pk=self.pk).update(description_json=json_data)
+                # Refresh from DB to get updated description_json
+                self.refresh_from_db()
     
     @classmethod
     def get_all_careers(cls):
@@ -631,3 +676,47 @@ class Videos(BaseModel,SlugModel):
 class RIASECCareer(BaseModel):
     key = models.CharField(max_length=200,unique=True)
     careers=models.ManyToManyField(Career,related_name="riasec_career")
+
+
+class CareerEmbedding(BaseModel):
+    """Cache career embeddings to avoid regenerating on every query"""
+    career = models.OneToOneField(
+        Career,
+        on_delete=models.CASCADE,
+        related_name='embedding_cache',
+        db_index=True
+    )
+    embedding = models.JSONField(help_text="Stored embedding vector as JSON array")
+    embedding_text_hash = models.CharField(
+        max_length=64,
+        help_text="SHA256 hash of text used to generate embedding",
+        db_index=True
+    )
+    provider = models.CharField(
+        max_length=20,
+        default='openai',
+        help_text="AI provider used (openai, gemini)"
+    )
+    model_name = models.CharField(
+        max_length=100,
+        default='text-embedding-3-small',
+        help_text="Embedding model name"
+    )
+    
+    class Meta:
+        db_table = 'career_embeddings'
+        verbose_name = 'Career Embedding'
+        verbose_name_plural = 'Career Embeddings'
+        indexes = [
+            models.Index(fields=['embedding_text_hash']),
+            models.Index(fields=['provider', 'model_name']),
+        ]
+    
+    def __str__(self):
+        return f"Embedding for {self.career.name} ({self.provider})"
+    
+    @property
+    def embedding_array(self):
+        """Return embedding as numpy array"""
+        import numpy as np
+        return np.array(self.embedding)

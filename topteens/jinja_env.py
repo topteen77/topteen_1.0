@@ -212,6 +212,13 @@ def get_url(obj):
     return '#'
 
 def environment(**options):
+    # Import custom loader that skips admin templates
+    from topteens.jinja2_loader import get_jinja2_loader
+    
+    # Always use our custom loader that skips admin templates
+    # This ensures admin templates are never loaded by Jinja2
+    options['loader'] = get_jinja2_loader()
+    
     env = Environment(**options)
     
     # Add filters

@@ -207,8 +207,9 @@ class CareerAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
         ('Optional Details', {
-            'fields': ('role_description', 'eligibility', 'pros_cons'),
+            'fields': (),
             'classes': ('collapse',),
+            'description': 'Optional details have been removed. All content should be in the description field.',
         }),
         ('Other Relationships', {
             'fields': ('skills', 'prospective_employment_areas', 'prospective_recruiters', 
@@ -387,12 +388,6 @@ class CareerAdmin(admin.ModelAdmin):
     
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-        if 'role_description' in form.base_fields:
-            form.base_fields['role_description'].required = False
-        if 'eligibility' in form.base_fields:
-            form.base_fields['eligibility'].required = False
-        if 'pros_cons' in form.base_fields:
-            form.base_fields['pros_cons'].required = False
         if 'career_paths' in form.base_fields:
             form.base_fields['career_paths'].required = False
         return form
@@ -434,6 +429,7 @@ class CareerAdmin(admin.ModelAdmin):
         custom_urls = [
             path('update-cluster-ajax/', self.admin_site.admin_view(self.update_career_cluster_ajax), name='careers_career_update_cluster_ajax'),
             path('update-publish-ajax/', self.admin_site.admin_view(self.update_publish_status_ajax), name='careers_career_update_publish_ajax'),
+            path('<path:object_id>/json-preview/', self.admin_site.admin_view(self.json_preview), name='careers_career_json_preview'),
         ]
         return custom_urls + urls
 
@@ -477,6 +473,53 @@ class CareerAdmin(admin.ModelAdmin):
             except Exception as e:
                 return JsonResponse({'success': False, 'error': str(e)})
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+    def json_preview(self, request, object_id):
+        """Handle JSON preview request - returns stored JSON or generates from description"""
+        if request.method != 'POST':
+            return JsonResponse({'success': False, 'error': 'Only POST method allowed'})
+        
+        try:
+            career = Career.objects.get(pk=object_id)
+        except Career.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Career not found'})
+        
+        try:
+            # Get description from POST data (current editor content)
+            description = request.POST.get('description', '')
+            
+            # If description is provided, parse it (for preview before save)
+            # Otherwise, use stored JSON if available
+            if description:
+                # Create a temporary career object with the description to parse
+                from .career_json_parser import CareerDescriptionJSONParser
+                temp_career = Career(id=career.id, name=career.name, slug=career.slug, description=description)
+                parser = CareerDescriptionJSONParser(temp_career)
+                parser.parse_all_sections()
+                
+                sections = parser.sections
+            elif career.description_json:
+                # Use stored JSON
+                sections = career.description_json.get('sections', {})
+            else:
+                # Generate from current description
+                json_data = career.generate_description_json()
+                if json_data:
+                    sections = json_data.get('sections', {})
+                else:
+                    sections = {}
+            
+            return JsonResponse({
+                'success': True,
+                'sections': sections,
+                'from_stored': bool(career.description_json and not description)
+            })
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f'Error generating JSON preview for career {object_id}: {str(e)}', exc_info=True)
+            return JsonResponse({'success': False, 'error': str(e)})
     
     class Media:
         css = {

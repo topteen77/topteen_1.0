@@ -10,8 +10,10 @@ class ProspectiveEmploymentAreaTranslationOptions(TranslationOptions):
 class ProspectiveRecruiterTranslationOption(TranslationOptions):
     fields=('name',)
     
-class CareerTranslationOption(TranslationOptions):
-    fields=('name','summary','description','role_description','eligibility','pros_cons')
+# Note: Career translation fields have been removed from the database
+# Unregister Career to prevent modeltranslation from trying to access removed fields
+# class CareerTranslationOption(TranslationOptions):
+#     fields=('name','summary','description')
     
 class CareerPathTranslationOption(TranslationOptions):
     fields = ('name',)    
@@ -19,5 +21,5 @@ class CareerPathTranslationOption(TranslationOptions):
 translator.register(Skill,SkillTranslationOptions)
 translator.register(ProspectiveEmploymentArea,ProspectiveEmploymentAreaTranslationOptions)
 translator.register(ProspectiveRecruiter,ProspectiveRecruiterTranslationOption)
-translator.register(Career,CareerTranslationOption)
+# translator.register(Career,CareerTranslationOption)  # Disabled - translation fields removed
 translator.register(CareerPath,CareerPathTranslationOption)

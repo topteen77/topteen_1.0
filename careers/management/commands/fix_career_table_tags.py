@@ -97,15 +97,8 @@ class Command(BaseCommand):
             if hasattr(career, field_name):
                 fields_to_process.append(field_name)
             else:
-                # Try to get the field (might be a translation field)
-                if field_name == 'description':
-                    # Process both description and description_en
-                    fields_to_process = ['description']
-                    # Check if description_en exists (django-modeltranslation)
-                    if hasattr(career, 'description_en'):
-                        fields_to_process.append('description_en')
-                else:
-                    fields_to_process = [field_name]
+                # Process the field
+                fields_to_process = [field_name]
             
             for field_name_actual in fields_to_process:
                 field_value = getattr(career, field_name_actual, None)

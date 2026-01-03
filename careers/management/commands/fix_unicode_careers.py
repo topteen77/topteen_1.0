@@ -38,7 +38,7 @@ class Command(BaseCommand):
             changed = False
             
             # Check each field for Unicode characters
-            fields_to_check = ['name', 'summary', 'description', 'role_description', 'eligibility', 'pros_cons']
+            fields_to_check = ['name', 'summary', 'description']
             
             for field_name in fields_to_check:
                 field_value = getattr(career, field_name)

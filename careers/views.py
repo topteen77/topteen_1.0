@@ -34,11 +34,31 @@ class Careers(TemplateView):
     def html_head(self):
         name='Career Tracks'
         return build_html_head(title=name, description=name)
+    
 
     def get_context(self, request, *args, **kwargs):
+        # Support both GET and POST requests
+        request_data = request.POST if request.method == 'POST' else request.GET
+        
         try:
             docmentservice=CareerDocumentFilter()
             ctx=docmentservice.get_career_list_context(request)
+            # Ensure all required variables are set (Elasticsearch context may be missing some)
+            if 'selected_professions' not in ctx:
+                ctx['selected_professions'] = request_data.getlist("professions")
+            if 'selected_clusters' not in ctx:
+                ctx['selected_clusters'] = request_data.getlist("cluster")
+            if 'clusters' not in ctx:
+                from .models import CareerCluster
+                ctx['clusters'] = CareerCluster.objects.filter(object_status=1, parent__isnull=True)
+            if 'professions' not in ctx:
+                from .models import Profession
+                ctx['professions'] = Profession.objects.filter(object_status=1)
+            # Ensure counts are set (may be missing from Elasticsearch context)
+            if 'clusters_with_counts' not in ctx:
+                ctx['clusters_with_counts'] = []
+            if 'professions_with_counts' not in ctx:
+                ctx['professions_with_counts'] = []
         except Exception as e:
             print(f"Elasticsearch not available, using Django ORM fallback: {e}")
             ctx = self.get_fallback_context(request)
@@ -47,7 +67,7 @@ class Careers(TemplateView):
         ctx['is_parent_student_context'] = False
         ctx['parent_student_id'] = None
         try:
-            student_id = request.GET.get("student_id")
+            student_id = request_data.get("student_id")
             if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
                 from users.models import ParentStudentLink, ParentStudentBookmark
                 from django.contrib.contenttypes.models import ContentType
@@ -67,34 +87,47 @@ class Careers(TemplateView):
         except Exception:
             pass
         
-        if request.GET.getlist('professions') or request.GET.getlist('skills') or request.GET.getlist('courses'):
-            pro=request.GET.getlist('professions')
-            skill=request.GET.getlist('skills')
-            course=request.GET.getlist('courses')
+        if request_data.getlist('professions') or request_data.getlist('skills') or request_data.getlist('courses'):
+            pro=request_data.getlist('professions')
+            skill=request_data.getlist('skills')
+            course=request_data.getlist('courses')
             data=pro+skill+course
             ctx['data']=data
         ctx['html_head'] = self.html_head()
         ctx['breadcrumb'] = {'text': 'Career Tracks', 'url': reverse('careers:career')}
+        
+        # Add mode context for template toggle (default to AI mode)
+        ctx['view_mode'] = request_data.get('mode', 'ai')
+        ctx['is_ai_mode'] = ctx['view_mode'] != 'traditional'
+        
+        # Add request parameters as context variables for Jinja2 compatibility
+        ctx['search_param'] = request_data.get('search', '')
+        ctx['cluster_param'] = request_data.get('cluster', '')
         
         return ctx
         
     def get(self, request,*args, **kwargs):      
         return render(request, self.template_name, self.get_context(request,args, kwargs))
     
+    def post(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, args, kwargs))
+    
     def get_fallback_context(self, request):
         from django.core.paginator import Paginator
         from .models import Career, CareerCluster, CareerTags, Skill, ProspectiveEmploymentArea, ProspectiveRecruiter, Profession
         from courses.models import Course
         
+        # Support both GET and POST requests
+        request_data = request.POST if request.method == 'POST' else request.GET
+        
         careers = Career.objects.filter(publish_status=1).select_related().prefetch_related(
-            'skills', 'career_tags', 'prospective_employment_areas', 'prospective_recruiters', 'courses'
+            'skills', 'career_tags', 'prospective_employment_areas', 'prospective_recruiters', 'courses', 'career_cluster'
         ).order_by('name')
 
         # Handle selected filters
-        # Handle selected filters
-        selected_professions = request.GET.getlist("professions")
-        selected_skills = request.GET.getlist("skills")
-        selected_clusters = request.GET.getlist("cluster")
+        selected_professions = request_data.getlist("professions")
+        selected_skills = request_data.getlist("skills")
+        selected_clusters = request_data.getlist("cluster")
         
         # Apply cluster filtering (multi-select) - OR logic within clusters
         if selected_clusters:
@@ -116,16 +149,9 @@ class Careers(TemplateView):
             if cleaned_professions:
                 careers = careers.filter(profession__name__in=cleaned_professions).distinct()
         
-        # Apply skill filtering - OR logic within skills
-        # Match by exact name
-        if selected_skills:
-            # Clean the skill names and filter
-            cleaned_skills = [s.strip() for s in selected_skills if s and s.strip()]
-            if cleaned_skills:
-                careers = careers.filter(skills__name__in=cleaned_skills).distinct()
 
         # Basic search filtering
-        search_query = request.GET.get('search', '')
+        search_query = request_data.get('search', '')
         if search_query:
             careers = careers.filter(
                 Q(name__icontains=search_query) | 
@@ -135,11 +161,9 @@ class Careers(TemplateView):
 
         # Ensure deterministic ordering before pagination (distinct() may clear order_by)
         careers = careers.order_by('name', 'id')
-        # Ensure deterministic ordering before pagination (distinct() may clear order_by)
-        careers = careers.order_by('name', 'id')
         # Pagination
         paginator = Paginator(careers, 20)
-        page = request.GET.get('page')
+        page = request_data.get('page')
         try:
             careers_page = paginator.page(page)
         except PageNotAnInteger:
@@ -186,36 +210,7 @@ class Careers(TemplateView):
                 object_status=1  # Only active professions
             ).distinct().order_by("name")[:100]
         
-        # Filter skills based on selected professions and clusters (only if filters selected)
-        filtered_skills = skills
-        if selected_professions or selected_clusters:
-            # Build optimized query for careers with filters
-            careers_query = Career.objects.filter(publish_status=1)
-            
-            if selected_professions:
-                careers_query = careers_query.filter(profession__name__in=selected_professions)
-            
-            if selected_clusters:
-                careers_query = careers_query.filter(career_cluster__id__in=selected_clusters)
-            
-            # Get skill IDs from those careers - optimized
-            skill_ids = careers_query.values_list('skills__id', flat=True).distinct()
-            
-            filtered_skills = Skill.objects.filter(
-                id__in=skill_ids,
-                object_status=1  # Only active skills
-            ).distinct().order_by("priority", "name")[:200]
-        
-        # Create facets_filter with proper counts and selection status (limit for performance)
-        # Calculate actual career counts for each option
-        skill_facets = []
-        for skill in filtered_skills[:30]:
-            count = Career.objects.filter(
-                publish_status=1,
-                skills__name=skill.name
-            ).distinct().count()
-            skill_facets.append((skill.name, count, skill.name in selected_skills))
-        
+        # Create facets_filter with profession counts only (skills filter removed)
         profession_facets = []
         for prof in filtered_professions[:30]:
             count = Career.objects.filter(
@@ -225,7 +220,6 @@ class Careers(TemplateView):
             profession_facets.append((prof.name, count, prof.name in selected_professions))
         
         facets_filter = {
-            "skill": skill_facets,
             "profession": profession_facets,
         }
         
@@ -260,6 +254,17 @@ class Careers(TemplateView):
                 'profession': prof,
                 'count': count
             })
+        
+        # Pre-process careers to convert ManyRelatedManager to list for template compatibility
+        # This prevents the "object of type 'ManyRelatedManager' has no len()" error
+        for career in careers_page:
+            # Convert career_cluster ManyRelatedManager to list
+            if hasattr(career, 'career_cluster'):
+                try:
+                    # Prefetch and convert to list to avoid ManyRelatedManager issues in template
+                    career._career_cluster_list = list(career.career_cluster.all())
+                except:
+                    career._career_cluster_list = []
         
         ctx_out = {
             'careers': careers_page,
@@ -384,23 +389,43 @@ class CareerDetail(TemplateView):
             from .infographic_parser import parse_infographic
             
             # Get HTML from JSON sections
-            # For overview: try overview section first, then fallback to career_description
+            # Initialize all section HTMLs to empty strings
             overview_html = ''
+            roles_html = ''
+            study_route_html = ''
+            observations_html = ''
+            internships_html = ''
+            courses_html = ''
+            employers_html = ''
+            skills_trends_html = ''
+            advice_html = ''
+            
             if json_parser:
+                # For overview: try overview section first, then fallback to career_description
                 overview_html = json_parser.get_section_html('overview')
                 if not overview_html:
                     overview_html = json_parser.get_section_html('career_description')
-            roles_html = json_parser.get_section_html('roles_and_responsibilities') if json_parser else ''
-            study_route_html = json_parser.get_section_html('study_route_and_eligibility_criteria') if json_parser else ''
-            observations_html = json_parser.get_section_html('significant_observations') if json_parser else ''
-            internships_html = json_parser.get_section_html('internships_and_practical_exposure') if json_parser else ''
-            courses_html = json_parser.get_section_html('courses_and_specializations') if json_parser else ''
-            employers_html = json_parser.get_section_html('prominent_employers') if json_parser else ''
-            skills_trends_html = json_parser.get_section_html('skills_required_industry_trends') if json_parser else ''
-            advice_html = json_parser.get_section_html('advice_for_aspiring') if json_parser else ''
+                roles_html = json_parser.get_section_html('roles_and_responsibilities') or ''
+                study_route_html = json_parser.get_section_html('study_route_and_eligibility_criteria') or ''
+                observations_html = json_parser.get_section_html('significant_observations') or ''
+                internships_html = json_parser.get_section_html('internships_and_practical_exposure') or ''
+                courses_html = json_parser.get_section_html('courses_and_specializations') or ''
+                employers_html = json_parser.get_section_html('prominent_employers') or ''
+                skills_trends_html = json_parser.get_section_html('skills_required_industry_trends') or ''
+                advice_html = json_parser.get_section_html('advice_for_aspiring') or ''
             
             # Add overview HTML to context
             ctx['overview_html'] = overview_html
+            
+            # Add JSON section HTMLs to context for templates
+            ctx['roles_html'] = roles_html
+            ctx['study_route_html'] = study_route_html
+            ctx['observations_html'] = observations_html
+            ctx['internships_html'] = internships_html
+            ctx['courses_html'] = courses_html
+            ctx['employers_html'] = employers_html
+            ctx['skills_trends_html'] = skills_trends_html
+            ctx['advice_html'] = advice_html
             
             # Parse infographics from JSON sections
             # For skills_industry_trends, try section first, then fallback to full description
@@ -422,8 +447,8 @@ class CareerDetail(TemplateView):
                 'advice_for_aspiring': parse_infographic(advice_html, 'advice_for_aspiring') if advice_html else None,
             }
             
-            # For institutes, still use combined content as fallback (may be in different section)
-            combined_content = (career.description or '') + (career.eligibility or '')
+            # For institutes, use description content
+            combined_content = career.description or ''
             ctx['infographics']['institutes'] = parse_infographic(combined_content, 'institutes')
             
             # Keep backward compatibility
@@ -499,16 +524,16 @@ class CareerDetail(TemplateView):
     
     def _parse_study_routes(self, career):
         """
-        Parse study routes from career.eligibility HTML content.
+        Parse study routes from career.description HTML content.
         Handles both table format (Route/Steps columns) and heading-based format.
         Extracts routes and steps to create infographic structure.
         Returns list of route dictionaries or None if parsing fails.
         """
-        if not career.eligibility:
+        if not career.description:
             return None
         
         try:
-            soup = BeautifulSoup(career.eligibility, 'html.parser')
+            soup = BeautifulSoup(career.description, 'html.parser')
             
             # Route colors
             route_colors = [
@@ -1095,33 +1120,8 @@ class CareerDetail(TemplateView):
         
         return json.dumps(mindmap_data)
         
-        # Roles & Responsibilities
-        if career.role_description:
-            aspects.append({
-                "id": "roles",
-                "name": "Roles & Responsibilities",
-                "icon": "tasks",
-                "color": "#fa709a,#fee140",
-                "hasContent": True,
-                "modalContent": {
-                    "title": "Roles and Responsibilities",
-                    "body": career.role_description
-                }
-            })
-        
-        # Study Route & Eligibility
-        if career.eligibility:
-            aspects.append({
-                "id": "study-route",
-                "name": "Study Route",
-                "icon": "graduation-cap",
-                "color": "#30cfd0,#330867",
-                "hasContent": True,
-                "modalContent": {
-                    "title": "Study Route & Eligibility",
-                    "body": career.eligibility
-                }
-            })
+        # Roles & Responsibilities - now extracted from description_json
+        # Study Route & Eligibility - now extracted from description_json
         
         # Courses
         if career.courses.exists():
@@ -1159,19 +1159,7 @@ class CareerDetail(TemplateView):
                     }
                 })
         
-        # Pros & Cons
-        if career.pros_cons:
-            aspects.append({
-                "id": "pros-cons",
-                "name": "Pros & Cons",
-                "icon": "balance-scale",
-                "color": "#ffecd2,#fcb69f",
-                "hasContent": True,
-                "modalContent": {
-                    "title": "Pros and Cons",
-                    "body": career.pros_cons
-                }
-            })
+        # Pros & Cons - now extracted from description_json
         
         # Skills
         if career.skills.exists():
