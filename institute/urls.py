@@ -50,4 +50,5 @@ urlpatterns = [
     # old code not in use - end
     path("auth/register/",views.InstituteRegisterView.as_view(),name="register"),
     path("auth/login/",views.InstituteLoginView.as_view(),name="login"),
+    path("api/heatmap-data/", views.get_heatmap_data_api, name="heatmap_data_api"),
 ]

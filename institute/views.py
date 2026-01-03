@@ -29,6 +29,7 @@ from institute.filters import StudentFilter
 from django.db.models import Count
 from django.utils import timezone
 from app.models import Results, TestCompletion
+from institute.utils import get_heatmap_data_for_group, get_heatmap_data_for_institute
 # Create your views here.
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -3268,3 +3269,57 @@ class MarketingLoginView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['html_head'] = self.html_head()
         return context
+
+
+@login_required(login_url=reverse_lazy('users:login'))
+def get_heatmap_data_api(request):
+    """
+    API endpoint to get heatmap data for institute, marketing group, or individual institute
+    """
+    try:
+        user = request.user
+        demographic_type = request.GET.get('demographic_type', 'grade')  # grade, section, or stream
+        institute_slug = request.GET.get('institute_slug', None)  # For individual institute
+        
+        # If institute_slug is provided, get data for that specific institute
+        if institute_slug:
+            try:
+                institute = Institute.objects.get(slug=institute_slug)
+                # Verify user has access to this institute
+                if not (institute.created_by == user or 
+                       (institute.institute_group and institute.institute_group.institute_group_admin == user) or
+                       (institute.marketing_group and institute.marketing_group.marketing_group_admin == user)):
+                    return JsonResponse({'error': 'Unauthorized access to institute'}, status=403)
+                
+                heatmap_data = get_heatmap_data_for_institute(institute, demographic_type)
+                return JsonResponse(heatmap_data, safe=False)
+            except Institute.DoesNotExist:
+                return JsonResponse({'error': 'Institute not found'}, status=404)
+        
+        # Otherwise, check for group admin
+        # Check if user is institute group admin
+        institute_group = InstituteGroup.objects.filter(institute_group_admin=user).first()
+        if institute_group:
+            group_type = 'institute'
+        else:
+            # Check if user is marketing group admin
+            marketing_group = InstituteMarketingGroup.objects.filter(marketing_group_admin=user).first()
+            if marketing_group:
+                group_type = 'marketing'
+            else:
+                # Check if user is an institute user (individual institute)
+                institute = Institute.objects.filter(created_by=user).first()
+                if institute:
+                    heatmap_data = get_heatmap_data_for_institute(institute, demographic_type)
+                    return JsonResponse(heatmap_data, safe=False)
+                return JsonResponse({'error': 'User is not authorized'}, status=403)
+        
+        # Get heatmap data for group
+        heatmap_data = get_heatmap_data_for_group(user, group_type, demographic_type)
+        
+        return JsonResponse(heatmap_data, safe=False)
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=500)

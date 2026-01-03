@@ -45,6 +45,8 @@ python manage.py fix_li_tags_with_numbers_bullets --dry-run
 python manage.py fix_li_tags_with_numbers_bullets
 
 # Populate description_json field for careers (stores parsed JSON structure from description)
+# Script name: populate_career_description_json
+# Location: careers/management/commands/populate_career_description_json.py
 # Preview mode (no changes)
 python manage.py populate_career_description_json --dry-run
 

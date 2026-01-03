@@ -8,6 +8,7 @@
 {% block additionalhead %}
 {{ super() }}
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<link rel="stylesheet" href="{{ static('css/heatmap-dashboard.css') }}">
 <style>
   .institute-group-dashboard {
     padding-top: 80px;
@@ -365,6 +366,96 @@
             </div>
           </div>
         </div>
+
+        <!-- Heatmap Analytics Section -->
+        <div class="heatmap-dashboard-container mt-4">
+          <div class="heatmap-header-card">
+            <div class="heatmap-header-title">
+              <div class="heatmap-header-title-icon">
+                <i class='bx bx-bar-chart-alt-2'></i>
+              </div>
+              <div>
+                <h1>Career Education Analytics</h1>
+                <p>School-wide Career Interest & Knowledge Matrix</p>
+              </div>
+            </div>
+            <div class="heatmap-actions">
+              <button id="heatmap-refresh-btn" class="heatmap-btn refresh">
+                <i class='bx bx-refresh'></i> Refresh
+              </button>
+              <button id="heatmap-export-btn" class="heatmap-btn export">
+                <i class='bx bx-download'></i> Export
+              </button>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="heatmap-stats-grid">
+              <div class="heatmap-stat-card high-risk">
+                <div class="stat-label">High Risk Areas</div>
+                <div class="stat-value" id="heatmap-stat-highrisk">0</div>
+                <div class="stat-description">Immediate workshops needed</div>
+              </div>
+              <div class="heatmap-stat-card aligned">
+                <div class="stat-label">High Alignment</div>
+                <div class="stat-value" id="heatmap-stat-aligned">0</div>
+                <div class="stat-description">Students on track</div>
+              </div>
+              <div class="heatmap-stat-card clarity-gap">
+                <div class="stat-label">Avg Clarity Gap</div>
+                <div class="stat-value" id="heatmap-stat-claritygap">0%</div>
+                <div class="stat-description">Interest-knowledge difference</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="heatmap-controls-card">
+            <div class="heatmap-controls">
+              <i class='bx bx-filter-alt'></i>
+              <button class="heatmap-view-btn active" data-view="grade">By Grade</button>
+              <button class="heatmap-view-btn" data-view="section">By Section</button>
+              <button class="heatmap-view-btn" data-view="stream">By Stream</button>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="heatmap-legend-card">
+            <div class="heatmap-legend">
+              <div class="heatmap-legend-item">
+                <i class='bx bx-info-circle'></i>
+                <span class="font-medium">Legend:</span>
+              </div>
+              <div class="heatmap-legend-item">
+                <div class="heatmap-legend-color" style="background: #EF4444;"></div>
+                <span class="heatmap-legend-text">High Risk (Interest ↑ Knowledge ↓)</span>
+              </div>
+              <div class="heatmap-legend-item">
+                <div class="heatmap-legend-color" style="background: #F59E0B;"></div>
+                <span class="heatmap-legend-text">Maintenance (Balanced)</span>
+              </div>
+              <div class="heatmap-legend-item">
+                <div class="heatmap-legend-color" style="background: #10B981;"></div>
+                <span class="heatmap-legend-text">High Alignment (Future Ready)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Heatmap Grid -->
+          <div class="heatmap-grid-card">
+            <div id="heatmap-grid-container">
+              <div class="text-center p-5 text-muted">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading heatmap...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="heatmap-footer">
+            Career Education Analytics Dashboard v1.0 | Data refreshed: <span id="heatmap-refresh-date"></span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -379,6 +470,11 @@
 {% block additionaljs %}
 {{ super() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="{{ static('js/heatmap-dashboard.js') }}"></script>
+<script>
+  // Update refresh date
+  document.getElementById('heatmap-refresh-date').textContent = new Date().toLocaleDateString();
+</script>
 <script>
   // Load statistics via AJAX
   function loadStatistics() {
