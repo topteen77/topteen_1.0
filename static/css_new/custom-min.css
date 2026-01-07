@@ -7157,7 +7157,7 @@ a:hover {
 }
 
 .menu-link {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   line-height: inherit;
   display: flex;
@@ -7753,7 +7753,7 @@ a:hover {
 }
 
 div#videoModal {
-  z-index: 9999;
+  z-index: 9999 !important;
 }
 
 .modal-backdrop.fade.show {
@@ -8448,7 +8448,6 @@ div#videoModal {
 
 .test-img img {
   width: 100%;
-  height: 100%;
 }
 
 
@@ -8919,9 +8918,10 @@ div#videoModal {
 
 
 .login-home {
-  background: url('{{static('topteenfrontend/assets/images/login-bg-image.jpg')}}');
-  background-size: 100% 100%;
-  background-position: no-repeat;
+  background-image: url('/static/topteenfrontend/assets/images/login-bg-image.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
   height: 100vh;
 }
 
@@ -11378,7 +11378,10 @@ padding:0px;
 
 /** skill lab course page **/
 
-
+.badge.bg-primary.ct-m-badge {
+	background: #D4EEF7 !important;
+	color: #1788BD !important;
+}
 
 .skill-course  .grid-box .text-in {
 padding: 21px 14px;	
@@ -11658,8 +11661,8 @@ width: 82px;
 
 @media (max-width:980px) {
   .hero-section {
-    background: none;
-    min-height: auto;
+    background: none !important;
+    min-height: auto !important;
   }
 
   .navbar-inner {
@@ -11804,7 +11807,7 @@ width: 82px;
   }
 
   .stat-info p+p {
-    font-size: 17px;
+    font-size: 15px;
   }
 
   .quote-text::before {
@@ -11831,3 +11834,238 @@ width: 82px;
 .question-image {
   width: 450px!important;
 }
+
+/** college page css **/
+
+.filter-options .form-check-input {
+  margin-left: 0px !important;
+}
+
+.filter-accordion summary {
+  background: #EFECFF;
+}
+
+#filterSidebar {
+  position: sticky;
+  top: 77px;
+}
+
+.college-card {
+	border: 1px solid #EFECFF;
+	border-radius: 12px;
+}
+
+.college-content {
+	padding: 0 17px;
+}
+
+.college-name {
+	font-size: 16px;
+}
+
+.active-filters .badge.bg-primary {
+	padding: 13px 10px;
+	background: #eef2ff !important;
+	color: #3f37c9;
+	border: 1px solid #3f37c921;
+}
+
+
+.active-filters  .badge.bg-danger {
+	padding: 13px 10px;
+}
+
+
+.active-filters  .badge.bg-danger:hover{
+color:#fff;
+background: #bd4e4e !important;
+}
+
+.gradient-bg-college{
+background:url(../images_new/general/gradient-background.png);
+background-position: center;
+background-size: cover;
+
+}
+
+
+
+
+.college-description table {
+  width: 100% !important;
+  border-collapse: collapse;
+  display: block;           /* key change */
+  overflow-x: auto;         /* horizontal scroll */
+  white-space: nowrap;
+}
+
+
+
+
+.college-description table {
+	border:none !important;
+	margin-bottom: 23px;
+}
+
+.college-description table tr td {
+	border: 1px solid #d0d0d0;
+	padding: 7px;
+}
+
+.college-description table tr:first-child {
+	background: #f2f2ff;
+	color: #3f37c9;
+}
+
+
+.college-description p, .college-description p span {
+	font-family: "Space Grotesk", serif !important;
+}
+
+.card.course-card h5 {
+	font-size: 15px !important;
+}
+
+.skilllab-course-list .course-card {
+border: 1px solid #CBC9FF;
+  background: #F8F8FF;
+}
+.skilllab-course-list .course-description.text-muted.fs-14.mb-3 {
+	height: 82px;
+}
+
+
+
+.skilllab-course-list  .course-content .badge {
+background: #D4EEF7 !important;
+  color: #1788BD !important;
+}
+
+.skilllab-course-list  .course-price span {
+	color: #3F37C9 !important;
+}
+
+
+.course-media {
+	border: 1px solid #C4C4C4;
+	border-radius: 15px;
+	overflow: hidden;
+}
+
+
+.skilllab-course-list  .course-content .course-name {
+	height: 50px;
+}
+
+.skill-lab-details h2 {
+	font-size: 25px;
+	color: #575757;
+}
+
+.skill-lab-details .course-header h3 {
+	font-size: 20px;
+}
+
+.skill-lab-details .course-header ul {
+	padding-left: 15px;
+}
+.skill-lab-details .course-header ul li, .skill-lab-details .course-header p {
+	font-size: 16px;
+	font-weight: 400;
+	color: #474747;
+}
+
+.skill-lab-details .course-header .course-description table tr td {
+	border: 1px solid #d9cfcf;
+	padding: 11px;
+}
+.course-description h2 {
+	margin-bottom: 18px;
+}
+
+.locked-content {
+	background: radial-gradient(235.3% 235.3% at 50% 0%, rgba(255, 233, 193, 0.3) 19.49%, rgba(209, 208, 254, 0.4) 27.79%, rgba(248, 208, 254, 0.8) 47.75%);
+}
+
+.related-courses-section .course-name {
+	font-size: 16px;
+}
+
+.related-courses-section .course-content .btn {
+	background: #3F37C9;
+	border: 1px solid #3F37C9;
+}
+
+
+.related-courses-section .course-content .btn:hover {
+background: #5249DF;
+  color: #fff;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+}
+
+.course-sidebar {
+	position: sticky;
+	top: 95px;
+	background: #FCFCFF;
+	border: 1px solid #C8C5FF;
+	border-radius: 15px;
+	padding: 19px;
+}
+
+
+   /* Filter options scroll area */
+            .filter-options { max-height: 150px; overflow: auto; padding-right: 8px; }
+            .filter-options::-webkit-scrollbar { width: 6px; }
+            .filter-options::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+
+            /* Enhanced Accordion (details/summary) styles */
+            .filter-accordion details { background: #fff; border: 1px solid #eef0f2; border-radius: 8px; padding: 6px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(22,24,26,0.02); }
+            .filter-accordion summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; padding: 8px 10px; font-weight: 700; color: #222; border-radius: 6px; }
+            .filter-accordion summary:hover { background: rgba(0,0,0,0.02); }
+            .filter-accordion summary::-webkit-details-marker { display: none; }
+
+            /* Chevron icon */
+            .filter-accordion .chevron-icon { transition: transform .22s ease, color .22s; font-size: 18px; color: #6b7280; }
+            .filter-accordion details[open] .chevron-icon { transform: rotate(180deg); color: #111827; }
+
+            /* Options padding */
+            .filter-options { padding: 6px 10px 10px 10px; }
+            .filter-options .form-check { padding: 4px 0; }
+
+            /* Tidy up labels and checkboxes */
+            .filter-accordion .form-check-label { margin-left: 6px; color: #374151; }
+            .college-pagination .page-item a {	height: 41px;	display: flex;	justify-content: center;	align-items: center;}
+
+            /* Mobile slide-in for sidebar */
+            .filter-sidebar-mobile { display: none; }
+            @media (max-width: 992px) {
+              .filter-sidebar { display: none; }
+              .filter-sidebar.filter-open { display: block; position: fixed !important; left: 0; top: 0 !important; height: 100vh; width: 80%; max-width: 360px; background: #fff; z-index: 9999; padding: 20px; overflow-y: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+              .filter-backdrop { display: none; }
+              .filter-backdrop.show { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1040; }
+                                   
+            }
+
+
+          @media (max-width: 576px) {
+  .breadcrumb-item {
+    max-width: 220px;          /* truncate long text */
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+          
+              .breadcrumb {
+	flex-wrap: nowrap;
+	display: flex;
+	overflow-x: auto;
+	white-space: nowrap;
+}
+
+.breadcrumb .text-muted {
+	padding-right: 11px;
+}
+
+
+
+}
+/** college page css **/
