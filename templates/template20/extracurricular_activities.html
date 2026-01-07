@@ -17,11 +17,13 @@ Unlock your potential through diverse extracurricular activities that enhance yo
     border-radius: 15px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     transition: all 0.4s ease;
-    height: 100%;
     background: #fff;
     overflow: hidden;
     position: relative;
     border: none;
+    display: flex;
+    flex-direction: column;
+    height: 340px; /* fixed card height */
   }
 
   .activity-card:before {
@@ -101,14 +103,66 @@ Unlock your potential through diverse extracurricular activities that enhance yo
 
   .card-body {
     padding: 15px;
+    flex: 1 1 auto;
+    overflow: hidden;
   }
+
+  /* Make activity list scroll when items exceed card space */
+  .activity-list {
+    padding-left: 0;
+    list-style-type: none;
+    max-height: 100%;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  .activity-list li a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .activity-list li a i.bx {
+    font-size: 1rem;
+    color: #bdbdbd;
+    transition: transform 0.18s ease, color 0.18s ease;
+    margin-left: 8px;
+  }
+
+  .activity-list li:hover a i.bx {
+    transform: translateX(4px);
+    color: #3F37C9;
+  }
+
+  /* Thin custom scrollbar for webkit browsers */
+  .activity-list::-webkit-scrollbar {
+    width: 8px;
+  }
+  .activity-list::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.08);
+    border-radius: 6px;
+  }
+
+  .activities-section .highlighter, .ext-benefits .highlighter {
+    float: inherit;
+  }
+
+  /* Light top gradient overlay for activities section */
+  .activities-section {
+    position: relative;
+    z-index: 0;
+    background: #c4c4ff;
+  background: linear-gradient(0deg, rgba(196, 196, 255, 0) 0%, rgb(249, 249, 255) 100%);
+  }
+
 </style>
+
 {% endblock %}
 
 {% block content %}
 
 <!-- Hero Section -->
-<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+<section class="hero-section-inner  pt-md-18 pt-14 pb-5">
   <div class="container">
     <div class="row">
       <div class="col-md-12">
@@ -131,7 +185,7 @@ Unlock your potential through diverse extracurricular activities that enhance yo
       <div class="col-lg-6 col-md-12">
         <div class="right-banner d-md-flex d-none justify-content-end">
           {# The provided HTML references images/extracurricular-banner.svg; use our available asset #}
-          <img class="img-fluid" src="{{ static('images_new/general/extracurricular.svg') }}" alt="Extracurricular Activities" />
+          <img class="img-fluid" src="{{ static('images_new/general/extracurricular-banner.png') }}" alt="Extracurricular Activities" />
         </div>
       </div>
     </div>
@@ -168,15 +222,18 @@ Unlock your potential through diverse extracurricular activities that enhance yo
                 <li>
                   {% if act.url %}
                     <a href="{{ act.url }}" target="_blank" rel="noopener">
-                      {{ act.name }}
+                      <span>{{ act.name }}</span>
+                      <i class="bx bx-chevron-right"></i>
                     </a>
                   {% elif act.content_html %}
                     <a href="{{ url('core:extracurricular_activity_detail', args=[act.id]) }}">
-                      {{ act.name }}
+                      <span>{{ act.name }}</span>
+                      <i class="bx bx-chevron-right"></i>
                     </a>
                   {% else %}
                     <a href="#">
-                      {{ act.name }}
+                      <span>{{ act.name }}</span>
+                      <i class="bx bx-chevron-right"></i>
                     </a>
                   {% endif %}
                 </li>
@@ -198,7 +255,7 @@ Unlock your potential through diverse extracurricular activities that enhance yo
 </section>
 
 <!-- Benefits of Extracurricular Activities -->
-<section class="py-8" style="background-color: #f8f9fa;">
+<section class="py-8 ext-benefits" style="background-color: #f8f9fa;">
   <div class="container">
     <div class="row">
       <div class="col-12 text-center mb-5">
@@ -215,7 +272,7 @@ Unlock your potential through diverse extracurricular activities that enhance yo
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body text-center">
             <div class="mb-4">
-              <i class='bx bx-medal text-purple' style="font-size: 3rem;"></i>
+               <img src="{{ static('images_new/general/skill-development.png') }}" alt="Skill Development" />
             </div>
             <h4>Skill Development</h4>
             <p class="text-gray">Develop crucial life skills like teamwork, leadership, time management, and problem-solving that complement academic learning.</p>
@@ -227,7 +284,7 @@ Unlock your potential through diverse extracurricular activities that enhance yo
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body text-center">
             <div class="mb-4">
-              <i class='bx bx-user-voice text-purple' style="font-size: 3rem;"></i>
+              <img src="{{ static('images_new/general/college-applications.png') }}" alt="College Applications" />
             </div>
             <h4>College Applications</h4>
             <p class="text-gray">Stand out in college applications by demonstrating passion, commitment, and well-rounded personality through diverse activities.</p>
@@ -239,7 +296,7 @@ Unlock your potential through diverse extracurricular activities that enhance yo
         <div class="card h-100 border-0 shadow-sm">
           <div class="card-body text-center">
             <div class="mb-4">
-              <i class='bx bx-network-chart text-purple' style="font-size: 3rem;"></i>
+               <img src="{{ static('images_new/general/networking-opportunities.png') }}" alt="Networking Opportunities" />
             </div>
             <h4>Networking Opportunities</h4>
             <p class="text-gray">Build meaningful connections with peers, mentors, and professionals who share your interests and can support your future goals.</p>

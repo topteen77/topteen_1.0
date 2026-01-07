@@ -16,13 +16,29 @@
 <section class="college-hero pt-md-18 pt-14 pb-8">
   <div class="container">
     <div class="row">
-      <!--breadcrumb-->
-      <div class="col-md-12">
-        {% include 'template20/includes/breadcrumb.html' %}
+      <div class="col-md-12 mb-3">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent p-0 mb-0">
+            <li class="breadcrumb-item"><a href="/" class="text-muted">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url('colleges:college') }}" class="text-muted">Colleges</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ college.name }}</li>
+          </ol>
+        </nav>
       </div>
-      <!--breadcrumb-->
 
       <div class="col-lg-8">
+        <!-- Bookmark above banner -->
+        {% if request.user.is_authenticated %}
+        <div class="d-flex justify-content-end mb-2">
+          <button type="button" class="btn btn-outline-primary shortlistcollege" data-collegeslug="{{ college.slug }}" style="white-space: nowrap;">
+            <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}' style="font-size: 18px; color: {% if is_bookmarked %}#28a745{% else %}inherit{% endif %};"></i>
+            <span class="buttontext ms-2">
+              {% if is_bookmarked %}Remove Bookmark{% else %}Bookmark{% endif %}
+            </span>
+          </button>
+        </div>
+        {% endif %}
+
         <!-- College Banner -->
         {% if college.banner and college.banner.name %}
         <div class="college-banner mb-4">
@@ -34,33 +50,52 @@
         </div>
         {% endif %}
 
-        <!-- College Header -->
-        <div class="college-header d-flex align-items-center justify-content-between mb-4">
+        <!-- College Header (enhanced) -->
+        <div class="college-header p-3 mb-4 bg-white rounded shadow-sm">
           <div class="d-flex align-items-center">
             {% if college.logo and college.logo.name %}
-            <div class="college-logo me-3" style="width: 60px; height: 60px;">
+            <div class="college-logo me-3" style="width: 80px; height: 80px;">
               <img src="{{ college.logo.url }}" alt="{{ college.name }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
             </div>
             {% endif %}
             <div>
-              <h1 class="college-title mb-0">{{ college.name }}</h1>
-              {% if college_location %}
-              <p class="text-gray mb-0">
-                <i class='bx bx-map-pin'></i> {{ college_location }}
-              </p>
-              {% endif %}
+              <h1 class="college-title mb-1 h4">{{ college.name }}</h1>
+              <div class="d-flex align-items-center gap-3">
+                {% if college_location %}
+                <div class="text-muted"><i class='bx bx-map-pin'></i> {{ college_location }}</div>
+                {% endif %}
+                {% if college.rating %}
+                <div class="text-warning"><i class='bx bx-star'></i> {{ college.rating }}/5</div>
+                {% endif %}
+                {% if college.accreditation %}
+                <div class="badge bg-success bg-opacity-10 text-success">{{ college.accreditation }}</div>
+                {% endif %}
+              </div>
             </div>
           </div>
-          {% if request.user.is_authenticated %}
-          <div class="ms-3">
-            <button type="button" class="btn btn-outline-primary shortlistcollege" data-collegeslug="{{ college.slug }}" style="white-space: nowrap;">
-              <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}' style="font-size: 18px; color: {% if is_bookmarked %}#28a745{% else %}inherit{% endif %};"></i>
-              <span class="buttontext ms-2">
-                {% if is_bookmarked %}Remove Bookmark{% else %}Bookmark{% endif %}
-              </span>
-            </button>
+          {# Bookmark moved above banner to be more visible. #}
+
+          <!-- Quick stats row -->
+          <div class="row mt-3 d-none">
+            <div class="col-4">
+              <div class="p-2 text-center border rounded bg-light">
+                <div class="fs-6 fw-bold">{{ college.established_year if college.established_year else '—' }}</div>
+                <div class="text-muted fs-12">Established</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-2 text-center border rounded bg-light">
+                <div class="fs-6 fw-bold">{{ courses|length if courses else '—' }}</div>
+                <div class="text-muted fs-12">Courses</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-2 text-center border rounded bg-light">
+                <div class="fs-6 fw-bold">{{ college.students_count if college.students_count else '—' }}</div>
+                <div class="text-muted fs-12">Students</div>
+              </div>
+            </div>
           </div>
-          {% endif %}
         </div>
 
         <!-- College About -->
@@ -103,24 +138,24 @@
           <div class="row">
             {% for course in courses[:6] %}
             <div class="col-md-4 col-sm-6 mb-4">
-              <div class="course-card h-100">
-                <div class="course-image mb-3">
-                  <a href="#">
-                    {% if course.logo and course.logo.name %}
-                    <img src="{{ course.logo.url }}" alt="{{ course.name }}" class="img-fluid w-100 rounded" style="height: 180px; object-fit: cover;">
-                    {% else %}
-                    <img src="{{ static('images_new/general/online-library.png') }}" alt="{{ course.name }}" class="img-fluid w-100 rounded" style="height: 180px; object-fit: cover;">
-                    {% endif %}
-                  </a>
+              <div class="card course-card h-100 shadow-sm border-0">
+                <a href="#">
+                  {% if course.logo and course.logo.name %}
+                  <img src="{{ course.logo.url }}" alt="{{ course.name }}" class="card-img-top rounded-top" style="height: 180px; object-fit: cover;">
+                  {% else %}
+                  <img src="{{ static('images_new/general/education-learncourse.png') }}" alt="{{ course.name }}" class="card-img-top rounded-top" style="height: 180px; object-fit: cover;">
+                  {% endif %}
+                </a>
+                <div class="card-body p-3">
+                  <h5 class="course-name mb-2">
+                    <a href="#" class="text-decoration-none stretched-link text-dark">{{ course.name }}</a>
+                  </h5>
+                  {% if course.duration_months %}
+                  <div class="course-duration text-muted fs-14">
+                    <i class='bx bx-time'></i> {{ course.duration_months }} months
+                  </div>
+                  {% endif %}
                 </div>
-                <h5 class="course-name mb-2">
-                  <a href="#" class="text-decoration-none">{{ course.name }}</a>
-                </h5>
-                {% if course.duration_months %}
-                <div class="course-duration text-gray fs-14">
-                  <i class='bx bx-time'></i> {{ course.duration_months }} months
-                </div>
-                {% endif %}
               </div>
             </div>
             {% endfor %}
@@ -207,14 +242,16 @@
 
         <!-- CTA Section -->
         <section class="cta-section mb-5">
-          <div class="bg-primary text-white p-4 rounded">
+          <div class="p-4 rounded" style="background: linear-gradient(90deg,#4b6cb7 0%,#182848 100%); box-shadow: 0 6px 20px rgba(24,40,72,.15);">
             <div class="row align-items-center">
               <div class="col-md-8 mb-3 mb-md-0">
-                <h4 class="text-white mb-2">Have a question? Connect with Alumni.</h4>
-                <p class="text-white-50 mb-0">Our counsellors guide you on all the steps of the way from application to your job interview, connect now!</p>
+                <h4 class="text-white mb-2">Have a question? <strong>Connect with Alumni.</strong></h4>
+                <p class="text-white-50 mb-0">Our counsellors guide you on all the steps of the way from application to your job interview — connect now!</p>
               </div>
               <div class="col-md-4 text-center text-md-end">
-                <a href="{{ url('core:contactus') }}" class="btn btn-light">Connect Now</a>
+                <a href="{{ url('core:contactus') }}" class="btn btn-light btn-lg rounded-pill shadow-sm text-primary px-4">
+                  <i class='bx bx-message me-2'></i> Connect Now
+                </a>
               </div>
             </div>
           </div>
@@ -222,7 +259,7 @@
       </div>
 
       <!-- Right Sidebar -->
-      <div class="col-lg-4">
+      <div class="col-lg-4 sticky-sidebar" style="position: sticky; top: 20px;">
         <div class="college-sidebar">
           <!-- Check Eligibility Button -->
           <div class="mb-4">
@@ -233,12 +270,12 @@
 
           <!-- Quick Facts -->
           {% if college_facts %}
-          <div class="sidebar-widget mb-4">
+          <div class="sidebar-widget mb-4 card p-3">
             <h4 class="sidebar-title mb-3">Quick Facts</h4>
-            <ul class="list-unstyled">
+            <ul class="list-group list-group-flush">
               {% for fact_data in college_facts %}
-              <li class="d-flex justify-content-between py-2 border-bottom">
-                <span class="text-gray">{{ fact_data.type_display }}</span>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
+                <span class="text-muted">{{ fact_data.type_display }}</span>
                 <span class="fw-semibold">{{ fact_data.value }}</span>
               </li>
               {% endfor %}
@@ -293,19 +330,19 @@
 </section>
 
 <!-- Bottom CTA Section -->
-<section class="bottom-cta bg-primary text-white py-5">
+<section class="bottom-cta py-5" style="background: linear-gradient(90deg,#ff7e5f 0%,#ff6a88 100%);">
   <div class="container">
     <div class="row align-items-center">
       <div class="col-md-8 mb-3 mb-md-0">
-        <h4 class="text-white mb-0">Interested? Take the next step now!</h4>
+        <h4 class="text-white mb-0">Interested? <strong>Take the next step now!</strong></h4>
       </div>
       <div class="col-md-4 text-center text-md-end">
         <div class="d-flex gap-2 justify-content-center justify-content-md-end">
-          <a href="{{ url('core:contactus') }}" class="btn btn-light">
+          <a href="{{ url('core:contactus') }}" class="btn btn-outline-light btn-lg rounded-pill px-4 shadow-sm">
             <i class='bx bx-message me-2'></i> Know More Today
           </a>
           {% if request.user.is_authenticated %}
-          <button type="button" class="btn btn-light shortlistcollege" data-collegeslug="{{ college.slug }}">
+          <button type="button" class="btn btn-light btn-lg rounded-pill px-4 shadow-sm shortlistcollege" data-collegeslug="{{ college.slug }}">
             <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %} me-2' style="color: {% if is_bookmarked %}#28a745{% else %}inherit{% endif %};"></i>
             <span class="buttontext">
               {% if is_bookmarked %}Remove from Bookmarks{% else %}Bookmark College{% endif %}

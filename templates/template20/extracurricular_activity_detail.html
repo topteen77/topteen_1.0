@@ -44,7 +44,7 @@
   }
 
   .extracurricular-tabs {
-    background-image: url("{{ static('images/extracurricular-bg.png') }}");
+    background-image: url("{{ static('images/extracurricular-bg.png') }}") !important;
     background-repeat: no-repeat;
     background-size: cover;
   }
@@ -89,7 +89,6 @@
   }
 
   .extracurricular-tabs .tab-content h3 {
-    color: #222;
     margin-bottom: .75rem;
   }
 
@@ -100,6 +99,11 @@
   .extracurricular-tabs ul li a {
     color: #6b3df0;
   }
+
+  #list-resources a {
+	color: #3F37C9;
+	text-decoration: underline !important;
+}
 
   /* Make left column sticky on large screens */
   @media(min-width:992px) {
@@ -208,7 +212,7 @@
         <!--breadcrumb-->
 
         <div class="vocational-card d-flex flex-wrap align-items-center">
-          <div class="voc-left col-lg-6 col-md-12">
+          <div class="voc-left col-lg-6 col-md-12 ">
             <h1 class="heading-title mt-md-0 mb-md-3 mt-2 mb-2">
               {{ activity.name }}
             </h1>
@@ -225,13 +229,15 @@
             {% endif %}
           </div>
 
-          <div class="voc-right col-lg-6 col-md-12 text-end">
+          <div class="voc-right col-lg-5 col-md-12 text-end offset-lg-1">
             <div class="right-banner d-md-flex d-none justify-content-end">
-              {% if activity.image %}
+              <!-- {% if activity.image %}
               <img class="img-fluid voc-image" src="{{ activity.image.url }}" alt="{{ activity.name }}">
               {% else %}
               <img class="img-fluid voc-image" src="{{ static('images/extracurricular-card-img.png') }}" alt="Extracurricular banner">
-              {% endif %}
+              {% endif %} -->
+              <img class="img-fluid" src="{{ static('images/extracurricular-card-img.png') }}" alt="Extracurricular banner" /> 
+
             </div>
           </div>
         </div>
@@ -272,7 +278,7 @@
                     {% for section in sections %}
                     <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="list-{{ section.section_id }}" role="tabpanel"
                       aria-labelledby="list-{{ section.section_id }}-list">
-                      <h3 class="fs-22 fw-700 mb-3">{{ section.title }}</h3>
+                      <h3 class="fs-22 fw-700 mb-3 text-purple">{{ section.title }}</h3>
                       <div>{{ section.content_html|safe }}</div>
                     </div>
                     {% endfor %}
@@ -287,7 +293,7 @@
   </section>
 
   <!-- Blog Section -->
-  <section class="blog-section pb-10">
+  <section class="blog-section py-10">
     <div class="container">
       <div class="row">
         <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">

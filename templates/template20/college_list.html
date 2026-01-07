@@ -1,4 +1,9 @@
+
+
+
 {% extends 'template20/base.html' %}
+
+
 
 {% block title_content %}
 College Finder | Top Teen
@@ -13,7 +18,7 @@ Find the perfect college for your career goals. Explore colleges by country, sta
 {% block content %}
 
 <!-- Hero Section -->
-<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+<section class="hero-section-inner pt-md-14 pt-14 pb-0 gradient-bg-college">
   <div class="container">
     <div class="row">
       <!--breadcrumb-->
@@ -22,7 +27,7 @@ Find the perfect college for your career goals. Explore colleges by country, sta
       </div>
       <!--breadcrumb-->
 
-      <div class="col-lg-8 col-md-12">
+      <div class="col-lg-8 col-md-12 order-md-1 order-2">
         <span class="highlighter">
           <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> College Finder
         </span>
@@ -32,9 +37,9 @@ Find the perfect college for your career goals. Explore colleges by country, sta
         <p class="text-gray fs-16">Explore colleges by location, courses, and specializations. Find the institution that best matches your career aspirations and educational goals.</p>
       </div>
 
-      <div class="col-lg-4 col-md-12">
-        <div class="right-banner d-md-flex justify-content-end">
-          <img class="img-fluid" src="{{ static('images_new/general/about-banner.svg') }}" alt="College Finder Banner" />
+      <div class="col-lg-4 col-md-12 order-md-2 order-1 mb-6 mb-lg-0 ">
+        <div class="right-banner d-md-flex justify-md-content-end justify-content-center">
+          <img class="img-fluid" src="{{ static('images_new/general/find-college.svg') }}" alt="College Finder Banner" />
         </div>
       </div>
     </div>
@@ -43,68 +48,72 @@ Find the perfect college for your career goals. Explore colleges by country, sta
 <!-- Hero Section -->
 
 <!-- College Search and Filter Section -->
-<section class="pb-10">
+<section class="py-md-6 py-4">
   <div class="container">
     <div class="row">
       <!-- Filters Sidebar -->
       <div class="col-lg-3 col-md-12 mb-4">
-        <div class="filter-sidebar">
-          <h3 class="filter-title mb-4">Filters</h3>
+        <div class="filter-sidebar" id="filterSidebar">
+          <h3 class="filter-title mb-4"><i class="bx bx-filter-alt"></i> Filters     <button type="button" class="btn-close d-lg-none float-end" aria-label="Close" onclick="closeFilterSidebar()"></button></h3>
+        
           
+
           <form method="GET" id="collegeFilterForm">
-            <!-- State Filter -->
-            {% if facets_filter and facets_filter.facets.state %}
-            <div class="filter-group mb-4">
-              <h5 class="filter-group-title">State</h5>
-              <div class="filter-options">
-                {% for tag, count, selected in facets_filter.facets.state %}
-                <div class="form-check mb-2">
-                  <input class="form-check-input" type="checkbox" name="state" value="{{ tag }}" id="state_{{ loop.index }}" 
-                    {% if selected %}checked{% endif %} onchange="this.form.submit()">
-                  <label class="form-check-label" for="state_{{ loop.index }}">
-                    {{ tag|title }} ({{ count }})
-                  </label>
+            <div class="filter-accordion">
+              <!-- State Filter -->
+              {% if facets_filter and facets_filter.facets.state %}
+              <details open>
+                <summary><span>State</span><i class="bx bx-chevron-down chevron-icon"></i></summary>
+                <div class="filter-options mt-2">
+                  {% for tag, count, selected in facets_filter.facets.state %}
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="state" value="{{ tag }}" id="state_{{ loop.index }}" 
+                      {% if selected %}checked{% endif %} onchange="this.form.submit()">
+                    <label class="form-check-label" for="state_{{ loop.index }}">
+                      {{ tag|title }} ({{ count }})
+                    </label>
+                  </div>
+                  {% endfor %}
                 </div>
-                {% endfor %}
-              </div>
-            </div>
-            {% endif %}
+              </details>
+              {% endif %}
 
-            <!-- City Filter -->
-            {% if facets_filter and facets_filter.facets.city %}
-            <div class="filter-group mb-4">
-              <h5 class="filter-group-title">City</h5>
-              <div class="filter-options">
-                {% for tag, count, selected in facets_filter.facets.city %}
-                <div class="form-check mb-2">
-                  <input class="form-check-input" type="checkbox" name="city" value="{{ tag }}" id="city_{{ loop.index }}" 
-                    {% if selected %}checked{% endif %} onchange="this.form.submit()">
-                  <label class="form-check-label" for="city_{{ loop.index }}">
-                    {{ tag|title }} ({{ count }})
-                  </label>
+              <!-- City Filter -->
+              {% if facets_filter and facets_filter.facets.city %}
+              <details>
+                <summary><span>City</span><i class="bx bx-chevron-down chevron-icon"></i></summary>
+                <div class="filter-options mt-2">
+                  {% for tag, count, selected in facets_filter.facets.city %}
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="city" value="{{ tag }}" id="city_{{ loop.index }}" 
+                      {% if selected %}checked{% endif %} onchange="this.form.submit()">
+                    <label class="form-check-label" for="city_{{ loop.index }}">
+                      {{ tag|title }} ({{ count }})
+                    </label>
+                  </div>
+                  {% endfor %}
                 </div>
-                {% endfor %}
-              </div>
-            </div>
-            {% endif %}
+              </details>
+              {% endif %}
 
-            <!-- Country Filter -->
-            {% if facets_filter and facets_filter.facets.country %}
-            <div class="filter-group mb-4">
-              <h5 class="filter-group-title">Country</h5>
-              <div class="filter-options">
-                {% for tag, count, selected in facets_filter.facets.country %}
-                <div class="form-check mb-2">
-                  <input class="form-check-input" type="checkbox" name="country" value="{{ tag }}" id="country_{{ loop.index }}" 
-                    {% if selected %}checked{% endif %} onchange="this.form.submit()">
-                  <label class="form-check-label" for="country_{{ loop.index }}">
-                    {{ tag|title }} ({{ count }})
-                  </label>
+              <!-- Country Filter -->
+              {% if facets_filter and facets_filter.facets.country %}
+              <details>
+                <summary><span>Country</span><i class="bx bx-chevron-down chevron-icon"></i></summary>
+                <div class="filter-options mt-2">
+                  {% for tag, count, selected in facets_filter.facets.country %}
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="country" value="{{ tag }}" id="country_{{ loop.index }}" 
+                      {% if selected %}checked{% endif %} onchange="this.form.submit()">
+                    <label class="form-check-label" for="country_{{ loop.index }}">
+                      {{ tag|title }} ({{ count }})
+                    </label>
+                  </div>
+                  {% endfor %}
                 </div>
-                {% endfor %}
-              </div>
+              </details>
+              {% endif %}
             </div>
-            {% endif %}
 
             <!-- Preserve page number in URL -->
             {% if request.GET.page %}
@@ -119,11 +128,15 @@ Find the perfect college for your career goals. Explore colleges by country, sta
           </div>
           {% endif %}
         </div>
+        <div class="filter-backdrop" id="filterBackdrop" onclick="closeFilterSidebar()"></div>
       </div>
       <!-- End Filters Sidebar -->
 
       <!-- College List -->
       <div class="col-lg-9 col-md-12">
+        <button class=" btn  custom-button purple-button  me-3 d-lg-none mb-3" id="mobileFilterToggle" type="button" onclick="openFilterSidebar()">
+          <i class="bx bx-filter-alt"></i> Filters
+        </button>
         <!-- Active Filters -->
         {% if query_list %}
         <div class="active-filters mb-4">
@@ -141,7 +154,7 @@ Find the perfect college for your career goals. Explore colleges by country, sta
         <div class="results-header mb-4">
           <h3 class="section-title mb-0">Results</h3>
           {% if colleges %}
-          <p class="text-gray mb-0">Found {{ colleges.paginator.count }} colleges</p>
+          <p class="text-gray mb-0 mt-5">Found {{ colleges.paginator.count }} colleges</p>
           {% endif %}
         </div>
 
@@ -157,13 +170,13 @@ Find the perfect college for your career goals. Explore colleges by country, sta
                 {% set is_bookmarked = college_slug in bookmarked_college_slugs %}
               <button class="btn btn-sm p-2 position-absolute top-0 end-0 m-2 bookmark-college-btn {% if is_bookmarked %}bookmarked{% endif %}" 
                       data-college-slug="{{ college_slug }}"
-                      style="background: rgba(255, 255, 255, 0.9); border-radius: 50%; z-index: 10; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                      style="background: rgba(255, 255, 255, 0.9); border-radius: 50%; z-index: 10; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width:35px; height:35px;"
                       title="{% if is_bookmarked %}Remove from bookmarks{% else %}Add to bookmarks{% endif %}">
                 <i class='bx {% if is_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}' 
                    style="font-size: 20px; color: {% if is_bookmarked %}#28a745{% else %}#666{% endif %};"></i>
               </button>
               {% endif %}
-              <div class="college-image" style="height: 200px; background: #f8f9fa; border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 15px;">
+              <div class="college-image" style="height: 200px; background: #f0f0f0; border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 15px;">
                 <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="w-100 h-100 d-flex align-items-center justify-content-center">
                   {% if college.logo %}
                     {% if college.logo.name %}
@@ -212,7 +225,7 @@ Find the perfect college for your career goals. Explore colleges by country, sta
         {% if colleges and colleges.paginator.num_pages > 1 %}
         <div class="row mt-4">
           <div class="col-12">
-            <nav aria-label="College pagination">
+            <nav aria-label="College pagination" class="college-pagination">
               <ul class="pagination justify-content-center">
                 {% if colleges.has_previous() %}
                 <li class="page-item">
@@ -380,6 +393,24 @@ document.addEventListener('DOMContentLoaded', function() {
     return cookieValue;
   }
 });
+
+// Mobile filter open/close helpers
+function openFilterSidebar() {
+  const fs = document.getElementById('filterSidebar');
+  const bd = document.getElementById('filterBackdrop');
+  if (fs) fs.classList.add('filter-open');
+  if (bd) bd.classList.add('show');
+  document.body.classList.add('modal-open');
+}
+
+function closeFilterSidebar() {
+  const fs = document.getElementById('filterSidebar');
+  const bd = document.getElementById('filterBackdrop');
+  if (fs) fs.classList.remove('filter-open');
+  if (bd) bd.classList.remove('show');
+  document.body.classList.remove('modal-open');
+}
+
 </script>
 {% endblock %}
 

@@ -19,7 +19,7 @@
   display: none;
   position: absolute;
   top: 100%;
-  right: 0;
+  /* right: 0; */
   width: 300px;
   background-color: #fff;
   border-radius: 8px;
