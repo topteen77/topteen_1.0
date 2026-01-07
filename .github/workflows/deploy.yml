@@ -28,22 +28,21 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519_github_devtopteen ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} << 'EOF'
             cd /home/ubuntu/topteens_new/topteen_1.0/
-            source /home/ubuntu//topteens_new/env1.0/bin/activate
+            source /home/ubuntu/topteens_new/env1.0/bin/activate
             git pull origin main
-            pip install -r requirements.txt
-            #python3 manage.py makemigrations app_post_matric
-            #python3 manage.py migrate app_post_matric
-            python3 manage.py collectstatic --noinput
-            deactivate
-            # sudo systemctl stop gunicorn-topteens.socket
-            # sudo systemctl disable gunicorn-topteens.socket
-            # sudo systemctl stop gunicorn-topteens.service
-            # sudo systemctl disable gunicorn-topteens.service
+            # pip install -r requirements.txt
+            # python3 manage.py makemigrations
+            # python3 manage.py migrate
+            # python3 manage.py collectstatic --noinput
+            # deactivate
+            # sudo systemctl stop topteen-new-website.socket
+            # sudo systemctl disable topteen-new-website.socket
+            # sudo systemctl stop topteen-new-website.service
+            # sudo systemctl disable topteen-new-website.service
 
-            # sudo systemctl enable gunicorn-topteens.socket
-            # sudo systemctl start gunicorn-topteens.socket
-            # sudo systemctl enable gunicorn-topteens.service
-            # sudo systemctl start gunicorn-topteens.service
-
+            # sudo systemctl enable topteen-new-website.socket
+            # sudo systemctl start topteen-new-website.socket
+            # sudo systemctl enable topteen-new-website.service
+            # sudo systemctl start topteen-new-website.service
             # sudo systemctl restart nginx
           EOF
