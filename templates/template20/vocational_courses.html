@@ -13,13 +13,18 @@ Explore vocational courses and career tracks across technology, healthcare, busi
 {% block additionalhead %}
 <style>
   /* Styles from provided vocational-course.html */
-  .filter-section {
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 30px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  }
+.filter-section {
+	background-color: #FBF2DC;
+	border-radius: 10px;
+	padding: 20px;
+	margin-bottom: 30px;
+	box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+	border: 1px solid #ff9d464a;
+	position: sticky;
+	top: 77px;
+	z-index: 66;
+}
+
   .filter-btn {
     margin-right: 10px;
     margin-bottom: 10px;
@@ -146,26 +151,46 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     padding: 50px 0;
   }
   /* Tab Styling */
+  /* Tab Styling - rounded pill tabs */
   .nav-tabs {
-    border-bottom: 2px solid #e9ecef;
+    border-bottom: none;
+    display: inline-flex;
+    gap: 8px;
+    padding: 6px;
+    background: transparent;
+    border-radius: 999px;
   }
   .nav-tabs .nav-link {
     color: #6c757d;
     border: none;
-    border-bottom: 3px solid transparent;
-    padding: 12px 24px;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-weight: 600;
+    transition: all 0.25s cubic-bezier(.2,.9,.2,1);
+    background: rgba(255,255,255,0.7);
+    box-shadow: 0 1px 3px rgba(16,24,40,0.04);
   }
   .nav-tabs .nav-link:hover {
-    border-bottom-color: #dee2e6;
+    background: rgba(245,247,250,0.95);
     color: #5046e5;
+    transform: translateY(-2px);
   }
   .nav-tabs .nav-link.active {
-    color: #5046e5;
-    background-color: transparent;
-    border-bottom-color: #5046e5;
-    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(90deg,#6f5ef8,#3f37c9);
+    box-shadow: 0 8px 20px rgba(79,55,201,0.12);
+  }
+  /* Responsive: allow horizontal scroll on small screens */
+  @media (max-width: 767px) {
+    .nav-tabs {
+      width: 100%;
+      justify-content: flex-start;
+      overflow-x: auto;
+      padding: 6px 8px;
+      gap: 6px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .nav-tabs .nav-link { flex: 0 0 auto; }
   }
   .tab-content {
     margin-top: 20px;
@@ -219,32 +244,39 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     background: #5046e5;
     color: white;
   }
+
+  .vocationcourse-hero h1 {
+  line-height: 51px;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 
 <!-- Hero Section -->
-<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+<section class="hero-section-inner pt-md-18 pt-14 pb-5 vocationcourse-hero">
   <div class="container">
     <div class="row">
       <div class="col-md-12">
         {% include 'template20/includes/breadcrumb.html' %}
       </div>
 
-      <div class="col-lg-8 col-md-12">
+      <div class="col-12 col-lg-6 col-md-6 order-md-1 order-22">
         <span class="highlighter">
-          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Exploration
+          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Skill Pathway
         </span>
-        <h1 class="heading-title mt-md-9 mb-3">Vocational Courses &amp; Career Tracks</h1>
+     <h1 class="heading-title mt-md-8  mb-3">
+              Launch Your Career
+              <span class="text-purple"> After 10th/12th </span>
+            </h1>
         <p class="text-gray fs-16">
-          Explore a wide range of career opportunities across various fields and industries. Our comprehensive career tracks guide you through the education requirements, skills needed, and potential career paths in each field.
+         Explore a wide range of career opportunities across various fields and industries. Our comprehensive career tracks guide you through the education requirements, skills needed, and potential career paths in each field. Whether you're interested in technology, healthcare, business, arts, or sciences, find the perfect career path that matches your passion and strengths.
         </p>
       </div>
 
-      <div class="col-lg-4 col-md-12">
+      <div class="voc-hero-img col-md-4 col-lg-4 order-md-2 order-1 offset-md-2">
         <div class="right-banner d-md-flex justify-content-end">
-          <img class="img-fluid" src="{{ static('images_new/general/vocational-course.svg') }}" alt="Vocational Courses" />
+          <img class="img-fluid" src="{{ static('images_new/general/vocation-page-image.png') }}" alt="Vocational Courses" />
         </div>
       </div>
     </div>
@@ -265,13 +297,10 @@ Explore vocational courses and career tracks across technology, healthcare, busi
           </div>
         </div>
         <div class="col-md-6 d-flex justify-content-md-end align-items-center">
-          <small class="text-gray">Showing courses loaded from admin-managed database</small>
-        </div>
-      </div>
-    </div>
+          <!-- <small class="text-gray">Showing courses loaded from admin-managed database</small> -->
 
-    <!-- Tabs Navigation -->
-    <ul class="nav nav-tabs mb-4" id="vocationalTabs" role="tablist">
+              <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs " id="vocationalTabs" role="tablist">
       <li class="nav-item" role="presentation">
         <button class="nav-link {% if default_tab == 'after-10' %}active{% endif %}" id="after-10-tab" data-bs-toggle="tab" data-bs-target="#after-10" type="button" role="tab" aria-controls="after-10" aria-selected="{% if default_tab == 'after-10' %}true{% else %}false{% endif %}">
           After 10
@@ -283,6 +312,11 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         </button>
       </li>
     </ul>
+        </div>
+      </div>
+    </div>
+
+
 
     <!-- Tabs Content -->
     <div class="tab-content" id="vocationalTabsContent">

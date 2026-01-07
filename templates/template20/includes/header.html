@@ -233,3 +233,88 @@
   </div>
 </header>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var burger = document.getElementById('burger');
+    var menu = document.getElementById('menu');
+    var searchContainer = document.querySelector('.search-container');
+    var searchInput = document.getElementById('search-input');
+
+    function closeMenu() {
+      if (burger) burger.classList.remove('is-active');
+      if (menu) menu.classList.remove('is-open');
+      document.body.classList.remove('no-scroll');
+    }
+
+    function openMenu() {
+      if (burger) burger.classList.add('is-active');
+      if (menu) menu.classList.add('is-open');
+      document.body.classList.add('no-scroll');
+    }
+
+    if (burger && menu) {
+      burger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var isActive = burger.classList.toggle('is-active');
+        if (isActive) {
+          openMenu();
+        } else {
+          closeMenu();
+        }
+      });
+
+      // Close when clicking a link (mobile)
+      menu.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () {
+          if (window.innerWidth < 768) closeMenu();
+        });
+      });
+
+      // Click outside to close (mobile)
+      document.addEventListener('click', function (e) {
+        if (window.innerWidth < 768) {
+          if (!menu.contains(e.target) && !burger.contains(e.target)) {
+            closeMenu();
+          }
+        }
+      });
+
+      // Ensure classes removed on resize to desktop
+      window.addEventListener('resize', function () {
+        if (window.innerWidth >= 768) {
+          closeMenu();
+        }
+      });
+    }
+
+    // Search toggle behavior
+    document.querySelectorAll('.search-toggle').forEach(function (el) {
+      el.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (!searchContainer) return;
+        searchContainer.classList.toggle('open');
+        if (searchContainer.classList.contains('open')) {
+          searchInput && searchInput.focus();
+        }
+      });
+    });
+
+    // Close search when clicking the close button
+    var searchClose = document.querySelector('.search-close');
+    if (searchClose) {
+      searchClose.addEventListener('click', function (e) {
+        e.preventDefault();
+        searchContainer && searchContainer.classList.remove('open');
+      });
+    }
+
+    // Close search on outside click
+    document.addEventListener('click', function (e) {
+      if (searchContainer && !searchContainer.contains(e.target) && !e.target.classList.contains('search-toggle')) {
+        searchContainer.classList.remove('open');
+      }
+    });
+  });
+</script>
+

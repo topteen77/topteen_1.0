@@ -33,7 +33,7 @@ Explore our comprehensive collection of skill lab courses designed to enhance yo
       </div>
 
       <div class="col-lg-4 col-md-12">
-        <div class="right-banner d-md-flex justify-content-end">
+        <div class="right-banner  justify-content-end d-none">
           <img class="img-fluid" src="{{ static('images_new/short-courses/skilllab-banner.svg') }}" alt="Skill Lab Courses Banner" />
         </div>
       </div>
@@ -44,13 +44,13 @@ Explore our comprehensive collection of skill lab courses designed to enhance yo
 
 <!-- Course List Section -->
 <section class="pb-10">
-  <div class="container">
+  <div class="container skilllab-course-list">
     {% if skilllab %}
     <div class="row">
       {% for skill in skilllab %}
       <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-        <div class="course-card h-100">
-          <div class="course-image mb-3">
+        <div class="course-card h-100  rounded  ">
+          <div class="course-image mb-3 position-relative">
             <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}">
               {% if skill.video_url %}
               <div class="video-wrapper position-relative" style="padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px;">
@@ -63,19 +63,22 @@ Explore our comprehensive collection of skill lab courses designed to enhance yo
               {% endif %}
             </a>
           </div>
+
+
+          <div class="course-content px-2 pb-3">
           
           {% if skill.category %}
           <div class="mb-2">
-            <span class="badge bg-primary">{{ skill.get_category_display() if skill.get_category_display else skill.category }}</span>
+            <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1">{{ skill.get_category_display() if skill.get_category_display else skill.category }}</span>
           </div>
           {% endif %}
           
           <h5 class="course-name mb-2">
-            <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}" class="text-decoration-none">{{ skill.name }}</a>
+            <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}" class="text-decoration-none text-dark">{{ skill.name }}</a>
           </h5>
           
           {% if skill.description %}
-          <p class="course-description text-gray fs-14 mb-3" style="min-height: 60px;">
+          <p class="course-description text-muted fs-14 mb-3" style="min-height: 60px;">
             {{ skill.description|striptags|truncate(100) }}
           </p>
           {% endif %}
@@ -89,12 +92,16 @@ Explore our comprehensive collection of skill lab courses designed to enhance yo
             </div>
             {% else %}
             <div class="course-price">
-              <span class="badge bg-success">Free</span>
+              <span class="badge bg-success bg-opacity-10 text-success">Free</span>
             </div>
             {% endif %}
-            <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}" class="btn btn-sm btn-outline-primary">
-              View Details <i class='bx bx-right-arrow-alt'></i>
+            <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}" class="btn custom-button purple-button p-2 fs-13">
+              View Details <i class='bx bx-right-arrow-alt ms-1'></i>
             </a>
+
+
+          </div>
+
           </div>
         </div>
       </div>
