@@ -440,43 +440,43 @@ def get_hexaco_or_riasec_career_mapping(latest_session):
     try:
 
         path = os.path.join(settings.BASE_DIR, 'static', 'data', 'hexaco_personality.json')
-        with open(path, 'r') as file:
+        with open(path, 'r', encoding='utf-8') as file:
             hexaco_data = json.load(file)
 
         path = os.path.join(settings.BASE_DIR, 'static', 'data', 'interest_riasec.json')
-        with open(path, 'r') as file:
+        with open(path, 'r', encoding='utf-8') as file:
             riasec_data = json.load(file)
 
         path = os.path.join(settings.BASE_DIR, 'static', 'data', 'Motivation_Career.json')
-        with open(path, 'r') as file:
+        with open(path, 'r', encoding='utf-8') as file:
             motivation_data = json.load(file)
 
         path = os.path.join(settings.BASE_DIR, 'static', 'data', 'aptitude_weak_areas_improvement_plan_2.json')
-        with open(path, 'r') as file:
+        with open(path, 'r', encoding='utf-8') as file:
             aptitude_weak_areas_data = json.load(file)
 
         path = os.path.join(settings.BASE_DIR, 'static', 'data', 'aptitude_strength_narrative_1.json')
-        with open(path, 'r') as file:
+        with open(path, 'r', encoding='utf-8') as file:
             aptitude_strength_narrative_data = json.load(file)
 
         path = os.path.join(settings.BASE_DIR, 'static', 'data', 'Aptitude_report_main-modified1.json')
-        with open(path, 'r') as file:
+        with open(path, 'r', encoding='utf-8') as file:
             Aptitude_report_main_data = json.load(file)
 
         path = os.path.join(settings.BASE_DIR, 'static', 'data', 'aptitude_recommendations_for_colleges_3.json')
-        with open(path, 'r') as file:
+        with open(path, 'r',encoding='utf-8') as file:
             aptitude_recommendations_data = json.load(file)
 
         path = os.path.join(settings.BASE_DIR, 'static', 'data', 'merged-1754477770562.json')
-        with open(path, 'r') as file:
+        with open(path, 'r',encoding='utf-8') as file:
             career_mergerd_path = json.load(file)
 
         path = os.path.join(settings.BASE_DIR, 'static', 'data', 'combined_report_Average_above_average.json')
-        with open(path, 'r') as file:
+        with open(path, 'r',encoding='utf-8') as file:
             CombinedReport_data = json.load(file)
 
         path = os.path.join(settings.BASE_DIR, 'static', 'data', 'aptitute interpretation.json')
-        with open(path, 'r') as file:
+        with open(path, 'r',encoding='utf-8') as file:
             aptitude_interpretation_data = json.load(file)
 
         return hexaco_data, riasec_data.get('code'), motivation_data.get('rows'), aptitude_weak_areas_data.get('rows'), aptitude_strength_narrative_data.get('rows'), Aptitude_report_main_data.get('rows'),aptitude_recommendations_data.get('rows'), career_mergerd_path, CombinedReport_data.get('rows'), aptitude_interpretation_data
@@ -589,7 +589,7 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                 # Load interest_riasec.json to get the new sections (using the already loaded hexaco_data structure)
                 # We need to load the full JSON to access the new top-level keys
                 interest_json_path = os.path.join(settings.BASE_DIR, 'static', 'data', 'interest_riasec.json')
-                with open(interest_json_path, 'r') as file:
+                with open(interest_json_path, 'r', encoding='utf-8') as file:
                     interest_json_data = json.load(file)
                 
                 # Get key descriptions for each letter in the code
@@ -713,7 +713,7 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
             
             # Load Motivation_Career.json to get the new sections
             motivation_json_path = os.path.join(settings.BASE_DIR, 'static', 'data', 'Motivation_Career.json')
-            with open(motivation_json_path, 'r') as file:
+            with open(motivation_json_path, 'r', encoding='utf-8') as file:
                 motivation_json_data = json.load(file)
             
             # Get motivation key description
@@ -3758,7 +3758,7 @@ class TestResultViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return TestResult.objects.filter(session__user=self.request.user)
+        return TestResult.objects.filter(session__user=self.request.user).order_by('-created_at')
 
 class RegisterView(generics.CreateAPIView):
     """

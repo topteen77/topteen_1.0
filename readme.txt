@@ -1,4 +1,4 @@
-kill port:
+  kill port:
 
 pkill -f "manage.py runserver.*8002"
 
