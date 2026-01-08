@@ -44,5 +44,5 @@
               sudo systemctl start topteen-new-website.socket
               sudo systemctl enable topteen-new-website.service
               sudo systemctl start topteen-new-website.service
-              sudo systemctl restart nginx
+              # sudo systemctl restart nginx
             EOF

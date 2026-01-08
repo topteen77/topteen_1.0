@@ -26,6 +26,14 @@ class CareerCluster(BaseModel,SlugModel):
     name=models.CharField(max_length=500,null=True)
     parent = models.ForeignKey('self',blank=True,null=True,on_delete=models.SET_NULL,related_name="children")
     image = models.ImageField(upload_to=career_cluster_image_directory,null=True,blank=True)
+    
+    class Meta(BaseModel.Meta):
+        indexes = [
+            models.Index(fields=['parent', 'object_status']),
+            models.Index(fields=['slug', 'id']),
+            models.Index(fields=['parent']),
+        ]
+    
     def get_image_url(self):
         """Get image URL with default fallback"""
         if self.image and self.image.name:
@@ -33,18 +41,50 @@ class CareerCluster(BaseModel,SlugModel):
         return '/static/images/career-cluster-default.png'  # Default career cluster image
 
     def get_careers(self):
-        return Career.objects.filter(Q(career_cluster=self)|Q(career_cluster__parent=self)).exclude(publish_status=choices.PublishStatus.DRAFT)
+        """Get careers for this cluster with optimized query"""
+        return Career.objects.filter(
+            Q(career_cluster=self) | Q(career_cluster__parent=self)
+        ).exclude(
+            publish_status=choices.PublishStatus.DRAFT
+        ).select_related().prefetch_related('career_cluster', 'skills')
    
     @classmethod
     def get_career_library_context(cls,request,cluster_slug=None,cluster_id=None):
-        q=request.GET.get("careersearch",None)
+        """
+        Get context for career library page with caching and optimized queries.
+        """
+        from django.core.cache import cache
+        import hashlib
+        
+        # Build cache key based on request parameters
+        q = request.GET.get("careersearch", None)
+        # Create a stable cache key
+        cache_key_str = f"career_library_{cluster_slug}_{cluster_id}_{q}"
+        cache_key_hash = hashlib.md5(cache_key_str.encode()).hexdigest()
+        cache_key = f"career_library_ctx_{cache_key_hash}"
+        
+        # Try to get from cache (cache for 1 hour = 3600 seconds)
+        cached_ctx = cache.get(cache_key)
+        if cached_ctx is not None:
+            return cached_ctx
+        
         ctx={}
         published_status = choices.PublishStatus.PUBLISHED
+        
         if cluster_slug and cluster_id:
-            clstr=get_object_or_404(CareerCluster,slug=cluster_slug,id=cluster_id)
+            # Use select_related for parent lookup optimization
+            clstr = get_object_or_404(
+                CareerCluster.objects.select_related('parent'),
+                slug=cluster_slug,
+                id=cluster_id
+            )
             ctx['current_cluster'] = clstr
-            # Child clusters (show all, but mark inactive if they have no active careers).
-            ctx['clusters'] = clstr.children.all().annotate(
+            
+            # Child clusters with optimized prefetch_related
+            ctx['clusters'] = clstr.children.all().prefetch_related(
+                'career_clusters',
+                'children__career_clusters'
+            ).annotate(
                 direct_active_careers=Count(
                     'career_clusters',
                     filter=Q(career_clusters__publish_status=published_status),
@@ -64,11 +104,18 @@ class CareerCluster(BaseModel,SlugModel):
             if q:
                 # When searching, do not show inactive clusters in results.
                 ctx['clusters'] = ctx['clusters'].filter(name__icontains=q).filter(active_career_count__gt=0)
-            ctx['careers']=clstr.get_careers()
-            ctx["cluster_name"]=clstr.name
+            
+            # Get careers with optimized query
+            ctx['careers'] = clstr.get_careers()
+            ctx["cluster_name"] = clstr.name
         else:
-            # Top-level tracks (show all, but mark inactive if they have no active careers).
-            ctx['clusters'] = cls.objects.filter(parent__isnull=True).annotate(
+            # Top-level tracks with optimized prefetch_related
+            ctx['clusters'] = cls.objects.filter(
+                parent__isnull=True
+            ).prefetch_related(
+                'career_clusters',
+                'children__career_clusters'
+            ).annotate(
                 direct_active_careers=Count(
                     'career_clusters',
                     filter=Q(career_clusters__publish_status=published_status),
@@ -88,10 +135,28 @@ class CareerCluster(BaseModel,SlugModel):
             if q:
                 # When searching, do not show inactive tracks in results.
                 ctx['clusters'] = ctx['clusters'].filter(name__icontains=q).filter(active_career_count__gt=0)
-            ctx['careers']=Career.objects.filter(career_cluster__in=ctx['clusters']).exclude(publish_status=choices.PublishStatus.DRAFT)
-            ctx['cluster_name']="Career Tracks"
+            
+            # Get careers with optimized query using prefetch_related
+            ctx['careers'] = Career.objects.filter(
+                career_cluster__in=ctx['clusters']
+            ).exclude(
+                publish_status=choices.PublishStatus.DRAFT
+            ).select_related().prefetch_related('career_cluster', 'skills')
+            
+            ctx['cluster_name'] = "Career Tracks"
+        
+        # Apply search filter if provided
         if q:
-            ctx['careers']=ctx['careers'].filter(name__icontains=q)
+            ctx['careers'] = ctx['careers'].filter(name__icontains=q)
+        
+        # Cache the context for 1 hour (3600 seconds)
+        # Only cache if not searching (search results change frequently)
+        if not q:
+            cache.set(cache_key, ctx, 3600)
+        else:
+            # Cache search results for shorter time (15 minutes)
+            cache.set(cache_key, ctx, 900)
+        
         return ctx
 
     def get_clstr_career_count(self,career_ids):
