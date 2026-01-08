@@ -8922,7 +8922,6 @@ div#videoModal {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
-  height: 100vh;
 }
 
 .login-center {
@@ -9253,6 +9252,21 @@ div#videoModal {
 /** FAQs **/
 
 /** Blogs **/
+.blog-cta {
+	background: linear-gradient(262.1deg, #3F37C9 0.79%, #1F1B63 80.85%);
+}
+
+.blog-tags-new .badge.bg-primary {
+	background: rgb(255, 233, 193) !important;
+	color: #665910;
+}
+
+.blog-tags-new .badge.bg-light {
+	background: #f4e6ff !important;
+	color: #7e22ce !important;
+	text-transform: capitalize;
+}
+
 
 .blog-card {
   border-radius: 12px;

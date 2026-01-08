@@ -104,7 +104,7 @@
   .divider-section {
     position: relative;
     text-align: center;
-    margin: 24px 0;
+    margin: 12px 0;
   }
   .divider-section .tor {
     position: relative;
@@ -149,14 +149,14 @@
 {% endblock %}
 
 {% block content %}
-<section class="login-home d-flex align-items-center">
+<section class="login-home d-flex align-items-center py-14">
   <div class="container">
     <div class="row">
       <div class="col-md-5 mx-auto">
         <div class="login-center">
           <form class="start-form" id="loginSignupForm">
             <div class="login-screen text-center p-5">
-              <div class="logo-header text-center my-4">
+              <div class="logo-header text-center mb-4">
                 <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
               </div>
 
@@ -195,7 +195,7 @@
                   <div class="setting-button d-flex flex-column w-100">
                     <button type="button"
                             onclick="return loginsingup()"
-                            class="btn custom-button purple-button mb-3 fw-600">
+                            class="btn custom-button purple-button mb-0 fw-600">
                       CONTINUE
                     </button>
                   </div>
@@ -205,12 +205,12 @@
                     </div>
 
                     <div class="social-button">
-                      <a class="btn custom-button google-btn mb-3 fw-600"
+                      <a class="btn custom-button google-btn mb-1 fw-600"
                          href="{{ url('social:begin', args=['google-oauth2']) }}">
                         <img src="{{ static('images_new/icons/google-icon.svg') }}" alt="google icon">
                         Continue with Google
                       </a>
-                      <a class="btn custom-button google-btn mb-3 fw-600"
+                      <a class="btn custom-button google-btn mb-2 fw-600"
                          href="{{ url('social:begin', args=['facebook']) }}">
                         <img src="{{ static('images_new/icons/fb-icon.svg') }}" alt="facebook icon">
                         Continue with Facebook
@@ -223,7 +223,7 @@
               <!-- Mobile OTP Tab -->
               <div class="tab-content" id="mobileTabContent">
                 <div class="form-row">
-                  <div class="col mb-4 icon-input phone-icon">
+                  <div class="col mb-2 icon-input phone-icon">
                     <input
                       type="tel"
                       class="form-control custom-input"
