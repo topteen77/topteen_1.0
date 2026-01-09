@@ -900,7 +900,7 @@ def CounselorCoursepayment(request):
             obj_type=choices.PaymentObjectType.COUNSELOR,
             is_success=choices.YesNoChoices.NO,
             gateway_order_id__isnull=False
-        ).exclude(gateway_order_id='').order_by('-created_at').first()
+        ).exclude(gateway_order_id='').order_by('-created').first()
         
         if existing_payment and existing_payment.gateway_order_id:
             # Use existing payment order
