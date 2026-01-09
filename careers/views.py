@@ -120,8 +120,12 @@ class Careers(TemplateView):
         # Support both GET and POST requests
         request_data = request.POST if request.method == 'POST' else request.GET
         
+        from django.db.models import Prefetch
+        # Optimize prefetch_related to avoid N+1 queries in template
+        # Prefetch career_cluster with only active clusters to reduce data transfer
         careers = Career.objects.filter(publish_status=1).select_related().prefetch_related(
-            'skills', 'career_tags', 'prospective_employment_areas', 'prospective_recruiters', 'courses', 'career_cluster'
+            'skills', 'career_tags', 'prospective_employment_areas', 'prospective_recruiters', 'courses',
+            Prefetch('career_cluster', queryset=CareerCluster.objects.filter(object_status=1))
         ).order_by('name')
 
         # Handle selected filters
