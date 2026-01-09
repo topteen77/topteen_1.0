@@ -2962,12 +2962,14 @@
 
             {% if above_list or average_list %}
             <div class="chapterPage career-guidance-result">
-                {% if career_guidance_selected %}
+                {% if aptitude_mapping %}
                 <p class="section-title imp-title">These aptitude combinations show what you’re good at and suggest the clusters, roles, and pathways that may fit you best, giving clearer guidance when combined with your marks and test results.</p>
-                <!-- <div style="text-align:center; margin: 10px 0;">
-                    <h4 style="margin-bottom:8px;">Debug: career_guidance_selected</h4>
-                    <pre style="text-align:left; white-space:pre-wrap; word-wrap:break-word;">{{ career_guidance_selected|default:"No data" }}</pre>
-                </div> -->
+                <div class="card-container guidance-report" style="display: flex; gap: 16px;">
+                    <div class="card" style="flex: 1;"><h4>Career Clusters</h4><ul>{% for cluster in aptitude_mapping.clusters %}<li><i style="color: #4E8CC2;" class="fas fa-layer-group me-2"></i>{% if cluster.url %}<a href="{{ cluster.url }}" target="_blank" style="color: #4E8CC2; text-decoration: none;">{{ cluster.name }}</a>{% else %}{{ cluster.name }}{% endif %}</li>{% empty %}<li style="color: #999;">No clusters mapped</li>{% endfor %}</ul></div>
+                    <div class="card" style="flex: 1;"><h4>Career Roles</h4><ul>{% for role in aptitude_mapping.roles %}<li><i style="color: #4EC24E;" class="fas fa-user-tie me-2"></i>{% if role.url %}<a href="{{ role.url }}" target="_blank" style="color: #4EC24E; text-decoration: none;">{{ role.name }}</a>{% else %}{{ role.name }}{% endif %}</li>{% empty %}<li style="color: #999;">No roles mapped</li>{% endfor %}</ul></div>
+                    <div class="card" style="flex: 1;"><h4>Educational Pathways</h4><ul>{% for pathway in aptitude_mapping.pathways %}<li><i style="color: #5940ec;" class="fas fa-graduation-cap me-2"></i>{% if pathway.url %}<a href="{{ pathway.url }}" target="_blank" style="color: #5940ec; text-decoration: none;">{{ pathway.name }}</a>{% else %}{{ pathway.name }}{% endif %}</li>{% empty %}<li style="color: #999;">No pathways mapped</li>{% endfor %}</ul></div>
+                </div>
+                {% elif career_guidance_selected %}
                 {% for guidance in career_guidance_selected %}
                 <div class="card-container guidance-report" style="display: flex; gap: 16px;">
                     <!-- Career Clusters Card -->

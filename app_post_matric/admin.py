@@ -1,7 +1,10 @@
 from django.contrib import admin
+from django.utils.html import format_html
+from django.urls import reverse
 from .models import (
     TestCategory, Test, Question, Answer, Sections,SectionSession,
-    TestSession, UserResponse, TestResult, TestTopCategories, TestCompletionPopup
+    TestSession, UserResponse, TestResult, TestTopCategories, TestCompletionPopup,
+    ClusterMapping, RoleMapping, PathwayMapping, AptitudeCombinationMapping
 )
 
 
@@ -132,3 +135,12 @@ class TestCompletionPopupAdmin(admin.ModelAdmin):
     search_fields = ('user__email', 'user__name', 'user__username', 'answer', 'country')
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
+
+
+# Import and register mapping admins
+from .admin_mapping import (
+    ClusterMappingAdmin, RoleMappingAdmin, PathwayMappingAdmin,
+    AptitudeCombinationMappingAdmin
+)
+
+# Models are already registered in admin_mapping.py via @admin.register decorator
