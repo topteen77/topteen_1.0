@@ -244,7 +244,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                       {% elif career._career_cluster_list is defined and career._career_cluster_list|length > 0 %}
                         {% set first_cluster = career._career_cluster_list[0] %}
                       {# Fallback: Django ORM ManyRelatedManager or Elasticsearch AttrList #}
-                      {% elif career.career_cluster and career.career_cluster|length > 0 %}
+                      {% elif career.career_cluster and career.career_cluster.count > 0 %}
                         {# Iterate directly - works for both Django ORM ManyRelatedManager and Elasticsearch AttrList #}
                         {# Note: Django ManyRelatedManager is iterable directly, no need for .all() #}
                         {% for cluster in career.career_cluster %}
