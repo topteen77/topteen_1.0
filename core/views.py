@@ -425,21 +425,9 @@ class EbookListView(TemplateView):
             ebook_data = {
                 "id": ebook.id,
                 "title": ebook.title,
-                "cover": None,
-                "pdf": None
+                "cover": ebook.get_cover_url(),
+                "pdf": ebook.get_pdf_url()
             }
-            # Get cover image URL
-            if ebook.cover_image and ebook.cover_image.name:
-                ebook_data["cover"] = ebook.cover_image.url
-            else:
-                ebook_data["cover"] = None
-            
-            # Get PDF file URL
-            if ebook.pdf_file and ebook.pdf_file.name:
-                ebook_data["pdf"] = ebook.pdf_file.url
-            else:
-                ebook_data["pdf"] = None
-            
             ctx["ebooks"].append(ebook_data)
         return ctx
 
@@ -466,7 +454,7 @@ class EbookDetailView(TemplateView):
         if ebook_id:
             try:
                 ebook = Ebook.objects.get(id=ebook_id, publish_status=choices.PublishStatus.PUBLISHED)
-                ctx["pdf_path"] = ebook.pdf_file.url if ebook.pdf_file and ebook.pdf_file.name else None
+                ctx["pdf_path"] = ebook.get_pdf_url()
                 ctx["ebook_title"] = ebook.title
                 ctx["breadcrumb"] = {"text": ebook.title, "url": reverse("core:ebook_list")}
             except Ebook.DoesNotExist:

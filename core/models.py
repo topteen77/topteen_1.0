@@ -438,11 +438,27 @@ class Ebook(BaseModel, PublishableModel):
     description = models.TextField(blank=True, null=True, help_text="Description of the ebook")
     cover_image = models.ImageField(
         upload_to=ebook_cover_directory,
-        help_text="Cover image for the ebook (recommended size: 400x600px)"
+        blank=True,
+        null=True,
+        help_text="Cover image for the ebook (recommended size: 400x600px). Leave empty if using S3 URL."
+    )
+    cover_image_s3_url = models.URLField(
+        blank=True,
+        null=True,
+        max_length=500,
+        help_text="S3 URL for cover image (e.g., https://topteenc.s3.ap-northeast-1.amazonaws.com/ebook/cover/image.jpg). Leave empty if uploading file."
     )
     pdf_file = models.FileField(
         upload_to=ebook_pdf_directory,
-        help_text="PDF file of the ebook"
+        blank=True,
+        null=True,
+        help_text="PDF file of the ebook. Leave empty if using S3 URL."
+    )
+    pdf_file_s3_url = models.URLField(
+        blank=True,
+        null=True,
+        max_length=500,
+        help_text="S3 URL for PDF file (e.g., https://topteenc.s3.ap-northeast-1.amazonaws.com/ebook/pdf/book.pdf). Leave empty if uploading file."
     )
     priority = models.PositiveSmallIntegerField(
         default=1,
@@ -464,13 +480,17 @@ class Ebook(BaseModel, PublishableModel):
         super().save(*args, **kwargs)
 
     def get_cover_url(self):
-        """Get cover image URL"""
+        """Get cover image URL - prioritizes S3 URL over uploaded file"""
+        if self.cover_image_s3_url:
+            return self.cover_image_s3_url
         if self.cover_image and self.cover_image.name:
             return self.cover_image.url
         return None
 
     def get_pdf_url(self):
-        """Get PDF file URL"""
+        """Get PDF file URL - prioritizes S3 URL over uploaded file"""
+        if self.pdf_file_s3_url:
+            return self.pdf_file_s3_url
         if self.pdf_file and self.pdf_file.name:
             return self.pdf_file.url
         return None

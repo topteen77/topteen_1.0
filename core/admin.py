@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils.html import format_html
 from .models import (
     Configuration,
     City,
@@ -197,6 +198,96 @@ class EbookAdminForm(forms.ModelForm):
         model = Ebook
         fields = '__all__'
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from django.conf import settings
+        s3_base_url = getattr(settings, 'S3_BUCKET_BASE_URL', 'https://topteenc.s3.ap-northeast-1.amazonaws.com/')
+        s3_ebook_folder = getattr(settings, 'S3_EBOOK_FOLDER', 'ebook')
+        
+        # Set placeholders with S3 base URL
+        cover_placeholder = f'{s3_base_url}{s3_ebook_folder}/cover/image.jpg'
+        pdf_placeholder = f'{s3_base_url}{s3_ebook_folder}/pdf/book.pdf'
+        
+        # Update cover image S3 URL field
+        if 'cover_image_s3_url' in self.fields:
+            self.fields['cover_image_s3_url'].widget.attrs.update({
+                'placeholder': cover_placeholder,
+                'style': 'width: 100%;'
+            })
+            self.fields['cover_image_s3_url'].help_text = f'S3 URL for cover image. Example: {cover_placeholder}'
+        
+        # Update PDF file S3 URL field
+        if 'pdf_file_s3_url' in self.fields:
+            self.fields['pdf_file_s3_url'].widget.attrs.update({
+                'placeholder': pdf_placeholder,
+                'style': 'width: 100%;'
+            })
+            self.fields['pdf_file_s3_url'].help_text = f'S3 URL for PDF file. Example: {pdf_placeholder}'
+    
+    def clean(self):
+        """Validate that either file upload or S3 URL is provided"""
+        cleaned_data = super().clean()
+        
+        # Validate cover image - either file upload OR S3 URL
+        cover_image = cleaned_data.get('cover_image')
+        cover_image_s3_url = cleaned_data.get('cover_image_s3_url')
+        
+        # Check if this is a new upload (file object with name attribute)
+        is_new_cover_upload = cover_image and hasattr(cover_image, 'name') and cover_image.name
+        
+        # If editing existing object, check if it already has a cover
+        if self.instance and self.instance.pk:
+            existing_cover = self.instance.cover_image and self.instance.cover_image.name
+            existing_cover_s3 = self.instance.cover_image_s3_url
+            # Only require if no existing cover and no new data provided
+            if not is_new_cover_upload and not cover_image_s3_url and not existing_cover and not existing_cover_s3:
+                raise ValidationError({
+                    'cover_image': 'Either upload a cover image file or provide an S3 URL.',
+                    'cover_image_s3_url': 'Either upload a cover image file or provide an S3 URL.'
+                })
+        else:
+            # New object - must have either file or S3 URL
+            if not is_new_cover_upload and not cover_image_s3_url:
+                raise ValidationError({
+                    'cover_image': 'Either upload a cover image file or provide an S3 URL.',
+                    'cover_image_s3_url': 'Either upload a cover image file or provide an S3 URL.'
+                })
+        
+        # If both are provided, prioritize S3 URL (clear file upload)
+        if is_new_cover_upload and cover_image_s3_url:
+            cleaned_data['cover_image'] = None
+        
+        # Validate PDF file - either file upload OR S3 URL
+        pdf_file = cleaned_data.get('pdf_file')
+        pdf_file_s3_url = cleaned_data.get('pdf_file_s3_url')
+        
+        # Check if this is a new upload (file object with name attribute)
+        is_new_pdf_upload = pdf_file and hasattr(pdf_file, 'name') and pdf_file.name
+        
+        # If editing existing object, check if it already has a PDF
+        if self.instance and self.instance.pk:
+            existing_pdf = self.instance.pdf_file and self.instance.pdf_file.name
+            existing_pdf_s3 = self.instance.pdf_file_s3_url
+            # Only require if no existing PDF and no new data provided
+            if not is_new_pdf_upload and not pdf_file_s3_url and not existing_pdf and not existing_pdf_s3:
+                raise ValidationError({
+                    'pdf_file': 'Either upload a PDF file or provide an S3 URL.',
+                    'pdf_file_s3_url': 'Either upload a PDF file or provide an S3 URL.'
+                })
+        else:
+            # New object - must have either file or S3 URL
+            if not is_new_pdf_upload and not pdf_file_s3_url:
+                raise ValidationError({
+                    'pdf_file': 'Either upload a PDF file or provide an S3 URL.',
+                    'pdf_file_s3_url': 'Either upload a PDF file or provide an S3 URL.'
+                })
+        
+        # If both are provided, prioritize S3 URL (clear file upload)
+        if is_new_pdf_upload and pdf_file_s3_url:
+            cleaned_data['pdf_file'] = None
+        
+        return cleaned_data
+    
     def clean_cover_image(self):
         """Validate cover image size"""
         cover_image = self.cleaned_data.get('cover_image')
@@ -210,6 +301,15 @@ class EbookAdminForm(forms.ModelForm):
                         cover_image.size / (1024 * 1024)
                     ))
         return cover_image
+    
+    def clean_cover_image_s3_url(self):
+        """Validate S3 cover image URL"""
+        cover_image_s3_url = self.cleaned_data.get('cover_image_s3_url')
+        if cover_image_s3_url:
+            # Basic URL validation
+            if not (cover_image_s3_url.startswith('http://') or cover_image_s3_url.startswith('https://')):
+                raise ValidationError('S3 URL must start with http:// or https://')
+        return cover_image_s3_url
     
     def clean_pdf_file(self):
         """Validate PDF file size"""
@@ -227,56 +327,75 @@ class EbookAdminForm(forms.ModelForm):
                 if not pdf_file.name.lower().endswith('.pdf'):
                     raise ValidationError('Only PDF files are allowed.')
         return pdf_file
+    
+    def clean_pdf_file_s3_url(self):
+        """Validate S3 PDF URL"""
+        pdf_file_s3_url = self.cleaned_data.get('pdf_file_s3_url')
+        if pdf_file_s3_url:
+            # Basic URL validation
+            if not (pdf_file_s3_url.startswith('http://') or pdf_file_s3_url.startswith('https://')):
+                raise ValidationError('S3 URL must start with http:// or https://')
+            # Check if it's a PDF file
+            if not pdf_file_s3_url.lower().endswith('.pdf'):
+                raise ValidationError('S3 URL must point to a PDF file (.pdf extension)')
+        return pdf_file_s3_url
 
 
 @admin.register(Ebook)
 class EbookAdmin(admin.ModelAdmin):
     form = EbookAdminForm
-    list_display = ("id", "title", "priority", "publish_status", "object_status", "cover_preview", "file_size_display", "created", "modified")
+    list_display = ("id", "title", "priority", "publish_status", "object_status", "cover_preview", "file_source_display", "created", "modified")
     list_filter = ("publish_status", "object_status", "created", "modified")
     search_fields = ("title", "description")
     ordering = ("priority", "title")
-    fields = (
-        "title",
-        "slug",
-        "description",
-        "cover_image",
-        "cover_preview",
-        "pdf_file",
-        "priority",
-        "publish_status",
-        "object_status",
-        "created",
-        "modified"
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'slug', 'description', 'priority', 'publish_status', 'object_status')
+        }),
+        ('Cover Image', {
+            'fields': ('cover_image', 'cover_image_s3_url', 'cover_preview'),
+            'description': 'Either upload a cover image file OR provide an S3 URL. S3 URL takes priority if both are provided.'
+        }),
+        ('PDF File', {
+            'fields': ('pdf_file', 'pdf_file_s3_url'),
+            'description': 'Either upload a PDF file OR provide an S3 URL. S3 URL takes priority if both are provided.'
+        }),
+        ('Timestamps', {
+            'fields': ('created', 'modified'),
+            'classes': ('collapse',)
+        }),
     )
     readonly_fields = ("created", "modified", "cover_preview")
     list_editable = ("priority", "publish_status")
 
     def cover_preview(self, obj):
         """Display cover image preview in admin"""
-        if obj.cover_image and obj.cover_image.name:
-            from django.utils.html import format_html
+        cover_url = obj.get_cover_url()
+        if cover_url:
             return format_html(
-                '<img src="{}" style="max-width: 150px; max-height: 200px; object-fit: contain;" />',
-                obj.cover_image.url
+                '<img src="{}" style="max-width: 150px; max-height: 200px; object-fit: contain; border: 1px solid #ddd; border-radius: 4px;" />',
+                cover_url
             )
         return "No cover image"
     cover_preview.short_description = "Cover Preview"
     
-    def file_size_display(self, obj):
-        """Display PDF file size"""
-        if obj.pdf_file and obj.pdf_file.name:
+    def file_source_display(self, obj):
+        """Display PDF file source (uploaded or S3)"""
+        if obj.pdf_file_s3_url:
+            return format_html('<span style="color: #28a745;">S3 URL</span>')
+        elif obj.pdf_file and obj.pdf_file.name:
             try:
                 size = obj.pdf_file.size
                 if size < 1024:
-                    return f"{size} B"
+                    size_str = f"{size} B"
                 elif size < 1024 * 1024:
-                    return f"{size / 1024:.2f} KB"
+                    size_str = f"{size / 1024:.2f} KB"
                 else:
-                    return f"{size / (1024 * 1024):.2f} MB"
+                    size_str = f"{size / (1024 * 1024):.2f} MB"
+                return format_html('<span style="color: #007bff;">Uploaded ({})</span>', size_str)
             except (OSError, ValueError):
-                return "N/A"
+                return format_html('<span style="color: #007bff;">Uploaded</span>')
         return "No file"
-    file_size_display.short_description = "PDF Size"
+    file_source_display.short_description = "PDF Source"
 
 
