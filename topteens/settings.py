@@ -335,6 +335,12 @@ CKEDITOR_CONFIGS = {
     },
 }
 
+# File Upload Settings
+# Upload size limits for ebooks
+DATA_UPLOAD_MAX_MEMORY_SIZE = 3 * 1024 * 1024  # 3 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 3 * 1024 * 1024  # 3 MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240  # Increase if needed
+
 # Suppress CKEditor 4 deprecation warning
 # Note: CKEditor 4 is deprecated but still in use. Consider migrating to django-ckeditor-5 in the future.
 SILENCED_SYSTEM_CHECKS = ['ckeditor.W001']

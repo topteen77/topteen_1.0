@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django import forms
+from django.core.exceptions import ValidationError
 from .models import (
     Configuration,
     City,
@@ -190,9 +192,47 @@ class VocationalCourseAdmin(admin.ModelAdmin):
     readonly_fields = ("created", "modified")
 
 
+class EbookAdminForm(forms.ModelForm):
+    class Meta:
+        model = Ebook
+        fields = '__all__'
+    
+    def clean_cover_image(self):
+        """Validate cover image size"""
+        cover_image = self.cleaned_data.get('cover_image')
+        if cover_image:
+            # Check if it's a new upload (has file attribute)
+            if hasattr(cover_image, 'size'):
+                # Limit cover image to 3MB
+                max_size = 3 * 1024 * 1024  # 3 MB
+                if cover_image.size > max_size:
+                    raise ValidationError('Cover image size must be under 3MB. Current size: {:.2f}MB'.format(
+                        cover_image.size / (1024 * 1024)
+                    ))
+        return cover_image
+    
+    def clean_pdf_file(self):
+        """Validate PDF file size"""
+        pdf_file = self.cleaned_data.get('pdf_file')
+        if pdf_file:
+            # Check if it's a new upload (has file attribute)
+            if hasattr(pdf_file, 'size'):
+                # Limit PDF to 3MB
+                max_size = 3 * 1024 * 1024  # 3 MB
+                if pdf_file.size > max_size:
+                    raise ValidationError('PDF file size must be under 3MB. Current size: {:.2f}MB'.format(
+                        pdf_file.size / (1024 * 1024)
+                    ))
+                # Check file extension
+                if not pdf_file.name.lower().endswith('.pdf'):
+                    raise ValidationError('Only PDF files are allowed.')
+        return pdf_file
+
+
 @admin.register(Ebook)
 class EbookAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "priority", "publish_status", "object_status", "cover_preview", "created", "modified")
+    form = EbookAdminForm
+    list_display = ("id", "title", "priority", "publish_status", "object_status", "cover_preview", "file_size_display", "created", "modified")
     list_filter = ("publish_status", "object_status", "created", "modified")
     search_fields = ("title", "description")
     ordering = ("priority", "title")
@@ -222,5 +262,21 @@ class EbookAdmin(admin.ModelAdmin):
             )
         return "No cover image"
     cover_preview.short_description = "Cover Preview"
+    
+    def file_size_display(self, obj):
+        """Display PDF file size"""
+        if obj.pdf_file and obj.pdf_file.name:
+            try:
+                size = obj.pdf_file.size
+                if size < 1024:
+                    return f"{size} B"
+                elif size < 1024 * 1024:
+                    return f"{size / 1024:.2f} KB"
+                else:
+                    return f"{size / (1024 * 1024):.2f} MB"
+            except (OSError, ValueError):
+                return "N/A"
+        return "No file"
+    file_size_display.short_description = "PDF Size"
 
 
