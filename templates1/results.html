@@ -407,9 +407,8 @@
 
 
         .scard-bodys.card-one {
-            border: 1px solid #5952d6;
-            border-top: 7px solid #5952d6;
-            background: #eff5ff;
+            border: 1px solid #B0A9FF;
+  background: #F7F6FF;
 
         }
 
@@ -424,20 +423,20 @@
 
         .summary-card-header {
             margin-right: 23px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
         }
 
         .summary-card-header-img {
             width: 150px;
-            height: 150px;
-            background: #ffff;
-            border-radius: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+  height: 150px;
+  background: #E7E5FFCC;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
         }
 
         .summary-card-header-img img {
@@ -463,6 +462,14 @@
             margin-bottom: 4px;
             margin-top: 0px;
         }
+
+        .s-head-title {
+	color: #3F37C9;
+	font-size: 21px !important;
+	font-weight: 600;
+	margin-bottom: 10px !important;
+	line-height: 27px !important;
+}
 
         .summary-card-description ul li {
             font-size: 13px;
@@ -506,7 +513,16 @@
             margin-top: 2px !important;
             color: #013E5D;
             display: flex;
+            align-items: center;
         }
+
+        .pr-combined-report-body ul {
+	list-style: disc;
+}
+
+.pr-combined-report-body ul li::marker {
+	color: #013E5D;
+}
 
         .pr-combined-report-header h1 span {
             background: #013E5D;
@@ -2174,19 +2190,8 @@
                 <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px;">
                     <img style="width:600px;" src="{% static 'images/hexaco.png'%} " alt="hexaco" />
                 </div>
-            </div>
-
-            <!-- page 5 End-->
 
 
-            <!-- page 6-->
-
-
-            <div class="chapterPage">
-                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
-                        src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
                 <table style="margin-bottom: 30px; margin-top:0px; ">
                     <thead>
                         <tr>
@@ -2194,7 +2199,7 @@
                                 style="background: 
     
         #E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px; font-size: 14px;">
-                                Holland Code</th>
+                               HEXACO Code</th>
                             <th style="background: 
     
         #E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
@@ -2299,7 +2304,12 @@
                 </table>
             </div>
 
-            <!-- page 6 end -->
+            <!-- page 5 End-->
+
+
+            <!-- page 6-->
+
+
 
             <!-- DYNAMIC RESULTS SECTION -->
 
@@ -2326,6 +2336,10 @@
                         <!-- Dynamic personality dimensions will be inserted here -->
                     </div>
 
+                    <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px;">
+                        <img style="width:450px; margin:0px auto;" src="{% static 'images/hexco-recommended.png'%} " alt="hexaco" />
+                    </div>
+
                 </div>
             </div>
             <div class="chapterPage" id="personality-results-page" style="display: block;">
@@ -2338,7 +2352,7 @@
 
 
                         <div class="hexaco-code-explanation">
-                            <h3>Explanation of your Dominent Personality Dimensions</h3>
+                            <h3 style="color: #3F37C9;">Explanation of your Dominent Personality Dimensions</h3>
                         </div>
 
                         {% for explanation in dominant_trait_explanations %}
@@ -2347,15 +2361,18 @@
                                 <div class="summary-card-header-img"> <img
                                         src="{% static explanation|get_item:"key_image" %}" alt="logo" /> </div>
 
-                                <p>{{ explanation|get_item:"HEXACO Trait"|upper }} ({{ explanation|get_item:"Trait Code" }}) - "{{ explanation|get_item:"Metaphorical Title" }}"</p>
-                            </div>
+                                    </div>
                             <div class="summary-card-description">
+                                <p class="s-head-title">{{ explanation|get_item:"HEXACO Trait"|upper }} ({{ explanation|get_item:"Trait Code" }}) - "{{ explanation|get_item:"Metaphorical Title" }}"</p>
+                           
                                 {{ explanation|get_item:"Description"|safe }}
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                     <!-- explanation of your dominant personality dimensions -->
+
+                 
 
                 
             </div>

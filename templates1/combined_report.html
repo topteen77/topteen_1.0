@@ -1256,6 +1256,69 @@
             padding: 5px 0;
             font-size: 14px;
         }
+
+
+        /*** new changes in css **/
+
+        .career-clusters-card {
+	background: #F7F6FF;
+	border-radius: 20px;
+	overflow: hidden;
+}
+
+.career-clusters-card h4 {
+	background: #E7E5FF;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 17px;
+	padding: 8px 0;
+}
+
+.career-clusters-card ul, .career-roles-card ul, .career-pathways-card ul {
+	display: grid;
+	grid-template-columns: repeat(3,1fr);
+	gap: 0 16px;
+}
+
+.career-roles-card {
+	background: #FFEDEB;
+	margin-top: 16px;
+	border-radius: 20px;
+	overflow: hidden;
+}
+
+.career-roles-card  h4 {
+	background: #FFD4CF;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 17px;
+	padding: 8px 0;
+}
+
+.career-pathways-card {
+	background: #FFFCEC;
+	margin-top: 16px;
+	border-radius: 20px;
+	overflow: hidden;
+}
+
+
+.career-pathways-card h4 {
+	background: #FFF2B6;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 17px;
+	padding: 8px 0;
+}
+
+.career-clusters-card h4 img, .career-roles-card  h4 img, .career-pathways-card  h4 img  {
+	width: 39px;
+	margin-right: 17px;
+}
+        /*** new changes in css **/
     </style>
 </head>
 
@@ -1597,10 +1660,10 @@
                         border-radius: 10px 10px 0 0;">Part -1</div>
                 </div>
                 <div class="db-header" style="margin-top: 10px; text-align: center;">
-                    <h1 style="color: #3F37C9;">PERSONALITY ASSESSMENT REPORT</h1>
+                    <h1 style="color: #3F37C9; margin-top:0px;">PERSONALITY ASSESSMENT REPORT</h1>
                 </div>
                 <div class="text-info-paragraph"
-                    style="width: 100%;  float: left;  margin-top: 10px;  background: #E7FEFF;  border: 1px solid #b8fcff;  padding: 7px;  border-radius: 10px; margin-bottom:10px;">
+                    style="width: 100%;  float: left;  margin-top: 5px;  background: #E7FEFF;  border: 1px solid #b8fcff;  padding: 7px;  border-radius: 10px; margin-bottom:10px;">
                     <p style="margin-bottom:0px;">This report is based on the <strong> HEXACO </strong> personality
                         model,
                         which
@@ -1621,30 +1684,18 @@
                     <p style="font-size: 21px; margin-bottom: 30px; text-align: center;"> HEXACO Code
                         description </p>
                 </div>
-                <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px;">
+                <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 15px;">
                     <img style="width:600px;" src="{% static 'images/hexaco.png'%} " alt="hexaco" />
                 </div>
-            </div>
 
-            <!-- page 5 End-->
-
-
-            <!-- page 6-->
-
-
-            <div class="chapterPage" style="padding-bottom: 40px;">
-                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
-                        src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
-                <table style="margin-bottom: 30px; margin-top:0px; ">
+               <table style="margin-bottom: 30px; margin-top:0px; ">
                     <thead>
                         <tr>
                             <th
                                 style="background: 
     
         #E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px; font-size: 14px;">
-                                Holland Code</th>
+                               HEXACO Code</th>
                             <th style="background: 
     
         #E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
@@ -1749,7 +1800,9 @@
                 </table>
             </div>
 
-            <!-- page 6 end -->
+            <!-- page 5 End-->
+
+
 
             <!-- DYNAMIC RESULTS SECTION -->
 
@@ -1762,7 +1815,7 @@
                 </div>
                 <hr />
                 <div class="db-header" style="margin-top: 10px; text-align: center;">
-                    <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
+                    <h1 style="color: #3F37C9; margin-top:0px;">Interpretation & Recommendations</h1>
                 </div>
 
 
@@ -1944,7 +1997,7 @@
                 </div>
                 <div class="text-info-paragraph"
                     style="width: 100%;  float: left;  margin-top: 10px;  background: #E7FEFF;  border: 1px solid #b8fcff;  padding: 7px;  border-radius: 10px;">
-                    <p style="margin-bottom: 0px;">This report is based on the Motivation Model, which identifies the
+                    <p style="margin-bottom: 0px; font-size:14px;">This report is based on the Motivation Model, which identifies the
                         key
                         drivers
                         behind your career choices—such
@@ -2962,23 +3015,21 @@
 
             {% if above_list or average_list %}
             <div class="chapterPage career-guidance-result">
-                {% if aptitude_mapping %}
-                <p class="section-title imp-title">These aptitude combinations show what you’re good at and suggest the clusters, roles, and pathways that may fit you best, giving clearer guidance when combined with your marks and test results.</p>
-                <div class="card-container guidance-report" style="display: flex; gap: 16px;">
-                    <div class="card" style="flex: 1;"><h4>Career Clusters</h4><ul>{% for cluster in aptitude_mapping.clusters %}<li><i style="color: #4E8CC2;" class="fas fa-layer-group me-2"></i>{% if cluster.url %}<a href="{{ cluster.url }}" target="_blank" style="color: #4E8CC2; text-decoration: none;">{{ cluster.name }}</a>{% else %}{{ cluster.name }}{% endif %}</li>{% empty %}<li style="color: #999;">No clusters mapped</li>{% endfor %}</ul></div>
-                    <div class="card" style="flex: 1;"><h4>Career Roles</h4><ul>{% for role in aptitude_mapping.roles %}<li><i style="color: #4EC24E;" class="fas fa-user-tie me-2"></i>{% if role.url %}<a href="{{ role.url }}" target="_blank" style="color: #4EC24E; text-decoration: none;">{{ role.name }}</a>{% else %}{{ role.name }}{% endif %}</li>{% empty %}<li style="color: #999;">No roles mapped</li>{% endfor %}</ul></div>
-                    <div class="card" style="flex: 1;"><h4>Educational Pathways</h4><ul>{% for pathway in aptitude_mapping.pathways %}<li><i style="color: #5940ec;" class="fas fa-graduation-cap me-2"></i>{% if pathway.url %}<a href="{{ pathway.url }}" target="_blank" style="color: #5940ec; text-decoration: none;">{{ pathway.name }}</a>{% else %}{{ pathway.name }}{% endif %}</li>{% empty %}<li style="color: #999;">No pathways mapped</li>{% endfor %}</ul></div>
-                </div>
-                {% elif career_guidance_selected %}
+                {% if career_guidance_selected %}
+                <p class="section-title imp-title" style="color:#3F37C9;">These aptitude combinations show what you’re good at and suggest the clusters, roles, and pathways that may fit you best, giving clearer guidance when combined with your marks and test results.</p>
+                <!-- <div style="text-align:center; margin: 10px 0;">
+                    <h4 style="margin-bottom:8px;">Debug: career_guidance_selected</h4>
+                    <pre style="text-align:left; white-space:pre-wrap; word-wrap:break-word;">{{ career_guidance_selected|default:"No data" }}</pre>
+                </div> -->
                 {% for guidance in career_guidance_selected %}
-                <div class="card-container guidance-report" style="display: flex; gap: 16px;">
+                <div class="guidance-report card-cluster" >
                     <!-- Career Clusters Card -->
-                    <div class="card" style="flex: 1;">
-                        <h4>Career Clusters</h4>
+                    <div class="career-clusters-card" style="flex: 1;">
+                        <h4>  <img  src="{% static 'images/c-cluster-icon.png'%} " alt="Career Clusters" /> Career Clusters</h4>
                         <ul>
                             {% for cluster in guidance.Career_Clusters %}
                             <li>
-                                <i style="color: #4E8CC2;" class="fas fa-layer-group me-2"></i>
+                                <i style="color: #3F37C9;" class="fas fa-layer-group me-2"></i>
                                 {{ cluster }}
                             </li>
                             {% endfor %}
@@ -2986,12 +3037,12 @@
                     </div>
             
                     <!-- Career Roles Card -->
-                    <div class="card" style="flex: 1;">
-                        <h4>Career Roles</h4>
+                    <div class="career-roles-card" style="flex: 1;">
+                        <h4>  <img  src="{% static 'images/c-role-icon.png'%} " alt="Career Roles" /> Career Roles</h4>
                         <ul>
                             {% for role in guidance.Career_Roles %}
                             <li>
-                                <i style="color: #4EC24E;" class="fas fa-user-tie me-2"></i>
+                                <i style="color: #DE6E61;" class="fas fa-user-tie me-2"></i>
                                 {{ role }}
                             </li>
                             {% endfor %}
@@ -2999,12 +3050,12 @@
                     </div>
             
                     <!-- Educational Pathways Card -->
-                    <div class="card" style="flex: 1;">
-                        <h4>Educational Pathways</h4>
+                    <div class="career-pathways-card" style="flex: 1;">
+                        <h4>  <img  src="{% static 'images/c-pathway-icon.png'%} " alt="Educational Pathways" /> Educational Pathways</h4>
                         <ul>
                             {% for pathway in guidance.Educational_Pathways %}
                             <li>
-                                <i style="color: #5940ec;" class="fas fa-graduation-cap me-2"></i>
+                                <i style="color: #D7B20A;" class="fas fa-graduation-cap me-2"></i>
                                 {{ pathway }}
                             </li>
                             {% endfor %}
