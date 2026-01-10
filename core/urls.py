@@ -20,6 +20,8 @@ urlpatterns = [
     path("vocational-courses/<slug:level_slug>/", views.VocationalCoursesLevelView.as_view(), name="vocational_courses_level"),
     path("vocational-courses/course/<int:pk>/", views.VocationalCourseDetailView.as_view(), name="vocational_course_detail"),
     path("career-planning/", views.CareerPlanningView.as_view(), name="career_planning"),
+    path("ebooks/", views.EbookListView.as_view(), name="ebook_list"),
+    path("ebooks/flip-book/", views.EbookDetailView.as_view(), name="ebook_detail"),
     path("delete-history/",views.deletehistory,name="deletehistory"), 
     path("lead-submit/",views.LeadData.as_view(),name="lead_submit"),  
 ]

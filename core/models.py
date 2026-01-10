@@ -421,3 +421,61 @@ class VocationalCourse(BaseModel, SlugModel):
         ordering = ("priority", "name")
         verbose_name = "Vocational Course"
         verbose_name_plural = "Vocational Courses"
+
+
+def ebook_cover_directory(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/ebook/cover/<filename>
+    return 'upload/core/ebook/cover/{0}'.format(filename)
+
+
+def ebook_pdf_directory(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/ebook/pdf/<filename>
+    return 'upload/core/ebook/pdf/{0}'.format(filename)
+
+
+class Ebook(BaseModel, PublishableModel):
+    title = models.CharField(max_length=300, help_text="Title of the ebook")
+    description = models.TextField(blank=True, null=True, help_text="Description of the ebook")
+    cover_image = models.ImageField(
+        upload_to=ebook_cover_directory,
+        help_text="Cover image for the ebook (recommended size: 400x600px)"
+    )
+    pdf_file = models.FileField(
+        upload_to=ebook_pdf_directory,
+        help_text="PDF file of the ebook"
+    )
+    priority = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Lower number appears first in listing"
+    )
+    slug = models.SlugField(max_length=300, unique=True, blank=True, null=True)
+
+    class Meta(BaseModel.Meta):
+        ordering = ("priority", "title")
+        verbose_name = "Ebook"
+        verbose_name_plural = "Ebooks"
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def get_cover_url(self):
+        """Get cover image URL"""
+        if self.cover_image and self.cover_image.name:
+            return self.cover_image.url
+        return None
+
+    def get_pdf_url(self):
+        """Get PDF file URL"""
+        if self.pdf_file and self.pdf_file.name:
+            return self.pdf_file.url
+        return None
+
+    @classmethod
+    def get_published_ebooks(cls):
+        """Get all published ebooks"""
+        return cls.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)

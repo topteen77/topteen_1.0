@@ -15,6 +15,7 @@ from .models import (
     ExtracurricularActivitySection,
     VocationalCourseCategory,
     VocationalCourse,
+    Ebook,
 )
 # Register your models here.
 
@@ -187,5 +188,39 @@ class VocationalCourseAdmin(admin.ModelAdmin):
     ordering = ("category__name", "priority", "name")
     fields = ("category", "name", "slug", "image", "content_html", "priority", "object_status", "created", "modified")
     readonly_fields = ("created", "modified")
+
+
+@admin.register(Ebook)
+class EbookAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "priority", "publish_status", "object_status", "cover_preview", "created", "modified")
+    list_filter = ("publish_status", "object_status", "created", "modified")
+    search_fields = ("title", "description")
+    ordering = ("priority", "title")
+    fields = (
+        "title",
+        "slug",
+        "description",
+        "cover_image",
+        "cover_preview",
+        "pdf_file",
+        "priority",
+        "publish_status",
+        "object_status",
+        "created",
+        "modified"
+    )
+    readonly_fields = ("created", "modified", "cover_preview")
+    list_editable = ("priority", "publish_status")
+
+    def cover_preview(self, obj):
+        """Display cover image preview in admin"""
+        if obj.cover_image and obj.cover_image.name:
+            from django.utils.html import format_html
+            return format_html(
+                '<img src="{}" style="max-width: 150px; max-height: 200px; object-fit: contain;" />',
+                obj.cover_image.url
+            )
+        return "No cover image"
+    cover_preview.short_description = "Cover Preview"
 
 

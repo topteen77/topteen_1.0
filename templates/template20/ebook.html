@@ -1,0 +1,552 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}E-Books | Top Teen{% endblock %}
+{% block description_content %}Explore our collection of career guidance e-books{% endblock %}
+
+{% block additionalhead %}
+<!-- PDF.js Library for PDF rendering -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<style>
+.hero-section-pdf::after {
+	content: "";
+	position: absolute;
+	background: #FFE2A4;
+	width: 450px;
+	height: 450px;
+	top: 157px;
+	right: 278px;
+	border-radius: 100%;
+	backdrop-filter: blur(153px);
+	-webkit-backdrop-filter: blur(153px);
+	filter: blur(80px);
+	opacity: 0.6;
+	z-index: -1;
+}
+
+.ebooks-section {
+  padding: 4rem 0;
+  position: relative;
+}
+
+.ebooks-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.ebooks-search-wrapper {
+  margin: 2rem 0;
+}
+
+.ebooks-search-container {
+  max-width: 500px;
+  position: relative;
+  margin: 0 auto;
+}
+
+.ebooks-search-input {
+  width: 100%;
+  padding: 0.875rem 3.5rem 0.875rem 1.25rem;
+  border: 1px solid rgba(224, 224, 224, 0.5);
+  border-radius: 50px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.ebooks-search-input:focus {
+  border-color: #6b3df0;
+  box-shadow: 0 0 0 3px rgba(107, 61, 240, 0.1);
+}
+
+.ebooks-search-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6b3df0;
+  cursor: pointer;
+  padding: 0.5rem;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.ebooks-search-btn:hover {
+  color: #5046e5;
+}
+
+.ebooks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.ebook-card {
+  background: rgba(248, 248, 255, 0.85);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 1rem;
+  gap: 1.5rem;
+  min-height: 180px;
+  border: 1px solid rgba(63, 55, 201, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.ebook-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.ebook-card-image {
+  flex-shrink: 0;
+  width: 140px;
+  height: 180px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ebook-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ebook-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  min-height: 160px;
+}
+
+.ebook-card h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #241e55;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.ebook-card .ebook-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.ebook-card .btn-view {
+  padding: 0.75rem 1.5rem;
+  background: #241e55;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.ebook-card .btn-view:hover {
+  background: #2d2568;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(36, 30, 85, 0.3);
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 3rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pagination {
+  display: flex;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pagination li {
+  margin: 0;
+}
+
+.pagination a,
+.pagination span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+  background: #fff;
+  color: #241e55;
+}
+
+.pagination a:hover {
+  background: linear-gradient(135deg, #6b3df0 0%, #5046e5 100%);
+  color: #fff;
+  border-color: transparent;
+}
+
+.pagination .active span {
+  background: linear-gradient(135deg, #6b3df0 0%, #5046e5 100%);
+  color: #fff;
+  border-color: transparent;
+}
+
+.pagination .disabled span {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f8f9fa;
+}
+
+.pagination-info {
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .ebooks-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .ebook-card {
+    flex-direction: row;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .ebook-card-image {
+    width: 120px;
+    height: 160px;
+    margin: 0 auto;
+  }
+
+  .ebook-card-content {
+    min-height: auto;
+    align-items: center;
+  }
+
+  .ebook-card h3 {
+    text-align: center;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="py-test-page skill-page">
+  <section class="hero-section-pdf pt-md-14 pt-14 pb-0 gradient-bg-college">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="col-md-12">
+            <div class="breadcrumb">
+              <ol class="ps-0">
+                <li>
+                  <a href="{{ url('core:home') }}">Home</a>
+                </li>
+                <li>
+                  <a href="{{ url('core:ebook_list') }}">E-Books</a>
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12 order-md-1 order-2">
+          <span class="highlighter">
+            <img src="{{ static('images_new/e-books-icon.svg') }}" alt="icon"> E-Books
+          </span>
+          <h1 class="heading-title mt-md-9 mt-8 mb-3">
+            The Smart Way to
+            <p>Achieve Result</p>
+          </h1>
+          <p class="text-gray fs-16">A modern, practical guide designed to help teens build confidence, develop
+            essential life skills, and become the best version of themselves.</p>
+          
+          <button type="button" onclick="scrollToEbooks()" class="btn custom-button purple-button px-5 mt-5">Explore E-Books</button>
+        </div>
+
+        <div class="col-lg-5 col-md-12 order-md-2 order-1 mb-6 mb-lg-0 offset-lg-1">
+          <div class="right-banner d-md-flex justify-md-content-end justify-content-center">
+            <img class="img-fluid" src="{{ static('images_new/ebook-hero-img.png') }}" alt="E-Books Banner">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ebooks Section -->
+  <section class="ebooks-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <h2 class="heading-title text-center">Ebooks</h2>
+
+          <!-- Search Bar -->
+          <div class="ebooks-search-wrapper">
+            <div class="ebooks-search-container">
+              <input type="text" class="ebooks-search-input" id="ebooksSearchInput" placeholder="Search" />
+              <button class="ebooks-search-btn" id="ebooksSearchBtn">
+                <i class='bx bx-search'></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="ebooks-grid" id="ebooksGrid">
+            {% if ebooks %}
+              {% for ebook in ebooks %}
+              <div class="ebook-card" data-id="{{ ebook.id }}">
+                <div class="ebook-card-image">
+                  {% if ebook.cover %}
+                  <img src="{{ ebook.cover }}" alt="{{ ebook.title }}" onerror="this.src='{{ static('images_new/ebook/ebook-cover.jpg') }}'">
+                  {% else %}
+                  <img src="{{ static('images_new/ebook/ebook-cover.jpg') }}" alt="{{ ebook.title }}">
+                  {% endif %}
+                </div>
+                <div class="ebook-card-content">
+                  <h3>{{ ebook.title }}</h3>
+                  <div class="ebook-actions">
+                    {% if ebook.pdf %}
+                    <a href="{{ url('core:ebook_detail') }}?pdf={{ ebook.pdf|urlencode }}&title={{ ebook.title|urlencode }}" class="btn-view">View Book</a>
+                    {% else %}
+                    <span class="btn-view" style="opacity: 0.5; cursor: not-allowed;">PDF Not Available</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="col-12 text-center py-5">
+                <p class="text-gray fs-18">No ebooks available at the moment. Please check back later.</p>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination-wrapper">
+            <div class="pagination" id="pagination"></div>
+            <div class="pagination-info" id="paginationInfo"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+  // Ebooks Data
+  const ebooksData = [
+    {% for ebook in ebooks %}
+    {
+      id: {{ ebook.id }},
+      title: {{ ebook.title|tojson }},
+      cover: {% if ebook.cover %}{{ ebook.cover|tojson }}{% else %}"{{ static('images_new/ebook/ebook-cover.jpg') }}"{% endif %},
+      pdf: {% if ebook.pdf %}{{ ebook.pdf|tojson }}{% else %}null{% endif %}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ];
+
+  // Pagination Settings
+  let itemsPerPage = 6;
+  let currentPage = 1;
+  let totalPages = Math.ceil(ebooksData.length / itemsPerPage);
+  let filteredEbooks = ebooksData;
+  let searchQuery = '';
+
+  // Filter Ebooks by Search
+  function filterEbooks(query) {
+    searchQuery = query.toLowerCase().trim();
+    if (searchQuery === '') {
+      filteredEbooks = ebooksData;
+    } else {
+      filteredEbooks = ebooksData.filter(ebook =>
+        ebook.title.toLowerCase().includes(searchQuery)
+      );
+    }
+    currentPage = 1;
+    totalPages = Math.ceil(filteredEbooks.length / itemsPerPage);
+    renderEbooks();
+    renderPagination();
+  }
+
+  // Render Ebooks Grid
+  function renderEbooks() {
+    const grid = document.getElementById('ebooksGrid');
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentEbooks = filteredEbooks.slice(startIndex, endIndex);
+
+    grid.innerHTML = currentEbooks.map(ebook => `
+      <div class="ebook-card" data-id="${ebook.id}">
+        <div class="ebook-card-image">
+          <img src="${ebook.cover}" alt="${ebook.title}" onerror="this.src='{{ static('images_new/ebook/ebook-cover.jpg') }}'">
+        </div>
+        <div class="ebook-card-content">
+          <h3>${ebook.title}</h3>
+          <div class="ebook-actions">
+            <a href="{{ url('core:ebook_detail') }}?pdf=${encodeURIComponent(ebook.pdf)}&title=${encodeURIComponent(ebook.title)}" class="btn-view">View Book</a>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Render Pagination
+  function renderPagination() {
+    const pagination = document.getElementById('pagination');
+    const paginationInfo = document.getElementById('paginationInfo');
+
+    let html = '';
+
+    // Previous button
+    if (currentPage === 1) {
+      html += `<li><span class="disabled">‹</span></li>`;
+    } else {
+      html += `<li><a href="#" onclick="changePage(${currentPage - 1}); return false;">‹</a></li>`;
+    }
+
+    // Page numbers
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (endPage - startPage < maxVisible - 1) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+      html += `<li><a href="#" onclick="changePage(1); return false;">1</a></li>`;
+      if (startPage > 2) {
+        html += `<li><span class="disabled">...</span></li>`;
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      if (i === currentPage) {
+        html += `<li><span class="active">${i}</span></li>`;
+      } else {
+        html += `<li><a href="#" onclick="changePage(${i}); return false;">${i}</a></li>`;
+      }
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        html += `<li><span class="disabled">...</span></li>`;
+      }
+      html += `<li><a href="#" onclick="changePage(${totalPages}); return false;">${totalPages}</a></li>`;
+    }
+
+    // Next button
+    if (currentPage === totalPages) {
+      html += `<li><span class="disabled">›</span></li>`;
+    } else {
+      html += `<li><a href="#" onclick="changePage(${currentPage + 1}); return false;">›</a></li>`;
+    }
+
+    pagination.innerHTML = html;
+
+    // Pagination info
+    const startItem = filteredEbooks.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+    const endItem = Math.min(currentPage * itemsPerPage, filteredEbooks.length);
+    paginationInfo.textContent = filteredEbooks.length > 0
+      ? `Showing ${startItem}-${endItem} of ${filteredEbooks.length} ebooks`
+      : 'No ebooks found';
+  }
+
+  // Change Page
+  function changePage(page) {
+    totalPages = Math.ceil(filteredEbooks.length / itemsPerPage);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderEbooks();
+    renderPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Event Listeners
+  document.addEventListener('DOMContentLoaded', function () {
+    renderEbooks();
+    renderPagination();
+
+    // Search functionality
+    const searchInput = document.getElementById('ebooksSearchInput');
+    const searchBtn = document.getElementById('ebooksSearchBtn');
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function (e) {
+        filterEbooks(e.target.value);
+      });
+
+      searchInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          filterEbooks(e.target.value);
+        }
+      });
+    }
+
+    if (searchBtn) {
+      searchBtn.addEventListener('click', function () {
+        const query = searchInput ? searchInput.value : '';
+        filterEbooks(query);
+      });
+    }
+  });
+
+  // Scroll to Ebooks Section
+  function scrollToEbooks() {
+    const ebooksSection = document.querySelector('.ebooks-section');
+    if (ebooksSection) {
+      ebooksSection.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  }
+
+  // Make functions globally available
+  window.changePage = changePage;
+  window.scrollToEbooks = scrollToEbooks;
+</script>
+{% endblock %}

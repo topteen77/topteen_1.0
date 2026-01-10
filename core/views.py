@@ -12,7 +12,7 @@ from blog.models import Blog
 from careers.models import Career, CareerTags,Videos,CareerCluster
 from core import choices
 from django.views.generic import TemplateView
-from core.models import CommonFAQ, Country, Review,Contact,Lead
+from core.models import CommonFAQ, Country, Review,Contact,Lead, Ebook
 from courses.models import Course
 from colleges.models import College
 from django.conf import settings
@@ -405,6 +405,85 @@ class CareerPlanningView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class EbookListView(TemplateView):
+    template_name = "template20/ebook.html"
+
+    def html_head(self):
+        name = "E-Books | Top Teen"
+        return build_html_head(title=name, description="Explore our collection of career guidance e-books")
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = {"text": "E-Books", "url": reverse("core:ebook_list")}
+        # Get published ebooks from database
+        ebooks = Ebook.get_published_ebooks()
+        ctx["ebooks"] = []
+        for ebook in ebooks:
+            ebook_data = {
+                "id": ebook.id,
+                "title": ebook.title,
+                "cover": None,
+                "pdf": None
+            }
+            # Get cover image URL
+            if ebook.cover_image and ebook.cover_image.name:
+                ebook_data["cover"] = ebook.cover_image.url
+            else:
+                ebook_data["cover"] = None
+            
+            # Get PDF file URL
+            if ebook.pdf_file and ebook.pdf_file.name:
+                ebook_data["pdf"] = ebook.pdf_file.url
+            else:
+                ebook_data["pdf"] = None
+            
+            ctx["ebooks"].append(ebook_data)
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class EbookDetailView(TemplateView):
+    template_name = "template20/flip-book.html"
+
+    def html_head(self):
+        name = "E-Book Reader | Top Teen"
+        return build_html_head(title=name, description="Read our interactive career guidance e-book")
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        # Get ebook ID or PDF path and title from query parameters
+        ebook_id = request.GET.get('id')
+        pdf_path = request.GET.get('pdf')
+        title = request.GET.get('title', 'Career Guide E-Book')
+        
+        # If ebook_id is provided, get from database
+        if ebook_id:
+            try:
+                ebook = Ebook.objects.get(id=ebook_id, publish_status=choices.PublishStatus.PUBLISHED)
+                ctx["pdf_path"] = ebook.pdf_file.url if ebook.pdf_file and ebook.pdf_file.name else None
+                ctx["ebook_title"] = ebook.title
+                ctx["breadcrumb"] = {"text": ebook.title, "url": reverse("core:ebook_list")}
+            except Ebook.DoesNotExist:
+                ctx["pdf_path"] = pdf_path or None
+                ctx["ebook_title"] = title
+                ctx["breadcrumb"] = {"text": title, "url": reverse("core:ebook_list")}
+        else:
+            # Fallback to query parameters (could be URL or path)
+            ctx["pdf_path"] = pdf_path or None
+            ctx["ebook_title"] = title
+            ctx["breadcrumb"] = {"text": title, "url": reverse("core:ebook_list")}
+        
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
 
 class SearchItems(TemplateView):
     template_name="topteenfrontend/searchandexplore.html"
