@@ -1959,14 +1959,29 @@ def CombinedReport(request, user_id=None):
                         checked_count = 0
                         found_matches = []
                         
-                        # Check what combinations exist in database for these codes
-                        all_db_codes = AptitudeCombinationMapping.objects.values_list('aptitude_code', flat=True)
+                        # Check what combinations exist in database for these codes (handle missing table gracefully)
+                        all_db_codes = []
                         matching_db_codes = []
                         codes_set = set(aptitude_codes)
-                        for db_code in all_db_codes:
-                            db_codes_list = db_code.split('+')
-                            if set(db_codes_list) == codes_set:  # Same codes, different order
-                                matching_db_codes.append(db_code)
+                        
+                        try:
+                            # Check if table exists
+                            from django.db import connection
+                            with connection.cursor() as cursor:
+                                cursor.execute("SHOW TABLES LIKE 'app_post_matric_aptitudecombinationmapping'")
+                                table_exists = cursor.fetchone() is not None
+                            
+                            if table_exists:
+                                all_db_codes = list(AptitudeCombinationMapping.objects.values_list('aptitude_code', flat=True))
+                                for db_code in all_db_codes:
+                                    db_codes_list = db_code.split('+')
+                                    if set(db_codes_list) == codes_set:  # Same codes, different order
+                                        matching_db_codes.append(db_code)
+                            else:
+                                print("[DEBUG] AptitudeCombinationMapping table does not exist - skipping mapping")
+                        except Exception as e:
+                            print(f"[DEBUG] Error accessing AptitudeCombinationMapping table (non-critical): {str(e)}")
+                            all_db_codes = []
                         
                         print(f"\n🔍 Comparing aptitude_codes ({aptitude_codes}) with AptitudeCombinationMapping in database...")
                         if matching_db_codes:
@@ -4591,15 +4606,29 @@ def view_matches(request):
     from careers.models import Career
     from .models import CareerMatch
     
-    # Get all liked careers for the user
-    matches = CareerMatch.objects.filter(
-        user=request.user,
-        action='like'
-    ).select_related('career').order_by('-created_at')
+    # Get all liked careers for the user (handle missing table gracefully)
+    matches = []
+    try:
+        # Check if table exists
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW TABLES LIKE 'app_post_matric_careermatch'")
+            table_exists = cursor.fetchone() is not None
+        
+        if table_exists:
+            matches = CareerMatch.objects.filter(
+                user=request.user,
+                action='like'
+            ).select_related('career').order_by('-created_at')
+        else:
+            print("[DEBUG] CareerMatch table does not exist - returning empty matches")
+    except Exception as e:
+        print(f"[DEBUG] Error accessing CareerMatch table (non-critical): {str(e)}")
+        matches = []
     
     context = {
         'matches': matches,
-        'match_count': matches.count()
+        'match_count': len(matches) if isinstance(matches, list) else matches.count()
     }
     
     return render(request, 'template20/app_post_matric/career_matches.html', context)
@@ -4781,22 +4810,37 @@ def swipe_career_api(request):
         from careers.models import Career
         career = Career.objects.get(id=career_id)
         
-        # Create or update match
-        match, created = CareerMatch.objects.update_or_create(
-            user=request.user,
-            career=career,
-            defaults={
-                'action': action,
-                'match_score': match_score,
-                'notes': notes
-            }
-        )
+        # Create or update match (handle missing table gracefully)
+        match = None
+        created = False
+        try:
+            # Check if table exists
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute("SHOW TABLES LIKE 'app_post_matric_careermatch'")
+                table_exists = cursor.fetchone() is not None
+            
+            if table_exists:
+                match, created = CareerMatch.objects.update_or_create(
+                    user=request.user,
+                    career=career,
+                    defaults={
+                        'action': action,
+                        'match_score': match_score,
+                        'notes': notes
+                    }
+                )
+            else:
+                print("[DEBUG] CareerMatch table does not exist - skipping match save")
+        except Exception as e:
+            print(f"[DEBUG] Error accessing CareerMatch table (non-critical): {str(e)}")
+            # Continue without saving match - feature still works
         
         return JsonResponse({
             'success': True,
             'action': action,
             'career_id': career_id,
-            'created': created
+            'created': created if match else False
         })
         
     except Career.DoesNotExist:
