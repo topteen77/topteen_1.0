@@ -230,6 +230,11 @@ def Tests(request):
     from core import choices
     from institute.models import StudentManagement
     
+    # Debug logging
+    print("\n" + "="*80)
+    print(f"[TESTS VIEW] User: {request.user.email} (ID: {request.user.id})")
+    print("="*80)
+    
     # Check if user is an institute-registered student (exempt from payment check)
     is_institute_student = StudentManagement.objects.filter(student=request.user).exists()
     
@@ -256,114 +261,144 @@ def Tests(request):
                 # Redirect to Career Direction buy page
                 return redirect(reverse('psychometrictests:PsychometricTest12'))
     
+    # Initialize test status dictionary with default values for all tests
+    test_status = {
+        1: {'completed': False},
+        2: {'completed': False},
+        3: {'completed': False},
+        4: {
+            'completed': False,
+            'total_sections': 0,
+            'completed_sections': 0,
+            'sections_status': {}
+        }
+    }
+    
+    # Map test IDs to test types for popup identification
+    test_type_map = {}  # Will store {test_id: test_type}
+    
     try:
-        # Get all test sessions for the current user (same as old code)
-        test_sessions = TestSession.objects.filter(user=request.user)
+        # Debug: Check all sessions first
+        all_sessions = TestSession.objects.filter(user=request.user)
+        print(f"[DEBUG] Total sessions for user: {all_sessions.count()}")
+        for sess in all_sessions:
+            print(f"  - Session ID {sess.id}: Test ID {sess.test.id} ({sess.test.title}), Completed: {sess.is_completed}, End Time: {sess.end_time}")
         
-        # Initialize test status dictionary with default values for all tests (same as old code)
-        test_status = {
-            1: {'completed': False},
-            2: {'completed': False},
-            3: {'completed': False},
-            4: {
-                'completed': False,
-                'total_sections': 0,
-                'completed_sections': 0,
-                'sections_status': {}
-            }
-        }
-        
-        # Map test IDs to test types for popup identification
-        test_type_map = {}  # Will store {test_id: test_type}
-        
-        # Update with actual data if it exists (same as old code logic)
-        for session in test_sessions:
-            test_id = session.test.id
-            test_title = session.test.title.lower().strip()
+        # Check for latest completed session for each test (1, 2, 3, 4) - fixes issue with multiple sessions
+        print("\n[DEBUG] Checking completed sessions for each test:")
+        for test_id in [1, 2, 3, 4]:
+            # Get the latest completed session for this test (same pattern as Home view)
+            latest_session = TestSession.objects.filter(
+                user=request.user,
+                test_id=test_id,
+                is_completed=True
+            ).order_by('-end_time').first()
             
-            # Identify test type for popup mapping
-            if 'personality assessment' in test_title:
-                test_type_map[test_id] = 'personality'
-            elif 'motivation assessment' in test_title:
-                test_type_map[test_id] = 'motivation'
-            elif 'career interest inventory' in test_title or str(test_id) == '3':
-                test_type_map[test_id] = 'career_interest'
-            elif 'aptitude assessment' in test_title:
-                test_type_map[test_id] = 'aptitude'
-            
-            if test_id == 4:
-                section_sessions = SectionSession.objects.filter(session=session)
-                sections_status = {}
+            if latest_session:
+                print(f"  ✅ Test {test_id}: Found completed session (ID: {latest_session.id}, End: {latest_session.end_time})")
+                test_title = latest_session.test.title.lower().strip()
                 
-                for section_session in section_sessions:
-                    sections_status[section_session.section.title] = {
-                        'completed': section_session.is_completed,
-                        'session_id': section_session.id
+                # Identify test type for popup mapping
+                if 'personality assessment' in test_title:
+                    test_type_map[test_id] = 'personality'
+                elif 'motivation assessment' in test_title:
+                    test_type_map[test_id] = 'motivation'
+                elif 'career interest inventory' in test_title or str(test_id) == '3':
+                    test_type_map[test_id] = 'career_interest'
+                elif 'aptitude assessment' in test_title:
+                    test_type_map[test_id] = 'aptitude'
+                
+                if test_id == 4:
+                    # For test 4 (Aptitude), check section sessions
+                    section_sessions = SectionSession.objects.filter(session=latest_session)
+                    sections_status = {}
+                    
+                    for section_session in section_sessions:
+                        sections_status[section_session.section.title] = {
+                            'completed': section_session.is_completed,
+                            'session_id': section_session.id
+                        }
+                    
+                    test_status[4].update({
+                        'completed': latest_session.is_completed,
+                        'session_id': latest_session.id,
+                        'total_sections': section_sessions.count(),
+                        'completed_sections': section_sessions.filter(is_completed=True).count(),
+                        'sections_status': sections_status
+                    })
+                else:
+                    # For tests 1, 2, 3
+                    test_status[test_id] = {
+                        'completed': latest_session.is_completed,
+                        'session_id': latest_session.id
                     }
-                
-                test_status[4].update({
-                    'completed': session.is_completed,
-                    'session_id': session.id,
-                    'total_sections': section_sessions.count(),
-                    'completed_sections': section_sessions.filter(is_completed=True).count(),
-                    'sections_status': sections_status
-                })
             else:
-                test_status[test_id] = {
-                    'completed': session.is_completed,
-                    'session_id': session.id
-                }
+                print(f"  ❌ Test {test_id}: No completed session found")
         
-        # Check which popups have been answered
-        popup_answers = TestCompletionPopup.objects.filter(user=request.user)
-        answered_popups = {popup.test_type for popup in popup_answers}
+        # Debug: Print final test status
+        print("\n[DEBUG] Final Test Status:")
+        for test_id, status in test_status.items():
+            completed = status.get('completed', False)
+            session_id = status.get('session_id', 'N/A')
+            status_icon = "✅" if completed else "❌"
+            print(f"  {status_icon} Test {test_id}: completed={completed}, session_id={session_id}")
+    except Exception as test_status_error:
+        import traceback
+        print(f"\n[ERROR] Error building test_status: {str(test_status_error)}")
+        traceback.print_exc()
+        print("[ERROR] Continuing with default test_status")
+    
+    # Check which popups have been answered (handle missing table gracefully)
+    # This is separate from test_status building so errors here don't affect test status
+    answered_popups = set()
+    try:
+        # Use raw SQL check first to see if table exists, then query
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW TABLES LIKE 'app_post_matric_testcompletionpopup'")
+            table_exists = cursor.fetchone() is not None
         
-        # Determine which popups need to be shown
-        # Popup should be shown if: test is completed AND popup hasn't been answered
-        popup_status = {
-            'personality': False,
-            'motivation': False,
-            'career_interest': False,
-            'aptitude': False
-        }
-        
-        # Check each completed test to see if popup needs to be shown
-        for test_id, status_info in test_status.items():
-            if status_info.get('completed', False):
-                test_type = test_type_map.get(test_id)
-                if test_type and test_type not in answered_popups:
-                    popup_status[test_type] = True
-        
-        context = {
-            'test_status': json.dumps(test_status),
-            'popup_status': json.dumps(popup_status),
-            'test_type_map': json.dumps(test_type_map)
-        }
-        
-        return render(request, "template20/app_post_matric/tests.html", context)
-    except Exception as e:
-        print(f"Error in Tests view: {str(e)}")
-        return render(request, "template20/app_post_matric/tests.html", {
-            'error': 'An error occurred while loading test status.',
-            'test_status': json.dumps({
-                1: {'completed': False},
-                2: {'completed': False},
-                3: {'completed': False},
-                4: {
-                    'completed': False,
-                    'total_sections': 0,
-                    'completed_sections': 0,
-                    'sections_status': {}
-                }
-            }),
-            'popup_status': json.dumps({
-                'personality': False,
-                'motivation': False,
-                'career_interest': False,
-                'aptitude': False
-            }),
-            'test_type_map': json.dumps({})
-        })
+        if table_exists:
+            popup_answers = TestCompletionPopup.objects.filter(user=request.user)
+            answered_popups = {popup.test_type for popup in popup_answers}
+            print(f"\n[DEBUG] Answered popups: {answered_popups}")
+        else:
+            print(f"[DEBUG] TestCompletionPopup table does not exist - skipping popup check")
+            answered_popups = set()
+    except Exception as popup_error:
+        # Table might not exist in production DB copy - this is OK, just log it
+        print(f"[DEBUG] TestCompletionPopup query error (non-critical): {str(popup_error)}")
+        print(f"[DEBUG] Continuing without popup data (this is OK)")
+        answered_popups = set()
+    
+    # Determine which popups need to be shown
+    # Popup should be shown if: test is completed AND popup hasn't been answered
+    popup_status = {
+        'personality': False,
+        'motivation': False,
+        'career_interest': False,
+        'aptitude': False
+    }
+    
+    # Check each completed test to see if popup needs to be shown
+    for test_id, status_info in test_status.items():
+        if status_info.get('completed', False):
+            test_type = test_type_map.get(test_id)
+            if test_type and test_type not in answered_popups:
+                popup_status[test_type] = True
+    
+    print(f"[DEBUG] Popup status: {popup_status}")
+    print(f"[DEBUG] Test type map: {test_type_map}")
+    print("="*80 + "\n")
+    
+    context = {
+        'test_status': json.dumps(test_status),
+        'popup_status': json.dumps(popup_status),
+        'test_type_map': json.dumps(test_type_map)
+    }
+    
+    print(f"[SUCCESS] Returning context with test_status: {test_status}")
+    return render(request, "template20/app_post_matric/tests.html", context)
 
 
 @login_required
@@ -1018,6 +1053,43 @@ def Results_list(request):
 @login_required
 def Results(request):
     try:
+        from institute.models import StudentManagement
+        from django.shortcuts import get_object_or_404
+        
+        # Get user_id from query params (for institute/marketing users viewing student results)
+        user_id = request.GET.get('user_id', None)
+        target_user = request.user  # Default to logged-in user
+        
+        # If user_id is provided, check permissions and get target user
+        if user_id:
+            try:
+                user_id = int(user_id)
+                # Check if logged-in user has permission to view other users' results
+                # Allow if: superuser, institute user, or marketing user
+                is_institute_user = StudentManagement.objects.filter(
+                    student__id=user_id
+                ).filter(
+                    institute__created_by=request.user
+                ).exists() or request.user.is_superuser
+                
+                # Check if user is marketing/institute admin
+                from core import choices
+                is_admin = (
+                    request.user.is_superuser or
+                    request.user.user_type == choices.UserType.INSTITUTE or
+                    request.user.user_type == choices.UserType.MARKETINGGROUPADMIN or
+                    request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN
+                )
+                
+                if is_institute_user or is_admin:
+                    target_user = get_object_or_404(User, id=user_id)
+                else:
+                    # No permission, use own user
+                    target_user = request.user
+            except (ValueError, TypeError):
+                # Invalid user_id, use logged-in user
+                target_user = request.user
+        
         # Get test_id from query params or session
         test_id = request.GET.get('test_id', None)
         if test_id is not None:
@@ -1026,16 +1098,26 @@ def Results(request):
             except ValueError:
                 test_id = request.GET.get('test_id') or request.session.get('last_test_id')
         
-        # Build the query
-        query = {
-            'user': request.user,
-            'is_completed': True
-        }
-        
+        # Get the test session using direct parameters (fixes foreign key lookup issue)
         if test_id:
-            query['test_id'] = test_id
-        # Get the test session
-        latest_session = TestSession.objects.filter(**query).order_by('-end_time').first()
+            try:
+                test_id = int(test_id) if not isinstance(test_id, int) else test_id
+                latest_session = TestSession.objects.filter(
+                    user=target_user,
+                    test_id=test_id,
+                    is_completed=True
+                ).order_by('-end_time').first()
+            except (ValueError, TypeError):
+                # Invalid test_id, query without it
+                latest_session = TestSession.objects.filter(
+                    user=target_user,
+                    is_completed=True
+                ).order_by('-end_time').first()
+        else:
+            latest_session = TestSession.objects.filter(
+                user=target_user,
+                is_completed=True
+            ).order_by('-end_time').first()
         
         if not latest_session:
             return render(request, "results.html", {
@@ -1046,7 +1128,7 @@ def Results(request):
         
         # Get categories record
         categories_record = TestTopCategories.objects.filter(
-            user=request.user,
+            user=target_user,
             test_paper=latest_session.test
         ).first()
         import ast
@@ -2484,19 +2566,65 @@ def Test_details(request, id):
 @login_required
 def Test_results(request, id):
     try:
+        from institute.models import StudentManagement
+        from django.shortcuts import get_object_or_404
+        
+        # Get user_id from query params (for institute/marketing users viewing student results)
+        user_id = request.GET.get('user_id', None)
+        target_user = request.user  # Default to logged-in user
+        
+        # If user_id is provided, check permissions and get target user
+        if user_id:
+            try:
+                user_id = int(user_id)
+                # Check if logged-in user has permission to view other users' results
+                is_institute_user = StudentManagement.objects.filter(
+                    student__id=user_id
+                ).filter(
+                    institute__created_by=request.user
+                ).exists() or request.user.is_superuser
+                
+                # Check if user is marketing/institute admin
+                from core import choices
+                is_admin = (
+                    request.user.is_superuser or
+                    request.user.user_type == choices.UserType.INSTITUTE or
+                    request.user.user_type == choices.UserType.MARKETINGGROUPADMIN or
+                    request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN
+                )
+                
+                if is_institute_user or is_admin:
+                    target_user = get_object_or_404(User, id=user_id)
+                else:
+                    # No permission, use own user
+                    target_user = request.user
+            except (ValueError, TypeError):
+                # Invalid user_id, use logged-in user
+                target_user = request.user
+        
         # Use id from URL as test_id
         test_id = id
         
-        # Build the query
-        query = {
-            'user': request.user,
-            'is_completed': True
-        }
-        
+        # Get the test session using direct parameters (fixes foreign key lookup issue)
         if test_id:
-            query['test_id'] = test_id
-        # Get the test session
-        latest_session = TestSession.objects.filter(**query).order_by('-end_time').first()
+            try:
+                test_id = int(test_id) if not isinstance(test_id, int) else test_id
+                latest_session = TestSession.objects.filter(
+                    user=target_user,
+                    test_id=test_id,
+                    is_completed=True
+                ).order_by('-end_time').first()
+            except (ValueError, TypeError):
+                # Invalid test_id, query without it
+                latest_session = TestSession.objects.filter(
+                    user=target_user,
+                    is_completed=True
+                ).order_by('-end_time').first()
+        else:
+            latest_session = TestSession.objects.filter(
+                user=target_user,
+                is_completed=True
+            ).order_by('-end_time').first()
         
         if not latest_session:
             return render(request, "template20/app_post_matric/test_results.html", {
@@ -2507,7 +2635,7 @@ def Test_results(request, id):
         
         # Get categories record
         categories_record = TestTopCategories.objects.filter(
-            user=request.user,
+            user=target_user,
             test_paper=latest_session.test
         ).first()
         import ast
@@ -2542,25 +2670,25 @@ def Test_results(request, id):
         
         # Check for completed sessions for each test type
         test1_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=target_user, 
             test__id=1,
             is_completed=True
         ).exists()
         
         test2_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=target_user, 
             test__id=2,
             is_completed=True
         ).exists()
         
         test3_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=target_user, 
             test__id=3,
             is_completed=True
         ).exists()
         
         test4_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=target_user, 
             test__id=4,
             is_completed=True
         ).exists()
@@ -2568,15 +2696,15 @@ def Test_results(request, id):
         if test1_completed and test2_completed and test3_completed and test4_completed:
             all_tests_completed = True
 
-        user = request.user
+        user = target_user
         try:
-            # Retrieve the UserProfile for the logged-in user (create if not exists)
+            # Retrieve the UserProfile for the target user (create if not exists)
             user_profile, created = UserProfile.objects.get_or_create(user=user)
         except UserProfile.DoesNotExist:
             user_profile = None
 
         try:
-            # Retrieve the UserProfile for the logged-in user
+            # Retrieve the UserProfile for the target user
             user_profile = user.user_profile
             # Access attributes from the User object
             created_date = latest_session.created_at
@@ -2600,7 +2728,8 @@ def Test_results(request, id):
         
         
         context = {
-            'user': request.user,
+            'user': target_user,
+            'viewing_as_admin': user_id is not None if 'user_id' in locals() else False,
             'test_id': test_id,
             'all_tests_completed': all_tests_completed,
             'high_categories': high_categories,
