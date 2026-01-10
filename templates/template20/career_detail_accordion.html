@@ -1696,6 +1696,7 @@
               <div class="study-route-infographic">
                 <div class="study-route-title">{{ career.name }} Study Route & Eligibility Criteria</div>
                 <div class="study-routes-grid">
+                  {% if study_routes %}
                   {% for route in study_routes %}
                   <div class="study-route-box {{ route.class }}">
                     <div class="route-name">{{ route.name }}</div>
@@ -1718,6 +1719,11 @@
                     <div class="route-connection"></div>
                   </div>
                   {% endfor %}
+                  {% else %}
+                  <div style="padding: 20px; text-align: center; color: #666;">
+                    <p>Study route information is not available for this career.</p>
+                  </div>
+                  {% endif %}
                 </div>
                 <div class="final-badge">
                   <div class="badge-circle">

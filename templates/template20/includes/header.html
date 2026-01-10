@@ -132,14 +132,15 @@
                 {# Parent #}
                 <a href="{{ url('parents_dashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
               {% elif user.user_type == 1 %}
-                {# Student - Check if class 11/12 for post_matric dashboard (student dashboard), else user dashboard #}
+                {# Student - 12th class students should link to user dashboard #}
                 {% set student_management = user.student_management.all() %}
                 {% if student_management|length > 0 %}
                   {% set sm = student_management[0] %}
                   {% if sm.class_and_section %}
                     {% set class_name = sm.class_and_section.class_and_section %}
                     {% if class_name and (class_name[:2].strip() == "11" or class_name[:2].strip() == "12") %}
-                      <a href="{{ url('post_matric:tests') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+                      {# 12th class student - link to user dashboard #}
+                      <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
                     {% else %}
                       <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
                     {% endif %}

@@ -1,0 +1,68 @@
+{% extends "template20/base.html" %}
+
+{% block title_content %}
+{{ course.name }} | Top Teen
+{% endblock %}
+
+{% block description_content %}
+{{ course.name }} - Explore course details, duration, and program information.
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="pt-md-18 pt-14 pb-8">
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>{{ course.name }}</h1>
+            
+            {% if course.college %}
+            <p class="text-muted">
+                <strong>College:</strong> 
+                <a href="/colleges/college/{{ course.college.slug }}-{{ course.college.id }}/">
+                    {{ course.college.name }}
+                </a>
+            </p>
+            {% endif %}
+            
+            {% if course.overview %}
+            <div class="mt-4">
+                <h3>Overview</h3>
+                <p>{{ course.overview|safe }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="mt-4">
+                <h3>Course Details</h3>
+                <ul class="list-unstyled">
+                    {% if course.duration_months %}
+                    <li><strong>Duration:</strong> {{ course.duration_months }} months</li>
+                    {% endif %}
+                    {% if course.program_level %}
+                    <li><strong>Program Level:</strong> {{ course.get_program_level_display }}</li>
+                    {% endif %}
+                    {% if course.course_type %}
+                    <li><strong>Course Type:</strong> {{ course.get_course_type_display }}</li>
+                    {% endif %}
+                </ul>
+            </div>
+            
+            {% if related_courses %}
+            <div class="mt-5">
+                <h3>Related Courses</h3>
+                <ul>
+                    {% for related in related_courses %}
+                    <li>
+                        <a href="/courses/course/{{ related.id }}/">
+                            {{ related.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}

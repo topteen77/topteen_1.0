@@ -26,6 +26,7 @@ urlpatterns = [
     path("",include("core.urls")),
     
     path("careers/",include("careers.urls",namespace="careers")),
+    path("courses/",include("courses.urls",namespace="courses")),
     path("colleges/",include("colleges.urls",namespace="colleges")),
     path("testprep/",include("entrance_exams.urls",namespace="entrance_exams")),
     path("skilllabcourse/",include("skilllab.urls",namespace="skilllabcourse")),

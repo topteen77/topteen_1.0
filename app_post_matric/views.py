@@ -11,7 +11,7 @@ from users.models import UserProfile
 from .models import (
     TestCategory, Test, Question, Answer,
     TestSession, UserResponse, TestResult, Sections, SectionSession, TestTopCategories,
-    TestCompletionPopup, CareerMatch
+    TestCompletionPopup, CareerMatch, AptitudeCombinationMapping
 )
 from careers.models import Career
 from .serializers import (
@@ -230,6 +230,11 @@ def Tests(request):
     from core import choices
     from institute.models import StudentManagement
     
+    # Debug logging
+    print("\n" + "="*80)
+    print(f"[TESTS VIEW] User: {request.user.email} (ID: {request.user.id})")
+    print("="*80)
+    
     # Check if user is an institute-registered student (exempt from payment check)
     is_institute_student = StudentManagement.objects.filter(student=request.user).exists()
     
@@ -256,114 +261,144 @@ def Tests(request):
                 # Redirect to Career Direction buy page
                 return redirect(reverse('psychometrictests:PsychometricTest12'))
     
+    # Initialize test status dictionary with default values for all tests
+    test_status = {
+        1: {'completed': False},
+        2: {'completed': False},
+        3: {'completed': False},
+        4: {
+            'completed': False,
+            'total_sections': 0,
+            'completed_sections': 0,
+            'sections_status': {}
+        }
+    }
+    
+    # Map test IDs to test types for popup identification
+    test_type_map = {}  # Will store {test_id: test_type}
+    
     try:
-        # Get all test sessions for the current user (same as old code)
-        test_sessions = TestSession.objects.filter(user=request.user)
+        # Debug: Check all sessions first
+        all_sessions = TestSession.objects.filter(user=request.user)
+        print(f"[DEBUG] Total sessions for user: {all_sessions.count()}")
+        for sess in all_sessions:
+            print(f"  - Session ID {sess.id}: Test ID {sess.test.id} ({sess.test.title}), Completed: {sess.is_completed}, End Time: {sess.end_time}")
         
-        # Initialize test status dictionary with default values for all tests (same as old code)
-        test_status = {
-            1: {'completed': False},
-            2: {'completed': False},
-            3: {'completed': False},
-            4: {
-                'completed': False,
-                'total_sections': 0,
-                'completed_sections': 0,
-                'sections_status': {}
-            }
-        }
-        
-        # Map test IDs to test types for popup identification
-        test_type_map = {}  # Will store {test_id: test_type}
-        
-        # Update with actual data if it exists (same as old code logic)
-        for session in test_sessions:
-            test_id = session.test.id
-            test_title = session.test.title.lower().strip()
+        # Check for latest completed session for each test (1, 2, 3, 4) - fixes issue with multiple sessions
+        print("\n[DEBUG] Checking completed sessions for each test:")
+        for test_id in [1, 2, 3, 4]:
+            # Get the latest completed session for this test (same pattern as Home view)
+            latest_session = TestSession.objects.filter(
+                user=request.user,
+                test_id=test_id,
+                is_completed=True
+            ).order_by('-end_time').first()
             
-            # Identify test type for popup mapping
-            if 'personality assessment' in test_title:
-                test_type_map[test_id] = 'personality'
-            elif 'motivation assessment' in test_title:
-                test_type_map[test_id] = 'motivation'
-            elif 'career interest inventory' in test_title or str(test_id) == '3':
-                test_type_map[test_id] = 'career_interest'
-            elif 'aptitude assessment' in test_title:
-                test_type_map[test_id] = 'aptitude'
-            
-            if test_id == 4:
-                section_sessions = SectionSession.objects.filter(session=session)
-                sections_status = {}
+            if latest_session:
+                print(f"  ✅ Test {test_id}: Found completed session (ID: {latest_session.id}, End: {latest_session.end_time})")
+                test_title = latest_session.test.title.lower().strip()
                 
-                for section_session in section_sessions:
-                    sections_status[section_session.section.title] = {
-                        'completed': section_session.is_completed,
-                        'session_id': section_session.id
+                # Identify test type for popup mapping
+                if 'personality assessment' in test_title:
+                    test_type_map[test_id] = 'personality'
+                elif 'motivation assessment' in test_title:
+                    test_type_map[test_id] = 'motivation'
+                elif 'career interest inventory' in test_title or str(test_id) == '3':
+                    test_type_map[test_id] = 'career_interest'
+                elif 'aptitude assessment' in test_title:
+                    test_type_map[test_id] = 'aptitude'
+                
+                if test_id == 4:
+                    # For test 4 (Aptitude), check section sessions
+                    section_sessions = SectionSession.objects.filter(session=latest_session)
+                    sections_status = {}
+                    
+                    for section_session in section_sessions:
+                        sections_status[section_session.section.title] = {
+                            'completed': section_session.is_completed,
+                            'session_id': section_session.id
+                        }
+                    
+                    test_status[4].update({
+                        'completed': latest_session.is_completed,
+                        'session_id': latest_session.id,
+                        'total_sections': section_sessions.count(),
+                        'completed_sections': section_sessions.filter(is_completed=True).count(),
+                        'sections_status': sections_status
+                    })
+                else:
+                    # For tests 1, 2, 3
+                    test_status[test_id] = {
+                        'completed': latest_session.is_completed,
+                        'session_id': latest_session.id
                     }
-                
-                test_status[4].update({
-                    'completed': session.is_completed,
-                    'session_id': session.id,
-                    'total_sections': section_sessions.count(),
-                    'completed_sections': section_sessions.filter(is_completed=True).count(),
-                    'sections_status': sections_status
-                })
             else:
-                test_status[test_id] = {
-                    'completed': session.is_completed,
-                    'session_id': session.id
-                }
+                print(f"  ❌ Test {test_id}: No completed session found")
         
-        # Check which popups have been answered
-        popup_answers = TestCompletionPopup.objects.filter(user=request.user)
-        answered_popups = {popup.test_type for popup in popup_answers}
+        # Debug: Print final test status
+        print("\n[DEBUG] Final Test Status:")
+        for test_id, status in test_status.items():
+            completed = status.get('completed', False)
+            session_id = status.get('session_id', 'N/A')
+            status_icon = "✅" if completed else "❌"
+            print(f"  {status_icon} Test {test_id}: completed={completed}, session_id={session_id}")
+    except Exception as test_status_error:
+        import traceback
+        print(f"\n[ERROR] Error building test_status: {str(test_status_error)}")
+        traceback.print_exc()
+        print("[ERROR] Continuing with default test_status")
+    
+    # Check which popups have been answered (handle missing table gracefully)
+    # This is separate from test_status building so errors here don't affect test status
+    answered_popups = set()
+    try:
+        # Use raw SQL check first to see if table exists, then query
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW TABLES LIKE 'app_post_matric_testcompletionpopup'")
+            table_exists = cursor.fetchone() is not None
         
-        # Determine which popups need to be shown
-        # Popup should be shown if: test is completed AND popup hasn't been answered
-        popup_status = {
-            'personality': False,
-            'motivation': False,
-            'career_interest': False,
-            'aptitude': False
-        }
-        
-        # Check each completed test to see if popup needs to be shown
-        for test_id, status_info in test_status.items():
-            if status_info.get('completed', False):
-                test_type = test_type_map.get(test_id)
-                if test_type and test_type not in answered_popups:
-                    popup_status[test_type] = True
-        
-        context = {
-            'test_status': json.dumps(test_status),
-            'popup_status': json.dumps(popup_status),
-            'test_type_map': json.dumps(test_type_map)
-        }
-        
-        return render(request, "template20/app_post_matric/tests.html", context)
-    except Exception as e:
-        print(f"Error in Tests view: {str(e)}")
-        return render(request, "template20/app_post_matric/tests.html", {
-            'error': 'An error occurred while loading test status.',
-            'test_status': json.dumps({
-                1: {'completed': False},
-                2: {'completed': False},
-                3: {'completed': False},
-                4: {
-                    'completed': False,
-                    'total_sections': 0,
-                    'completed_sections': 0,
-                    'sections_status': {}
-                }
-            }),
-            'popup_status': json.dumps({
-                'personality': False,
-                'motivation': False,
-                'career_interest': False,
-                'aptitude': False
-            }),
-            'test_type_map': json.dumps({})
-        })
+        if table_exists:
+            popup_answers = TestCompletionPopup.objects.filter(user=request.user)
+            answered_popups = {popup.test_type for popup in popup_answers}
+            print(f"\n[DEBUG] Answered popups: {answered_popups}")
+        else:
+            print(f"[DEBUG] TestCompletionPopup table does not exist - skipping popup check")
+            answered_popups = set()
+    except Exception as popup_error:
+        # Table might not exist in production DB copy - this is OK, just log it
+        print(f"[DEBUG] TestCompletionPopup query error (non-critical): {str(popup_error)}")
+        print(f"[DEBUG] Continuing without popup data (this is OK)")
+        answered_popups = set()
+    
+    # Determine which popups need to be shown
+    # Popup should be shown if: test is completed AND popup hasn't been answered
+    popup_status = {
+        'personality': False,
+        'motivation': False,
+        'career_interest': False,
+        'aptitude': False
+    }
+    
+    # Check each completed test to see if popup needs to be shown
+    for test_id, status_info in test_status.items():
+        if status_info.get('completed', False):
+            test_type = test_type_map.get(test_id)
+            if test_type and test_type not in answered_popups:
+                popup_status[test_type] = True
+    
+    print(f"[DEBUG] Popup status: {popup_status}")
+    print(f"[DEBUG] Test type map: {test_type_map}")
+    print("="*80 + "\n")
+    
+    context = {
+        'test_status': json.dumps(test_status),
+        'popup_status': json.dumps(popup_status),
+        'test_type_map': json.dumps(test_type_map)
+    }
+    
+    print(f"[SUCCESS] Returning context with test_status: {test_status}")
+    return render(request, "template20/app_post_matric/tests.html", context)
 
 
 @login_required
@@ -932,7 +967,7 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
 
                 # If no exact match found, try to find entries that contain all our areas
                 if not career_guidance_selected:
-                    print("No exact match found, looking for entries that contain all selected areas...")
+                    # print("No exact match found, looking for entries that contain all selected areas...")
                     for entry in (CombinedReport_data or []):
                         entry_areas = entry['Areas']
                         if isinstance(entry_areas, str):
@@ -948,9 +983,9 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                                 'Career_Roles': entry['Career Roles'],
                                 'Educational_Pathways': entry['Educational Pathways']
                             })
-                            print(f"Found superset match: {entry['Areas']}")
+                            # print(f"Found superset match: {entry['Areas']}")
 
-                print("career_guidance_selected", career_guidance_selected)
+                # print("career_guidance_selected", career_guidance_selected)
 
                 # Ensure unique values in each field
                 if career_guidance_selected:
@@ -1018,6 +1053,43 @@ def Results_list(request):
 @login_required
 def Results(request):
     try:
+        from institute.models import StudentManagement
+        from django.shortcuts import get_object_or_404
+        
+        # Get user_id from query params (for institute/marketing users viewing student results)
+        user_id = request.GET.get('user_id', None)
+        target_user = request.user  # Default to logged-in user
+        
+        # If user_id is provided, check permissions and get target user
+        if user_id:
+            try:
+                user_id = int(user_id)
+                # Check if logged-in user has permission to view other users' results
+                # Allow if: superuser, institute user, or marketing user
+                is_institute_user = StudentManagement.objects.filter(
+                    student__id=user_id
+                ).filter(
+                    institute__created_by=request.user
+                ).exists() or request.user.is_superuser
+                
+                # Check if user is marketing/institute admin
+                from core import choices
+                is_admin = (
+                    request.user.is_superuser or
+                    request.user.user_type == choices.UserType.INSTITUTE or
+                    request.user.user_type == choices.UserType.MARKETINGGROUPADMIN or
+                    request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN
+                )
+                
+                if is_institute_user or is_admin:
+                    target_user = get_object_or_404(User, id=user_id)
+                else:
+                    # No permission, use own user
+                    target_user = request.user
+            except (ValueError, TypeError):
+                # Invalid user_id, use logged-in user
+                target_user = request.user
+        
         # Get test_id from query params or session
         test_id = request.GET.get('test_id', None)
         if test_id is not None:
@@ -1026,16 +1098,26 @@ def Results(request):
             except ValueError:
                 test_id = request.GET.get('test_id') or request.session.get('last_test_id')
         
-        # Build the query
-        query = {
-            'user': request.user,
-            'is_completed': True
-        }
-        
+        # Get the test session using direct parameters (fixes foreign key lookup issue)
         if test_id:
-            query['test_id'] = test_id
-        # Get the test session
-        latest_session = TestSession.objects.filter(**query).order_by('-end_time').first()
+            try:
+                test_id = int(test_id) if not isinstance(test_id, int) else test_id
+                latest_session = TestSession.objects.filter(
+                    user=target_user,
+                    test_id=test_id,
+                    is_completed=True
+                ).order_by('-end_time').first()
+            except (ValueError, TypeError):
+                # Invalid test_id, query without it
+                latest_session = TestSession.objects.filter(
+                    user=target_user,
+                    is_completed=True
+                ).order_by('-end_time').first()
+        else:
+            latest_session = TestSession.objects.filter(
+                user=target_user,
+                is_completed=True
+            ).order_by('-end_time').first()
         
         if not latest_session:
             return render(request, "results.html", {
@@ -1046,7 +1128,7 @@ def Results(request):
         
         # Get categories record
         categories_record = TestTopCategories.objects.filter(
-            user=request.user,
+            user=target_user,
             test_paper=latest_session.test
         ).first()
         import ast
@@ -1730,12 +1812,65 @@ def CombinedReport(request, user_id=None):
                         import json
                         high_categories = json.loads(categories_record.high_category)
                         
-                        context.update({
-                            'above_list': high_categories.get("Above Average", []),
-                            'average_list': high_categories.get("Average", []),
-                            'below_list': high_categories.get("Below Average", [])
-                        })
+                        # Prepare aptitude lists and 2-digit codes
+                        above_list = high_categories.get("Above Average", [])
+                        average_list = high_categories.get("Average", [])
+                        below_list = high_categories.get("Below Average", [])
                         
+                        # Map full aptitude names to their 2-letter codes
+                        def map_aptitude_name_to_code(name):
+                            name = name.strip().lower()
+                            mapping = {
+                                'abstract reasoning': 'AR',
+                                'numerical reasoning': 'NR',
+                                'logical reasoning': 'LR',
+                                'language & verbal reasoning': 'LVR',
+                                'language and verbal reasoning': 'LVR',
+                                'mechanical reasoning': 'MR',
+                                'spatial reasoning': 'SR',
+                                'clerical speed & accuracy': 'CR',
+                                'clerical speed and accuracy': 'CR',
+                                'clerical': 'CR',
+                            }
+                            return mapping.get(name, None)
+                        
+                        # Helper to get 2-letters, if code is 3 letters, use first letter and last (e.g. LVR -> LR)
+                        def normalize_code(code):
+                            if code is None:
+                                return None
+                            # if len(code) == 2:
+                            #     return code
+                            # elif len(code) == 3:
+                            #     # specific mapping - LVR (Language & Verbal Reasoning) -> LR (Verbal/Logical Reasoning)
+                            #     if code == "LVR":
+                            #         return "LR"
+                            #     return code[:2]
+                            return code
+                        
+                        # Combine all aptitudes to get an unique code for the combination (sorted for consistency)
+                        all_selected_names = []
+                        all_selected_names.extend(above_list)
+                        all_selected_names.extend(average_list)
+                        # (We skip below, as we often want only strengths/averages for combination mapping)
+                        aptitude_codes = [normalize_code(map_aptitude_name_to_code(name)) for name in all_selected_names if map_aptitude_name_to_code(name) is not None]
+                        print("aptitude_codes: ", aptitude_codes)
+                        # Only keep unique and non-None
+                        aptitude_codes = sorted(list(set(aptitude_codes)))
+                        print("aptitude_codes: ", aptitude_codes)
+                        # Generate final two-letter combo code (alpha order), e.g., ["AR", "NR"] => "AR_NR"
+                        two_digit_combo_code = "+".join(aptitude_codes)
+                        print("two_digit_combo_code: ", two_digit_combo_code)
+
+                        # Add to context: test name and generated combo code
+                        context.update({
+                            'above_list': above_list,
+                            'average_list': average_list,
+                            'below_list': below_list,
+                            'aptitude_test_name': aptitude_session.test.title if hasattr(aptitude_session, 'test') else "Aptitude Assessment",
+                            'aptitude_combination_code': two_digit_combo_code,
+                        })
+                        # This combo code (two_digit_combo_code) is to be used for matching in db [AptitudeCombinationMapping]
+                        print("high_categories: ", high_categories)
                         hexaco_recommendations = get_hexaco_career_recommendations(high_categories, None, aptitude_session)
                         context.update({
                             'aptitude_improvement_plan': hexaco_recommendations['aptitude_improvement_plan'],
@@ -1744,6 +1879,292 @@ def CombinedReport(request, user_id=None):
                             'aptitude_roles_guidance': hexaco_recommendations['aptitude_roles_guidance'],
                             'career_guidance_selected': hexaco_recommendations['career_guidance_selected'],
                         })
+                        
+                        # print("hexaco_recommendations['aptitude_improvement_plan']: ", hexaco_recommendations['aptitude_improvement_plan'])
+                        # print("hexaco_recommendations['aptitude_strength_narrative']: ", hexaco_recommendations['aptitude_strength_narrative'])
+                        # print("hexaco_recommendations['aptitude_Recommended_College_Courses']: ", hexaco_recommendations['aptitude_Recommended_College_Courses'])
+                        # print("hexaco_recommendations['aptitude_roles_guidance']: ", hexaco_recommendations['aptitude_roles_guidance'])
+                        # print("hexaco_recommendations['career_guidance_selected']: ", hexaco_recommendations['career_guidance_selected'])
+                        # print("len(hexaco_recommendations['career_guidance_selected']): ", len(hexaco_recommendations['career_guidance_selected']))
+                        # Fetch AptitudeCombinationMapping data based on aptitude codes
+                        from django.urls import reverse
+                        from django.utils.html import format_html
+                        from careers.models import CareerCluster
+                        from courses.models import Course
+                        
+                        # Map full aptitude names to codes
+                        def map_aptitude_name_to_code(name):
+                            """Convert full aptitude name to code"""
+                            name_lower = name.lower().strip()
+                            mapping = {
+                                'abstract reasoning': 'AR',
+                                'numerical reasoning': 'NR',
+                                'logical reasoning': 'LR',
+                                'language & verbal reasoning': 'LVR',
+                                'language and verbal reasoning': 'LVR',
+                                'mechanical reasoning': 'MR',
+                                'spatial reasoning': 'SR',
+                                'clerical speed & accuracy': 'CR',
+                                'clerical speed and accuracy': 'CR',
+                                'clerical': 'CR',
+                            }
+                            return mapping.get(name_lower, None)
+                        
+                        # Collect aptitude names and convert to codes
+                        # ONLY use Above Average + Average - exclude Below Average for clusters/roles/pathways
+                        all_aptitude_names = []
+                        all_aptitude_names.extend(high_categories.get("Above Average", []))
+                        all_aptitude_names.extend(high_categories.get("Average", []))
+                        # Below Average is excluded - not used for combination mapping
+                        
+                        # Convert names to codes (keep original order, do not sort)
+                        aptitude_codes = []
+                        for name in all_aptitude_names:
+                            code = map_aptitude_name_to_code(name)
+                            if code and code not in aptitude_codes:
+                                aptitude_codes.append(code)
+                                
+                        
+                        print(f"Aptitude codes extracted: {aptitude_codes} ({len(aptitude_codes)} codes) - ORIGINAL ORDER (not sorted)")
+                        
+                        # Generate all possible combinations from user's codes
+                        # Check BOTH original order AND sorted order to match database entries
+                        codes_to_check = []
+                        
+                        # First: Generate combinations in ORIGINAL ORDER (as extracted)
+                        print(f"Generating combinations from ORIGINAL order: {aptitude_codes}")
+                        from itertools import combinations
+                        for r in range(len(aptitude_codes), 0, -1):  # Start from longest
+                            for combo in combinations(aptitude_codes, r):
+                                combo_str = '+'.join(combo)  # Format: "CR+LVR+NR" (original order)
+                                if combo_str not in codes_to_check:
+                                    codes_to_check.append(combo_str)
+                        
+                        # Second: Also generate combinations in SORTED ORDER (for database matching)
+                        sorted_codes = sorted(aptitude_codes)
+                        if sorted_codes != aptitude_codes:
+                            print(f"Also generating combinations from SORTED order: {sorted_codes}")
+                            for r in range(len(sorted_codes), 0, -1):  # Start from longest
+                                for combo in combinations(sorted_codes, r):
+                                    combo_str = '+'.join(combo)  # Format: "CR+LVR+NR" (sorted order)
+                                    if combo_str not in codes_to_check:
+                                        codes_to_check.append(combo_str)
+                        
+                        print(f"codes_to_check: {codes_to_check} (total: {len(codes_to_check)} combinations to check)")
+                        
+                        # Compare aptitude_codes with AptitudeCombinationMapping in database
+                        # Find the best matching combination (longest/most comprehensive match)
+                        best_mapping = None
+                        best_code = None
+                        checked_count = 0
+                        found_matches = []
+                        
+                        # Check what combinations exist in database for these codes (handle missing table gracefully)
+                        all_db_codes = []
+                        matching_db_codes = []
+                        codes_set = set(aptitude_codes)
+                        
+                        try:
+                            # Check if table exists
+                            from django.db import connection
+                            with connection.cursor() as cursor:
+                                cursor.execute("SHOW TABLES LIKE 'app_post_matric_aptitudecombinationmapping'")
+                                table_exists = cursor.fetchone() is not None
+                            
+                            if table_exists:
+                                all_db_codes = list(AptitudeCombinationMapping.objects.values_list('aptitude_code', flat=True))
+                                for db_code in all_db_codes:
+                                    db_codes_list = db_code.split('+')
+                                    if set(db_codes_list) == codes_set:  # Same codes, different order
+                                        matching_db_codes.append(db_code)
+                            else:
+                                print("[DEBUG] AptitudeCombinationMapping table does not exist - skipping mapping")
+                        except Exception as e:
+                            print(f"[DEBUG] Error accessing AptitudeCombinationMapping table (non-critical): {str(e)}")
+                            all_db_codes = []
+                        
+                        print(f"\n🔍 Comparing aptitude_codes ({aptitude_codes}) with AptitudeCombinationMapping in database...")
+                        if matching_db_codes:
+                            print(f"   Found matching codes in DB (same codes, different order): {matching_db_codes}")
+                        print(f"   Checking combinations in order (longest to shortest)...")
+                        
+                        # Check combinations in order (longest first)
+                        for code in codes_to_check:
+                            checked_count += 1
+                            try:
+                                # print(f"   [{checked_count}] Checking: {code}")
+                                mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=code).first()
+                                if mapping:
+                                    found_matches.append({
+                                        'code': code,
+                                        'areas': mapping.aptitude_areas,
+                                        'clusters_count': mapping.clusters.count(),
+                                        'roles_count': mapping.roles.count(),
+                                        'pathways_count': mapping.pathways.count()
+                                    })
+                                    # print(f"      ✓ MATCH FOUND in database: {code}")
+                                    # print(f"      Areas: {mapping.aptitude_areas}")
+                                    # print(f"      Clusters: {mapping.clusters.count()}, Roles: {mapping.roles.count()}, Pathways: {mapping.pathways.count()}")
+                                # else:
+                                #     print(f"      ✗ Not found: {code}")
+                            except Exception as e:
+                                print(f"      ❌ Error checking {code}: {e}")
+                        
+                        # If no exact match found, try matching_db_codes (same codes, different order)
+                        if not found_matches and matching_db_codes:
+                            print(f"\n   No exact order match found. Trying matching codes from DB (different order)...")
+                            for db_code in matching_db_codes:
+                                checked_count += 1
+                                try:
+                                    # print(f"   [{checked_count}] Checking DB code: {db_code}")
+                                    mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=db_code).first()
+                                    if mapping:
+                                        found_matches.append({
+                                            'code': db_code,
+                                            'areas': mapping.aptitude_areas,
+                                            'clusters_count': mapping.clusters.count(),
+                                            'roles_count': mapping.roles.count(),
+                                            'pathways_count': mapping.pathways.count()
+                                        })
+                                        # print(f"      ✓ MATCH FOUND in database: {db_code}")
+                                        # print(f"      Areas: {mapping.aptitude_areas}")
+                                        # print(f"      Clusters: {mapping.clusters.count()}, Roles: {mapping.roles.count()}, Pathways: {mapping.pathways.count()}")
+                                        # Add to codes_to_check for processing
+                                        if db_code not in codes_to_check:
+                                            codes_to_check.append(db_code)
+                                except Exception as e:
+                                    print(f"      ❌ Error checking {db_code}: {e}")
+                        
+                        # Process the best match (prioritize complete matches with all codes)
+                        # Check matching_db_codes first if it has entries with all codes
+                        match_code_to_use = None
+                        total_codes_count = len(aptitude_codes)
+                        
+                        # Prioritize matching_db_codes if it contains entries with all codes
+                        if matching_db_codes:
+                            # Check if any matching_db_code has all codes
+                            for db_code in matching_db_codes:
+                                db_code_count = len(db_code.split('+'))
+                                if db_code_count == total_codes_count:
+                                    match_code_to_use = db_code
+                                    print(f"\n   ✅ Using complete DB match (all {total_codes_count} codes): {match_code_to_use}")
+                                    break
+                        
+                        # If no complete match in matching_db_codes, use found_matches
+                        if not match_code_to_use and found_matches:
+                            # Use the longest match from codes_to_check
+                            match_code_to_use = found_matches[0]['code']
+                            print(f"\n   ✅ Using match from codes_to_check: {match_code_to_use}")
+                        elif not match_code_to_use and matching_db_codes:
+                            # Fallback to first matching_db_code
+                            match_code_to_use = matching_db_codes[0]
+                            print(f"\n   ✅ Using DB match (different order): {match_code_to_use}")
+                        
+                        # Get clusters, roles, pathways from the matched code
+                        if match_code_to_use:
+                            try:
+                                mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=match_code_to_use).first()
+                                if mapping:
+                                    # Get clusters with hyperlinks
+                                    clusters_data = []
+                                    for cluster in mapping.clusters.all():
+                                        try:
+                                            url = reverse('careers:careerlibrary', kwargs={'cluster_slug': cluster.slug, 'cluster_id': cluster.id})
+                                            clusters_data.append({
+                                                'name': cluster.name,
+                                                'url': url
+                                            })
+                                        except Exception as e:
+                                            print(f"Error creating cluster URL for {cluster.name}: {e}")
+                                            clusters_data.append({
+                                                'name': cluster.name,
+                                                'url': None
+                                            })
+                                    
+                                    # Get roles with hyperlinks
+                                    roles_data = []
+                                    for role in mapping.roles.all():
+                                        try:
+                                            url = reverse('careers:careerdetail', kwargs={'slug': role.slug, 'career_id': role.id})
+                                            roles_data.append({
+                                                'name': role.name,
+                                                'url': url
+                                            })
+                                        except Exception as e:
+                                            print(f"Error creating role URL for {role.name}: {e}")
+                                            roles_data.append({
+                                                'name': role.name,
+                                                'url': None
+                                            })
+                                    
+                                    # Get pathways with hyperlinks
+                                    pathways_data = []
+                                    for pathway in mapping.pathways.all():
+                                        try:
+                                            # Use public course URL that students can access
+                                            url = reverse('courses:coursedetail', kwargs={'course_id': pathway.id})
+                                            pathways_data.append({
+                                                'name': pathway.name,
+                                                'url': url
+                                            })
+                                        except Exception as e:
+                                            print(f"Error creating pathway URL for {pathway.name}: {e}")
+                                            pathways_data.append({
+                                                'name': pathway.name,
+                                                'url': None
+                                            })
+                                    
+                                    # Store the mapping if it has data
+                                    if clusters_data or roles_data or pathways_data:
+                                        best_mapping = {
+                                            'aptitude_code': match_code_to_use,
+                                            'aptitude_areas': mapping.aptitude_areas,
+                                            'clusters': clusters_data,
+                                            'roles': roles_data,
+                                            'pathways': pathways_data
+                                        }
+                                        best_code = match_code_to_use
+                                        print(f"   ✅ SELECTED: {best_code} (matching combination with data)")
+                                    else:
+                                        print(f"   ⚠ Found but no data (clusters/roles/pathways empty)")
+                            except Exception as e:
+                                print(f"   ❌ Error processing {match_code_to_use}: {e}")
+                                import traceback
+                                traceback.print_exc()
+                        
+                        # Summary of matching results
+                        # print(f"\n📊 Matching Summary:")
+                        # print(f"   Aptitude codes extracted: {aptitude_codes} (original order, not sorted)")
+                        # print(f"   Total combinations checked: {checked_count}")
+                        # print(f"   Matches found in database: {len(found_matches)}")
+                        # if found_matches:
+                        #     print(f"   All matches found:")
+                        #     for match in found_matches:
+                        #         print(f"      - {match['code']}: {match['areas']}")
+                        
+                        # Store the best mapping in context (clusters, roles, pathways from DB)
+                        context['aptitude_mapping'] = best_mapping
+                        if best_mapping:
+                            print(f"\n✅ FINAL RESULT - Displaying from database:")
+                            print(f"   Aptitude Code: {best_code}")
+                            print(f"   Aptitude Areas: {best_mapping['aptitude_areas']}")
+                            print(f"   Clusters: {len(best_mapping['clusters'])}")
+                            print("   Clusters:")
+                            for cluster in best_mapping['clusters']:
+                                print(f"      - {cluster['name']}")
+                            print(f"   Roles: {len(best_mapping['roles'])}")
+                            print("   Roles:")
+                            for role in best_mapping['roles']:
+                                print(f"      - {role['name']}")
+                            print(f"   Pathways: {len(best_mapping['pathways'])}")
+                            print("   Pathways:")
+                            for pathway in best_mapping['pathways']:
+                                print(f"      - {pathway['name']}")
+                        else:
+                            print(f"\n⚠️  NO MATCH FOUND!")
+                            print(f"   Extracted codes: {aptitude_codes}")
+                            print(f"   Checked {len(codes_to_check)} combinations but none matched in AptitudeCombinationMapping")
+                            print(f"   Make sure the combination exists in the database")
                     except json.JSONDecodeError as e:
                         print(f"Error decoding aptitude categories JSON: {e}")
                         import traceback
@@ -2160,19 +2581,65 @@ def Test_details(request, id):
 @login_required
 def Test_results(request, id):
     try:
+        from institute.models import StudentManagement
+        from django.shortcuts import get_object_or_404
+        
+        # Get user_id from query params (for institute/marketing users viewing student results)
+        user_id = request.GET.get('user_id', None)
+        target_user = request.user  # Default to logged-in user
+        
+        # If user_id is provided, check permissions and get target user
+        if user_id:
+            try:
+                user_id = int(user_id)
+                # Check if logged-in user has permission to view other users' results
+                is_institute_user = StudentManagement.objects.filter(
+                    student__id=user_id
+                ).filter(
+                    institute__created_by=request.user
+                ).exists() or request.user.is_superuser
+                
+                # Check if user is marketing/institute admin
+                from core import choices
+                is_admin = (
+                    request.user.is_superuser or
+                    request.user.user_type == choices.UserType.INSTITUTE or
+                    request.user.user_type == choices.UserType.MARKETINGGROUPADMIN or
+                    request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN
+                )
+                
+                if is_institute_user or is_admin:
+                    target_user = get_object_or_404(User, id=user_id)
+                else:
+                    # No permission, use own user
+                    target_user = request.user
+            except (ValueError, TypeError):
+                # Invalid user_id, use logged-in user
+                target_user = request.user
+        
         # Use id from URL as test_id
         test_id = id
         
-        # Build the query
-        query = {
-            'user': request.user,
-            'is_completed': True
-        }
-        
+        # Get the test session using direct parameters (fixes foreign key lookup issue)
         if test_id:
-            query['test_id'] = test_id
-        # Get the test session
-        latest_session = TestSession.objects.filter(**query).order_by('-end_time').first()
+            try:
+                test_id = int(test_id) if not isinstance(test_id, int) else test_id
+                latest_session = TestSession.objects.filter(
+                    user=target_user,
+                    test_id=test_id,
+                    is_completed=True
+                ).order_by('-end_time').first()
+            except (ValueError, TypeError):
+                # Invalid test_id, query without it
+                latest_session = TestSession.objects.filter(
+                    user=target_user,
+                    is_completed=True
+                ).order_by('-end_time').first()
+        else:
+            latest_session = TestSession.objects.filter(
+                user=target_user,
+                is_completed=True
+            ).order_by('-end_time').first()
         
         if not latest_session:
             return render(request, "template20/app_post_matric/test_results.html", {
@@ -2183,7 +2650,7 @@ def Test_results(request, id):
         
         # Get categories record
         categories_record = TestTopCategories.objects.filter(
-            user=request.user,
+            user=target_user,
             test_paper=latest_session.test
         ).first()
         import ast
@@ -2218,25 +2685,25 @@ def Test_results(request, id):
         
         # Check for completed sessions for each test type
         test1_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=target_user, 
             test__id=1,
             is_completed=True
         ).exists()
         
         test2_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=target_user, 
             test__id=2,
             is_completed=True
         ).exists()
         
         test3_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=target_user, 
             test__id=3,
             is_completed=True
         ).exists()
         
         test4_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=target_user, 
             test__id=4,
             is_completed=True
         ).exists()
@@ -2244,15 +2711,15 @@ def Test_results(request, id):
         if test1_completed and test2_completed and test3_completed and test4_completed:
             all_tests_completed = True
 
-        user = request.user
+        user = target_user
         try:
-            # Retrieve the UserProfile for the logged-in user (create if not exists)
+            # Retrieve the UserProfile for the target user (create if not exists)
             user_profile, created = UserProfile.objects.get_or_create(user=user)
         except UserProfile.DoesNotExist:
             user_profile = None
 
         try:
-            # Retrieve the UserProfile for the logged-in user
+            # Retrieve the UserProfile for the target user
             user_profile = user.user_profile
             # Access attributes from the User object
             created_date = latest_session.created_at
@@ -2276,7 +2743,8 @@ def Test_results(request, id):
         
         
         context = {
-            'user': request.user,
+            'user': target_user,
+            'viewing_as_admin': user_id is not None if 'user_id' in locals() else False,
             'test_id': test_id,
             'all_tests_completed': all_tests_completed,
             'high_categories': high_categories,
@@ -4138,15 +4606,29 @@ def view_matches(request):
     from careers.models import Career
     from .models import CareerMatch
     
-    # Get all liked careers for the user
-    matches = CareerMatch.objects.filter(
-        user=request.user,
-        action='like'
-    ).select_related('career').order_by('-created_at')
+    # Get all liked careers for the user (handle missing table gracefully)
+    matches = []
+    try:
+        # Check if table exists
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW TABLES LIKE 'app_post_matric_careermatch'")
+            table_exists = cursor.fetchone() is not None
+        
+        if table_exists:
+            matches = CareerMatch.objects.filter(
+                user=request.user,
+                action='like'
+            ).select_related('career').order_by('-created_at')
+        else:
+            print("[DEBUG] CareerMatch table does not exist - returning empty matches")
+    except Exception as e:
+        print(f"[DEBUG] Error accessing CareerMatch table (non-critical): {str(e)}")
+        matches = []
     
     context = {
         'matches': matches,
-        'match_count': matches.count()
+        'match_count': len(matches) if isinstance(matches, list) else matches.count()
     }
     
     return render(request, 'template20/app_post_matric/career_matches.html', context)
@@ -4328,22 +4810,37 @@ def swipe_career_api(request):
         from careers.models import Career
         career = Career.objects.get(id=career_id)
         
-        # Create or update match
-        match, created = CareerMatch.objects.update_or_create(
-            user=request.user,
-            career=career,
-            defaults={
-                'action': action,
-                'match_score': match_score,
-                'notes': notes
-            }
-        )
+        # Create or update match (handle missing table gracefully)
+        match = None
+        created = False
+        try:
+            # Check if table exists
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute("SHOW TABLES LIKE 'app_post_matric_careermatch'")
+                table_exists = cursor.fetchone() is not None
+            
+            if table_exists:
+                match, created = CareerMatch.objects.update_or_create(
+                    user=request.user,
+                    career=career,
+                    defaults={
+                        'action': action,
+                        'match_score': match_score,
+                        'notes': notes
+                    }
+                )
+            else:
+                print("[DEBUG] CareerMatch table does not exist - skipping match save")
+        except Exception as e:
+            print(f"[DEBUG] Error accessing CareerMatch table (non-critical): {str(e)}")
+            # Continue without saving match - feature still works
         
         return JsonResponse({
             'success': True,
             'action': action,
             'career_id': career_id,
-            'created': created
+            'created': created if match else False
         })
         
     except Career.DoesNotExist:

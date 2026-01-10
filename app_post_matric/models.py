@@ -452,3 +452,120 @@ class CareerMatch(TimeStampedModel):
     
     def __str__(self):
         return f"{self.user.username} - {self.career.name} ({self.action})"
+
+
+# ============================================================================
+# Combined Report Mapping Models
+# ============================================================================
+
+class ClusterMapping(TimeStampedModel):
+    """Maps Excel cluster names to database CareerCluster entities"""
+    excel_name = models.CharField(max_length=500, unique=True, help_text="Cluster name from Excel")
+    db_cluster = models.ForeignKey(
+        'careers.CareerCluster',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='excel_mappings',
+        help_text="Mapped database cluster"
+    )
+    is_mapped = models.BooleanField(default=False, help_text="Whether this Excel name is mapped to DB")
+    notes = models.TextField(blank=True, help_text="Admin notes about this mapping")
+    
+    class Meta:
+        verbose_name = "Cluster Mapping"
+        verbose_name_plural = "Cluster Mappings"
+        ordering = ['excel_name']
+    
+    def __str__(self):
+        status = "[MAPPED]" if self.is_mapped else "[UNMAPPED]"
+        db_name = self.db_cluster.name if self.db_cluster else "Unmapped"
+        return f"{status} {self.excel_name} -> {db_name}"
+
+
+class RoleMapping(TimeStampedModel):
+    """Maps Excel role names to database Career entities"""
+    excel_name = models.CharField(max_length=500, unique=True, help_text="Role name from Excel")
+    db_role = models.ForeignKey(
+        'careers.Career',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='excel_role_mappings',
+        help_text="Mapped database career/role"
+    )
+    is_mapped = models.BooleanField(default=False, help_text="Whether this Excel name is mapped to DB")
+    notes = models.TextField(blank=True, help_text="Admin notes about this mapping")
+    
+    class Meta:
+        verbose_name = "Role Mapping"
+        verbose_name_plural = "Role Mappings"
+        ordering = ['excel_name']
+    
+    def __str__(self):
+        status = "[MAPPED]" if self.is_mapped else "[UNMAPPED]"
+        db_name = self.db_role.name if self.db_role else "Unmapped"
+        return f"{status} {self.excel_name} -> {db_name}"
+
+
+class PathwayMapping(TimeStampedModel):
+    """Maps Excel pathway names to database Course entities"""
+    excel_name = models.CharField(max_length=500, unique=True, help_text="Pathway name from Excel")
+    db_pathway = models.ForeignKey(
+        'courses.Course',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='excel_pathway_mappings',
+        help_text="Mapped database course/pathway"
+    )
+    is_mapped = models.BooleanField(default=False, help_text="Whether this Excel name is mapped to DB")
+    notes = models.TextField(blank=True, help_text="Admin notes about this mapping")
+    
+    class Meta:
+        verbose_name = "Pathway Mapping"
+        verbose_name_plural = "Pathway Mappings"
+        ordering = ['excel_name']
+    
+    def __str__(self):
+        status = "[MAPPED]" if self.is_mapped else "[UNMAPPED]"
+        db_name = self.db_pathway.name if self.db_pathway else "Unmapped"
+        return f"{status} {self.excel_name} -> {db_name}"
+
+
+class AptitudeCombinationMapping(TimeStampedModel):
+    """Stores the complete mapping for each aptitude code combination"""
+    aptitude_code = models.CharField(max_length=100, unique=True, help_text="Aptitude code (e.g., AR, AR+NR)")
+    aptitude_areas = models.CharField(max_length=500, help_text="Full aptitude area names")
+    
+    # Many-to-many relationships for clusters, roles, and pathways
+    clusters = models.ManyToManyField(
+        'careers.CareerCluster',
+        related_name='aptitude_combinations',
+        blank=True,
+        help_text="Career clusters for this aptitude combination"
+    )
+    roles = models.ManyToManyField(
+        'careers.Career',
+        related_name='aptitude_combinations',
+        blank=True,
+        help_text="Career roles for this aptitude combination"
+    )
+    pathways = models.ManyToManyField(
+        'courses.Course',
+        related_name='aptitude_combinations',
+        blank=True,
+        help_text="Educational pathways for this aptitude combination"
+    )
+    
+    is_complete = models.BooleanField(default=False, help_text="Whether all mappings are complete")
+    notes = models.TextField(blank=True, help_text="Admin notes")
+    
+    class Meta:
+        verbose_name = "Aptitude Combination Mapping"
+        verbose_name_plural = "Aptitude Combination Mappings"
+        ordering = ['aptitude_code']
+    
+    def __str__(self):
+        status = "[COMPLETE]" if self.is_complete else "[INCOMPLETE]"
+        return f"{status} {self.aptitude_code}: {self.aptitude_areas}"
