@@ -28,7 +28,7 @@ from .models import (
 class ConfigurationAdmin(admin.ModelAdmin):
     readonly_fields = ('created','modified','key')
     fields = ['created','modified','key','value']
-    date_hierarchy = 'created'
+    # date_hierarchy = 'created'  # Disabled: Requires MySQL timezone tables to be loaded
     list_display = ['id', 'key','value','created','modified']
     sortable_by=['id', 'key','created']
     ordering = ['id']
@@ -51,7 +51,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
 class CityAdmin(admin.ModelAdmin):
     readonly_fields = ('created','modified','id')
     fields = ['created','modified','id','name','state']
-    date_hierarchy = 'created'
+    # date_hierarchy = 'created'  # Disabled: Requires MySQL timezone tables to be loaded
     list_display = ['id', 'name','state','country','modified']
     sortable_by=['id', 'name','created']
     ordering = ['id']
@@ -69,7 +69,7 @@ class CityAdmin(admin.ModelAdmin):
 class StateAdmin(admin.ModelAdmin):
     readonly_fields = ('created','modified','id')
     fields = ['created','modified','id','name','country']
-    date_hierarchy = 'created'
+    # date_hierarchy = 'created'  # Disabled: Requires MySQL timezone tables to be loaded
     list_display = ['id', 'name','country','modified']
     sortable_by=['id', 'name','created']
     ordering = ['id']
@@ -84,7 +84,7 @@ class StateAdmin(admin.ModelAdmin):
 class CountryAdmin(admin.ModelAdmin):
     readonly_fields = ('created','modified','id')
     fields = ['created','modified','id','name','phone_code','short_name','priority','flag']
-    date_hierarchy = 'created'
+    # date_hierarchy = 'created'  # Disabled: Requires MySQL timezone tables to be loaded
     list_display = ['id', 'name','short_name','modified']
     sortable_by=['id', 'name','created']
     ordering = ['id']
@@ -855,7 +855,7 @@ class S3FileUploadAdmin(admin.ModelAdmin):
     search_fields = ('file_name', 's3_key', 's3_url', 'description', 'uploaded_by')
     readonly_fields = ('created', 'modified', 's3_url', 's3_key', 'file_type', 'file_size', 's3_url_preview')
     ordering = ('-created',)
-    date_hierarchy = 'created'
+    # date_hierarchy = 'created'  # Disabled: Requires MySQL timezone tables to be loaded
     list_display_links = ('id', 'file_name')
     
     def get_fieldsets(self, request, obj=None):
