@@ -345,8 +345,8 @@
                 <div class="ebook-card-content">
                   <h3>{{ ebook.title }}</h3>
                   <div class="ebook-actions">
-                    {% if ebook.pdf %}
-                    <a href="{{ url('core:ebook_detail') }}?pdf={{ ebook.pdf|urlencode }}&title={{ ebook.title|urlencode }}" class="btn-view">View Book</a>
+                    {% if ebook.pdf and ebook.slug %}
+                    <a href="{{ url('core:ebook_detail', slug=ebook.slug) }}" class="btn-view">View Book</a>
                     {% else %}
                     <span class="btn-view" style="opacity: 0.5; cursor: not-allowed;">PDF Not Available</span>
                     {% endif %}
@@ -381,6 +381,7 @@
     {
       id: {{ ebook.id }},
       title: {{ ebook.title|tojson }},
+      slug: {% if ebook.slug %}{{ ebook.slug|tojson }}{% else %}null{% endif %},
       cover: {% if ebook.cover %}{{ ebook.cover|tojson }}{% else %}"{{ static('images_new/ebook/ebook-cover.jpg') }}"{% endif %},
       pdf: {% if ebook.pdf %}{{ ebook.pdf|tojson }}{% else %}null{% endif %}
     }{% if not loop.last %},{% endif %}
@@ -425,7 +426,7 @@
         <div class="ebook-card-content">
           <h3>${ebook.title}</h3>
           <div class="ebook-actions">
-            <a href="{{ url('core:ebook_detail') }}?pdf=${encodeURIComponent(ebook.pdf)}&title=${encodeURIComponent(ebook.title)}" class="btn-view">View Book</a>
+            <a href="${ebook.slug ? '/ebooks/flip-book/' + ebook.slug + '/' : '#'}" class="btn-view">View Book</a>
           </div>
         </div>
       </div>

@@ -346,6 +346,18 @@ S3_BUCKET_PREFIX = config('S3_BUCKET_PREFIX', default='s3://topteenc/')
 S3_BUCKET_BASE_URL = config('S3_BUCKET_BASE_URL', default='https://topteenc.s3.ap-northeast-1.amazonaws.com/')
 S3_EBOOK_FOLDER = 'ebook'  # Folder path for ebooks in S3
 
+# AWS S3 Upload Configuration
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')
+AWS_REGION = config('AWS_REGION', default='ap-northeast-1')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='topteenc')
+
+# S3 File Upload Size Limit (in MB)
+S3_MAX_FILE_SIZE_MB = config('S3_MAX_FILE_SIZE_MB', default=2, cast=int)
+
+# Media Library Base Folder
+S3_MEDIA_LIBRARY_BASE_FOLDER = config('S3_MEDIA_LIBRARY_BASE_FOLDER', default='medialibrary')
+
 # Suppress CKEditor 4 deprecation warning
 # Note: CKEditor 4 is deprecated but still in use. Consider migrating to django-ckeditor-5 in the future.
 SILENCED_SYSTEM_CHECKS = ['ckeditor.W001']

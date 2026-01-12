@@ -475,8 +475,24 @@ class Ebook(BaseModel, PublishableModel):
         return self.title
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
+        # Always generate slug if it's missing or empty
+        if not self.slug or not self.slug.strip():
+            base_slug = slugify(self.title)
+            if not base_slug:  # If title doesn't generate a valid slug, use a default
+                base_slug = f"ebook-{self.id or 'new'}"
+            slug = base_slug
+            counter = 1
+            
+            # Check if slug already exists and make it unique
+            while Ebook.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+                # Prevent infinite loop if slug gets too long
+                if len(slug) > 300:
+                    slug = f"{base_slug[:290]}-{counter}"
+                    break
+            
+            self.slug = slug
         super().save(*args, **kwargs)
 
     def get_cover_url(self):
@@ -499,3 +515,36 @@ class Ebook(BaseModel, PublishableModel):
     def get_published_ebooks(cls):
         """Get all published ebooks"""
         return cls.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)
+
+
+class S3FileUpload(BaseModel):
+    """
+    Model to track files uploaded to S3 bucket
+    """
+    file_name = models.CharField(max_length=500, help_text="Original file name")
+    s3_key = models.CharField(max_length=1000, help_text="S3 object key/path")
+    s3_url = models.URLField(max_length=1000, help_text="Full S3 URL")
+    file_type = models.CharField(max_length=100, blank=True, null=True, help_text="File MIME type")
+    file_size = models.PositiveIntegerField(blank=True, null=True, help_text="File size in bytes")
+    folder_path = models.CharField(max_length=500, blank=True, null=True, help_text="Folder path in S3")
+    description = models.TextField(blank=True, null=True, help_text="Optional description")
+    uploaded_by = models.CharField(max_length=200, blank=True, null=True, help_text="User who uploaded the file")
+
+    class Meta(BaseModel.Meta):
+        ordering = ("-created",)
+        verbose_name = "S3 File Upload"
+        verbose_name_plural = "S3 File Uploads"
+
+    def __str__(self):
+        return f"{self.file_name} - {self.s3_key}"
+
+    def get_file_size_display(self):
+        """Return human-readable file size"""
+        if not self.file_size:
+            return "Unknown"
+        size = self.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024.0:
+                return f"{size:.2f} {unit}"
+            size /= 1024.0
+        return f"{size:.2f} TB"

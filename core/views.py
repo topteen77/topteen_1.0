@@ -422,9 +422,13 @@ class EbookListView(TemplateView):
         ebooks = Ebook.get_published_ebooks()
         ctx["ebooks"] = []
         for ebook in ebooks:
+            # Ensure slug exists (should be auto-generated, but double-check)
+            if not ebook.slug:
+                ebook.save()  # This will generate the slug
             ebook_data = {
                 "id": ebook.id,
                 "title": ebook.title,
+                "slug": ebook.slug,
                 "cover": ebook.get_cover_url(),
                 "pdf": ebook.get_pdf_url()
             }
@@ -442,35 +446,74 @@ class EbookDetailView(TemplateView):
         name = "E-Book Reader | Top Teen"
         return build_html_head(title=name, description="Read our interactive career guidance e-book")
 
+    def get(self, request, *args, **kwargs):
+        from django.http import Http404, HttpResponseRedirect
+        
+        # Check if slug is missing but query parameters are present (backward compatibility)
+        slug = kwargs.get('slug')
+        if not slug:
+            # Try to redirect from old query parameter format to slug-based URL
+            ebook_id = request.GET.get('id')
+            pdf_path = request.GET.get('pdf')
+            title = request.GET.get('title')
+            
+            if ebook_id:
+                try:
+                    ebook = Ebook.objects.get(id=ebook_id, publish_status=choices.PublishStatus.PUBLISHED)
+                    # Ensure slug exists
+                    if not ebook.slug:
+                        ebook.save()
+                    # Redirect to slug-based URL
+                    return HttpResponseRedirect(reverse('core:ebook_detail', kwargs={'slug': ebook.slug}))
+                except Ebook.DoesNotExist:
+                    raise Http404("Ebook not found")
+            elif pdf_path and title:
+                # Try to find ebook by PDF URL or title
+                try:
+                    ebook = Ebook.objects.filter(
+                        pdf_file_s3_url=pdf_path,
+                        publish_status=choices.PublishStatus.PUBLISHED
+                    ).first()
+                    if not ebook:
+                        # Try by title
+                        ebook = Ebook.objects.filter(
+                            title=title,
+                            publish_status=choices.PublishStatus.PUBLISHED
+                        ).first()
+                    if ebook:
+                        if not ebook.slug:
+                            ebook.save()
+                        return HttpResponseRedirect(reverse('core:ebook_detail', kwargs={'slug': ebook.slug}))
+                    else:
+                        raise Http404("Ebook not found")
+                except:
+                    raise Http404("Ebook not found")
+            else:
+                raise Http404("Ebook slug is required")
+        
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
     def get_context(self, request, *args, **kwargs):
+        from django.http import Http404
+        
         ctx = {}
         ctx["html_head"] = self.html_head()
-        # Get ebook ID or PDF path and title from query parameters
-        ebook_id = request.GET.get('id')
-        pdf_path = request.GET.get('pdf')
-        title = request.GET.get('title', 'Career Guide E-Book')
         
-        # If ebook_id is provided, get from database
-        if ebook_id:
-            try:
-                ebook = Ebook.objects.get(id=ebook_id, publish_status=choices.PublishStatus.PUBLISHED)
-                ctx["pdf_path"] = ebook.get_pdf_url()
-                ctx["ebook_title"] = ebook.title
-                ctx["breadcrumb"] = {"text": ebook.title, "url": reverse("core:ebook_list")}
-            except Ebook.DoesNotExist:
-                ctx["pdf_path"] = pdf_path or None
-                ctx["ebook_title"] = title
-                ctx["breadcrumb"] = {"text": title, "url": reverse("core:ebook_list")}
-        else:
-            # Fallback to query parameters (could be URL or path)
-            ctx["pdf_path"] = pdf_path or None
-            ctx["ebook_title"] = title
-            ctx["breadcrumb"] = {"text": title, "url": reverse("core:ebook_list")}
+        # Get ebook by slug from URL
+        slug = kwargs.get('slug')
+        if not slug:
+            raise Http404("Ebook slug is required")
+        
+        # Get ebook by slug
+        try:
+            ebook = Ebook.objects.get(slug=slug, publish_status=choices.PublishStatus.PUBLISHED)
+            ctx["pdf_path"] = ebook.get_pdf_url()
+            ctx["ebook_title"] = ebook.title
+            ctx["breadcrumb"] = {"text": ebook.title, "url": reverse("core:ebook_list")}
+        except Ebook.DoesNotExist:
+            raise Http404("Ebook not found")
         
         return ctx
-
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
 class SearchItems(TemplateView):

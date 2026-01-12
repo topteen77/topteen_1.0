@@ -1,0 +1,215 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .file-delete-btn {
+        margin-left: 10px;
+        padding: 6px 14px;
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    .file-delete-btn:hover {
+        background-color: #c82333;
+    }
+    .file-delete-btn:disabled {
+        background-color: #6c757d;
+        cursor: not-allowed;
+    }
+    .file-field-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 5px;
+    }
+    .file-name-display {
+        font-weight: 500;
+        color: #333;
+        margin-right: 10px;
+    }
+    .field-cover_image_s3_url .readonly,
+    .field-pdf_file_s3_url .readonly {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .field-cover_image_s3_url p.readonly,
+    .field-pdf_file_s3_url p.readonly {
+        display: inline-block;
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block after_field_sets %}
+{{ block.super }}
+
+<script>
+(function($) {
+    $(document).ready(function() {
+        // Get URLs from template context (more reliable than parsing DOM)
+        var ebookId = '{{ original.id|default:"" }}';
+        var coverUrl = '{{ original.cover_image_s3_url|default:"" }}';
+        var pdfUrl = '{{ original.pdf_file_s3_url|default:"" }}';
+        
+        // Add delete buttons next to file URL fields
+        function addDeleteButtons() {
+            if (!ebookId) return; // Only show buttons when editing existing ebook
+            
+            // Cover image field
+            var coverImageField = $('.field-cover_image_s3_url');
+            if (coverImageField.length && coverUrl && coverUrl.trim() !== '' && coverUrl !== 'None' && coverUrl !== '-') {
+                // Check if button already exists
+                if (coverImageField.find('.file-delete-btn').length === 0) {
+                    // Find the best container to append button to
+                    var coverInput = $('#id_cover_image_s3_url');
+                    var coverContainer = null;
+                    
+                    if (coverInput.length) {
+                        coverContainer = coverInput;
+                    } else {
+                        coverContainer = coverImageField.find('p.readonly, div.readonly, .readonly').first();
+                    }
+                    if (!coverContainer || coverContainer.length === 0) {
+                        coverContainer = coverImageField.find('.form-row, .form-group').first();
+                    }
+                    if (!coverContainer || coverContainer.length === 0) {
+                        coverContainer = coverImageField;
+                    }
+                    
+                    if (coverContainer && coverContainer.length) {
+                        var fileName = coverUrl.split('/').pop().split('?')[0]; // Remove query params
+                        var deleteBtn = $('<button>', {
+                            type: 'button',
+                            class: 'file-delete-btn',
+                            html: '<span style="margin-right: 4px;">🗑️</span>Delete',
+                            'data-file-type': 'cover',
+                            'data-file-url': coverUrl.trim(),
+                            'data-ebook-id': ebookId,
+                            'data-file-name': fileName
+                        });
+                        coverContainer.append(deleteBtn);
+                    }
+                }
+            }
+            
+            // PDF file field
+            var pdfFileField = $('.field-pdf_file_s3_url');
+            if (pdfFileField.length && pdfUrl && pdfUrl.trim() !== '' && pdfUrl !== 'None' && pdfUrl !== '-') {
+                // Check if button already exists
+                if (pdfFileField.find('.file-delete-btn').length === 0) {
+                    // Find the best container to append button to
+                    var pdfInput = $('#id_pdf_file_s3_url');
+                    var pdfContainer = null;
+                    
+                    if (pdfInput.length) {
+                        pdfContainer = pdfInput;
+                    } else {
+                        pdfContainer = pdfFileField.find('p.readonly, div.readonly, .readonly').first();
+                    }
+                    if (!pdfContainer || pdfContainer.length === 0) {
+                        pdfContainer = pdfFileField.find('.form-row, .form-group').first();
+                    }
+                    if (!pdfContainer || pdfContainer.length === 0) {
+                        pdfContainer = pdfFileField;
+                    }
+                    
+                    if (pdfContainer && pdfContainer.length) {
+                        var fileName = pdfUrl.split('/').pop().split('?')[0]; // Remove query params
+                        var deleteBtn = $('<button>', {
+                            type: 'button',
+                            class: 'file-delete-btn',
+                            html: '<span style="margin-right: 4px;">🗑️</span>Delete',
+                            'data-file-type': 'pdf',
+                            'data-file-url': pdfUrl.trim(),
+                            'data-ebook-id': ebookId,
+                            'data-file-name': fileName
+                        });
+                        pdfContainer.append(deleteBtn);
+                    }
+                }
+            }
+        }
+        
+        // Add delete buttons on page load (with delay to ensure DOM is ready)
+        setTimeout(addDeleteButtons, 200);
+        
+        // Also try after a longer delay in case page is still loading
+        setTimeout(addDeleteButtons, 500);
+        
+        // Re-add buttons if URL fields change (when new file is uploaded)
+        $('#id_cover_image_s3_url, #id_pdf_file_s3_url').on('change', function() {
+            setTimeout(addDeleteButtons, 100);
+        });
+        
+        // Watch for changes in readonly fields (when form is saved and page reloads)
+        $(document).on('DOMSubtreeModified', '.field-cover_image_s3_url, .field-pdf_file_s3_url', function() {
+            setTimeout(addDeleteButtons, 100);
+        });
+        
+        // Handle delete button clicks
+        $(document).on('click', '.file-delete-btn', function(e) {
+            e.preventDefault();
+            var btn = $(this);
+            var fileType = btn.data('file-type');
+            var fileUrl = btn.data('file-url');
+            var ebookId = btn.data('ebook-id');
+            var fileName = btn.data('file-name') || fileUrl.split('/').pop();
+            
+            // Show confirmation popup
+            if (confirm('Are you sure you want to delete "' + fileName + '"?\n\nThis will permanently remove the file from S3 and clear the file URL from the database.')) {
+                // Disable button during deletion
+                btn.prop('disabled', true).html('<span style="margin-right: 4px;">⏳</span>Deleting...');
+                
+                // Build delete URL
+                var deleteUrl = '/admin/core/ebook/' + ebookId + '/delete-file/';
+                
+                // Make AJAX request to delete file
+                $.ajax({
+                    url: deleteUrl,
+                    method: 'POST',
+                    data: {
+                        'file_type': fileType,
+                        'file_url': fileUrl,
+                        'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Clear the S3 URL field
+                            if (fileType === 'cover') {
+                                $('#id_cover_image_s3_url').val('');
+                            } else if (fileType === 'pdf') {
+                                $('#id_pdf_file_s3_url').val('');
+                            }
+                            // Remove delete button
+                            btn.fadeOut(300, function() {
+                                $(this).remove();
+                            });
+                            // Show success message
+                            alert('File "' + fileName + '" deleted successfully!');
+                        } else {
+                            alert('Error: ' + (response.error || 'Failed to delete file'));
+                            btn.prop('disabled', false).html('<span style="margin-right: 4px;">🗑️</span>Delete');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        var errorMsg = 'Failed to delete file. Please try again.';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMsg = xhr.responseJSON.error;
+                        }
+                        alert('Error: ' + errorMsg);
+                        btn.prop('disabled', false).html('<span style="margin-right: 4px;">🗑️</span>Delete');
+                    }
+                });
+            }
+        });
+    });
+})(django.jQuery);
+</script>
+{% endblock %}

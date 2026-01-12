@@ -1,0 +1,28 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block content_title %}
+    {{ block.super }}
+    {% if s3_config %}
+    <div style="margin: 10px 0; padding: 10px; background-color: {% if s3_upload_enabled %}#d4edda{% else %}#f8d7da{% endif %}; border: 1px solid {% if s3_upload_enabled %}#c3e6cb{% else %}#f5c6cb{% endif %}; border-radius: 4px;">
+        <strong>S3 Upload Status:</strong> 
+        <span style="color: {% if s3_upload_enabled %}#155724{% else %}#721c24{% endif %};">
+            {% if s3_upload_enabled %}
+                ✓ Enabled
+            {% else %}
+                ✗ Disabled
+            {% endif %}
+        </span>
+        <span style="margin-left: 20px;">
+            <a href="{% url 'admin:core_configuration_change' s3_config.id %}" style="color: #007bff; text-decoration: underline;">
+                Manage Configuration
+            </a>
+        </span>
+        {% if not s3_upload_enabled %}
+        <div style="margin-top: 5px; font-size: 12px; color: #721c24;">
+            To enable S3 uploads, go to <a href="{% url 'admin:core_configuration_changelist' %}" style="color: #007bff;">Configuration</a> and set <strong>S3_UPLOAD_ENABLED</strong> to <strong>true</strong>.
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+{% endblock %}

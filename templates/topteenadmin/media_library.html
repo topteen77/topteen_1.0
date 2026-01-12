@@ -1,0 +1,420 @@
+{% extends 'topteenadmin/base.html' %}
+{% block additional_header %}
+<style>
+    .file-manager {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .folder-item, .file-item {
+        display: inline-block;
+        width: 120px;
+        margin: 10px;
+        text-align: center;
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+    }
+    .folder-item:hover, .file-item:hover {
+        background-color: #f5f5f5;
+    }
+    .folder-icon, .file-icon {
+        font-size: 48px;
+        margin-bottom: 8px;
+    }
+    .folder-name, .file-name {
+        font-size: 12px;
+        word-wrap: break-word;
+        max-width: 100%;
+    }
+    .breadcrumb-nav {
+        margin-bottom: 20px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 6px;
+    }
+    .action-buttons {
+        margin-bottom: 20px;
+    }
+    .upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+        background: #fafafa;
+    }
+    .upload-area.dragover {
+        border-color: #0d6efd;
+        background: #e7f1ff;
+    }
+    .file-size {
+        font-size: 11px;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+{% block main %}
+<!--begin::Post-->
+<div class="post d-flex flex-column-fluid" id="kt_post">
+    <!--begin::Container-->
+    <div id="kt_content_container" class="container-xxl">
+        <!--begin::Card-->
+        <div class="card">
+            <!--begin::Card header-->
+            <div class="card-header border-0 pt-6">
+                <div class="card-title">
+                    <h3 class="fw-bolder m-0">Media Library</h3>
+                </div>
+                {% include 'topteenadmin/includes/messages.html' %}
+                <div class="card-toolbar">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createFolderModal">
+                            <span class="svg-icon svg-icon-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <rect opacity="0.5" x="11.364" y="20.364" width="16" height="2" rx="1" transform="rotate(-90 11.364 20.364)" fill="currentColor" />
+                                    <rect x="4.36396" y="11.364" width="16" height="2" rx="1" fill="currentColor" />
+                                </svg>
+                            </span>
+                            Create Folder
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="document.getElementById('fileInput').click()">
+                            <span class="svg-icon svg-icon-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <rect opacity="0.5" x="11.364" y="20.364" width="16" height="2" rx="1" transform="rotate(-90 11.364 20.364)" fill="currentColor" />
+                                    <rect x="4.36396" y="11.364" width="16" height="2" rx="1" fill="currentColor" />
+                                </svg>
+                            </span>
+                            Upload File
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!--end::Card header-->
+            <!--begin::Card body-->
+            <div class="card-body pt-0">
+                {% if not s3_enabled %}
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> S3 upload is disabled. Please enable it in Configuration.
+                </div>
+                {% else %}
+                <!-- Breadcrumb Navigation -->
+                <div class="breadcrumb-nav">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="{{ url('topteenadmin:media_library') }}" class="text-primary">medialibrary</a>
+                            </li>
+                            {% for folder in folder_breadcrumb %}
+                            <li class="breadcrumb-item">
+                                <a href="{{ url('topteenadmin:media_library') }}?folder={{ folder.path|urlencode }}" class="text-primary">{{ folder.name }}</a>
+                            </li>
+                            {% endfor %}
+                        </ol>
+                    </nav>
+                </div>
+
+                <!-- Upload Area -->
+                <div class="upload-area" id="uploadArea">
+                    <p class="mb-2">
+                        <span class="svg-icon svg-icon-1 text-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none">
+                                <path opacity="0.3" d="M19 22H5C4.4 22 4 21.6 4 21V3C4 2.4 4.4 2 5 2H14L20 8V21C20 21.6 19.6 22 19 22Z" fill="currentColor"/>
+                                <path d="M15 8H20L14 2V7C14 7.6 14.4 8 15 8Z" fill="currentColor"/>
+                            </svg>
+                        </span>
+                    </p>
+                    <p class="mb-1">Drag and drop files here or click to upload</p>
+                    <p class="text-muted small mb-0">Maximum file size: {{ max_file_size_mb }} MB</p>
+                    <input type="file" id="fileInput" style="display: none;" multiple>
+                </div>
+
+                <!-- Folders -->
+                {% if folders %}
+                <div class="mb-4">
+                    <h5 class="mb-3">Folders</h5>
+                    <div class="file-manager">
+                        {% for folder in folders %}
+                        <div class="folder-item" onclick="navigateToFolder({{ folder.path|tojson }})">
+                            <div class="folder-icon">📁</div>
+                            <div class="folder-name">{{ folder.name }}</div>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteFolder({{ folder.path|tojson }}, {{ folder.name|tojson }})">
+                                    <span class="svg-icon svg-icon-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                            <path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="currentColor"/>
+                                            <path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V9C19 9.55228 18.5523 10 18 10H6C5.44772 10 5 9.55228 5 9V5Z" fill="currentColor"/>
+                                        </svg>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Files -->
+                {% if files %}
+                <div>
+                    <h5 class="mb-3">Files</h5>
+                    <div class="file-manager">
+                        {% for file in files %}
+                        <div class="file-item">
+                            <div class="file-icon">
+                                {% if file.file_type and file.file_type.startswith('image/') %}
+                                    🖼️
+                                {% elif file.file_type and 'pdf' in file.file_type %}
+                                    📄
+                                {% elif file.file_type and 'video' in file.file_type %}
+                                    🎥
+                                {% else %}
+                                    📎
+                                {% endif %}
+                            </div>
+                            <div class="file-name" title="{{ file.name }}">{{ file.name|truncate(15) }}</div>
+                            <div class="file-size">{{ (file.size / 1024)|round(2) }} KB</div>
+                            <div class="mt-2">
+                                <a href="{{ file.url }}" target="_blank" class="btn btn-sm btn-primary" title="View">
+                                    <span class="svg-icon svg-icon-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                            <path d="M21.25 10.9756C21.25 11.5876 20.7875 12.0501 20.175 12.0501C19.5625 12.0501 19.1 11.5876 19.1 10.9756C19.1 6.50012 15.475 2.87512 11 2.87512C6.525 2.87512 2.9 6.50012 2.9 10.9756C2.9 15.4511 6.525 19.0761 11 19.0761C15.475 19.0761 19.1 15.4511 19.1 10.9756H21.25Z" fill="currentColor"/>
+                                            <path opacity="0.3" d="M11 16.0756C8.1 16.0756 5.75 13.7256 5.75 10.8256C5.75 7.92562 8.1 5.57562 11 5.57562C13.9 5.57562 16.25 7.92562 16.25 10.8256C16.25 13.7256 13.9 16.0756 11 16.0756ZM11 7.82562C9.4 7.82562 8.1 9.12562 8.1 10.7256C8.1 12.3256 9.4 13.6256 11 13.6256C12.6 13.6256 13.9 12.3256 13.9 10.7256C13.9 9.12562 12.6 7.82562 11 7.82562Z" fill="currentColor"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                                <button class="btn btn-sm btn-danger" onclick="deleteFile({{ file.key|tojson }}, {{ (file.id or '')|tojson }}, {{ file.name|tojson }})" title="Delete">
+                                    <span class="svg-icon svg-icon-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                            <path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="currentColor"/>
+                                            <path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V9C19 9.55228 18.5523 10 18 10H6C5.44772 10 5 9.55228 5 9V5Z" fill="currentColor"/>
+                                        </svg>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if not folders and not files %}
+                <div class="text-center py-5">
+                    <p class="text-muted">This folder is empty. Upload files or create folders to get started.</p>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+            <!--end::Card body-->
+        </div>
+        <!--end::Card-->
+    </div>
+    <!--end::Container-->
+</div>
+<!--end::Post-->
+
+<!-- Create Folder Modal -->
+<div class="modal fade" id="createFolderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Folder</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createFolderForm">
+                    <div class="mb-3">
+                        <label for="folderName" class="form-label">Folder Name</label>
+                        <input type="text" class="form-control" id="folderName" required>
+                        <small class="text-muted">Choose folder type: media, ebook, etc.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createFolder()">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const currentFolder = {{ (current_folder or '')|tojson }};
+const maxFileSizeMB = {{ max_file_size_mb }};
+
+// File upload handling
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    handleFiles(e.target.files);
+});
+
+// Drag and drop
+const uploadArea = document.getElementById('uploadArea');
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+});
+
+uploadArea.addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+});
+
+function handleFiles(files) {
+    for (let file of files) {
+        // Validate file size
+        const fileSizeMB = file.size / (1024 * 1024);
+        if (fileSizeMB > maxFileSizeMB) {
+            alert(`File "${file.name}" exceeds maximum size of ${maxFileSizeMB} MB`);
+            continue;
+        }
+        uploadFile(file);
+    }
+}
+
+function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder_path', currentFolder);
+
+    fetch('{{ url("topteenadmin:media_library_upload") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Upload failed: ' + error.message);
+    });
+}
+
+function navigateToFolder(folderPath) {
+    window.location.href = '{{ url("topteenadmin:media_library") }}?folder=' + encodeURIComponent(folderPath);
+}
+
+function createFolder() {
+    const folderName = document.getElementById('folderName').value.trim();
+    if (!folderName) {
+        alert('Please enter a folder name');
+        return;
+    }
+
+    fetch('{{ url("topteenadmin:media_library_create_folder") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            folder_name: folderName,
+            parent_folder: currentFolder
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to create folder: ' + error.message);
+    });
+}
+
+function deleteFile(s3Key, fileId, fileName) {
+    if (!confirm(`Are you sure you want to delete "${fileName}"?`)) {
+        return;
+    }
+
+    fetch('{{ url("topteenadmin:media_library_delete_file") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            s3_key: s3Key,
+            file_id: fileId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to delete file: ' + error.message);
+    });
+}
+
+function deleteFolder(folderPath, folderName) {
+    if (!confirm(`Are you sure you want to delete folder "${folderName}" and all its contents?`)) {
+        return;
+    }
+
+    fetch('{{ url("topteenadmin:media_library_delete_folder") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            folder_path: folderPath
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to delete folder: ' + error.message);
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

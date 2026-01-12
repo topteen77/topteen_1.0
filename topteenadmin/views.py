@@ -3839,3 +3839,280 @@ class ExportClass12ResultsView(View):
         
         workbook.save(response)
         return response
+
+
+# Media Library Views for S3 File Management
+from core.s3_utils import get_s3_upload_service
+from core.models import S3FileUpload
+import json
+
+
+@method_decorator(login_required, name='dispatch')
+class MediaLibraryView(TemplateView):
+    """Media Library view with FTP-like file manager"""
+    template_name = "topteenadmin/media_library.html"
+    
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['active_tab'] = 'media_library'
+        ctx['meta_title'] = 'Media Library'
+        ctx['html_head'] = {'title': 'Media Library', 'description': 'Manage S3 files and folders'}
+        ctx['breadcrumb'] = build_admin_breadcrumb([
+            {'title': 'Media Library', 'text': 'Media Library', 'url': '#'}
+        ])
+        
+        # Get media library base folder
+        media_library_base = getattr(settings, 'S3_MEDIA_LIBRARY_BASE_FOLDER', 'medialibrary')
+        
+        # Get current folder path (relative to medialibrary base)
+        folder_path = self.request.GET.get('folder', '').strip()
+        ctx['current_folder'] = folder_path
+        
+        # Build full S3 path (medialibrary/ + subfolder)
+        if folder_path:
+            full_s3_path = f"{media_library_base}/{folder_path}".strip('/')
+        else:
+            full_s3_path = media_library_base
+        
+        # Get folder breadcrumb
+        breadcrumb_folders = []
+        if folder_path:
+            parts = folder_path.strip('/').split('/')
+            current_path = ''
+            for part in parts:
+                current_path = f"{current_path}/{part}" if current_path else part
+                breadcrumb_folders.append({
+                    'name': part,
+                    'path': current_path
+                })
+        ctx['folder_breadcrumb'] = breadcrumb_folders
+        
+        # Get S3 service
+        s3_service = get_s3_upload_service()
+        ctx['s3_enabled'] = s3_service.is_enabled()
+        ctx['max_file_size_mb'] = getattr(settings, 'S3_MAX_FILE_SIZE_MB', 2)
+        
+        # Get folders and files (using full S3 path)
+        if s3_service.is_enabled():
+            result = s3_service.list_folders_and_files(full_s3_path)
+            # Update folder paths to be relative to medialibrary base
+            folders = []
+            for folder in result['folders']:
+                # Remove medialibrary base from path for display
+                folder_full_path = folder['path']
+                if folder_full_path.startswith(f"{media_library_base}/"):
+                    rel_path = folder_full_path[len(f"{media_library_base}/"):]
+                elif folder_full_path == media_library_base:
+                    rel_path = ""
+                else:
+                    rel_path = folder_full_path
+                folders.append({
+                    'name': folder['name'],
+                    'path': rel_path
+                })
+            ctx['folders'] = folders
+            ctx['files'] = result['files']
+        else:
+            ctx['folders'] = []
+            ctx['files'] = []
+        
+        return ctx
+
+
+@method_decorator(login_required, name='dispatch')
+class MediaLibraryUploadView(View):
+    """Handle file upload to S3"""
+    
+    def post(self, request):
+        try:
+            folder_path = request.POST.get('folder_path', '').strip()
+            uploaded_file = request.FILES.get('file')
+            
+            if not uploaded_file:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'No file provided'
+                })
+            
+            s3_service = get_s3_upload_service()
+            
+            if not s3_service.is_enabled():
+                return JsonResponse({
+                    'success': False,
+                    'error': 'S3 upload is disabled'
+                })
+            
+            # Get media library base folder and build full path
+            media_library_base = getattr(settings, 'S3_MEDIA_LIBRARY_BASE_FOLDER', 'medialibrary')
+            if folder_path:
+                full_folder_path = f"{media_library_base}/{folder_path}".strip('/')
+            else:
+                full_folder_path = media_library_base
+            
+            result = s3_service.upload_file(
+                file_obj=uploaded_file,
+                folder_path=full_folder_path,
+                uploaded_by=request.user.username if request.user.is_authenticated else ''
+            )
+            
+            if result['success']:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'File uploaded successfully',
+                    'file': {
+                        'id': result.get('upload_id'),
+                        'name': uploaded_file.name,
+                        'url': result.get('s3_url'),
+                        'size': result.get('file_size')
+                    }
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': result.get('error', 'Upload failed')
+                })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+
+
+@method_decorator(login_required, name='dispatch')
+class MediaLibraryDeleteFileView(View):
+    """Handle file deletion from S3"""
+    
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            s3_key = data.get('s3_key')
+            file_id = data.get('file_id')
+            
+            if not s3_key and not file_id:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'File key or ID required'
+                })
+            
+            # Get s3_key from database if only ID provided
+            if not s3_key and file_id:
+                try:
+                    file_obj = S3FileUpload.objects.get(id=file_id)
+                    s3_key = file_obj.s3_key
+                except S3FileUpload.DoesNotExist:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'File not found'
+                    })
+            
+            s3_service = get_s3_upload_service()
+            result = s3_service.delete_file(s3_key)
+            
+            if result['success']:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'File deleted successfully'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': result.get('error', 'Delete failed')
+                })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+
+
+@method_decorator(login_required, name='dispatch')
+class MediaLibraryCreateFolderView(View):
+    """Handle folder creation in S3"""
+    
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            folder_name = data.get('folder_name', '').strip()
+            parent_folder = data.get('parent_folder', '').strip()
+            
+            if not folder_name:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Folder name is required'
+                })
+            
+            # Get media library base folder
+            media_library_base = getattr(settings, 'S3_MEDIA_LIBRARY_BASE_FOLDER', 'medialibrary')
+            
+            # Build full folder path (medialibrary/ + parent + folder_name)
+            if parent_folder:
+                folder_path = f"{media_library_base}/{parent_folder}/{folder_name}".strip('/')
+            else:
+                folder_path = f"{media_library_base}/{folder_name}".strip('/')
+            
+            s3_service = get_s3_upload_service()
+            result = s3_service.create_folder(folder_path)
+            
+            if result['success']:
+                # Return relative path (without medialibrary base) for display
+                rel_path = folder_path.replace(f"{media_library_base}/", "", 1) if folder_path.startswith(media_library_base) else folder_path
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Folder created successfully',
+                    'folder': {
+                        'name': folder_name,
+                        'path': rel_path
+                    }
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': result.get('error', 'Create folder failed')
+                })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+
+
+@method_decorator(login_required, name='dispatch')
+class MediaLibraryDeleteFolderView(View):
+    """Handle folder deletion from S3"""
+    
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            folder_path = data.get('folder_path', '').strip()
+            
+            if not folder_path:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Folder path is required'
+                })
+            
+            # Get media library base folder and build full path
+            media_library_base = getattr(settings, 'S3_MEDIA_LIBRARY_BASE_FOLDER', 'medialibrary')
+            if folder_path:
+                full_folder_path = f"{media_library_base}/{folder_path}".strip('/')
+            else:
+                full_folder_path = media_library_base
+            
+            s3_service = get_s3_upload_service()
+            result = s3_service.delete_folder(full_folder_path)
+            
+            if result['success']:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Folder deleted successfully'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': result.get('error', 'Delete folder failed')
+                })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
