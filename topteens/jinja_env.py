@@ -149,17 +149,46 @@ def seo_year(request):
 def custom_reverse(viewname, *args, **kwargs):
     return reverse(viewname, args=args, kwargs=kwargs)
 
-def jinja_url(viewname, args=None, kwargs=None):
-    """Jinja2-compatible URL function that accepts args as a list"""
-    if args is None:
-        args = []
-    if kwargs is None:
-        kwargs = {}
-    if isinstance(args, list):
-        return reverse(viewname, args=args, kwargs=kwargs)
-    else:
-        # Handle positional arguments
-        return reverse(viewname, args=args if args else [], kwargs=kwargs)
+def jinja_url(viewname, *args, **kwargs):
+    """Jinja2-compatible URL function that accepts args and kwargs like Django's url tag
+    
+    Supports multiple calling styles:
+    - url('viewname', slug='value')  # Keyword arguments directly
+    - url('viewname', 'arg1', 'arg2')  # Positional arguments
+    - url('viewname', ['arg1'], {'slug': 'value'})  # Old style with args and kwargs
+    """
+    url_kwargs = {}
+    url_args = []
+    
+    # Check if this is the old style call with args and kwargs as separate parameters
+    if len(args) == 2:
+        first_arg, second_arg = args
+        # Old style: url('viewname', [], {'slug': 'value'})
+        if isinstance(first_arg, (list, tuple)) and isinstance(second_arg, dict):
+            url_args = list(first_arg)
+            url_kwargs = second_arg.copy()
+        # Old style: url('viewname', {'slug': 'value'})
+        elif isinstance(first_arg, dict):
+            url_kwargs = first_arg.copy()
+        else:
+            # Positional arguments
+            url_args = list(args)
+    elif len(args) == 1:
+        first_arg = args[0]
+        # Old style: url('viewname', {'slug': 'value'})
+        if isinstance(first_arg, dict):
+            url_kwargs = first_arg.copy()
+        else:
+            # Single positional argument
+            url_args = [first_arg]
+    elif args:
+        # Multiple positional arguments
+        url_args = list(args)
+    
+    # Merge any keyword arguments passed directly (new style)
+    url_kwargs.update(kwargs)
+    
+    return reverse(viewname, args=url_args, kwargs=url_kwargs)
 
 @pass_context
 def csrf_input(context):
@@ -201,6 +230,11 @@ def tojson_filter(value):
     """Convert Python object to JSON string"""
     return mark_safe(json.dumps(value))
 
+def urlencode_filter(value):
+    """URL encode a string"""
+    from urllib.parse import quote
+    return quote(str(value), safe='')
+
 def get_url(obj):
     """Get URL from object - handles both Elasticsearch documents (url attribute) and Django models (url() method)"""
     if hasattr(obj, 'url'):
@@ -223,6 +257,7 @@ def environment(**options):
     
     # Add filters
     env.filters['tojson'] = tojson_filter
+    env.filters['urlencode'] = urlencode_filter
     from core.templatetags.activity_tags import inject_activity_ids, get_all_sections
     env.filters['inject_activity_ids'] = inject_activity_ids
     env.filters['get_all_sections'] = get_all_sections
