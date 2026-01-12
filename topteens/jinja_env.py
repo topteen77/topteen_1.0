@@ -155,12 +155,23 @@ def jinja_url(viewname, *args, **kwargs):
     Supports multiple calling styles:
     - url('viewname', slug='value')  # Keyword arguments directly
     - url('viewname', 'arg1', 'arg2')  # Positional arguments
-    - url('viewname', ['arg1'], {'slug': 'value'})  # Old style with args and kwargs
+    - url('viewname', args=['arg1'])  # Old style with args as keyword
+    - url('viewname', kwargs={'slug': 'value'})  # Old style with kwargs as keyword
+    - url('viewname', ['arg1'], {'slug': 'value'})  # Old style with args and kwargs as positional
     """
     url_kwargs = {}
     url_args = []
     
-    # Check if this is the old style call with args and kwargs as separate parameters
+    # Handle old style: args and kwargs passed as keyword arguments
+    # e.g., url('viewname', args=['slug'], kwargs={'key': 'value'})
+    if 'args' in kwargs:
+        args_value = kwargs.pop('args')
+        url_args = list(args_value) if isinstance(args_value, (list, tuple)) else [args_value]
+    if 'kwargs' in kwargs:
+        kwargs_value = kwargs.pop('kwargs')
+        url_kwargs = kwargs_value.copy() if isinstance(kwargs_value, dict) else {}
+    
+    # Check if this is the old style call with args and kwargs as separate positional parameters
     if len(args) == 2:
         first_arg, second_arg = args
         # Old style: url('viewname', [], {'slug': 'value'})
@@ -178,6 +189,9 @@ def jinja_url(viewname, *args, **kwargs):
         # Old style: url('viewname', {'slug': 'value'})
         if isinstance(first_arg, dict):
             url_kwargs = first_arg.copy()
+        elif isinstance(first_arg, (list, tuple)):
+            # Old style: url('viewname', ['arg1'])
+            url_args = list(first_arg)
         else:
             # Single positional argument
             url_args = [first_arg]
@@ -185,7 +199,7 @@ def jinja_url(viewname, *args, **kwargs):
         # Multiple positional arguments
         url_args = list(args)
     
-    # Merge any keyword arguments passed directly (new style)
+    # Merge any remaining keyword arguments passed directly (new style)
     url_kwargs.update(kwargs)
     
     return reverse(viewname, args=url_args, kwargs=url_kwargs)
