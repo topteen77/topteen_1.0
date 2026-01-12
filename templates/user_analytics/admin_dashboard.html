@@ -27,7 +27,15 @@
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="stat-content">
-                    <h3 class="stat-value">{{ total_users|default(0) }}</h3>
+                    <h3 class="stat-value">
+                        {% if total_users|default(0) > 0 %}
+                            <a href="{{ url('user_analytics:registrations_detail') }}?period={{ time_period }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ total_users|default(0) }}
+                            </a>
+                        {% else %}
+                            {{ total_users|default(0) }}
+                        {% endif %}
+                    </h3>
                     <p class="stat-label">Total Users</p>
                     <small class="stat-sublabel">{{ active_users|default(0) }} active</small>
                 </div>
@@ -39,7 +47,15 @@
                     <i class="fas fa-credit-card"></i>
                 </div>
                 <div class="stat-content">
-                    <h3 class="stat-value">{{ successful_payments|default(0) }}</h3>
+                    <h3 class="stat-value">
+                        {% if successful_payments|default(0) > 0 %}
+                            <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ successful_payments|default(0) }}
+                            </a>
+                        {% else %}
+                            {{ successful_payments|default(0) }}
+                        {% endif %}
+                    </h3>
                     <p class="stat-label">Successful Payments</p>
                     <small class="stat-sublabel">{{ total_payments|default(0) }} total</small>
                 </div>
@@ -51,7 +67,15 @@
                     <i class="fas fa-chart-line"></i>
                 </div>
                 <div class="stat-content">
-                    <h3 class="stat-value">₹{{ "%.2f"|format(total_revenue|default(0)) }}</h3>
+                    <h3 class="stat-value">
+                        {% if total_revenue|default(0) > 0 %}
+                            <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view payment details">
+                                ₹{{ "%.2f"|format(total_revenue|default(0)) }}
+                            </a>
+                        {% else %}
+                            ₹{{ "%.2f"|format(total_revenue|default(0)) }}
+                        {% endif %}
+                    </h3>
                     <p class="stat-label">Total Revenue</p>
                     <small class="stat-sublabel">Period: {{ time_period }}</small>
                 </div>
@@ -65,7 +89,15 @@
                 <div class="stat-content">
                     <h3 class="stat-value">{{ total_page_views|default(0) }}</h3>
                     <p class="stat-label">Page Views</p>
-                    <small class="stat-sublabel">{{ total_sessions|default(0) }} sessions</small>
+                    <small class="stat-sublabel">
+                        {% if total_sessions|default(0) > 0 %}
+                            <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ total_sessions|default(0) }} sessions
+                            </a>
+                        {% else %}
+                            {{ total_sessions|default(0) }} sessions
+                        {% endif %}
+                    </small>
                 </div>
             </div>
         </div>
@@ -79,7 +111,15 @@
                     <i class="fas fa-bullseye"></i>
                 </div>
                 <div class="stat-content">
-                    <h3 class="stat-value">{{ total_leads|default(0) }}</h3>
+                    <h3 class="stat-value">
+                        {% if total_leads|default(0) > 0 %}
+                            <a href="{{ url('user_analytics:prospects_detail') }}?period={{ time_period }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ total_leads|default(0) }}
+                            </a>
+                        {% else %}
+                            {{ total_leads|default(0) }}
+                        {% endif %}
+                    </h3>
                     <p class="stat-label">Total Leads</p>
                     <small class="stat-sublabel">Period: {{ time_period }}</small>
                 </div>

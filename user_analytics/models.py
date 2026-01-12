@@ -50,6 +50,16 @@ class UserActivity(BaseModel):
             models.Index(fields=['device_type', '-created']),
         ]
     
+    @property
+    def is_registered_user(self):
+        """Check if this activity is from a registered user"""
+        return self.user is not None
+    
+    @property
+    def user_type(self):
+        """Get user type: 'Registered' or 'Organic'"""
+        return 'Registered' if self.user else 'Organic'
+    
     def __str__(self):
         user_str = self.user.email if self.user else "Anonymous"
         return f"{user_str} - {self.page_path} - {self.created}"
@@ -238,6 +248,16 @@ class UserJourney(BaseModel):
             models.Index(fields=['session_id']),
             models.Index(fields=['converted', '-start_time']),
         ]
+    
+    @property
+    def is_registered_user(self):
+        """Check if this journey is from a registered user"""
+        return self.user is not None
+    
+    @property
+    def user_type(self):
+        """Get user type: 'Registered' or 'Organic'"""
+        return 'Registered' if self.user else 'Organic'
     
     def __str__(self):
         user_str = self.user.email if self.user else "Anonymous"

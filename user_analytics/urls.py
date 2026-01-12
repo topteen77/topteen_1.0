@@ -34,6 +34,10 @@ urlpatterns = [
     path('business/payments/failed/', views.failed_payments_detail, name='failed_payments_detail'),
     path('business/payments/pending/', views.pending_payments_detail, name='pending_payments_detail'),
     path('business/enrollments/', views.enrollments_detail, name='enrollments_detail'),
+    path('accounts/registrations/', views.registrations_detail, name='registrations_detail'),
+    path('accounts/prospects/', views.prospects_detail, name='prospects_detail'),
+    path('business/visitors/', views.visitors_detail, name='visitors_detail'),
+    path('web-owner/pageviews/', views.pageviews_detail, name='pageviews_detail'),
     
     # API Endpoints for AJAX
     path('api/payments/successful/', views.successful_payments_api, name='successful_payments_api'),
@@ -41,5 +45,6 @@ urlpatterns = [
     path('api/payments/pending/', views.pending_payments_api, name='pending_payments_api'),
     path('api/enrollments/', views.enrollments_api, name='enrollments_api'),
     path('api/business-metrics/', views.business_metrics_api, name='business_metrics_api'),
+    path('api/pageviews/paths/', views.pageviews_paths_api, name='pageviews_paths_api'),
 ]
 

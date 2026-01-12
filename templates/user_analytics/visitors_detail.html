@@ -1,0 +1,222 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}{{ page_title }} | Top Teen Analytics{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="page-title">
+                    <i class="fas fa-users text-primary"></i> 
+                    {{ page_title }}
+                </h1>
+                <p class="text-muted mb-0">
+                    Total: <strong>{{ total_count }}</strong> unique sessions
+                    {% if source_filter or device_filter or country_filter or entry_page_filter or exit_page_filter %}
+                        <span class="ms-2">
+                            {% if source_filter %}
+                                <span class="badge bg-info">Source: {{ source_filter }}</span>
+                            {% endif %}
+                            {% if device_filter %}
+                                <span class="badge bg-info">Device: {{ device_filter }}</span>
+                            {% endif %}
+                            {% if country_filter %}
+                                <span class="badge bg-info">Country: {{ country_filter }}</span>
+                            {% endif %}
+                            {% if entry_page_filter %}
+                                <span class="badge bg-info">Entry: {{ entry_page_filter[:30] }}{% if entry_page_filter|length > 30 %}...{% endif %}</span>
+                            {% endif %}
+                            {% if exit_page_filter %}
+                                <span class="badge bg-info">Exit: {{ exit_page_filter[:30] }}{% if exit_page_filter|length > 30 %}...{% endif %}</span>
+                            {% endif %}
+                        </span>
+                    {% endif %}
+                </p>
+            </div>
+            <a href="{{ url('user_analytics:web_owner_dashboard') }}?period={{ time_period }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="admin-card mb-4">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">Time Period</label>
+                <select name="period" class="form-select">
+                    <option value="today" {% if time_period == 'today' or not time_period %}selected{% endif %}>Today</option>
+                    <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                    <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
+                    <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
+                    <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Source</label>
+                <input type="text" name="source" class="form-control" placeholder="Filter by source..." value="{{ source_filter|default('') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Device</label>
+                <input type="text" name="device" class="form-control" placeholder="Filter by device..." value="{{ device_filter|default('') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Country</label>
+                <input type="text" name="country" class="form-control" placeholder="Filter by country..." value="{{ country_filter|default('') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Search by user email, session ID..." value="{{ search_query|default('') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                    <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Sessions Table -->
+    <div class="admin-card">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Session ID</th>
+                        <th>Device Type</th>
+                        <th>Source</th>
+                        <th>Page Views</th>
+                        <th>First Visit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in sessions.object_list %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            {% if session.user %}
+                                {{ session.user.email or 'N/A' }}
+                            {% else %}
+                                <span class="text-muted">Guest</span>
+                            {% endif %}
+                        </td>
+                        <td><small>{{ session.session_id[:20] }}{% if session.session_id|length > 20 %}...{% endif %}</small></td>
+                        <td>{{ session.device_type or 'Unknown' }}</td>
+                        <td>{{ session.utm_source or 'Direct' }}</td>
+                        <td><span class="badge bg-info">{{ session.page_views }}</span></td>
+                        <td>
+                            {% if session.first_visit %}
+                                {{ session.first_visit.strftime('%b %d, %Y %H:%M') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            {% if use_ga4_fallback or total_activities_in_range == 0 %}
+                                <div class="alert alert-info" role="alert">
+                                    <h5 class="alert-heading">
+                                        <i class="fas fa-database text-info"></i> 
+                                        No Database Records Found
+                                    </h5>
+                                    <p class="mb-2">
+                                        <strong>No database records found for the selected filters.</strong>
+                                    </p>
+                                    <hr>
+                                    <p class="mb-2"><strong>This could mean:</strong></p>
+                                    <ul class="text-start mb-3" style="display: inline-block;">
+                                        <li>No user activity has been tracked in the database for this time period</li>
+                                        <li>The tracking middleware may not be running</li>
+                                        <li>Data might be available in Google Analytics instead</li>
+                                    </ul>
+                                    <p class="mb-0">
+                                        <strong>Suggestions:</strong> Try selecting a different time period or check if tracking is enabled.
+                                    </p>
+                                </div>
+                            {% elif total_count == 0 and (source_filter or device_filter or entry_page_filter or exit_page_filter or country_filter) %}
+                                <div class="alert alert-warning" role="alert">
+                                    <h5 class="alert-heading">
+                                        <i class="fas fa-filter text-warning"></i> 
+                                        No Sessions Found Matching Filters
+                                    </h5>
+                                    <p class="mb-2">
+                                        No sessions found matching the selected filters.
+                                    </p>
+                                    <hr>
+                                    <p class="mb-2">
+                                        <strong>Active Filters:</strong>
+                                        {% if source_filter %}<span class="badge bg-info me-1">Source: {{ source_filter }}</span>{% endif %}
+                                        {% if device_filter %}<span class="badge bg-info me-1">Device: {{ device_filter }}</span>{% endif %}
+                                        {% if country_filter %}<span class="badge bg-info me-1">Country: {{ country_filter }}</span>{% endif %}
+                                        {% if entry_page_filter %}<span class="badge bg-info me-1">Entry Page</span>{% endif %}
+                                        {% if exit_page_filter %}<span class="badge bg-info me-1">Exit Page</span>{% endif %}
+                                    </p>
+                                    <p class="mb-0">
+                                        <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-times"></i> Clear Filters
+                                        </a>
+                                        <span class="ms-2">or try adjusting your filters or selecting a different time period.</span>
+                                    </p>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-secondary" role="alert">
+                                    <h5 class="alert-heading">
+                                        <i class="fas fa-inbox text-secondary"></i> 
+                                        No Sessions Found
+                                    </h5>
+                                    <p class="mb-0">
+                                        No sessions found for the selected time period: <strong>{{ time_period }}</strong>
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if sessions.paginator.num_pages > 1 or sessions.has_previous or sessions.has_next %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if sessions.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ sessions.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                {% for num in sessions.paginator.page_range %}
+                    {% if sessions.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > (sessions.number - 3) and num < (sessions.number + 3) %}
+                    <li class="page-item">
+                        <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if sessions.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ sessions.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

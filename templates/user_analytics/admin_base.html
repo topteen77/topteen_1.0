@@ -25,6 +25,13 @@
             background-color: #f5f7fa;
             color: #2d3748;
             overflow-x: hidden;
+            overflow-y: auto;
+            height: 100vh;
+        }
+        
+        html {
+            overflow-x: hidden;
+            height: 100%;
         }
         
         /* Sidebar Styles */
@@ -86,7 +93,9 @@
         .sidebar-menu {
             padding: 20px 0;
             overflow-y: auto;
+            overflow-x: hidden;
             height: calc(100vh - 80px);
+            -webkit-overflow-scrolling: touch;
         }
         
         .menu-item {
@@ -213,6 +222,11 @@
         .admin-content-wrapper {
             margin-left: 260px;
             transition: margin-left 0.3s ease;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
         }
         
         .admin-sidebar.collapsed ~ .admin-content-wrapper {
@@ -223,6 +237,13 @@
             margin-top: 70px;
             padding: 30px;
             min-height: calc(100vh - 70px);
+            padding-bottom: 50px;
+            box-sizing: border-box;
+        }
+        
+        .container-fluid {
+            max-width: 100%;
+            overflow-x: hidden;
         }
         
         /* Card Styles */
@@ -272,6 +293,22 @@
             .admin-topbar {
                 left: 0;
             }
+            
+            .admin-content {
+                padding: 15px;
+                padding-bottom: 30px;
+            }
+        }
+        
+        /* Prevent horizontal overflow */
+        .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+        
+        .row > * {
+            padding-left: 15px;
+            padding-right: 15px;
         }
         
         /* Dropdown Menu */
@@ -306,7 +343,7 @@
     <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="sidebar-header">
-            <a href="/user-analytics/business/" class="sidebar-logo">
+            <a href="{{ url('user_analytics:business_dashboard') }}" class="sidebar-logo">
                 <i class="fas fa-chart-line"></i>
                 <span>TopTeen Admin</span>
             </a>
@@ -316,25 +353,25 @@
         </div>
         <nav class="sidebar-menu">
             <div class="menu-item">
-                <a href="/user-analytics/business/" class="menu-link {% if request and (request.path == '/user-analytics/business/' or request.path == '/user-analytics/') %}active{% endif %}">
+                <a href="{{ url('user_analytics:business_dashboard') }}" class="menu-link {% if request and (request.path == '/user-analytics/business/' or request.path == '/user-analytics/') %}active{% endif %}">
                     <i class="fas fa-briefcase"></i>
                     <span class="menu-title">Business Dashboard</span>
                 </a>
             </div>
             <div class="menu-item">
-                <a href="/user-analytics/accounts/" class="menu-link {% if request and request.path == '/user-analytics/accounts/' %}active{% endif %}">
+                <a href="{{ url('user_analytics:accounts_dashboard') }}" class="menu-link {% if request and request.path == '/user-analytics/accounts/' %}active{% endif %}">
                     <i class="fas fa-chart-pie"></i>
                     <span class="menu-title">Accounts Dashboard</span>
                 </a>
             </div>
             <div class="menu-item">
-                <a href="/user-analytics/web-owner/" class="menu-link {% if request and request.path == '/user-analytics/web-owner/' %}active{% endif %}">
+                <a href="{{ url('user_analytics:web_owner_dashboard') }}" class="menu-link {% if request and request.path == '/user-analytics/web-owner/' %}active{% endif %}">
                     <i class="fas fa-globe"></i>
                     <span class="menu-title">Web Owner Dashboard</span>
                 </a>
             </div>
             <div class="menu-item">
-                <a href="/user-analytics/user-journey/" class="menu-link {% if request and request.path.startswith('/user-analytics/user-journey') %}active{% endif %}">
+                <a href="{{ url('user_analytics:user_journey') }}" class="menu-link {% if request and request.path.startswith('/user-analytics/user-journey') %}active{% endif %}">
                     <i class="fas fa-route"></i>
                     <span class="menu-title">User Journey</span>
                 </a>
@@ -391,7 +428,7 @@
                     </div>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="/admin/"><i class="fas fa-cog"></i> Settings</a></li>
-                        <li><a class="dropdown-item" href="/user/logout/"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        <li><a class="dropdown-item" href="{{ url('users:logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                     </ul>
                 </div>
             </div>

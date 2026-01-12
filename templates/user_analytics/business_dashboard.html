@@ -5,7 +5,7 @@
 {% block page_title %}Business Analytics Dashboard{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-0">
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
     <!-- Period Selector -->
     <div class="d-flex justify-content-end align-items-center mb-4">
         <select id="periodSelect" class="form-select" style="width: auto; max-width: 200px;" onchange="updatePeriod(this.value)">
@@ -24,7 +24,15 @@
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <p class="text-muted mb-1" style="font-size: 14px;">Total Revenue</p>
-                        <h2 class="mb-0" style="color: #10b981; font-weight: 700;">₹{{ "%.2f"|format(total_revenue) }}</h2>
+                        <h2 class="mb-0" style="color: #10b981; font-weight: 700;">
+                            {% if total_revenue > 0 %}
+                                <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #10b981; text-decoration: none; cursor: pointer;" title="Click to view payment details">
+                                    ₹{{ "%.2f"|format(total_revenue) }}
+                                </a>
+                            {% else %}
+                                ₹{{ "%.2f"|format(total_revenue) }}
+                            {% endif %}
+                        </h2>
                     </div>
                     <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-rupee-sign" style="color: #10b981; font-size: 24px;"></i>
@@ -38,9 +46,13 @@
                     <div>
                         <p class="text-muted mb-1" style="font-size: 14px;">Successful Payments</p>
                         <h2 class="mb-0" style="color: #3b82f6; font-weight: 700;">
-                            <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #3b82f6; text-decoration: none; cursor: pointer;" title="Click to view details">
+                            {% if successful_payments > 0 %}
+                                <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #3b82f6; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                    {{ successful_payments }}
+                                </a>
+                            {% else %}
                                 {{ successful_payments }}
-                            </a>
+                            {% endif %}
                         </h2>
                     </div>
                     <div style="width: 50px; height: 50px; background: rgba(59, 130, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
@@ -55,9 +67,13 @@
                     <div>
                         <p class="text-muted mb-1" style="font-size: 14px;">Total Enrollments</p>
                         <h2 class="mb-0" style="color: #06b6d4; font-weight: 700;">
-                            <a href="{{ url('user_analytics:enrollments_detail') }}?period={{ time_period }}" style="color: #06b6d4; text-decoration: none; cursor: pointer;" title="Click to view details">
+                            {% if total_enrollments > 0 %}
+                                <a href="{{ url('user_analytics:enrollments_detail') }}?period={{ time_period }}" style="color: #06b6d4; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                    {{ total_enrollments }}
+                                </a>
+                            {% else %}
                                 {{ total_enrollments }}
-                            </a>
+                            {% endif %}
                         </h2>
                     </div>
                     <div style="width: 50px; height: 50px; background: rgba(6, 182, 212, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
@@ -98,7 +114,15 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">TOTAL REVENUE</p>
-                            <h3 class="mb-0" style="color: #10b981; font-weight: 700;">₹{{ "%.2f"|format(total_revenue) }}</h3>
+                            <h3 class="mb-0" style="color: #10b981; font-weight: 700;">
+                                {% if total_revenue > 0 %}
+                                    <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #10b981; text-decoration: none; cursor: pointer;" title="Click to view payment details">
+                                        ₹{{ "%.2f"|format(total_revenue) }}
+                                    </a>
+                                {% else %}
+                                    ₹{{ "%.2f"|format(total_revenue) }}
+                                {% endif %}
+                            </h3>
                             <small class="text-muted">From {{ successful_payments }} successful payment{{ 's' if successful_payments != 1 else '' }}</small>
                         </div>
                         <i class="fas fa-rupee-sign" style="color: #10b981; font-size: 32px; opacity: 0.3;"></i>
@@ -111,11 +135,23 @@
                         <div>
                             <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">SUCCESSFUL PAYMENTS</p>
                             <h3 class="mb-0" style="color: #3b82f6; font-weight: 700;">
-                                <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #3b82f6; text-decoration: none;">
+                                {% if successful_payments > 0 %}
+                                    <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #3b82f6; text-decoration: none;">
+                                        {{ successful_payments }}
+                                    </a>
+                                {% else %}
                                     {{ successful_payments }}
-                                </a>
+                                {% endif %}
                             </h3>
-                            <small class="text-muted">Total: ₹{{ "%.2f"|format(total_revenue) }} revenue</small>
+                            <small class="text-muted">Total: 
+                                {% if total_revenue > 0 %}
+                                    <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: inherit; text-decoration: underline; cursor: pointer;" title="Click to view payment details">
+                                        ₹{{ "%.2f"|format(total_revenue) }}
+                                    </a>
+                                {% else %}
+                                    ₹{{ "%.2f"|format(total_revenue) }}
+                                {% endif %} revenue
+                            </small>
                         </div>
                         <i class="fas fa-check-circle" style="color: #3b82f6; font-size: 32px; opacity: 0.3;"></i>
                     </div>
@@ -127,9 +163,13 @@
                         <div>
                             <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">TOTAL ENROLLMENTS</p>
                             <h3 class="mb-0" style="color: #06b6d4; font-weight: 700;">
-                                <a href="{{ url('user_analytics:enrollments_detail') }}?period={{ time_period }}" style="color: #06b6d4; text-decoration: none;">
+                                {% if total_enrollments > 0 %}
+                                    <a href="{{ url('user_analytics:enrollments_detail') }}?period={{ time_period }}" style="color: #06b6d4; text-decoration: none;">
+                                        {{ total_enrollments }}
+                                    </a>
+                                {% else %}
                                     {{ total_enrollments }}
-                                </a>
+                                {% endif %}
                             </h3>
                             <small class="text-muted">
                                 {% if course_enrollments > 0 or psychometric_enrollments > 0 %}
@@ -152,8 +192,24 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">CLASS 12 PSYCHOMETRIC TEST</p>
-                            <h4 class="mb-0" style="color: #f59e0b; font-weight: 700;">₹{{ "%.2f"|format(class12_psychometric_revenue) }}</h4>
-                            <small class="text-muted">{{ class12_psychometric_count }} Career Direction payment{{ 's' if class12_psychometric_count != 1 else '' }}</small>
+                            <h4 class="mb-0" style="color: #f59e0b; font-weight: 700;">
+                                {% if class12_psychometric_revenue > 0 %}
+                                    <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}&search=Career Direction" style="color: #f59e0b; text-decoration: none; cursor: pointer;" title="Click to view Career Direction payment details">
+                                        ₹{{ "%.2f"|format(class12_psychometric_revenue) }}
+                                    </a>
+                                {% else %}
+                                    ₹{{ "%.2f"|format(class12_psychometric_revenue) }}
+                                {% endif %}
+                            </h4>
+                            <small class="text-muted">
+                                {% if class12_psychometric_count > 0 %}
+                                    <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}&search=Career Direction" style="color: inherit; text-decoration: underline; cursor: pointer;" title="Click to view payment details">
+                                        {{ class12_psychometric_count }} Career Direction payment{{ 's' if class12_psychometric_count != 1 else '' }}
+                                    </a>
+                                {% else %}
+                                    {{ class12_psychometric_count }} Career Direction payment{{ 's' if class12_psychometric_count != 1 else '' }}
+                                {% endif %}
+                            </small>
                         </div>
                         <i class="fas fa-graduation-cap" style="color: #f59e0b; font-size: 24px; opacity: 0.3;"></i>
                     </div>
@@ -164,20 +220,26 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">STREAM SORTER (CLASS 10-11)</p>
-                            <h4 class="mb-0" style="color: #3b82f6; font-weight: 700;">₹{{ "%.2f"|format(stream_sorter_revenue) }}</h4>
-                            <small class="text-muted">{{ stream_sorter_count }} Stream Sorter payment{{ 's' if stream_sorter_count != 1 else '' }}</small>
+                            <h4 class="mb-0" style="color: #3b82f6; font-weight: 700;">
+                                {% if stream_sorter_revenue > 0 %}
+                                    <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}&search=Stream Sorter" style="color: #3b82f6; text-decoration: none; cursor: pointer;" title="Click to view Stream Sorter payment details">
+                                        ₹{{ "%.2f"|format(stream_sorter_revenue) }}
+                                    </a>
+                                {% else %}
+                                    ₹{{ "%.2f"|format(stream_sorter_revenue) }}
+                                {% endif %}
+                            </h4>
+                            <small class="text-muted">
+                                {% if stream_sorter_count > 0 %}
+                                    <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}&search=Stream Sorter" style="color: inherit; text-decoration: underline; cursor: pointer;" title="Click to view payment details">
+                                        {{ stream_sorter_count }} Stream Sorter payment{{ 's' if stream_sorter_count != 1 else '' }}
+                                    </a>
+                                {% else %}
+                                    {{ stream_sorter_count }} Stream Sorter payment{{ 's' if stream_sorter_count != 1 else '' }}
+                                {% endif %}
+                            </small>
                         </div>
                         <i class="fas fa-book-reader" style="color: #3b82f6; font-size: 24px; opacity: 0.3;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Payment Status -->
-    <div class="row mb-4">
-                        </div>
-                        <i class="fas fa-user-graduate" style="color: #06b6d4; font-size: 32px; opacity: 0.3;"></i>
                     </div>
                 </div>
             </div>
@@ -196,16 +258,28 @@
                         <div>
                             <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">CONFIRMED PAYMENTS</p>
                             <h2 class="mb-0" style="color: #10b981; font-weight: 700;">
-                                <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #10b981; text-decoration: none;">
+                                {% if successful_payments > 0 %}
+                                    <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #10b981; text-decoration: none;">
+                                        {{ successful_payments }}
+                                    </a>
+                                {% else %}
                                     {{ successful_payments }}
-                                </a>
+                                {% endif %}
                             </h2>
                         </div>
                         <i class="fas fa-check-circle" style="color: #10b981; font-size: 32px; opacity: 0.3;"></i>
                     </div>
                     <div class="mt-3 pt-3" style="border-top: 1px solid rgba(16, 185, 129, 0.2);">
                         <p class="text-muted mb-0" style="font-size: 11px;">REVENUE</p>
-                        <h4 class="mb-0" style="color: #10b981; font-weight: 700;">₹{{ "%.2f"|format(total_revenue) }}</h4>
+                        <h4 class="mb-0" style="color: #10b981; font-weight: 700;">
+                            {% if total_revenue > 0 %}
+                                <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #10b981; text-decoration: none; cursor: pointer;" title="Click to view payment details">
+                                    ₹{{ "%.2f"|format(total_revenue) }}
+                                </a>
+                            {% else %}
+                                ₹{{ "%.2f"|format(total_revenue) }}
+                            {% endif %}
+                        </h4>
                         <small class="text-muted">Average: ₹{{ "%.2f"|format((total_revenue / successful_payments) if successful_payments > 0 else 0) }}</small>
                     </div>
                 </div>
@@ -216,16 +290,28 @@
                         <div>
                             <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">FAILED PAYMENTS</p>
                             <h2 class="mb-0" style="color: #ef4444; font-weight: 700;">
-                                <a href="{{ url('user_analytics:failed_payments_detail') }}?period={{ time_period }}" style="color: #ef4444; text-decoration: none;">
+                                {% if failed_payments > 0 %}
+                                    <a href="{{ url('user_analytics:failed_payments_detail') }}?period={{ time_period }}" style="color: #ef4444; text-decoration: none;">
+                                        {{ failed_payments }}
+                                    </a>
+                                {% else %}
                                     {{ failed_payments }}
-                                </a>
+                                {% endif %}
                             </h2>
                         </div>
                         <i class="fas fa-times-circle" style="color: #ef4444; font-size: 32px; opacity: 0.3;"></i>
                     </div>
                     <div class="mt-3 pt-3" style="border-top: 1px solid rgba(239, 68, 68, 0.2);">
                         <p class="text-muted mb-0" style="font-size: 11px;">ATTEMPTED REVENUE</p>
-                        <h4 class="mb-0" style="color: #ef4444; font-weight: 700;">₹{{ "%.2f"|format(failed_payments_revenue) }}</h4>
+                        <h4 class="mb-0" style="color: #ef4444; font-weight: 700;">
+                            {% if failed_payments_revenue > 0 %}
+                                <a href="{{ url('user_analytics:failed_payments_detail') }}?period={{ time_period }}" style="color: #ef4444; text-decoration: none; cursor: pointer;" title="Click to view failed payment details">
+                                    ₹{{ "%.2f"|format(failed_payments_revenue) }}
+                                </a>
+                            {% else %}
+                                ₹{{ "%.2f"|format(failed_payments_revenue) }}
+                            {% endif %}
+                        </h4>
                         <small class="text-muted">Lost revenue</small>
                     </div>
                 </div>
@@ -236,16 +322,28 @@
                         <div>
                             <p class="text-muted mb-1" style="font-size: 12px; font-weight: 600;">PENDING PAYMENTS</p>
                             <h2 class="mb-0" style="color: #f59e0b; font-weight: 700;">
-                                <a href="{{ url('user_analytics:pending_payments_detail') }}?period={{ time_period }}" style="color: #f59e0b; text-decoration: none;">
+                                {% if pending_payments > 0 %}
+                                    <a href="{{ url('user_analytics:pending_payments_detail') }}?period={{ time_period }}" style="color: #f59e0b; text-decoration: none;">
+                                        {{ pending_payments }}
+                                    </a>
+                                {% else %}
                                     {{ pending_payments }}
-                                </a>
+                                {% endif %}
                             </h2>
                         </div>
                         <i class="fas fa-clock" style="color: #f59e0b; font-size: 32px; opacity: 0.3;"></i>
                     </div>
                     <div class="mt-3 pt-3" style="border-top: 1px solid rgba(245, 158, 11, 0.2);">
                         <p class="text-muted mb-0" style="font-size: 11px;">POTENTIAL REVENUE</p>
-                        <h4 class="mb-0" style="color: #f59e0b; font-weight: 700;">₹{{ "%.2f"|format(pending_payments_revenue) }}</h4>
+                        <h4 class="mb-0" style="color: #f59e0b; font-weight: 700;">
+                            {% if pending_payments_revenue > 0 %}
+                                <a href="{{ url('user_analytics:pending_payments_detail') }}?period={{ time_period }}" style="color: #f59e0b; text-decoration: none; cursor: pointer;" title="Click to view pending payment details">
+                                    ₹{{ "%.2f"|format(pending_payments_revenue) }}
+                                </a>
+                            {% else %}
+                                ₹{{ "%.2f"|format(pending_payments_revenue) }}
+                            {% endif %}
+                        </h4>
                         <small class="text-muted">Awaiting confirmation</small>
                     </div>
                 </div>
@@ -259,11 +357,27 @@
                     <div class="row text-center">
                         <div class="col-md-3">
                             <p class="text-muted mb-1" style="font-size: 11px; font-weight: 600;">TOTAL CONFIRMED</p>
-                            <h5 class="mb-0" style="color: #10b981; font-weight: 700;">₹{{ "%.2f"|format(total_revenue) }}</h5>
+                            <h5 class="mb-0" style="color: #10b981; font-weight: 700;">
+                                {% if total_revenue > 0 %}
+                                    <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #10b981; text-decoration: none; cursor: pointer;" title="Click to view payment details">
+                                        ₹{{ "%.2f"|format(total_revenue) }}
+                                    </a>
+                                {% else %}
+                                    ₹{{ "%.2f"|format(total_revenue) }}
+                                {% endif %}
+                            </h5>
                         </div>
                         <div class="col-md-3">
                             <p class="text-muted mb-1" style="font-size: 11px; font-weight: 600;">TOTAL ATTEMPTED</p>
-                            <h5 class="mb-0" style="color: #64748b; font-weight: 700;">₹{{ "%.2f"|format(total_attempted_revenue) }}</h5>
+                            <h5 class="mb-0" style="color: #64748b; font-weight: 700;">
+                                {% if total_attempted_revenue > 0 %}
+                                    <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #64748b; text-decoration: none; cursor: pointer;" title="Click to view all payment details">
+                                        ₹{{ "%.2f"|format(total_attempted_revenue) }}
+                                    </a>
+                                {% else %}
+                                    ₹{{ "%.2f"|format(total_attempted_revenue) }}
+                                {% endif %}
+                            </h5>
                         </div>
                         <div class="col-md-3">
                             <p class="text-muted mb-1" style="font-size: 11px; font-weight: 600;">SUCCESS RATE</p>
@@ -289,18 +403,38 @@
                 <div class="card-body" style="padding-top: 0;">
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                         <span>Psychometric Tests</span>
-                        <strong>{{ psychometric_enrollments }}</strong>
+                        <strong>
+                            {% if psychometric_enrollments > 0 %}
+                                <a href="{{ url('user_analytics:enrollments_detail') }}?period={{ time_period }}&event_type=psychometric_test_completed" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                    {{ psychometric_enrollments }}
+                                </a>
+                            {% else %}
+                                {{ psychometric_enrollments }}
+                            {% endif %}
+                        </strong>
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                         <span>Courses</span>
-                        <strong>{{ course_enrollments }}</strong>
+                        <strong>
+                            {% if course_enrollments > 0 %}
+                                <a href="{{ url('user_analytics:enrollments_detail') }}?period={{ time_period }}&event_type=course_enrolled" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                    {{ course_enrollments }}
+                                </a>
+                            {% else %}
+                                {{ course_enrollments }}
+                            {% endif %}
+                        </strong>
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2">
                         <span class="fw-bold">Total</span>
                         <strong class="text-primary">
-                            <a href="{{ url('user_analytics:enrollments_detail') }}?period={{ time_period }}" style="color: #0d6efd; text-decoration: none; cursor: pointer;" title="Click to view details">
+                            {% if total_enrollments > 0 %}
+                                <a href="{{ url('user_analytics:enrollments_detail') }}?period={{ time_period }}" style="color: #0d6efd; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                    {{ total_enrollments }}
+                                </a>
+                            {% else %}
                                 {{ total_enrollments }}
-                            </a>
+                            {% endif %}
                         </strong>
                     </div>
                 </div>
@@ -314,19 +448,43 @@
                 <div class="card-body" style="padding-top: 0;">
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                         <span>Total Visitors</span>
-                        <strong>{{ total_visitors }}</strong>
+                        {% if total_visitors > 0 %}
+                            <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                <strong>{{ total_visitors }}</strong>
+                            </a>
+                        {% else %}
+                            <strong>{{ total_visitors }}</strong>
+                        {% endif %}
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                         <span>Registrations</span>
-                        <strong>{{ total_registrations }}</strong>
+                        {% if total_registrations > 0 %}
+                            <a href="{{ url('user_analytics:registrations_detail') }}?period={{ time_period }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                <strong>{{ total_registrations }}</strong>
+                            </a>
+                        {% else %}
+                            <strong>{{ total_registrations }}</strong>
+                        {% endif %}
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                         <span>Leads</span>
-                        <strong>{{ total_leads }}</strong>
+                        {% if total_leads > 0 %}
+                            <a href="{{ url('user_analytics:prospects_detail') }}?period={{ time_period }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                <strong>{{ total_leads }}</strong>
+                            </a>
+                        {% else %}
+                            <strong>{{ total_leads }}</strong>
+                        {% endif %}
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2">
                         <span class="fw-bold">Converted</span>
-                        <strong class="text-success">{{ converted_leads }}</strong>
+                        {% if converted_leads > 0 %}
+                            <a href="{{ url('user_analytics:prospects_detail') }}?period={{ time_period }}&converted=yes" style="color: #198754; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                <strong class="text-success">{{ converted_leads }}</strong>
+                            </a>
+                        {% else %}
+                            <strong class="text-success">{{ converted_leads }}</strong>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -354,7 +512,15 @@
                                 {% for item in revenue_by_source %}
                                 <tr>
                                     <td>{{ item.get('metadata__source', 'Unknown') }}</td>
-                                    <td><strong>₹{{ "%.2f"|format(item.get('revenue', 0)) }}</strong></td>
+                                    <td>
+                                        {% if item.get('revenue', 0) > 0 %}
+                                            <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}&search={{ item.get('metadata__source', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view payment details">
+                                                <strong>₹{{ "%.2f"|format(item.get('revenue', 0)) }}</strong>
+                                            </a>
+                                        {% else %}
+                                            <strong>₹{{ "%.2f"|format(item.get('revenue', 0)) }}</strong>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ item.get('count', 0) }}</td>
                                 </tr>
                                 {% else %}
@@ -391,7 +557,15 @@
                                 {% for product in top_products %}
                                 <tr>
                                     <td>{{ product.get('event_name', 'Unknown') }}</td>
-                                    <td><strong>₹{{ "%.2f"|format(product.get('revenue', 0)) }}</strong></td>
+                                    <td>
+                                        {% if product.get('revenue', 0) > 0 %}
+                                            <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}&search={{ product.get('event_name', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view payment details">
+                                                <strong>₹{{ "%.2f"|format(product.get('revenue', 0)) }}</strong>
+                                            </a>
+                                        {% else %}
+                                            <strong>₹{{ "%.2f"|format(product.get('revenue', 0)) }}</strong>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ product.get('count', 0) }}</td>
                                 </tr>
                                 {% else %}
@@ -410,7 +584,7 @@
 
 <script>
 function updatePeriod(period) {
-    window.location.href = '/user-analytics/business/?period=' + period;
+    window.location.href = '{{ url("user_analytics:business_dashboard") }}?period=' + period;
 }
 </script>
 {% endblock %}

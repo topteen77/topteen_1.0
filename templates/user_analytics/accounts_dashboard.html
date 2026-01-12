@@ -24,7 +24,15 @@
             <div class="admin-card">
                 <div class="card-body">
                     <h5 class="card-title">Total Registrations</h5>
-                    <h2 class="text-primary">{{ total_registrations }}</h2>
+                    <h2 class="text-primary">
+                        {% if total_registrations > 0 %}
+                            <a href="{{ url('user_analytics:registrations_detail') }}?period={{ time_period }}" style="color: #0d6efd; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ total_registrations }}
+                            </a>
+                        {% else %}
+                            {{ total_registrations }}
+                        {% endif %}
+                    </h2>
                 </div>
             </div>
         </div>
@@ -32,7 +40,15 @@
             <div class="admin-card">
                 <div class="card-body">
                     <h5 class="card-title">Total Revenue</h5>
-                    <h2 class="text-success">₹{{ "%.2f"|format(total_revenue) }}</h2>
+                    <h2 class="text-success">
+                        {% if total_revenue > 0 %}
+                            <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #198754; text-decoration: none; cursor: pointer;" title="Click to view payment details">
+                                ₹{{ "%.2f"|format(total_revenue) }}
+                            </a>
+                        {% else %}
+                            ₹{{ "%.2f"|format(total_revenue) }}
+                        {% endif %}
+                    </h2>
                 </div>
             </div>
         </div>
@@ -40,7 +56,15 @@
             <div class="admin-card">
                 <div class="card-body">
                     <h5 class="card-title">Total Prospects</h5>
-                    <h2 class="text-info">{{ total_prospects }}</h2>
+                    <h2 class="text-info">
+                        {% if total_prospects > 0 %}
+                            <a href="{{ url('user_analytics:prospects_detail') }}?period={{ time_period }}" style="color: #0dcaf0; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ total_prospects }}
+                            </a>
+                        {% else %}
+                            {{ total_prospects }}
+                        {% endif %}
+                    </h2>
                 </div>
             </div>
         </div>
@@ -48,7 +72,15 @@
             <div class="admin-card">
                 <div class="card-body">
                     <h5 class="card-title">Converted Prospects</h5>
-                    <h2 class="text-warning">{{ converted_prospects }}</h2>
+                    <h2 class="text-warning">
+                        {% if converted_prospects > 0 %}
+                            <a href="{{ url('user_analytics:prospects_detail') }}?period={{ time_period }}&converted=yes" style="color: #ffc107; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ converted_prospects }}
+                            </a>
+                        {% else %}
+                            {{ converted_prospects }}
+                        {% endif %}
+                    </h2>
                 </div>
             </div>
         </div>
@@ -64,13 +96,37 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-4">
-                            <h6>Successful: <span class="text-success">{{ payment_status.success }}</span></h6>
+                            <h6>Successful: 
+                                {% if payment_status.success > 0 %}
+                                    <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}" style="color: #198754; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                        <span class="text-success">{{ payment_status.success }}</span>
+                                    </a>
+                                {% else %}
+                                    <span class="text-success">{{ payment_status.success }}</span>
+                                {% endif %}
+                            </h6>
                         </div>
                         <div class="col-md-4">
-                            <h6>Failed: <span class="text-danger">{{ payment_status.failed }}</span></h6>
+                            <h6>Failed: 
+                                {% if payment_status.failed > 0 %}
+                                    <a href="{{ url('user_analytics:failed_payments_detail') }}?period={{ time_period }}" style="color: #dc3545; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                        <span class="text-danger">{{ payment_status.failed }}</span>
+                                    </a>
+                                {% else %}
+                                    <span class="text-danger">{{ payment_status.failed }}</span>
+                                {% endif %}
+                            </h6>
                         </div>
                         <div class="col-md-4">
-                            <h6>Pending: <span class="text-warning">{{ payment_status.pending }}</span></h6>
+                            <h6>Pending: 
+                                {% if payment_status.pending > 0 %}
+                                    <a href="{{ url('user_analytics:pending_payments_detail') }}?period={{ time_period }}" style="color: #ffc107; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                        <span class="text-warning">{{ payment_status.pending }}</span>
+                                    </a>
+                                {% else %}
+                                    <span class="text-warning">{{ payment_status.pending }}</span>
+                                {% endif %}
+                            </h6>
                         </div>
                     </div>
                 </div>
@@ -86,9 +142,33 @@
                     <h5>Prospects Overview</h5>
                 </div>
                 <div class="card-body">
-                    <p>Total Prospects: <strong>{{ total_prospects }}</strong></p>
-                    <p>Converted: <strong>{{ converted_prospects }}</strong></p>
-                    <p>Pending: <strong>{{ pending_prospects }}</strong></p>
+                    <p>Total Prospects: 
+                        {% if total_prospects > 0 %}
+                            <a href="{{ url('user_analytics:prospects_detail') }}?period={{ time_period }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                <strong>{{ total_prospects }}</strong>
+                            </a>
+                        {% else %}
+                            <strong>{{ total_prospects }}</strong>
+                        {% endif %}
+                    </p>
+                    <p>Converted: 
+                        {% if converted_prospects > 0 %}
+                            <a href="{{ url('user_analytics:prospects_detail') }}?period={{ time_period }}&converted=yes" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                <strong>{{ converted_prospects }}</strong>
+                            </a>
+                        {% else %}
+                            <strong>{{ converted_prospects }}</strong>
+                        {% endif %}
+                    </p>
+                    <p>Pending: 
+                        {% if pending_prospects > 0 %}
+                            <a href="{{ url('user_analytics:prospects_detail') }}?period={{ time_period }}&converted=no" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                <strong>{{ pending_prospects }}</strong>
+                            </a>
+                        {% else %}
+                            <strong>{{ pending_prospects }}</strong>
+                        {% endif %}
+                    </p>
                     <p>Conversion Rate: 
                         <strong>
                             {% if total_prospects > 0 %}
@@ -119,7 +199,15 @@
                             {% for item in revenue_by_source %}
                             <tr>
                                 <td>{{ item.get('metadata__source', 'Unknown') }}</td>
-                                <td>₹{{ "%.2f"|format(item.get('revenue', 0)) }}</td>
+                                <td>
+                                    {% if item.get('revenue', 0) > 0 %}
+                                        <a href="{{ url('user_analytics:successful_payments_detail') }}?period={{ time_period }}&search={{ item.get('metadata__source', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view payment details">
+                                            ₹{{ "%.2f"|format(item.get('revenue', 0)) }}
+                                        </a>
+                                    {% else %}
+                                        ₹{{ "%.2f"|format(item.get('revenue', 0)) }}
+                                    {% endif %}
+                                </td>
                                 <td>{{ item.get('count', 0) }}</td>
                             </tr>
                             {% else %}
@@ -153,7 +241,15 @@
                             {% for item in failed_payments %}
                             <tr>
                                 <td>{{ item.get('event_name', 'Unknown') }}</td>
-                                <td>{{ item.get('count', 0) }}</td>
+                                <td>
+                                    {% if item.get('count', 0) > 0 %}
+                                        <a href="{{ url('user_analytics:failed_payments_detail') }}?period={{ time_period }}&search={{ item.get('event_name', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view failed payment details">
+                                            {{ item.get('count', 0) }}
+                                        </a>
+                                    {% else %}
+                                        {{ item.get('count', 0) }}
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% else %}
                             <tr>
@@ -207,7 +303,7 @@
 
 <script>
 function updatePeriod(period) {
-    window.location.href = '/user-analytics/accounts/?period=' + period;
+    window.location.href = '{{ url("user_analytics:accounts_dashboard") }}?period=' + period;
 }
 </script>
 {% endblock %}

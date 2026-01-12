@@ -12,7 +12,11 @@ from django.utils import timezone
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from datetime import datetime, timedelta
 from decimal import Decimal
+from urllib.parse import unquote
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 from user_analytics.models import UserActivity, Lead, UserEvent, UserJourney, AnalyticsCache
 from user_analytics.ga4_service import GA4Service
@@ -57,15 +61,39 @@ def admin_dashboard(request):
     else:
         start_date = end_date - timedelta(days=30)
     
-    # Quick Stats
-    total_users = User.objects.count()
-    active_users = User.objects.filter(is_active=True).count()
-    total_payments = Payment.objects.count()
-    successful_payments = Payment.objects.filter(is_success=choices.YesNoChoices.YES).count()
+    # Quick Stats - Filtered by period
+    total_users = User.objects.filter(
+        created__gte=start_date,
+        created__lte=end_date
+    ).count()
     
-    # Recent Activity
-    recent_registrations = User.objects.order_by('-created')[:10]
-    recent_payments = Payment.objects.order_by('-created')[:10]
+    active_users = User.objects.filter(
+        is_active=True,
+        created__gte=start_date,
+        created__lte=end_date
+    ).count()
+    
+    total_payments = Payment.objects.filter(
+        created__gte=start_date,
+        created__lte=end_date
+    ).count()
+    
+    successful_payments = Payment.objects.filter(
+        is_success=choices.YesNoChoices.YES,
+        created__gte=start_date,
+        created__lte=end_date
+    ).count()
+    
+    # Recent Activity - Filtered by period
+    recent_registrations = User.objects.filter(
+        created__gte=start_date,
+        created__lte=end_date
+    ).order_by('-created')[:10]
+    
+    recent_payments = Payment.objects.filter(
+        created__gte=start_date,
+        created__lte=end_date
+    ).order_by('-created')[:10]
     
     # Analytics Summary
     total_page_views = UserActivity.objects.filter(
@@ -483,16 +511,86 @@ def web_owner_dashboard(request):
     """
     time_period = request.GET.get('period', '30days')
     
+    # Ensure default is 30days if not provided or invalid
+    valid_periods = ['today', 'yesterday', '7days', '30days', '90days']
+    if time_period not in valid_periods:
+        time_period = '30days'
+    
+    logger.info("=" * 80)
+    logger.info(f"WEB OWNER DASHBOARD - Time Period: {time_period}")
+    logger.info("=" * 80)
+    
     # Initialize GA4 Service
     ga4_service = GA4Service()
+    logger.debug("GA4 Service initialized")
     
-    # Get GA4 metrics
-    user_metrics = ga4_service.get_user_metrics(time_period)
-    device_breakdown = ga4_service.get_device_breakdown(time_period)
-    top_pages = ga4_service.get_top_pages(time_period, limit=20)
-    traffic_sources = ga4_service.get_traffic_sources(time_period, limit=15)
-    engagement = ga4_service.get_user_engagement(time_period)
-    real_time_users = ga4_service.get_real_time_users()
+    # Get GA4 metrics - disable cache to ensure fresh data
+    logger.debug("Fetching GA4 metrics (cache disabled)...")
+    try:
+        user_metrics = ga4_service.get_user_metrics(time_period, use_cache=False)
+        device_breakdown = ga4_service.get_device_breakdown(time_period, use_cache=False)
+        top_pages = ga4_service.get_top_pages(time_period, limit=20, use_cache=False)
+        top_pages_with_trends = ga4_service.get_top_pages_with_trends(time_period, limit=20, use_cache=False)
+        traffic_sources = ga4_service.get_traffic_sources(time_period, limit=15, use_cache=False)
+        engagement = ga4_service.get_user_engagement(time_period, use_cache=False)
+        real_time_users = ga4_service.get_real_time_users()
+        real_time_breakdown = ga4_service.get_real_time_users_breakdown()
+        real_time_users_by_country = ga4_service.get_real_time_users_by_country()
+        users_by_country = ga4_service.get_users_by_country(time_period, limit=10, use_cache=False)
+        ga4_entry_pages = ga4_service.get_entry_pages(time_period, limit=10, use_cache=False)
+        ga4_exit_pages = ga4_service.get_exit_pages(time_period, limit=10, use_cache=False)
+    except Exception as e:
+        logger.error(f"Error fetching GA4 data: {e}", exc_info=True)
+        # Set defaults to None/empty lists on error
+        user_metrics = None
+        device_breakdown = None
+        top_pages = []
+        top_pages_with_trends = []
+        traffic_sources = None
+        engagement = None
+        real_time_users = None
+        real_time_breakdown = None
+        real_time_users_by_country = []
+        users_by_country = []
+        ga4_entry_pages = []
+        ga4_exit_pages = []
+    
+    # Calculate existing vs organic users from database (if available)
+    # This is a fallback - GA4 doesn't directly tell us registered vs anonymous
+    # We can infer from our database tracking
+    existing_users_count = 0
+    organic_users_count = 0
+    if UserActivity.objects.exists():
+        # Count unique registered users in last hour
+        recent_cutoff = timezone.now() - timedelta(hours=1)
+        existing_users_count = UserActivity.objects.filter(
+            created__gte=recent_cutoff,
+            user__isnull=False
+        ).values('user').distinct().count()
+        
+        # Count unique anonymous sessions in last hour
+        organic_users_count = UserActivity.objects.filter(
+            created__gte=recent_cutoff,
+            user__isnull=True
+        ).values('session_id').distinct().count()
+    
+    logger.info(f"GA4 Data Retrieved:")
+    logger.info(f"  - User Metrics: {'Available' if user_metrics else 'Not Available'}")
+    logger.info(f"  - Device Breakdown: {'Available' if device_breakdown else 'Not Available'}")
+    logger.info(f"  - Top Pages: {len(top_pages) if top_pages else 0} pages")
+    logger.info(f"  - Traffic Sources: {'Available' if traffic_sources else 'Not Available'}")
+    logger.info(f"  - Engagement: {'Available' if engagement else 'Not Available'}")
+    logger.info(f"  - Real-time Users: {real_time_users or 0}")
+    if real_time_breakdown:
+        logger.info(f"    - New Users: {real_time_breakdown.get('new', 0)}")
+        logger.info(f"    - Returning Users: {real_time_breakdown.get('returning', 0)}")
+    logger.info(f"  - Entry Pages: {len(ga4_entry_pages) if ga4_entry_pages else 0} pages")
+    logger.info(f"  - Exit Pages: {len(ga4_exit_pages) if ga4_exit_pages else 0} pages")
+    logger.info(f"  - Real-time Users by Country: {len(real_time_users_by_country) if real_time_users_by_country else 0} countries")
+    logger.info(f"  - Users by Country: {len(users_by_country) if users_by_country else 0} countries")
+    logger.info(f"  - Top Pages with Trends: {len(top_pages_with_trends) if top_pages_with_trends else 0} pages")
+    logger.info(f"  - Existing Users (DB tracking): {existing_users_count}")
+    logger.info(f"  - Organic Users (DB tracking): {organic_users_count}")
     
     # Calculate date range for database queries
     end_date = timezone.now()
@@ -509,6 +607,9 @@ def web_owner_dashboard(request):
         start_date = end_date - timedelta(days=90)
     else:
         start_date = end_date - timedelta(days=30)
+    
+    logger.info(f"Date Range: {start_date.strftime('%Y-%m-%d %H:%M:%S')} to {end_date.strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"Duration: {(end_date - start_date).days} days")
     
     # User Journey Metrics
     total_sessions = UserJourney.objects.filter(
@@ -527,49 +628,151 @@ def web_owner_dashboard(request):
         start_time__lte=end_date
     ).aggregate(avg=Avg('total_time'))['avg'] or 0
     
-    # Top Entry Pages
-    top_entry_pages = UserJourney.objects.filter(
-        start_time__gte=start_date,
-        start_time__lte=end_date
-    ).values('entry_page').annotate(
-        count=Count('id')
-    ).order_by('-count')[:10]
+    logger.info(f"Database User Journey Metrics:")
+    logger.info(f"  - Total Sessions: {total_sessions}")
+    logger.info(f"  - Converted Sessions: {converted_sessions}")
+    logger.info(f"  - Avg Session Duration: {avg_session_duration:.2f} seconds ({avg_session_duration/60:.2f} minutes)")
     
-    # Top Exit Pages
-    top_exit_pages = UserJourney.objects.filter(
-        start_time__gte=start_date,
-        start_time__lte=end_date
-    ).exclude(exit_page__isnull=True).values('exit_page').annotate(
-        count=Count('id')
-    ).order_by('-count')[:10]
+    # Use GA4 data for all sections (skip database)
+    # Top Entry Pages - Use GA4
+    top_entry_pages = ga4_entry_pages if ga4_entry_pages else []
     
-    # Traffic Sources (from database)
-    db_traffic_sources = UserActivity.objects.filter(
+    # Top Exit Pages - Use GA4
+    top_exit_pages = ga4_exit_pages if ga4_exit_pages else []
+    
+    # Traffic Sources - Convert GA4 format to match template expectations
+    ga4_traffic_sources_list = []
+    if traffic_sources and 'sources' in traffic_sources and 'sessions' in traffic_sources:
+        for i, source in enumerate(traffic_sources['sources']):
+            ga4_traffic_sources_list.append({
+                'utm_source': source or 'Direct',
+                'sessions': traffic_sources['sessions'][i] if i < len(traffic_sources['sessions']) else 0,
+                'pageviews': 0  # GA4 doesn't provide pageviews per source in this call
+            })
+    
+    # Device Breakdown - Convert GA4 format to match template expectations
+    ga4_device_breakdown_list = []
+    if device_breakdown and 'devices' in device_breakdown and 'users' in device_breakdown:
+        for i, device in enumerate(device_breakdown['devices']):
+            ga4_device_breakdown_list.append({
+                'device_type': device or 'Unknown',
+                'count': device_breakdown['users'][i] if i < len(device_breakdown['users']) else 0
+            })
+    
+    logger.info(f"GA4 Data Converted:")
+    logger.info(f"  - Traffic Sources: {len(ga4_traffic_sources_list)} sources")
+    logger.info(f"  - Device Breakdown: {len(ga4_device_breakdown_list)} device types")
+    logger.info(f"  - Entry Pages: {len(top_entry_pages)} pages")
+    logger.info(f"  - Exit Pages: {len(top_exit_pages)} pages")
+    
+    # Top Pages - Always use database as primary source for dynamic data
+    # Database data is more reliable and always up-to-date
+    db_top_pages_raw = UserActivity.objects.filter(
         created__gte=start_date,
         created__lte=end_date
-    ).values('utm_source').annotate(
-        sessions=Count('session_id', distinct=True),
+    ).exclude(page_path__isnull=True).exclude(page_path='').values('page_path', 'page_title').annotate(
         pageviews=Count('id')
-    ).order_by('-sessions')[:15]
+    ).order_by('-pageviews')[:20]
     
-    # Device Breakdown (from database)
-    db_device_breakdown = UserActivity.objects.filter(
+    # Convert to same format as GA4 top_pages
+    db_top_pages = [
+        {
+            'path': item.get('page_path', 'N/A'),
+            'title': item.get('page_title') or item.get('page_path', 'Unknown'),
+            'pageviews': item.get('pageviews', 0)
+        }
+        for item in db_top_pages_raw
+    ]
+    
+    # Use database as primary source (if available), fallback to GA4
+    # Database data is more reliable and always up-to-date, but GA4 has broader coverage
+    if db_top_pages:
+        # Database has data - use it
+        final_top_pages = db_top_pages
+    elif top_pages:
+        # No database data, but GA4 has data - use GA4
+        final_top_pages = top_pages
+    else:
+        # No data from either source
+        final_top_pages = []
+    
+    # Calculate total pageviews from database if GA4 is unavailable
+    db_total_pageviews = UserActivity.objects.filter(
         created__gte=start_date,
         created__lte=end_date
-    ).values('device_type').annotate(
-        count=Count('session_id', distinct=True)
-    ).order_by('-count')
+    ).count()
     
-    # Summary metrics
+    # Calculate total users from database if GA4 is unavailable
+    db_total_users = User.objects.filter(
+        created__gte=start_date,
+        created__lte=end_date
+    ).count()
+    
+    logger.info(f"Database Summary Metrics:")
+    logger.info(f"  - Total Users: {db_total_users}")
+    logger.info(f"  - Total Pageviews: {db_total_pageviews}")
+    logger.info(f"  - Top Pages (DB): {len(db_top_pages)} pages")
+    
+    # Summary metrics with proper fallbacks
+    # Use GA4 data if available, otherwise fall back to database
+    if user_metrics and 'activeUsers' in user_metrics and user_metrics['activeUsers']:
+        total_users = sum(user_metrics['activeUsers'])
+        users_source = "GA4"
+    else:
+        total_users = db_total_users
+        users_source = "Database"
+    
+    if user_metrics and 'sessions' in user_metrics and user_metrics['sessions']:
+        total_sessions_ga4 = sum(user_metrics['sessions'])
+        sessions_source = "GA4"
+    else:
+        total_sessions_ga4 = total_sessions
+        sessions_source = "Database"
+    
+    if user_metrics and 'screenPageViews' in user_metrics and user_metrics['screenPageViews']:
+        total_pageviews = sum(user_metrics['screenPageViews'])
+        pageviews_source = "GA4"
+    else:
+        total_pageviews = db_total_pageviews
+        pageviews_source = "Database"
+    
+    if user_metrics and 'newUsers' in user_metrics and user_metrics['newUsers']:
+        new_users = sum(user_metrics['newUsers'])
+        new_users_source = "GA4"
+    else:
+        # For new users, we can use the same db_total_users as a fallback
+        # since new users in the period would be all users created in that period
+        new_users = db_total_users
+        new_users_source = "Database"
+    
     summary = {
-        'totalUsers': sum(user_metrics['activeUsers']) if user_metrics else 0,
-        'totalSessions': sum(user_metrics['sessions']) if user_metrics else total_sessions,
-        'totalPageviews': sum(user_metrics['screenPageViews']) if user_metrics else 0,
-        'newUsers': sum(user_metrics['newUsers']) if user_metrics else 0,
+        'totalUsers': total_users,
+        'totalSessions': total_sessions_ga4,
+        'totalPageviews': total_pageviews,
+        'newUsers': new_users,
         'realTimeUsers': real_time_users or 0,
         'convertedSessions': converted_sessions,
-        'avgSessionDuration': avg_session_duration,
+        'avgSessionDuration': avg_session_duration or 0,
     }
+    
+    logger.info("=" * 80)
+    logger.info("FINAL SUMMARY METRICS (What will be displayed):")
+    logger.info("=" * 80)
+    logger.info(f"  Total Users: {total_users} (Source: {users_source})")
+    logger.info(f"  Total Sessions: {total_sessions_ga4} (Source: {sessions_source})")
+    logger.info(f"  Total Pageviews: {total_pageviews} (Source: {pageviews_source})")
+    logger.info(f"  New Users: {new_users} (Source: {new_users_source})")
+    logger.info(f"  Real-time Users: {real_time_users or 0} (Source: GA4)")
+    logger.info(f"  Converted Sessions: {converted_sessions} (Source: Database)")
+    logger.info(f"  Avg Session Duration: {avg_session_duration/60:.2f} min (Source: Database)")
+    logger.info(f"  Top Pages: {len(final_top_pages)} pages (Source: {'Database' if db_top_pages else 'GA4' if top_pages else 'None'})")
+    
+    if final_top_pages:
+        logger.info("  Top 5 Pages:")
+        for i, page in enumerate(final_top_pages[:5], 1):
+            logger.info(f"    {i}. {page.get('title', 'Unknown')[:50]} - {page.get('pageviews', 0)} views")
+    
+    logger.info("=" * 80)
     
     context = {
         'time_period': time_period,
@@ -577,16 +780,24 @@ def web_owner_dashboard(request):
         'end_date': end_date,
         'user_metrics': json.dumps(user_metrics) if user_metrics else None,
         'device_breakdown': json.dumps(device_breakdown) if device_breakdown else None,
-        'db_device_breakdown': list(db_device_breakdown),
-        'top_pages': top_pages or [],
+        'db_device_breakdown': ga4_device_breakdown_list,  # Use GA4 data
+        'top_pages': final_top_pages,
+        'db_top_pages': db_top_pages,  # For template to know data source
         'traffic_sources': json.dumps(traffic_sources) if traffic_sources else None,
-        'db_traffic_sources': list(db_traffic_sources),
+        'db_traffic_sources': ga4_traffic_sources_list,  # Use GA4 data
         'engagement': engagement,
         'summary': summary,
         'total_sessions': total_sessions,
         'converted_sessions': converted_sessions,
         'top_entry_pages': list(top_entry_pages),
         'top_exit_pages': list(top_exit_pages),
+        'real_time_breakdown': real_time_breakdown,
+        'real_time_users_by_country': real_time_users_by_country,
+        'users_by_country': users_by_country,
+        'total_country_users': sum(c.get('activeUsers', 0) for c in users_by_country) if users_by_country else 0,
+        'top_pages_with_trends': top_pages_with_trends,
+        'existing_users_count': existing_users_count,
+        'organic_users_count': organic_users_count,
     }
     
     return render(request, 'user_analytics/web_owner_dashboard.html', context)
@@ -598,16 +809,96 @@ def user_journey_view(request, user_id=None):
     """
     User Journey Visualization
     Shows detailed journey for a specific user or all users.
+    Supports filtering by user type (existing/registered vs organic/anonymous).
     """
-    if user_id:
-        journeys = UserJourney.objects.filter(user_id=user_id).order_by('-start_time')
+    user_type_filter = request.GET.get('user_type', '')  # 'registered', 'organic', or ''
+    time_period = request.GET.get('period', '30days')
+    search_query = request.GET.get('search', '')
+    page_number = request.GET.get('page', 1)
+    
+    logger.info("=" * 80)
+    logger.info(f"USER JOURNEY VIEW - User ID: {user_id}, User Type Filter: {user_type_filter}")
+    
+    # Calculate date range
+    end_date = timezone.now()
+    if time_period == 'today':
+        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif time_period == 'yesterday':
+        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = start_date + timedelta(days=1)
+    elif time_period == '7days':
+        start_date = end_date - timedelta(days=7)
+    elif time_period == '30days':
+        start_date = end_date - timedelta(days=30)
+    elif time_period == '90days':
+        start_date = end_date - timedelta(days=90)
     else:
-        journeys = UserJourney.objects.all().order_by('-start_time')[:100]
+        start_date = end_date - timedelta(days=30)
+    
+    # Base queryset
+    if user_id:
+        journeys = UserJourney.objects.filter(
+            user_id=user_id,
+            start_time__gte=start_date,
+            start_time__lte=end_date
+        ).select_related('user').order_by('-start_time')
+    else:
+        journeys = UserJourney.objects.filter(
+            start_time__gte=start_date,
+            start_time__lte=end_date
+        ).select_related('user').order_by('-start_time')
+    
+    # Apply user type filter
+    if user_type_filter == 'registered':
+        journeys = journeys.filter(user__isnull=False)
+        logger.info("Filtering for registered users only")
+    elif user_type_filter == 'organic':
+        journeys = journeys.filter(user__isnull=True)
+        logger.info("Filtering for organic/anonymous users only")
+    
+    # Apply search filter
+    if search_query:
+        journeys = journeys.filter(
+            Q(user__email__icontains=search_query) |
+            Q(session_id__icontains=search_query) |
+            Q(entry_page__icontains=search_query) |
+            Q(exit_page__icontains=search_query)
+        )
+        logger.info(f"Applied search filter: {search_query}")
+    
+    # Calculate statistics
+    total_journeys = journeys.count()
+    registered_count = journeys.filter(user__isnull=False).count()
+    organic_count = journeys.filter(user__isnull=True).count()
+    
+    logger.info(f"Journey Statistics:")
+    logger.info(f"  - Total: {total_journeys}")
+    logger.info(f"  - Registered Users: {registered_count}")
+    logger.info(f"  - Organic Users: {organic_count}")
+    
+    # Pagination
+    paginator = Paginator(journeys, 25)
+    try:
+        journeys_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        journeys_page = paginator.page(1)
+    except EmptyPage:
+        journeys_page = paginator.page(paginator.num_pages)
     
     context = {
-        'journeys': journeys,
+        'journeys': journeys_page,
         'user_id': user_id,
+        'user_type_filter': user_type_filter,
+        'time_period': time_period,
+        'search_query': search_query,
+        'total_count': total_journeys,
+        'registered_count': registered_count,
+        'organic_count': organic_count,
+        'start_date': start_date,
+        'end_date': end_date,
     }
+    
+    logger.info("=" * 80)
     
     return render(request, 'user_analytics/user_journey.html', context)
 
@@ -1465,4 +1756,568 @@ def enrollments_api(request):
         'totals': {
             'total_count': total_count,
         }
+    })
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def registrations_detail(request):
+    """Detail page for user registrations with filters"""
+    time_period = request.GET.get('period', '30days')
+    search_query = request.GET.get('search', '')
+    page_number = request.GET.get('page', 1)
+    
+    # Calculate date range
+    end_date = timezone.now()
+    if time_period == 'today':
+        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif time_period == 'yesterday':
+        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = start_date + timedelta(days=1)
+    elif time_period == '7days':
+        start_date = end_date - timedelta(days=7)
+    elif time_period == '30days':
+        start_date = end_date - timedelta(days=30)
+    elif time_period == '90days':
+        start_date = end_date - timedelta(days=90)
+    else:
+        start_date = end_date - timedelta(days=30)
+    
+    # Base queryset
+    users = User.objects.filter(
+        created__gte=start_date,
+        created__lte=end_date
+    ).order_by('-created')
+    
+    # Apply search filter
+    if search_query:
+        users = users.filter(
+            Q(email__icontains=search_query) |
+            Q(name__icontains=search_query) |
+            Q(mobile__icontains=search_query)
+        )
+    
+    # Pagination
+    paginator = Paginator(users, 25)
+    try:
+        users_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        users_page = paginator.page(1)
+    except EmptyPage:
+        users_page = paginator.page(paginator.num_pages)
+    
+    # Calculate totals
+    total_count = users.count()
+    
+    context = {
+        'users': users_page,
+        'time_period': time_period,
+        'start_date': start_date,
+        'end_date': end_date,
+        'search_query': search_query,
+        'total_count': total_count,
+        'page_title': 'User Registrations',
+    }
+    
+    return render(request, 'user_analytics/registrations_detail.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def prospects_detail(request):
+    """Detail page for prospects/leads with filters"""
+    time_period = request.GET.get('period', '30days')
+    search_query = request.GET.get('search', '')
+    converted_filter = request.GET.get('converted', '')
+    page_number = request.GET.get('page', 1)
+    
+    # Calculate date range
+    end_date = timezone.now()
+    if time_period == 'today':
+        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif time_period == 'yesterday':
+        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = start_date + timedelta(days=1)
+    elif time_period == '7days':
+        start_date = end_date - timedelta(days=7)
+    elif time_period == '30days':
+        start_date = end_date - timedelta(days=30)
+    elif time_period == '90days':
+        start_date = end_date - timedelta(days=90)
+    else:
+        start_date = end_date - timedelta(days=30)
+    
+    # Base queryset
+    leads = Lead.objects.filter(
+        first_visit__gte=start_date,
+        first_visit__lte=end_date
+    ).order_by('-first_visit')
+    
+    # Apply converted filter
+    if converted_filter == 'yes':
+        leads = leads.filter(is_converted=True)
+    elif converted_filter == 'no':
+        leads = leads.filter(is_converted=False)
+    
+    # Apply search filter
+    if search_query:
+        leads = leads.filter(
+            Q(email__icontains=search_query) |
+            Q(phone__icontains=search_query) |
+            Q(source__icontains=search_query)
+        )
+    
+    # Pagination
+    paginator = Paginator(leads, 25)
+    try:
+        leads_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        leads_page = paginator.page(1)
+    except EmptyPage:
+        leads_page = paginator.page(paginator.num_pages)
+    
+    # Calculate totals
+    total_count = leads.count()
+    
+    context = {
+        'leads': leads_page,
+        'time_period': time_period,
+        'start_date': start_date,
+        'end_date': end_date,
+        'search_query': search_query,
+        'converted_filter': converted_filter,
+        'total_count': total_count,
+        'page_title': 'Prospects/Leads',
+    }
+    
+    return render(request, 'user_analytics/prospects_detail.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def visitors_detail(request):
+    """Detail page for visitors/sessions with filters"""
+    time_period = request.GET.get('period', 'today')
+    search_query = request.GET.get('search', '')
+    source_filter = request.GET.get('source', '')
+    device_filter = request.GET.get('device', '')
+    entry_page_filter = request.GET.get('entry_page', '')
+    exit_page_filter = request.GET.get('exit_page', '')
+    country_filter = request.GET.get('country', '')  # Added country filter
+    page_number = request.GET.get('page', 1)
+    
+    logger.info("=" * 80)
+    logger.info(f"VISITORS DETAIL - Time Period: {time_period}")
+    logger.info(f"Source Filter (raw): {source_filter}")
+    logger.info(f"Device Filter (raw): {device_filter}")
+    logger.info(f"Entry Page Filter (raw): {entry_page_filter}")
+    logger.info(f"Exit Page Filter (raw): {exit_page_filter}")
+    logger.info(f"Country Filter (raw): {country_filter}")
+    logger.info(f"Search Query: {search_query}")
+    
+    # Decode all URL-encoded filters
+    if source_filter:
+        source_filter = unquote(source_filter)
+        logger.info(f"Source Filter (decoded): {source_filter}")
+    if device_filter:
+        device_filter = unquote(device_filter)
+        logger.info(f"Device Filter (decoded): {device_filter}")
+    if entry_page_filter:
+        entry_page_filter = unquote(entry_page_filter)
+        logger.info(f"Entry Page Filter (decoded): {entry_page_filter}")
+    if exit_page_filter:
+        exit_page_filter = unquote(exit_page_filter)
+        logger.info(f"Exit Page Filter (decoded): {exit_page_filter}")
+    if country_filter:
+        country_filter = unquote(country_filter)
+        logger.info(f"Country Filter (decoded): {country_filter}")
+    
+    # Calculate date range
+    end_date = timezone.now()
+    if time_period == 'today':
+        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif time_period == 'yesterday':
+        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = start_date + timedelta(days=1)
+    elif time_period == '7days':
+        start_date = end_date - timedelta(days=7)
+    elif time_period == '30days':
+        start_date = end_date - timedelta(days=30)
+    elif time_period == '90days':
+        start_date = end_date - timedelta(days=90)
+    else:
+        start_date = end_date - timedelta(days=30)
+    
+    logger.info(f"Date Range: {start_date.strftime('%Y-%m-%d %H:%M:%S')} to {end_date.strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Get unique session IDs with filters
+    session_query = UserActivity.objects.filter(
+        created__gte=start_date,
+        created__lte=end_date
+    )
+    
+    if source_filter:
+        # Handle variations of "direct" traffic
+        # GA4 might store it as "(direct)", "direct", "(not set)", or empty/null
+        if source_filter.lower() in ['(direct)', 'direct', '(not set)']:
+            # Match direct traffic - could be stored as various forms
+            session_query = session_query.filter(
+                Q(utm_source__iexact='(direct)') |
+                Q(utm_source__iexact='direct') |
+                Q(utm_source__iexact='(not set)') |
+                Q(utm_source__isnull=True) |
+                Q(utm_source='')
+            )
+            logger.info("Filtering for direct traffic (handling variations)")
+        else:
+            # Exact match for other sources
+            session_query = session_query.filter(utm_source__iexact=source_filter)
+            logger.info(f"Filtering for source: {source_filter}")
+    
+    if device_filter:
+        session_query = session_query.filter(device_type__iexact=device_filter)
+        logger.info(f"Filtering for device: {device_filter}")
+    
+    session_ids = list(session_query.values_list('session_id', flat=True).distinct())
+    logger.info(f"Found {len(session_ids)} unique session IDs matching filters")
+    
+    # Check if we have any data at all in the date range
+    total_activities = UserActivity.objects.filter(
+        created__gte=start_date,
+        created__lte=end_date
+    ).count()
+    logger.info(f"Total UserActivity records in date range: {total_activities}")
+    
+    # Check unique sources in database for debugging
+    unique_sources = UserActivity.objects.filter(
+        created__gte=start_date,
+        created__lte=end_date
+    ).exclude(utm_source__isnull=True).exclude(utm_source='').values_list('utm_source', flat=True).distinct()[:10]
+    logger.info(f"Sample unique sources in database: {list(unique_sources)}")
+    
+    # If no session IDs found, check if we should use GA4 data or show helpful message
+    use_ga4_fallback = len(session_ids) == 0 and total_activities == 0
+    
+    if use_ga4_fallback:
+        logger.warning("No database records found. Consider using GA4 data for visitors detail.")
+        logger.info("Note: GA4 doesn't provide individual session details, only aggregated metrics.")
+    
+    # Get first activity for each session
+    session_details = []
+    for session_id in session_ids:
+        first_activity = UserActivity.objects.filter(
+            session_id=session_id
+        ).order_by('created').first()
+        
+        if first_activity:
+            # Apply entry/exit page filters
+            if entry_page_filter:
+                journey = UserJourney.objects.filter(
+                    session_id=session_id,
+                    entry_page=entry_page_filter
+                ).first()
+                if not journey:
+                    continue
+            
+            if exit_page_filter:
+                journey = UserJourney.objects.filter(
+                    session_id=session_id,
+                    exit_page=exit_page_filter
+                ).first()
+                if not journey:
+                    continue
+            
+            # Apply country filter (check UserActivity or UserJourney)
+            if country_filter:
+                # Check if country matches in first activity or journey
+                country_match = False
+                if first_activity.country and country_filter.lower() in first_activity.country.lower():
+                    country_match = True
+                else:
+                    journey = UserJourney.objects.filter(session_id=session_id).first()
+                    if journey and journey.country and country_filter.lower() in journey.country.lower():
+                        country_match = True
+                if not country_match:
+                    continue
+            
+            # Apply search filter early
+            if search_query:
+                user_match = first_activity.user and first_activity.user.email and search_query.lower() in first_activity.user.email.lower()
+                session_match = search_query.lower() in session_id.lower()
+                if not (user_match or session_match):
+                    continue
+            
+            session_details.append({
+                'session_id': session_id,
+                'user': first_activity.user,
+                'first_visit': first_activity.created,
+                'page_views': UserActivity.objects.filter(session_id=session_id).count(),
+                'device_type': first_activity.device_type,
+                'utm_source': first_activity.utm_source or 'Direct',
+            })
+    
+    # Sort by first visit
+    session_details.sort(key=lambda x: x['first_visit'], reverse=True)
+    
+    # Calculate totals before pagination
+    total_count = len(session_details)
+    
+    logger.info(f"Total sessions found: {total_count}")
+    logger.info("=" * 80)
+    
+    # Manual pagination for list
+    items_per_page = 25
+    try:
+        page_number = int(page_number)
+    except (ValueError, TypeError):
+        page_number = 1
+    
+    start_index = (page_number - 1) * items_per_page
+    end_index = start_index + items_per_page
+    sessions_page_data = session_details[start_index:end_index]
+    
+    # Create a paginator-like object for template compatibility
+    from django.core.paginator import Page, Paginator
+    paginator = Paginator(range(total_count), items_per_page)
+    try:
+        paginator_page = paginator.page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        paginator_page = paginator.page(1)
+    
+    # Create a custom page object with our data
+    class CustomPage:
+        def __init__(self, data, paginator_page):
+            self.object_list = data
+            self.number = paginator_page.number
+            self.paginator = paginator_page.paginator
+            self.has_previous = paginator_page.has_previous()
+            self.has_next = paginator_page.has_next()
+            self.previous_page_number = paginator_page.previous_page_number() if self.has_previous else None
+            self.next_page_number = paginator_page.next_page_number() if self.has_next else None
+            self.start_index = start_index + 1
+        
+        @property
+        def has_other_pages(self):
+            return self.paginator.num_pages > 1
+    
+    sessions_page = CustomPage(sessions_page_data, paginator_page)
+    
+    # Build filter params for pagination links
+    filter_params = {
+        'period': time_period,
+    }
+    if source_filter:
+        filter_params['source'] = source_filter
+    if device_filter:
+        filter_params['device'] = device_filter
+    if entry_page_filter:
+        filter_params['entry_page'] = entry_page_filter
+    if exit_page_filter:
+        filter_params['exit_page'] = exit_page_filter
+    if country_filter:
+        filter_params['country'] = country_filter
+    if search_query:
+        filter_params['search'] = search_query
+    
+    context = {
+        'sessions': sessions_page,
+        'time_period': time_period,
+        'start_date': start_date,
+        'end_date': end_date,
+        'search_query': search_query,
+        'source_filter': source_filter,
+        'device_filter': device_filter,
+        'entry_page_filter': entry_page_filter,
+        'exit_page_filter': exit_page_filter,
+        'country_filter': country_filter,
+        'filter_params': filter_params,
+        'total_count': total_count,
+        'total_activities_in_range': total_activities,
+        'use_ga4_fallback': use_ga4_fallback,
+        'page_title': 'Visitors/Sessions',
+    }
+    
+    logger.info("=" * 80)
+    
+    return render(request, 'user_analytics/visitors_detail.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def pageviews_detail(request):
+    """Detail page for pageviews with filters"""
+    time_period = request.GET.get('period', '30days')
+    search_query = request.GET.get('search', '')
+    path_filter = request.GET.get('path', '')
+    source_filter = request.GET.get('source', '')
+    page_number = request.GET.get('page', 1)
+    
+    logger.info("=" * 80)
+    logger.info(f"PAGEVIEWS DETAIL - Time Period: {time_period}")
+    logger.info(f"Path Filter (raw): {path_filter}")
+    logger.info(f"Source Filter: {source_filter}")
+    logger.info(f"Search Query: {search_query}")
+    
+    # Calculate date range
+    end_date = timezone.now()
+    if time_period == 'today':
+        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif time_period == 'yesterday':
+        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = start_date + timedelta(days=1)
+    elif time_period == '7days':
+        start_date = end_date - timedelta(days=7)
+    elif time_period == '30days':
+        start_date = end_date - timedelta(days=30)
+    elif time_period == '90days':
+        start_date = end_date - timedelta(days=90)
+    else:
+        start_date = end_date - timedelta(days=30)
+    
+    logger.info(f"Date Range: {start_date.strftime('%Y-%m-%d %H:%M:%S')} to {end_date.strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Use GA4 data directly (skip database for now)
+    ga4_pageviews = None
+    data_source = 'ga4'
+    pageviews_page = None
+    total_count = 0
+    
+    # If path filter is set, get data from GA4
+    if path_filter:
+        # Decode URL-encoded path
+        path_filter_decoded = unquote(path_filter)
+        # Store decoded version for display
+        path_filter = path_filter_decoded
+        
+        logger.info(f"Path Filter (decoded): {path_filter_decoded}")
+        logger.info("Fetching data from GA4...")
+        
+        ga4_service = GA4Service()
+        ga4_pageviews = ga4_service.get_pageviews_by_path(
+            path_filter_decoded, 
+            time_period=time_period, 
+            limit=1000, 
+            use_cache=False
+        )
+        
+        if ga4_pageviews:
+            logger.info(f"Found {len(ga4_pageviews)} pageview records from GA4")
+            
+            # Apply source filter if provided
+            if source_filter:
+                source_filter_decoded = unquote(source_filter)
+                ga4_pageviews = [p for p in ga4_pageviews if p.get('source', '').lower() == source_filter_decoded.lower()]
+                logger.info(f"After source filter: {len(ga4_pageviews)} records")
+            
+            # Apply search filter if provided
+            if search_query:
+                search_lower = search_query.lower()
+                ga4_pageviews = [
+                    p for p in ga4_pageviews 
+                    if search_lower in p.get('page_title', '').lower() 
+                    or search_lower in p.get('page_path', '').lower()
+                    or search_lower in p.get('source', '').lower()
+                ]
+                logger.info(f"After search filter: {len(ga4_pageviews)} records")
+            
+            # Paginate GA4 data
+            if ga4_pageviews:
+                total_count = len(ga4_pageviews)
+                items_per_page = 25
+                try:
+                    page_number = int(page_number)
+                except (ValueError, TypeError):
+                    page_number = 1
+                
+                start_index = (page_number - 1) * items_per_page
+                end_index = start_index + items_per_page
+                ga4_pageviews_page = ga4_pageviews[start_index:end_index]
+                
+                # Create paginator-like object for GA4 data
+                paginator = Paginator(range(total_count), items_per_page)
+                try:
+                    paginator_page = paginator.page(page_number)
+                except (PageNotAnInteger, EmptyPage):
+                    paginator_page = paginator.page(1)
+                
+                # Create custom page object
+                class GA4Page:
+                    def __init__(self, data, paginator_page, total_count):
+                        self.object_list = data
+                        self.number = paginator_page.number
+                        self.paginator = paginator_page.paginator
+                        self.has_previous = paginator_page.has_previous()
+                        self.has_next = paginator_page.has_next()
+                        self.previous_page_number = paginator_page.previous_page_number() if self.has_previous else None
+                        self.next_page_number = paginator_page.next_page_number() if self.has_next else None
+                        self.start_index = (paginator_page.number - 1) * items_per_page + 1
+                    
+                    @property
+                    def has_other_pages(self):
+                        return self.paginator.num_pages > 1
+                
+                pageviews_page = GA4Page(ga4_pageviews_page, paginator_page, total_count)
+                logger.info(f"Created GA4Page with {len(ga4_pageviews_page)} items on page {page_number}")
+            else:
+                # No data after filtering
+                pageviews_page = None
+                logger.info("No data after applying filters")
+        else:
+            logger.info("No GA4 data found for this path")
+            pageviews_page = None
+    else:
+        # No path filter - show message that path filter is required
+        logger.info("No path filter provided. GA4 requires a path filter to show pageview details.")
+        pageviews_page = None
+    
+    logger.info("=" * 80)
+    logger.info(f"FINAL RESULTS:")
+    logger.info(f"  Data Source: {data_source}")
+    logger.info(f"  Total pageviews matching filters: {total_count}")
+    logger.info(f"  Page number: {page_number}")
+    if pageviews_page and hasattr(pageviews_page, 'object_list'):
+        logger.info(f"  Pageviews on this page: {len(pageviews_page.object_list)}")
+        if pageviews_page.object_list:
+            logger.info(f"  Sample data (first item): {pageviews_page.object_list[0]}")
+    else:
+        logger.info(f"  Pageviews on this page: None (no data)")
+    logger.info("=" * 80)
+    
+    context = {
+        'pageviews': pageviews_page,
+        'time_period': time_period,
+        'start_date': start_date,
+        'end_date': end_date,
+        'search_query': search_query,
+        'path_filter': path_filter,
+        'source_filter': source_filter,
+        'total_count': total_count,
+        'page_title': 'Pageviews',
+        'data_source': data_source,  # 'database' or 'ga4'
+    }
+    
+    return render(request, 'user_analytics/pageviews_detail.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def pageviews_paths_api(request):
+    """API endpoint to get all available page paths for autocomplete"""
+    time_period = request.GET.get('period', '30days')
+    
+    logger.info("=" * 80)
+    logger.info(f"PAGEVIEWS PATHS API - Time Period: {time_period}")
+    
+    ga4_service = GA4Service()
+    paths = ga4_service.get_all_page_paths(time_period=time_period, limit=1000, use_cache=False)
+    
+    logger.info(f"Found {len(paths)} unique paths")
+    if paths:
+        logger.info(f"Sample paths (first 10): {paths[:10]}")
+    logger.info("=" * 80)
+    
+    return JsonResponse({
+        'success': True,
+        'paths': paths,
+        'count': len(paths)
     })

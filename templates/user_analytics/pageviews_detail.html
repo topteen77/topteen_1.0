@@ -1,0 +1,331 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}{{ page_title }} | Top Teen Analytics{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="page-title">
+                    <i class="fas fa-eye text-success"></i> 
+                    {{ page_title }}
+                </h1>
+                <p class="text-muted mb-0">
+                    Total: <strong>{{ total_count }}</strong> pageviews
+                    {% if data_source == 'ga4' %}
+                        <span class="badge bg-info ms-2"><i class="fas fa-chart-line"></i> Data from Google Analytics</span>
+                    {% else %}
+                        <span class="badge bg-primary ms-2"><i class="fas fa-database"></i> Data from Database</span>
+                    {% endif %}
+                    {% if path_filter %}
+                        <span class="badge bg-info ms-2">Filtered by path: {{ path_filter }}</span>
+                    {% endif %}
+                    {% if source_filter %}
+                        <span class="badge bg-info ms-2">Filtered by source: {{ source_filter }}</span>
+                    {% endif %}
+                </p>
+            </div>
+            <a href="{{ url('user_analytics:web_owner_dashboard') }}?period={{ time_period }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="admin-card mb-4">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">Time Period</label>
+                <select name="period" class="form-select">
+                    <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
+                    <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                    <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
+                    <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
+                    <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Path Filter</label>
+                <input type="text" name="path" id="pathFilter" class="form-control" placeholder="Filter by path..." value="{{ path_filter|default('') }}" autocomplete="off" list="pathSuggestions">
+                <datalist id="pathSuggestions"></datalist>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Source Filter</label>
+                <input type="text" name="source" class="form-control" placeholder="Filter by source..." value="{{ source_filter|default('') }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Search by user, path, title..." value="{{ search_query|default('') }}">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+        <div class="mt-2">
+            <a href="{{ url('user_analytics:pageviews_detail') }}?period={{ time_period }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-times"></i> Clear Filters
+            </a>
+        </div>
+    </div>
+
+    <!-- Pageviews Table -->
+    <div class="admin-card">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Page Title</th>
+                        <th>Page Path</th>
+                        <th>Source</th>
+                        <th>Device</th>
+                        <th>Date/Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if pageviews and pageviews.object_list %}
+                        {% for pageview in pageviews.object_list %}
+                    <tr>
+                        <td>{{ (loop.index0 + (pageviews.number - 1) * pageviews.paginator.per_page) + 1 }}</td>
+                        <td>
+                            {% if data_source == 'ga4' %}
+                                <span class="text-muted">GA4 Data</span>
+                            {% else %}
+                                {% if pageview.user %}
+                                    {{ pageview.user.email or 'N/A' }}
+                                {% else %}
+                                    <span class="text-muted">Guest</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if data_source == 'ga4' %}
+                                {{ pageview.get('page_title', 'N/A') or 'N/A' }}
+                            {% else %}
+                                {{ pageview.page_title or 'N/A' }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>
+                                {% if data_source == 'ga4' %}
+                                    {{ (pageview.get('page_path', 'N/A') or 'N/A')[:50] }}{% if (pageview.get('page_path', '') or '')|length > 50 %}...{% endif %}
+                                {% else %}
+                                    {{ (pageview.page_path or 'N/A')[:50] }}{% if (pageview.page_path or '')|length > 50 %}...{% endif %}
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            {% if data_source == 'ga4' %}
+                                {{ pageview.get('source', 'Direct') or 'Direct' }}
+                            {% else %}
+                                {{ pageview.utm_source or 'Direct' }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if data_source == 'ga4' %}
+                                {{ pageview.get('device', 'Unknown') or 'Unknown' }}
+                            {% else %}
+                                {{ pageview.device_type or 'Unknown' }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if data_source == 'ga4' %}
+                                {{ pageview.get('date', 'N/A') or 'N/A' }}
+                                {% if pageview.get('pageviews', 0) > 1 %}
+                                    <small class="text-muted d-block">({{ pageview.get('pageviews', 0) }} views)</small>
+                                {% endif %}
+                            {% else %}
+                                {% if pageview.created %}
+                                    {{ pageview.created.strftime('%b %d, %Y %H:%M') }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                        {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            {% if not path_filter %}
+                                <div class="alert alert-warning">
+                                    <h5><i class="fas fa-info-circle"></i> Path Filter Required</h5>
+                                    <p class="mb-2">Please provide a path filter to view pageview details.</p>
+                                    <p class="text-muted small mb-0">
+                                        This page shows pageview data from Google Analytics. 
+                                        Click on a pageviews number from the Top Pages table to view details for that specific path.
+                                    </p>
+                                    <div class="mt-3">
+                                        <a href="{{ url('user_analytics:web_owner_dashboard') }}?period={{ time_period }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                                        </a>
+                                    </div>
+                                </div>
+                            {% elif path_filter %}
+                                <div class="alert alert-info">
+                                    <h5><i class="fas fa-info-circle"></i> No Pageviews Found</h5>
+                                    <p class="mb-2">No pageviews found for path: <strong>{{ path_filter }}</strong></p>
+                                    <hr>
+                                    <p class="text-muted small mb-2">
+                                        <strong>Possible reasons:</strong>
+                                    </p>
+                                    <ul class="text-start small text-muted" style="display: inline-block;">
+                                        <li>The path might not exist in Google Analytics for this time period</li>
+                                        <li>The path format might be different</li>
+                                        <li>No visitors accessed this path in the selected time period</li>
+                                    </ul>
+                                    <div class="mt-3">
+                                        <a href="{{ url('user_analytics:web_owner_dashboard') }}?period={{ time_period }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                                        </a>
+                                    </div>
+                                </div>
+                            {% elif source_filter %}
+                                <p class="mb-2">No pageviews found for source: <strong>{{ source_filter }}</strong></p>
+                                <a href="{{ url('user_analytics:pageviews_detail') }}?period={{ time_period }}" class="btn btn-sm btn-outline-primary mt-2">
+                                    <i class="fas fa-list"></i> View All Pageviews
+                                </a>
+                            {% elif search_query %}
+                                <p class="mb-2">No pageviews found matching: <strong>{{ search_query }}</strong></p>
+                                <a href="{{ url('user_analytics:pageviews_detail') }}?period={{ time_period }}" class="btn btn-sm btn-outline-primary mt-2">
+                                    <i class="fas fa-list"></i> View All Pageviews
+                                </a>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <h5><i class="fas fa-exclamation-triangle"></i> No Pageviews Found</h5>
+                                    <p class="mb-2">No pageviews found for the selected time period.</p>
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pageviews and pageviews.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if pageviews.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?period={{ time_period }}&path={{ path_filter|urlencode }}&source={{ source_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ pageviews.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                {% for num in pageviews.paginator.page_range %}
+                    {% if pageviews.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > (pageviews.number - 3) and num < (pageviews.number + 3) %}
+                    <li class="page-item">
+                        <a class="page-link" href="?period={{ time_period }}&path={{ path_filter|urlencode }}&source={{ source_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if pageviews.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?period={{ time_period }}&path={{ path_filter|urlencode }}&source={{ source_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ pageviews.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pathFilter = document.getElementById('pathFilter');
+    const pathSuggestions = document.getElementById('pathSuggestions');
+    const timePeriod = '{{ time_period }}';
+    let allPaths = [];
+    let debounceTimer;
+    
+    // Fetch all paths on page load
+    function loadPaths() {
+        fetch('{{ url("user_analytics:pageviews_paths_api") }}?period=' + timePeriod)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.paths) {
+                    allPaths = data.paths;
+                    updateSuggestions('');
+                    console.log('Loaded', data.count, 'paths for autocomplete');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading paths:', error);
+            });
+    }
+    
+    // Update suggestions based on input
+    function updateSuggestions(query) {
+        // Clear existing options
+        pathSuggestions.innerHTML = '';
+        
+        if (!query) {
+            // Show top 20 paths if no query
+            allPaths.slice(0, 20).forEach(path => {
+                const option = document.createElement('option');
+                option.value = path;
+                pathSuggestions.appendChild(option);
+            });
+        } else {
+            // Filter paths that match the query
+            const queryLower = query.toLowerCase();
+            const matches = allPaths.filter(path => 
+                path.toLowerCase().includes(queryLower)
+            ).slice(0, 50); // Limit to 50 suggestions
+            
+            matches.forEach(path => {
+                const option = document.createElement('option');
+                option.value = path;
+                pathSuggestions.appendChild(option);
+            });
+        }
+    }
+    
+    // Handle input with debounce
+    pathFilter.addEventListener('input', function(e) {
+        clearTimeout(debounceTimer);
+        const query = e.target.value;
+        
+        debounceTimer = setTimeout(() => {
+            updateSuggestions(query);
+        }, 200); // 200ms debounce
+    });
+    
+    // Load paths when time period changes
+    const periodSelect = document.querySelector('select[name="period"]');
+    if (periodSelect) {
+        periodSelect.addEventListener('change', function() {
+            const newPeriod = this.value;
+            fetch('{{ url("user_analytics:pageviews_paths_api") }}?period=' + newPeriod)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.paths) {
+                        allPaths = data.paths;
+                        updateSuggestions(pathFilter.value);
+                        console.log('Reloaded', data.count, 'paths for period', newPeriod);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error reloading paths:', error);
+                });
+        });
+    }
+    
+    // Initial load
+    loadPaths();
+});
+</script>
+{% endblock %}

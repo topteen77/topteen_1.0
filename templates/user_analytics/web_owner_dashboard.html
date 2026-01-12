@@ -5,14 +5,15 @@
 {% block page_title %}Web Owner Analytics Dashboard{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-0">
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
     <div class="d-flex justify-content-end align-items-center mb-4">
         <div>
-            <select id="periodSelect" class="form-select" onchange="updatePeriod(this.value)">
+            <label for="periodSelect" class="form-label me-2">Time Period:</label>
+            <select id="periodSelect" class="form-select" onchange="updatePeriod(this.value)" style="min-width: 150px;">
                 <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
                 <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
                 <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
-                <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
+                <option value="30days" {% if time_period == '30days' or not time_period %}selected{% endif %}>Last 30 Days</option>
                 <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
             </select>
         </div>
@@ -24,7 +25,15 @@
             <div class="admin-card">
                 <div class="card-body">
                     <h5 class="card-title">Total Users</h5>
-                    <h2 class="text-primary">{{ summary.totalUsers }}</h2>
+                    <h2 class="text-primary">
+                        {% if summary.totalUsers > 0 %}
+                            <a href="{{ url('user_analytics:registrations_detail') }}?period={{ time_period }}" style="color: #0d6efd; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ summary.totalUsers }}
+                            </a>
+                        {% else %}
+                            {{ summary.totalUsers }}
+                        {% endif %}
+                    </h2>
                 </div>
             </div>
         </div>
@@ -32,7 +41,15 @@
             <div class="admin-card">
                 <div class="card-body">
                     <h5 class="card-title">Total Sessions</h5>
-                    <h2 class="text-info">{{ summary.totalSessions }}</h2>
+                    <h2 class="text-info">
+                        {% if summary.totalSessions > 0 %}
+                            <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}" style="color: #0dcaf0; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ summary.totalSessions }}
+                            </a>
+                        {% else %}
+                            {{ summary.totalSessions }}
+                        {% endif %}
+                    </h2>
                 </div>
             </div>
         </div>
@@ -40,15 +57,103 @@
             <div class="admin-card">
                 <div class="card-body">
                     <h5 class="card-title">Total Pageviews</h5>
-                    <h2 class="text-success">{{ summary.totalPageviews }}</h2>
+                    <h2 class="text-success">
+                        {% if summary.totalPageviews > 0 %}
+                            <a href="{{ url('user_analytics:pageviews_detail') }}?period={{ time_period }}" style="color: #198754; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                {{ summary.totalPageviews }}
+                            </a>
+                        {% else %}
+                            {{ summary.totalPageviews }}
+                        {% endif %}
+                    </h2>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="admin-card">
                 <div class="card-body">
+                    <h5 class="card-title">New Users</h5>
+                    <h2 class="text-warning">
+                        {% if summary.newUsers > 0 %}
+                            <a href="{{ url('user_analytics:registrations_detail') }}?period={{ time_period }}" style="color: #ffc107; text-decoration: none; cursor: pointer;" title="Click to view new user registrations">
+                                {{ summary.newUsers }}
+                            </a>
+                        {% else %}
+                            {{ summary.newUsers }}
+                        {% endif %}
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Metrics Row -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Converted Sessions</h5>
+                    <h3 class="text-success">
+                        {% if summary.convertedSessions > 0 %}
+                            <a href="{{ url('user_analytics:prospects_detail') }}?period={{ time_period }}&converted=yes" style="color: #198754; text-decoration: none; cursor: pointer;" title="Click to view converted sessions">
+                                {{ summary.convertedSessions }}
+                            </a>
+                        {% else %}
+                            {{ summary.convertedSessions }}
+                        {% endif %}
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="admin-card">
+                <div class="card-body">
+                    <h5 class="card-title">Avg Session Duration (DB)</h5>
+                    <h3>
+                        {% if summary.avgSessionDuration and summary.avgSessionDuration > 0 %}
+                            {{ "%.2f"|format(summary.avgSessionDuration / 60) }} min
+                        {% else %}
+                            0 min
+                        {% endif %}
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="admin-card">
+                <div class="card-body">
                     <h5 class="card-title">Real-time Users</h5>
-                    <h2 class="text-warning">{{ summary.realTimeUsers }}</h2>
+                    <h3 class="text-info">{{ summary.realTimeUsers }}</h3>
+                    {% if real_time_breakdown %}
+                        <div class="mt-2">
+                            <small class="text-muted d-block">
+                                <i class="fas fa-user-plus text-success"></i> New: {{ real_time_breakdown.get('new', 0) }}
+                            </small>
+                            <small class="text-muted d-block">
+                                <i class="fas fa-redo text-primary"></i> Returning: {{ real_time_breakdown.get('returning', 0) }}
+                            </small>
+                        </div>
+                    {% endif %}
+                    {% if existing_users_count > 0 or organic_users_count > 0 %}
+                        <div class="mt-2 border-top pt-2">
+                            <small class="text-muted d-block">
+                                <i class="fas fa-user-check text-info"></i> Registered: {{ existing_users_count }}
+                            </small>
+                            <small class="text-muted d-block">
+                                <i class="fas fa-user-slash text-warning"></i> Organic: {{ organic_users_count }}
+                            </small>
+                        </div>
+                    {% endif %}
+                    {% if real_time_users_by_country %}
+                        <div class="mt-2 border-top pt-2">
+                            <small class="text-muted d-block mb-1"><strong>By Country (Last 30 min):</strong></small>
+                            {% for country_data in real_time_users_by_country[:5] %}
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-globe text-primary"></i> {{ country_data.get('country', 'Unknown') }}: {{ country_data.get('activeUsers', 0) }}
+                                </small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -60,24 +165,42 @@
         <div class="col-md-4">
             <div class="admin-card">
                 <div class="card-body">
-                    <h5 class="card-title">Avg Session Duration</h5>
-                    <h3>{{ "%.2f"|format(engagement.averageSessionDuration) }} min</h3>
+                    <h5 class="card-title">Avg Session Duration (GA4)</h5>
+                    <h3>
+                        {% if engagement.averageSessionDuration %}
+                            {{ "%.2f"|format(engagement.averageSessionDuration) }} min
+                        {% else %}
+                            0 min
+                        {% endif %}
+                    </h3>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="admin-card">
                 <div class="card-body">
-                    <h5 class="card-title">User Engagement</h5>
-                    <h3>{{ "%.2f"|format(engagement.engagementDuration) }} min</h3>
+                    <h5 class="card-title">User Engagement (GA4)</h5>
+                    <h3>
+                        {% if engagement.engagementDuration %}
+                            {{ "%.2f"|format(engagement.engagementDuration) }} min
+                        {% else %}
+                            0 min
+                        {% endif %}
+                    </h3>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="admin-card">
                 <div class="card-body">
-                    <h5 class="card-title">Bounce Rate</h5>
-                    <h3>{{ "%.2f"|format(engagement.bounceRate) }}%</h3>
+                    <h5 class="card-title">Bounce Rate (GA4)</h5>
+                    <h3>
+                        {% if engagement.bounceRate %}
+                            {{ "%.2f"|format(engagement.bounceRate) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
                 </div>
             </div>
         </div>
@@ -88,8 +211,17 @@
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="admin-card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5>Top Pages</h5>
+                    <small class="text-muted">
+                        {% if top_pages %}
+                            {% if db_top_pages and db_top_pages|length > 0 %}
+                                <i class="fas fa-database text-primary" title="Data from database"></i> Database
+                            {% else %}
+                                <i class="fas fa-chart-line text-info" title="Data from Google Analytics"></i> GA4
+                            {% endif %}
+                        {% endif %}
+                    </small>
                 </div>
                 <div class="card-body">
                     <table class="table">
@@ -98,20 +230,75 @@
                                 <th>Page Title</th>
                                 <th>Path</th>
                                 <th>Pageviews</th>
+                                {% if top_pages_with_trends %}
+                                <th>Trend</th>
+                                {% endif %}
                             </tr>
                         </thead>
                         <tbody>
-                            {% for page in top_pages %}
-                            <tr>
-                                <td>{{ page.get('title', 'Unknown') }}</td>
-                                <td>{{ page.get('path', 'N/A') }}</td>
-                                <td>{{ page.get('pageviews', 0) }}</td>
-                            </tr>
+                            {% if top_pages_with_trends and top_pages_with_trends|length > 0 %}
+                                {% for page in top_pages_with_trends %}
+                                <tr>
+                                    <td>{{ page.get('title', 'Unknown') }}</td>
+                                    <td>{{ page.get('path', 'N/A') }}</td>
+                                    <td>
+                                        {% if page.get('pageviews', 0) > 0 %}
+                                            <a href="{{ url('user_analytics:pageviews_detail') }}?period={{ time_period }}&path={{ page.get('path', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                                {{ page.get('pageviews', 0) }}
+                                            </a>
+                                        {% else %}
+                                            {{ page.get('pageviews', 0) }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set percent_change = page.get('percentChange', 0) %}
+                                        {% if percent_change > 0 %}
+                                            <span class="text-success">
+                                                <i class="fas fa-arrow-up"></i> {{ "%.1f"|format(percent_change) }}%
+                                            </span>
+                                        {% elif percent_change < 0 %}
+                                            <span class="text-danger">
+                                                <i class="fas fa-arrow-down"></i> {{ "%.1f"|format(percent_change|abs) }}%
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% elif top_pages and top_pages|length > 0 %}
+                                {% for page in top_pages %}
+                                <tr>
+                                    <td>{{ page.get('title', 'Unknown') }}</td>
+                                    <td>{{ page.get('path', 'N/A') }}</td>
+                                    <td>
+                                        {% if page.get('pageviews', 0) > 0 %}
+                                            <a href="{{ url('user_analytics:pageviews_detail') }}?period={{ time_period }}&path={{ page.get('path', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                                {{ page.get('pageviews', 0) }}
+                                            </a>
+                                        {% else %}
+                                            {{ page.get('pageviews', 0) }}
+                                        {% endif %}
+                                    </td>
+                                    {% if top_pages_with_trends %}
+                                    <td>—</td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
                             {% else %}
-                            <tr>
-                                <td colspan="3">No data available</td>
-                            </tr>
-                            {% endfor %}
+                                <tr>
+                                    <td colspan="{% if top_pages_with_trends %}4{% else %}3{% endif %}" class="text-center py-4">
+                                        <p class="text-muted mb-2">No top pages data available for the selected time period.</p>
+                                        <small class="text-muted">
+                                            {% if time_period == 'today' %}
+                                                Try selecting "Last 7 Days" or "Last 30 Days" for more data.
+                                            {% else %}
+                                                Data may be loading or not available yet.
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -123,8 +310,11 @@
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="admin-card">
-                <div class="card-header">
-                    <h5>Traffic Sources (Database)</h5>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Traffic Sources</h5>
+                    <small class="text-muted">
+                        <i class="fas fa-chart-line text-info" title="Data from Google Analytics"></i> GA4
+                    </small>
                 </div>
                 <div class="card-body">
                     <table class="table">
@@ -139,8 +329,24 @@
                             {% for source in db_traffic_sources %}
                             <tr>
                                 <td>{{ source.get('utm_source', 'Unknown') }}</td>
-                                <td>{{ source.get('sessions', 0) }}</td>
-                                <td>{{ source.get('pageviews', 0) }}</td>
+                                <td>
+                                    {% if source.get('sessions', 0) > 0 %}
+                                        <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}&source={{ source.get('utm_source', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                            {{ source.get('sessions', 0) }}
+                                        </a>
+                                    {% else %}
+                                        {{ source.get('sessions', 0) }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if source.get('pageviews', 0) > 0 %}
+                                        <a href="{{ url('user_analytics:pageviews_detail') }}?period={{ time_period }}&source={{ source.get('utm_source', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                            {{ source.get('pageviews', 0) }}
+                                        </a>
+                                    {% else %}
+                                        {{ source.get('pageviews', 0) }}
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% else %}
                             <tr>
@@ -154,8 +360,11 @@
         </div>
         <div class="col-md-6">
             <div class="admin-card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5>Device Breakdown</h5>
+                    <small class="text-muted">
+                        <i class="fas fa-chart-line text-info" title="Data from Google Analytics"></i> GA4
+                    </small>
                 </div>
                 <div class="card-body">
                     <table class="table">
@@ -169,7 +378,15 @@
                             {% for device in db_device_breakdown %}
                             <tr>
                                 <td>{{ device.get('device_type', 'Unknown') }}</td>
-                                <td>{{ device.get('count', 0) }}</td>
+                                <td>
+                                    {% if device.get('count', 0) > 0 %}
+                                        <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}&device={{ device.get('device_type', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                            {{ device.get('count', 0) }}
+                                        </a>
+                                    {% else %}
+                                        {{ device.get('count', 0) }}
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% else %}
                             <tr>
@@ -183,12 +400,72 @@
         </div>
     </div>
 
+    <!-- Geographic Breakdown -->
+    {% if users_by_country and users_by_country|length > 0 %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="admin-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Active Users by Country</h5>
+                    <small class="text-muted">
+                        <i class="fas fa-chart-line text-info" title="Data from Google Analytics"></i> GA4
+                    </small>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Country</th>
+                                <th>Active Users</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for country_data in users_by_country %}
+                            <tr>
+                                <td>
+                                    <i class="fas fa-globe text-primary"></i> {{ country_data.get('country', 'Unknown') }}
+                                </td>
+                                <td>
+                                    {% if country_data.get('activeUsers', 0) > 0 %}
+                                        <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}&country={{ country_data.get('country', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                            {{ country_data.get('activeUsers', 0) }}
+                                        </a>
+                                    {% else %}
+                                        {{ country_data.get('activeUsers', 0) }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if total_country_users and total_country_users > 0 %}
+                                        {% set country_percent = (country_data.get('activeUsers', 0) / total_country_users * 100) %}
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ country_percent }}%;" aria-valuenow="{{ country_percent }}" aria-valuemin="0" aria-valuemax="100">
+                                                {{ "%.1f"|format(country_percent) }}%
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- User Journey Stats -->
     <div class="row">
         <div class="col-md-6">
             <div class="admin-card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5>Top Entry Pages</h5>
+                    <small class="text-muted">
+                        <i class="fas fa-chart-line text-info" title="Data from Google Analytics"></i> GA4
+                    </small>
                 </div>
                 <div class="card-body">
                     <table class="table">
@@ -202,7 +479,15 @@
                             {% for page in top_entry_pages %}
                             <tr>
                                 <td>{{ page.get('entry_page', 'N/A') }}</td>
-                                <td>{{ page.get('count', 0) }}</td>
+                                <td>
+                                    {% if page.get('count', 0) > 0 %}
+                                        <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}&entry_page={{ page.get('entry_page', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                            {{ page.get('count', 0) }}
+                                        </a>
+                                    {% else %}
+                                        {{ page.get('count', 0) }}
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% else %}
                             <tr>
@@ -216,8 +501,11 @@
         </div>
         <div class="col-md-6">
             <div class="admin-card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5>Top Exit Pages</h5>
+                    <small class="text-muted">
+                        <i class="fas fa-chart-line text-info" title="Data from Google Analytics"></i> GA4
+                    </small>
                 </div>
                 <div class="card-body">
                     <table class="table">
@@ -231,7 +519,15 @@
                             {% for page in top_exit_pages %}
                             <tr>
                                 <td>{{ page.get('exit_page', 'N/A') }}</td>
-                                <td>{{ page.get('count', 0) }}</td>
+                                <td>
+                                    {% if page.get('count', 0) > 0 %}
+                                        <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}&exit_page={{ page.get('exit_page', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                            {{ page.get('count', 0) }}
+                                        </a>
+                                    {% else %}
+                                        {{ page.get('count', 0) }}
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% else %}
                             <tr>
@@ -247,8 +543,29 @@
 </div>
 
 <script>
+// Ensure default period is set on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const periodSelect = document.getElementById('periodSelect');
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPeriod = urlParams.get('period') || '30days';
+    
+    // Set the selected value
+    if (periodSelect) {
+        periodSelect.value = currentPeriod;
+    }
+    
+    // If no period in URL, add it
+    if (!urlParams.has('period')) {
+        const newUrl = window.location.pathname + '?period=30days';
+        window.history.replaceState({}, '', newUrl);
+    }
+});
+
 function updatePeriod(period) {
-    window.location.href = '/user-analytics/web-owner/?period=' + period;
+    if (!period) {
+        period = '30days'; // Default to 30 days
+    }
+    window.location.href = '{{ url("user_analytics:web_owner_dashboard") }}?period=' + period;
 }
 </script>
 {% endblock %}
