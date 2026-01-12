@@ -1,4 +1,62 @@
-.
+=================================================== 
+# Check for compatibility issues
+python manage.py check_production_db_compatibility
+
+# Show SQL fixes
+python manage.py check_production_db_compatibility --fix-suggestions
+```
+
+### 2. User-Test Session Diagnostic
+**File:** `app_post_matric/management/commands/diagnose_user_test_sessions.py`
+
+**Usage:**
+```bash
+# Check specific user
+python manage.py diagnose_user_test_sessions --email latika2010@gmail.com
+
+# Check for duplicates
+python manage.py diagnose_user_test_sessions --check-duplicates
+```
+
++++++
+# Basic check (default: app_post_matric)
+python manage.py check_db_structure
+
+# Check specific app
+python manage.py check_db_structure --app users
+
+# Check all apps
+python manage.py check_db_structure --all-apps
+
+# Save report to file
+python manage.py check_db_structure --output db_report.txt
+
+# Detailed check (includes default values)
+python manage.py check_db_structure --detailed
+
+
++++ Migrations++
+#If you manually add tables that have Django models: Check migration status:
+python manage.py showmigrations app_name
+#If migrations exist but table is already created, fake the migration:
+
+# Find the migration number that creates the tablepython manage.py showmigrations app_post_matric# Fake it (tell Django "this is already done")
+python manage.py migrate app_post_matric 0001_initial --fake
+# Create the migration
+python manage.py makemigrations app_name
+
+# Fake it since table already exists
+# Create the migration
+python manage.py makemigrations app_name
+
+# Fake it since table already exists
+python manage.py migrate app_name --fake
+
+
+===================================================
+
+
+
 kill port:
 
 pkill -f "manage.py runserver.*8002"
@@ -246,3 +304,4 @@ Migrations for 'institute':
 
 
 .
+
