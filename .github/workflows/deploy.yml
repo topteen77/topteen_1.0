@@ -30,7 +30,7 @@
               cd /home/ubuntu/topteens_new/topteen_1.0/
               source /home/ubuntu/topteens_new/env1.0/bin/activate
               git pull origin master
-              pip install -r requirements.txt
+              # pip install -r requirements.txt
               # python3 manage.py makemigrations
               # python3 manage.py migrate
               python3 manage.py collectstatic --noinput
