@@ -19,6 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from user_analytics.models import UserActivity, Lead, UserEvent, UserJourney, AnalyticsCache
+# GA4Session imported conditionally in functions that need it
 from user_analytics.ga4_service import GA4Service
 from users.models import User
 from payments.models import Payment
@@ -29,6 +30,41 @@ from core import choices
 def is_staff_or_superuser(user):
     """Check if user is staff or superuser"""
     return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+
+def get_date_range_from_period(time_period, default_days=30):
+    """
+    Helper function to calculate date range from time period string.
+    Returns (start_date, end_date) tuple. For 'alltime', returns (None, None).
+    
+    Args:
+        time_period: One of 'today', 'yesterday', '7days', '30days', '90days', 'alltime'
+        default_days: Default number of days if period is invalid (default: 30)
+    
+    Returns:
+        tuple: (start_date, end_date) - both datetime objects, or (None, None) for 'alltime'
+    """
+    end_date = timezone.now()
+    
+    if time_period == 'today':
+        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif time_period == 'yesterday':
+        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = start_date + timedelta(days=1)
+    elif time_period == '7days':
+        start_date = end_date - timedelta(days=7)
+    elif time_period == '30days':
+        start_date = end_date - timedelta(days=30)
+    elif time_period == '90days':
+        start_date = end_date - timedelta(days=90)
+    elif time_period == 'alltime':
+        # For all time, return None to indicate no date filtering
+        return (None, None)
+    else:
+        # Default to specified number of days
+        start_date = end_date - timedelta(days=default_days)
+    
+    return (start_date, end_date)
 
 
 def is_superuser_only(user):
@@ -46,81 +82,97 @@ def admin_dashboard(request):
     time_period = request.GET.get('period', '30days')
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
     # Quick Stats - Filtered by period
-    total_users = User.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    total_users_query = User.objects.all()
+    if start_date is not None:
+        total_users_query = total_users_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    total_users = total_users_query.count()
     
-    active_users = User.objects.filter(
-        is_active=True,
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    active_users_query = User.objects.filter(is_active=True)
+    if start_date is not None:
+        active_users_query = active_users_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    active_users = active_users_query.count()
     
-    total_payments = Payment.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    total_payments_query = Payment.objects.all()
+    if start_date is not None:
+        total_payments_query = total_payments_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    total_payments = total_payments_query.count()
     
-    successful_payments = Payment.objects.filter(
-        is_success=choices.YesNoChoices.YES,
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    successful_payments_query = Payment.objects.filter(is_success=choices.YesNoChoices.YES)
+    if start_date is not None:
+        successful_payments_query = successful_payments_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    successful_payments = successful_payments_query.count()
     
     # Recent Activity - Filtered by period
-    recent_registrations = User.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).order_by('-created')[:10]
+    recent_registrations_query = User.objects.all()
+    if start_date is not None:
+        recent_registrations_query = recent_registrations_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    recent_registrations = recent_registrations_query.order_by('-created')[:10]
     
-    recent_payments = Payment.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).order_by('-created')[:10]
+    recent_payments_query = Payment.objects.all()
+    if start_date is not None:
+        recent_payments_query = recent_payments_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    recent_payments = recent_payments_query.order_by('-created')[:10]
     
     # Analytics Summary
-    total_page_views = UserActivity.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    total_page_views_query = UserActivity.objects.all()
+    if start_date is not None:
+        total_page_views_query = total_page_views_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    total_page_views = total_page_views_query.count()
     
-    total_sessions = UserActivity.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).values('session_id').distinct().count()
+    total_sessions_query = UserActivity.objects.all()
+    if start_date is not None:
+        total_sessions_query = total_sessions_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    total_sessions = total_sessions_query.values('session_id').distinct().count()
     
-    total_revenue = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    total_revenue_query = UserEvent.objects.filter(event_type='payment_success')
+    if start_date is not None:
+        total_revenue_query = total_revenue_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    total_revenue = total_revenue_query.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
     
-    total_leads = Lead.objects.filter(
-        first_visit__gte=start_date,
-        first_visit__lte=end_date
-    ).count()
+    from core import choices
+    
+    total_leads_query = Lead.objects.all()
+    if start_date is not None:
+        total_leads_query = total_leads_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    total_leads = total_leads_query.count()
     
     context = {
         'time_period': time_period,
-        'start_date': start_date,
-        'end_date': end_date,
+        'start_date': start_date,  # Can be None for alltime
+        'end_date': end_date,  # Can be None for alltime
         'total_users': total_users,
         'active_users': active_users,
         'total_payments': total_payments,
@@ -153,139 +205,170 @@ def business_dashboard(request):
     time_period = request.GET.get('period', '30days')
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
-    # Revenue Metrics
-    revenue_events = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    )
+    # Revenue Metrics - Check UserEvent first, then fallback to Payment model
+    revenue_events = UserEvent.objects.filter(event_type='payment_success')
+    if start_date is not None:
+        revenue_events = revenue_events.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
     total_revenue = revenue_events.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    successful_payments_from_events = revenue_events.count()
     
-    # Payment Metrics
-    successful_payments = revenue_events.count()
+    # Fallback to Payment model if UserEvent has no data
+    if total_revenue == 0 or successful_payments_from_events == 0:
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            # Get successful payments from Payment model
+            successful_payments_model = Payment.objects.filter(
+                is_success=choices.YesNoChoices.YES
+            )
+            if start_date is not None:
+                successful_payments_model = successful_payments_model.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            
+            # Calculate revenue from Payment model
+            payment_revenue = successful_payments_model.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            
+            # Use Payment model data if it has more revenue
+            if payment_revenue > total_revenue:
+                total_revenue = payment_revenue
+                successful_payments = successful_payments_model.count()
+                logger.info(f"Using Payment model data: {successful_payments} payments, {total_revenue} revenue")
+            else:
+                successful_payments = successful_payments_from_events
+        except Exception as e:
+            logger.warning(f"Error fetching Payment model data: {e}")
+            successful_payments = successful_payments_from_events
+    else:
+        successful_payments = successful_payments_from_events
     
     # Failed Payments - Calculate count and attempted revenue
-    failed_payment_events = UserEvent.objects.filter(
-        event_type='payment_failed',
-        created__gte=start_date,
-        created__lte=end_date
-    )
+    failed_payment_events = UserEvent.objects.filter(event_type='payment_failed')
+    if start_date is not None:
+        failed_payment_events = failed_payment_events.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
     failed_payments = failed_payment_events.count()
     failed_payments_revenue = failed_payment_events.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
     
+    # Fallback to Payment model for failed payments if UserEvent has no data
+    if failed_payments == 0:
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            failed_payments_model = Payment.objects.filter(
+                is_success=choices.YesNoChoices.NO
+            )
+            if start_date is not None:
+                failed_payments_model = failed_payments_model.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            failed_payments = failed_payments_model.count()
+            failed_payments_revenue = failed_payments_model.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        except Exception:
+            pass
+    
     # Pending Payments - Calculate count and potential revenue
-    pending_payment_events = UserEvent.objects.filter(
-        event_type='payment_pending',
-        created__gte=start_date,
-        created__lte=end_date
-    )
+    pending_payment_events = UserEvent.objects.filter(event_type='payment_pending')
+    if start_date is not None:
+        pending_payment_events = pending_payment_events.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
     pending_payments = pending_payment_events.count()
     pending_payments_revenue = pending_payment_events.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
     
     # Enrollment Metrics
-    total_enrollments = UserEvent.objects.filter(
-        event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered'],
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    enrollment_events = UserEvent.objects.filter(
+        event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered']
+    )
+    if start_date is not None:
+        enrollment_events = enrollment_events.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    total_enrollments = enrollment_events.count()
     
-    psychometric_enrollments = UserEvent.objects.filter(
-        event_type='psychometric_test_completed',
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    psychometric_query = UserEvent.objects.filter(event_type='psychometric_test_completed')
+    course_query = UserEvent.objects.filter(event_type__in=['course_enrolled', 'skilllab_enrolled'])
     
-    course_enrollments = UserEvent.objects.filter(
-        event_type__in=['course_enrolled', 'skilllab_enrolled'],
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    if start_date is not None:
+        psychometric_query = psychometric_query.filter(created__gte=start_date, created__lte=end_date)
+        course_query = course_query.filter(created__gte=start_date, created__lte=end_date)
+    
+    psychometric_enrollments = psychometric_query.count()
+    course_enrollments = course_query.count()
     
     # Psychometric Test Revenue Breakdown
     # Class 12 = Career Direction = ADVANCED test
-    class12_psychometric_revenue = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).filter(
+    class12_query = UserEvent.objects.filter(event_type='payment_success').filter(
         Q(metadata__test_name='Career Direction') |
         Q(metadata__test_type='Advanced test') |
         Q(event_name__icontains='Career Direction')
-    ).aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    )
+    if start_date is not None:
+        class12_query = class12_query.filter(created__gte=start_date, created__lte=end_date)
     
-    class12_psychometric_count = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).filter(
-        Q(metadata__test_name='Career Direction') |
-        Q(metadata__test_type='Advanced test') |
-        Q(event_name__icontains='Career Direction')
-    ).count()
+    class12_psychometric_revenue = class12_query.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    class12_psychometric_count = class12_query.count()
     
     # Stream Sorter (Class 10-11) = BASIC test
-    stream_sorter_revenue = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).filter(
+    stream_sorter_query = UserEvent.objects.filter(event_type='payment_success').filter(
         Q(metadata__test_name='Stream Sorter') |
         Q(event_name__icontains='Stream Sorter')
-    ).aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    )
+    if start_date is not None:
+        stream_sorter_query = stream_sorter_query.filter(created__gte=start_date, created__lte=end_date)
     
-    stream_sorter_count = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).filter(
-        Q(metadata__test_name='Stream Sorter') |
-        Q(event_name__icontains='Stream Sorter')
-    ).count()
+    stream_sorter_revenue = stream_sorter_query.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    stream_sorter_count = stream_sorter_query.count()
     
     # Conversion Funnel
-    total_visitors = UserActivity.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).values('session_id').distinct().count()
+    visitors_query = UserActivity.objects.all()
+    registrations_query = UserEvent.objects.filter(event_type='registration')
     
-    total_registrations = UserEvent.objects.filter(
-        event_type='registration',
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    if start_date is not None:
+        visitors_query = visitors_query.filter(created__gte=start_date, created__lte=end_date)
+        registrations_query = registrations_query.filter(created__gte=start_date, created__lte=end_date)
     
-    total_leads = Lead.objects.filter(
-        first_visit__gte=start_date,
-        first_visit__lte=end_date
-    ).count()
+    total_visitors = visitors_query.values('session_id').distinct().count()
+    total_registrations = registrations_query.count()
     
-    converted_leads = Lead.objects.filter(
-        is_converted=True,
-        converted_at__gte=start_date,
-        converted_at__lte=end_date
-    ).count()
+    from core import choices
+    
+    total_leads_query = Lead.objects.all()
+    converted_leads_query = Lead.objects.filter(is_converted=True)
+    
+    if start_date is not None:
+        total_leads_query = total_leads_query.filter(
+            first_visit__gte=start_date,
+            first_visit__lte=end_date
+        )
+        converted_leads_query = converted_leads_query.filter(
+            converted_at__gte=start_date,
+            converted_at__lte=end_date
+        )
+    
+    total_leads = total_leads_query.count()
+    converted_leads = converted_leads_query.count()
     
     # Revenue by Source - Query JSONField properly
-    revenue_by_source_raw = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).exclude(metadata__isnull=True)
+    revenue_by_source_raw = UserEvent.objects.filter(event_type='payment_success').exclude(metadata__isnull=True)
+    if start_date is not None:
+        revenue_by_source_raw = revenue_by_source_raw.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
     
     # Process revenue by source manually since JSONField queries can be tricky
     revenue_by_source_dict = {}
@@ -296,6 +379,29 @@ def business_dashboard(request):
         revenue_by_source_dict[source]['revenue'] += event.event_value or Decimal('0')
         revenue_by_source_dict[source]['count'] += 1
     
+    # If no revenue by source from UserEvent, try Payment model by obj_type
+    if not revenue_by_source_dict or sum(data['revenue'] for data in revenue_by_source_dict.values()) == 0:
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            payment_revenue_query = Payment.objects.filter(is_success=choices.YesNoChoices.YES)
+            if start_date is not None:
+                payment_revenue_query = payment_revenue_query.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            
+            # Group by obj_type (payment type)
+            for payment in payment_revenue_query:
+                obj_type_name = dict(choices.PaymentObjectType.CHOICES).get(payment.obj_type, f'Type {payment.obj_type}')
+                if obj_type_name not in revenue_by_source_dict:
+                    revenue_by_source_dict[obj_type_name] = {'revenue': Decimal('0'), 'count': 0}
+                revenue_by_source_dict[obj_type_name]['revenue'] += payment.amount or Decimal('0')
+                revenue_by_source_dict[obj_type_name]['count'] += 1
+        except Exception as e:
+            logger.warning(f"Error fetching revenue by source from Payment model: {e}")
+    
     # Convert to list and sort by revenue
     revenue_by_source = [
         {'metadata__source': source, 'revenue': float(data['revenue']), 'count': data['count']}
@@ -303,32 +409,118 @@ def business_dashboard(request):
     ][:10]
     
     # Daily Revenue Trend - Use TruncDate for better database compatibility
-    daily_revenue = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).annotate(
+    # Try UserEvent first, fallback to Payment model
+    daily_revenue_query = UserEvent.objects.filter(event_type='payment_success')
+    if start_date is not None:
+        daily_revenue_query = daily_revenue_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    daily_revenue = daily_revenue_query.annotate(
         day=TruncDate('created')
     ).values('day').annotate(
         revenue=Sum('event_value'),
         count=Count('id')
     ).order_by('day')
     
+    # Fallback to Payment model if no UserEvent data
+    if not daily_revenue.exists():
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            payment_query = Payment.objects.filter(is_success=choices.YesNoChoices.YES)
+            if start_date is not None:
+                payment_query = payment_query.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            daily_revenue = payment_query.annotate(
+                day=TruncDate('created')
+            ).values('day').annotate(
+                revenue=Sum('amount'),
+                count=Count('id')
+            ).order_by('day')
+        except Exception as e:
+            logger.warning(f"Error fetching daily revenue from Payment model: {e}")
+    
     # Top Products/Services
-    top_products = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).values('event_name').annotate(
+    top_products_query = UserEvent.objects.filter(event_type='payment_success')
+    if start_date is not None:
+        top_products_query = top_products_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    top_products = top_products_query.values('event_name').annotate(
         revenue=Sum('event_value'),
         count=Count('id')
     ).order_by('-revenue')[:10]
+    
+    # Fallback to Payment model if no UserEvent data
+    if not top_products.exists():
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            # Get top products by payment object type
+            payment_query = Payment.objects.filter(is_success=choices.YesNoChoices.YES)
+            if start_date is not None:
+                payment_query = payment_query.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            top_products = payment_query.values('obj_type').annotate(
+                revenue=Sum('amount'),
+                count=Count('id')
+            ).order_by('-revenue')[:10]
+            
+            # Convert obj_type to readable names
+            top_products_list = []
+            for item in top_products:
+                obj_type = item['obj_type']
+                type_name = dict(choices.PaymentObjectType.CHOICES).get(obj_type, f'Type {obj_type}')
+                top_products_list.append({
+                    'event_name': type_name,
+                    'revenue': float(item['revenue']),
+                    'count': item['count']
+                })
+            top_products = top_products_list
+        except Exception as e:
+            logger.warning(f"Error fetching top products from Payment model: {e}")
     
     # Calculate summary metrics
     total_attempts = successful_payments + failed_payments + pending_payments
     success_rate = (successful_payments / total_attempts * 100) if total_attempts > 0 else 0
     
+    # Calculate total attempted revenue - use Payment model if we're using it for successful/failed
+    # This ensures consistency (all from Payment model or all from UserEvent)
     total_attempted_revenue = total_revenue + failed_payments_revenue + pending_payments_revenue
+    
+    # If we're using Payment model for successful/failed, also calculate total attempted from Payment model
+    # to ensure consistency
+    try:
+        from payments.models import Payment
+        from core import choices
+        
+        # Check if we should use Payment model for total attempted
+        # (if successful or failed payments came from Payment model)
+        payment_model_successful = Payment.objects.filter(is_success=choices.YesNoChoices.YES)
+        payment_model_failed = Payment.objects.filter(is_success=choices.YesNoChoices.NO)
+        if start_date is not None:
+            payment_model_successful = payment_model_successful.filter(created__gte=start_date, created__lte=end_date)
+            payment_model_failed = payment_model_failed.filter(created__gte=start_date, created__lte=end_date)
+        
+        payment_successful_revenue = payment_model_successful.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        payment_failed_revenue = payment_model_failed.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        payment_total_attempted = payment_successful_revenue + payment_failed_revenue
+        
+        # If Payment model has more data, use it for total attempted
+        if payment_total_attempted > total_attempted_revenue:
+            total_attempted_revenue = payment_total_attempted
+            logger.info(f"Using Payment model for total attempted revenue: ₹{total_attempted_revenue}")
+    except Exception as e:
+        logger.warning(f"Error calculating total attempted revenue from Payment model: {e}")
+    
     conversion_value_rate = (total_revenue / total_attempted_revenue * 100) if total_attempted_revenue > 0 else 0
     
     context = {
@@ -373,26 +565,15 @@ def accounts_dashboard(request):
     time_period = request.GET.get('period', '30days')
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
     # User Registration Trends
-    user_registrations = User.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    )
+    user_registrations = User.objects.all()
+    if start_date is not None:
+        user_registrations = user_registrations.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
     total_registrations = user_registrations.count()
     
     daily_registrations = user_registrations.extra(
@@ -402,55 +583,88 @@ def accounts_dashboard(request):
     ).order_by('day')
     
     # Payment Status Breakdown
+    payment_success_query = UserEvent.objects.filter(event_type='payment_success')
+    payment_failed_query = UserEvent.objects.filter(event_type='payment_failed')
+    payment_pending_query = UserEvent.objects.filter(event_type='payment_pending')
+    
+    if start_date is not None:
+        payment_success_query = payment_success_query.filter(created__gte=start_date, created__lte=end_date)
+        payment_failed_query = payment_failed_query.filter(created__gte=start_date, created__lte=end_date)
+        payment_pending_query = payment_pending_query.filter(created__gte=start_date, created__lte=end_date)
+    
     payment_status = {
-        'success': UserEvent.objects.filter(
-            event_type='payment_success',
-            created__gte=start_date,
-            created__lte=end_date
-        ).count(),
-        'failed': UserEvent.objects.filter(
-            event_type='payment_failed',
-            created__gte=start_date,
-            created__lte=end_date
-        ).count(),
-        'pending': UserEvent.objects.filter(
-            event_type='payment_pending',
-            created__gte=start_date,
-            created__lte=end_date
-        ).count(),
+        'success': payment_success_query.count(),
+        'failed': payment_failed_query.count(),
+        'pending': payment_pending_query.count(),
     }
     
-    # Revenue Metrics
-    total_revenue = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    # Revenue Metrics - Check UserEvent first, then fallback to Payment model
+    total_revenue_query = UserEvent.objects.filter(event_type='payment_success')
+    if start_date is not None:
+        total_revenue_query = total_revenue_query.filter(created__gte=start_date, created__lte=end_date)
+    total_revenue = total_revenue_query.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    successful_payments_from_events = payment_success_query.count()
+    
+    # Fallback to Payment model if UserEvent has no data
+    if total_revenue == 0 or successful_payments_from_events == 0:
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            # Get successful payments from Payment model
+            successful_payments_model = Payment.objects.filter(
+                is_success=choices.YesNoChoices.YES
+            )
+            if start_date is not None:
+                successful_payments_model = successful_payments_model.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            
+            # Calculate revenue from Payment model
+            payment_revenue = successful_payments_model.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            payment_success_count = successful_payments_model.count()
+            
+            # Use Payment model data if it has more revenue
+            if payment_revenue > total_revenue:
+                total_revenue = payment_revenue
+                payment_status['success'] = payment_success_count
+                logger.info(f"Using Payment model data for accounts dashboard: {payment_success_count} payments, ₹{total_revenue} revenue")
+            
+            # Also update failed payments count from Payment model
+            failed_payments_model = Payment.objects.filter(is_success=choices.YesNoChoices.NO)
+            if start_date is not None:
+                failed_payments_model = failed_payments_model.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            payment_failed_count = failed_payments_model.count()
+            if payment_failed_count > payment_status['failed']:
+                payment_status['failed'] = payment_failed_count
+        except Exception as e:
+            logger.warning(f"Error fetching Payment model data for accounts dashboard: {e}")
     
     # Prospects (Leads)
-    total_prospects = Lead.objects.filter(
-        first_visit__gte=start_date,
-        first_visit__lte=end_date
-    ).count()
+    total_prospects_query = Lead.objects.all()
+    converted_prospects_query = Lead.objects.filter(is_converted=True)
+    pending_prospects_query = Lead.objects.filter(is_converted=False)
     
-    converted_prospects = Lead.objects.filter(
-        is_converted=True,
-        converted_at__gte=start_date,
-        converted_at__lte=end_date
-    ).count()
+    if start_date is not None:
+        total_prospects_query = total_prospects_query.filter(first_visit__gte=start_date, first_visit__lte=end_date)
+        converted_prospects_query = converted_prospects_query.filter(converted_at__gte=start_date, converted_at__lte=end_date)
+        pending_prospects_query = pending_prospects_query.filter(first_visit__gte=start_date, first_visit__lte=end_date)
     
-    pending_prospects = Lead.objects.filter(
-        is_converted=False,
-        first_visit__gte=start_date,
-        first_visit__lte=end_date
-    ).count()
+    total_prospects = total_prospects_query.count()
+    converted_prospects = converted_prospects_query.count()
+    pending_prospects = pending_prospects_query.count()
     
     # Revenue by Source - Query JSONField properly
-    revenue_by_source_raw = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).exclude(metadata__isnull=True)
+    revenue_by_source_raw = UserEvent.objects.filter(event_type='payment_success').exclude(metadata__isnull=True)
+    if start_date is not None:
+        revenue_by_source_raw = revenue_by_source_raw.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
     
     # Process revenue by source manually since JSONField queries can be tricky
     revenue_by_source_dict = {}
@@ -468,20 +682,24 @@ def accounts_dashboard(request):
     ]
     
     # Failed Payments Analysis
-    failed_payments = UserEvent.objects.filter(
-        event_type='payment_failed',
-        created__gte=start_date,
-        created__lte=end_date
-    ).values('event_name').annotate(
+    failed_payments_query = UserEvent.objects.filter(event_type='payment_failed')
+    if start_date is not None:
+        failed_payments_query = failed_payments_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    failed_payments = failed_payments_query.values('event_name').annotate(
         count=Count('id')
     ).order_by('-count')[:10]
     
     # Pending Payments
-    pending_payments_list = UserEvent.objects.filter(
-        event_type='payment_pending',
-        created__gte=start_date,
-        created__lte=end_date
-    ).select_related('user').order_by('-created')[:20]
+    pending_payments_query = UserEvent.objects.filter(event_type='payment_pending')
+    if start_date is not None:
+        pending_payments_query = pending_payments_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    pending_payments_list = pending_payments_query.select_related('user').order_by('-created')[:20]
     
     context = {
         'time_period': time_period,
@@ -509,12 +727,12 @@ def web_owner_dashboard(request):
     Web Owner Dashboard
     Shows traffic sources, user journey, engagement metrics, and page analytics.
     """
-    time_period = request.GET.get('period', '30days')
+    time_period = request.GET.get('period', 'today')
     
-    # Ensure default is 30days if not provided or invalid
-    valid_periods = ['today', 'yesterday', '7days', '30days', '90days']
+    # Ensure default is today if not provided or invalid
+    valid_periods = ['today', 'yesterday', '7days', '30days', '90days', 'alltime']
     if time_period not in valid_periods:
-        time_period = '30days'
+        time_period = 'today'
     
     logger.info("=" * 80)
     logger.info(f"WEB OWNER DASHBOARD - Time Period: {time_period}")
@@ -524,21 +742,34 @@ def web_owner_dashboard(request):
     ga4_service = GA4Service()
     logger.debug("GA4 Service initialized")
     
-    # Get GA4 metrics - disable cache to ensure fresh data
-    logger.debug("Fetching GA4 metrics (cache disabled)...")
+    # Get GA4 metrics - optimized for performance
+    # Load critical data first, then optional data can be loaded via AJAX
+    logger.debug("Fetching GA4 metrics (optimized for performance)...")
     try:
-        user_metrics = ga4_service.get_user_metrics(time_period, use_cache=False)
-        device_breakdown = ga4_service.get_device_breakdown(time_period, use_cache=False)
-        top_pages = ga4_service.get_top_pages(time_period, limit=20, use_cache=False)
-        top_pages_with_trends = ga4_service.get_top_pages_with_trends(time_period, limit=20, use_cache=False)
-        traffic_sources = ga4_service.get_traffic_sources(time_period, limit=15, use_cache=False)
-        engagement = ga4_service.get_user_engagement(time_period, use_cache=False)
-        real_time_users = ga4_service.get_real_time_users()
-        real_time_breakdown = ga4_service.get_real_time_users_breakdown()
-        real_time_users_by_country = ga4_service.get_real_time_users_by_country()
-        users_by_country = ga4_service.get_users_by_country(time_period, limit=10, use_cache=False)
-        ga4_entry_pages = ga4_service.get_entry_pages(time_period, limit=10, use_cache=False)
-        ga4_exit_pages = ga4_service.get_exit_pages(time_period, limit=10, use_cache=False)
+        # Critical data - load immediately (core metrics)
+        user_metrics = ga4_service.get_user_metrics(time_period, use_cache=True)
+        device_breakdown = ga4_service.get_device_breakdown(time_period, use_cache=True)
+        top_pages = ga4_service.get_top_pages(time_period, limit=20, use_cache=True)
+        traffic_sources = ga4_service.get_traffic_sources(time_period, limit=15, use_cache=True)
+        
+        # Real-time data - load only if period is 'today' (most relevant)
+        # For other periods, skip real-time to improve performance
+        if time_period == 'today':
+            real_time_users = ga4_service.get_real_time_users()
+            real_time_breakdown = ga4_service.get_real_time_users_breakdown()
+            real_time_users_by_country = ga4_service.get_real_time_users_by_country()
+        else:
+            real_time_users = None
+            real_time_breakdown = None
+            real_time_users_by_country = []
+        
+        # Optional data - can be loaded via AJAX if needed (disabled for initial load)
+        # These are less critical and can be loaded on-demand
+        top_pages_with_trends = []  # Disabled - makes multiple API calls, very slow
+        engagement = None  # Can be loaded via AJAX if needed
+        users_by_country = []  # Can be loaded via AJAX if needed
+        ga4_entry_pages = []  # Can be loaded via AJAX if needed
+        ga4_exit_pages = []  # Can be loaded via AJAX if needed
     except Exception as e:
         logger.error(f"Error fetching GA4 data: {e}", exc_info=True)
         # Set defaults to None/empty lists on error
@@ -558,75 +789,68 @@ def web_owner_dashboard(request):
     # Calculate existing vs organic users from database (if available)
     # This is a fallback - GA4 doesn't directly tell us registered vs anonymous
     # We can infer from our database tracking
+    # Only calculate if needed (optimize for performance)
     existing_users_count = 0
     organic_users_count = 0
-    if UserActivity.objects.exists():
-        # Count unique registered users in last hour
-        recent_cutoff = timezone.now() - timedelta(hours=1)
-        existing_users_count = UserActivity.objects.filter(
-            created__gte=recent_cutoff,
-            user__isnull=False
-        ).values('user').distinct().count()
-        
-        # Count unique anonymous sessions in last hour
-        organic_users_count = UserActivity.objects.filter(
-            created__gte=recent_cutoff,
-            user__isnull=True
-        ).values('session_id').distinct().count()
+    # Skip this expensive query for now - can be loaded via AJAX if needed
+    # if UserActivity.objects.exists():
+    #     # Count unique registered users in last hour
+    #     recent_cutoff = timezone.now() - timedelta(hours=1)
+    #     existing_users_count = UserActivity.objects.filter(
+    #         created__gte=recent_cutoff,
+    #         user__isnull=False
+    #     ).values('user').distinct().count()
+    #     
+    #     # Count unique anonymous sessions in last hour
+    #     organic_users_count = UserActivity.objects.filter(
+    #         created__gte=recent_cutoff,
+    #         user__isnull=True
+    #     ).values('session_id').distinct().count()
     
-    logger.info(f"GA4 Data Retrieved:")
+    logger.info(f"GA4 Data Retrieved (Optimized):")
     logger.info(f"  - User Metrics: {'Available' if user_metrics else 'Not Available'}")
     logger.info(f"  - Device Breakdown: {'Available' if device_breakdown else 'Not Available'}")
     logger.info(f"  - Top Pages: {len(top_pages) if top_pages else 0} pages")
     logger.info(f"  - Traffic Sources: {'Available' if traffic_sources else 'Not Available'}")
-    logger.info(f"  - Engagement: {'Available' if engagement else 'Not Available'}")
-    logger.info(f"  - Real-time Users: {real_time_users or 0}")
-    if real_time_breakdown:
-        logger.info(f"    - New Users: {real_time_breakdown.get('new', 0)}")
-        logger.info(f"    - Returning Users: {real_time_breakdown.get('returning', 0)}")
-    logger.info(f"  - Entry Pages: {len(ga4_entry_pages) if ga4_entry_pages else 0} pages")
-    logger.info(f"  - Exit Pages: {len(ga4_exit_pages) if ga4_exit_pages else 0} pages")
-    logger.info(f"  - Real-time Users by Country: {len(real_time_users_by_country) if real_time_users_by_country else 0} countries")
-    logger.info(f"  - Users by Country: {len(users_by_country) if users_by_country else 0} countries")
-    logger.info(f"  - Top Pages with Trends: {len(top_pages_with_trends) if top_pages_with_trends else 0} pages")
-    logger.info(f"  - Existing Users (DB tracking): {existing_users_count}")
-    logger.info(f"  - Organic Users (DB tracking): {organic_users_count}")
+    if time_period == 'today':
+        logger.info(f"  - Real-time Users: {real_time_users or 0}")
+        if real_time_breakdown:
+            logger.info(f"    - New Users: {real_time_breakdown.get('new', 0)}")
+            logger.info(f"    - Returning Users: {real_time_breakdown.get('returning', 0)}")
+    else:
+        logger.info(f"  - Real-time data: Skipped (not needed for {time_period})")
+    logger.info(f"  - Optional data (Entry/Exit pages, Countries, Trends): Loaded via AJAX if needed")
     
     # Calculate date range for database queries
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
+    
+    if start_date is not None:
+        logger.info(f"Date Range: {start_date.strftime('%Y-%m-%d %H:%M:%S')} to {end_date.strftime('%Y-%m-%d %H:%M:%S')}")
+        logger.info(f"Duration: {(end_date - start_date).days} days")
     else:
-        start_date = end_date - timedelta(days=30)
+        logger.info("Date Range: All Time (no date filtering)")
     
-    logger.info(f"Date Range: {start_date.strftime('%Y-%m-%d %H:%M:%S')} to {end_date.strftime('%Y-%m-%d %H:%M:%S')}")
-    logger.info(f"Duration: {(end_date - start_date).days} days")
+    # User Journey Metrics - Only calculate if needed (optimize for performance)
+    # These queries can be expensive, so we'll use GA4 data primarily
+    total_sessions = 0
+    converted_sessions = 0
+    avg_session_duration = 0
     
-    # User Journey Metrics
-    total_sessions = UserJourney.objects.filter(
-        start_time__gte=start_date,
-        start_time__lte=end_date
-    ).count()
-    
-    converted_sessions = UserJourney.objects.filter(
-        converted=True,
-        start_time__gte=start_date,
-        start_time__lte=end_date
-    ).count()
-    
-    avg_session_duration = UserJourney.objects.filter(
-        start_time__gte=start_date,
-        start_time__lte=end_date
-    ).aggregate(avg=Avg('total_time'))['avg'] or 0
+    # Only query database if GA4 sessions data is not available
+    if not user_metrics or not user_metrics.get('sessions'):
+        journey_query = UserJourney.objects.all()
+        if start_date is not None:
+            journey_query = journey_query.filter(
+                start_time__gte=start_date,
+                start_time__lte=end_date
+            )
+        
+        total_sessions = journey_query.count()
+        converted_sessions = journey_query.filter(converted=True).count()
+        avg_session_duration = journey_query.aggregate(avg=Avg('total_time'))['avg'] or 0
+    else:
+        # Use GA4 data for sessions
+        total_sessions = sum(user_metrics.get('sessions', [])) if user_metrics else 0
     
     logger.info(f"Database User Journey Metrics:")
     logger.info(f"  - Total Sessions: {total_sessions}")
@@ -665,24 +889,30 @@ def web_owner_dashboard(request):
     logger.info(f"  - Entry Pages: {len(top_entry_pages)} pages")
     logger.info(f"  - Exit Pages: {len(top_exit_pages)} pages")
     
-    # Top Pages - Always use database as primary source for dynamic data
+    # Top Pages - Use database as primary source (faster than GA4 API)
     # Database data is more reliable and always up-to-date
-    db_top_pages_raw = UserActivity.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).exclude(page_path__isnull=True).exclude(page_path='').values('page_path', 'page_title').annotate(
-        pageviews=Count('id')
-    ).order_by('-pageviews')[:20]
+    # Only query if we need it (if GA4 top_pages is empty)
+    db_top_pages = []
+    if not top_pages or len(top_pages) == 0:
+        db_top_pages_query = UserActivity.objects.exclude(page_path__isnull=True).exclude(page_path='')
+        if start_date is not None:
+            db_top_pages_query = db_top_pages_query.filter(
+                created__gte=start_date,
+                created__lte=end_date
+            )
+        db_top_pages_raw = db_top_pages_query.values('page_path', 'page_title').annotate(
+            pageviews=Count('id')
+        ).order_by('-pageviews')[:20]
     
-    # Convert to same format as GA4 top_pages
-    db_top_pages = [
-        {
-            'path': item.get('page_path', 'N/A'),
-            'title': item.get('page_title') or item.get('page_path', 'Unknown'),
-            'pageviews': item.get('pageviews', 0)
-        }
-        for item in db_top_pages_raw
-    ]
+        # Convert to same format as GA4 top_pages
+        db_top_pages = [
+            {
+                'path': item.get('page_path', 'N/A'),
+                'title': item.get('page_title') or item.get('page_path', 'Unknown'),
+                'pageviews': item.get('pageviews', 0)
+            }
+            for item in db_top_pages_raw
+        ]
     
     # Use database as primary source (if available), fallback to GA4
     # Database data is more reliable and always up-to-date, but GA4 has broader coverage
@@ -696,17 +926,28 @@ def web_owner_dashboard(request):
         # No data from either source
         final_top_pages = []
     
-    # Calculate total pageviews from database if GA4 is unavailable
-    db_total_pageviews = UserActivity.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    # Calculate total pageviews from database only if GA4 is unavailable (lazy evaluation)
+    db_total_pageviews = 0
+    db_total_users = 0
+    if not user_metrics or not user_metrics.get('screenPageViews'):
+        # Only query database if GA4 data is not available
+        db_total_pageviews_query = UserActivity.objects.all()
+        if start_date is not None:
+            db_total_pageviews_query = db_total_pageviews_query.filter(
+                created__gte=start_date,
+                created__lte=end_date
+            )
+        db_total_pageviews = db_total_pageviews_query.count()
     
-    # Calculate total users from database if GA4 is unavailable
-    db_total_users = User.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    if not user_metrics or not user_metrics.get('activeUsers'):
+        # Only query database if GA4 data is not available
+        db_total_users_query = User.objects.all()
+        if start_date is not None:
+            db_total_users_query = db_total_users_query.filter(
+                created__gte=start_date,
+                created__lte=end_date
+            )
+        db_total_users = db_total_users_query.count()
     
     logger.info(f"Database Summary Metrics:")
     logger.info(f"  - Total Users: {db_total_users}")
@@ -774,6 +1015,24 @@ def web_owner_dashboard(request):
     
     logger.info("=" * 80)
     
+    # Check if database has any data for this time period (to determine if detail links should be clickable)
+    # Only check if needed (optimize for performance)
+    has_db_data = False
+    if db_top_pages or total_sessions > 0:
+        # If we already have database data, set flag to True
+        has_db_data = True
+    else:
+        # Only query if we haven't already determined we have data
+        has_db_data_query = UserActivity.objects.all()
+        if start_date is not None:
+            has_db_data_query = has_db_data_query.filter(
+                created__gte=start_date,
+                created__lte=end_date
+            )
+        has_db_data = has_db_data_query.exists()
+    
+    logger.info(f"Database has data for this period: {has_db_data}")
+    
     context = {
         'time_period': time_period,
         'start_date': start_date,
@@ -789,15 +1048,17 @@ def web_owner_dashboard(request):
         'summary': summary,
         'total_sessions': total_sessions,
         'converted_sessions': converted_sessions,
-        'top_entry_pages': list(top_entry_pages),
-        'top_exit_pages': list(top_exit_pages),
+        'top_entry_pages': list(top_entry_pages) if top_entry_pages else [],
+        'top_exit_pages': list(top_exit_pages) if top_exit_pages else [],
         'real_time_breakdown': real_time_breakdown,
-        'real_time_users_by_country': real_time_users_by_country,
-        'users_by_country': users_by_country,
+        'real_time_users_by_country': real_time_users_by_country if real_time_users_by_country else [],
+        'users_by_country': users_by_country if users_by_country else [],
         'total_country_users': sum(c.get('activeUsers', 0) for c in users_by_country) if users_by_country else 0,
-        'top_pages_with_trends': top_pages_with_trends,
+        'top_pages_with_trends': top_pages_with_trends if top_pages_with_trends else [],
+        'load_optional_data': False,  # Flag to indicate optional data should be loaded via AJAX
         'existing_users_count': existing_users_count,
         'organic_users_count': organic_users_count,
+        'has_db_data': has_db_data,  # Flag to indicate if database has data for detail links
     }
     
     return render(request, 'user_analytics/web_owner_dashboard.html', context)
@@ -820,33 +1081,20 @@ def user_journey_view(request, user_id=None):
     logger.info(f"USER JOURNEY VIEW - User ID: {user_id}, User Type Filter: {user_type_filter}")
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
     # Base queryset
     if user_id:
-        journeys = UserJourney.objects.filter(
-            user_id=user_id,
-            start_time__gte=start_date,
-            start_time__lte=end_date
-        ).select_related('user').order_by('-start_time')
+        journeys = UserJourney.objects.filter(user_id=user_id)
     else:
-        journeys = UserJourney.objects.filter(
+        journeys = UserJourney.objects.all()
+    
+    if start_date is not None:
+        journeys = journeys.filter(
             start_time__gte=start_date,
             start_time__lte=end_date
-        ).select_related('user').order_by('-start_time')
+        )
+    journeys = journeys.select_related('user').order_by('-start_time')
     
     # Apply user type filter
     if user_type_filter == 'registered':
@@ -917,61 +1165,46 @@ def api_dashboard_data(request):
         time_period = data.get('period', '30days')
         
         # Calculate date range
-        end_date = timezone.now()
-        if time_period == 'today':
-            start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        elif time_period == 'yesterday':
-            start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-            end_date = start_date + timedelta(days=1)
-        elif time_period == '7days':
-            start_date = end_date - timedelta(days=7)
-        elif time_period == '30days':
-            start_date = end_date - timedelta(days=30)
-        elif time_period == '90days':
-            start_date = end_date - timedelta(days=90)
-        else:
-            start_date = end_date - timedelta(days=30)
+        start_date, end_date = get_date_range_from_period(time_period, default_days=30)
         
         response_data = {}
         
         if dashboard_type == 'business':
             # Business metrics
-            total_revenue = UserEvent.objects.filter(
-                event_type='payment_success',
-                created__gte=start_date,
-                created__lte=end_date
-            ).aggregate(total=Sum('event_value'))['total'] or 0
+            revenue_query = UserEvent.objects.filter(event_type='payment_success')
+            if start_date is not None:
+                revenue_query = revenue_query.filter(created__gte=start_date, created__lte=end_date)
+            total_revenue = revenue_query.aggregate(total=Sum('event_value'))['total'] or 0
+            
+            payments_query = UserEvent.objects.filter(event_type='payment_success')
+            enrollments_query = UserEvent.objects.filter(
+                event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed']
+            )
+            if start_date is not None:
+                payments_query = payments_query.filter(created__gte=start_date, created__lte=end_date)
+                enrollments_query = enrollments_query.filter(created__gte=start_date, created__lte=end_date)
             
             response_data = {
                 'total_revenue': float(total_revenue),
-                'successful_payments': UserEvent.objects.filter(
-                    event_type='payment_success',
-                    created__gte=start_date,
-                    created__lte=end_date
-                ).count(),
-                'total_enrollments': UserEvent.objects.filter(
-                    event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed'],
-                    created__gte=start_date,
-                    created__lte=end_date
-                ).count(),
+                'successful_payments': payments_query.count(),
+                'total_enrollments': enrollments_query.count(),
             }
         
         elif dashboard_type == 'accounts':
             # Accounts metrics
+            users_query = User.objects.all()
+            revenue_query = UserEvent.objects.filter(event_type='payment_success')
+            leads_query = Lead.objects.all()
+            
+            if start_date is not None:
+                users_query = users_query.filter(created__gte=start_date, created__lte=end_date)
+                revenue_query = revenue_query.filter(created__gte=start_date, created__lte=end_date)
+                leads_query = leads_query.filter(first_visit__gte=start_date, first_visit__lte=end_date)
+            
             response_data = {
-                'total_registrations': User.objects.filter(
-                    created__gte=start_date,
-                    created__lte=end_date
-                ).count(),
-                'total_revenue': float(UserEvent.objects.filter(
-                    event_type='payment_success',
-                    created__gte=start_date,
-                    created__lte=end_date
-                ).aggregate(total=Sum('event_value'))['total'] or 0),
-                'total_prospects': Lead.objects.filter(
-                    first_visit__gte=start_date,
-                    first_visit__lte=end_date
-                ).count(),
+                'total_registrations': users_query.count(),
+                'total_revenue': float(revenue_query.aggregate(total=Sum('event_value'))['total'] or 0),
+                'total_prospects': leads_query.count(),
             }
         
         elif dashboard_type == 'web_owner':
@@ -1010,27 +1243,16 @@ def successful_payments_detail(request):
     page_number = request.GET.get('page', 1)
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
-    # Base queryset
-    payments = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).select_related('user').order_by('-created')
+    # Base queryset - Try UserEvent first, fallback to Payment model
+    payments = UserEvent.objects.filter(event_type='payment_success')
+    if start_date is not None:
+        payments = payments.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    payments = payments.select_related('user').order_by('-created')
     
     # Apply search filter
     if search_query:
@@ -1040,18 +1262,39 @@ def successful_payments_detail(request):
             Q(metadata__icontains=search_query)
         )
     
-    # Pagination
-    paginator = Paginator(payments, 25)
-    try:
-        payments_page = paginator.page(page_number)
-    except PageNotAnInteger:
-        payments_page = paginator.page(1)
-    except EmptyPage:
-        payments_page = paginator.page(paginator.num_pages)
-    
-    # Calculate totals
-    total_revenue = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    # If no UserEvent data, fallback to Payment model (but API will handle the actual data)
+    # For the template, we just need the count
     total_count = payments.count()
+    total_revenue = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    
+    # If no UserEvent data, check Payment model for count
+    if total_count == 0:
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            payment_query = Payment.objects.filter(is_success=choices.YesNoChoices.YES)
+            if start_date is not None:
+                payment_query = payment_query.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            if search_query:
+                payment_query = payment_query.filter(
+                    Q(user__email__icontains=search_query) |
+                    Q(user__name__icontains=search_query) |
+                    Q(order_id__icontains=search_query)
+                )
+            total_count = payment_query.count()
+            total_revenue = payment_query.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        except Exception as e:
+            logger.warning(f"Error fetching Payment model data: {e}")
+    
+    # Create empty paginator for template (data loaded via AJAX)
+    from django.core.paginator import Paginator, Page
+    empty_list = []
+    paginator = Paginator(empty_list, 25)
+    payments_page = paginator.page(1)
     
     context = {
         'payments': payments_page,
@@ -1079,27 +1322,16 @@ def successful_payments_api(request):
     page_number = request.GET.get('page', 1)
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
-    # Base queryset
-    payments = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    ).select_related('user').order_by('-created')
+    # Base queryset - Try UserEvent first, fallback to Payment model
+    payments = UserEvent.objects.filter(event_type='payment_success')
+    if start_date is not None:
+        payments = payments.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    payments = payments.select_related('user').order_by('-created')
     
     # Apply search filter
     if search_query:
@@ -1108,6 +1340,43 @@ def successful_payments_api(request):
             Q(event_name__icontains=search_query) |
             Q(metadata__icontains=search_query)
         )
+    
+    # Check if we have data, if not fallback to Payment model
+    use_payment_model = False
+    if payments.count() == 0:
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            payment_query = Payment.objects.filter(is_success=choices.YesNoChoices.YES)
+            if start_date is not None:
+                payment_query = payment_query.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            
+            # Apply search filter to payments
+            if search_query:
+                # Build Q object for search
+                search_q = Q(user__email__icontains=search_query) | \
+                           Q(user__name__icontains=search_query) | \
+                           Q(gateway_order_id__icontains=search_query) | \
+                           Q(gateway_receipt__icontains=search_query)
+                
+                # Also search by PaymentObjectType display name
+                if hasattr(choices, 'PaymentObjectType'):
+                    # Check if search query matches any PaymentObjectType display name
+                    for choice_value, choice_name in choices.PaymentObjectType.CHOICES:
+                        if search_query.lower() in choice_name.lower() or choice_name.lower() in search_query.lower():
+                            search_q |= Q(obj_type=choice_value)
+                            break
+                
+                payment_query = payment_query.filter(search_q)
+            
+            payments = payment_query.select_related('user').order_by('-created')
+            use_payment_model = True
+        except Exception as e:
+            logger.warning(f"Error fetching Payment model data: {e}")
     
     # Pagination
     paginator = Paginator(payments, 25)
@@ -1119,22 +1388,49 @@ def successful_payments_api(request):
         payments_page = paginator.page(paginator.num_pages)
     
     # Calculate totals
-    total_revenue = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
-    total_count = payments.count()
+    if use_payment_model:
+        total_revenue = payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        total_count = payments.count()
+    else:
+        total_revenue = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+        total_count = payments.count()
     
     # Serialize data
     payments_data = []
     for payment in payments_page:
-        payments_data.append({
-            'id': payment.id,
-            'user_email': payment.user.email if payment.user else 'N/A',
-            'event_name': payment.event_name or 'N/A',
-            'amount': float(payment.event_value or 0),
-            'date': payment.created.strftime('%b %d, %Y %H:%M') if payment.created else 'N/A',
-            'source': payment.metadata.get('source', 'Unknown') if payment.metadata else 'Unknown',
-            'gateway': payment.metadata.get('gateway', 'N/A') if payment.metadata else 'N/A',
-            'order_id': payment.metadata.get('order_id', 'N/A') if payment.metadata else 'N/A',
-        })
+        if use_payment_model:
+            # Payment model
+            obj_type_name = 'Payment'
+            if hasattr(choices, 'PaymentObjectType') and payment.obj_type:
+                obj_type_name = dict(choices.PaymentObjectType.CHOICES).get(payment.obj_type, f'Type {payment.obj_type}')
+            
+            # Get gateway display name
+            gateway_name = 'N/A'
+            if hasattr(choices, 'GatewayChoices') and payment.gateway:
+                gateway_name = dict(choices.GatewayChoices.CHOICES).get(payment.gateway, f'Gateway {payment.gateway}')
+            
+            payments_data.append({
+                'id': payment.id,
+                'user_email': payment.user.email if payment.user else 'Anonymous',
+                'event_name': obj_type_name,
+                'amount': float(payment.amount or 0),
+                'date': payment.created.strftime('%b %d, %Y %H:%M') if payment.created else 'N/A',
+                'source': 'Unknown',  # Payment model doesn't have source
+                'gateway': gateway_name,
+                'order_id': payment.gateway_order_id or 'N/A',
+            })
+        else:
+            # UserEvent model
+            payments_data.append({
+                'id': payment.id,
+                'user_email': payment.user.email if payment.user else 'Anonymous',
+                'event_name': payment.event_name or 'N/A',
+                'amount': float(payment.event_value or 0),
+                'date': payment.created.strftime('%b %d, %Y %H:%M') if payment.created else 'N/A',
+                'source': payment.metadata.get('source', 'Unknown') if payment.metadata else 'Unknown',
+                'gateway': payment.metadata.get('gateway', 'N/A') if payment.metadata else 'N/A',
+                'order_id': payment.metadata.get('order_id', 'N/A') if payment.metadata else 'N/A',
+            })
     
     return JsonResponse({
         'success': True,
@@ -1167,27 +1463,16 @@ def failed_payments_detail(request):
     page_number = request.GET.get('page', 1)
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
-    # Base queryset
-    payments = UserEvent.objects.filter(
-        event_type='payment_failed',
-        created__gte=start_date,
-        created__lte=end_date
-    ).select_related('user').order_by('-created')
+    # Base queryset - Try UserEvent first, fallback to Payment model
+    payments = UserEvent.objects.filter(event_type='payment_failed')
+    if start_date is not None:
+        payments = payments.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    payments = payments.select_related('user').order_by('-created')
     
     # Apply search filter
     if search_query:
@@ -1197,18 +1482,40 @@ def failed_payments_detail(request):
             Q(metadata__icontains=search_query)
         )
     
-    # Pagination
-    paginator = Paginator(payments, 25)
-    try:
-        payments_page = paginator.page(page_number)
-    except PageNotAnInteger:
-        payments_page = paginator.page(1)
-    except EmptyPage:
-        payments_page = paginator.page(paginator.num_pages)
-    
-    # Calculate totals
-    total_amount = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    # If no UserEvent data, fallback to Payment model (but API will handle the actual data)
+    # For the template, we just need the count
     total_count = payments.count()
+    total_amount = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    
+    # If no UserEvent data, check Payment model for count
+    if total_count == 0:
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            payment_query = Payment.objects.filter(is_success=choices.YesNoChoices.NO)
+            if start_date is not None:
+                payment_query = payment_query.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            if search_query:
+                payment_query = payment_query.filter(
+                    Q(user__email__icontains=search_query) |
+                    Q(user__name__icontains=search_query) |
+                    Q(gateway_order_id__icontains=search_query) |
+                    Q(gateway_receipt__icontains=search_query)
+                )
+            total_count = payment_query.count()
+            total_amount = payment_query.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        except Exception as e:
+            logger.warning(f"Error fetching Payment model data: {e}")
+    
+    # Create empty paginator for template (data loaded via AJAX)
+    from django.core.paginator import Paginator, Page
+    empty_list = []
+    paginator = Paginator(empty_list, 25)
+    payments_page = paginator.page(1)
     
     context = {
         'payments': payments_page,
@@ -1235,27 +1542,16 @@ def failed_payments_api(request):
     page_number = request.GET.get('page', 1)
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
-    # Base queryset
-    payments = UserEvent.objects.filter(
-        event_type='payment_failed',
-        created__gte=start_date,
-        created__lte=end_date
-    ).select_related('user').order_by('-created')
+    # Base queryset - Try UserEvent first, fallback to Payment model
+    payments = UserEvent.objects.filter(event_type='payment_failed')
+    if start_date is not None:
+        payments = payments.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    payments = payments.select_related('user').order_by('-created')
     
     # Apply search filter
     if search_query:
@@ -1264,6 +1560,43 @@ def failed_payments_api(request):
             Q(event_name__icontains=search_query) |
             Q(metadata__icontains=search_query)
         )
+    
+    # Check if we have data, if not fallback to Payment model
+    use_payment_model = False
+    if payments.count() == 0:
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            payment_query = Payment.objects.filter(is_success=choices.YesNoChoices.NO)
+            if start_date is not None:
+                payment_query = payment_query.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            
+            # Apply search filter to payments
+            if search_query:
+                # Build Q object for search
+                search_q = Q(user__email__icontains=search_query) | \
+                           Q(user__name__icontains=search_query) | \
+                           Q(gateway_order_id__icontains=search_query) | \
+                           Q(gateway_receipt__icontains=search_query)
+                
+                # Also search by PaymentObjectType display name
+                if hasattr(choices, 'PaymentObjectType'):
+                    # Check if search query matches any PaymentObjectType display name
+                    for choice_value, choice_name in choices.PaymentObjectType.CHOICES:
+                        if search_query.lower() in choice_name.lower() or choice_name.lower() in search_query.lower():
+                            search_q |= Q(obj_type=choice_value)
+                            break
+                
+                payment_query = payment_query.filter(search_q)
+            
+            payments = payment_query.select_related('user').order_by('-created')
+            use_payment_model = True
+        except Exception as e:
+            logger.warning(f"Error fetching Payment model data: {e}")
     
     # Pagination
     paginator = Paginator(payments, 25)
@@ -1275,20 +1608,49 @@ def failed_payments_api(request):
         payments_page = paginator.page(paginator.num_pages)
     
     # Calculate totals
-    total_amount = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
-    total_count = payments.count()
+    if use_payment_model:
+        total_amount = payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        total_count = payments.count()
+    else:
+        total_amount = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+        total_count = payments.count()
     
     # Serialize data
     payments_data = []
     for payment in payments_page:
-        payments_data.append({
-            'id': payment.id,
-            'user_email': payment.user.email if payment.user else 'N/A',
-            'event_name': payment.event_name or 'N/A',
-            'amount': float(payment.event_value or 0),
-            'date': payment.created.strftime('%b %d, %Y %H:%M') if payment.created else 'N/A',
-            'gateway': payment.metadata.get('gateway', 'Unknown') if payment.metadata else 'Unknown',
-        })
+        if use_payment_model:
+            # Payment model
+            obj_type_name = 'Payment'
+            if hasattr(choices, 'PaymentObjectType') and payment.obj_type:
+                obj_type_name = dict(choices.PaymentObjectType.CHOICES).get(payment.obj_type, f'Type {payment.obj_type}')
+            
+            # Get gateway display name
+            gateway_name = 'N/A'
+            if hasattr(choices, 'GatewayChoices') and payment.gateway:
+                gateway_name = dict(choices.GatewayChoices.CHOICES).get(payment.gateway, f'Gateway {payment.gateway}')
+            
+            payments_data.append({
+                'id': payment.id,
+                'user_email': payment.user.email if payment.user else 'Anonymous',
+                'event_name': obj_type_name,
+                'amount': float(payment.amount or 0),
+                'date': payment.created.strftime('%b %d, %Y %H:%M') if payment.created else 'N/A',
+                'source': 'Unknown',  # Payment model doesn't have source
+                'gateway': gateway_name,
+                'order_id': payment.gateway_order_id or 'N/A',
+            })
+        else:
+            # UserEvent model
+            payments_data.append({
+                'id': payment.id,
+                'user_email': payment.user.email if payment.user else 'Anonymous',
+                'event_name': payment.event_name or 'N/A',
+                'amount': float(payment.event_value or 0),
+                'date': payment.created.strftime('%b %d, %Y %H:%M') if payment.created else 'N/A',
+                'source': payment.metadata.get('source', 'Unknown') if payment.metadata else 'Unknown',
+                'gateway': payment.metadata.get('gateway', 'N/A') if payment.metadata else 'N/A',
+                'order_id': payment.metadata.get('order_id', 'N/A') if payment.metadata else 'N/A',
+            })
     
     return JsonResponse({
         'success': True,
@@ -1304,6 +1666,7 @@ def failed_payments_api(request):
         'totals': {
             'total_count': total_count,
             'total_amount': float(total_amount),
+            'total_revenue': float(total_amount),  # For consistency
         }
     })
 
@@ -1321,27 +1684,16 @@ def pending_payments_detail(request):
     page_number = request.GET.get('page', 1)
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
     # Base queryset
-    payments = UserEvent.objects.filter(
-        event_type='payment_pending',
-        created__gte=start_date,
-        created__lte=end_date
-    ).select_related('user').order_by('-created')
+    payments = UserEvent.objects.filter(event_type='payment_pending')
+    if start_date is not None:
+        payments = payments.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    payments = payments.select_related('user').order_by('-created')
     
     # Apply search filter
     if search_query:
@@ -1389,27 +1741,16 @@ def pending_payments_api(request):
     page_number = request.GET.get('page', 1)
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
     # Base queryset
-    payments = UserEvent.objects.filter(
-        event_type='payment_pending',
-        created__gte=start_date,
-        created__lte=end_date
-    ).select_related('user').order_by('-created')
+    payments = UserEvent.objects.filter(event_type='payment_pending')
+    if start_date is not None:
+        payments = payments.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    payments = payments.select_related('user').order_by('-created')
     
     # Apply search filter
     if search_query:
@@ -1476,27 +1817,18 @@ def enrollments_detail(request):
     page_number = request.GET.get('page', 1)
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
     # Base queryset
     enrollments = UserEvent.objects.filter(
-        event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered'],
-        created__gte=start_date,
-        created__lte=end_date
-    ).select_related('user').order_by('-created')
+        event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered']
+    )
+    if start_date is not None:
+        enrollments = enrollments.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    enrollments = enrollments.select_related('user').order_by('-created')
     
     # Apply event type filter
     if event_type_filter:
@@ -1553,89 +1885,108 @@ def business_metrics_api(request):
     time_period = request.GET.get('period', '30days')
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
     # Calculate Total Revenue
-    revenue_events = UserEvent.objects.filter(
-        event_type='payment_success',
-        created__gte=start_date,
-        created__lte=end_date
-    )
+    revenue_events = UserEvent.objects.filter(event_type='payment_success')
+    if start_date is not None:
+        revenue_events = revenue_events.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
     total_revenue = revenue_events.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+    successful_payments_from_events = revenue_events.count()
     
-    # Calculate Successful Payments
-    successful_payments = revenue_events.count()
+    # Fallback to Payment model if UserEvent has no data
+    if total_revenue == 0 or successful_payments_from_events == 0:
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            successful_payments_model = Payment.objects.filter(is_success=choices.YesNoChoices.YES)
+            if start_date is not None:
+                successful_payments_model = successful_payments_model.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            payment_revenue = successful_payments_model.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            
+            if payment_revenue > total_revenue:
+                total_revenue = payment_revenue
+                successful_payments = successful_payments_model.count()
+            else:
+                successful_payments = successful_payments_from_events
+        except Exception as e:
+            logger.warning(f"Error fetching Payment model data in API: {e}")
+            successful_payments = successful_payments_from_events
+    else:
+        successful_payments = successful_payments_from_events
     
     # Calculate Total Enrollments
-    total_enrollments = UserEvent.objects.filter(
-        event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered'],
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    enrollments_query = UserEvent.objects.filter(
+        event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered']
+    )
+    if start_date is not None:
+        enrollments_query = enrollments_query.filter(created__gte=start_date, created__lte=end_date)
+    total_enrollments = enrollments_query.count()
     
     # Calculate other metrics
-    failed_payment_events = UserEvent.objects.filter(
-        event_type='payment_failed',
-        created__gte=start_date,
-        created__lte=end_date
-    )
+    failed_payment_events = UserEvent.objects.filter(event_type='payment_failed')
+    if start_date is not None:
+        failed_payment_events = failed_payment_events.filter(created__gte=start_date, created__lte=end_date)
     failed_payments = failed_payment_events.count()
     failed_payments_revenue = failed_payment_events.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
     
-    pending_payment_events = UserEvent.objects.filter(
-        event_type='payment_pending',
-        created__gte=start_date,
-        created__lte=end_date
-    )
+    # Fallback to Payment model for failed payments
+    if failed_payments == 0:
+        try:
+            from payments.models import Payment
+            from core import choices
+            
+            failed_payments_model = Payment.objects.filter(is_success=choices.YesNoChoices.NO)
+            if start_date is not None:
+                failed_payments_model = failed_payments_model.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            failed_payments = failed_payments_model.count()
+            failed_payments_revenue = failed_payments_model.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        except Exception:
+            pass
+    
+    pending_payment_events = UserEvent.objects.filter(event_type='payment_pending')
+    if start_date is not None:
+        pending_payment_events = pending_payment_events.filter(created__gte=start_date, created__lte=end_date)
     pending_payments = pending_payment_events.count()
     pending_payments_revenue = pending_payment_events.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
     
-    psychometric_enrollments = UserEvent.objects.filter(
-        event_type='psychometric_test_completed',
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    psychometric_query = UserEvent.objects.filter(event_type='psychometric_test_completed')
+    course_query = UserEvent.objects.filter(event_type__in=['course_enrolled', 'skilllab_enrolled'])
+    visitors_query = UserActivity.objects.all()
+    registrations_query = UserEvent.objects.filter(event_type='registration')
     
-    course_enrollments = UserEvent.objects.filter(
-        event_type__in=['course_enrolled', 'skilllab_enrolled'],
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    if start_date is not None:
+        psychometric_query = psychometric_query.filter(created__gte=start_date, created__lte=end_date)
+        course_query = course_query.filter(created__gte=start_date, created__lte=end_date)
+        visitors_query = visitors_query.filter(created__gte=start_date, created__lte=end_date)
+        registrations_query = registrations_query.filter(created__gte=start_date, created__lte=end_date)
     
-    total_visitors = UserActivity.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).values('session_id').distinct().count()
+    psychometric_enrollments = psychometric_query.count()
+    course_enrollments = course_query.count()
+    total_visitors = visitors_query.values('session_id').distinct().count()
+    total_registrations = registrations_query.count()
     
-    total_registrations = UserEvent.objects.filter(
-        event_type='registration',
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    from core import choices
     
-    total_leads = Lead.objects.filter(
-        first_visit__gte=start_date,
-        first_visit__lte=end_date
-    ).count()
+    total_leads_query = Lead.objects.all()
+    converted_leads_query = Lead.objects.filter(is_converted=True)
     
-    converted_leads = Lead.objects.filter(
-        is_converted=True,
-        converted_at__gte=start_date,
-        converted_at__lte=end_date
-    ).count()
+    if start_date is not None:
+        total_leads_query = total_leads_query.filter(first_visit__gte=start_date, first_visit__lte=end_date)
+        converted_leads_query = converted_leads_query.filter(converted_at__gte=start_date, converted_at__lte=end_date)
+    
+    total_leads = total_leads_query.count()
+    converted_leads = converted_leads_query.count()
     
     conversion_rate = (converted_leads / total_visitors * 100) if total_visitors > 0 else 0
     
@@ -1658,8 +2009,8 @@ def business_metrics_api(request):
             'conversion_rate': round(conversion_rate, 2),
         },
         'period': time_period,
-        'start_date': start_date.isoformat(),
-        'end_date': end_date.isoformat(),
+        'start_date': start_date.isoformat() if start_date is not None else None,
+        'end_date': end_date.isoformat() if end_date is not None else None,
     })
 
 
@@ -1674,27 +2025,18 @@ def enrollments_api(request):
     page_number = request.GET.get('page', 1)
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
     # Base queryset
     enrollments = UserEvent.objects.filter(
-        event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered'],
-        created__gte=start_date,
-        created__lte=end_date
-    ).select_related('user').order_by('-created')
+        event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered']
+    )
+    if start_date is not None:
+        enrollments = enrollments.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    enrollments = enrollments.select_related('user').order_by('-created')
     
     # Apply event type filter
     if event_type_filter:
@@ -1768,26 +2110,16 @@ def registrations_detail(request):
     page_number = request.GET.get('page', 1)
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
     # Base queryset
-    users = User.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).order_by('-created')
+    users = User.objects.all()
+    if start_date is not None:
+        users = users.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    users = users.order_by('-created')
     
     # Apply search filter
     if search_query:
@@ -1832,26 +2164,16 @@ def prospects_detail(request):
     page_number = request.GET.get('page', 1)
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
     # Base queryset
-    leads = Lead.objects.filter(
-        first_visit__gte=start_date,
-        first_visit__lte=end_date
-    ).order_by('-first_visit')
+    leads = Lead.objects.all()
+    if start_date is not None:
+        leads = leads.filter(
+            first_visit__gte=start_date,
+            first_visit__lte=end_date
+        )
+    leads = leads.order_by('-first_visit')
     
     # Apply converted filter
     if converted_filter == 'yes':
@@ -1897,13 +2219,35 @@ def prospects_detail(request):
 @user_passes_test(is_staff_or_superuser)
 def visitors_detail(request):
     """Detail page for visitors/sessions with filters"""
+    from user_analytics.tasks import sync_ga4_sessions_task
+    from django.utils import timezone as tz
+    from django.db import connection
+    
+    # Import GA4Session only if table exists
+    GA4Session = None
+    try:
+        from user_analytics.models import GA4Session as GA4SessionModel
+        # Check if table exists
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT COUNT(*) 
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE() 
+                AND table_name = 'user_analytics_ga4session'
+            """)
+            if cursor.fetchone()[0] > 0:
+                GA4Session = GA4SessionModel
+    except Exception:
+        pass
+    
     time_period = request.GET.get('period', 'today')
     search_query = request.GET.get('search', '')
     source_filter = request.GET.get('source', '')
     device_filter = request.GET.get('device', '')
     entry_page_filter = request.GET.get('entry_page', '')
     exit_page_filter = request.GET.get('exit_page', '')
-    country_filter = request.GET.get('country', '')  # Added country filter
+    country_filter = request.GET.get('country', '')
+    user_type_filter = request.GET.get('user_type', 'all')  # all, registered, new
     page_number = request.GET.get('page', 1)
     
     logger.info("=" * 80)
@@ -1933,30 +2277,124 @@ def visitors_detail(request):
         logger.info(f"Country Filter (decoded): {country_filter}")
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
+    
+    if start_date is not None:
+        logger.info(f"Date Range: {start_date.strftime('%Y-%m-%d %H:%M:%S')} to {end_date.strftime('%Y-%m-%d %H:%M:%S')}")
     else:
-        start_date = end_date - timedelta(days=30)
+        logger.info("Date Range: All Time (no date filtering)")
     
-    logger.info(f"Date Range: {start_date.strftime('%Y-%m-%d %H:%M:%S')} to {end_date.strftime('%Y-%m-%d %H:%M:%S')}")
+    # Check if GA4 data needs to be synced
+    # Check if we have recent GA4 data in DB for this period
+    ga4_needs_sync = False
+    if GA4Session is not None and start_date is not None:
+        try:
+            latest_ga4_sync = GA4Session.objects.filter(
+                date__gte=start_date.date(),
+                date__lte=end_date.date()
+            ).order_by('-synced_at').first()
+            
+            if not latest_ga4_sync:
+                # No GA4 data in DB, trigger sync
+                ga4_needs_sync = True
+                logger.info("No GA4 data found in DB, triggering sync")
+            else:
+                # Check if sync is older than 1 hour
+                sync_age = tz.now() - latest_ga4_sync.synced_at
+                if sync_age.total_seconds() > 3600:  # 1 hour
+                    ga4_needs_sync = True
+                    logger.info(f"GA4 data is {sync_age.total_seconds()/60:.1f} minutes old, triggering sync")
+        except Exception as e:
+            logger.warning(f"Error checking GA4 sync status: {e}")
+    else:
+        logger.info("GA4Session table does not exist yet - migration needed")
+        ga4_needs_sync = False  # Don't try to sync if table doesn't exist
     
-    # Get unique session IDs with filters
-    session_query = UserActivity.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    )
+    # Trigger sync if needed (in background)
+    if ga4_needs_sync:
+        try:
+            sync_ga4_sessions_task.delay(time_period=time_period, link_users=True)
+            logger.info("GA4 sync task triggered in background")
+        except Exception as e:
+            logger.error(f"Error triggering GA4 sync: {e}")
     
-    if source_filter:
+    # Start with UserJourney to apply entry_page/exit_page filters early
+    # This is more efficient since UserJourney has these fields indexed
+    journey_query = UserJourney.objects.all()
+    if start_date is not None:
+        journey_query = journey_query.filter(
+            start_time__gte=start_date,
+            start_time__lte=end_date
+        )
+    
+    # Apply entry_page filter early
+    if entry_page_filter:
+        # Try exact match first, then contains for flexibility
+        # This handles cases where entry_page might have trailing slashes or query params
+        journey_query = journey_query.filter(
+            Q(entry_page__iexact=entry_page_filter) |
+            Q(entry_page__icontains=entry_page_filter)
+        )
+        logger.info(f"Filtering for entry_page: {entry_page_filter}")
+    
+    # Apply exit_page filter early
+    if exit_page_filter:
+        journey_query = journey_query.filter(
+            Q(exit_page__iexact=exit_page_filter) |
+            Q(exit_page__icontains=exit_page_filter)
+        )
+        logger.info(f"Filtering for exit_page: {exit_page_filter}")
+    
+    # Apply device filter on UserJourney if available
+    if device_filter:
+        journey_query = journey_query.filter(device_type__iexact=device_filter)
+        logger.info(f"Filtering for device: {device_filter}")
+    
+    # Apply country filter on UserJourney if available
+    if country_filter:
+        journey_query = journey_query.filter(country__icontains=country_filter)
+        logger.info(f"Filtering for country: {country_filter}")
+    
+    # Apply user type filter
+    if user_type_filter == 'registered':
+        journey_query = journey_query.filter(user__isnull=False)
+        logger.info("Filtering for registered users only")
+    elif user_type_filter == 'new':
+        # New users: sessions without a linked user (anonymous/new visitors)
+        journey_query = journey_query.filter(user__isnull=True)
+        logger.info("Filtering for new users only")
+    # 'all' means no user filter
+    
+    # Get session IDs from UserJourney that match the filters above
+    # Only get journey session IDs if we have entry/exit/device/country filters
+    has_journey_filters = entry_page_filter or exit_page_filter or device_filter or country_filter
+    journey_session_ids = None
+    
+    if has_journey_filters:
+        journey_session_ids = set(journey_query.values_list('session_id', flat=True).distinct())
+        logger.info(f"Found {len(journey_session_ids)} session IDs from UserJourney matching entry/exit/device/country filters")
+    else:
+        logger.info("No journey filters applied, will use UserActivity as primary source")
+    
+    # Now filter by source from UserActivity (since source is in UserActivity)
+    session_query = UserActivity.objects.all()
+    if start_date is not None:
+        session_query = session_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    
+    # If we have journey session IDs from filters, restrict UserActivity query to those sessions
+    if journey_session_ids is not None:
+        if len(journey_session_ids) == 0:
+            # No matching journeys, set empty session_ids and skip further filtering
+            session_ids = []
+            logger.info("No matching journeys found, returning empty result")
+        else:
+            session_query = session_query.filter(session_id__in=journey_session_ids)
+    
+    # Apply source filter (always check UserActivity for source)
+    if source_filter and (journey_session_ids is None or len(journey_session_ids) > 0):
         # Handle variations of "direct" traffic
         # GA4 might store it as "(direct)", "direct", "(not set)", or empty/null
         if source_filter.lower() in ['(direct)', 'direct', '(not set)']:
@@ -1974,33 +2412,127 @@ def visitors_detail(request):
             session_query = session_query.filter(utm_source__iexact=source_filter)
             logger.info(f"Filtering for source: {source_filter}")
     
-    if device_filter:
+    # If device filter wasn't applied to UserJourney (no journey filters case), apply to UserActivity
+    if device_filter and not has_journey_filters:
         session_query = session_query.filter(device_type__iexact=device_filter)
-        logger.info(f"Filtering for device: {device_filter}")
+        logger.info(f"Filtering for device (UserActivity): {device_filter}")
     
-    session_ids = list(session_query.values_list('session_id', flat=True).distinct())
-    logger.info(f"Found {len(session_ids)} unique session IDs matching filters")
+    # Get final session IDs (only if we haven't already set it to empty)
+    if journey_session_ids is None or (journey_session_ids is not None and len(journey_session_ids) > 0):
+        session_ids = list(session_query.values_list('session_id', flat=True).distinct())
+        logger.info(f"Found {len(session_ids)} unique session IDs matching all filters")
     
     # Check if we have any data at all in the date range
-    total_activities = UserActivity.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).count()
+    total_activities_query = UserActivity.objects.all()
+    if start_date is not None:
+        total_activities_query = total_activities_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    total_activities = total_activities_query.count()
     logger.info(f"Total UserActivity records in date range: {total_activities}")
     
     # Check unique sources in database for debugging
-    unique_sources = UserActivity.objects.filter(
-        created__gte=start_date,
-        created__lte=end_date
-    ).exclude(utm_source__isnull=True).exclude(utm_source='').values_list('utm_source', flat=True).distinct()[:10]
+    unique_sources_query = UserActivity.objects.exclude(utm_source__isnull=True).exclude(utm_source='')
+    if start_date is not None:
+        unique_sources_query = unique_sources_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    unique_sources = unique_sources_query.values_list('utm_source', flat=True).distinct()[:10]
     logger.info(f"Sample unique sources in database: {list(unique_sources)}")
     
-    # If no session IDs found, check if we should use GA4 data or show helpful message
-    use_ga4_fallback = len(session_ids) == 0 and total_activities == 0
+    # Also include GA4Session data from DB if available
+    ga4_sessions_from_db = []
+    if GA4Session is not None:
+        try:
+            ga4_query = GA4Session.objects.all()
+            if start_date is not None:
+                ga4_query = ga4_query.filter(
+                    date__gte=start_date.date(),
+                    date__lte=end_date.date()
+                )
+            
+            # Apply filters to GA4Session
+            if source_filter:
+                if source_filter.lower() in ['(direct)', 'direct', '(not set)']:
+                    ga4_query = ga4_query.filter(
+                        Q(source__iexact='(direct)') |
+                        Q(source__iexact='direct') |
+                        Q(source__iexact='(not set)') |
+                        Q(source__isnull=True) |
+                        Q(source='')
+                    )
+                else:
+                    ga4_query = ga4_query.filter(source__iexact=source_filter)
+            
+            if device_filter:
+                ga4_query = ga4_query.filter(device__iexact=device_filter)
+            
+            if country_filter:
+                ga4_query = ga4_query.filter(country__icontains=country_filter)
+            
+            if entry_page_filter:
+                ga4_query = ga4_query.filter(
+                    Q(entry_page__iexact=entry_page_filter) |
+                    Q(entry_page__icontains=entry_page_filter)
+                )
+            
+            if exit_page_filter:
+                ga4_query = ga4_query.filter(
+                    Q(exit_page__iexact=exit_page_filter) |
+                    Q(exit_page__icontains=exit_page_filter)
+                )
+            
+            # Apply user type filter
+            if user_type_filter == 'registered':
+                ga4_query = ga4_query.filter(user__isnull=False)
+            elif user_type_filter == 'new':
+                ga4_query = ga4_query.filter(user__isnull=True)
+            
+            # Get GA4 sessions
+            for ga4_session in ga4_query[:1000]:  # Limit to prevent memory issues
+                ga4_sessions_from_db.append({
+                    'session_id': ga4_session.django_session_id or f"ga4-{ga4_session.ga4_client_id[:10]}",
+                    'user': ga4_session.user,
+                    'first_visit': tz.make_aware(datetime.combine(ga4_session.date, datetime.min.time())),
+                    'page_views': ga4_session.pageviews,
+                    'device_type': ga4_session.device or 'Unknown',
+                    'utm_source': ga4_session.source or 'Direct',
+                    'country': ga4_session.country,
+                    'entry_page': ga4_session.entry_page,
+                    'is_ga4_data': True,
+                    'sessions_count': ga4_session.sessions_count,
+                })
+            
+            logger.info(f"Found {len(ga4_sessions_from_db)} GA4 sessions from DB")
+        except Exception as e:
+            logger.error(f"Error fetching GA4 sessions from DB: {e}", exc_info=True)
+    else:
+        logger.info("GA4Session table does not exist - skipping GA4 data query")
     
-    if use_ga4_fallback:
-        logger.warning("No database records found. Consider using GA4 data for visitors detail.")
-        logger.info("Note: GA4 doesn't provide individual session details, only aggregated metrics.")
+    # If no session IDs found, try to get GA4 aggregated data from API
+    use_ga4_fallback = len(session_ids) == 0 and total_activities == 0 and len(ga4_sessions_from_db) == 0
+    ga4_sessions_data = None
+    
+    if use_ga4_fallback and (source_filter or country_filter or device_filter or entry_page_filter or exit_page_filter):
+        logger.info("No database records found. Fetching aggregated GA4 data from API...")
+        try:
+            ga4_service = GA4Service()
+            ga4_sessions_data = ga4_service.get_sessions_by_filters(
+                time_period=time_period,
+                source=source_filter,
+                country=country_filter,
+                device=device_filter,
+                entry_page=entry_page_filter,
+                exit_page=exit_page_filter,
+                limit=1000,
+                use_cache=False
+            )
+            if ga4_sessions_data:
+                logger.info(f"Found {len(ga4_sessions_data)} aggregated session records from GA4 API")
+        except Exception as e:
+            logger.error(f"Error fetching GA4 sessions data: {e}", exc_info=True)
     
     # Get first activity for each session
     session_details = []
@@ -2010,26 +2542,12 @@ def visitors_detail(request):
         ).order_by('created').first()
         
         if first_activity:
-            # Apply entry/exit page filters
-            if entry_page_filter:
-                journey = UserJourney.objects.filter(
-                    session_id=session_id,
-                    entry_page=entry_page_filter
-                ).first()
-                if not journey:
-                    continue
+            # Entry/exit page, device, and country filters are already applied at the query level
+            # No need to check them again here if they were applied to journey_query
             
-            if exit_page_filter:
-                journey = UserJourney.objects.filter(
-                    session_id=session_id,
-                    exit_page=exit_page_filter
-                ).first()
-                if not journey:
-                    continue
-            
-            # Apply country filter (check UserActivity or UserJourney)
-            if country_filter:
-                # Check if country matches in first activity or journey
+            # However, if country filter wasn't applied earlier (no journey filters case), check it here
+            if country_filter and not has_journey_filters:
+                # Country filter wasn't applied to journey_query, check here
                 country_match = False
                 if first_activity.country and country_filter.lower() in first_activity.country.lower():
                     country_match = True
@@ -2055,6 +2573,34 @@ def visitors_detail(request):
                 'device_type': first_activity.device_type,
                 'utm_source': first_activity.utm_source or 'Direct',
             })
+    
+    # If we have GA4 data but no database data, convert GA4 data to session_details format
+    if ga4_sessions_data and len(session_details) == 0:
+        logger.info("Converting GA4 aggregated data to session details format...")
+        for ga4_session in ga4_sessions_data:
+            # Create a pseudo-session detail from GA4 aggregated data
+            try:
+                from datetime import datetime
+                session_date = datetime.strptime(ga4_session.get('date', ''), '%Y%m%d')
+            except:
+                session_date = timezone.now()
+            
+            session_details.append({
+                'session_id': f"ga4-{ga4_session.get('date', 'unknown')}-{ga4_session.get('source', 'unknown')[:10]}",
+                'user': None,  # GA4 doesn't provide user info
+                'first_visit': session_date,
+                'page_views': ga4_session.get('pageviews', 0),
+                'device_type': ga4_session.get('device', 'Unknown'),
+                'utm_source': ga4_session.get('source', 'Direct'),
+                'country': ga4_session.get('country', 'Unknown'),
+                'entry_page': ga4_session.get('entry_page', 'N/A'),
+                'sessions_count': ga4_session.get('sessions', 0),
+                'is_ga4_data': True,  # Flag to indicate this is GA4 data
+            })
+        logger.info(f"Converted {len(session_details)} GA4 records to session details")
+    
+    # Merge GA4 sessions from DB with regular session details
+    session_details.extend(ga4_sessions_from_db)
     
     # Sort by first visit
     session_details.sort(key=lambda x: x['first_visit'], reverse=True)
@@ -2118,6 +2664,8 @@ def visitors_detail(request):
         filter_params['country'] = country_filter
     if search_query:
         filter_params['search'] = search_query
+    if user_type_filter and user_type_filter != 'all':
+        filter_params['user_type'] = user_type_filter
     
     context = {
         'sessions': sessions_page,
@@ -2130,16 +2678,193 @@ def visitors_detail(request):
         'entry_page_filter': entry_page_filter,
         'exit_page_filter': exit_page_filter,
         'country_filter': country_filter,
+        'user_type_filter': user_type_filter,
         'filter_params': filter_params,
         'total_count': total_count,
         'total_activities_in_range': total_activities,
         'use_ga4_fallback': use_ga4_fallback,
+        'has_database_data': total_activities > 0,  # Flag to indicate if database has any data
+        'ga4_sessions_data': ga4_sessions_data,  # GA4 aggregated data if available
+        'ga4_needs_sync': ga4_needs_sync,  # Flag to show sync status
         'page_title': 'Visitors/Sessions',
     }
     
     logger.info("=" * 80)
     
     return render(request, 'user_analytics/visitors_detail.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def visitors_filter_options_api(request):
+    """
+    API endpoint to return filter options for autocomplete/select dropdowns.
+    Returns unique values for sources, devices, countries, and entry pages.
+    """
+    from user_analytics.models import UserActivity, UserJourney
+    from django.db.models import Q
+    from django.db import connection
+    
+    # Import GA4Session only if table exists
+    GA4Session = None
+    try:
+        from user_analytics.models import GA4Session as GA4SessionModel
+        # Check if table exists
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT COUNT(*) 
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE() 
+                AND table_name = 'user_analytics_ga4session'
+            """)
+            if cursor.fetchone()[0] > 0:
+                GA4Session = GA4SessionModel
+    except Exception:
+        pass
+    
+    filter_type = request.GET.get('filter_type', '')  # source, device, country, entry_page
+    time_period = request.GET.get('period', '30days')
+    search_query = request.GET.get('q', '')  # Search term for filtering options
+    
+    # Calculate date range
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
+    
+    options = set()
+    
+    try:
+        if filter_type == 'source':
+            # Get sources from UserActivity, UserJourney, and GA4Session
+            sources_ua = UserActivity.objects.all()
+            sources_uj = UserJourney.objects.all()
+            
+            if start_date is not None:
+                sources_ua = sources_ua.filter(created__gte=start_date, created__lte=end_date)
+                sources_uj = sources_uj.filter(start_time__gte=start_date, start_time__lte=end_date)
+            
+            sources_ua = sources_ua.exclude(utm_source__isnull=True).exclude(utm_source='').values_list('utm_source', flat=True).distinct()
+            sources_uj = sources_uj.exclude(utm_source__isnull=True).exclude(utm_source='').values_list('utm_source', flat=True).distinct()
+            
+            # Only query GA4Session if table exists
+            try:
+                sources_ga4 = GA4Session.objects.filter(
+                ).exclude(source__isnull=True).exclude(source='')
+                if start_date is not None:
+                    sources_ga4 = sources_ga4.filter(
+                        date__gte=start_date.date(),
+                        date__lte=end_date.date()
+                    )
+                sources_ga4 = sources_ga4.values_list('source', flat=True).distinct()
+                options.update(sources_ga4)
+            except Exception:
+                # Table doesn't exist, skip
+                pass
+            
+            options.update(sources_ua)
+            options.update(sources_uj)
+            
+        elif filter_type == 'device':
+            # Get devices from UserActivity, UserJourney, and GA4Session
+            devices_ua = UserActivity.objects.all()
+            devices_uj = UserJourney.objects.all()
+            
+            if start_date is not None:
+                devices_ua = devices_ua.filter(created__gte=start_date, created__lte=end_date)
+                devices_uj = devices_uj.filter(start_time__gte=start_date, start_time__lte=end_date)
+            
+            devices_ua = devices_ua.exclude(device_type__isnull=True).exclude(device_type='').values_list('device_type', flat=True).distinct()
+            devices_uj = devices_uj.exclude(device_type__isnull=True).exclude(device_type='').values_list('device_type', flat=True).distinct()
+            
+            # Only query GA4Session if table exists
+            try:
+                devices_ga4 = GA4Session.objects.all()
+                if start_date is not None:
+                    devices_ga4 = devices_ga4.filter(
+                        date__gte=start_date.date(),
+                        date__lte=end_date.date()
+                    )
+                devices_ga4 = devices_ga4.exclude(device__isnull=True).exclude(device='').values_list('device', flat=True).distinct()
+                options.update(devices_ga4)
+            except Exception:
+                # Table doesn't exist, skip
+                pass
+            
+            options.update(devices_ua)
+            options.update(devices_uj)
+            
+        elif filter_type == 'country':
+            # Get countries from UserActivity, UserJourney, and GA4Session
+            countries_ua = UserActivity.objects.all()
+            countries_uj = UserJourney.objects.all()
+            
+            if start_date is not None:
+                countries_ua = countries_ua.filter(created__gte=start_date, created__lte=end_date)
+                countries_uj = countries_uj.filter(start_time__gte=start_date, start_time__lte=end_date)
+            
+            countries_ua = countries_ua.exclude(country__isnull=True).exclude(country='').values_list('country', flat=True).distinct()
+            countries_uj = countries_uj.exclude(country__isnull=True).exclude(country='').values_list('country', flat=True).distinct()
+            
+            # Only query GA4Session if table exists
+            try:
+                countries_ga4 = GA4Session.objects.all()
+                if start_date is not None:
+                    countries_ga4 = countries_ga4.filter(
+                        date__gte=start_date.date(),
+                        date__lte=end_date.date()
+                    )
+                countries_ga4 = countries_ga4.exclude(country__isnull=True).exclude(country='').values_list('country', flat=True).distinct()
+                options.update(countries_ga4)
+            except Exception:
+                # Table doesn't exist, skip
+                pass
+            
+            options.update(countries_ua)
+            options.update(countries_uj)
+            
+        elif filter_type == 'entry_page':
+            # Get entry pages from UserJourney and GA4Session
+            entry_pages_uj = UserJourney.objects.all()
+            if start_date is not None:
+                entry_pages_uj = entry_pages_uj.filter(start_time__gte=start_date, start_time__lte=end_date)
+            entry_pages_uj = entry_pages_uj.exclude(entry_page__isnull=True).exclude(entry_page='').values_list('entry_page', flat=True).distinct()
+            
+            # Only query GA4Session if table exists
+            try:
+                entry_pages_ga4 = GA4Session.objects.all()
+                if start_date is not None:
+                    entry_pages_ga4 = entry_pages_ga4.filter(
+                        date__gte=start_date.date(),
+                        date__lte=end_date.date()
+                    )
+                entry_pages_ga4 = entry_pages_ga4.exclude(entry_page__isnull=True).exclude(entry_page='').values_list('entry_page', flat=True).distinct()
+                options.update(entry_pages_ga4)
+            except Exception:
+                # Table doesn't exist, skip
+                pass
+            
+            options.update(entry_pages_uj)
+        
+        # Filter by search query if provided
+        if search_query:
+            search_lower = search_query.lower()
+            options = {opt for opt in options if opt and search_lower in str(opt).lower()}
+        
+        # Convert to sorted list and limit
+        options_list = sorted([str(opt) for opt in options if opt])[:100]  # Limit to 100 options
+        
+        return JsonResponse({
+            'success': True,
+            'options': options_list,
+            'count': len(options_list),
+            'filter_type': filter_type,
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching filter options: {e}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'options': [],
+        }, status=500)
 
 
 @login_required
@@ -2159,22 +2884,12 @@ def pageviews_detail(request):
     logger.info(f"Search Query: {search_query}")
     
     # Calculate date range
-    end_date = timezone.now()
-    if time_period == 'today':
-        start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif time_period == 'yesterday':
-        start_date = (end_date - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
-    elif time_period == '7days':
-        start_date = end_date - timedelta(days=7)
-    elif time_period == '30days':
-        start_date = end_date - timedelta(days=30)
-    elif time_period == '90days':
-        start_date = end_date - timedelta(days=90)
-    else:
-        start_date = end_date - timedelta(days=30)
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
-    logger.info(f"Date Range: {start_date.strftime('%Y-%m-%d %H:%M:%S')} to {end_date.strftime('%Y-%m-%d %H:%M:%S')}")
+    if start_date is not None:
+        logger.info(f"Date Range: {start_date.strftime('%Y-%m-%d %H:%M:%S')} to {end_date.strftime('%Y-%m-%d %H:%M:%S')}")
+    else:
+        logger.info("Date Range: All Time (no date filtering)")
     
     # Use GA4 data directly (skip database for now)
     ga4_pageviews = None
@@ -2321,3 +3036,69 @@ def pageviews_paths_api(request):
         'paths': paths,
         'count': len(paths)
     })
+
+
+@csrf_exempt
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def web_owner_optional_data_api(request):
+    """API endpoint for optional web owner dashboard data (loaded via AJAX)"""
+    time_period = request.GET.get('period', 'today')
+    data_type = request.GET.get('type', 'all')  # 'entry_pages', 'exit_pages', 'users_by_country', 'engagement', 'trends', 'all'
+    
+    try:
+        ga4_service = GA4Service()
+        response_data = {
+            'success': True,
+            'time_period': time_period,
+        }
+        
+        # Load requested data types
+        if data_type in ['all', 'entry_pages']:
+            try:
+                entry_pages = ga4_service.get_entry_pages(time_period, limit=10, use_cache=True)
+                response_data['entry_pages'] = entry_pages if entry_pages else []
+            except Exception as e:
+                logger.warning(f"Error fetching entry pages: {e}")
+                response_data['entry_pages'] = []
+        
+        if data_type in ['all', 'exit_pages']:
+            try:
+                exit_pages = ga4_service.get_exit_pages(time_period, limit=10, use_cache=True)
+                response_data['exit_pages'] = exit_pages if exit_pages else []
+            except Exception as e:
+                logger.warning(f"Error fetching exit pages: {e}")
+                response_data['exit_pages'] = []
+        
+        if data_type in ['all', 'users_by_country']:
+            try:
+                users_by_country = ga4_service.get_users_by_country(time_period, limit=10, use_cache=True)
+                response_data['users_by_country'] = users_by_country if users_by_country else []
+            except Exception as e:
+                logger.warning(f"Error fetching users by country: {e}")
+                response_data['users_by_country'] = []
+        
+        if data_type in ['all', 'engagement']:
+            try:
+                engagement = ga4_service.get_user_engagement(time_period, use_cache=True)
+                response_data['engagement'] = engagement if engagement else None
+            except Exception as e:
+                logger.warning(f"Error fetching engagement: {e}")
+                response_data['engagement'] = None
+        
+        if data_type in ['all', 'trends']:
+            try:
+                top_pages_with_trends = ga4_service.get_top_pages_with_trends(time_period, limit=20, use_cache=True)
+                response_data['top_pages_with_trends'] = top_pages_with_trends if top_pages_with_trends else []
+            except Exception as e:
+                logger.warning(f"Error fetching top pages with trends: {e}")
+                response_data['top_pages_with_trends'] = []
+        
+        return JsonResponse(response_data)
+    
+    except Exception as e:
+        logger.error(f"Error in web_owner_optional_data_api: {e}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)

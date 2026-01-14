@@ -14,6 +14,7 @@
             <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
             <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
             <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+            <option value="alltime" {% if time_period == 'alltime' %}selected{% endif %}>All Time</option>
         </select>
     </div>
 
@@ -247,6 +248,7 @@
     </div>
 
     <!-- Payment Status with Revenue -->
+    {% if successful_payments > 0 or failed_payments > 0 or pending_payments > 0 %}
     <div class="admin-card mb-4">
         <h3 class="mb-4" style="font-weight: 600; color: #2d3748;">
             <i class="fas fa-credit-card text-primary"></i> Payment Status & Revenue
@@ -392,8 +394,10 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- Enrollment Breakdown -->
+    {% if total_enrollments > 0 %}
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="admin-card">
@@ -490,8 +494,10 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- Revenue by Source -->
+    {% if revenue_by_source|length > 0 %}
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="admin-card">
@@ -523,10 +529,6 @@
                                     </td>
                                     <td>{{ item.get('count', 0) }}</td>
                                 </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">No data available</td>
-                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -535,8 +537,10 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- Top Products -->
+    {% if top_products|length > 0 %}
     <div class="row">
         <div class="col-md-12">
             <div class="admin-card">
@@ -568,10 +572,6 @@
                                     </td>
                                     <td>{{ product.get('count', 0) }}</td>
                                 </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">No data available</td>
-                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -580,6 +580,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 
 <script>

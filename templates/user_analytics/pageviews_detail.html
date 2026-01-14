@@ -11,6 +11,7 @@
                     <i class="fas fa-eye text-success"></i> 
                     {{ page_title }}
                 </h1>
+                {% if total_count > 0 %}
                 <p class="text-muted mb-0">
                     Total: <strong>{{ total_count }}</strong> pageviews
                     {% if data_source == 'ga4' %}
@@ -25,6 +26,7 @@
                         <span class="badge bg-info ms-2">Filtered by source: {{ source_filter }}</span>
                     {% endif %}
                 </p>
+                {% endif %}
             </div>
             <a href="{{ url('user_analytics:web_owner_dashboard') }}?period={{ time_period }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
@@ -43,6 +45,7 @@
                     <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
                     <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
                     <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+                    <option value="alltime" {% if time_period == 'alltime' %}selected{% endif %}>All Time</option>
                 </select>
             </div>
             <div class="col-md-3">

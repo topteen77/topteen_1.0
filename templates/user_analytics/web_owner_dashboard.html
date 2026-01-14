@@ -13,8 +13,9 @@
                 <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
                 <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
                 <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
-                <option value="30days" {% if time_period == '30days' or not time_period %}selected{% endif %}>Last 30 Days</option>
+                <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
                 <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+                <option value="alltime" {% if time_period == 'alltime' %}selected{% endif %}>All Time</option>
             </select>
         </div>
     </div>
@@ -160,18 +161,13 @@
     </div>
 
     <!-- Engagement Metrics -->
-    {% if engagement %}
-    <div class="row mb-4">
+    <div class="row mb-4" id="engagement-section" style="display: none;">
         <div class="col-md-4">
             <div class="admin-card">
                 <div class="card-body">
                     <h5 class="card-title">Avg Session Duration (GA4)</h5>
-                    <h3>
-                        {% if engagement.averageSessionDuration %}
-                            {{ "%.2f"|format(engagement.averageSessionDuration) }} min
-                        {% else %}
-                            0 min
-                        {% endif %}
+                    <h3 id="engagement-avg-duration">
+                        <span class="spinner-border spinner-border-sm" role="status"></span> Loading...
                     </h3>
                 </div>
             </div>
@@ -180,12 +176,8 @@
             <div class="admin-card">
                 <div class="card-body">
                     <h5 class="card-title">User Engagement (GA4)</h5>
-                    <h3>
-                        {% if engagement.engagementDuration %}
-                            {{ "%.2f"|format(engagement.engagementDuration) }} min
-                        {% else %}
-                            0 min
-                        {% endif %}
+                    <h3 id="engagement-duration">
+                        <span class="spinner-border spinner-border-sm" role="status"></span> Loading...
                     </h3>
                 </div>
             </div>
@@ -194,18 +186,13 @@
             <div class="admin-card">
                 <div class="card-body">
                     <h5 class="card-title">Bounce Rate (GA4)</h5>
-                    <h3>
-                        {% if engagement.bounceRate %}
-                            {{ "%.2f"|format(engagement.bounceRate) }}%
-                        {% else %}
-                            0%
-                        {% endif %}
+                    <h3 id="engagement-bounce-rate">
+                        <span class="spinner-border spinner-border-sm" role="status"></span> Loading...
                     </h3>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
 
     <!-- Top Pages -->
     <div class="row mb-4">
@@ -230,43 +217,11 @@
                                 <th>Page Title</th>
                                 <th>Path</th>
                                 <th>Pageviews</th>
-                                {% if top_pages_with_trends %}
-                                <th>Trend</th>
-                                {% endif %}
+                                <th id="trend-column-header" style="display: none;">Trend</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% if top_pages_with_trends and top_pages_with_trends|length > 0 %}
-                                {% for page in top_pages_with_trends %}
-                                <tr>
-                                    <td>{{ page.get('title', 'Unknown') }}</td>
-                                    <td>{{ page.get('path', 'N/A') }}</td>
-                                    <td>
-                                        {% if page.get('pageviews', 0) > 0 %}
-                                            <a href="{{ url('user_analytics:pageviews_detail') }}?period={{ time_period }}&path={{ page.get('path', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
-                                                {{ page.get('pageviews', 0) }}
-                                            </a>
-                                        {% else %}
-                                            {{ page.get('pageviews', 0) }}
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% set percent_change = page.get('percentChange', 0) %}
-                                        {% if percent_change > 0 %}
-                                            <span class="text-success">
-                                                <i class="fas fa-arrow-up"></i> {{ "%.1f"|format(percent_change) }}%
-                                            </span>
-                                        {% elif percent_change < 0 %}
-                                            <span class="text-danger">
-                                                <i class="fas fa-arrow-down"></i> {{ "%.1f"|format(percent_change|abs) }}%
-                                            </span>
-                                        {% else %}
-                                            <span class="text-muted">—</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            {% elif top_pages and top_pages|length > 0 %}
+                        <tbody id="top-pages-tbody">
+                            {% if top_pages and top_pages|length > 0 %}
                                 {% for page in top_pages %}
                                 <tr>
                                     <td>{{ page.get('title', 'Unknown') }}</td>
@@ -280,14 +235,12 @@
                                             {{ page.get('pageviews', 0) }}
                                         {% endif %}
                                     </td>
-                                    {% if top_pages_with_trends %}
-                                    <td>—</td>
-                                    {% endif %}
+                                    <td class="trend-cell" style="display: none;">—</td>
                                 </tr>
                                 {% endfor %}
                             {% else %}
                                 <tr>
-                                    <td colspan="{% if top_pages_with_trends %}4{% else %}3{% endif %}" class="text-center py-4">
+                                    <td colspan="3" class="text-center py-4">
                                         <p class="text-muted mb-2">No top pages data available for the selected time period.</p>
                                         <small class="text-muted">
                                             {% if time_period == 'today' %}
@@ -331,7 +284,7 @@
                                 <td>{{ source.get('utm_source', 'Unknown') }}</td>
                                 <td>
                                     {% if source.get('sessions', 0) > 0 %}
-                                        <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}&source={{ source.get('utm_source', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
+                                        <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}&source={{ source.get('utm_source', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view session details">
                                             {{ source.get('sessions', 0) }}
                                         </a>
                                     {% else %}
@@ -340,19 +293,27 @@
                                 </td>
                                 <td>
                                     {% if source.get('pageviews', 0) > 0 %}
-                                        <a href="{{ url('user_analytics:pageviews_detail') }}?period={{ time_period }}&source={{ source.get('utm_source', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
-                                            {{ source.get('pageviews', 0) }}
-                                        </a>
+                                        {% if has_db_data %}
+                                            <a href="{{ url('user_analytics:pageviews_detail') }}?period={{ time_period }}&source={{ source.get('utm_source', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view pageview details">
+                                                {{ source.get('pageviews', 0) }}
+                                            </a>
+                                        {% else %}
+                                            <span style="color: inherit; cursor: not-allowed;" title="Data from Google Analytics. Individual pageview details are not available in the database.">
+                                                {{ source.get('pageviews', 0) }}
+                                                <small class="text-muted">(GA4)</small>
+                                            </span>
+                                        {% endif %}
                                     {% else %}
                                         {{ source.get('pageviews', 0) }}
                                     {% endif %}
                                 </td>
                             </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="3">No data available</td>
-                            </tr>
                             {% endfor %}
+                            {% if not db_top_pages %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No data available</td>
+                            </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -388,11 +349,12 @@
                                     {% endif %}
                                 </td>
                             </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="2">No data available</td>
-                            </tr>
                             {% endfor %}
+                            {% if not db_device_breakdown %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted">No data available</td>
+                            </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -401,8 +363,7 @@
     </div>
 
     <!-- Geographic Breakdown -->
-    {% if users_by_country and users_by_country|length > 0 %}
-    <div class="row mb-4">
+    <div class="row mb-4" id="users-by-country-section" style="display: none;">
         <div class="col-md-12">
             <div class="admin-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -412,7 +373,13 @@
                     </small>
                 </div>
                 <div class="card-body">
-                    <table class="table">
+                    <div id="users-by-country-loading" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Loading country data...</p>
+                    </div>
+                    <table class="table" id="users-by-country-table" style="display: none;">
                         <thead>
                             <tr>
                                 <th>Country</th>
@@ -420,42 +387,13 @@
                                 <th>Percentage</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for country_data in users_by_country %}
-                            <tr>
-                                <td>
-                                    <i class="fas fa-globe text-primary"></i> {{ country_data.get('country', 'Unknown') }}
-                                </td>
-                                <td>
-                                    {% if country_data.get('activeUsers', 0) > 0 %}
-                                        <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}&country={{ country_data.get('country', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
-                                            {{ country_data.get('activeUsers', 0) }}
-                                        </a>
-                                    {% else %}
-                                        {{ country_data.get('activeUsers', 0) }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if total_country_users and total_country_users > 0 %}
-                                        {% set country_percent = (country_data.get('activeUsers', 0) / total_country_users * 100) %}
-                                        <div class="progress" style="height: 20px;">
-                                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ country_percent }}%;" aria-valuenow="{{ country_percent }}" aria-valuemin="0" aria-valuemax="100">
-                                                {{ "%.1f"|format(country_percent) }}%
-                                            </div>
-                                        </div>
-                                    {% else %}
-                                        0%
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="users-by-country-tbody">
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
 
     <!-- User Journey Stats -->
     <div class="row">
@@ -468,32 +406,18 @@
                     </small>
                 </div>
                 <div class="card-body">
-                    <table class="table">
+                    <div id="entry-pages-loading" class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <small class="d-block mt-2 text-muted">Loading entry pages...</small>
+                    </div>
+                    <table class="table" id="entry-pages-table" style="display: none;">
                         <thead>
                             <tr>
                                 <th>Page</th>
                                 <th>Sessions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for page in top_entry_pages %}
-                            <tr>
-                                <td>{{ page.get('entry_page', 'N/A') }}</td>
-                                <td>
-                                    {% if page.get('count', 0) > 0 %}
-                                        <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}&entry_page={{ page.get('entry_page', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
-                                            {{ page.get('count', 0) }}
-                                        </a>
-                                    {% else %}
-                                        {{ page.get('count', 0) }}
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="2">No data available</td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="entry-pages-tbody">
                         </tbody>
                     </table>
                 </div>
@@ -508,32 +432,18 @@
                     </small>
                 </div>
                 <div class="card-body">
-                    <table class="table">
+                    <div id="exit-pages-loading" class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <small class="d-block mt-2 text-muted">Loading exit pages...</small>
+                    </div>
+                    <table class="table" id="exit-pages-table" style="display: none;">
                         <thead>
                             <tr>
                                 <th>Page</th>
                                 <th>Sessions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for page in top_exit_pages %}
-                            <tr>
-                                <td>{{ page.get('exit_page', 'N/A') }}</td>
-                                <td>
-                                    {% if page.get('count', 0) > 0 %}
-                                        <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}&exit_page={{ page.get('exit_page', '')|urlencode }}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view details">
-                                            {{ page.get('count', 0) }}
-                                        </a>
-                                    {% else %}
-                                        {{ page.get('count', 0) }}
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="2">No data available</td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="exit-pages-tbody">
                         </tbody>
                     </table>
                 </div>
@@ -547,7 +457,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const periodSelect = document.getElementById('periodSelect');
     const urlParams = new URLSearchParams(window.location.search);
-    const currentPeriod = urlParams.get('period') || '30days';
+    const currentPeriod = urlParams.get('period') || 'today';
     
     // Set the selected value
     if (periodSelect) {
@@ -556,16 +466,241 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // If no period in URL, add it
     if (!urlParams.has('period')) {
-        const newUrl = window.location.pathname + '?period=30days';
+        const newUrl = window.location.pathname + '?period=today';
         window.history.replaceState({}, '', newUrl);
     }
 });
 
 function updatePeriod(period) {
     if (!period) {
-        period = '30days'; // Default to 30 days
+        period = 'today'; // Default to today
     }
     window.location.href = '{{ url("user_analytics:web_owner_dashboard") }}?period=' + period;
+}
+
+// Load optional data via AJAX after page load
+document.addEventListener('DOMContentLoaded', function() {
+    const timePeriod = new URLSearchParams(window.location.search).get('period') || 'today';
+    
+    // Load optional data after a short delay to let critical data load first
+    setTimeout(function() {
+        loadOptionalData(timePeriod);
+    }, 500);
+});
+
+function loadOptionalData(timePeriod) {
+    const apiUrl = '{{ url("user_analytics:web_owner_optional_data_api") }}?period=' + encodeURIComponent(timePeriod) + '&type=all';
+    
+    fetch(apiUrl, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Load engagement metrics
+            if (data.engagement) {
+                loadEngagementData(data.engagement);
+            }
+            
+            // Load users by country
+            if (data.users_by_country && data.users_by_country.length > 0) {
+                loadUsersByCountry(data.users_by_country);
+            }
+            
+            // Load entry pages
+            if (data.entry_pages && data.entry_pages.length > 0) {
+                loadEntryPages(data.entry_pages, timePeriod);
+            }
+            
+            // Load exit pages
+            if (data.exit_pages && data.exit_pages.length > 0) {
+                loadExitPages(data.exit_pages, timePeriod);
+            }
+            
+            // Load top pages with trends
+            if (data.top_pages_with_trends && data.top_pages_with_trends.length > 0) {
+                loadTopPagesWithTrends(data.top_pages_with_trends, timePeriod);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error loading optional data:', error);
+    });
+}
+
+function loadEngagementData(engagement) {
+    const section = document.getElementById('engagement-section');
+    if (section && engagement) {
+        section.style.display = '';
+        
+        // Update engagement metrics
+        const avgDuration = document.getElementById('engagement-avg-duration');
+        const duration = document.getElementById('engagement-duration');
+        const bounceRate = document.getElementById('engagement-bounce-rate');
+        
+        if (avgDuration) {
+            const avg = engagement.averageSessionDuration || 0;
+            avgDuration.innerHTML = avg > 0 ? avg.toFixed(2) + ' min' : '0 min';
+        }
+        if (duration) {
+            const eng = engagement.engagementDuration || 0;
+            duration.innerHTML = eng > 0 ? eng.toFixed(2) + ' min' : '0 min';
+        }
+        if (bounceRate) {
+            const bounce = engagement.bounceRate || 0;
+            bounceRate.innerHTML = bounce > 0 ? bounce.toFixed(2) + '%' : '0%';
+        }
+    }
+}
+
+function loadUsersByCountry(countries) {
+    const section = document.getElementById('users-by-country-section');
+    const loading = document.getElementById('users-by-country-loading');
+    const table = document.getElementById('users-by-country-table');
+    const tbody = document.getElementById('users-by-country-tbody');
+    const timePeriod = new URLSearchParams(window.location.search).get('period') || 'today';
+    
+    if (section && tbody) {
+        section.style.display = '';
+        
+        // Calculate total for percentage
+        const total = countries.reduce((sum, c) => sum + (c.activeUsers || 0), 0);
+        
+        // Clear and populate table
+        tbody.innerHTML = '';
+        countries.forEach(country => {
+            const countryName = country.country || 'Unknown';
+            const users = country.activeUsers || 0;
+            const percent = total > 0 ? (users / total * 100).toFixed(1) : 0;
+            
+            const row = `
+                <tr>
+                    <td><i class="fas fa-globe text-primary"></i> ${countryName}</td>
+                    <td>
+                        ${users > 0 
+                            ? `<a href="{{ url('user_analytics:visitors_detail') }}?period=${timePeriod}&country=${encodeURIComponent(countryName)}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view visitor details">${users}</a>`
+                            : users}
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: ${percent}%;" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">
+                                ${percent}%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+        
+        // Hide loading, show table
+        if (loading) loading.style.display = 'none';
+        if (table) table.style.display = '';
+    }
+}
+
+function loadEntryPages(entryPages, timePeriod) {
+    const loading = document.getElementById('entry-pages-loading');
+    const table = document.getElementById('entry-pages-table');
+    const tbody = document.getElementById('entry-pages-tbody');
+    
+    if (tbody) {
+        tbody.innerHTML = '';
+        entryPages.forEach(page => {
+            const entryPage = page.entry_page || 'N/A';
+            const count = page.count || 0;
+            
+            const row = `
+                <tr>
+                    <td>${entryPage}</td>
+                    <td>
+                        ${count > 0 
+                            ? `<a href="{{ url('user_analytics:visitors_detail') }}?period=${timePeriod}&entry_page=${encodeURIComponent(entryPage)}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view session details">${count}</a>`
+                            : count}
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+        
+        if (entryPages.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No data available</td></tr>';
+        }
+        
+        if (loading) loading.style.display = 'none';
+        if (table) table.style.display = '';
+    }
+}
+
+function loadExitPages(exitPages, timePeriod) {
+    const loading = document.getElementById('exit-pages-loading');
+    const table = document.getElementById('exit-pages-table');
+    const tbody = document.getElementById('exit-pages-tbody');
+    
+    if (tbody) {
+        tbody.innerHTML = '';
+        
+        if (exitPages && exitPages.length > 0) {
+            exitPages.forEach(page => {
+                const exitPage = page.exit_page || 'N/A';
+                const count = page.count || 0;
+                
+                const row = `
+                    <tr>
+                        <td>${exitPage}</td>
+                        <td>
+                            ${count > 0 
+                                ? `<a href="{{ url('user_analytics:visitors_detail') }}?period=${timePeriod}&exit_page=${encodeURIComponent(exitPage)}" style="color: inherit; text-decoration: none; cursor: pointer;" title="Click to view session details">${count}</a>`
+                                : count}
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Exit pages data not available via GA4 API</td></tr>';
+        }
+        
+        if (loading) loading.style.display = 'none';
+        if (table) table.style.display = '';
+    }
+}
+
+function loadTopPagesWithTrends(pagesWithTrends, timePeriod) {
+    const tbody = document.getElementById('top-pages-tbody');
+    const trendHeader = document.getElementById('trend-column-header');
+    
+    if (tbody && pagesWithTrends && pagesWithTrends.length > 0) {
+        // Show trend column header
+        if (trendHeader) trendHeader.style.display = '';
+        
+        // Update rows with trend data
+        const rows = tbody.querySelectorAll('tr');
+        pagesWithTrends.forEach((page, index) => {
+            if (rows[index]) {
+                const percentChange = page.percentChange || 0;
+                let trendHtml = '—';
+                
+                if (percentChange > 0) {
+                    trendHtml = `<span class="text-success"><i class="fas fa-arrow-up"></i> ${percentChange.toFixed(1)}%</span>`;
+                } else if (percentChange < 0) {
+                    trendHtml = `<span class="text-danger"><i class="fas fa-arrow-down"></i> ${Math.abs(percentChange).toFixed(1)}%</span>`;
+                }
+                
+                // Add or update trend cell
+                let trendCell = rows[index].querySelector('.trend-cell');
+                if (!trendCell) {
+                    trendCell = document.createElement('td');
+                    trendCell.className = 'trend-cell';
+                    rows[index].appendChild(trendCell);
+                }
+                trendCell.innerHTML = trendHtml;
+                trendCell.style.display = '';
+            }
+        });
+    }
 }
 </script>
 {% endblock %}

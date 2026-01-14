@@ -6,7 +6,7 @@ from celery import shared_task
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from user_analytics.models import UserActivity, UserJourney, Lead, UserEvent
+from user_analytics.models import UserActivity, UserJourney, Lead, UserEvent, GA4Session
 from user_analytics.utils import parse_user_agent_info, get_referrer_source
 import logging
 
@@ -19,6 +19,7 @@ def track_page_view_async(
     self,
     session_id,
     user_id=None,
+    ga4_client_id=None,
     page_path='',
     page_title='',
     referrer='',
@@ -115,6 +116,7 @@ def update_user_journey_async(
     self,
     session_id,
     user_id=None,
+    ga4_client_id=None,
     page_path='',
     referrer='',
 ):
@@ -136,15 +138,19 @@ def update_user_journey_async(
                 pass
         
         with transaction.atomic():
+            defaults = {
+                'user': user,
+                'start_time': timezone.now(),
+                'entry_page': page_path,
+                'referrer': referrer,
+                'journey_path': [page_path],
+            }
+            if ga4_client_id:
+                defaults['ga4_client_id'] = ga4_client_id
+            
             journey, created = UserJourney.objects.get_or_create(
                 session_id=session_id,
-                defaults={
-                    'user': user,
-                    'start_time': timezone.now(),
-                    'entry_page': page_path,
-                    'referrer': referrer,
-                    'journey_path': [page_path],
-                }
+                defaults=defaults
             )
             
             if not created:
@@ -152,6 +158,10 @@ def update_user_journey_async(
                 journey.end_time = timezone.now()
                 journey.total_pages += 1
                 journey.exit_page = page_path
+                
+                # Update GA4 client ID if provided and not already set
+                if ga4_client_id and not journey.ga4_client_id:
+                    journey.ga4_client_id = ga4_client_id
                 
                 # Add to journey path if not already there
                 if page_path not in journey.journey_path:
@@ -318,4 +328,32 @@ def aggregate_daily_analytics(date=None):
     except Exception as exc:
         logger.error(f"Error aggregating daily analytics: {exc}", exc_info=True)
         raise
+
+
+@shared_task(bind=True, max_retries=3)
+def sync_ga4_sessions_task(self, time_period='30days', link_users=True):
+    """
+    Background task to sync GA4 session data to database.
+    Called automatically on first dashboard visit if data is missing.
+    
+    Args:
+        time_period: Time period string ('today', 'yesterday', '7days', '30days', '90days')
+        link_users: Whether to attempt linking sessions to Django users
+    """
+    try:
+        from user_analytics.ga4_service import GA4Service
+        
+        ga4_service = GA4Service()
+        result = ga4_service.sync_sessions_to_db(time_period=time_period, link_users=link_users)
+        
+        if result.get('success'):
+            logger.info(f"GA4 sync task completed successfully: {result}")
+            return result
+        else:
+            logger.error(f"GA4 sync task failed: {result.get('error')}")
+            raise Exception(result.get('error', 'Unknown error'))
+            
+    except Exception as exc:
+        logger.error(f"Error in GA4 sync task: {exc}", exc_info=True)
+        raise self.retry(exc=exc, countdown=300)  # Retry after 5 minutes
 

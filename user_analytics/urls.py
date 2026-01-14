@@ -46,5 +46,7 @@ urlpatterns = [
     path('api/enrollments/', views.enrollments_api, name='enrollments_api'),
     path('api/business-metrics/', views.business_metrics_api, name='business_metrics_api'),
     path('api/pageviews/paths/', views.pageviews_paths_api, name='pageviews_paths_api'),
+    path('api/visitors/filter-options/', views.visitors_filter_options_api, name='visitors_filter_options_api'),
+    path('api/web-owner/optional-data/', views.web_owner_optional_data_api, name='web_owner_optional_data_api'),
 ]
 

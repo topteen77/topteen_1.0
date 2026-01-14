@@ -238,6 +238,7 @@ class UserJourney(BaseModel):
         related_name='journeys'
     )
     journey_path = models.JSONField(default=list, help_text="Sequence of pages visited")
+    ga4_client_id = models.CharField(max_length=255, blank=True, null=True, db_index=True, help_text="GA4 client ID for session linking")
     
     class Meta:
         verbose_name = "User Journey"
@@ -262,3 +263,66 @@ class UserJourney(BaseModel):
     def __str__(self):
         user_str = self.user.email if self.user else "Anonymous"
         return f"{user_str} - {self.session_id} - {self.start_time}"
+
+
+class GA4Session(BaseModel):
+    """
+    Stores synced GA4 session data for faster querying and offline access.
+    Links GA4 sessions with Django user sessions via client ID.
+    """
+    ga4_client_id = models.CharField(max_length=255, db_index=True, help_text="GA4 client ID")
+    ga4_session_id = models.CharField(max_length=255, blank=True, null=True, help_text="GA4 session ID")
+    django_session_id = models.CharField(max_length=255, blank=True, null=True, db_index=True, help_text="Django session ID")
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ga4_sessions',
+        help_text="Linked Django user if identified"
+    )
+    date = models.DateField(db_index=True, help_text="Session date")
+    source = models.CharField(max_length=255, blank=True, null=True, db_index=True, help_text="Traffic source")
+    medium = models.CharField(max_length=255, blank=True, null=True)
+    campaign = models.CharField(max_length=255, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    device = models.CharField(max_length=50, blank=True, null=True, db_index=True)
+    entry_page = models.CharField(max_length=500, blank=True, null=True, db_index=True)
+    exit_page = models.CharField(max_length=500, blank=True, null=True)
+    sessions_count = models.IntegerField(default=1, help_text="Number of sessions (for aggregated data)")
+    pageviews = models.IntegerField(default=0, help_text="Total page views")
+    users = models.IntegerField(default=1, help_text="Number of unique users")
+    synced_at = models.DateTimeField(auto_now_add=True, db_index=True, help_text="When this data was synced from GA4")
+    updated = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "GA4 Session"
+        verbose_name_plural = "GA4 Sessions"
+        ordering = ['-date', '-synced_at']
+        indexes = [
+            models.Index(fields=['ga4_client_id', 'date']),
+            models.Index(fields=['django_session_id', 'date']),
+            models.Index(fields=['user', '-date']),
+            models.Index(fields=['date', 'source', 'country', 'device']),
+            models.Index(fields=['-synced_at']),
+        ]
+        # Unique constraint to prevent duplicates
+        unique_together = [['ga4_client_id', 'date', 'source', 'country', 'device', 'entry_page']]
+    
+    @property
+    def is_registered_user(self):
+        """Check if this session is from a registered user"""
+        return self.user is not None
+    
+    @property
+    def user_type(self):
+        """Get user type: 'Registered' or 'New'"""
+        if self.user:
+            # Check if user was new at the time of this session
+            if self.user.date_joined.date() <= self.date:
+                return 'Registered'
+        return 'New'
+    
+    def __str__(self):
+        user_str = self.user.email if self.user else "Anonymous"
+        return f"{user_str} - {self.ga4_client_id[:10]}... - {self.date}"

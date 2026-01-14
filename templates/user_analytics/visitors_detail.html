@@ -11,8 +11,9 @@
                     <i class="fas fa-users text-primary"></i> 
                     {{ page_title }}
                 </h1>
+                {% if total_count > 0 %}
                 <p class="text-muted mb-0">
-                    Total: <strong>{{ total_count }}</strong> unique sessions
+                    Total: <strong>{{ total_count }}</strong> {% if ga4_sessions_data %}aggregated sessions (GA4){% else %}unique sessions{% endif %}
                     {% if source_filter or device_filter or country_filter or entry_page_filter or exit_page_filter %}
                         <span class="ms-2">
                             {% if source_filter %}
@@ -33,6 +34,7 @@
                         </span>
                     {% endif %}
                 </p>
+                {% endif %}
             </div>
             <a href="{{ url('user_analytics:web_owner_dashboard') }}?period={{ time_period }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
@@ -40,44 +42,98 @@
         </div>
     </div>
 
+    <!-- User Type Tabs -->
+    <div class="admin-card mb-3">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link {% if user_type_filter == 'all' or not user_type_filter %}active{% endif %}" 
+                   href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}">
+                    <i class="fas fa-users"></i> All Users
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link {% if user_type_filter == 'registered' %}active{% endif %}" 
+                   href="?period={{ time_period }}&user_type=registered{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}">
+                    <i class="fas fa-user-check"></i> Registered Users
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link {% if user_type_filter == 'new' %}active{% endif %}" 
+                   href="?period={{ time_period }}&user_type=new{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}">
+                    <i class="fas fa-user-plus"></i> New Users
+                </a>
+            </li>
+        </ul>
+    </div>
+
     <!-- Filters -->
     <div class="admin-card mb-4">
-        <form method="get" class="row g-3">
+        <form method="get" id="visitors-filter-form" class="row g-3">
+            <input type="hidden" name="user_type" value="{{ user_type_filter|default('all') }}">
             <div class="col-md-2">
                 <label class="form-label">Time Period</label>
-                <select name="period" class="form-select">
+                <select name="period" id="period-select" class="form-select">
                     <option value="today" {% if time_period == 'today' or not time_period %}selected{% endif %}>Today</option>
                     <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
                     <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
                     <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
                     <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+                    <option value="alltime" {% if time_period == 'alltime' %}selected{% endif %}>All Time</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <label class="form-label">Source</label>
-                <input type="text" name="source" class="form-control" placeholder="Filter by source..." value="{{ source_filter|default('') }}">
+                <select name="source" id="source-filter" class="form-select" data-filter-type="source">
+                    <option value="">All Sources</option>
+                    {% if source_filter %}
+                    <option value="{{ source_filter|escape }}" selected>{{ source_filter|escape }}</option>
+                    {% endif %}
+                </select>
             </div>
             <div class="col-md-2">
                 <label class="form-label">Device</label>
-                <input type="text" name="device" class="form-control" placeholder="Filter by device..." value="{{ device_filter|default('') }}">
+                <select name="device" id="device-filter" class="form-select" data-filter-type="device">
+                    <option value="">All Devices</option>
+                    {% if device_filter %}
+                    <option value="{{ device_filter|escape }}" selected>{{ device_filter|escape }}</option>
+                    {% endif %}
+                </select>
             </div>
             <div class="col-md-2">
                 <label class="form-label">Country</label>
-                <input type="text" name="country" class="form-control" placeholder="Filter by country..." value="{{ country_filter|default('') }}">
+                <select name="country" id="country-filter" class="form-select" data-filter-type="country">
+                    <option value="">All Countries</option>
+                    {% if country_filter %}
+                    <option value="{{ country_filter|escape }}" selected>{{ country_filter|escape }}</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Entry Page</label>
+                <select name="entry_page" id="entry-page-filter" class="form-select" data-filter-type="entry_page">
+                    <option value="">All Entry Pages</option>
+                    {% if entry_page_filter %}
+                    <option value="{{ entry_page_filter|escape }}" selected>{{ entry_page_filter|escape }}</option>
+                    {% endif %}
+                </select>
             </div>
             <div class="col-md-2">
                 <label class="form-label">Search</label>
                 <input type="text" name="search" class="form-control" placeholder="Search by user email, session ID..." value="{{ search_query|default('') }}">
             </div>
-            <div class="col-md-2">
-                <label class="form-label">&nbsp;</label>
+            <div class="col-md-12">
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-100">
+                    <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search"></i> Filter
                     </button>
-                    <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-times"></i>
+                    <a href="{{ url('user_analytics:visitors_detail') }}?period={{ time_period }}{% if user_type_filter and user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> Clear Filters
                     </a>
+                    {% if ga4_needs_sync %}
+                    <span class="badge bg-warning align-self-center ms-2">
+                        <i class="fas fa-sync"></i> Syncing GA4 data...
+                    </span>
+                    {% endif %}
                 </div>
             </div>
         </form>
@@ -94,6 +150,11 @@
                         <th>Session ID</th>
                         <th>Device Type</th>
                         <th>Source</th>
+                        {% if ga4_sessions_data %}
+                        <th>Country</th>
+                        <th>Entry Page</th>
+                        <th>Sessions</th>
+                        {% endif %}
                         <th>Page Views</th>
                         <th>First Visit</th>
                     </tr>
@@ -101,20 +162,44 @@
                 <tbody>
                     {% for session in sessions.object_list %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td>{{ (loop.index0 + (sessions.number - 1) * sessions.paginator.per_page) + 1 }}</td>
                         <td>
-                            {% if session.user %}
+                            {% if session.get('is_ga4_data') %}
+                                <span class="text-muted">
+                                    <i class="fas fa-chart-line text-info" title="Data from Google Analytics"></i> GA4 Data
+                                </span>
+                            {% elif session.user %}
+                                <span class="badge bg-success me-1">Registered</span>
                                 {{ session.user.email or 'N/A' }}
                             {% else %}
+                                <span class="badge bg-secondary me-1">New</span>
                                 <span class="text-muted">Guest</span>
                             {% endif %}
                         </td>
-                        <td><small>{{ session.session_id[:20] }}{% if session.session_id|length > 20 %}...{% endif %}</small></td>
-                        <td>{{ session.device_type or 'Unknown' }}</td>
-                        <td>{{ session.utm_source or 'Direct' }}</td>
-                        <td><span class="badge bg-info">{{ session.page_views }}</span></td>
                         <td>
-                            {% if session.first_visit %}
+                            <small>
+                                {% if session.get('is_ga4_data') %}
+                                    <span class="text-muted">Aggregated</span>
+                                {% else %}
+                                    {{ session.session_id[:20] }}{% if session.session_id|length > 20 %}...{% endif %}
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>{{ session.get('device_type') or 'Unknown' }}</td>
+                        <td>{{ session.get('utm_source') or 'Direct' }}</td>
+                        {% if ga4_sessions_data %}
+                        <td>{{ session.get('country') or 'Unknown' }}</td>
+                        <td>
+                            <small>
+                                {% set entry_page_val = session.get('entry_page') or 'N/A' %}
+                                {{ entry_page_val[:30] }}{% if entry_page_val|length > 30 %}...{% endif %}
+                            </small>
+                        </td>
+                        <td><span class="badge bg-success">{{ session.get('sessions_count', 0) }}</span></td>
+                        {% endif %}
+                        <td><span class="badge bg-info">{{ session.get('page_views') or 0 }}</span></td>
+                        <td>
+                            {% if session.get('first_visit') %}
                                 {{ session.first_visit.strftime('%b %d, %Y %H:%M') }}
                             {% else %}
                                 N/A
@@ -123,7 +208,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="7" class="text-center py-5">
+                        <td colspan="{% if ga4_sessions_data %}10{% else %}7{% endif %}" class="text-center py-5">
                             {% if use_ga4_fallback or total_activities_in_range == 0 %}
                                 <div class="alert alert-info" role="alert">
                                     <h5 class="alert-heading">
@@ -193,7 +278,7 @@
             <ul class="pagination justify-content-center">
                 {% if sessions.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ sessions.previous_page_number }}">Previous</a>
+                    <a class="page-link" href="?period={{ time_period }}{% if user_type_filter and user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ sessions.previous_page_number }}">Previous</a>
                 </li>
                 {% endif %}
                 
@@ -204,14 +289,14 @@
                     </li>
                     {% elif num > (sessions.number - 3) and num < (sessions.number + 3) %}
                     <li class="page-item">
-                        <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ num }}">{{ num }}</a>
+                        <a class="page-link" href="?period={{ time_period }}{% if user_type_filter and user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ num }}">{{ num }}</a>
                     </li>
                     {% endif %}
                 {% endfor %}
                 
                 {% if sessions.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ sessions.next_page_number }}">Next</a>
+                    <a class="page-link" href="?period={{ time_period }}{% if user_type_filter and user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if entry_page_filter %}&entry_page={{ entry_page_filter|urlencode }}{% endif %}{% if exit_page_filter %}&exit_page={{ exit_page_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ sessions.next_page_number }}">Next</a>
                 </li>
                 {% endif %}
             </ul>
@@ -219,4 +304,109 @@
         {% endif %}
     </div>
 </div>
+
+{% endblock %}
+
+{% block additional_head %}
+<!-- Load Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Select2 Bootstrap 5 compatibility */
+    .select2-container .select2-selection--single {
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: 36px;
+        padding-left: 12px;
+        padding-right: 20px;
+    }
+    .select2-container .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+        right: 8px;
+    }
+    .select2-dropdown {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+    .select2-results__option {
+        padding: 8px 12px;
+    }
+    .select2-results__option--highlighted {
+        background-color: #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block additional_js %}
+<!-- Load Select2 JS (must be after jQuery) -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="/static/js_new/visitors_filters.js"></script>
+<script>
+    // Wait for jQuery and Select2 to be ready
+    (function() {
+        function initFilters() {
+            if (typeof $ === 'undefined' || typeof $.fn.select2 === 'undefined') {
+                console.warn('Waiting for jQuery/Select2 to load...');
+                setTimeout(initFilters, 100);
+                return;
+            }
+            
+            if (typeof initVisitorsFilters === 'function') {
+                try {
+                    // Get filter values from URL parameters to ensure they're preserved
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const currentPeriod = urlParams.get('period') || '{{ time_period }}';
+                    
+                    initVisitorsFilters({
+                        period: currentPeriod,
+                        filterOptionsUrl: '{{ url("user_analytics:visitors_filter_options_api") }}',
+                        userType: '{{ user_type_filter|default("all") }}'
+                    });
+                    console.log('Filters initialized successfully');
+                    
+                    // After initialization, ensure all selected values are properly displayed
+                    // This handles pagination and direct URL access with filters
+                    setTimeout(function() {
+                        const filterMap = {
+                            'source': '#source-filter',
+                            'device': '#device-filter',
+                            'country': '#country-filter',
+                            'entry_page': '#entry-page-filter'
+                        };
+                        
+                        Object.keys(filterMap).forEach(function(filterName) {
+                            const value = urlParams.get(filterName);
+                            if (value) {
+                                const decodedValue = decodeURIComponent(value);
+                                const $select = $(filterMap[filterName]);
+                                if ($select.length && $select.data('select2')) {
+                                    // Check if option exists, if not create it
+                                    if (!$select.find('option[value="' + decodedValue + '"]').length) {
+                                        $select.append(new Option(decodedValue, decodedValue, true, true));
+                                    }
+                                    // Set value and trigger change
+                                    $select.val(decodedValue).trigger('change.select2');
+                                }
+                            }
+                        });
+                    }, 600);
+                } catch (error) {
+                    console.error('Error initializing filters:', error);
+                }
+            } else {
+                console.error('initVisitorsFilters function not found. Check if visitors_filters.js is loaded.');
+            }
+        }
+        
+        // Start initialization
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initFilters);
+        } else {
+            // DOM is already ready
+            initFilters();
+        }
+    })();
+</script>
 {% endblock %}
