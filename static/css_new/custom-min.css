@@ -12083,3 +12083,236 @@ background: #5249DF;
 
 }
 /** college page css **/
+
+/** vocational course detail page css **/
+
+.vocational-card {
+  background: #FFF4E9C9;
+  background: linear-gradient(90deg, rgba(255, 244, 233, 1) 0%, rgba(250, 230, 205, 1) 50%);
+  padding: 33px;
+  border-radius: 20px;
+}
+
+.voc-image {
+border-radius: 20px;
+}
+
+.voc-left .heading-title {
+  line-height: 49px;
+}
+
+.vocational-card  .cards-n {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #d7d0d0;
+}
+
+
+
+.voc-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+}
+
+
+.voc-list li {
+  display: flex;
+  align-items: start;
+  padding: 4px 0;
+  color: #222;
+  font-weight: 600;
+  line-height: 19px;
+}
+
+.voc-list li .bx {
+  color: #7a6ef8;
+  font-size: 18px;
+  margin-right: 8px;
+}
+
+
+
+/* Vocational accordion styles */
+.vocational-cr-accordion .custom-accordion .accordion-item {
+  border: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 20px rgba(36, 30, 85, 0.06);
+}
+
+.vocational-cr-accordion .custom-accordion .accordion-button {
+  background: linear-gradient(90deg, #ffffff 0%, #f7f6ff 100%);
+  color: #241e55;
+  padding: 18px 20px;
+  font-weight: 700;
+  border-radius: 12px;
+  gap: 12px;
+}
+
+.vocational-cr-accordion .custom-accordion .accordion-button .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f0e9ff, #f7f4ff);
+  color: #6b3df0;
+  font-size: 20px;
+  margin-right: 12px;
+  flex: 0 0 44px;
+}
+
+.vocational-cr-accordion .custom-accordion .accordion-button .chev {
+  transition: transform .24s ease;
+  margin-left: auto;
+  color: #6b3df0;
+}
+
+.vocational-cr-accordion .custom-accordion .accordion-button.active {
+  background: linear-gradient(90deg, rgba(107, 61, 240, 0.06), rgba(99, 102, 241, 0.03));
+  border-left: 4px solid #6b3df0;
+}
+
+.vocational-cr-accordion .custom-accordion .accordion-body {
+  background: #fff;
+  padding: 18px 20px 22px 20px;
+  color: #444;
+  line-height: 1.6;
+}
+
+.vocational-cr-accordion .custom-accordion .chev.rotate {
+  transform: rotate(180deg);
+}
+
+
+.vocational-cr-accordion .custom-accordion .accordion-item.pros-cons-item .accordion-body {
+  background: #fff;
+}
+
+.vocational-cr-accordion .pros-cons-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 12px;
+}
+
+.vocational-cr-accordion  .pros-section,
+.vocational-cr-accordion  .cons-section {
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid;
+}
+
+.vocational-cr-accordion .pros-section {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #10b981;
+}
+
+.vocational-cr-accordion .pros-section h4 {
+  color: #10b981;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vocational-cr-accordion .pros-section h4::before {
+  content: "✓";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #10b981;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.vocational-cr-accordion  .cons-section {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-color: #ef4444;
+}
+
+.vocational-cr-accordion .cons-section h4 {
+  color: #ef4444;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vocational-cr-accordion  .cons-section h4::before {
+  content: "×";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.vocational-cr-accordion  .pros-section ul,
+.vocational-cr-accordion .cons-section ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.vocational-cr-accordion .pros-section ul li,
+.vocational-cr-accordion .cons-section ul li {
+  padding: 10px 0;
+  padding-left: 32px;
+  position: relative;
+  color: #1f2937;
+  line-height: 1.6;
+}
+
+.vocational-cr-accordion .pros-section ul li::before {
+  content: "•";
+  position: absolute;
+  left: 12px;
+  color: #10b981;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.vocational-cr-accordion .cons-section ul li::before {
+  content: "•";
+  position: absolute;
+  left: 12px;
+  color: #ef4444;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.vocational-cr-accordion   .chev {
+display: none;
+}
+
+@media (max-width: 767px) {
+  .vocational-cr-accordion .pros-cons-content {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .voc-left .heading-title {
+  line-height:31px;
+}
+
+}
+
+/* Vocational accordion styles */
