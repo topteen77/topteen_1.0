@@ -166,6 +166,7 @@
     
     // Fixed accordion headings as per requirements
     var FIXED_HEADINGS = [
+        'Overview',
         'Eligibility & Admission',
         'Duration & Structure',
         'Curriculum Highlights',
@@ -181,6 +182,7 @@
     
     // Icon mapping for each section
     var iconMap = {
+        'Overview': 'bx bx-info-circle',
         'Eligibility & Admission': 'bx bx-user-check',
         'Duration & Structure': 'bx bx-time',
         'Curriculum Highlights': 'bx bx-book-open',
@@ -573,8 +575,37 @@
         if (jsonField && jsonField.value) {
             try {
                 var existingData = JSON.parse(jsonField.value);
-                if (existingData && existingData.sections) {
-                    accordionData = existingData.sections;
+                
+                // Load full JSON structure including programtitle and overview
+                if (existingData) {
+                    // Set accordionData from sections
+                    if (existingData.sections) {
+                        accordionData = existingData.sections;
+                    }
+                    
+                    // Set jsonData with full structure
+                    jsonData = {
+                        programtitle: existingData.programtitle || '',
+                        overview: existingData.overview || '',
+                        sections: existingData.sections || accordionData
+                    };
+                    
+                    // If programtitle is missing, get it from name field
+                    if (!jsonData.programtitle) {
+                        var nameField = document.querySelector('#id_name');
+                        if (nameField) {
+                            jsonData.programtitle = nameField.value || '';
+                        }
+                    }
+                    
+                    // If overview is missing, try to extract from Overview section
+                    if (!jsonData.overview) {
+                        var overviewKey = 'overview';
+                        if (jsonData.sections && jsonData.sections[overviewKey] && jsonData.sections[overviewKey].html) {
+                            jsonData.overview = jsonData.sections[overviewKey].html.trim();
+                        }
+                    }
+                    
                     updateAccordionPreview();
                 }
             } catch (e) {
@@ -595,7 +626,8 @@
         'learning_outcomes': ['learning', 'outcome', 'result', 'achievement', 'objective', 'goal', 'target'],
         'career_growth_prospects': ['career', 'growth', 'prospect', 'opportunity', 'advancement', 'progress', 'future', 'scope'],
         'employment_sectors_employers': ['employment', 'sector', 'employer', 'recruiter', 'company', 'organization', 'job', 'work'],
-        'conclusion': ['conclusion', 'summary', 'final', 'overall', 'wrap', 'end']
+        'overview': ['overview', 'introduction', 'intro', 'about', 'summary', 'description', 'general', 'brief'],
+    'conclusion': ['conclusion', 'summary', 'final', 'overall', 'wrap', 'end']
     };
     
     function normalizeText(text) {
@@ -653,6 +685,14 @@
         return bestMatch;
     }
     
+    // Helper function to check if a heading text is an exact match to a fixed heading
+    function isExactFixedHeading(text) {
+        var normalized = normalizeText(text);
+        return FIXED_HEADINGS.some(function(fh) {
+            return normalizeText(fh) === normalized;
+        });
+    }
+    
     function extractContentUntilNextHeading(element) {
         var content = '';
         var current = element;
@@ -661,53 +701,76 @@
         current = current.nextSibling;
         
         while (current) {
-            // Stop at next heading (h1-h6)
+            // Stop at next heading (h1-h6) - but only if it matches a fixed heading exactly
             if (current.nodeType === 1 && current.tagName && current.tagName.match(/^H[1-6]$/)) {
-                break;
+                var headingText = current.textContent.trim();
+                // Only stop if this is an exact match to a fixed heading
+                if (isExactFixedHeading(headingText)) {
+                    // This is a new section heading, stop here
+                    break;
+                }
+                // If it doesn't match a fixed heading, it's a sub-heading, include it
+                content += current.outerHTML || '';
+                current = current.nextSibling;
+                continue;
             }
             
             // Handle element nodes
             if (current.nodeType === 1) {
-                // Check if this element contains a heading
-                var hasHeading = current.querySelector('h1, h2, h3, h4, h5, h6');
-                if (hasHeading) {
-                    // If it's a direct child heading, stop before it
-                    var directHeading = Array.from(current.children).find(function(child) {
-                        return child.tagName && child.tagName.match(/^H[1-6]$/);
-                    });
-                    if (directHeading) {
-                        // Include content before the heading
-                        var beforeHeading = current.cloneNode(true);
-                        beforeHeading.removeChild(directHeading);
-                        var beforeContent = beforeHeading.innerHTML.trim();
-                        if (beforeContent) {
-                            content += beforeContent;
+                // Check if this element contains a top-level heading (h1-h6) that is an exact fixed heading
+                var headings = current.querySelectorAll('h1, h2, h3, h4, h5, h6');
+                var foundExactSectionHeading = false;
+                
+                for (var i = 0; i < headings.length; i++) {
+                    var h = headings[i];
+                    // Check if this heading is a direct child (not nested deep)
+                    var depth = 0;
+                    var parent = h.parentElement;
+                    while (parent && parent !== current) {
+                        depth++;
+                        parent = parent.parentElement;
+                    }
+                    
+                    // Only consider headings that are direct or near-direct children
+                    if (depth <= 2) {
+                        var hText = h.textContent.trim();
+                        // Only stop if it's an exact match to a fixed heading
+                        if (isExactFixedHeading(hText)) {
+                            // Found a section heading, stop before this element
+                            foundExactSectionHeading = true;
+                            break;
                         }
-                        break;
                     }
                 }
                 
-                // Check for strong tags that might be section headings
-                if (current.tagName === 'P' || current.tagName === 'DIV') {
+                if (foundExactSectionHeading) {
+                    break;
+                }
+                
+                // Check for paragraphs with strong tags - only stop if it's an exact fixed heading match
+                if (current.tagName === 'P') {
                     var strong = current.querySelector('strong:first-child');
                     if (strong && strong.parentElement === current) {
-                        var strongText = normalizeText(strong.textContent);
-                        // Check if this looks like a section heading
-                        var matchedSection = matchHeadingToSection(strongText);
-                        if (matchedSection) {
-                            // This might be a new section heading
-                            var isLikelyHeading = strongText.length < 80 && 
-                                                  (strongText.split(' ').length <= 8) &&
-                                                  (current.textContent.trim().length < 200);
+                        var strongText = strong.textContent.trim();
+                        // Only stop if this is an exact match to a fixed heading
+                        if (isExactFixedHeading(strongText)) {
+                            // Check if this paragraph is very short (likely a heading, not content)
+                            var paraText = current.textContent.trim();
+                            var isLikelyHeading = paraText.length < 100 && 
+                                                  (paraText.split(' ').length <= 10) &&
+                                                  // Make sure it's not just a label followed by content
+                                                  (current.children.length === 1 || current.textContent === strong.textContent);
+                            
                             if (isLikelyHeading) {
-                                // Don't include this paragraph, it's a new section
+                                // This is likely a new section heading, stop before it
                                 break;
                             }
                         }
+                        // Otherwise, it's probably a sub-heading or label within the content, include it
                     }
                 }
                 
-                // Include this element's HTML
+                // Include this element's HTML (including lists, divs, etc.)
                 content += current.outerHTML || '';
             } else if (current.nodeType === 3) {
                 // Text node - only include if it has meaningful content
@@ -874,23 +937,41 @@
             }
             
             if (contentBefore.trim()) {
-                // Try to match to first section (Eligibility & Admission) or add to Overview
-                var firstKey = FIXED_HEADINGS[0].toLowerCase().replace(/[^a-z0-9]+/g, '_');
-                if (!accordionData[firstKey].html) {
-                    accordionData[firstKey].html = contentBefore.trim();
+                // Add content before first heading to Overview section
+                var overviewKey = 'overview';
+                if (accordionData[overviewKey]) {
+                    accordionData[overviewKey].html = contentBefore.trim();
                 }
             }
         } else {
-            // No headings found - put all content in first section
+            // No headings found - put all content in Overview section
             var allContent = tempDiv.innerHTML;
             if (allContent.trim()) {
-                var firstKey = FIXED_HEADINGS[0].toLowerCase().replace(/[^a-z0-9]+/g, '_');
-                accordionData[firstKey].html = allContent.trim();
+                var overviewKey = 'overview';
+                if (accordionData[overviewKey]) {
+                    accordionData[overviewKey].html = allContent.trim();
+                }
             }
         }
         
-        // Generate JSON structure
+        // Extract overview content from Overview section if it exists
+        var overviewContent = '';
+        var overviewKey = 'overview';
+        if (accordionData[overviewKey] && accordionData[overviewKey].html) {
+            overviewContent = accordionData[overviewKey].html.trim();
+        }
+        
+        // Get program title from name field
+        var programTitle = '';
+        var nameField = document.querySelector('#id_name');
+        if (nameField) {
+            programTitle = nameField.value || '';
+        }
+        
+        // Generate JSON structure with programtitle and overview
         jsonData = {
+            programtitle: programTitle,
+            overview: overviewContent,
             sections: accordionData
         };
         
@@ -901,9 +982,129 @@
         var container = document.getElementById('accordion-preview-container');
         if (!container) return;
         
-        if (!accordionData || Object.keys(accordionData).length === 0) {
+        // Use sections from jsonData if available, otherwise use accordionData
+        var sectionsToUse = (jsonData && jsonData.sections) ? jsonData.sections : accordionData;
+        
+        if (!sectionsToUse || Object.keys(sectionsToUse).length === 0) {
             container.innerHTML = '<p style="color: #666; font-style: italic;">No accordion data. Click "Generate Accordion from Content" to create.</p>';
             return;
+        }
+        
+        // Create preview wrapper
+        var previewWrapper = document.createElement('div');
+        
+        // Add title and overview section above accordion
+        // Get programtitle and overview from jsonData or extract from sections or JSON field
+        var programTitle = '';
+        var overviewContent = '';
+        
+        // First try to get from jsonData
+        if (jsonData) {
+            programTitle = jsonData.programtitle || '';
+            overviewContent = jsonData.overview || '';
+        }
+        
+        // If overview is still missing, try to get from JSON field directly
+        if (!overviewContent) {
+            var jsonField = ensureContentJsonField();
+            if (jsonField && jsonField.value) {
+                try {
+                    var existingData = JSON.parse(jsonField.value);
+                    if (existingData && existingData.overview) {
+                        overviewContent = existingData.overview;
+                    }
+                    if (existingData && existingData.programtitle && !programTitle) {
+                        programTitle = existingData.programtitle;
+                    }
+                } catch (e) {
+                    console.warn('Error parsing JSON field:', e);
+                }
+            }
+        }
+        
+        // If overview is still missing, try to extract from Overview section
+        if (!overviewContent) {
+            var overviewKey = 'overview';
+            if (jsonData && jsonData.sections && jsonData.sections[overviewKey] && jsonData.sections[overviewKey].html) {
+                overviewContent = jsonData.sections[overviewKey].html.trim();
+            } else if (sectionsToUse && sectionsToUse[overviewKey] && sectionsToUse[overviewKey].html) {
+                overviewContent = sectionsToUse[overviewKey].html.trim();
+            }
+        }
+        
+        // If programtitle is still missing, get it from name field
+        if (!programTitle) {
+            var nameField = document.querySelector('#id_name');
+            if (nameField) {
+                programTitle = nameField.value || '';
+            }
+        }
+        
+        // Always show hero section if we have title or overview
+        if (programTitle || overviewContent) {
+            var heroSection = document.createElement('div');
+            heroSection.style.cssText = 'background: #FFF4E9C9; background: linear-gradient(90deg, rgba(255, 244, 233, 0.79) 0%, rgba(250, 230, 205, 1) 50%); padding: 20px; border-radius: 12px; margin-bottom: 20px;';
+            
+            if (programTitle) {
+                var titleEl = document.createElement('h2');
+                titleEl.style.cssText = 'font-size: 24px; font-weight: 700; color: #222; margin-bottom: 12px;';
+                titleEl.textContent = programTitle;
+                heroSection.appendChild(titleEl);
+            }
+            
+            if (overviewContent && overviewContent.trim()) {
+                var overviewEl = document.createElement('div');
+                overviewEl.style.cssText = 'color: #666; font-size: 16px; line-height: 1.6;';
+                
+                // Extract first paragraph only from overview HTML
+                var tempDiv = document.createElement('div');
+                tempDiv.innerHTML = overviewContent;
+                
+                // Try to find first <p> tag (skip empty paragraphs)
+                var paragraphs = tempDiv.querySelectorAll('p');
+                var firstParagraph = null;
+                for (var i = 0; i < paragraphs.length; i++) {
+                    var paraText = (paragraphs[i].textContent || paragraphs[i].innerText || '').trim();
+                    if (paraText.length > 0) {
+                        firstParagraph = paragraphs[i];
+                        break;
+                    }
+                }
+                
+                if (firstParagraph) {
+                    // Show only first paragraph (keep HTML formatting but limit text)
+                    var paraText = firstParagraph.textContent || firstParagraph.innerText || '';
+                    if (paraText.length > 300) {
+                        // If paragraph is too long, truncate it
+                        overviewEl.innerHTML = '<p>' + paraText.substring(0, 300) + '...</p>';
+                    } else {
+                        // Show full first paragraph
+                        overviewEl.innerHTML = firstParagraph.outerHTML;
+                    }
+                } else {
+                    // If no <p> tag, get text content and show first 300 characters
+                    var textContent = tempDiv.textContent || tempDiv.innerText || overviewContent;
+                    var cleanText = textContent.replace(/\s+/g, ' ').trim();
+                    if (cleanText.length > 0) {
+                        if (cleanText.length > 300) {
+                            overviewEl.textContent = cleanText.substring(0, 300) + '...';
+                        } else {
+                            overviewEl.textContent = cleanText;
+                        }
+                    } else {
+                        // Fallback: show overview content directly (limited)
+                        var limitedContent = overviewContent.length > 300 ? overviewContent.substring(0, 300) + '...' : overviewContent;
+                        overviewEl.innerHTML = limitedContent;
+                    }
+                }
+                
+                heroSection.appendChild(overviewEl);
+            } else {
+                // Debug: log if overview is missing
+                console.log('Overview content is empty or missing. jsonData:', jsonData);
+            }
+            
+            previewWrapper.appendChild(heroSection);
         }
         
         // Create accordion element
@@ -911,13 +1112,19 @@
         accordion.className = 'accordion cat-accordion';
         accordion.id = 'vocationalAccordionPreview';
         
-        // Display accordions in fixed order
+        // Display accordions in fixed order (exclude Overview - it's shown in hero section, not in accordion)
+        var accordionIndex = 0;
         FIXED_HEADINGS.forEach(function(heading, index) {
+            // Skip Overview section - it's displayed in hero section, not in accordion
+            if (heading === 'Overview') {
+                return;
+            }
+            
             var key = heading.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-            var sectionData = accordionData[key] || { title: heading, html: '' };
-            var sectionId = 'preview-accordion-' + index;
+            var sectionData = sectionsToUse[key] || { title: heading, html: '' };
+            var sectionId = 'preview-accordion-' + accordionIndex;
             var iconClass = iconMap[heading] || 'bx bx-layer';
-            var isFirst = index === 0;
+            var isFirst = accordionIndex === 0;
             var hasContent = sectionData.html && sectionData.html.trim().length > 0;
             
             // Create accordion item
@@ -971,11 +1178,17 @@
             accordionItem.appendChild(header);
             accordionItem.appendChild(collapse);
             accordion.appendChild(accordionItem);
+            
+            // Increment accordion index for next iteration
+            accordionIndex++;
         });
         
-        // Clear and append
+        // Append accordion to wrapper
+        previewWrapper.appendChild(accordion);
+        
+        // Clear and append wrapper
         container.innerHTML = '';
-        container.appendChild(accordion);
+        container.appendChild(previewWrapper);
         
         // Initialize Bootstrap collapse functionality
         // Add click handlers for accordion buttons
@@ -1036,6 +1249,23 @@
     
     function showJSONModal() {
         generateAccordionFromContent();
+        
+        // Ensure programtitle and overview are included before displaying
+        if (!jsonData.programtitle) {
+            var nameField = document.querySelector('#id_name');
+            if (nameField) {
+                jsonData.programtitle = nameField.value || '';
+            }
+        }
+        
+        // Ensure overview is included (extract from Overview section if not set)
+        if (!jsonData.overview) {
+            var overviewKey = 'overview';
+            if (jsonData.sections && jsonData.sections[overviewKey] && jsonData.sections[overviewKey].html) {
+                jsonData.overview = jsonData.sections[overviewKey].html.trim();
+            }
+        }
+        
         var modal = document.getElementById('json-preview-modal');
         var content = document.getElementById('json-preview-content');
         
@@ -1048,10 +1278,26 @@
     function saveJSONToModel() {
         generateAccordionFromContent();
         
+        // Ensure programtitle and overview are included
+        if (!jsonData.programtitle) {
+            var nameField = document.querySelector('#id_name');
+            if (nameField) {
+                jsonData.programtitle = nameField.value || '';
+            }
+        }
+        
+        // Ensure overview is included (extract from Overview section if not set)
+        if (!jsonData.overview) {
+            var overviewKey = 'overview';
+            if (jsonData.sections && jsonData.sections[overviewKey] && jsonData.sections[overviewKey].html) {
+                jsonData.overview = jsonData.sections[overviewKey].html.trim();
+            }
+        }
+        
         // Find or create the content_json field
         var jsonField = ensureContentJsonField();
         if (jsonField) {
-            jsonField.value = JSON.stringify(jsonData);
+            jsonField.value = JSON.stringify(jsonData, null, 2);
             
             // Show success message
             var saveBtn = document.getElementById('save-json-btn');

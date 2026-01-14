@@ -25,9 +25,28 @@
         <div class="vocational-card d-flex flex-wrap align-items-center">
           <div class="voc-left col-lg-6 col-md-12">
             <h1 class="heading-title mt-md-0 mb-md-3 mt-2 mb-2">
-              {{ course.name }}
+              {% if course.content_json and course.content_json.programtitle %}
+                {{ course.content_json.programtitle }}
+              {% else %}
+                {{ course.name }}
+              {% endif %}
             </h1>
-            {% if course.content_html %}
+            {% if course.content_json and course.content_json.overview %}
+              <div class="overview-container">
+                <div class="overview-full text-gray fs-16 mb-2" id="overview-full" style="display: none;">
+                  {{ course.content_json.overview|safe }}
+                </div>
+                <div class="overview-preview text-gray fs-16 mb-2" id="overview-preview">
+                  {{ course.content_json.overview|safe|truncate(300) }}
+                </div>
+                <button type="button" class="btn-view-more text-purple text-decoration-underline fs-16 mt-2" id="view-more-btn" style="display: none; background: none; border: none; cursor: pointer; padding: 0;">
+                  View More
+                </button>
+                <button type="button" class="btn-view-less text-purple text-decoration-underline fs-16 mt-2" id="view-less-btn" style="display: none; background: none; border: none; cursor: pointer; padding: 0;">
+                  View Less
+                </button>
+              </div>
+            {% elif course.content_html %}
               <p class="text-gray fs-16 mb-2">{{ course.content_html|striptags|truncate(300) }}</p>
             {% endif %}
           </div>
@@ -79,6 +98,94 @@
 {% block additionaljs %}
 <script>
 (function() {
+    // Handle Overview "View More" / "View Less" functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        var overviewFull = document.getElementById('overview-full');
+        var overviewPreview = document.getElementById('overview-preview');
+        var viewMoreBtn = document.getElementById('view-more-btn');
+        var viewLessBtn = document.getElementById('view-less-btn');
+        
+        if (overviewFull && overviewPreview && viewMoreBtn && viewLessBtn) {
+            // Get the full overview content (stored in hidden div)
+            var fullContent = overviewFull.innerHTML.trim();
+            var previewContent = overviewPreview.innerHTML.trim();
+            
+            // Skip if content is empty
+            if (!fullContent || fullContent.length === 0) {
+                overviewFull.style.display = 'none';
+                overviewPreview.style.display = 'none';
+                viewMoreBtn.style.display = 'none';
+                viewLessBtn.style.display = 'none';
+                return;
+            }
+            
+            // Get text content length (without HTML tags) for comparison
+            var tempFull = document.createElement('div');
+            tempFull.innerHTML = fullContent;
+            var fullText = (tempFull.textContent || tempFull.innerText || '').trim();
+            var fullTextLength = fullText.length;
+            
+            var tempPreview = document.createElement('div');
+            tempPreview.innerHTML = previewContent;
+            var previewText = (tempPreview.textContent || tempPreview.innerText || '').trim();
+            var previewTextLength = previewText.length;
+            
+            // Check if content was truncated by Django's truncate filter
+            // Multiple checks:
+            // 1. Preview ends with "..." or "…" (Django truncate adds this)
+            // 2. Preview text is significantly shorter than full text (more than 30 chars difference)
+            // 3. Full text is longer than 300 characters (truncate threshold)
+            var hasEllipsis = previewContent.endsWith('...') || 
+                             previewContent.endsWith('…') ||
+                             previewText.endsWith('...') ||
+                             previewText.endsWith('…');
+            
+            // Check if there's a significant difference in length
+            // Django truncate(300) will truncate at word boundaries, so preview might be slightly over 300
+            var lengthDifference = fullTextLength - previewTextLength;
+            var significantDifference = lengthDifference > 30; // More than 30 chars difference
+            
+            // If full text is > 300 and preview is <= 320 (allowing for word boundary truncation)
+            // and there's a significant difference, it's truncated
+            // Also check: if full text is clearly much longer (e.g., > 350), it's definitely truncated
+            var isTruncated = hasEllipsis || 
+                             (fullTextLength > 300 && previewTextLength <= 320 && significantDifference) ||
+                             (fullTextLength > 350 && previewTextLength < fullTextLength);
+            
+            if (isTruncated) {
+                // Show preview, hide full, show View More button
+                overviewFull.style.display = 'none';
+                overviewPreview.style.display = 'block';
+                viewMoreBtn.style.display = 'inline-block';
+                viewLessBtn.style.display = 'none';
+                
+                // View More button click
+                viewMoreBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    overviewPreview.style.display = 'none';
+                    overviewFull.style.display = 'block';
+                    viewMoreBtn.style.display = 'none';
+                    viewLessBtn.style.display = 'inline-block';
+                });
+                
+                // View Less button click
+                viewLessBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    overviewFull.style.display = 'none';
+                    overviewPreview.style.display = 'block';
+                    viewLessBtn.style.display = 'none';
+                    viewMoreBtn.style.display = 'inline-block';
+                });
+            } else {
+                // Content is not truncated, show full and hide preview/buttons
+                overviewFull.style.display = 'block';
+                overviewPreview.style.display = 'none';
+                viewMoreBtn.style.display = 'none';
+                viewLessBtn.style.display = 'none';
+            }
+        }
+    });
+    
     // Fixed accordion headings
     const FIXED_HEADINGS = [
         'Eligibility & Admission',
@@ -152,14 +259,50 @@
         const accordion = container.closest('.accordion') || container.parentElement;
         
         // Generate accordion items in fixed order
+        // Track actual accordion index (only for sections with content)
+        let accordionIndex = 0;
+        
         FIXED_HEADINGS.forEach((heading, index) => {
             const key = heading.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-            const sectionData = sections[key] || { title: heading, html: '' };
-            const sectionId = `collapse${getSectionNumber(index)}`;
-            const headingId = `heading${getSectionNumber(index)}`;
+            
+            // Get section data from sections object
+            const sectionData = sections && sections[key] ? sections[key] : null;
+            
+            // Extract HTML content and title from section data
+            let sectionHtml = '';
+            let sectionTitle = heading;
+            
+            if (sectionData) {
+                if (typeof sectionData === 'string') {
+                    // If sectionData is a string, use it as HTML
+                    sectionHtml = sectionData;
+                } else if (typeof sectionData === 'object' && sectionData !== null) {
+                    // Get html and title from section data object
+                    sectionHtml = sectionData.html || sectionData.content || sectionData.body || '';
+                    sectionTitle = sectionData.title || heading;
+                }
+            }
+            
+            // Ensure sectionHtml is a string and trim it
+            sectionHtml = String(sectionHtml || '').trim();
+            
+            // Check if there's content - simple length check
+            // If HTML string has more than 10 characters, consider it as having content
+            const hasContent = sectionHtml.length > 10;
+            
+            // Skip sections without content - don't show empty headings
+            if (!hasContent) {
+                return; // Skip this iteration
+            }
+            
+            // Use accordionIndex for numbering (only increments for sections with content)
+            const sectionId = `collapse${getSectionNumber(accordionIndex)}`;
+            const headingId = `heading${getSectionNumber(accordionIndex)}`;
             const iconClass = iconMap[heading] || 'bx bx-layer';
-            const isFirst = index === 0;
-            const hasContent = sectionData.html && sectionData.html.trim().length > 0;
+            const isFirst = accordionIndex === 0; // First visible section
+            
+            // Increment accordion index for next section with content
+            accordionIndex++;
             
             // Check if this is Pros & Cons section for special styling
             const isProsCons = heading === 'Pros & Cons';
@@ -186,7 +329,7 @@
             // Add icon, text, and chevron with proper structure
             const chevronClass = isExpanded ? 'chev rotate' : 'chev';
             const chevronIcon = isExpanded ? 'bx-chevron-up' : 'bx-chevron-down';
-            button.innerHTML = '<span class="icon"><i class="' + iconClass + '"></i></span><span class="accordion-title">' + sectionData.title + '</span><span class="' + chevronClass + '"><i class="bx ' + chevronIcon + '"></i></span>';
+            button.innerHTML = '<span class="icon"><i class="' + iconClass + '"></i></span><span class="accordion-title">' + sectionTitle + '</span><span class="' + chevronClass + '"><i class="bx ' + chevronIcon + '"></i></span>';
             
             header.appendChild(button);
             
@@ -201,27 +344,23 @@
             const body = document.createElement('div');
             body.className = 'accordion-body';
             
-            if (hasContent) {
-                // Special handling for Pros & Cons section
-                if (isProsCons) {
-                    const prosConsHTML = parseProsCons(sectionData.html);
-                    body.innerHTML = prosConsHTML;
-                } else {
-                    // Remove redundant headings
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = sectionData.html;
-                    const h2Elements = tempDiv.querySelectorAll('h2, h3');
-                    h2Elements.forEach(h2 => {
-                        const h2Text = h2.textContent.trim().toLowerCase();
-                        if (FIXED_HEADINGS.some(fh => h2Text.includes(fh.toLowerCase()))) {
-                            h2.remove();
-                        }
-                    });
-                    
-                    body.innerHTML = tempDiv.innerHTML;
-                }
+            // Special handling for Pros & Cons section
+            if (isProsCons) {
+                const prosConsHTML = parseProsCons(sectionHtml);
+                body.innerHTML = prosConsHTML;
             } else {
-                body.innerHTML = '<p class="text-muted">No content available for this section.</p>';
+                // Remove redundant headings
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = sectionHtml;
+                const h2Elements = tempDiv.querySelectorAll('h2, h3');
+                h2Elements.forEach(h2 => {
+                    const h2Text = h2.textContent.trim().toLowerCase();
+                    if (FIXED_HEADINGS.some(fh => h2Text.includes(fh.toLowerCase()))) {
+                        h2.remove();
+                    }
+                });
+                
+                body.innerHTML = tempDiv.innerHTML;
             }
             
             collapse.appendChild(body);
