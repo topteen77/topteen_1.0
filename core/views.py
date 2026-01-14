@@ -331,6 +331,7 @@ class VocationalCourseDetailView(TemplateView):
     def get_context(self, request, *args, **kwargs):
         from django.shortcuts import get_object_or_404
         from core.models import VocationalCourse
+        from blog.models import Blog
 
         course = get_object_or_404(VocationalCourse, pk=kwargs.get("pk"))
         # determine top-level (After 10 / After 12) for back link/breadcrumb
@@ -346,6 +347,13 @@ class VocationalCourseDetailView(TemplateView):
         ctx["course"] = course
         ctx["level"] = level
         ctx["html_head"] = build_html_head(title=course.name, description=course.name)
+        
+        # Add latest blogs for the blog section
+        try:
+            ctx["blogs"] = Blog.get_published_objects().order_by('-created')[:3]
+        except Exception:
+            ctx["blogs"] = []
+        
         if level:
             ctx["breadcrumb"] = [
                 {"text": "Vocational Courses", "url": reverse("core:vocational_courses")},

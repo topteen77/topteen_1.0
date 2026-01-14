@@ -2,6 +2,7 @@ from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
+from django.urls import reverse
 from .models import (
     Configuration,
     City,
@@ -186,12 +187,81 @@ class VocationalCourseCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(VocationalCourse)
 class VocationalCourseAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "category", "priority", "object_status", "image")
+    list_display = ("id", "name", "category", "priority", "object_status", "preview_link", "image")
     list_filter = ("object_status", "category")
     search_fields = ("name", "category__name")
     ordering = ("category__name", "priority", "name")
-    fields = ("category", "name", "slug", "image", "content_html", "priority", "object_status", "created", "modified")
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('category', 'name', 'slug', 'image', 'priority', 'object_status')
+        }),
+        ('Content', {
+            'fields': ('content_html', 'content_json'),
+            'description': 'Edit content_html to generate accordion structure. The content_json field is auto-generated and saved on form submit.'
+        }),
+        ('Timestamps', {
+            'fields': ('created', 'modified'),
+            'classes': ('collapse',)
+        }),
+    )
     readonly_fields = ("created", "modified")
+    change_form_template = "admin/core/vocationalcourse/change_form.html"
+    
+    class Media:
+        css = {
+            'all': ('admin/css/hide_content_json.css',)
+        }
+    
+    def save_model(self, request, obj, form, change):
+        """Override save_model to handle content_json from POST data"""
+        import json
+        import logging
+        
+        logger = logging.getLogger(__name__)
+        
+        # Get content_json from POST data
+        # Since we removed it from readonly_fields, it should be in POST
+        content_json_str = request.POST.get('content_json', '')
+        
+        # Debug logging
+        if not content_json_str:
+            logger.warning(f'No content_json in POST for VocationalCourse {obj.id or "new"}. POST keys: {list(request.POST.keys())[:30]}')
+        else:
+            logger.info(f'Found content_json in POST. Length: {len(content_json_str)}')
+        
+        if content_json_str:
+            try:
+                # Parse and validate JSON
+                content_json_data = json.loads(content_json_str)
+                obj.content_json = content_json_data
+                logger.info(f'Successfully saved content_json for VocationalCourse {obj.id or "new"}. Sections: {len(content_json_data.get("sections", {}))}')
+            except (json.JSONDecodeError, ValueError) as e:
+                # If JSON is invalid, log error but don't fail the save
+                logger.warning(f'Invalid JSON in content_json field: {e}. Content: {content_json_str[:200]}')
+                # Keep existing value if updating, otherwise set to None
+                if not change:
+                    obj.content_json = None
+        
+        # Call parent save
+        super().save_model(request, obj, form, change)
+    
+    def preview_link(self, obj):
+        """Display preview link that opens frontend page in new tab"""
+        if obj.id:
+            try:
+                url = reverse("core:vocational_course_detail", kwargs={"pk": obj.pk})
+                return format_html(
+                    '<a href="{}" target="_blank" style="color: green; font-weight: 600; text-decoration: none;">🔍 View</a>',
+                    url,
+                )
+            except Exception as e:
+                return format_html(
+                    '<span style="color: red;">Error: {}</span>',
+                    str(e)
+                )
+        return '-'
+    preview_link.short_description = 'Preview'
+    preview_link.admin_order_field = 'name'
 
 
 class EbookAdminForm(forms.ModelForm):

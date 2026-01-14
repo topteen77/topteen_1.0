@@ -1,0 +1,8 @@
+/* Hide content_json field in admin - it's populated by JavaScript */
+.field-content_json {
+    display: none !important;
+}
+
+.form-row.field-content_json {
+    display: none !important;
+}

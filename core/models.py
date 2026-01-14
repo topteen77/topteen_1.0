@@ -415,6 +415,7 @@ class VocationalCourse(BaseModel, SlugModel):
     name = models.CharField(max_length=300)
     image = models.ImageField(upload_to="upload/core/vocational/course/", blank=True, null=True)
     content_html = RichTextField(blank=True, null=True)
+    content_json = models.JSONField(null=True, blank=True, help_text="Stored JSON structure parsed from content_html field with fixed accordion sections")
     priority = models.PositiveSmallIntegerField(default=1, help_text="Lower comes first")
 
     class Meta(BaseModel.Meta):

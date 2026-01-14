@@ -9,50 +9,662 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero-section-inner pt-md-18 pt-14 pb-5">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        {% include 'template20/includes/breadcrumb.html' %}
-      </div>
-      <div class="col-lg-12">
-        <span class="highlighter">
-          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Vocational Courses
-        </span>
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-          <h1 class="heading-title mt-md-9 mb-3">{{ course.name }}</h1>
-          {% if course.image %}
-            <img src="{{ course.image.url }}" alt="{{ course.name }}" style="max-height: 90px; border-radius: 12px; object-fit: cover;">
-          {% endif %}
+<!-- Hero Section -->
+<main class="py-test-page extracurricular-activities-inner">
+  <section class="hero-section-inner pt-md-18 pt-14 pb-5">
+    <div class="container">
+      <div class="row">
+        <!--breadcrumb-->
+        <div class="col-md-12">
+          {% include 'template20/includes/breadcrumb.html' %}
+        </div>
+        <!--breadcrumb-->
+
+        <div class="vocational-card d-flex flex-wrap align-items-center">
+          <div class="voc-left col-lg-6 col-md-12">
+            <h1 class="heading-title mt-md-0 mb-md-3 mt-2 mb-2">
+              {{ course.name }}
+            </h1>
+            {% if course.content_html %}
+              <p class="text-gray fs-16 mb-2">{{ course.content_html|striptags|truncate(300) }}</p>
+            {% endif %}
+          </div>
+
+          <div class="voc-right col-lg-5 offset-md-1 col-md-12 text-end">
+            <div class="right-banner d-md-flex d-none justify-content-end">
+              {% if course.image %}
+                <img class="img-fluid voc-image" src="{{ course.image.url }}" alt="{{ course.name }}">
+              {% else %}
+                <img class="img-fluid voc-image" src="{{ static('images_new/general/vocational-course.svg') }}" alt="{{ course.name }}">
+              {% endif %}
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+  <!-- Hero Section -->
 
-<section class="pb-10">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-10 mx-auto">
-        <div class="mb-4">
-          {% if level %}
-          <a href="/vocational-courses/{{ level.slug }}/" class="btn btn-outline-secondary">
-            <i class='bx bx-left-arrow-alt'></i> Back to {{ level.name }}
-          </a>
-          {% else %}
-          <a href="{{ url('core:vocational_courses') }}" class="btn btn-outline-secondary">
-            <i class='bx bx-left-arrow-alt'></i> Back to vocational courses
-          </a>
-          {% endif %}
-        </div>
-
-        <div class="bg-white p-4 p-md-5 rounded-3 border">
-          {{ course.content_html|safe }}
+  <!-- Accordion Section -->
+  <section class="vocational-cr-accordion py-md-10 py-7 bg-light mt-8">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 col-md-9 mx-auto">
+          <div class="accordion custom-accordion" id="vocAccordion">
+            {% if course.content_json %}
+              {# Content will be rendered via JavaScript accordion #}
+              <div id="vocational-course-accordion-container"></div>
+            {% else %}
+              {# Fallback to regular HTML content #}
+              <div class="bg-white p-4 p-md-5 rounded-3 border">
+                {{ course.content_html|safe }}
+              </div>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+
+  <!-- Blog Section -->
+  <section class="blog-section py-10">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
+          <span class="highlighter text-gray fw-400">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/gudiance-icona.svg') }}" alt="icon"> Guidance for Every Step
+          </span>
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Explore Expert Blogs for Parents &amp; Students!</h3>
+          <p class="text-gray">Stay informed with insights, tips, and resources to help students make confident career and academic choices.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="grid-3 blog-grid pt-5">
+            {% if blogs %}
+              {% for blog in blogs|slice(3) %}
+              <a class="blog-box" href="{{ url('blog:blogdetail', args=[blog.slug]) }}" title="{{ blog.title }}">
+                <div class="blog-img-d">
+                  {% if blog.image %}
+                  <img src="{{ blog.image.url }}" alt="{{ blog.title }}" />
+                  {% else %}
+                  <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ blog.title }}" />
+                  {% endif %}
+                </div>
+                <div class="blog-info">
+                  {% if blog.category %}
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">{{ blog.category.name }}</span>
+                  {% else %}
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">Blog</span>
+                  {% endif %}
+                  <h4 class="blog-title text-white fs-22 fw-600">{{ blog.title }}</h4>
+                </div>
+              </a>
+              {% endfor %}
+            {% else %}
+              {# Fallback static blogs #}
+              <a class="blog-box" href="#" title="blog title">
+                <div class="blog-img-d">
+                  <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="Blog Title">
+                </div>
+                <div class="blog-info">
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">For Student</span>
+                  <h4 class="blog-title text-white fs-22 fw-600">Your Definitive Guide To Choosing The Perfect Stream In Class 11</h4>
+                </div>
+              </a>
+            {% endif %}
+          </div>
+
+          <div class="text-center pt-5">
+            <a class="text-purple text-decoration-underline fs-17" href="{{ url('blog:blogs') }}" target="_blank">Explore More</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
 {% endblock %}
 
+{% block additionalcss %}
+<style>
+  .vocational-card {
+    background: #FFF4E9C9;
+    background: linear-gradient(90deg, rgba(255, 244, 233, 0.79) 0%, rgba(250, 230, 205, 1) 50%);
+    padding: 33px;
+    border-radius: 20px;
+    margin-top: 20px;
+  }
 
+  .voc-image {
+    border-radius: 20px;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .voc-left .heading-title {
+    line-height: 49px;
+    color: #222;
+    font-weight: 700;
+  }
+
+  .voc-left p {
+    color: #666;
+  }
+
+  /* Vocational accordion styles */
+  .vocational-cr-accordion {
+    background-color: #f8f9fa;
+  }
+
+  .custom-accordion {
+    margin: 0;
+  }
+
+  .custom-accordion .accordion-item {
+    border: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 20px rgba(36, 30, 85, 0.06);
+    background: transparent;
+  }
+
+  .custom-accordion .accordion-button {
+    background: linear-gradient(90deg, #ffffff 0%, #f7f6ff 100%);
+    color: #241e55;
+    padding: 18px 20px;
+    font-weight: 700;
+    border-radius: 12px;
+    gap: 12px;
+    border: 0;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+  }
+
+  .custom-accordion .accordion-button:not(.collapsed) {
+    background: linear-gradient(90deg, rgba(107, 61, 240, 0.06), rgba(99, 102, 241, 0.03));
+    border-left: 4px solid #6b3df0;
+    box-shadow: none;
+    color: #241e55;
+  }
+
+  .custom-accordion .accordion-button:focus {
+    box-shadow: none;
+    border-color: transparent;
+    outline: none;
+  }
+
+  .custom-accordion .accordion-button .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f0e9ff, #f7f4ff);
+    color: #6b3df0;
+    font-size: 20px;
+    margin-right: 12px;
+    flex: 0 0 44px;
+    flex-shrink: 0;
+  }
+
+  .custom-accordion .accordion-button .accordion-title {
+    flex: 1;
+    margin-right: 12px;
+  }
+
+  .custom-accordion .accordion-button .chev {
+    transition: transform .24s ease;
+    margin-left: auto;
+    color: #6b3df0;
+    font-size: 20px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .custom-accordion .accordion-button.active {
+    background: linear-gradient(90deg, rgba(107, 61, 240, 0.06), rgba(99, 102, 241, 0.03));
+    border-left: 4px solid #6b3df0;
+  }
+
+  /* Hide Bootstrap's default chevron since we're using custom one */
+  .custom-accordion .accordion-button::after {
+    display: none !important;
+  }
+
+  .custom-accordion .accordion-body {
+    background: #fff;
+    padding: 18px 20px 22px 20px;
+    color: #444;
+    line-height: 1.6;
+  }
+
+  .custom-accordion .accordion-body p {
+    margin-bottom: 1rem;
+    color: #444;
+  }
+
+  .custom-accordion .accordion-body ul,
+  .custom-accordion .accordion-body ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+
+  .custom-accordion .accordion-body li {
+    margin-bottom: 0.5rem;
+    color: #444;
+  }
+
+  .custom-accordion .accordion-body strong {
+    color: #222;
+    font-weight: 700;
+  }
+
+  .custom-accordion .chev.rotate {
+    transform: rotate(180deg);
+  }
+
+  .custom-accordion .accordion-item.pros-cons-item .accordion-body {
+    background: #fff;
+  }
+
+  .pros-cons-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 12px;
+  }
+
+  .pros-section,
+  .cons-section {
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid;
+  }
+
+  .pros-section {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-color: #10b981;
+  }
+
+  .pros-section h4 {
+    color: #10b981;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pros-section h4::before {
+    content: "✓";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: #10b981;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .cons-section {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-color: #ef4444;
+  }
+
+  .cons-section h4 {
+    color: #ef4444;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cons-section h4::before {
+    content: "×";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: #ef4444;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .pros-section ul,
+  .cons-section ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+
+  .pros-section ul li,
+  .cons-section ul li {
+    padding: 10px 0;
+    padding-left: 32px;
+    position: relative;
+    color: #1f2937;
+    line-height: 1.6;
+  }
+
+  .pros-section ul li::before {
+    content: "•";
+    position: absolute;
+    left: 12px;
+    color: #10b981;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .cons-section ul li::before {
+    content: "•";
+    position: absolute;
+    left: 12px;
+    color: #ef4444;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  @media (max-width: 767px) {
+    .pros-cons-content {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+(function() {
+    // Fixed accordion headings
+    const FIXED_HEADINGS = [
+        'Eligibility & Admission',
+        'Duration & Structure',
+        'Curriculum Highlights',
+        'Skills Required',
+        'Pros & Cons',
+        'Internship & Industry Collaborations',
+        'Certification & Accreditation',
+        'Learning Outcomes',
+        'Career Growth & Prospects',
+        'Employment Sectors & Employers',
+        'Conclusion'
+    ];
+    
+    // Icon mapping matching reference HTML
+    const iconMap = {
+        'Eligibility & Admission': 'bx bx-user-check',
+        'Duration & Structure': 'bx bx-time',
+        'Curriculum Highlights': 'bx bx-book-open',
+        'Skills Required': 'bx bx-atom',
+        'Pros & Cons': 'bx bx-detail',
+        'Internship & Industry Collaborations': 'bx bx-briefcase',
+        'Certification & Accreditation': 'bx bx-award',
+        'Learning Outcomes': 'bx bx-target-lock',
+        'Career Growth & Prospects': 'bx bx-trending-up',
+        'Employment Sectors & Employers': 'bx bx-building',
+        'Conclusion': 'bx bx-rocket'
+    };
+    
+    const container = document.getElementById('vocational-course-accordion-container');
+    if (!container) return;
+    
+    {% if course.content_json %}
+    // Generate accordion from JSON
+    try {
+        const contentJson = {{ course.content_json|tojson|safe }};
+        if (contentJson && contentJson.sections) {
+            generateAccordionFromJSON(contentJson.sections, container);
+        } else {
+            // Fallback to HTML content
+            {% if course.content_html %}
+            container.innerHTML = {{ course.content_html|tojson|safe }};
+            {% else %}
+            container.innerHTML = '<p class="text-muted">No content available.</p>';
+            {% endif %}
+        }
+    } catch(e) {
+        console.warn('Error parsing content_json:', e);
+        // Fallback to HTML content
+        {% if course.content_html %}
+        container.innerHTML = {{ course.content_html|tojson|safe }};
+        {% else %}
+        container.innerHTML = '<p class="text-muted">No content available.</p>';
+        {% endif %}
+    }
+    {% else %}
+    // No JSON, use HTML content directly
+    {% if course.content_html %}
+    container.innerHTML = {{ course.content_html|tojson|safe }};
+    {% else %}
+    container.innerHTML = '<p class="text-muted">No content available.</p>';
+    {% endif %}
+    {% endif %}
+    
+    function generateAccordionFromJSON(sections, container) {
+        // Clear container first
+        container.innerHTML = '';
+        
+        // Find the parent accordion element (it should already exist in the template)
+        const accordion = container.closest('.accordion') || container.parentElement;
+        
+        // Generate accordion items in fixed order
+        FIXED_HEADINGS.forEach((heading, index) => {
+            const key = heading.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+            const sectionData = sections[key] || { title: heading, html: '' };
+            const sectionId = `collapse${getSectionNumber(index)}`;
+            const headingId = `heading${getSectionNumber(index)}`;
+            const iconClass = iconMap[heading] || 'bx bx-layer';
+            const isFirst = index === 0;
+            const hasContent = sectionData.html && sectionData.html.trim().length > 0;
+            
+            // Check if this is Pros & Cons section for special styling
+            const isProsCons = heading === 'Pros & Cons';
+            
+            // Create accordion item
+            const accordionItem = document.createElement('div');
+            accordionItem.className = 'accordion-item' + (isProsCons ? ' pros-cons-item' : '');
+            
+            // Create header
+            const header = document.createElement('h2');
+            header.className = 'accordion-header';
+            header.id = headingId;
+            
+            // Create button
+            const button = document.createElement('button');
+            button.type = 'button';
+            const isExpanded = isFirst && hasContent;
+            button.className = 'accordion-button' + (isExpanded ? ' active' : ' collapsed');
+            button.setAttribute('data-bs-toggle', 'collapse');
+            button.setAttribute('data-bs-target', '#' + sectionId);
+            button.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+            button.setAttribute('aria-controls', sectionId);
+            
+            // Add icon, text, and chevron with proper structure
+            const chevronClass = isExpanded ? 'chev rotate' : 'chev';
+            const chevronIcon = isExpanded ? 'bx-chevron-up' : 'bx-chevron-down';
+            button.innerHTML = '<span class="icon"><i class="' + iconClass + '"></i></span><span class="accordion-title">' + sectionData.title + '</span><span class="' + chevronClass + '"><i class="bx ' + chevronIcon + '"></i></span>';
+            
+            header.appendChild(button);
+            
+            // Create collapse div
+            const collapse = document.createElement('div');
+            collapse.id = sectionId;
+            collapse.className = 'accordion-collapse collapse' + (isFirst && hasContent ? ' show' : '');
+            collapse.setAttribute('aria-labelledby', headingId);
+            collapse.setAttribute('data-bs-parent', '#vocAccordion');
+            
+            // Create body
+            const body = document.createElement('div');
+            body.className = 'accordion-body';
+            
+            if (hasContent) {
+                // Special handling for Pros & Cons section
+                if (isProsCons) {
+                    const prosConsHTML = parseProsCons(sectionData.html);
+                    body.innerHTML = prosConsHTML;
+                } else {
+                    // Remove redundant headings
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = sectionData.html;
+                    const h2Elements = tempDiv.querySelectorAll('h2, h3');
+                    h2Elements.forEach(h2 => {
+                        const h2Text = h2.textContent.trim().toLowerCase();
+                        if (FIXED_HEADINGS.some(fh => h2Text.includes(fh.toLowerCase()))) {
+                            h2.remove();
+                        }
+                    });
+                    
+                    body.innerHTML = tempDiv.innerHTML;
+                }
+            } else {
+                body.innerHTML = '<p class="text-muted">No content available for this section.</p>';
+            }
+            
+            collapse.appendChild(body);
+            accordionItem.appendChild(header);
+            accordionItem.appendChild(collapse);
+            container.appendChild(accordionItem);
+        });
+        
+        // Initialize Bootstrap collapse functionality
+        // Use the parent accordion element that exists in the template
+        const parentAccordion = container.closest('#vocAccordion') || container.parentElement;
+        
+        if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
+            // Bootstrap 5
+            const collapseElements = parentAccordion.querySelectorAll('.collapse');
+            collapseElements.forEach(function(collapseEl) {
+                new bootstrap.Collapse(collapseEl, {
+                    toggle: false
+                });
+            });
+            
+            // Add event listeners for active state and chevron rotation
+            parentAccordion.querySelectorAll('.accordion-collapse').forEach(function(col) {
+                col.addEventListener('show.bs.collapse', function(e) {
+                    const btn = parentAccordion.querySelector('[data-bs-target="#' + e.target.id + '"]');
+                    if (btn) {
+                        btn.classList.add('active');
+                        btn.classList.remove('collapsed');
+                        const chev = btn.querySelector('.chev');
+                        if (chev) {
+                            chev.classList.add('rotate');
+                            const icon = chev.querySelector('i');
+                            if (icon) {
+                                icon.classList.remove('bx-chevron-down');
+                                icon.classList.add('bx-chevron-up');
+                            }
+                        }
+                    }
+                });
+                col.addEventListener('hide.bs.collapse', function(e) {
+                    const btn = parentAccordion.querySelector('[data-bs-target="#' + e.target.id + '"]');
+                    if (btn) {
+                        btn.classList.remove('active');
+                        btn.classList.add('collapsed');
+                        const chev = btn.querySelector('.chev');
+                        if (chev) {
+                            chev.classList.remove('rotate');
+                            const icon = chev.querySelector('i');
+                            if (icon) {
+                                icon.classList.remove('bx-chevron-up');
+                                icon.classList.add('bx-chevron-down');
+                            }
+                        }
+                    }
+                });
+            });
+        } else if (typeof $ !== 'undefined' && $.fn.collapse) {
+            // Bootstrap 4/jQuery
+            $(parentAccordion).find('.collapse').collapse();
+        }
+    }
+    
+    function getSectionNumber(index) {
+        const numbers = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven'];
+        return numbers[index] || 'One';
+    }
+    
+    function parseProsCons(html) {
+        // Parse Pros & Cons content and format it in the special grid layout
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        let prosContent = [];
+        let consContent = [];
+        let currentSection = null;
+        
+        // Find Pros and Cons sections
+        const allElements = tempDiv.querySelectorAll('h3, h4, p, ul, li, strong');
+        
+        allElements.forEach(el => {
+            const text = el.textContent.trim().toLowerCase();
+            if (text.includes('pros') && !text.includes('cons')) {
+                currentSection = 'pros';
+            } else if (text.includes('cons')) {
+                currentSection = 'cons';
+            } else if (currentSection === 'pros' && el.tagName !== 'H3' && el.tagName !== 'H4') {
+                if (el.tagName === 'UL' || el.tagName === 'LI') {
+                    prosContent.push(el.outerHTML);
+                } else if (el.textContent.trim()) {
+                    prosContent.push('<li>' + el.textContent.trim() + '</li>');
+                }
+            } else if (currentSection === 'cons' && el.tagName !== 'H3' && el.tagName !== 'H4') {
+                if (el.tagName === 'UL' || el.tagName === 'LI') {
+                    consContent.push(el.outerHTML);
+                } else if (el.textContent.trim()) {
+                    consContent.push('<li>' + el.textContent.trim() + '</li>');
+                }
+            }
+        });
+        
+        // If no structured pros/cons found, try to extract from lists
+        if (prosContent.length === 0 && consContent.length === 0) {
+            const lists = tempDiv.querySelectorAll('ul');
+            if (lists.length >= 2) {
+                prosContent.push(lists[0].outerHTML);
+                consContent.push(lists[1].outerHTML);
+            } else if (lists.length === 1) {
+                // Single list - try to split or put all in pros
+                prosContent.push(lists[0].outerHTML);
+            }
+        }
+        
+        // Build the pros-cons grid HTML
+        let prosHTML = '<div class="pros-section"><h4>Pros</h4><ul>';
+        if (prosContent.length > 0) {
+            prosHTML += prosContent.join('');
+        } else {
+            prosHTML += '<li>No pros listed.</li>';
+        }
+        prosHTML += '</ul></div>';
+        
+        let consHTML = '<div class="cons-section"><h4>Cons</h4><ul>';
+        if (consContent.length > 0) {
+            consHTML += consContent.join('');
+        } else {
+            consHTML += '<li>No cons listed.</li>';
+        }
+        consHTML += '</ul></div>';
+        
+        return '<div class="pros-cons-content">' + prosHTML + consHTML + '</div>';
+    }
+})();
+</script>
+{% endblock %}
