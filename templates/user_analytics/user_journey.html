@@ -46,7 +46,7 @@
                     <option value="alltime" {% if time_period == 'alltime' %}selected{% endif %}>All Time</option>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label">User Type</label>
                 <select name="user_type" class="form-select">
                     <option value="">All Users</option>
@@ -54,7 +54,18 @@
                     <option value="organic" {% if user_type_filter == 'organic' %}selected{% endif %}>Organic/Anonymous Users Only</option>
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
+                <label class="form-label">Goal</label>
+                <select name="goal" class="form-select">
+                    <option value="">All Goals</option>
+                    <option value="registered" {% if goal_filter == 'registered' %}selected{% endif %}>Registered</option>
+                    <option value="payment" {% if goal_filter == 'payment' %}selected{% endif %}>Payment</option>
+                    <option value="test_started" {% if goal_filter == 'test_started' %}selected{% endif %}>Test Started</option>
+                    <option value="test_completed" {% if goal_filter == 'test_completed' %}selected{% endif %}>Test Completed</option>
+                    <option value="result_generated" {% if goal_filter == 'result_generated' %}selected{% endif %}>Result Generated</option>
+                </select>
+            </div>
+            <div class="col-md-3">
                 <label class="form-label">Search</label>
                 <input type="text" name="search" class="form-control" placeholder="Search by user email, session ID, page..." value="{{ search_query|default('') }}">
             </div>
@@ -89,18 +100,31 @@
                         <th>Exit Page</th>
                         <th>Source</th>
                         <th>Device</th>
+                        <th>Country</th>
+                        <th>GA4 Tracked</th>
+                        <th>GA ID</th>
+                        <th>Registered</th>
+                        <th>Payment</th>
+                        <th>Test Started</th>
+                        <th>Test Completed</th>
+                        <th>Result Generated</th>
+                        <th>Goals</th>
                         <th>Converted</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for journey in journeys %}
-                    <tr>
+                    <tr onclick="window.location.href='{{ url('user_analytics:user_journey_session_detail', session_id=journey.session_id) }}'" style="cursor: pointer;" class="journey-row">
                         <td>{{ (loop.index0 + (journeys.number - 1) * journeys.paginator.per_page) + 1 }}</td>
                         <td>
                             {% if journey.user %}
-                                <span class="badge bg-info"><i class="fas fa-user-check"></i> Registered</span>
+                                {% if journey.is_new_user %}
+                                    <span class="badge bg-success"><i class="fas fa-user-plus"></i> New User</span>
+                                {% else %}
+                                    <span class="badge bg-info"><i class="fas fa-user-check"></i> Existing User</span>
+                                {% endif %}
                             {% else %}
-                                <span class="badge bg-warning"><i class="fas fa-user-slash"></i> Organic</span>
+                                <span class="badge bg-warning"><i class="fas fa-user-slash"></i> Anonymous</span>
                             {% endif %}
                         </td>
                         <td>
@@ -109,7 +133,13 @@
                                     {{ journey.user.email or 'N/A' }}
                                 </a>
                             {% else %}
-                                <span class="text-muted">Anonymous</span>
+                                {% if journey.session_id %}
+                                    <a href="{{ url('user_analytics:user_journey') }}?period={{ time_period }}&user_type=organic&search={{ journey.session_id|urlencode }}" title="View all journeys for this session" class="text-muted">
+                                        <i class="fas fa-user-slash"></i> Anonymous
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted"><i class="fas fa-user-slash"></i> Anonymous</span>
+                                {% endif %}
                             {% endif %}
                         </td>
                         <td><small>{{ journey.session_id[:20] if journey.session_id else 'N/A' }}{% if journey.session_id and journey.session_id|length > 20 %}...{% endif %}</small></td>
@@ -130,16 +160,92 @@
                         <td>{{ journey.total_pages or 0 }}</td>
                         <td>
                             <small>
-                                {{ (journey.entry_page or 'N/A')[:40] }}{% if journey.entry_page and journey.entry_page|length > 40 %}...{% endif %}
+                                <a href="{{ url('user_analytics:user_journey_session_detail', session_id=journey.session_id) }}" onclick="event.stopPropagation();" title="{{ journey.entry_page or 'N/A' }}">
+                                    {{ (journey.entry_page or 'N/A')[:40] }}{% if journey.entry_page and journey.entry_page|length > 40 %}...{% endif %}
+                                </a>
                             </small>
                         </td>
                         <td>
                             <small>
-                                {{ (journey.exit_page or 'N/A')[:40] }}{% if journey.exit_page and journey.exit_page|length > 40 %}...{% endif %}
+                                <a href="{{ url('user_analytics:user_journey_session_detail', session_id=journey.session_id) }}" onclick="event.stopPropagation();" title="{{ journey.exit_page or 'N/A' }}">
+                                    {{ (journey.exit_page or 'N/A')[:40] }}{% if journey.exit_page and journey.exit_page|length > 40 %}...{% endif %}
+                                </a>
                             </small>
                         </td>
                         <td>{{ journey.utm_source or 'Direct' }}</td>
                         <td>{{ journey.device_type or 'Unknown' }}</td>
+                        <td>{{ journey.country or 'Unknown' }}</td>
+                        <td>
+                            {% if journey.ga4_client_id %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i> Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-times"></i> No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if journey.ga4_client_id %}
+                                <small title="{{ journey.ga4_client_id }}">{{ journey.ga4_client_id[:20] }}{% if journey.ga4_client_id|length > 20 %}...{% endif %}</small>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if journey.is_registered %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i> Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-times"></i> No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if journey.has_payment %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i> Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-times"></i> No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if journey.has_psychometric_test %}
+                                <span class="badge bg-info"><i class="fas fa-check"></i> Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-times"></i> No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if journey.test_completed %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i> Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-times"></i> No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if journey.result_generated %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i> Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-times"></i> No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% if journey.is_registered %}
+                                    <span class="badge bg-success" title="User Registration"><i class="fas fa-user-plus"></i> Register</span>
+                                {% endif %}
+                                {% if journey.has_payment %}
+                                    <span class="badge bg-success" title="Payment Success"><i class="fas fa-check-circle"></i> Payment</span>
+                                {% endif %}
+                                {% if journey.has_psychometric_test %}
+                                    <span class="badge bg-info" title="Psychometric Test Started"><i class="fas fa-play-circle"></i> Test</span>
+                                {% endif %}
+                                {% if journey.test_completed %}
+                                    <span class="badge bg-primary" title="Psychometric Test Completed"><i class="fas fa-check-circle"></i> Complete</span>
+                                {% endif %}
+                                {% if journey.result_generated %}
+                                    <span class="badge bg-success" title="Result Generated"><i class="fas fa-file-alt"></i> Result</span>
+                                {% endif %}
+                                {% if not journey.is_registered and not journey.has_payment and not journey.has_psychometric_test and not journey.test_completed and not journey.result_generated %}
+                                    <span class="text-muted small">-</span>
+                                {% endif %}
+                            </div>
+                        </td>
                         <td>
                             {% if journey.converted %}
                                 <span class="badge bg-success">Yes</span>
@@ -150,7 +256,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="12" class="text-center py-4">
+                        <td colspan="21" class="text-center py-4">
                             <p class="text-muted mb-2">No user journeys found for the selected filters.</p>
                             <a href="{{ url('user_analytics:user_journey') }}?period={{ time_period }}" class="btn btn-sm btn-outline-primary">
                                 <i class="fas fa-list"></i> View All Journeys
@@ -168,7 +274,7 @@
             <ul class="pagination justify-content-center">
                 {% if journeys.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ journeys.previous_page_number }}">Previous</a>
+                    <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&goal={{ goal_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ journeys.previous_page_number }}">Previous</a>
                 </li>
                 {% endif %}
                 
@@ -179,14 +285,14 @@
                     </li>
                     {% elif num > (journeys.number - 3) and num < (journeys.number + 3) %}
                     <li class="page-item">
-                        <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ num }}">{{ num }}</a>
+                        <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&goal={{ goal_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ num }}">{{ num }}</a>
                     </li>
                     {% endif %}
                 {% endfor %}
                 
                 {% if journeys.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ journeys.next_page_number }}">Next</a>
+                    <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&goal={{ goal_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ journeys.next_page_number }}">Next</a>
                 </li>
                 {% endif %}
             </ul>
@@ -194,4 +300,21 @@
         {% endif %}
     </div>
 </div>
+
+<style>
+.journey-row {
+    transition: background-color 0.2s ease;
+}
+.journey-row:hover {
+    background-color: #f8f9fa !important;
+    cursor: pointer;
+}
+.journey-row td a {
+    color: inherit;
+    text-decoration: none;
+}
+.journey-row td a:hover {
+    text-decoration: underline;
+}
+</style>
 {% endblock %}

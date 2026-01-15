@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'analytics_dashboard',
     'app_post_matric',
     'user_analytics',
+    'forum',
 ]
 
 # Add django_elasticsearch_dsl conditionally based on environment
@@ -88,6 +89,11 @@ GOOGLE_API_KEY = config('GOOGLE_API_KEY', default='')
 ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
 AI_MODEL = config('AI_MODEL', default='gpt-3.5-turbo')  # or gemini-1.5-flash, claude-3-haiku, etc.
 GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-1.5-flash')
+
+# Forum AI Configuration
+OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4o-mini')  # Default to cost-effective model for forum
+USE_DATABASE_CACHE = config('USE_DATABASE_CACHE', default='True', cast=bool)  # Enable database caching for forum
+SEMANTIC_SIMILARITY_THRESHOLD = config('SEMANTIC_SIMILARITY_THRESHOLD', default=0.85, cast=float)  # 0.0 to 1.0
 
 # Embedding Cache Configuration
 ENABLE_EMBEDDING_CACHE = config('ENABLE_EMBEDDING_CACHE', default=True, cast=bool)
@@ -257,7 +263,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en'
 
-TIME_ZONE = 'Asia/Kolkata'
+TIME_ZONE = config('TIME_ZONE', default='Asia/Kolkata')
 
 USE_I18N = True
 

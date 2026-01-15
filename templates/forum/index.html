@@ -1,0 +1,170 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>TopTeen Career AI - High School Career Counseling</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'forum/css/style.css' %}">
+    {% csrf_token %}
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🎯 TopTeen Career AI</div>
+            <div class="tagline">Your Personal AI Career Guide for High School Success</div>
+            <div class="ai-status">
+                <i class="fas fa-robot"></i>
+                AI Career Expert Online - Ready to Guide You!
+            </div>
+        </div>
+
+        <!-- Student Profile Bar (shown only if user is logged in) -->
+        {% if user.is_authenticated and user_data %}
+        <div class="student-profile">
+            <div class="student-profile-content">
+                <div class="student-profile-left">
+                    <h3>👋 Welcome, {{ user_data.name }}!</h3>
+                    <div class="student-info">
+                        {% if user_data.grade %}
+                        <span>Grade: {{ user_data.grade }}</span>
+                        {% endif %}
+                        {% if user_data.school %}
+                        <span>School: {{ user_data.school }}</span>
+                        {% endif %}
+                        {% if user_data.age %}
+                        <span>Age: {{ user_data.age }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="student-info">
+                        {% if user_data.stream %}
+                        <span>Stream: {{ user_data.stream }}</span>
+                        {% endif %}
+                        {% if user_data.psychometric_score %}
+                        <span>Psychometric Score: {{ user_data.psychometric_score }}/100</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="student-profile-right">
+                    <div class="career-readiness">
+                        <span class="readiness-icon">🏆</span>
+                        <span class="readiness-text">Career Readiness: {{ user_data.career_readiness }}%</span>
+                    </div>
+                    {% if user_data.top_matches %}
+                    <div class="top-matches">
+                        Top Matches: {{ user_data.top_matches|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Query Input Area -->
+        <div class="query-input-area">
+            <h2 style="text-align: center; margin-bottom: 20px; color: #333;">
+                <i class="fas fa-comments"></i> Ask Your Career Question
+            </h2>
+            
+            <div class="quick-actions">
+                <div class="quick-action" onclick="quickQuery('What should I do after 10th?')">📚 After 10th Options</div>
+                <div class="quick-action" onclick="quickQuery('Best careers in science stream?')">🔬 Science Careers</div>
+                <div class="quick-action" onclick="quickQuery('How to prepare for JEE?')">🎯 JEE Preparation</div>
+                <div class="quick-action" onclick="quickQuery('Careers without maths?')">📊 Non-Math Careers</div>
+                <div class="quick-action" onclick="quickQuery('Part-time jobs for students?')">💼 Student Jobs</div>
+                <div class="quick-action" onclick="quickQuery('Study abroad after 12th?')">🌍 Study Abroad</div>
+            </div>
+            
+            <div class="input-group">
+                <textarea class="query-input" id="userQuery" placeholder="Ask any career question... For example: 'Which stream should I choose?' or 'What are high-paying careers without NEET?'"></textarea>
+            </div>
+            
+            <button class="submit-btn" onclick="submitQuery()">
+                <i class="fas fa-paper-plane"></i> Get Career Guidance
+            </button>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <small>AI Career Expert is thinking...</small>
+            </div>
+            
+            <div class="ai-response" id="aiResponse"></div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <h3><i class="fas fa-chart-bar"></i> Your Progress</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number" id="stat-total-queries">0</span>
+                        <span class="stat-label">Careers Explored</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="stat-accuracy">0%</span>
+                        <span class="stat-label">Stream Match</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="stat-countries">0</span>
+                        <span class="stat-label">Skills Identified</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="stat-response-time">0</span>
+                        <span class="stat-label">Universities Viewed</span>
+                    </div>
+                </div>
+
+                <h3><i class="fas fa-star"></i> AI Features</h3>
+                <ul class="feature-list" id="aiFeatures">
+                    <!-- AI Features will be loaded here dynamically -->
+                </ul>
+            </div>
+
+            <!-- Main Panel -->
+            <div class="main-panel">
+                <h3><i class="fas fa-graduation-cap"></i> Career Exploration Zones</h3>
+                <div class="category-tabs" id="categoryTabs">
+                    <div class="category-tab active" onclick="switchCategory('all', this)">All Careers</div>
+                    <div class="category-tab" onclick="switchCategory('stem', this)">🔬 STEM</div>
+                    <div class="category-tab" onclick="switchCategory('commerce', this)">💼 Commerce</div>
+                    <div class="category-tab" onclick="switchCategory('arts', this)">🎨 Arts</div>
+                    <div class="category-tab" onclick="switchCategory('vocational', this)">🛠️ Vocational</div>
+                    <div class="category-tab" onclick="switchCategory('emerging', this)">🚀 Emerging</div>
+                    <div class="category-tab" onclick="switchCategory('studyabroad', this)">🌍 Study Abroad</div>
+                </div>
+
+                <div id="categoryContent">
+                    <h4>Popular Career Questions & AI Answers</h4>
+                    <div id="popularQueries">
+                        <!-- Popular queries will be loaded here dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Panel -->
+            <div class="info-panel">
+                <h3><i class="fas fa-fire"></i> Trending Careers 2025</h3>
+                <div class="recent-queries" id="trendingQueries">
+                    <!-- Trending queries will be loaded here dynamically -->
+                </div>
+
+                <h3 style="margin-top: 25px;"><i class="fas fa-robot"></i> AI Capabilities</h3>
+                <ul class="feature-list" id="aiCapabilities">
+                    <!-- AI Capabilities will be loaded here dynamically -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'forum/js/main.js' %}"></script>
+</body>
+</html>

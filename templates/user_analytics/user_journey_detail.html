@@ -1,0 +1,199 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}User Journey Detail | Top Teen{% endblock %}
+
+{% block page_title %}User Journey Detail{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="page-title">
+                    <i class="fas fa-route text-primary"></i> 
+                    User Journey Detail
+                </h1>
+                <p class="text-muted mb-0">
+                    Session ID: <strong>{{ journey.session_id }}</strong>
+                    {% if journey.user %}
+                        | User: <strong>{{ journey.user.email }}</strong>
+                    {% else %}
+                        | User: <span class="text-warning">Anonymous</span>
+                    {% endif %}
+                    | Total Pages: <strong>{{ total_activities }}</strong>
+                    | Duration: <strong>{{ "%.1f"|format(journey.total_time / 60) if journey.total_time else 0 }} min</strong>
+                </p>
+            </div>
+            <a href="{{ url('user_analytics:user_journey') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Journeys
+            </a>
+        </div>
+    </div>
+
+    <!-- Journey Summary -->
+    <div class="admin-card mb-4">
+        <h5 class="card-title mb-3"><i class="fas fa-info-circle"></i> Journey Summary</h5>
+        <div class="row">
+            <div class="col-md-3">
+                <strong>Start Time:</strong><br>
+                <span class="text-muted">{{ journey.start_time.strftime('%b %d, %Y %H:%M:%S') if journey.start_time else 'N/A' }}</span>
+            </div>
+            <div class="col-md-3">
+                <strong>End Time:</strong><br>
+                <span class="text-muted">{{ journey.end_time.strftime('%b %d, %Y %H:%M:%S') if journey.end_time else 'N/A' }}</span>
+            </div>
+            <div class="col-md-3">
+                <strong>Entry Page:</strong><br>
+                <span class="text-muted">{{ journey.entry_page or 'N/A' }}</span>
+            </div>
+            <div class="col-md-3">
+                <strong>Exit Page:</strong><br>
+                <span class="text-muted">{{ journey.exit_page or 'N/A' }}</span>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-3">
+                <strong>Device:</strong><br>
+                <span class="text-muted">{{ journey.device_type or 'Unknown' }}</span>
+            </div>
+            <div class="col-md-3">
+                <strong>Country:</strong><br>
+                <span class="text-muted">{{ journey.country or 'Unknown' }}</span>
+            </div>
+            <div class="col-md-3">
+                <strong>Source:</strong><br>
+                <span class="text-muted">{{ journey.utm_source or 'Direct' }}</span>
+            </div>
+            <div class="col-md-3">
+                <strong>GA4 Client ID:</strong><br>
+                <span class="text-muted">{{ journey.ga4_client_id or 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goals Achieved Summary -->
+    {% if all_goals %}
+    <div class="admin-card mb-4">
+        <h5 class="card-title mb-3"><i class="fas fa-bullseye text-primary"></i> Goals Achieved</h5>
+        <div class="d-flex flex-wrap gap-2">
+            {% for goal in all_goals %}
+            <span class="badge bg-{{ goal.color }} p-2" style="font-size: 0.9em;">
+                <i class="fas {{ goal.icon }}"></i> {{ goal.name }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pages Visited -->
+    <div class="admin-card">
+        <h5 class="card-title mb-3"><i class="fas fa-list"></i> Pages Visited ({{ total_activities }})</h5>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Page Path</th>
+                        <th>Page Title</th>
+                        <th>Goal</th>
+                        <th>Timestamp</th>
+                        <th>Time on Page</th>
+                        <th>Time Since Previous</th>
+                        <th>Referrer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in activities %}
+                    <tr class="{% if item.goal %}goal-achieved goal-{{ item.goal.goal.color }}{% endif %}">
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            {% if item.activity.page_path %}
+                                <a href="{{ item.activity.page_path }}" target="_blank" title="Open page in new tab: {{ item.activity.page_path }}">
+                                    <i class="fas fa-external-link-alt text-primary"></i> {{ item.activity.page_path[:60] }}{% if item.activity.page_path|length > 60 %}...{% endif %}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.activity.page_title or 'N/A' }}</td>
+                        <td>
+                            {% if item.goal %}
+                                <span class="badge bg-{{ item.goal.goal.color }} badge-goal" title="{% if item.goal.event %}{{ item.goal.event.event_name }}{% else %}{{ item.goal.goal.name }}{% endif %}">
+                                    <i class="fas {{ item.goal.goal.icon }}"></i> {{ item.goal.goal.name }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>{{ item.timestamp.strftime('%H:%M:%S') }}</small><br>
+                            <small class="text-muted">{{ item.timestamp.strftime('%b %d, %Y') }}</small>
+                        </td>
+                        <td>
+                            {% if item.activity.time_on_page %}
+                                {{ "%.1f"|format(item.activity.time_on_page) }}s
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.time_since_previous > 0 %}
+                                {% if item.time_since_previous < 60 %}
+                                    {{ item.time_since_previous }}s
+                                {% else %}
+                                    {{ "%.1f"|format(item.time_since_previous / 60) }}m
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>
+                                {{ (item.activity.referrer or 'Direct')[:40] }}{% if item.activity.referrer and item.activity.referrer|length > 40 %}...{% endif %}
+                            </small>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <p class="text-muted mb-2">No pages visited in this journey.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.goal-achieved {
+    border-left: 4px solid;
+    font-weight: 500;
+}
+.goal-success {
+    border-left-color: #28a745;
+    background-color: #d4edda !important;
+}
+.goal-primary {
+    border-left-color: #007bff;
+    background-color: #cce5ff !important;
+}
+.goal-info {
+    border-left-color: #17a2b8;
+    background-color: #d1ecf1 !important;
+}
+.goal-warning {
+    border-left-color: #ffc107;
+    background-color: #fff3cd !important;
+}
+.badge-goal {
+    font-size: 0.85em;
+    padding: 0.35em 0.65em;
+}
+.goal-achieved:hover {
+    background-color: inherit !important;
+    opacity: 0.95;
+}
+</style>
+{% endblock %}
