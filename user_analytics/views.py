@@ -159,8 +159,6 @@ def admin_dashboard(request):
         )
     total_revenue = total_revenue_query.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
     
-    from core import choices
-    
     total_leads_query = Lead.objects.all()
     if start_date is not None:
         total_leads_query = total_leads_query.filter(
