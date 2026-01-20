@@ -462,7 +462,7 @@ async function loadAIFeatures() {
         },
         timestamp: Date.now()
     };
-    fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData1)}).catch(()=>{});
+    fetch(`${API_BASE_URL}/debug-log/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},body:JSON.stringify(logData1)}).catch(()=>{});
     // #endregion
     
     // Check if features are already rendered server-side
@@ -480,7 +480,7 @@ async function loadAIFeatures() {
             },
             timestamp: Date.now()
         };
-        fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData2)}).catch(()=>{});
+        fetch(`${API_BASE_URL}/debug-log/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},body:JSON.stringify(logData2)}).catch(()=>{});
         // #endregion
         // Features already loaded server-side, skip
         return;
@@ -520,7 +520,7 @@ function displayAIFeatures(features) {
         },
         timestamp: Date.now()
     };
-    fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData3)}).catch(()=>{});
+            fetch(`${API_BASE_URL}/debug-log/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},body:JSON.stringify(logData3)}).catch(()=>{});
     // #endregion
     
     container.innerHTML = '';
@@ -567,7 +567,7 @@ function displayAIFeatures(features) {
             },
             timestamp: Date.now()
         };
-        fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData4)}).catch(()=>{});
+            fetch(`${API_BASE_URL}/debug-log/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},body:JSON.stringify(logData4)}).catch(()=>{});
     }, 100);
     // #endregion
 }
@@ -972,7 +972,7 @@ window.addEventListener('load', function() {
                 },
                 timestamp: Date.now()
             };
-            fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData5)}).catch(()=>{});
+            fetch(`${API_BASE_URL}/debug-log/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},body:JSON.stringify(logData5)}).catch(()=>{});
         }
     }, 500);
     // #endregion

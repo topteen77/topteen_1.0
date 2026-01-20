@@ -7,6 +7,8 @@ from django.template.loader import get_template
 from django.http import HttpResponse
 from django.utils import timezone
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from datetime import date
 from forum.models import Query, Response, Category, Country, PerformanceMetrics, AIFeature, AICapability
 from forum.serializers import (
@@ -951,6 +953,24 @@ class PopularQueriesView(APIView):
         # No sample/fallback data - admin should seed database if needed
         
         return DRFResponse(queries_data)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DebugLogView(APIView):
+    """Receive debug logs from JavaScript and write to log file"""
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        import json
+        import os
+        log_path = '/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug.log'
+        try:
+            log_data = request.data
+            with open(log_path, 'a') as f:
+                f.write(json.dumps(log_data) + '\n')
+            return DRFResponse({'status': 'ok'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return DRFResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TrendingQueriesView(APIView):
