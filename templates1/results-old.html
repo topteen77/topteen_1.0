@@ -1,0 +1,4410 @@
+<!-- quiz/templates/pdf_template.html -->
+{% load static %}
+{% load custom_filters_post_matric %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="preload stylesheet" href="/static/font/font-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>Career Direction Assessment Assessment Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Include existing styles from the original file -->
+
+    <style>
+        .highlighted-description {
+            background: #DDF2FF;
+            border-left: 5px solid #3B82F6;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 800px;
+            border-radius: 10px;
+            text-align: left;
+            font-size: 15px;
+            /* font-style: italic; */
+            color: #1E3A8A;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease;
+        }
+
+        .highlighted-description:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-interests-section {
+            width: 700px;
+        }
+
+        .rsa-report {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .rsa-card {
+            flex: 0 0 calc(32.333% - 20px);
+            padding: 5px;
+            border-radius: 15px;
+            color: #2C2C2C;
+            background: #fff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            text-align: center;
+        }
+
+        /* Typography */
+        .rsa-card h5 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .rsa-card p {
+            font-size: 1rem;
+        }
+
+        /* 🎨 Light color themes per trait */
+        .rsa-card.realistic {
+            background: #C9EDF8;
+            border: 1px solid #0571902e;
+        }
+
+        .rsa-card.realistic h5 {
+            background: #057190;
+            color: #fff;
+            border-radius: 8px;
+        }
+
+        .rsa-card.social {
+            background: #FFF2B6;
+            border: 1px solid #6d5c0421;
+        }
+
+        .rsa-card.social h5 {
+            background: #6D5C04;
+            color: #fff;
+            border-radius: 8px;
+        }
+
+        .rsa-card.investigative {
+            background: #EAD9EB;
+            border: 1px solid #a92caf26;
+        }
+
+        .rsa-card.investigative h5 {
+            background: #A92CAF;
+            color: #fff;
+            border-radius: 8px;
+        }
+
+        .rsa-card.artistic {
+            background: #c8f8b6;
+            border: 1px solid #327b17;
+        }
+
+        .rsa-card.artistic h5 {
+            background: #2a740e;
+            color: #fff;
+            border-radius: 8px;
+        }
+
+
+        .rsa-card.enterprising {
+            background: #FFD4CF;
+            border: 1px solid #FFBBB3;
+        }
+
+        .rsa-card.enterprising h5 {
+            background: #A22717;
+            color: #fff;
+            border-radius: 8px;
+        }
+
+        .rsa-card.conventional {
+            background: #D4EAFD;
+            border: 1px solid #0b4da11c;
+        }
+
+        .rsa-card.conventional h5 {
+            background: #0B5BA1;
+            color: #fff;
+            border-radius: 8px;
+        }
+
+        /* 💫 Hover effect */
+        .rsa-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        /* 📱 Responsive */
+        @media (max-width: 992px) {
+            .rsa-card {
+                flex: 0 0 calc(32.333% - 20px);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .rsa-card {
+                flex: 0 0 100%;
+            }
+        }
+
+        .d-none {
+            display: none !important;
+        }
+
+        .accordion-body {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h4 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .career-categories {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category {
+            flex: 1;
+            min-width: 200px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h5 {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .category {
+            flex: 1;
+            min-width: 200px;
+            background-color: #fff;
+            padding: 7px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .career-categories h5 {
+            margin-top: 0px;
+            background: #e7e5ff;
+            color: #2720A7;
+            font-size: 17px;
+            padding: 13px 8px;
+        }
+
+
+        .category ul li {
+            font-size: 14px;
+            padding: 7px 14px;
+            padding-left: 0px;
+        }
+
+
+
+        h5 {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            font-size: 1rem;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
+        .description-content {
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        .description-content p {
+            margin-bottom: 12px;
+        }
+        .description-content ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        .description-content li {
+            margin-bottom: 8px;
+            border-bottom: none;
+        }
+        .description-content strong {
+            font-weight: 600;
+            color: #3f37c9;
+        }
+        .description-content em {
+            font-style: italic;
+            color: #555;
+        }
+
+        .career-box {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            border: 1px solid #c7f7dc;
+            background: #f0fbf5;
+            padding: 14px;
+            gap: 31px;
+        }
+
+        .trait-heading {
+            margin-top: 0px;
+            color: #059669;
+        }
+
+        .career-row,
+        .low-trait-box {
+            background: #fff;
+            padding: 17px;
+        }
+
+        .trait-description {
+            min-height: 32px;
+        }
+
+        .best-career ul,
+        .low-trait-card ul,
+        .motivation-box ul {
+            padding-left: 0px;
+        }
+
+        .best-career ul li,
+        .low-trait-card ul li,
+        .motivation-box ul li {
+            font-size: 14px;
+            margin-bottom: 0px;
+        }
+
+
+        .best-career ul li i,
+        .low-trait-card ul li i,
+        .motivation-box ul li i {
+            margin-right: 8px;
+        }
+
+        .low-trait-card {
+            background: #fbf2f0;
+            border: 1px solid #f7cdc7;
+            padding: 14px;
+        }
+
+        .motivation-box .category {
+            width: 689px;
+        }
+
+        .motivation-box ul {
+            display: grid;
+            grid-template-columns: 331px 331px;
+            margin: 0 3px;
+            grid-gap: 0 9px;
+        }
+
+        .career-categories.rs.motivation-box {
+            display: inline;
+        }
+
+        .motivation-box ul .category ul li {
+            font-size: 14px;
+            padding: 5px 14px;
+            padding-left: 0px;
+        }
+
+        .best-career ul li i,
+        .low-trait-card ul li i,
+        .motivation-box ul li i {
+            margin-right: 8px;
+            color: #008000;
+        }
+
+        .motivation-box ul li {
+            padding: 3px 14px;
+        }
+
+        .motive-report .hexaco-code-display {
+            padding: 0;
+        }
+
+        .motivation-categories .time-duration-display {
+            width: 50%;
+        }
+    </style>
+    <style>
+        /** updated css **/
+        .scard-bodys {
+            display: flex;
+            padding: 8px;
+            padding-top: 8px;
+            margin-bottom: 14px;
+            border-radius: 10px;
+            padding-top: 21px;
+            position: relative;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+
+
+
+        .honesty-humility::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: url('/static/images/H%20-%20Quiet%20lighthouse.png') no-repeat center center;
+            background-size: cover;
+            z-index: 1;
+            opacity: 0.03;
+        }
+
+
+        .conscientiousness::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: url('/static/images/C- Mountain path.png') no-repeat center center;
+            background-size: cover;
+            z-index: 1;
+            opacity: 0.03;
+        }
+
+
+
+
+        .scard-bodys.card-one {
+            border: 1px solid #5952d6;
+            border-top: 7px solid #5952d6;
+            background: #eff5ff;
+
+        }
+
+
+
+        .scard-bodys.card-two {
+            border: 1px solid #d6a852;
+            border-top: 7px solid #d6a852;
+            background: #fff7e8;
+        }
+
+
+        .summary-card-header {
+            margin-right: 23px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .summary-card-header-img {
+            width: 150px;
+            height: 150px;
+            background: #ffff;
+            border-radius: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .summary-card-header-img img {
+            width: 56%;
+        }
+
+        .summary-card-description p {
+            line-height: 16px;
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .summary-card-header p {
+            text-align: center;
+            font-weight: 800;
+            line-height: 18px;
+            margin-top: 11px;
+            color: #3F37C9;
+        }
+
+        .summary-card-description ul {
+            list-style: disc;
+            margin-bottom: 4px;
+            margin-top: 0px;
+        }
+
+        .summary-card-description ul li {
+            font-size: 13px;
+            border-bottom: 0px;
+            margin-bottom: 0px;
+        }
+
+        .small-margin .time-duration-display {
+            height: 60px;
+        }
+
+        .small-margin .hexaco-code-display {
+            height: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        .small-margin .time-duration-display h3,
+        .small-margin .hexaco-code-display h3 {
+            margin: 0px !important;
+        }
+
+        .pr-combined-reportright {
+            display: flex;
+            background: #f1faff;
+            border: 1px solid #013954;
+            border-radius: 11px;
+            padding: 8px;
+            border-top: 7px solid #013e5d;
+        }
+
+        .pr-combined-report-left {
+            margin-right: 15px;
+        }
+
+
+        .pr-combined-report-header h1 {
+            font-size: 18px;
+            margin-top: 2px !important;
+            color: #013E5D;
+            display: flex;
+        }
+
+        .pr-combined-report-header h1 span {
+            background: #013E5D;
+            padding: 7px 8px;
+            font-size: 21px;
+            margin-right: 7px;
+            border-radius: 10px;
+            color: #fff;
+            width: 108px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .highlighted-description-filter ul {
+            list-style: disc;
+        }
+
+        .hexaco-code-explanation {
+            display: flex;
+            justify-content: center;
+        }
+
+
+        /** motivation update **/
+        .motivation-summary {
+            background: #fff;
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid #d7d7d7;
+            display: flex;
+            border-top: 7px solid #d7d7d7;
+        }
+
+
+        .left-m-su {
+            width: 316px;
+            background: #eceef5;
+        }
+
+        .s-motivation-summary h3 {
+            background: #f0f4ff;
+            padding: 7px;
+            margin-top: 0px;
+            color: #08079d;
+            border-radius: 7px;
+        }
+
+
+        .left-m-su img {
+            width: 238px;
+        }
+
+        .s-motivation-summary {
+            margin-left: 15px;
+        }
+
+
+        .s-motivation-summary h4 {
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: #5756ce;
+        }
+
+        .motivation-key-drive .d-em-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px;
+            align-items: start;
+        }
+
+        .motivation-key-drive .env-grid {
+            display: flex;
+            align-items: flex-start;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(34, 34, 90, 0.05);
+            transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .motivation-key-drive .env-grid .img-mg {
+            flex: 0 0 72px;
+            height: 72px;
+            overflow: hidden;
+            border-radius: 10px;
+            margin-right: 12px;
+            background: #f6f7ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .motivation-key-drive .env-grid .img-mg img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .motivation-key-drive .env-grid {
+            cursor: pointer;
+        }
+
+        .motivation-key-drive .text-emn p {
+            margin: 0;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.35;
+        }
+
+        .motivation-key-drive h4 {
+            position: relative;
+            font-size: 21px;
+            margin-bottom: 26px;
+        }
+
+        .motivation-key-drive h4::after {
+            content: "";
+            background: #08079d;
+            width: 50px;
+            height: 5px;
+            position: absolute;
+            left: 0;
+            bottom: -8px;
+        }
+
+        .motivation-summrize {
+            margin-top: 10px;
+            background: #f4f4ff;
+            border: 1px solid #5952d6;
+            padding: 11px;
+            border-radius: 10px;
+            margin-top: 43px;
+        }
+
+
+        .motivation-summrize h4 {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            background: #fff;
+            width: 145px;
+            justify-content: center;
+            padding: 2px;
+            border-radius: 50px;
+            margin-bottom: 13px;
+        }
+
+        .motivation-summrize h4 img {
+            width: 30px;
+            margin-right: 6px;
+        }
+
+        /** motivation update **/
+
+
+
+
+
+
+        /** interest test updated **/
+
+
+        .personality-card {
+            display: flex;
+            flex-direction: column;
+            background: #f0f2fb;
+            border: 1px solid #3f37c9;
+            padding: 9px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+
+        .top-card {
+            display: flex;
+        }
+
+        .card-p-left {
+            margin-right: 20px;
+        }
+
+        .icon-box {
+            background: #fff;
+            border-radius: 10px;
+            width: 81px;
+            padding: 3px;
+            margin-bottom: 20px;
+        }
+
+        .icon-box img {
+            width: 75px;
+        }
+
+        .card-p-right h3 {
+            margin-top: 0px;
+            margin-bottom: 5px;
+        }
+
+        .card-p-right p {
+            margin-bottom: 7px;
+        }
+
+        .hm-text {
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .hm-text ul {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            list-style: disc;
+            margin-top: 0px;
+        }
+
+
+        .hm-text ul li {
+            border: 0px;
+            margin-bottom: 0px;
+        }
+
+        .hm-text h4 {
+            color: #4a41cb;
+            font-size: 16px;
+        }
+
+
+        /** aptitude test updated **/
+
+
+        .recommended-courses-info-above-average .real-sign-box {
+            background: #d2d1f2;
+            padding: 5px;
+            margin-bottom: 13px;
+            border-radius: 16px;
+            border: 1px solid #9592d3;
+        }
+
+        .recommended-courses-info {
+            background: #e5f9ff;
+            border: 1px solid #2e8aa6;
+            border-radius: 10px;
+            padding: 16px;
+            border-top: 7px solid #2e8aa6;
+        }
+        .recommended-courses-info-above-average {
+            background: #e4e3f5;
+            border: 1px solid rgb(63, 55, 201);
+            border-radius: 10px;
+            padding: 16px;
+            border-top: 7px solid rgb(63, 55, 201);
+        }
+
+        .recommended-courses-info .header-text h3 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            color: #2e8aa6;
+            margin: 0 0 5px 0;
+        }
+        
+        .recommended-courses-info-above-average .header-text h3 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            color: rgb(63, 55, 201);
+            margin: 0 0 5px 0;
+        }
+
+        .recommended-courses-info .header-text .imgpact, .recommended-courses-info-above-average .header-text .imgpact {
+            width: 60px;
+            height: 60px;
+            background: #ffff;
+            border-radius: 100px;
+            padding: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 12px;
+        }
+
+
+        .recommended-courses-info .header-text .imgpact img, .recommended-courses-info-above-average .header-text .imgpact img {
+            width: 50px;
+            height: 50px;
+        }
+
+        .real-description h4 {
+            display: flex;
+            align-items: center;
+            font-size: 17px;
+        }
+
+        .real-sign {
+            width: 35px;
+            margin-right: 9px;
+        }
+
+        .real-sign img {
+            width: 100%;
+        }
+
+        .real-description ul {
+            list-style: disc;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0 20px;
+            margin-bottom: 10px;
+
+        }
+
+        .real-description ul li {
+            font-size: 14px;
+            margin-bottom: 0px;
+            padding: 0px;
+            border: 0px;
+            line-height: 18px;
+        }
+
+
+        .impact-box {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 13px;
+        }
+
+        .impact-info {
+            background: #fff;
+            padding: 17px;
+            border-radius: 17px;
+        }
+
+        .impact-info h4 {
+            display: flex;
+            align-items: center;
+            font-size: 17px;
+            color: #433ccb;
+            margin-bottom: 15px;
+        }
+
+        .real-sign-box {
+            background: #c0e2ff8c;
+            padding: 5px;
+            margin-bottom: 13px;
+            border-radius: 16px;
+            border: 1px solid #add9f6;
+        }
+
+        .impact-info h4 .car-img {
+            width: 30px;
+            height: 30px;
+            margin-right: 11px;
+        }
+
+        .impact-info h4 .car-img img {
+            width: 100%;
+        }
+
+        .impact-info ul {
+            list-style: disc;
+        }
+
+        .impact-info ul li {
+            border: 0px;
+            font-size: 14px;
+            margin-bottom: 0;
+            padding: 1px 0px;
+        }
+
+
+
+        /** updated css **/
+    </style>
+
+    <style>
+        .hexaco-code-display,
+        .riasec-code-display,
+        .top-motivation-display {
+            background: #E8FFE7;
+            border: 1px solid #b8ffca;
+            padding: 15px;
+            border-radius: 10px;
+
+        }
+
+        .time-duration-display {
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            border: 1px solid #e6e6e6;
+        }
+
+
+
+
+        .top-dimensions-section,
+        .lowest-dimension-section {
+            margin-bottom: 20px;
+        }
+
+        .dimension-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .dimension-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .dimension-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rank-indicator {
+            background: #3F37C9;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .dimension-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .dimension-score {
+            font-size: 20px;
+            font-weight: bold;
+            color: #3F37C9;
+        }
+
+        .progress-bar-container {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: #3F37C9;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .performance-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .performance-box {
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .performance-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        div#aptitude-sections {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .section-card {
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s ease;
+            /* width: 293px; */
+            float: left;
+            margin-right: 20px;
+            margin-bottom: 20px;
+
+        }
+
+        .section-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-breakdown h5 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 14px;
+            margin-top: 0px;
+        }
+
+        .question-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+
+        .question-item:last-child {
+            border-bottom: none;
+        }
+
+        .section-score {
+            background: #3F37C9;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .performance-summary {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .performance-box {
+                width: 90%;
+                max-width: 300px;
+                margin: 10px 0;
+            }
+
+            .section-results {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media print {
+
+            .performance-summary,
+            .performance-box,
+            .section-card {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+    <style>
+        /* All the existing styles from pdf_template_final.html remain the same */
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            font-family: 'Galano Grotesque';
+            font-size: 14px;
+            counter-reset: chapters;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          
+        }
+
+        /* Additional styles for dynamic content */
+        .dynamic-results {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .dynamic-results .chart-container {
+            background: no-repeat;
+        }
+
+        .dynamic-results #aptitude-chart {
+            background: #fff;
+        }
+
+        .personality-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .dimension-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3F37C9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .lowest-interest-section .career-dimension-card.high div span+span {
+            color: #c94837ff !important;
+        }
+
+
+        .lowest-dimension-section .dimension-card,
+        .lowest-interest-section .career-dimension-card.high {
+
+            border-left: 4px solid #c94837ff;
+        }
+
+        .lowest-dimension-section .dimension-score,
+        .lowest-interest-section .dimension-score {
+            color: #c94837ff;
+
+        }
+
+        .lowest-dimension-section .progress-bar,
+        .lowest-interest-section .progress-bar {
+            background: linear-gradient(90deg, #c94837ff, rgb(219, 99, 83)) !important;
+
+        }
+
+
+
+        .dimension-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .dimension-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .dimension-score {
+            font-weight: bold;
+            color: #3F37C9;
+            font-size: 1.1em;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3F37C9, #5a4fcf);
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .career-results {
+            margin: 20px 0;
+        }
+
+        .career-dimensions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .career-dimension-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+
+        .career-dimension-card.high {
+            border-left: 4px solid #3F37C9;
+            margin-top: 10px;
+        }
+
+        .career-dimension-card.medium {
+            border-left: 4px solid #ffc107;
+        }
+
+        .career-dimension-card.low {
+            border-left: 4px solid #dc3545;
+        }
+
+        .aptitude-results {
+            margin: 20px 0;
+        }
+
+        .section-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+
+        .section-score {
+            background: #3F37C9;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .question-breakdown {
+            margin-top: 15px;
+        }
+
+        .question-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9em;
+        }
+
+        .question-item:last-child {
+            border-bottom: none;
+        }
+
+        .question-status.correct {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .question-status.incorrect {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .chart-container canvas {
+            max-height: 300px;
+        }
+
+        .motivation-categories {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .motivation-category {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+            min-width: 126px;
+        }
+
+        .category-count {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #3F37C9;
+            margin-bottom: 5px;
+        }
+
+        .category-name {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        @media print {
+            .chart-container {
+                page-break-inside: avoid;
+            }
+
+            .section-card {
+                page-break-inside: avoid;
+            }
+
+            .dimension-card {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+
+    <style>
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+
+        @media screen {
+
+            .fixex-top-logo,
+            .chapterPage hr {
+                display: none;
+            }
+
+            .chapterPage {
+                margin-top: 20px;
+                padding-top: 20px;
+            }
+        }
+
+        @media print {
+
+            .fixex-top-logo,
+            .chapterPage hr {
+                display: block;
+            }
+
+            .chapterPage {
+                border-top: none;
+            }
+        }
+
+        .print-mode .fixex-top-logo,
+        .print-mode .chapterPage hr {
+            display: block !important;
+        }
+
+
+        body {
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            font-family: 'Galano Grotesque';
+            font-size: 14px;
+            counter-reset: chapters;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+      
+        }
+
+
+        #report-container {
+            width: 740px;
+            margin: 0px auto;
+            margin-bottom: 96px;
+        }
+
+        #report-container1 {
+            width: 740px;
+            margin: 0px auto;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        hr {
+            height: 0;
+            border: 0;
+            border-top: 1px solid #494949;
+            margin: 10px 0 10px 0;
+        }
+
+        header {
+            position: running(header);
+            height: 2cm;
+            border-bottom: .5mm solid var(--table-row-separator-color);
+        }
+
+        .coverPage,
+        .tocPage,
+        .chapterPage {
+            page-break-after: always;
+            clear: both;
+        }
+
+        .pageBreak {
+            page-break-before: always;
+            height: 1cm;
+        }
+
+        .coverPage {
+            margin: .5cm;
+        }
+
+        .coverPage h1 {
+            margin-top: 0.23cm;
+            font-size: 35px;
+            color: #3F37C9;
+        }
+
+        .coverPage .coverFooter {
+            text-transform: uppercase;
+            font-size: 8pt;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: absolute;
+            bottom: 1cm;
+            width: calc(100% - 4cm);
+        }
+
+        .coverPage .coverFooter a:first-of-type {
+            font-weight: bold;
+        }
+
+        .coverPage .coverFooter hr {
+            height: .5mm;
+            background-color: white;
+            border-top: 0;
+            width: 40%;
+        }
+
+        .top-info {
+            display: flex;
+        }
+
+        .info-box {
+            border: 1px solid #3F37C9;
+            width: 100%;
+            display: flex;
+            margin-bottom: 26px;
+            border-radius: 5px;
+        }
+
+        .top-info .info-box:last-child {
+            margin-left: 26px;
+        }
+
+        .dt-i-info {
+            background: #3F37C9;
+            width: 2cm;
+            font-size: 16px;
+            font-weight: 600;
+            padding-left: 20px;
+            display: flex;
+            align-items: center;
+            padding: 10px 0 13px 20px;
+            border-radius: 4px;
+        }
+
+        .top-info .info-box:first-child {
+            margin-right: 26px;
+        }
+
+        .output {
+            display: flex;
+            align-items: center;
+        }
+        .output p {
+            font-size: 14px;
+            color: var(--text-color);
+            font-weight: 500;
+            display: flex;
+            justify-content: center;
+            line-height: 19px;
+            margin-bottom: 0px;
+            padding-left: 21px;
+        }
+
+        .bibliographyPage {
+            page: bibliography;
+        }
+
+        .disclaimer-box {
+            border: 1px solid #3F37C9;
+            margin-top: 10px;
+            position: relative;
+            border-radius: 4px;
+            color: #000;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 140px;
+        }
+
+        .disclaimer-heading {
+            /*background: #3F37C9;*/
+            width: 120px;
+            text-align: center;
+            margin-bottom: 13px;
+            color: #fff;
+            border-radius: 4px 5px 0 0;
+            line-height: 31px;
+            font-weight: 600;
+        }
+
+        .disclaimer-box {
+            color: #000;
+            text-align: center;
+        }
+
+        .top-info.last-info {
+            margin-right: 0px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .top-info.last-info .info-box {
+            margin-left: 0px;
+            width: 369px;
+        }
+
+        .chapterPage h1,
+        .tocPage h1,
+        .bibliographyPage h1 {
+            margin-top: 1cm;
+            text-transform: uppercase;
+        }
+
+        h4 {
+            font-size: 10pt;
+            margin: 0;
+        }
+
+        p {
+            margin-top: 0;
+                 }
+
+        dt {
+            font-size: 16pt;
+        }
+
+        dd {
+            margin: 0 0 .5cm 0;
+        }
+
+        .intro-box p {
+            font-size: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 4px;
+            text-align: left;
+            outline: 0px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .text-info-paragraph p {
+            font-size: 16px;
+        }
+
+        .box-info {
+            background: #E7E5FF;
+            border-radius: 10px;
+            border-right: 4px solid #3F37C9;
+            border-bottom: 4px solid #3F37C9;
+            width: 149px;
+            margin: 10px;
+            float: left;
+            border-radius: 10px;
+            height: 149px;
+        }
+
+        .boxfour .box-info {
+            width: 149px;
+        }
+
+        .box-info .img {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .box-info h5 {
+            font-size: 14px;
+            text-align: center;
+            color: #000;
+            margin-bottom: 11px;
+        }
+
+        .box-i {
+            width: 250px;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .bullet ul li {
+            font-size: 14px;
+        }
+
+        .bullet ul li::marker {
+            color: #3F37C9;
+        }
+
+        .two-box {
+            display: flex;
+            justify-content: center;
+            margin: 32px 0;
+        }
+
+        .two-box {
+            display: flex;
+            justify-content: center;
+            margin: 32px 0;
+        }
+
+        .two-box-in {
+            width: 210px;
+            height: 138px;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            background: #E7E5FF;
+            grid-gap: 1rem;
+            align-items: center;
+            text-align: center;
+            margin: 0 9px;
+            padding: 3px 7px;
+            border-radius: 10px;
+            border-right: 3px solid #3F37CB;
+            border-bottom: 3px solid #3F37C9;
+        }
+
+        .img-tow {
+            margin-top: 16px;
+        }
+
+        .odd-even-color tr {
+            background: #D4EAFD;
+            color: #000;
+        }
+
+        .odd-even-color tr:nth-child(2n),
+        .odd-even-color tr:nth-child(2n) {
+            background: #7737C9;
+            color: #fff !important;
+        }
+
+        .cat-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .cat-one-box .cat-head {
+            background: #E7E5FF;
+        }
+
+        .cat-head {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background: gray;
+            border-radius: 7px 7px 0 0;
+            padding: 13px 0;
+            color: #494949;
+        }
+
+        .cat-one-box .cat-list {
+            background: #F7F6FF;
+        }
+
+        .cat-head h4 img {
+            margin-right: 20px;
+        }
+
+        .cat-head h4 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cat-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin-bottom: 7px;
+        }
+
+        .cat-two-box .cat-list {
+            background: #FFEDEB;
+        }
+
+        .cat-two-box .cat-head {
+            background: #FFD4CF;
+        }
+
+        .cat-three-box .cat-list {
+            background: #FFFCEC;
+        }
+
+        .cat-three-box .cat-head {
+            background: #FFF2B6;
+        }
+
+        .cat-four-box .cat-list {
+            background: #F0FFEA;
+        }
+
+        .cat-four-box .cat-head {
+            background: #C8F8B6;
+        }
+
+        .cat-five-box .cat-list {
+            background: #E5F9FF;
+        }
+
+        .cat-five-box .cat-head {
+            background: #C9EDF8;
+        }
+
+        .contact-detail {
+            text-align: center;
+            margin-top: 44px;
+        }
+
+        .detail-options {
+            display: flex;
+            justify-items: last baseline;
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+            margin-top: 19px;
+            margin-bottom: 45px;
+        }
+
+        .b-box {
+            background: #3F37C9;
+            border-radius: 50px;
+            padding: 10px 17px;
+            font-size: 16px;
+            color: #fff;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            margin: 0 11px;
+        }
+
+        .b-box {
+            font-size: 16px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .cat-list ul li {
+            padding: 5px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+
+
+    <div id="report-container">
+        <!-- Cover Page -->
+        <div class="coverPage">
+            <div class="header-coverage"
+                style="background: #f7f6ff; margin-bottom: 26px; height: 560px;display:flex; flex-direction: column; align-items: center; justify-content:center;">
+                <div class="img-top" style="width: 100%; text-align: center;">
+                    <img style="width: 200px; margin-top:15px;" src="{% static 'images/logo.png' %}" alt="logo" />
+                </div>
+                <div class="heading-cover" style="width: 100%; text-align: center;">
+                    <h1 style="font-family: 'Galano Grotesque'; margin-top: 0.23cm; font-size: 35px; color: #3F37C9;">
+                        Career Direction Assessment Report
+                    </h1>
+                </div>
+                <div class="image-cover" style="width: 100%; text-align: center;">
+                    <img style="width: 320px;" src="{% static 'images/report-image.png' %}" alt="img" />
+                </div>
+            </div>
+
+            
+            <div class="student-detail-info" style="width:700px; margin-bottom:30px;">
+                <div class="top-info">
+                    <div class="info-box">
+                        <div class="dt-i-info" style="color:#fff;">Name</div>
+                        <div class="output">
+                            <p>{{ request.user }}</p>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div class="dt-i-info" style="color:#fff;">School Name</div>
+                        <div class="output">
+                            <p>{{ schoolname|default:"-" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="top-info">
+                    <div class="info-box">
+                        <div class="dt-i-info" style="color:#fff;">Gender</div>
+                        <div class="output">
+                            <p>{{ gender|default:"" }}</p>
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div class="dt-i-info" style="color:#fff;">Grade</div>
+                        <div class="output">
+                            <p>{{ grade|default:"12th" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="top-info last-info">
+                    <div class="info-box">
+                        <div class="dt-i-info" style="width: 3cm;color:#fff;">Date of Test</div>
+                        <div class="output">
+                            <p>{{ created_date|default:"" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="width:100%; margin-top:30px; float: left;">
+                <table style="width:100%; margin-top: 20px;">
+                    <tbody>
+                        <tr style="border: 1px solid #3F37CB; border-radius: 10px; background: #f7f6ff;">
+                            <td>
+                                <div class="disclaimer-heading"
+                                    style="width:100%; text-align: center; color: #3F37CB; text-align: center; margin-top: -19px;">
+                                    <p
+                                        style="background-color: #3F37CB; padding:2px; color: #fff; font-size: 12px; border-radius: 5px 5px 0 0; text-align: center; width:150px; margin: 0px auto;">
+                                        Disclaimer
+                                    </p>
+                                </div>
+                                <p style="width:100%; text-align: center;">
+                                    The results of this assessment are based on the responses given by the individual on
+                                    the
+                                    self report questionnaire and are subject to change based on multiple factors.
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Keep all existing static pages from original file -->
+        <!-- Introduction Page, How to Use, Framework, etc. -->
+
+        <!-- page 2 -->
+        <div class="chapterPage" style="display: none;">
+            <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                    src="{% static 'images/logo.png'%} " alt="logo" />
+            </div>
+            <hr />
+            <div class="db-header" style="margin-top: 66px; text-align: center;">
+                <h1 style="color: #3F37C9;">INTRODUCTION</h1>
+            </div>
+            <table>
+                <tbody>
+                    <tr style="background: #E7FEFF;">
+                        <td>
+                            <div class="intro-box" style="background: #E7FEFF;  padding: 18px; border-radius:10px;">
+                                <p style="font-family: 'Galano Grotesque';">Figuring out what you want to do in the
+                                    future
+                                    can feel
+                                    overwhelming—but it's also exciting. Choosing a career isn't just about picking a
+                                    job;
+                                    it’s about
+                                    discovering what you’re good at, what excites you, and where you can make a
+                                    difference.
+                                    This decision
+                                    sets the stage for your future, and the more you understand yourself, the easier it
+                                    is
+                                    to make the right
+                                    choice.</p>
+                                <p style="font-family: 'Galano Grotesque';">Think of it like standing at a starting
+                                    point,
+                                    with so many
+                                    paths ahead of you. Some lead to labs and discoveries, others to creative studios,
+                                    businesses,
+                                    hospitals, or even social missions. Whatever your dream might be, finding the right
+                                    career direction
+                                    means knowing yourself first—and that’s exactly what this test helps you do.</p>
+                                <p style="font-family: 'Galano Grotesque';"> The <strong> Career Direction Assessment
+                                    </strong> looks at
+                                    <strong> four key areas </strong> of who you are: <strong>Personality, Motivation,
+                                        Interest, and
+                                        Aptitude </strong>. These insights help point you toward the career track that
+                                    best
+                                    matches your
+                                    strengths and passions—giving you a clear, confident start on your journey ahead.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="img-info" style="width: 100%; text-align: center; margin-top:30px;"> <img style="width:500px"
+                    src="{% static 'images/student-sitting.png'%} " alt="Student" /> </div>
+        </div>
+        <!-- page 2 -->
+
+
+        <!-- page 3 -->
+
+        <div class="chapterPage" style="display: none;">
+            <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                    src="{% static 'images/logo.png'%} " alt="logo" />
+            </div>
+            <hr />
+            <div class="db-header" style="margin-top: 10px; text-align: center;">
+                <h1 style="color: #3F37C9;">HOW TO USE THIS REPORT</h1>
+            </div>
+            <div class="text-info-paragraph">
+                <p>This test typically consists of a series of questions in 4 parts that evaluate various aspects of a
+                    student's
+                    Personality, Motivation, Interest and Aptitude and it helps you decide the suggested career path to
+                    consider in
+                    your future.</p>
+            </div>
+
+
+
+            <div class="boxthree"
+                style="margin: 20px 0 40px 0; float:left; width: 100%; display:flex; justify-content: center;">
+
+                <!-- Blue Theme -->
+                <div class="box-info"
+                    style="text-align: center; background: #f0f4ff; border: 2px solid #d3e0ff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
+                    <div class="img" style="margin-bottom: 10px;">
+                        <img style="width:60px;" src="{% static 'images/personality-test-icon.png'%} " alt="img" />
+                    </div>
+                    <h5 style="margin: 0; color: #2720A7; font-size: 16px; font-weight: bold;">Personality</h5>
+                </div>
+
+                <!-- Orange Theme -->
+                <div class="box-info"
+                    style="text-align: center; background: #fff4e5; border: 2px solid #ffd8a8; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
+                    <div class="img" style="margin-bottom: 10px;">
+                        <img style="width:60px;" src="{% static 'images/motivation-test-icon.png'%} " alt="img" />
+                    </div>
+                    <h5 style="margin: 0; color: #e65100; font-size: 16px; font-weight: bold;">Motivation </h5>
+                </div>
+
+                <!-- Green Theme -->
+                <div class="box-info"
+                    style="text-align: center; background: #e8f8f5; border: 2px solid #a2d9ce; border-radius: 12px;  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
+                    <div class="img" style="margin-bottom: 10px;">
+                        <img style="width:60px;" src="{% static 'images/interest-test-icon.png'%} " alt="img" />
+                    </div>
+                    <h5 style="margin: 0; color: #1b5e20; font-size: 16px; font-weight: bold;"> Interest</h5>
+                </div>
+
+                <!-- Purple Theme -->
+                <div class="box-info"
+                    style="text-align: center; background: #f3e5f5; border: 2px solid #ce93d8; border-radius: 12px;   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
+                    <div class="img" style="margin-bottom: 10px;">
+                        <img style="width:60px;" src="{% static 'images/aptitute-test-icon.png'%} " alt="img" />
+                    </div>
+                    <h5 style="margin: 0; color: #6a1b9a; font-size: 16px; font-weight: bold;">Aptitude</h5>
+                </div>
+
+
+            </div>
+
+
+            <table style="margin-bottom: 30px; margin-top:25px; ">
+                <thead style="border:1px solid #9490dd;">
+                    <tr>
+                        <th style="background:   
+    #E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-right:1px solid #9490dd;">Part</th>
+                        <th style="background: 
+    
+    #E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; ">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border:1px solid #9490dd;">
+                        <td
+                            style=" width: 200px; padding-left:14px; color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490dd; color: #3F37C9;">
+                            Part I <br>
+
+                            Personality Assessment
+                        </td>
+                        <td
+                            style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+                            Personality refers to the unique set of traits and behavioural patterns that shape how you
+                            engage with your
+                            environment, relate to others, and tackle various challenges and responsibilities.</td>
+                    </tr>
+                    <tr style="border:1px solid #9490dd; width: 200px; ">
+                        <td
+                            style=" padding-left:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490dd;color: #3F37C9;">
+                            Part 2 <br>
+                            Motivation
+                            Assessment
+                        </td>
+                        <td
+                            style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+                            Motivation reflects what drives you—be it personal growth, purpose, or external
+                            rewards—helping guide you toward a career that keeps you inspired.
+                        </td>
+                    </tr>
+                    <tr style="border:1px solid #9490dd;">
+                        <td
+                            style=" width: 200px; padding-left:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490dd;color: #3F37C9;">
+                            Part 3 <br>
+                            Interest Assessment</td>
+                        <td
+                            style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+                            Interest
+                            refers to the topics and pursuits that genuinely capture your attention and spark
+                            enthusiasm.
+                        </td>
+                    </tr>
+                    <tr style="border:1px solid #9490dd;">
+                        <td
+                            style=" width: 200px; padding-left:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490dd; color: #3F37C9;">
+                            Part 4 <br>
+                            Aptitude Assessment</td>
+                        <td
+                            style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+                            Aptitude
+                            reflects your natural ability to learn and perform tasks, helping identify careers that
+                            match
+                            your
+                            strengths.</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="text-info-paragraph">
+                <p> This comprehensive report ensures that you make informed decision about your academic path, leading
+                    to
+                    more
+                    successful and fulfilling career.</p>
+            </div>
+        </div>
+
+        <!-- page 3 -->
+
+        <!-- page 4 -->
+
+
+        <div class="chapterPage" style="display: none;">
+            <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                    src="{% static 'images/logo.png'%} " alt="logo" />
+            </div>
+            <hr />
+            <div class="db-header" style="margin-top: 10px; text-align: center;">
+                <h1 style="color: #3F37C9;">Topteen Framework</h1>
+            </div>
+            <div class="text-info-paragraph">
+                <p>Congratulations on completing your Career Direction Assessment, including the personality, motivation
+                    ,
+                    interest
+                    and aptitude tests!</p>
+                <p>These assessments are a significant step in understanding your unique strengths, interests, and
+                    abilities. By
+                    successfully completing them, you've demonstrated not only your capability but also your commitment
+                    to
+                    personal
+                    and academic growth.</p>
+                <p>As you review your results, remember that these tests are tools to help guide you on your journey
+                    towards
+                    a
+                    fulfilling and successful future. Embrace the insights gained, and use them to explore new
+                    opportunities, set
+                    goals, and make informed decisions about your education and career paths.</p>
+                <p style="text-align: center; color:#3F37C9; font-style: italic;">Best wishes for your bright futures!
+                </p>
+            </div>
+            <div class="framework-img" style="margin-top: 60px; width:100%; text-align: center;"> <img
+                    style="width:550px;" src="{% static 'images/framework.png'%} " alt="Framework"> </div>
+        </div>
+
+
+        <!-- page 4 End -->
+        {% if test_id == 1 %}
+        <div data-test-id="1" class="test-content">
+            <!-- page 5-->
+
+            <div class="chapterPage">
+                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                        src="{% static 'images/logo.png'%} " alt="logo" />
+                </div>
+                <hr />
+                <div class="text-color-top" style="display: flex;  justify-content: center;">
+                    <div class="top-layout" style="background: #3F37C9;
+                        color: #fff;
+                        font-size: 16px;
+                        padding: 11px 38px;
+                        margin-top: 28px;
+                        font-weight: 600;
+                        border-radius: 10px 10px 0 0;">Part -1</div>
+                </div>
+                <div class="db-header" style="margin-top: 10px; text-align: center;">
+                    <h1 style="color: #3F37C9;">PERSONALITY ASSESSMENT REPORT</h1>
+                </div>
+                <div class="text-info-paragraph"
+                    style="width: 100%;  float: left;  margin-top: 10px;  background: #E7FEFF;  border: 1px solid #b8fcff;  padding: 7px;  border-radius: 10px; margin-bottom:10px;">
+                    <p style="margin-bottom:0px;">This report is based on the <strong> HEXACO </strong> personality
+                        model,
+                        which
+                        outlines six core dimensions of
+                        human personality: Honesty-Humility, Emotionality, Extraversion, Agreeableness,
+                        Conscientiousness,
+                        and
+                        Openness
+                        to Experience. Understanding your unique personality profile through these traits provides
+                        valuable
+                        insight into
+                        how you think, feel, and interact with the world—helping identify career paths that align with
+                        your
+                        natural
+                        disposition and working style.</p>
+                </div>
+                <div class="test-title" style="color:#000; font-size: 14px; font-weight: 600;  ">
+                    <p style="font-size: 21px; margin-bottom: 30px; text-align: center;"> HEXACO Code
+                        description </p>
+                </div>
+                <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px;">
+                    <img style="width:600px;" src="{% static 'images/hexaco.png'%} " alt="hexaco" />
+                </div>
+            </div>
+
+            <!-- page 5 End-->
+
+
+            <!-- page 6-->
+
+
+            <div class="chapterPage">
+                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                        src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <table style="margin-bottom: 30px; margin-top:0px; ">
+                    <thead>
+                        <tr>
+                            <th
+                                style="background: 
+    
+        #E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px; font-size: 14px;">
+                                Holland Code</th>
+                            <th style="background: 
+    
+        #E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center;">
+                                <div class="r-img"><img style="width:45px;" img src="{% static 'images/h-honest.png'%}"
+                                        alt="text" /> <br>
+                                    <span
+                                        style="color:#057190; font-size: 14px; font-weight: 600; ">Honesty–Humility</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                Individuals high in this trait are sincere, fair, and modest. They value honesty and
+                                avoid
+                                manipulating
+                                others for personal gain. Careers in ethics, counseling, and social work often align
+                                with
+                                this
+                                trait. </td>
+                        </tr>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center; ">
+                                <div class="1-img"><img style="width:45px;" img
+                                        src="{% static 'images/e-emotionality.png'%}" alt="text" /> <br>
+                                    <span style="color:#A92CAF; font-size: 16px; font-weight: 600; ">Emotionality</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                Those
+                                scoring high in Emotionality tend to be empathetic, sensitive, and emotionally aware.
+                                They
+                                may
+                                thrive in
+                                nurturing or caregiving roles, such as healthcare or education. </td>
+                        </tr>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center;">
+                                <div class="1-img"><img style="width:45px;" img
+                                        src="{% static 'images/x-extraversion.png'%}" alt="text" /> <br>
+                                    <span style="color:#2A740E; font-size: 16px; font-weight: 600; ">Extraversion</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                Extraverted individuals are outgoing, enthusiastic, and energized by social
+                                interactions.
+                                They
+                                do well in
+                                dynamic roles involving teamwork, leadership, or public engagement. </td>
+                        </tr>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center;">
+                                <div class="1-img"><img style="width:45px;" img
+                                        src="{% static 'images/a-Agreeableness.png'%}" alt="text" /> <br>
+                                    <span
+                                        style="color:#6D5C04; font-size: 16px; font-weight: 600; ">Agreeableness</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                People
+                                with high Agreeableness are compassionate, cooperative, and forgiving. Careers involving
+                                collaboration,
+                                conflict resolution, or customer service often suit this trait. </td>
+                        </tr>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center;">
+                                <div class="1-img"><img style="width:45px;" img
+                                        src="{% static 'images/c-Conscientiousness.png'%}" alt="text" /> <br>
+                                    <span
+                                        style="color:#A22717; font-size: 16px; font-weight: 600; ">Conscientious</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                Conscientious individuals are organized, responsible, and goal-oriented. They excel in
+                                structured roles
+                                requiring planning, precision, and reliability, such as project management or finance.
+                            </td>
+                        </tr>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center;">
+                                <div class="1-img"><img style="width:45px;" img
+                                        src="{% static 'images/o-openness.png'%}" alt="text" /> <br>
+                                    <span style="color:#0B5BA1; font-size: 16px; font-weight: 600; ">Openness to
+                                        Experience</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                Those
+                                high in Openness are curious, imaginative, and open to new experiences. Creative,
+                                research-based, or
+                                exploratory fields like design, innovation, and academia often attract them. </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- page 6 end -->
+
+            <!-- DYNAMIC RESULTS SECTION -->
+
+
+
+            <!-- PERSONALITY ASSESSMENT RESULTS -->
+            <div class="chapterPage" id="personality-results-page" style="display: block;">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="db-header" style="margin-top: 10px; text-align: center;">
+                    <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
+                </div>
+
+
+
+                <div class="dynamic-results">
+                    <div class="text-info-paragraph" style="text-align: center;">
+                        <p><strong>Your Personality Profile:</strong> Based on the HEXACO model assessment</p>
+                    </div>
+
+                    <div id="personality-dimensions" class="personality-results">
+                        <!-- Dynamic personality dimensions will be inserted here -->
+                    </div>
+
+                </div>
+            </div>
+            <div class="chapterPage" id="personality-results-page" style="display: block;">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                    <!-- explanation of your dominant personality dimensions -->
+                    <div class="summary-card">
+
+
+                        <div class="hexaco-code-explanation">
+                            <h3>Explanation of your Dominent Personality Dimensions</h3>
+                        </div>
+
+                        {% for explanation in dominant_trait_explanations %}
+                        <div class="scard-bodys card-one {{ explanation|get_item:'HEXACO Trait'|lower|slugify }}">
+                            <div class="summary-card-header">
+                                <div class="summary-card-header-img"> <img
+                                        src="{% static explanation|get_item:"key_image" %}" alt="logo" /> </div>
+
+                                <p>{{ explanation|get_item:"HEXACO Trait"|upper }} ({{ explanation|get_item:"Trait Code" }}) - "{{ explanation|get_item:"Metaphorical Title" }}"</p>
+                            </div>
+                            <div class="summary-card-description">
+                                {{ explanation|get_item:"Description"|safe }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- explanation of your dominant personality dimensions -->
+
+                
+            </div>
+            <div class="chapterPage" id="personality-results-page" style="display: block;">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                     
+
+
+                    <!-- explanation of your combined code -->
+                    <div class="hexaco-code-explanation">
+                        <h3>Combined Code Explanation</h3>
+                    </div>
+
+
+                    <div class="pr-combined-reportright">
+
+
+
+
+                        <div class="pr-combined-report-left"> <img src="{% static combined_code_explanation|get_item:"key_image" %}"
+                                alt="logo" /> </div>
+
+                        <div class="pr-combined-report-right">
+                            <div class="pr-combined-report-header">
+                                <h1><span>{{ combined_code_explanation|get_item:"Combined Code" }}</span> ({{ combined_code_explanation|get_item:"Trait Names" }})</h1>
+                            </div>
+                            <div class="pr-combined-report-body">
+                                {{ combined_code_explanation|get_item:"Description"|safe }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- explanation of your combined code -->
+
+
+
+
+
+
+                    <div class="chart-container">
+                        <h4>Personality Dimensions Chart</h4>
+                        <canvas id="personality-chart"></canvas>
+                    </div>
+                </div>
+            
+
+            
+
+            <!-- Career Recommendations -->
+
+            <div class="chapterPage">
+
+                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                        src="{% static 'images/logo.png'%} " alt="logo" />
+                </div>
+                <hr />
+
+
+                <div class="">
+
+                    <div class="text-info-paragraph" style="text-align: center; margin-top:20px;">
+                        <p
+                            style="background: #046848;  color: #fff;  font-size: 20px;  padding: 10px 0;width: 310px;  border-radius: 10px;">
+                            <strong><i class="fas fa-briefcase me-2"></i> Career Recommendations </strong>
+                        </p>
+                    </div>
+
+
+
+                    <div class="card-body">
+                        {% if careers_to_opt %}
+                        <div class="mb-4">
+                            <div class="header-h"
+                                style="font-size: 22px; display: flex; align-items:center; font-weight: 600; margin-bottom:10px;">
+                                <span
+                                    style="
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);	width: 20px;	height: 20px;	float: left;	border-radius: 20px;	margin-right: 8px;"></span>
+                                Ideal Careers
+                            </div>
+
+                            <div class="text-info-paragraph " style="margin-top: 15px; font-weight: 600;">
+                                <p>Based on your test results, your STRONGEST areas of Personality are:</p>
+                            </div>
+                            <div class="career-box">
+                                {% for trait, careers in careers_to_opt.items %}
+                                <div class="career-row">
+                                    <div class="best-career">
+                                        <h5 class="trait-heading">{{ trait }} Careers</h5>
+                                        <!-- Display Trait Description -->
+                                        {% if high_trait_descriptions and trait in high_trait_descriptions %}
+                                        <p class="trait-description">
+                                            {% for desc in high_trait_descriptions|get_item:trait %}
+                                            {{ desc }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </p>
+
+
+                                        {% endif %}
+                                        <!-- Display Careers -->
+                                        <ul>
+                                            {% for career in careers %}
+
+                                            <li>
+                                                <i class="fas fa-briefcase me-2"></i>{{ career }}
+                                            </li>
+
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+
+            </div>
+
+
+
+            <div class="chapterPage">
+
+                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                        src="{% static 'images/logo.png'%} " alt="logo" />
+                </div>
+                <hr />
+
+
+                <div class="">
+
+                    <div class="card-body">
+
+
+                        {% if careers_to_avoid %}
+                        <div style="margin-top:15px;">
+
+                            <div class="header-h"
+                                style="font-size: 22px; display: flex; align-items:center; font-weight: 600; margin-bottom:10px;">
+                                <span
+                                    style="
+            background: linear-gradient(135deg, #b91b10 0%, #960f05 100%);	width: 20px;	height: 20px;	float: left;	border-radius: 20px;	margin-right: 8px;"></span>
+                                Careers to Avoid
+                            </div>
+
+
+                            <p class="text-muted">Based on your low {{ low_trait }} score, these careers might be
+                                challenging:</p>
+
+                            <div class="low-trait-card">
+                                <div class="low-trait-box">
+                                    <p class="card-text small">
+                                        {% for trait, description in low_trait_descriptions.items %}
+                                        <strong style="color:#c94837ff; font-size:21px;">{{ trait }}:
+                                            <p>
+                                        </strong> {{ description }}<br>
+                                    </p>
+
+                                    {% endfor %}
+                                    </p>
+
+                                    <ul>
+                                        {% for career in careers_to_avoid %}
+                                        <li>
+                                            <i class="fas fa-ban me-2" style="color:#c94837ff;"></i>{{ career }}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+
+            </div>
+            
+
+        </div>
+        <!-- Page 9 -->
+         
+
+        {% elif test_id == 2 %}
+        <div data-test-id="2" class="test-content">
+            <!-- MOTIVATION ASSESSMENT RESULTS -->
+            <div class="chapterPage">
+                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                        src="{% static 'images/logo.png' %}" alt="logo" /> </div>
+                <hr />
+                <div class="text-color-top" style="display: flex;  justify-content: center;">
+                    <div class="top-layout" style="background: #3F37C9;
+                            color: #fff;
+                            font-size: 16px;
+                            padding: 11px 38px;
+                            margin-top: 28px;
+                            font-weight: 600;
+                            border-radius: 10px 10px 0 0;">Part -2</div>
+                </div>
+                <div class="db-header" style="margin-top: 0px; text-align: center;">
+                    <h1 style="color: #3F37C9; margin-top: 10px;">MOTIVATION ASSESSMENT REPORT</h1>
+                </div>
+                <div class="text-info-paragraph"
+                    style="width: 100%;  float: left;  margin-top: 10px;  background: #E7FEFF;  border: 1px solid #b8fcff;  padding: 7px;  border-radius: 10px;">
+                    <p style="margin-bottom: 0px;">This report is based on the Motivation Model, which identifies the
+                        key
+                        drivers
+                        behind your career choices—such
+                        as purpose, creativity, achievement, recognition, or social impact. By understanding what truly
+                        motivates you,
+                        the assessment helps align your inner drive with professions where you are most likely to
+                        perform
+                        well,
+                        stay
+                        engaged, and find lasting satisfaction.</p>
+                </div>
+
+                <div class="table-info" style="display: flex; width: 100%;">
+                    <div style="display: flex; gap: 20px;  margin-top: 20px; flex-wrap: wrap;">
+
+                        <!-- Extrinsic Motivation Box - Light Purple -->
+                        <div
+                            style="flex: 1; background: #e7e5ff; border: 1px solid #d1ccff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-width: 300px;">
+                            <h2 style="color:#2720A7; font-size: 20px; margin-bottom: 15px;">
+                                <div class="img"> <img style="width:90px;" src="{% static 'images/numeric.png'%} "
+                                        alt="img"> </div> Extrinsic Motivation
+                            </h2>
+                            <p style="font-size: 15px; line-height: 1.6;">
+                                <strong><span style="font-size: 25px;color:#2720A7;">E</span>xtrinsic
+                                    motivation</strong> is
+                                driven by factors such as
+                                achievement and success, status and recognition, and financial rewards. It is fueled
+                                by the desire for social approval, incentives and benefits, and prestige-driven roles,
+                                often reinforced through public acknowledgment and a strong focus on outcome-focused
+                                performance.
+                            </p>
+                        </div>
+
+                        <!-- Intrinsic Motivation Box - Light Yellow -->
+                        <div
+                            style="flex: 1; background: #fff8e5; border: 1px solid #ffe2a8; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-width: 300px;">
+                            <h2 style="color:#2720A7; font-size: 20px; margin-bottom: 15px;">
+                                <div class="img"> <img style="width:90px;" src="{% static 'images/verbal.png'%} "
+                                        alt="img">
+                                </div> Intrinsic Motivation
+                            </h2>
+                            <p style="font-size: 15px; line-height: 1.6;">
+                                <strong><span style="font-size: 25px;color:#2720A7;">I</span>ntrinsic
+                                    motivation</strong> is
+                                rooted in internal satisfaction, passion,
+                                and a deep sense of purpose. It is driven by curiosity, the pursuit of
+                                personal growth, creative expression, and a desire to make a meaningful contribution,
+                                all of which provide a sense of fulfillment independent of external rewards.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Page 9 End-->
+            <div class="chapterPage" id="motivation-results-page" style="display: none;">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+
+                <div class="db-header" style="margin-top: 10px; text-align: center;">
+                    <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
+                </div>
+
+                <div class="dynamic-results">
+                    <div class="text-info-paragraph" style="text-align: center;">
+                        <p><strong>Your Motivation Profile:</strong> Understanding what drives your career choices</p>
+                    </div>
+                    <div class="text-info-paragraph">
+                        <p style="font-weight: 600;">Based on your test results, you are highly motivated for the career
+                            underwritten with
+                            motivational
+                            drive
+                            and
+                            key traits:</p>
+                    </div>
+
+                    <div id="motivation-categories" class="motivation-categories">
+                        <!-- Dynamic motivation categories will be inserted here -->
+                    </div>
+                </div>
+            
+            <div class="dynamic-results">
+
+                {% if motivation_key_description %}
+                <div class="motivation-summary">
+
+                    <div class="left-m-su">
+                        <img src="{% static motivation_key_description|get_item:"Icon" %}" alt="motivation" />
+                    </div>
+
+
+
+
+                    <div class="s-motivation-summary">
+
+                        <h3>
+                            {% if high_categories == 'Medical' %}MEDICAL PRACTITIONER / HEALTHCARE{% elif high_categories == 'Business' %}BUSINESS PROFESSIONAL{% elif high_categories == 'Engineer' %}ENGINEERING / IIT & TECH FIELD{% elif high_categories == 'Social' %}HUMANITIES / ARTS / SOCIAL SCIENCES{% endif %} ({{ motivation_key_description|get_item:"Motivation Style" }})
+                        </h3>
+
+                        <h4>Narrative Explanation</h4>
+
+                        {{ motivation_key_description|get_item:"Narrative Explanation"|safe }}
+
+
+                        {% if 'Intrinsic' in motivation_key_description|get_item:"Motivation Style" %}
+                        You thrive when your actions feel meaningful, helpful, or emotionally fulfilling.
+                        {% else %}
+                        You are energised by external rewards and outcomes. You work best when you can see the direct payoff of your effort.
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+
+
+
+
+
+
+
+            </div>
+        </div>
+
+        
+
+        
+
+
+        <!-- Page 10 End-->
+          <!-- Key Drivers, Summary, and Chart on same page -->
+            <!-- DEBUG: motivation_key_drivers = {{ motivation_key_drivers|default:"NOT SET"|length|default:"0" }} items -->
+            <!-- DEBUG: motivation_summary = {{ motivation_summary|default:"NOT SET" }} -->
+            {% if motivation_key_drivers or motivation_summary %}
+        <div class="chapterPage">
+            <div class="fixex-top-logo" style="width: 100%;">
+                <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+            </div>
+            <hr />
+
+
+
+
+
+            <div class="dynamic-results">
+
+                 <!-- Key Drivers for You -->
+                 {% if motivation_key_drivers %}
+                 <div class="motivation-key-drive">
+                    <h4> Key Drivers for You:</h4>
+                    <div class="d-em-box">
+
+                        {% for driver in motivation_key_drivers %}
+                        <div class="env-grid">
+                            <div class="img-mg">
+                                <img src="{% static driver.Icon%}" alt="drive" />
+                            </div>
+                            <div class="text-emn">
+                                <p><strong> {{ driver.Title }}</strong> {{ driver.Description }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+                <!-- Summary -->
+                {% if motivation_summary %}
+                <div class="motivation-summrize">
+                    <h4> <img src="{% static 'images/test-t-icon.png'%}" alt="test" /> Summary:</h4>
+
+                    <p>{{ motivation_summary|get_item:"Summary"|safe }}</p>
+
+
+                </div>
+                {% endif %}
+
+
+                <div class="chart-container">
+                    <h4>Motivation Categories Distribution</h4>
+                    <canvas id="motivation-chart"></canvas>
+                </div>
+
+
+            </div>
+            {% endif %}
+
+
+
+
+        </div>
+        {% endif %}
+
+
+
+
+
+
+
+        
+            
+
+            <div class="chapterPage motive-report">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+
+                <div class="dynamic-results">
+
+
+
+                    <div class="hexaco-code-display" style="margin-bottom:10px;">
+                        <h3 style="color: #362C64; text-align: center; margin: 20px 0;">Your Primary Motivation: <strong
+                                style="font-size: 25px;color: green;">{{ high_categories }}
+                            </strong></h3>
+                    </div>
+
+
+                    <div class="career-categories rs motivation-box">
+                        {% for category, careers in motivation_careers_to_opt.items %}
+                        <div class="category">
+                            <h5>{{ category }}</h5>
+                            <!-- <h5>{{ careers }}</h5> -->
+                            <ul>
+                                {% for career in careers %}
+                                <li> <i class="fas fa-briefcase me-2"></i> {{ career }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        {% elif test_id == 3 %}
+        <div data-test-id="3" class="test-content">
+            <!-- page 11-->
+            <!-- CAREER INTEREST RESULTS -->
+            <div class="chapterPage">
+                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                        src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="text-color-top" style="display: flex;  justify-content: center;">
+                    <div class="top-layout" style="background: #3F37C9;  color: #fff;  font-size: 16px;  padding: 11px 38px;
+        margin-top: 28px;  font-weight: 600;  border-radius: 10px 10px 0 0;">Part - 3</div>
+                </div>
+                <div class="db-header" style="margin-top: 10px; text-align: center;">
+                    <h1 style="color: #3F37C9;">CAREER INTEREST ASSESSMENT REPORT</h1>
+                </div>
+                <div class="text-info-paragraph"
+                    style="width: 100%;  float: left;  margin-top: 10px;  background: #E7FEFF;  border: 1px solid #b8fcff;  padding: 7px;  border-radius: 10px; margin-bottom:15px;">
+                    <p style="margin-bottom:0px;">This report is based on the <strong>RIASEC</strong> model, developed
+                        by
+                        John
+                        Holland, which categorizes career
+                        interests into six distinct types: <strong>Realistic, Investigative, Artistic, Social,
+                            Enterprising,
+                            and
+                            Conventional</strong>. By identifying your dominant interest types, you can better
+                        understand
+                        your
+                        career
+                        preferences and suggest suitable career paths that align with your strengths and passions.</p>
+                </div>
+                <div class="test-title" style="color:#000; font-size: 14px; font-weight: 600; margin-top: 10px; ">
+                    <p> Holland’s Code description </p>
+                </div>
+                <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px;">
+                    <img style="width:600px;" src="{% static 'images/riasec-ig.png' %}" alt="riasec" />
+                </div>
+            </div>
+
+            <!-- page 11 end -->
+
+
+            <!-- page 12-->
+            <div class="chapterPage">
+                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                        src="{% static 'images/logo.png'%} " alt="logo" />
+                </div>
+                <hr />
+                <table style="margin-bottom: 30px; margin-top:0px; ">
+                    <thead>
+                        <tr>
+                            <th
+                                style="background: 
+    
+        #E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px; font-size: 14px;">
+                                Holland Code</th>
+                            <th style="background: 
+    
+        #E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center;">
+                                <div class="r-img"><img style="width:45px;" img src="{% static 'images/r.png'%} "
+                                        alt="text" />
+                                    <br>
+                                    <span style="color:#057190; font-size: 14px; font-weight: 600; ">Realistic</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                Individuals with Realistic interests prefer hands-on activities and practical tasks.
+                                They
+                                enjoy
+                                working with
+                                tools, machines, or animals & often excel in environments that require physical activity
+                                &
+                                problem-solving.
+                                Careers that suit Realistic types include engineering, construction, agriculture, and
+                                skilled
+                                trades. </td>
+                        </tr>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center; ">
+                                <div class="1-img"><img style="width:45px;" img src="{% static 'images/i.png'%} "
+                                        alt="text" />
+                                    <br>
+                                    <span
+                                        style="color:#A92CAF; font-size: 16px; font-weight: 600; ">Investigative</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                Investigative individuals are curious and analytical, often drawn to research and
+                                intellectual
+                                challenges.
+                                They enjoy exploring ideas, conducting experiments, and solving complex problems.
+                                Suitable
+                                careers include
+                                those in science, medicine, technology, and academia, where critical thinking and data
+                                analysis
+                                are
+                                paramount. </td>
+                        </tr>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center;">
+                                <div class="1-img"><img style="width:45px;" img src="{% static 'images/a.png'%} "
+                                        alt="text" />
+                                    <br>
+                                    <span style="color:#2A740E; font-size: 16px; font-weight: 600; ">Artistic</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                Artistic
+                                individuals thrive in creative and expressive environments. They enjoy activities that
+                                involve
+                                art, music,
+                                writing, and design, often seeking opportunities to innovate and express themselves.
+                                Careers
+                                in
+                                the arts,
+                                entertainment, fashion, and media are ideal for Artistic types, as they allow for
+                                personal
+                                expression and
+                                creativity. </td>
+                        </tr>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center;">
+                                <div class="1-img"><img style="width:45px;" img src="{% static 'images/s.png'%} "
+                                        alt="text" />
+                                    <br>
+                                    <span style="color:#6D5C04; font-size: 16px; font-weight: 600; ">Social</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                Social
+                                individuals are empathetic and enjoy helping others. They excel in roles that involve
+                                teaching,
+                                counseling,
+                                and providing support. Careers in education, healthcare, social work, and human
+                                resources
+                                are
+                                well-suited
+                                for Social types, where they can make a positive impact on people's lives. </td>
+                        </tr>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center;">
+                                <div class="1-img"><img style="width:45px;" img src="{% static 'images/e.png'%} "
+                                        alt="text" />
+                                    <br>
+                                    <span style="color:#A22717; font-size: 16px; font-weight: 600; ">Enterprising</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                Enterprising individuals are natural leaders and persuaders. They enjoy activities that
+                                involve
+                                leading
+                                teams, making decisions, and taking risks. They often thrive in dynamic environments
+                                where
+                                they
+                                can
+                                influence others and achieve goals. Careers in business, management, sales, and
+                                entrepreneurship
+                                are ideal
+                                for Enterprising types, who are driven by ambition and leadership opportunities. </td>
+                        </tr>
+                        <tr style="border:1px solid #9490dd;">
+                            <td style=" width: 200px; padding-left:14px; text-align: center;">
+                                <div class="1-img"><img style="width:45px;" img src="{% static 'images/c.png'%} "
+                                        alt="text" />
+                                    <br>
+                                    <span style="color:#0B5BA1; font-size: 16px; font-weight: 600; ">Conventional</span>
+                                </div>
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
+                                Conventional individuals prefer structured and orderly tasks. They excel in roles that
+                                involve
+                                organization,
+                                data management, and attention to detail. Careers in accounting, administration,
+                                finance,
+                                and
+                                logistics suit
+                                Conventional types, where precision and reliability is the key. </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- page 12 end-->
+            <!-- page 13 -->
+            <div class="chapterPage" id="career-results-page" style="display: none;">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="db-header" style="margin-top: 10px; text-align: center;">
+                    <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
+                </div>
+                <div class="dynamic-results">
+                    <div class="text-info-paragraph" style="text-align: center;">
+                        <p><strong>Your RIASEC Profile:</strong> Career interests based on Holland's model</p>
+                    </div>
+                    <div id="career-dimensions" class="career-dimensions">
+                        <!-- Dynamic career dimensions will be inserted here -->
+                    </div>
+
+                    {% if riasec_key_descriptions %}
+                    <!-- INTERPRETATION & RECOMMENDATIONS Section -->
+                    <div class="hexaco-code-explanation"
+                        style="border-top:1px solid #f9d7d7;margin-top: 39px;float: left;width: 100%;">
+                        <h3>Explanation of your Career Interest Code</h3>
+                    </div>
+                    <div class="cards-wrapper">
+                        {# Page break logic for PDF: Every 2 key_desc on a new page #}
+                        {% for key_desc in riasec_key_descriptions %}
+                            {% if forloop.counter0 == 1 %}
+                    </div>
+                </div>
+            </div>
+            <!-- Page Break-->
+            <div class="chapterPage" id="career-results-page">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="dynamic-results">
+                    <div class="cards-wrapper">
+                        
+
+                            {% endif %}
+                            <div class="personality-card">
+                                <div class="top-card">
+                                    {% if key_desc.key_image %}
+                                    <div class="card-p-left">
+                                        <div class="icon-box">
+                                            <img src="{% static key_desc.key_image %}" alt="{{ key_desc.Subtitle }}" />
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    <div class="card-p-right">
+                                        <h3> {{ key_desc.Trait_Name }} — {{ key_desc.Subtitle }}</h3>
+                                        {{ key_desc|get_item:"Narrative Explanation"|safe }}
+                                    </div>
+                                </div>
+                                <div class="hm-text">
+                                    {% if key_desc|get_item:"Your natural strengths include:" %}
+                                    <h4>Your natural strengths include:</h4>
+                                    <ul>
+                                        {% for strength in key_desc|get_item:"Your natural strengths include:" %}
+                                        <li>{{ strength }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                    {% if key_desc|get_item:"How your personality feels in daily life:" %}
+                                    <h4> How your personality feels in daily life:</h4>
+                                    {{ key_desc|get_item:"How your personality feels in daily life:" }}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    
+
+                    
+                </div>
+            </div>
+            <div class="chapterPage" id="career-results-page">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="dynamic-results">
+                    <div class="chart-container">
+                        <h4>RIASEC Career Dimensions</h4>
+                        <canvas id="career-chart"></canvas>
+                    </div>
+
+                </div>
+                <div class="accordion-body">
+
+
+                    <div class="text-info-paragraph" style="text-align: center;">
+                        <p>Based on your <strong>dominant traits </strong>, these careers would be an excellent fit:
+                        </p>
+                    </div>
+
+                    <div class="riasec-code-display" style="margin-bottom:15px;">
+                        <h3 style="color:  #362C64;; text-align: center; margin: 0px 0;">Your RIASEC Code: <strong
+                                style="font-size: 25px;color: green;"> {{ high_categories }}</strong></h3>
+                    </div>
+
+
+
+                    <div class="career-categories rsa-report">
+                        {% for category_dict in career_code_discription %}
+                        {% for category, data in category_dict.items %}
+
+
+                        {% for trait, desc in data.items %}
+                        {% if trait != "Description" %}
+
+                        <div class="rsa-card {{ trait|lower }}">
+                            <h5>{{ trait }}</h5>
+                            <p>{{ desc }}</p>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if data.Description %}
+                        <div class="highlighted-description" style="flex: 1 1 100%;">
+                            <strong>{{ category }} : </strong> {{ data.Description }}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- page 13/14/15 (paginated for PDF only via .page-break-pdf) -->
+
+            <!-- page 13 n -->
+
+            <div class="chapterPage">
+                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                        src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+
+                <div class="accordion-body">
+
+
+                    
+
+
+                    <div class="career-categories rs">
+                        {% for category, careers in riasec_careers_to_opt.items %}
+                        <div class="category">
+                            <h5>{{ category }} Careers</h5>
+                            <ul>
+                                {% for career in careers %}
+                                <li><i class="fas fa-briefcase me-2"></i> {{ career }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- page 13 n -->
+
+        {% elif test_id == 4 %}
+        <div data-test-id="4" class="test-content">
+
+            <!-- page 15  -->
+            <!-- APTITUDE ASSESSMENT RESULTS -->
+            <div class="chapterPage">
+                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                        src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="text-color-top" style="display: flex;  justify-content: center;">
+                    <div class="top-layout"
+                        style="background: #3F37C9;color: #fff;font-size: 16px;padding: 11px 38px;margin-top: 28px;font-weight: 600;border-radius: 10px 10px 0 0;">
+                        Part - 4</div>
+                </div>
+                <div class="db-header" style="margin-top: 0px; text-align: center;">
+                    <h1 style="color: #3F37C9; margin-top: 10px;">APTITUDE ASSESSMENT REPORT</h1>
+                </div>
+                <div class="text-info-paragraph" style="width: 100%;  float: left;  margin-top: 10px;  background: #E7FEFF;  border: 1px solid #b8fcff;  padding: 7px;  border-radius: 10px;
+                    margin-bottom: 15px;">
+                    <p style="margin-bottom: 0px;">An aptitude test is a structured assessment designed to evaluate a
+                        person's
+                        natural
+                        abilities and potential to
+                        perform specific tasks or acquire certain skills. These tests measure various domains of
+                        aptitude to
+                        provide a
+                        well-rounded view of an individual’s cognitive and practical strengths. Key areas commonly
+                        assessed
+                        include
+                        <strong> abstract reasoning, numerical reasoning, logical reasoning, verbal ability, clerical
+                            speed
+                            and
+                            accuracy, mechanical understanding, and spatial visualization</strong>. By identifying your
+                        strongest aptitude
+                        areas, the assessment helps in understanding your functional strengths and suggesting career
+                        paths
+                        where
+                        you are
+                        most likely to excel and feel confident.
+                    </p>
+                </div>
+                <div class="boxfour" style="margin-top: 60px; margin-bottom: 10px; margin:0px auto; width:700px">
+
+
+                    <!-- Blue Theme -->
+                    <div class="box-info"
+                        style="text-align: center; background: #f0f4ff; border: 2px solid #d3e0ff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
+                        <div class="img" style="margin-bottom: 10px;">
+                            <img style="width:60px;" src="{% static 'images/abstract-reasoning.png'%}" alt="img">
+                        </div>
+                        <h5 style="margin: 0; color: #2720A7; font-size: 14px; font-weight: bold;">Abstract <br>
+                            Reasoning
+                        </h5>
+                    </div>
+
+                    <!-- Orange Theme -->
+                    <div class="box-info"
+                        style="text-align: center; background: #fff4e5; border: 2px solid #ffd8a8; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
+                        <div class="img" style="margin-bottom: 10px;">
+                            <img style="width:60px;" src="{% static 'images/numeric.png'%}" alt="img">
+                        </div>
+                        <h5 style="margin: 0; color: #e65100; font-size: 14px; font-weight: bold;">Numerical <br>
+                            Reasoning
+                        </h5>
+                    </div>
+
+                    <!-- Green Theme -->
+                    <div class="box-info"
+                        style="text-align: center; background: #e8f8f5; border: 2px solid #a2d9ce; border-radius: 12px;  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
+                        <div class="img" style="margin-bottom: 10px;">
+                            <img style="width:60px;" src="{% static 'images/language-verbal.png'%}" alt="img">
+                        </div>
+                        <h5 style="margin: 0; color: #1b5e20; font-size: 14px; font-weight: bold;">Logical <br>
+                            Reasoning
+                        </h5>
+                    </div>
+
+                    <!-- Purple Theme -->
+                    <div class="box-info"
+                        style="text-align: center; background: #f3e5f5; border: 2px solid #ce93d8; border-radius: 12px;   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
+                        <div class="img" style="margin-bottom: 10px;">
+                            <img style="width:60px;" src="{% static 'images/aptitute-test-icon.png'%} " alt="img" />
+                        </div>
+                        <h5 style="margin: 0; color: #6a1b9a; font-size: 14px; font-weight: bold;">Language and
+                            <br>Verbal
+                            Reasoning
+                        </h5>
+                    </div>
+                </div>
+
+                <div class=""
+                    style="margin-top: 20px; margin-bottom: 10px; margin:0px auto; width:700px;  float: left;  text-align: center;  display: flex;  justify-content: center; ">
+
+                    <!-- Teal Theme -->
+                    <div class="box-info"
+                        style="text-align: center; background: #e0f7fa; border: 2px solid #80deea; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
+                        <div class="img" style="margin-bottom: 10px;">
+                            <img style="width: 60px;" src="{% static 'images/speed-accuracy.png'%}" alt="img">
+                        </div>
+                        <h5 style="margin: 0; color: #006064; font-size: 14px; font-weight: bold;">Clerical Speed
+                            <br>and
+                            Accuracy
+                        </h5>
+                    </div>
+
+                    <!-- Pink Theme -->
+                    <div class="box-info"
+                        style="text-align: center; background: #ffe6f0; border: 2px solid #f8bbd0; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
+                        <div class="img" style="margin-bottom: 10px;">
+                            <img style="width:60px;" src="{% static 'images/mechanical-reasoning.png'%}" alt="img">
+                        </div>
+                        <h5 style="margin: 0; color: #ad1457; font-size: 14px; font-weight: bold;">Mechanical Reasoning
+                        </h5>
+                    </div>
+
+                    <!-- Gray Theme -->
+                    <div class="box-info"
+                        style="text-align: center; background: #f5f5f5; border: 2px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
+                        <div class="img" style="margin-bottom: 10px;">
+                            <img style="width:60px;" src="{% static 'images/spatial-analysis.png'%}" alt="img">
+                        </div>
+                        <h5 style="margin: 0; color: #424242; font-size: 14px; font-weight: bold;">Spatial
+                            <br>Reasoning
+                        </h5>
+                    </div>
+
+
+
+
+
+                </div>
+                <div class="img-appitute" style="text-align: center; margin-bottom: 10px;">
+                <img style="width:500px;" src="{% static 'images/aptitude-ig.png' %}" alt="aptitude" />
+                </div>
+            </div>
+
+            <!-- page 15 end -->
+
+            <div class="chapterPage">
+                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
+                        src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="text-info-paragraph">
+                    <p class="section-title"
+                        style="background: #E8FBFF;  width: 250px;  margin: 0px auto;  padding: 9px 7px;  border-radius: 7px;  color: #063D48;">
+                        Aptitude Area and Description</p>
+    
+                </div>
+                <table style="margin-bottom: 30px; margin-top:25px; ">
+                    <thead style="border:1px solid #9490DD;">
+                        <tr>
+                            <th
+                                style="background:
+                                #E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-right:1px solid #9490DD;">
+                                Aptitude Type
+                            </th>
+                            <th style="background:
+                                #E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; ">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border:1px solid #9490DD;">
+                            <td
+                                style=" width: 200px; padding:14px; color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9; text-align: center;">
+    
+                                <img src="{% static 'images/Aptitude-abstract.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+                                Abstract Reasoning
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+                                Ability to identify patterns, relationships, and trends in unfamiliar information.
+                                Involves conceptual thinking and visual problem-solving without language or numbers.
+                            </td>
+                        </tr>
+                        <tr style="border:1px solid #9490DD; width: 200px; ">
+                            <td
+                                style="text-align: center; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD;color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitudenumerical.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+    
+    
+                                Numerical Reasoning
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+                                Ability to understand, interpret, and work with numerical data. Includes arithmetic,
+                                ratios, percentages, and data interpretation through graphs and tables.
+                            </td>
+                        </tr>
+                        <tr style="border:1px solid #9490DD;">
+                            <td
+                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD;color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitudelogical.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+    
+    
+                                Logical Reasoning
+    
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+                                Ability to evaluate arguments, detect inconsistencies, and draw conclusions based on
+                                structured thinking. Involves recognizing logical connections and deductive reasoning.
+                            </td>
+                        </tr>
+                        <tr style="border:1px solid #9490DD;">
+                            <td
+                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitudelanguage.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+    
+                                Language and Verbal Reasoning
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+                                Ability to comprehend, interpret, and analyse written or spoken language. Involves
+                                understanding vocabulary, grammar, sentence structure, and verbal conclusions.</td>
+                        </tr>
+                        <tr style="border:1px solid #9490DD;">
+                            <td
+                                style="text-align: center; width: 200px; padding:14px; color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitude-clerical.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+    
+    
+                                Clerical Speed and Accuracy
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+                                Ability to quickly and accurately process detailed information. Includes comparing data,
+                                identifying errors, and working with symbols or text with precision and speed.</td>
+                        </tr>
+                        <tr style="border:1px solid #9490DD;">
+                            <td
+                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitudemechanical.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+                                Mechanical Reasoning
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+                                Ability to understand mechanical concepts and physical principles. Involves analysing
+                                machines, tools, and systems based on cause-and-effect reasoning.</td>
+                        </tr>
+                        <tr style="border:1px solid #9490DD;">
+                            <td
+                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
+    
+                                <img src="{% static 'images/Aptitudespatial.png'%}" alt="img"
+                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
+                                <br> <br>
+    
+                                Spatial Reasoning
+                            </td>
+                            <td
+                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+                                Ability to mentally visualize, manipulate, and rotate objects in space. Involves
+                                understanding spatial relationships, shapes, and patterns for technical tasks.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="chapterPage" >
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+
+                <div class="db-header" style="margin-top: 0px; text-align: center;">
+                    <h1 style="color: #3F37C9; margin-top: 10px;">Interpretation & Recommendations</h1>
+                </div>
+
+
+                <div class="text-info-paragraph " style="margin-bottom: 0px;text-align:center;">
+                    <p style="font-weight: 600;">Based on your test results, your strongest areas of interest are:</p>
+                </div>
+
+
+
+                <div class="average-cards" style="display: flex; justify-content: center; margin: 30px 0;">
+                </div>
+                <div class="dynamic-results">
+                    <div class="text-info-paragraph">
+                        <p><strong>Your Aptitude Profile:</strong> Natural abilities across 7 key areas</p>
+                    </div>
+                </div>
+
+               
+            </div>
+
+                    <!-- Aptitude Interpretations -->
+                    {% if aptitude_interpretations %}
+
+            {% for interpretation in aptitude_interpretations %}
+            <div class="chapterPage"  >
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+
+                    
+                    
+                    <div class="{% if interpretation.Area in above_list %} recommended-courses-info-above-average{% else %} recommended-courses-info{% endif %}" style="margin-top: 20px;margin-bottom: 10px;">
+
+                        <div class="header-text">
+        
+                            <h3>
+                                <div class="imgpact">
+                                    <img src="{% static interpretation.Image %}" alt="img">
+                                </div>
+        
+                                {{ interpretation.Title }}
+                            </h3>
+        
+                        </div>
+        
+        
+                        <div class="real-description">
+        
+                            {{ interpretation.Description|safe }}
+        
+                            {% if interpretation|get_item:"Real life signs" %}
+                            <div class="real-sign-box">
+        
+                                <h4>
+                                    <div class="real-sign"> <img src="{% static 'images/real-sign.webp'%}" alt="img"> </div>
+                                    Real-life signs:
+                                </h4>
+                                <ul>
+                                    {% for sign in interpretation|get_item:"Real life signs" %}
+                                    <li>{{ interpretation|get_item:"Real life signs"|first }}</li>
+                                    {% endfor %}
+                                </ul>
+        
+                            </div>
+                            {% endif %}
+        
+                        </div>
+        
+        
+                        
+                        <div class="impact-box">
+        
+                            {% if interpretation|get_item:"Career impact" %}
+                            <div class="impact-info">
+        
+                                <h4>
+                                    <div class="car-img"> <img src="{% static 'images/3d-grad-cap.webp'%}" alt="img"> </div>
+                                    Career Impact:
+                                </h4>
+        
+                                <p>This ability is a major foundation for:</p>
+                                <ul>
+                                    {% for career in interpretation|get_item:"Career impact" %}
+                                    <li>{{ career }}</li>
+                                    {% endfor %}
+                                </ul>
+                                
+                            </div>
+                            {% endif %}
+                            {% if interpretation|get_item:"Daily life impact" %}
+                            <div class="impact-info">
+                                <h4>
+                                    <div class="car-img"> <img src="{% static 'images/3d-insight.webp'%}" alt="img"> </div>
+                                    Daily life impact:
+                                </h4>
+                                <ul>
+                                    {% for impact in interpretation|get_item:"Daily life impact" %}
+                                    <li>{{ impact }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+            </div>
+            {% endfor %}
+ 
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+            {% endif %}
+            <div class="chapterPage" id="aptitude-results-page" >
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+            
+
+                <div id="timer-sections" class="text-info-paragraph d-none">
+
+                    
+
+                    <div class="chart-container" style="width:100%; clear: both;">
+                        <h4>Aptitude Sections Performance</h4>
+                        <canvas id="aptitude-chart"></canvas>
+                    </div>
+
+                </div>
+                <div id="aptitude-sections" class="section-resultsn">
+                    <!-- Dynamic aptitude sections will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Strength Narrative -->
+            {% if aptitude_strength_narrative %}
+            {% with strength_items=aptitude_strength_narrative|slice:":7" %}
+            <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <p class="section-title">Strength Narrative</p>
+                <div class="card-container">
+                    {% for strength in strength_items|slice:":4" %}
+                    {% if strength.Area in above_list|slice:":7" %}
+                    <!-- Above Average -->
+                    <div class="card above-card">
+                        <h3>{{ strength.Area }}</h3>
+                        <ul>
+                            {% for remark in strength.Major_points %}
+                            <li><i style=" color: #3F37C9;"  class="fas fa-briefcase me-2 icon-above"></i> {{ remark }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% elif strength.Area in average_list|slice:":7" %}
+                    <!-- Average -->
+                    <div class="card average-card">
+                        <h3>{{ strength.Area }}</h3>
+                        <ul>
+                            {% for remark in strength.Major_points %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ remark }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <!-- Default -->
+                    <div class="card average-card">
+                        <h3>{{ strength.Area }}</h3>
+                        <ul>
+                            {% for remark in strength.Major_points %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ remark }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% if strength_items|length > 4 %}
+            <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="card-container card-container--split">
+                    {% for strength in strength_items|slice:"4:7" %}
+                    {% if strength.Area in above_list|slice:":7" %}
+                    <div class="card above-card">
+                        <h3>{{ strength.Area }}</h3>
+                        <ul>
+                            {% for remark in strength.Major_points %}
+                            <li><i style=" color: #3F37C9;"  class="fas fa-briefcase me-2 icon-above"></i> {{ remark }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% elif strength.Area in average_list|slice:":7" %}
+                    <div class="card average-card">
+                        <h3>{{ strength.Area }}</h3>
+                        <ul>
+                            {% for remark in strength.Major_points %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ remark }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <div class="card average-card">
+                        <h3>{{ strength.Area }}</h3>
+                        <ul>
+                            {% for remark in strength.Major_points %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ remark }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
+
+            
+            <!-- Recommended College Courses -->
+            {% if aptitude_Recommended_College_Courses %}
+            {% with college_items=aptitude_Recommended_College_Courses|slice:":7" %}
+            <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <p class="section-title">Recommended College Courses</p>
+
+                <p style="text-align:center;width:100% !important; margin-top:5px;">
+                    Based on your strongest domains, here are programme options after Class 12.
+                </p>
+                <div class="card-container strenght-report">
+                    {% for college in college_items|slice:":4" %}
+                    {% if college.Area in above_list|slice:":7" %}
+                    <!-- Above Average -->
+                    <div class="card above-card">
+                        <h3>{{ college.Area }}</h3>
+                        <ul>
+                            {% for course in college.Recommended_College %}
+                            <li><i style=" color: #3F37C9;" class="fas fa-briefcase me-2 icon-above"></i> {{ course }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% elif college.Area in average_list|slice:":7" %}
+                    <!-- Average -->
+                    <div class="card average-card">
+                        <h3>{{ college.Area }}</h3>
+                        <ul>
+                            {% for course in college.Recommended_College %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ course }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <!-- Default -->
+                    <div class="card average-card">
+                        <h3>{{ college.Area }}</h3>
+                        <ul>
+                            {% for course in college.Recommended_College %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ course }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% if college_items|length > 4 %}
+            <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="card-container strenght-report card-container--split">
+                    {% for college in college_items|slice:"4:7" %}
+                    {% if college.Area in above_list|slice:":7" %}
+                    <div class="card above-card">
+                        <h3>{{ college.Area }}</h3>
+                        <ul>
+                            {% for course in college.Recommended_College %}
+                            <li><i style=" color: #3F37C9;" class="fas fa-briefcase me-2 icon-above"></i> {{ course }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% elif college.Area in average_list|slice:":7" %}
+                    <div class="card average-card">
+                        <h3>{{ college.Area }}</h3>
+                        <ul>
+                            {% for course in college.Recommended_College %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ course }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <div class="card average-card">
+                        <h3>{{ college.Area }}</h3>
+                        <ul>
+                            {% for course in college.Recommended_College %}
+                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ course }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
+
+            
+
+            <!-- Career Role Guidance 1-4 Areas -->
+            {% if aptitude_roles_guidance %}
+            {% with career_items=aptitude_roles_guidance|slice:":7" %}
+            <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <p class="section-title">Career Recommendations — Aptitude Report</p>
+                <div class="card-container strenght-report">
+                    {% for item in career_items|slice:":4" %}
+
+                    {% if item.Area in above_list %}
+                    <!-- Above Average -->
+                    <div class="card above-card">
+                        <h3>{{ item.Area }}</h3>
+                        <p><strong>{{ item.Guidance }}</strong></p>
+                        <ul>
+                            {% for rec in item.Recommendations %}
+                            <li>
+                                <i style=" color: #3F37C9;" class="fas fa-briefcase me-2 icon-above"></i>
+                                {{ rec.Role }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    {% elif item.Area in average_list|slice:":7" %}
+                    <!-- Average -->
+                    <div class="card average-card">
+                        <h3>{{ item.Area }}</h3>
+                        <p><strong>{{ item.Guidance }}</strong></p>
+                        <ul>
+                            {% for rec in item.Recommendations %}
+                            <li>
+                                <i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i>
+                                {{ rec.Role }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    {% else %}
+                    <!-- Default -->
+                    <div class="card average-card">
+                        <h3>{{ item.Area }}</h3>
+                        <p><strong>{{ item.Guidance }}</strong></p>
+                        <ul>
+                            {% for rec in item.Recommendations %}
+                            <li>
+                                <i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i>
+                                <strong>{{ rec.Role }}</strong>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% endfor %}
+                </div>
+            </div>
+            {% if career_items|length > 4 %}
+            <div class="chapterPage result-four">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="card-container strenght-report card-container--split">
+                    {% for item in career_items|slice:"4:7" %}
+
+                    {% if item.Area in above_list %}
+                    <div class="card above-card">
+                        <h3>{{ item.Area }}</h3>
+                        <p><strong>{{ item.Guidance }}</strong></p>
+                        <ul>
+                            {% for rec in item.Recommendations %}
+                            <li>
+                                <i style=" color: #3F37C9;" class="fas fa-briefcase me-2 icon-above"></i>
+                                {{ rec.Role }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    {% elif item.Area in average_list|slice:":7" %}
+                    <div class="card average-card">
+                        <h3>{{ item.Area }}</h3>
+                        <p><strong>{{ item.Guidance }}</strong></p>
+                        <ul>
+                            {% for rec in item.Recommendations %}
+                            <li>
+                                <i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i>
+                                {{ rec.Role }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    {% else %}
+                    <div class="card average-card">
+                        <h3>{{ item.Area }}</h3>
+                        <p><strong>{{ item.Guidance }}</strong></p>
+                        <ul>
+                            {% for rec in item.Recommendations %}
+                            <li>
+                                <i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i>
+                                <strong>{{ rec.Role }}</strong>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
+
+            <!-- Improvement Plan 1-4 reas -->
+            <div class="chapterPage result-four">
+                                
+                {% if aptitude_improvement_plan %}
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <p class="section-title imp-title">Improvement Plan for Weaker Areas </p>
+                <div class="card-container improve-report">
+                    {% for plan in aptitude_improvement_plan|slice:":4" %}
+                        <div class="card {% if plan.Category == 'Below Average' %}below-average{% endif %}">
+                            <h3>{{ plan.Area }}</h3>
+                            <p><strong>Duration:</strong> {{ plan.Duration }}</p>
+                            <ul>
+                                {% for remark in plan.Remarks %}
+                                    <li><i style=" color: #C24E4E;" class="fas fa-briefcase me-2"></i> {{ remark }}</li>
+                                    
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Improvement Plan 1-4 reas -->
+            <div class="chapterPage result-four">
+                              
+                {% if aptitude_improvement_plan %}
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr /> 
+                <div class="card-container improve-report">
+                    {% for plan in aptitude_improvement_plan|slice:"4:7" %}
+                        <div class="card {% if plan.Category == 'Below Average' %}below-average{% endif %}">
+                            <h3>{{ plan.Area }}</h3>
+                            <p><strong>Duration:</strong> {{ plan.Duration }}</p>
+                            <ul>
+                                {% for remark in plan.Remarks %}
+                                    <li><i style=" color: #C24E4E;" class="fas fa-briefcase me-2"></i> {{ remark }}</li>
+                                    
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            
+
+            
+        </div>
+        <!-- page 20 end -->
+        {% endif %}
+
+
+
+        <!-- Modify the download button HTML -->
+
+
+        <!-- page 21 -->
+        <div class="chapterPage" style="display: none;">
+            <div class="img-top" style="width: 100%; text-align: center;"> <img style="width: 200px;"
+                    src="{% static 'images/logo.png'%}" alt="logo" /> </div>
+            <div class="heading-cover" style="width: 100%; text-align: center; margin-top: 60px;">
+                <h1 style="text-transform: capitalize;">Got Any Questions?</h1>
+            </div>
+            <div class="image-cover" style="width: 100%; text-align: center; margin-top:60px; margin-bottom: 60px;">
+                <img style="width: 500px;" src="{% static 'images/any-question.png'%}" alt="img" />
+            </div>
+            <div class="contact-detail">
+                <div class="cont-img"> <img style="width:350px;" src="{% static 'images/contact-img.png'%}" alt="img" />
+                </div>
+                <div class="detail-options">
+                    <div class="b-box" style="width:160px"> <img style="width:25px; height: 25px;  margin-right: 10px;"
+                            src="{% static 'images/globe-icon.png'%}" alt="icon" /> www.topteen.in </div>
+                    <div class="b-box" style="width:160px"> <img style="width:25px; height: 25px; margin-right: 10px;"
+                            src="{% static 'images/email-icon.png'%}" alt="icon" /> info@topteen.in </div>
+                </div>
+                <div class="ff-text"
+                    style="color: #2720A7;font-size: 20px;font-weight: 600;margin-bottom: 30px;text-align: center;"> +91
+                    6239-505640
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- page 21 end -->
+
+    <div
+        style="position: fixed;  bottom: 0;  text-align: center;  margin: 0px auto;  width: 100%;  background: #fff;  border-top: 1px solid #d7d7d7;  padding: 17px 0;">
+        <button id="downloadPDF" class="btn-download" style="
+                background-image:linear-gradient(135deg, #6059d9 0%, #3f37c9 100%);
+                color: #ffffff;
+                border: none;
+                padding: 12px 20px;
+                font-size: 16px;
+                font-weight: 600;
+                border-radius: 9999px;
+                box-shadow: 0 8px 16px rgba(106, 0, 255, 0.25);
+                cursor: pointer;
+                transition: transform 0.15s ease, filter 0.15s ease;
+            ">
+            <i class="fas fa-download"></i> Download Full Report
+        </button>
+        {% if all_tests_completed %}
+            <a href="{% url 'post_matric:combined_report' user.id %}" style="text-decoration: none;">
+                <button class="btn-download" style="
+                    background-image:linear-gradient(135deg, #6059d9 0%, #3f37c9 100%);
+                    color: #ffffff;
+                    border: none;
+                    padding: 12px 20px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    border-radius: 9999px;
+                    box-shadow: 0 8px 16px rgba(106, 0, 255, 0.25);
+                    cursor: pointer;
+                    transition: transform 0.15s ease, filter 0.15s ease;
+                ">
+                    <i class="fas fa-download"></i> View Combined Full Report
+                </button>
+            </a>
+        {% endif %}
+    </div>
+
+    <div id="pdfLoader"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999;justify-content: center; align-items: center;backdrop-filter: blur(20px);">
+        <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #3F37C9;"></i>
+            <p style="margin-top: 10px; color: #3F37C9;">Generating PDF, please wait...</p>
+        </div>
+    </div>
+
+    <script>
+        async function downloadPDF() {
+            const button = document.getElementById('downloadPDF');
+            const loader = document.getElementById('pdfLoader');
+
+            // Show loader
+            loader.style.display = 'flex';
+            button.disabled = true;
+            button.innerHTML = 'Generating PDF...';
+
+            try {
+                // Fix problematic gradients before rendering
+                const gradientElements = document.querySelectorAll('[style*="linear-gradient"]');
+                const originalStyles = new Map();
+
+                // Temporarily replace gradients with solid colors
+                gradientElements.forEach(el => {
+                    originalStyles.set(el, el.getAttribute('style'));
+                    // Replace gradient with a solid color
+                    const style = el.getAttribute('style');
+                    const newStyle = style.replace(/linear-gradient\([^)]+\)/g, 'rgb(100, 100, 240)');
+                    el.setAttribute('style', newStyle);
+                });
+
+                // Get all pages: coverPage and chapterPages
+                const coverPage = document.querySelector('.coverPage');
+                const chapterPages = document.querySelectorAll('.chapterPage');
+                const pages = [coverPage, ...chapterPages]; // Combine coverPage and chapterPages
+
+                // PDF document definition
+                const docDefinition = {
+                    content: [],
+                    pageSize: 'A4',
+                    pageMargins: [40, 40, 40, 40], // [left, top, right, bottom]
+                    pageBreakBefore: function (currentNode) {
+                        return currentNode.startOnNewPage || false;
+                    }
+                };
+
+                // Apply print-mode class to body
+                document.body.classList.add('print-mode');
+
+                // Process each page sequentially
+                for (let index = 0; index < pages.length; index++) {
+                    const page = pages[index];
+                    if (!page) continue; // Skip if page is null or undefined
+
+                    // Temporarily hide other pages to avoid overlap in rendering
+                    pages.forEach((p, i) => {
+                        if (p) p.style.display = i === index ? 'block' : 'none';
+                    });
+
+                    // Ensure page is fully visible and styled for rendering
+                    page.style.opacity = '1';
+                    page.style.position = 'static'; // Avoid positioning issues
+
+                    // Render the page with html2canvas with error handling
+                    try {
+                        const canvas = await html2canvas(page, {
+                            width: page.scrollWidth,
+                            height: page.scrollHeight,
+                            scrollX: 0,
+                            scrollY: 0,
+                            useCORS: true,
+                            allowTaint: true,
+                            scale: 2, // Increase scale for better quality
+                            onclone: function (clonedDoc) {
+                                // Additional fixes in the cloned document if needed
+                                const clonedGradients = clonedDoc.querySelectorAll('[style*="linear-gradient"]');
+                                clonedGradients.forEach(el => {
+                                    const style = el.getAttribute('style');
+                                    const newStyle = style.replace(/linear-gradient\([^)]+\)/g, 'rgb(100, 100, 240)');
+                                    el.setAttribute('style', newStyle);
+                                });
+                            }
+                        });
+
+                        // Convert canvas to image data
+                        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+                        // Calculate image dimensions to fit A4 (595pt width, 842pt height)
+                        const imgWidth = 515; // A4 width minus margins (595 - 40 - 40)
+                        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain aspect ratio
+
+                        // Add image to PDF content
+                        docDefinition.content.push({
+                            image: imgData,
+                            width: imgWidth,
+                            margin: [0, 0, 0, 0], // No extra margins within the page
+                            startOnNewPage: true // Force each image to start on a new page
+                        });
+                    } catch (pageError) {
+                        console.error(`Error rendering page ${index + 1}:`, pageError);
+                        // Continue with next page instead of failing the entire process
+                    }
+                }
+
+                // Restore original styles
+                gradientElements.forEach(el => {
+                    if (originalStyles.has(el)) {
+                        el.setAttribute('style', originalStyles.get(el));
+                    }
+                });
+
+                // Restore visibility of all pages
+                pages.forEach(p => {
+                    if (p) p.style.display = 'block';
+                });
+
+                // Remove print-mode class
+                document.body.classList.remove('print-mode');
+
+                // download PDF with the test name
+                let fileName = '';
+                const test_id = parseInt("{{ test_id }}");  // ensure it's a number
+
+                if (test_id === 1) {
+                    fileName = 'Personality_Assessment_Report.pdf';
+                } else if (test_id === 2) {
+                    fileName = 'Motivation_Assessment_Report.pdf';
+                } else if (test_id === 3) {
+                    fileName = 'Career_Interest_Assessment_Report.pdf';
+                } else if (test_id === 4) {
+                    fileName = 'Aptitude_Assessment_Report.pdf';
+                }
+
+                if (docDefinition.content.length > 0 && fileName !== '') {
+                    pdfMake.createPdf(docDefinition).download(fileName);
+                    console.log('PDF generation complete!');
+                } else {
+                    throw new Error('No content was generated for the PDF');
+                }
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+            } finally {
+                // Clean up regardless of success or failure
+                document.body.classList.remove('print-mode');
+
+                // Restore visibility of all pages
+                const allPages = [document.querySelector('.coverPage'), ...document.querySelectorAll('.chapterPage')];
+                allPages.forEach(p => {
+                    if (p) p.style.display = 'block';
+                });
+
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-download"></i> Download Full Report';
+                loader.style.display = 'none';
+            }
+        }
+
+        document.getElementById('downloadPDF').addEventListener('click', downloadPDF);
+    </script>
+
+    <!-- Include the JavaScript functionality -->
+    <script src="{% static 'js/pdf-results.js' %}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Load results when page loads
+            await loadTestResults(); // Ensure this function is async or returns a Promise
+            document.getElementById('downloadPDF').disabled = false; // Enable button after loading
+        });
+    </script>
+    <div id="test-results-data"
+        data-results-json='{{ test_results_json|default:"[]"|escapejs }}'
+        style="display:none;"></div>
+    <script>
+        const _testResultsEl = document.getElementById('test-results-data');
+        let _parsedResults = [];
+        if (_testResultsEl) {
+            try {
+                _parsedResults = JSON.parse(_testResultsEl.getAttribute('data-results-json') || '[]');
+            } catch (err) {
+                _parsedResults = [];
+            }
+        }
+        window.testResults = _parsedResults;
+    </script>
+</body>
+
+<style>
+    .result-four .section-title {
+        background: #E8FBFF;
+        width: 250px;
+        margin: 0px auto;
+        padding: 9px 7px;
+        border-radius: 7px;
+            color: #3f37c9;
+    }
+
+
+    .result-four .section-title.imp-title{
+    background: #faf1f1;
+    color: #c24e4e;
+}
+
+
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 20px 0;
+        justify-content: center;
+    }
+
+    .card-container--split {
+        margin-top: 12px;
+        page-break-before: always;
+        break-before: always;
+    }
+
+    .card {
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+        width: 317px;
+        transition: transform 0.3s ease;
+        border-top: 8px solid #ccc !important;
+        /* default border, overridden by category */
+        border: 1px solid #ccc;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .card ul {
+        padding: 0px;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card.above {
+        border-top-color: #2ecc71;
+        /* green */
+    }
+
+    .card.average {
+        border-top-color: #f1c40f;
+        /* yellow */
+    }
+
+    .card.below {
+        border-top-color: #e74c3c;
+        /* red */
+    }
+
+    .card h3 {
+        font-size: 18px;
+        margin-top: 0;
+        color: #2c3e50;
+    }
+
+
+
+    .badge.above {
+        background-color: #2ecc71;
+        color: white;
+    }
+
+    .badge.average {
+        background-color: #f1c40f;
+        color: black;
+    }
+
+    .badge.below {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    .section-title {
+        font-size: 15px;
+        font-weight: bold;
+        margin: 7px 0 4px;
+        text-align: center;
+        color: #34495e;
+    }
+
+    ul {
+        padding-left: 18px;
+        margin: 10px 0 0 0;
+    }
+
+    ul li {
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 6px;
+    }
+
+
+    @media print {
+
+        .coverPage,
+        .chapterPage {
+            page-break-after: always;
+            width: 100%;
+            min-height: 842pt;
+            /* A4 height */
+            box-sizing: border-box;
+            padding: 40pt;
+            /* Match page margins */
+        }
+
+        .coverPage {
+            page-break-before: avoid;
+            /* Ensure cover page starts at the top */
+        }
+
+        .chapterPage {
+            page-break-before: always;
+            /* Each chapter starts on a new page */
+        }
+
+        /* Prevent content from being cut off */
+        * {
+            overflow: visible !important;
+        }
+
+        .card-container--split {
+            page-break-before: always;
+        }
+
+        /* Ensure images and other elements scale correctly */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    }
+
+    .card.above-card {
+        border: 1px solid #3F37C9;
+        background: #e4e3f5;
+        border-top: 8px solid #3F37C9 !important;
+    }
+
+    .card.above-card h3 {
+        color: #3F37C9;
+    }
+
+    .card.average-card {
+        border: 1px solid rgb(46, 138, 166);
+        background: rgb(233, 249, 253);
+        border-top: 8px solid rgb(46, 138, 166) !important;
+    }
+
+    .card.average-card h3 {
+        color: rgb(46, 138, 166);
+    }
+
+    .card ul li {
+        border-bottom: 1px solid #B0B0D7;
+    }
+
+    .improve-report .card {
+        border-top: 8px solid #C24E4E !important;
+        border: 1px solid #C24E4E;
+        background: #c24e4e14;
+    }
+
+    .improve-report .card h3 {
+        color: #C24E4E;
+    }
+</style>
+
+</html>

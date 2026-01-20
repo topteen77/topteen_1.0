@@ -45,10 +45,10 @@ class KnowledgeBaseEntrySerializer(serializers.ModelSerializer):
 class AIFeatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = AIFeature
-        fields = ['id', 'name', 'icon', 'description', 'order']
+        fields = ['id', 'name', 'icon', 'description', 'link_url', 'order']
 
 
 class AICapabilitySerializer(serializers.ModelSerializer):
     class Meta:
         model = AICapability
-        fields = ['id', 'name', 'icon', 'description', 'order']
+        fields = ['id', 'name', 'icon', 'description', 'link_url', 'order']

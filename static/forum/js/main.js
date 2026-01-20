@@ -436,8 +436,18 @@ async function loadInitialData() {
     }
 }
 
-// Load AI Features
+// Load AI Features (only if not already loaded server-side)
 async function loadAIFeatures() {
+    const container = document.getElementById('aiFeatures');
+    if (!container) return;
+    
+    // Check if features are already rendered server-side
+    const existingFeatures = container.querySelectorAll('li');
+    if (existingFeatures.length > 0 && !container.querySelector('li[style*="Loading"]')) {
+        // Features already loaded server-side, skip
+        return;
+    }
+    
     try {
         const response = await fetch(`${API_BASE_URL}/ai-features/`);
         if (response.ok) {
@@ -465,13 +475,31 @@ function displayAIFeatures(features) {
     features.forEach(feature => {
         const li = document.createElement('li');
         const icon = feature.icon || 'fas fa-check-circle';
-        li.innerHTML = `<i class="${icon}"></i> ${feature.name}`;
+        
+        // If feature has a link, make it clickable and open in new tab
+        if (feature.link_url && feature.link_url.trim()) {
+            li.innerHTML = `<a href="${feature.link_url}" class="feature-link" title="${feature.description || feature.name}" target="_blank" rel="noopener noreferrer"><i class="${icon}"></i> ${feature.name}</a>`;
+            li.style.cursor = 'pointer';
+        } else {
+            li.innerHTML = `<i class="${icon}"></i> ${feature.name}`;
+        }
+        
         container.appendChild(li);
     });
 }
 
-// Load AI Capabilities
+// Load AI Capabilities (only if not already loaded server-side)
 async function loadAICapabilities() {
+    const container = document.getElementById('aiCapabilities');
+    if (!container) return;
+    
+    // Check if capabilities are already rendered server-side
+    const existingCapabilities = container.querySelectorAll('li');
+    if (existingCapabilities.length > 0 && !container.querySelector('li[style*="Loading"]')) {
+        // Capabilities already loaded server-side, skip
+        return;
+    }
+    
     try {
         const response = await fetch(`${API_BASE_URL}/ai-capabilities/`);
         if (response.ok) {
@@ -499,7 +527,15 @@ function displayAICapabilities(capabilities) {
     capabilities.forEach(capability => {
         const li = document.createElement('li');
         const icon = capability.icon || 'fas fa-brain';
-        li.innerHTML = `<i class="${icon}"></i> ${capability.name}`;
+        
+        // If capability has a link, make it clickable and open in new tab
+        if (capability.link_url && capability.link_url.trim()) {
+            li.innerHTML = `<a href="${capability.link_url}" class="feature-link" title="${capability.description || capability.name}" target="_blank" rel="noopener noreferrer"><i class="${icon}"></i> ${capability.name}</a>`;
+            li.style.cursor = 'pointer';
+        } else {
+            li.innerHTML = `<i class="${icon}"></i> ${capability.name}`;
+        }
+        
         container.appendChild(li);
     });
 }

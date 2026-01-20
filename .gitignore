@@ -302,3 +302,7 @@ scripts/verification_checklist.csv
 scripts/*.csv
 scripts/__pycache__/
 scripts/*.pyc
+docker_files/*
+
+
+

@@ -305,3 +305,26 @@ Migrations for 'institute':
 
 .
 
+========================================================
+
+### 1. Seed Forum Data
+
+Run the management command to populate initial data:
+
+```bash
+python manage.py seed_forum_data
+```
+
+This creates:
+- Categories (Stream Selection, Career Options, Entrance Exams, etc.)
+- AI Features (Psychometric Assessment Link, Stream Selection Guidance, etc.)
+- AI Capabilities (Career Cluster Analysis, Job Market Trends, etc.)
+- Countries (India, USA, UK, Canada, Australia, etc.)
+
+### 2. Generate Sample Content (Optional)
+
+To populate sample queries and responses:
+
+```bash
+python manage.py generate_sample_content
+```

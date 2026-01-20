@@ -11,6 +11,7 @@
   <ul>
     <li class="text-lg  text-[#333333] mb-4 font-bold">Product</li>
     <li class="text-lg font-normal text-[#828282] mb-2"><a class="hover-[#3f37c9]" href="{{url('psychometrictests:psychometrictest')}}">Career Assesment Test</a></li>
+    <li class="text-lg font-normal text-[#828282] mb-2"><a class="hover-[#3f37c9]" href="{{url('forum:index')}}">Career AI Forum</a></li>
     {%for popular_category in popular_categories[:2]%}
     <li class="text-lg font-normal text-[#828282] mb-2"><a class="hover-[#3f37c9]" href="{{popular_category.url()}}">Blogs {{popular_category.name}}</a></li>
     {% endfor %}
@@ -182,6 +183,11 @@
         class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
       >
       <a href="{{url('psychometrictests:psychometrictest')}}"> Career Assesment Test </a>
+      </li>
+      <li
+        class="text-lg font-normal text-[#828282] mb-4 tracking-[0.01em]"
+      >
+      <a href="{{url('forum:index')}}"> Career AI Forum </a>
       </li>
       {%for popular_category in popular_categories[:2]%}
       <li

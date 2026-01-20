@@ -125,7 +125,21 @@
 
                 <h3><i class="fas fa-star"></i> AI Features</h3>
                 <ul class="feature-list" id="aiFeatures">
-                    <!-- AI Features will be loaded here dynamically -->
+                    {% if ai_features %}
+                        {% for feature in ai_features %}
+                            <li>
+                                {% if feature.link_url %}
+                                    <a href="{{ feature.link_url }}" class="feature-link" title="{{ feature.description|default:feature.name }}" target="_blank" rel="noopener noreferrer">
+                                        <i class="{{ feature.icon|default:'fas fa-check-circle' }}"></i> {{ feature.name }}
+                                    </a>
+                                {% else %}
+                                    <i class="{{ feature.icon|default:'fas fa-check-circle' }}"></i> {{ feature.name }}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li style="color: #999; font-style: italic;">Loading AI Features...</li>
+                    {% endif %}
                 </ul>
             </div>
 
@@ -159,7 +173,21 @@
 
                 <h3 style="margin-top: 25px;"><i class="fas fa-robot"></i> AI Capabilities</h3>
                 <ul class="feature-list" id="aiCapabilities">
-                    <!-- AI Capabilities will be loaded here dynamically -->
+                    {% if ai_capabilities %}
+                        {% for capability in ai_capabilities %}
+                            <li>
+                                {% if capability.link_url %}
+                                    <a href="{{ capability.link_url }}" class="feature-link" title="{{ capability.description|default:capability.name }}" target="_blank" rel="noopener noreferrer">
+                                        <i class="{{ capability.icon|default:'fas fa-brain' }}"></i> {{ capability.name }}
+                                    </a>
+                                {% else %}
+                                    <i class="{{ capability.icon|default:'fas fa-brain' }}"></i> {{ capability.name }}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li style="color: #999; font-style: italic;">Loading AI Capabilities...</li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

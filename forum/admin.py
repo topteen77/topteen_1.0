@@ -175,15 +175,17 @@ class PerformanceMetricsAdmin(admin.ModelAdmin):
 
 @admin.register(AIFeature)
 class AIFeatureAdmin(admin.ModelAdmin):
-    list_display = ['name', 'icon', 'order', 'is_active']
+    list_display = ['name', 'icon', 'link_url', 'order', 'is_active']
     list_editable = ['order', 'is_active']
     list_filter = ['is_active']
-    search_fields = ['name']
+    search_fields = ['name', 'link_url']
+    fields = ['name', 'icon', 'description', 'link_url', 'order', 'is_active']
 
 
 @admin.register(AICapability)
 class AICapabilityAdmin(admin.ModelAdmin):
-    list_display = ['name', 'icon', 'order', 'is_active']
+    list_display = ['name', 'icon', 'link_url', 'order', 'is_active']
     list_editable = ['order', 'is_active']
     list_filter = ['is_active']
-    search_fields = ['name']
+    search_fields = ['name', 'link_url']
+    fields = ['name', 'icon', 'description', 'link_url', 'order', 'is_active']

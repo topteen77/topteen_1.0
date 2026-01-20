@@ -11,7 +11,7 @@ from datetime import date
 from forum.models import Query, Response, Category, Country, PerformanceMetrics, AIFeature, AICapability
 from forum.serializers import (
     QuerySerializer, ResponseSerializer, CategorySerializer,
-    CountrySerializer, QueryWithResponseSerializer
+    CountrySerializer, QueryWithResponseSerializer, AIFeatureSerializer, AICapabilitySerializer
 )
 from forum.services.ai_service import generate_ai_response, extract_entities
 import time
@@ -211,6 +211,84 @@ def index(request):
             print(f"Career Readiness: {user_data.get('career_readiness', 0)}%")
             print(f"Top Matches: {', '.join(user_data.get('top_matches', [])) if user_data.get('top_matches') else 'N/A'}")
             print("="*80 + "\n")
+    
+    # Load AI Features server-side for immediate display
+    try:
+        features = AIFeature.objects.filter(is_active=True).order_by('order', 'name')
+        
+        # Dynamically set Psychometric Assessment Link based on user's class
+        user_class = None
+        if request.user.is_authenticated:
+            try:
+                # Check UserProfile.grade first
+                if hasattr(request.user, 'user_profile') and request.user.user_profile:
+                    profile = request.user.user_profile
+                    if profile.grade:
+                        try:
+                            user_class = int(profile.grade)
+                        except (ValueError, TypeError):
+                            import re
+                            numbers = re.findall(r'\d+', str(profile.grade))
+                            if numbers:
+                                user_class = int(numbers[0])
+                
+                # If no grade from UserProfile, check StudentManagement
+                if user_class is None:
+                    from institute.models import StudentManagement
+                    student_management = StudentManagement.objects.filter(student=request.user).first()
+                    if student_management and student_management.class_and_section:
+                        class_name = student_management.class_and_section.class_and_section
+                        if class_name:
+                            import re
+                            numbers = re.findall(r'\d+', class_name)
+                            if numbers:
+                                user_class = int(numbers[0])
+            except Exception:
+                pass
+        
+        # Prepare features data for template
+        features_data = []
+        for feature in features:
+            feature_dict = {
+                'id': feature.id,
+                'name': feature.name,
+                'icon': feature.icon,
+                'description': feature.description,
+                'link_url': feature.link_url,
+                'order': feature.order
+            }
+            
+            # Update Psychometric Assessment Link based on class
+            if feature.name == 'Psychometric Assessment Link':
+                if user_class is not None and user_class <= 10:
+                    feature_dict['link_url'] = '/psychometrictest/stream-sorter/'
+                else:
+                    feature_dict['link_url'] = '/psychometrictest/career-direction/'
+            
+            features_data.append(feature_dict)
+        
+        context['ai_features'] = features_data
+    except Exception as e:
+        if getattr(settings, 'DEBUG', False):
+            print(f"[DEBUG] Error loading AI Features: {e}")
+        context['ai_features'] = []
+    
+    # Load AI Capabilities server-side for immediate display
+    try:
+        capabilities = AICapability.objects.filter(is_active=True).order_by('order', 'name')
+        capabilities_data = [{
+            'id': c.id,
+            'name': c.name,
+            'icon': c.icon,
+            'description': c.description,
+            'link_url': c.link_url,
+            'order': c.order
+        } for c in capabilities]
+        context['ai_capabilities'] = capabilities_data
+    except Exception as e:
+        if getattr(settings, 'DEBUG', False):
+            print(f"[DEBUG] Error loading AI Capabilities: {e}")
+        context['ai_capabilities'] = []
     
     template = django_engine.get_template('forum/index.html')
     return HttpResponse(template.render(context, request))
@@ -664,9 +742,50 @@ class AIFeaturesView(APIView):
     
     def get(self, request):
         features = AIFeature.objects.filter(is_active=True).order_by('order', 'name')
-        features_data = [{'name': f.name, 'icon': f.icon} for f in features]
+        serializer = AIFeatureSerializer(features, many=True)
+        features_data = serializer.data
         
-        # If no features in database, return empty list (admin should add them)
+        # Dynamically set Psychometric Assessment Link based on user's class
+        user_class = None
+        if request.user.is_authenticated:
+            try:
+                # Check UserProfile.grade first
+                if hasattr(request.user, 'user_profile') and request.user.user_profile:
+                    profile = request.user.user_profile
+                    if profile.grade:
+                        try:
+                            user_class = int(profile.grade)
+                        except (ValueError, TypeError):
+                            import re
+                            numbers = re.findall(r'\d+', str(profile.grade))
+                            if numbers:
+                                user_class = int(numbers[0])
+                
+                # If no grade from UserProfile, check StudentManagement
+                if user_class is None:
+                    from institute.models import StudentManagement
+                    student_management = StudentManagement.objects.filter(student=request.user).first()
+                    if student_management and student_management.class_and_section:
+                        class_name = student_management.class_and_section.class_and_section
+                        if class_name:
+                            import re
+                            numbers = re.findall(r'\d+', class_name)
+                            if numbers:
+                                user_class = int(numbers[0])
+            except Exception:
+                pass
+        
+        # Update Psychometric Assessment Link based on class
+        for feature in features_data:
+            if feature.get('name') == 'Psychometric Assessment Link':
+                if user_class is not None and user_class <= 10:
+                    # Class 10 or below -> Stream Sorter
+                    feature['link_url'] = '/psychometrictest/stream-sorter/'
+                else:
+                    # Class 11-12 or not logged in -> Career Direction (default)
+                    feature['link_url'] = '/psychometrictest/career-direction/'
+                break
+        
         return DRFResponse(features_data)
 
 
@@ -676,10 +795,8 @@ class AICapabilitiesView(APIView):
     
     def get(self, request):
         capabilities = AICapability.objects.filter(is_active=True).order_by('order', 'name')
-        capabilities_data = [{'name': c.name, 'icon': c.icon} for c in capabilities]
-        
-        # If no capabilities in database, return empty list (admin should add them)
-        return DRFResponse(capabilities_data)
+        serializer = AICapabilitySerializer(capabilities, many=True)
+        return DRFResponse(serializer.data)
 
 
 class PopularQueriesView(APIView):

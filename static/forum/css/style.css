@@ -576,6 +576,34 @@ body {
     margin-right: 10px;
 }
 
+.feature-link {
+    color: #333;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.feature-link:hover {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+    transform: translateX(5px);
+}
+
+.feature-link i {
+    color: #4CAF50;
+    margin-right: 10px;
+    transition: all 0.3s ease;
+}
+
+.feature-link:hover i {
+    color: #45a049;
+    transform: scale(1.1);
+}
+
 .typing-indicator {
     display: none;
     padding: 15px;

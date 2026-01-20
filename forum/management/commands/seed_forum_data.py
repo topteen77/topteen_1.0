@@ -45,19 +45,68 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS(f'✓ Created/Updated {created_categories} categories'))
         
-        # Seed AI Features
+        # Seed AI Features with links to relevant pages
         features_data = [
-            {'name': 'Psychometric Assessment Link', 'icon': 'fas fa-check-circle', 'order': 1},
-            {'name': 'Stream Selection Guidance', 'icon': 'fas fa-check-circle', 'order': 2},
-            {'name': 'Career Cluster Matching', 'icon': 'fas fa-check-circle', 'order': 3},
-            {'name': 'College & University Finder', 'icon': 'fas fa-check-circle', 'order': 4},
-            {'name': 'Entrance Exam Guidance', 'icon': 'fas fa-check-circle', 'order': 5},
-            {'name': 'Emerging Careers Alert', 'icon': 'fas fa-check-circle', 'order': 6},
-            {'name': 'Part-time Job Options', 'icon': 'fas fa-check-circle', 'order': 7},
-            {'name': 'Study Abroad Guidance', 'icon': 'fas fa-check-circle', 'order': 8},
+            {
+                'name': 'Psychometric Assessment Link',
+                'icon': 'fas fa-brain',
+                'description': 'Take psychometric tests to discover your career interests',
+                'link_url': '/psychometrictest/career-direction/',  # Default, will be dynamically updated based on user class
+                'order': 1
+            },
+            {
+                'name': 'Stream Selection Guidance',
+                'icon': 'fas fa-graduation-cap',
+                'description': 'Get guidance on choosing the right stream after 10th',
+                'link_url': '/careers/',
+                'order': 2
+            },
+            {
+                'name': 'Career Cluster Matching',
+                'icon': 'fas fa-sitemap',
+                'description': 'Explore careers by clusters and find your match',
+                'link_url': '/careers/?mode=traditional',
+                'order': 3
+            },
+            {
+                'name': 'College & University Finder',
+                'icon': 'fas fa-university',
+                'description': 'Find the best colleges and universities for your career',
+                'link_url': '/colleges/',
+                'order': 4
+            },
+            {
+                'name': 'Entrance Exam Guidance',
+                'icon': 'fas fa-clipboard-list',
+                'description': 'Get information about entrance exams and preparation',
+                'link_url': '/testprep/',
+                'order': 5
+            },
+            {
+                'name': 'Emerging Careers Alert',
+                'icon': 'fas fa-rocket',
+                'description': 'Discover emerging and future career opportunities',
+                'link_url': '/careers/',
+                'order': 6
+            },
+            {
+                'name': 'Part-time Job Options',
+                'icon': 'fas fa-briefcase',
+                'description': 'Explore part-time job opportunities for students',
+                'link_url': '/careers/',
+                'order': 7
+            },
+            {
+                'name': 'Study Abroad Guidance',
+                'icon': 'fas fa-globe',
+                'description': 'Get guidance on studying abroad and international education',
+                'link_url': 'https://www.canamgroup.com/guide-to-study-abroad',
+                'order': 8
+            },
         ]
         
         created_features = 0
+        updated_features = 0
         for feat_data in features_data:
             feature, created = AIFeature.objects.get_or_create(
                 name=feat_data['name'],
@@ -66,26 +115,81 @@ class Command(BaseCommand):
             if created:
                 created_features += 1
             else:
-                # Update existing feature
+                # Update existing feature with new data (especially link_url)
+                updated = False
                 for key, value in feat_data.items():
-                    setattr(feature, key, value)
-                feature.save()
+                    if key != 'name':  # Don't update the name (used for lookup)
+                        if getattr(feature, key, None) != value:
+                            setattr(feature, key, value)
+                            updated = True
+                if updated:
+                    feature.save()
+                    updated_features += 1
         
-        self.stdout.write(self.style.SUCCESS(f'✓ Created/Updated {created_features} AI features'))
+        self.stdout.write(self.style.SUCCESS(f'✓ Created {created_features} AI features, Updated {updated_features} existing features'))
         
-        # Seed AI Capabilities
+        # Seed AI Capabilities with links to relevant pages
         capabilities_data = [
-            {'name': 'Career Cluster Analysis', 'icon': 'fas fa-brain', 'order': 1},
-            {'name': 'Job Market Trends', 'icon': 'fas fa-chart-line', 'order': 2},
-            {'name': 'College Predictor', 'icon': 'fas fa-graduation-cap', 'order': 3},
-            {'name': 'Salary Calculator', 'icon': 'fas fa-calculator', 'order': 4},
-            {'name': 'Study Abroad Guide', 'icon': 'fas fa-globe', 'order': 5},
-            {'name': 'Skills Gap Analysis', 'icon': 'fas fa-briefcase', 'order': 6},
-            {'name': 'Accommodation Finder', 'icon': 'fas fa-home', 'order': 7},
-            {'name': 'Timeline Planner', 'icon': 'fas fa-clock', 'order': 8},
+            {
+                'name': 'Career Cluster Analysis',
+                'icon': 'fas fa-sitemap',
+                'description': 'Analyze career clusters based on your interests',
+                'link_url': '/careers/careerlibrary/',
+                'order': 1
+            },
+            {
+                'name': 'Job Market Trends',
+                'icon': 'fas fa-chart-line',
+                'description': 'Explore current job market trends and opportunities',
+                'link_url': '/careers/',
+                'order': 2
+            },
+            {
+                'name': 'College Predictor',
+                'icon': 'fas fa-university',
+                'description': 'Find colleges that match your profile and preferences',
+                'link_url': '/colleges/',
+                'order': 3
+            },
+            {
+                'name': 'Salary Calculator',
+                'icon': 'fas fa-calculator',
+                'description': 'Calculate and compare career salaries',
+                'link_url': '/careers/',
+                'order': 4
+            },
+            {
+                'name': 'Study Abroad Guide',
+                'icon': 'fas fa-globe',
+                'description': 'Comprehensive guide for studying abroad',
+                'link_url': '/colleges/',
+                'order': 5
+            },
+            {
+                'name': 'Skills Gap Analysis',
+                'icon': 'fas fa-briefcase',
+                'description': 'Identify skills needed for your target career',
+                'link_url': '/careers/',
+                'order': 6
+            },
+            {
+                'name': 'Accommodation Finder',
+                'icon': 'fas fa-home',
+                'description': 'Find accommodation options for students',
+                'link_url': '/colleges/',
+                'order': 7
+            },
+            {
+                'name': 'Timeline Planner',
+                'icon': 'fas fa-clock',
+                'description': 'Plan your career journey timeline',
+                'link_url': '/careers/',
+                'order': 8
+            },
         ]
         
         created_capabilities = 0
+        updated_capabilities = 0
         for cap_data in capabilities_data:
             capability, created = AICapability.objects.get_or_create(
                 name=cap_data['name'],
@@ -94,12 +198,18 @@ class Command(BaseCommand):
             if created:
                 created_capabilities += 1
             else:
-                # Update existing capability
+                # Update existing capability with new data (especially link_url)
+                updated = False
                 for key, value in cap_data.items():
-                    setattr(capability, key, value)
-                capability.save()
+                    if key != 'name':  # Don't update the name (used for lookup)
+                        if getattr(capability, key, None) != value:
+                            setattr(capability, key, value)
+                            updated = True
+                if updated:
+                    capability.save()
+                    updated_capabilities += 1
         
-        self.stdout.write(self.style.SUCCESS(f'✓ Created/Updated {created_capabilities} AI capabilities'))
+        self.stdout.write(self.style.SUCCESS(f'✓ Created {created_capabilities} AI capabilities, Updated {updated_capabilities} existing capabilities'))
         
         # Seed some common countries
         countries_data = [
