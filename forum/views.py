@@ -623,8 +623,9 @@ class UserProgressView(APIView):
     
     def get(self, request):
         if not request.user.is_authenticated:
-            # Return default/empty values for anonymous users
+            # Return default/empty values for anonymous users with is_authenticated flag
             return DRFResponse({
+                'is_authenticated': False,
                 'careers_explored': 0,
                 'stream_match': 0,
                 'skills_identified': 0,
@@ -728,6 +729,7 @@ class UserProgressView(APIView):
             pass
         
         return DRFResponse({
+            'is_authenticated': True,
             'careers_explored': careers_explored,
             'stream_match': stream_match,
             'skills_identified': skills_identified,

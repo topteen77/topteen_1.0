@@ -395,29 +395,36 @@ async function loadInitialData() {
             // Categories are already in HTML, but can be updated dynamically if needed
         }
         
-        // Load platform statistics
-        const statsResponse = await fetch(`${API_BASE_URL}/statistics/`);
-        if (statsResponse.ok) {
-            const stats = await statsResponse.json();
-            updateStatistics(stats);
-        }
-        
-        // Load user progress (if logged in)
+        // Load user progress first to check if user is authenticated
+        let userAuthenticated = false;
         try {
             const progressResponse = await fetch(`${API_BASE_URL}/user-progress/`);
             if (progressResponse.ok) {
                 const progress = await progressResponse.json();
-                updateUserProgress(progress);
+                userAuthenticated = progress.is_authenticated === true;
+                
+                if (userAuthenticated) {
+                    // User is logged in - show user-specific progress
+                    updateProgressTitle('Your Progress');
+                    updateUserProgress(progress);
+                } else {
+                    // User is not logged in - show platform-wide statistics
+                    updateProgressTitle('Overall Statistics');
+                }
             }
         } catch (error) {
-            // User might not be logged in, use default values
-            updateUserProgress({
-                careers_explored: 0,
-                stream_match: 0,
-                skills_identified: 0,
-                universities_viewed: 0,
-                career_readiness: 0
-            });
+            // Error loading user progress, treat as not authenticated
+            userAuthenticated = false;
+            updateProgressTitle('Overall Statistics');
+        }
+        
+        // If user is not logged in, show platform-wide statistics
+        if (!userAuthenticated) {
+            const statsResponse = await fetch(`${API_BASE_URL}/statistics/`);
+            if (statsResponse.ok) {
+                const stats = await statsResponse.json();
+                updateStatistics(stats);
+            }
         }
         
         // Load popular queries
@@ -559,6 +566,14 @@ function updateStatistics(stats) {
     }
     if (responseTime) {
         responseTime.textContent = stats.response_time || '<1s';
+    }
+}
+
+// Update progress title
+function updateProgressTitle(title) {
+    const titleElement = document.getElementById('progress-title');
+    if (titleElement) {
+        titleElement.textContent = title;
     }
 }
 
