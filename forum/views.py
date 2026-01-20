@@ -258,6 +258,31 @@ def index(request):
                 'order': feature.order
             }
             
+            # #region agent log
+            import json
+            import os
+            log_data = {
+                'sessionId': 'debug-session',
+                'runId': 'run1',
+                'hypothesisId': 'A',
+                'location': 'forum/views.py:251',
+                'message': 'Feature loaded from DB',
+                'data': {
+                    'feature_id': feature.id,
+                    'feature_name': feature.name,
+                    'link_url_raw': str(feature.link_url) if feature.link_url else None,
+                    'link_url_type': type(feature.link_url).__name__,
+                    'link_url_bool': bool(feature.link_url),
+                    'link_url_len': len(feature.link_url) if feature.link_url else 0
+                },
+                'timestamp': int(time.time() * 1000)
+            }
+            try:
+                with open('/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps(log_data) + '\n')
+            except: pass
+            # #endregion
+            
             # Update Psychometric Assessment Link based on class
             if feature.name == 'Psychometric Assessment Link':
                 if user_class is not None and user_class <= 10:
@@ -265,7 +290,50 @@ def index(request):
                 else:
                     feature_dict['link_url'] = '/psychometrictest/career-direction/'
             
+            # #region agent log
+            log_data2 = {
+                'sessionId': 'debug-session',
+                'runId': 'run1',
+                'hypothesisId': 'A',
+                'location': 'forum/views.py:268',
+                'message': 'Feature dict prepared for template',
+                'data': {
+                    'feature_id': feature.id,
+                    'feature_name': feature.name,
+                    'link_url_final': str(feature_dict['link_url']) if feature_dict['link_url'] else None,
+                    'link_url_final_bool': bool(feature_dict['link_url']),
+                    'link_url_final_len': len(feature_dict['link_url']) if feature_dict['link_url'] else 0
+                },
+                'timestamp': int(time.time() * 1000)
+            }
+            try:
+                with open('/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps(log_data2) + '\n')
+            except: pass
+            # #endregion
+            
             features_data.append(feature_dict)
+        
+        # #region agent log
+        log_data3 = {
+            'sessionId': 'debug-session',
+            'runId': 'run1',
+            'hypothesisId': 'B',
+            'location': 'forum/views.py:270',
+            'message': 'All features prepared, setting context',
+            'data': {
+                'total_features': len(features_data),
+                'features_with_links': sum(1 for f in features_data if f.get('link_url')),
+                'features_without_links': sum(1 for f in features_data if not f.get('link_url')),
+                'feature_names': [f['name'] for f in features_data]
+            },
+            'timestamp': int(time.time() * 1000)
+        }
+        try:
+            with open('/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug.log', 'a') as f:
+                f.write(json.dumps(log_data3) + '\n')
+        except: pass
+        # #endregion
         
         context['ai_features'] = features_data
     except Exception as e:
