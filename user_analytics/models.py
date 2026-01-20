@@ -119,6 +119,7 @@ class UserEvent(BaseModel):
         ('payment_pending', 'Payment Pending'),
         ('psychometric_test_started', 'Psychometric Test Started'),
         ('psychometric_test_completed', 'Psychometric Test Completed'),
+        ('result_generated', 'Result Generated'),
         ('course_enrolled', 'Course Enrolled'),
         ('skilllab_enrolled', 'SkillLab Course Enrolled'),
         ('institute_student_registered', 'Institute Student Registered'),
@@ -240,6 +241,55 @@ class UserJourney(BaseModel):
     journey_path = models.JSONField(default=list, help_text="Sequence of pages visited")
     ga4_client_id = models.CharField(max_length=255, blank=True, null=True, db_index=True, help_text="GA4 client ID for session linking")
     
+    # Journey completion tracking
+    is_registered = models.BooleanField(default=False, db_index=True, help_text="User registered during this journey")
+    has_payment = models.BooleanField(default=False, db_index=True, help_text="User made a payment during this journey")
+    has_psychometric_test = models.BooleanField(default=False, db_index=True, help_text="User started psychometric test during this journey")
+    test_completed = models.BooleanField(default=False, db_index=True, help_text="User completed psychometric test during this journey")
+    result_generated = models.BooleanField(default=False, db_index=True, help_text="Psychometric test result was generated during this journey")
+    
+    # Event references for detailed tracking
+    registration_event = models.ForeignKey(
+        UserEvent,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='registration_journeys',
+        help_text="User registration event"
+    )
+    payment_event = models.ForeignKey(
+        UserEvent,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='payment_journeys',
+        help_text="Payment event"
+    )
+    psychometric_test_event = models.ForeignKey(
+        UserEvent,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='psychometric_test_journeys',
+        help_text="Psychometric test started event"
+    )
+    test_completion_event = models.ForeignKey(
+        UserEvent,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='test_completion_journeys',
+        help_text="Test completion event"
+    )
+    result_generation_event = models.ForeignKey(
+        UserEvent,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='result_generation_journeys',
+        help_text="Result generation event"
+    )
+    
     class Meta:
         verbose_name = "User Journey"
         verbose_name_plural = "User Journeys"
@@ -259,6 +309,19 @@ class UserJourney(BaseModel):
     def user_type(self):
         """Get user type: 'Registered' or 'Organic'"""
         return 'Registered' if self.user else 'Organic'
+    
+    @property
+    def is_new_user(self):
+        """Check if user is new (registered within 24 hours of journey start)"""
+        if not self.user:
+            return False
+        from datetime import timedelta
+        return self.user.created > (self.start_time - timedelta(hours=24))
+    
+    @property
+    def is_ga4_tracked(self):
+        """Check if journey is tracked by GA4"""
+        return bool(self.ga4_client_id)
     
     def __str__(self):
         user_str = self.user.email if self.user else "Anonymous"
@@ -319,7 +382,7 @@ class GA4Session(BaseModel):
         """Get user type: 'Registered' or 'New'"""
         if self.user:
             # Check if user was new at the time of this session
-            if self.user.date_joined.date() <= self.date:
+            if self.user.created.date() <= self.date:
                 return 'Registered'
         return 'New'
     

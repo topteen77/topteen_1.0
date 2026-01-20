@@ -2,12 +2,21 @@
 Analytics Middleware for tracking user activities asynchronously.
 This middleware captures page views, sessions, referrer information,
 and GA4 client IDs without blocking the request/response cycle.
+Falls back to synchronous execution if Celery is unavailable.
 """
 import uuid
 import re
 from django.utils.deprecation import MiddlewareMixin
 from django.utils import timezone
-from user_analytics.tasks import track_page_view_async, update_user_journey_async
+from user_analytics.tasks import (
+    track_page_view_async, 
+    update_user_journey_async,
+    track_page_view_sync,
+    update_user_journey_sync
+)
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AnalyticsMiddleware(MiddlewareMixin):
@@ -54,37 +63,156 @@ class AnalyticsMiddleware(MiddlewareMixin):
         return None
     
     def process_response(self, request, response):
-        """Process response and trigger async tracking"""
+        """Process response and trigger async tracking with fallback to sync"""
         # Only track successful GET requests
         if hasattr(request, 'analytics_data') and request.method == 'GET' and response.status_code == 200:
             # Get page title from response if available
             page_title = getattr(response, 'page_title', '')
             
-            # Trigger async task for page view tracking
-            track_page_view_async.delay(
-                session_id=request.analytics_data['session_id'],
-                user_id=request.analytics_data['user_id'],
-                ga4_client_id=request.analytics_data.get('ga4_client_id'),
-                page_path=request.analytics_data['path'],
-                page_title=page_title,
-                referrer=request.analytics_data['referrer'],
-                user_agent=request.analytics_data['user_agent'],
-                ip_address=request.analytics_data['ip_address'],
-                utm_source=request.analytics_data['utm_source'],
-                utm_medium=request.analytics_data['utm_medium'],
-                utm_campaign=request.analytics_data['utm_campaign'],
-                utm_term=request.analytics_data['utm_term'],
-                utm_content=request.analytics_data['utm_content'],
-            )
+                                                                # Check if Celery worker is actually running
+            # If not, use synchronous execution to ensure tracking works
+            use_sync = False
             
-            # Update user journey asynchronously
-            update_user_journey_async.delay(
-                session_id=request.analytics_data['session_id'],
-                user_id=request.analytics_data['user_id'],
-                ga4_client_id=request.analytics_data.get('ga4_client_id'),
-                page_path=request.analytics_data['path'],
-                referrer=request.analytics_data['referrer'],
-            )
+            # Try to check if Celery worker is running by checking broker connection
+            try:
+                from celery import current_app
+                inspect = current_app.control.inspect()
+                active_workers = inspect.active()
+                if not active_workers:
+                    # No active workers, use sync
+                    use_sync = True
+                    logger.debug("No Celery workers active, using synchronous tracking")
+            except Exception:
+                # Can't check workers, assume they're not running and use sync
+                use_sync = True
+                logger.debug("Could not check Celery workers, using synchronous tracking")
+            
+            if use_sync:
+                # Use synchronous tracking (worker not running)
+                track_page_view_sync(
+                    session_id=request.analytics_data['session_id'],
+                    user_id=request.analytics_data['user_id'],
+                    ga4_client_id=request.analytics_data.get('ga4_client_id'),
+                    page_path=request.analytics_data['path'],
+                    page_title=page_title,
+                    referrer=request.analytics_data['referrer'],
+                    user_agent=request.analytics_data['user_agent'],
+                    ip_address=request.analytics_data['ip_address'],
+                    utm_source=request.analytics_data['utm_source'],
+                    utm_medium=request.analytics_data['utm_medium'],
+                    utm_campaign=request.analytics_data['utm_campaign'],
+                    utm_term=request.analytics_data['utm_term'],
+                    utm_content=request.analytics_data['utm_content'],
+                )
+                
+                # Get device and country from user agent
+                device_type = None
+                country = None
+                if request.analytics_data.get('user_agent'):
+                    from user_analytics.utils import parse_user_agent_info
+                    ua_info = parse_user_agent_info(request.analytics_data['user_agent'])
+                    device_type = ua_info.get('device_type')
+                
+                # Get country from UserActivity if available (from previous page views)
+                try:
+                    from user_analytics.models import UserActivity
+                    recent_activity = UserActivity.objects.filter(
+                        session_id=request.analytics_data['session_id']
+                    ).order_by('-created').first()
+                    if recent_activity and recent_activity.country:
+                        country = recent_activity.country
+                except Exception:
+                    pass
+                
+                update_user_journey_sync(
+                    session_id=request.analytics_data['session_id'],
+                    user_id=request.analytics_data['user_id'],
+                    ga4_client_id=request.analytics_data.get('ga4_client_id'),
+                    page_path=request.analytics_data['path'],
+                    referrer=request.analytics_data['referrer'],
+                    device_type=device_type,
+                    country=country,
+                    utm_source=request.analytics_data.get('utm_source'),
+                )
+            else:
+                # Try async tracking first, fall back to sync if it fails
+                try:
+                    # Trigger async task for page view tracking
+                    track_page_view_async.delay(
+                        session_id=request.analytics_data['session_id'],
+                        user_id=request.analytics_data['user_id'],
+                        ga4_client_id=request.analytics_data.get('ga4_client_id'),
+                        page_path=request.analytics_data['path'],
+                        page_title=page_title,
+                        referrer=request.analytics_data['referrer'],
+                        user_agent=request.analytics_data['user_agent'],
+                        ip_address=request.analytics_data['ip_address'],
+                        utm_source=request.analytics_data['utm_source'],
+                        utm_medium=request.analytics_data['utm_medium'],
+                        utm_campaign=request.analytics_data['utm_campaign'],
+                        utm_term=request.analytics_data['utm_term'],
+                        utm_content=request.analytics_data['utm_content'],
+                    )
+                    
+                    # Get device and country from user agent
+                    device_type = None
+                    country = None
+                    if request.analytics_data.get('user_agent'):
+                        from user_analytics.utils import parse_user_agent_info
+                        ua_info = parse_user_agent_info(request.analytics_data['user_agent'])
+                        device_type = ua_info.get('device_type')
+                    
+                    # Update user journey asynchronously
+                    update_user_journey_async.delay(
+                        session_id=request.analytics_data['session_id'],
+                        user_id=request.analytics_data['user_id'],
+                        ga4_client_id=request.analytics_data.get('ga4_client_id'),
+                        page_path=request.analytics_data['path'],
+                        referrer=request.analytics_data['referrer'],
+                        device_type=device_type,
+                        country=country,
+                        utm_source=request.analytics_data.get('utm_source'),
+                    )
+                except Exception as e:
+                    # Celery is unavailable, fall back to synchronous execution
+                    logger.warning(f"Celery unavailable, using synchronous tracking: {e}")
+                    
+                    # Track page view synchronously
+                    track_page_view_sync(
+                        session_id=request.analytics_data['session_id'],
+                        user_id=request.analytics_data['user_id'],
+                        ga4_client_id=request.analytics_data.get('ga4_client_id'),
+                        page_path=request.analytics_data['path'],
+                        page_title=page_title,
+                        referrer=request.analytics_data['referrer'],
+                        user_agent=request.analytics_data['user_agent'],
+                        ip_address=request.analytics_data['ip_address'],
+                        utm_source=request.analytics_data['utm_source'],
+                        utm_medium=request.analytics_data['utm_medium'],
+                        utm_campaign=request.analytics_data['utm_campaign'],
+                        utm_term=request.analytics_data['utm_term'],
+                        utm_content=request.analytics_data['utm_content'],
+                    )
+                    
+                    # Get device and country from user agent
+                    device_type = None
+                    country = None
+                    if request.analytics_data.get('user_agent'):
+                        from user_analytics.utils import parse_user_agent_info
+                        ua_info = parse_user_agent_info(request.analytics_data['user_agent'])
+                        device_type = ua_info.get('device_type')
+                    
+                    # Update user journey synchronously
+                    update_user_journey_sync(
+                        session_id=request.analytics_data['session_id'],
+                        user_id=request.analytics_data['user_id'],
+                        ga4_client_id=request.analytics_data.get('ga4_client_id'),
+                        page_path=request.analytics_data['path'],
+                        referrer=request.analytics_data['referrer'],
+                        device_type=device_type,
+                        country=country,
+                        utm_source=request.analytics_data.get('utm_source'),
+                    )
         
         return response
     

@@ -27,6 +27,16 @@ def track_user_registration(sender, instance, created, **kwargs):
             # Get session ID if available (from request context)
             session_id = getattr(instance, '_analytics_session_id', None)
             
+            # Get session_id from user's recent activity if not provided
+            if not session_id:
+                try:
+                    from user_analytics.models import UserActivity
+                    recent_activity = UserActivity.objects.filter(user=instance).order_by('-created').first()
+                    if recent_activity:
+                        session_id = recent_activity.session_id
+                except Exception:
+                    pass
+            
             track_user_event_async.delay(
                 event_type='registration',
                 event_name='User Registered',
@@ -105,6 +115,16 @@ def track_payment_event(sender, instance, created, **kwargs):
             except Exception:
                 pass
         
+        # Get session_id from user's recent activity
+        session_id = None
+        try:
+            from user_analytics.models import UserActivity
+            recent_activity = UserActivity.objects.filter(user=instance.user).order_by('-created').first()
+            if recent_activity:
+                session_id = recent_activity.session_id
+        except Exception:
+            pass
+        
         track_user_event_async.delay(
             event_type=event_type,
             event_name=event_name,
@@ -112,6 +132,7 @@ def track_payment_event(sender, instance, created, **kwargs):
             event_value=event_value,
             content_type_id=content_type.id,
             object_id=instance.id,
+            session_id=session_id,
             metadata=metadata
         )
         logger.info(f"Tracked payment event: {event_type} for payment {instance.id}")
@@ -123,8 +144,19 @@ def track_payment_event(sender, instance, created, **kwargs):
 def track_psychometric_payment(sender, instance, created, **kwargs):
     """
     Track psychometric test payment events.
+    Also tracks test started event when payment is successful.
     """
     try:
+        # Get session_id from user's recent activity
+        session_id = None
+        try:
+            from user_analytics.models import UserActivity
+            recent_activity = UserActivity.objects.filter(user=instance.user).order_by('-created').first()
+            if recent_activity:
+                session_id = recent_activity.session_id
+        except Exception:
+            pass
+        
         if instance.is_success == choices.YesNoChoices.YES:
             event_type = 'payment_success'
             event_name = f'Psychometric Test Payment - {instance.get_test_name()}'
@@ -137,6 +169,7 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
         
         content_type = ContentType.objects.get_for_model(instance)
         
+        # Track payment event
         track_user_event_async.delay(
             event_type=event_type,
             event_name=event_name,
@@ -144,11 +177,28 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
             event_value=event_value,
             content_type_id=content_type.id,
             object_id=instance.id,
+            session_id=session_id,
             metadata={
                 'test_type': instance.get_test_type_display(),
                 'test_name': instance.get_test_name(),
             }
         )
+        
+        # If payment is successful, also track test started event
+        if instance.is_success == choices.YesNoChoices.YES:
+            track_user_event_async.delay(
+                event_type='psychometric_test_started',
+                event_name=f'Psychometric Test Started - {instance.get_test_name()}',
+                user_id=instance.user.id,
+                event_value=0,
+                content_type_id=content_type.id,
+                object_id=instance.id,
+                session_id=session_id,
+                metadata={
+                    'test_type': instance.get_test_type_display(),
+                    'test_name': instance.get_test_name(),
+                }
+            )
     except Exception as e:
         logger.error(f"Error tracking psychometric payment: {e}", exc_info=True)
 
@@ -156,14 +206,25 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
 @receiver(post_save, sender=CandidateTest)
 def track_psychometric_test_completion(sender, instance, created, **kwargs):
     """
-    Track psychometric test completion.
+    Track psychometric test completion and result generation.
     """
     if instance.is_success == choices.YesNoChoices.YES and not created:
         try:
             payment = instance.pyschometric_test_payment
             if payment:
+                # Get session_id from user's recent activity
+                session_id = None
+                try:
+                    from user_analytics.models import UserActivity
+                    recent_activity = UserActivity.objects.filter(user=payment.user).order_by('-created').first()
+                    if recent_activity:
+                        session_id = recent_activity.session_id
+                except Exception:
+                    pass
+                
                 content_type = ContentType.objects.get_for_model(instance)
                 
+                # Track test completion
                 track_user_event_async.delay(
                     event_type='psychometric_test_completed',
                     event_name=f'Psychometric Test Completed - {payment.get_test_name()}',
@@ -171,12 +232,31 @@ def track_psychometric_test_completion(sender, instance, created, **kwargs):
                     event_value=0,
                     content_type_id=content_type.id,
                     object_id=instance.id,
+                    session_id=session_id,
                     metadata={
                         'test_type': payment.get_test_type_display(),
                         'test_name': payment.get_test_name(),
                         'assessment_id': instance.assessment_id,
                     }
                 )
+                
+                # Track result generation (if result exists)
+                if hasattr(instance, 'result') and instance.result:
+                    track_user_event_async.delay(
+                        event_type='result_generated',
+                        event_name=f'Psychometric Test Result Generated - {payment.get_test_name()}',
+                        user_id=payment.user.id,
+                        event_value=0,
+                        content_type_id=content_type.id,
+                        object_id=instance.id,
+                        session_id=session_id,
+                        metadata={
+                            'test_type': payment.get_test_type_display(),
+                            'test_name': payment.get_test_name(),
+                            'assessment_id': instance.assessment_id,
+                        }
+                    )
+                
                 logger.info(f"Tracked psychometric test completion for user {payment.user.id}")
         except Exception as e:
             logger.error(f"Error tracking psychometric test completion: {e}", exc_info=True)
@@ -214,6 +294,17 @@ def track_institute_student_registration(sender, instance, created, **kwargs):
     """
     if created:
         try:
+            # Get session_id from user's recent activity
+            session_id = None
+            if instance.student:
+                try:
+                    from user_analytics.models import UserActivity
+                    recent_activity = UserActivity.objects.filter(user=instance.student).order_by('-created').first()
+                    if recent_activity:
+                        session_id = recent_activity.session_id
+                except Exception:
+                    pass
+            
             content_type = ContentType.objects.get_for_model(instance)
             
             track_user_event_async.delay(
@@ -223,6 +314,7 @@ def track_institute_student_registration(sender, instance, created, **kwargs):
                 event_value=0,
                 content_type_id=content_type.id,
                 object_id=instance.id,
+                session_id=session_id,
                 metadata={
                     'institute_id': instance.institute.id if hasattr(instance, 'institute') and instance.institute else None,
                     'class_section': str(instance.class_and_section) if hasattr(instance, 'class_and_section') and instance.class_and_section else None,

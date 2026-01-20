@@ -1,6 +1,7 @@
 """
 Celery tasks for async analytics processing.
 All tracking operations are performed asynchronously to maintain website performance.
+Also includes synchronous helper functions for fallback when Celery is unavailable.
 """
 from celery import shared_task
 from django.utils import timezone
@@ -12,6 +13,165 @@ import logging
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+
+
+# Synchronous helper functions (can be called directly when Celery is unavailable)
+def track_page_view_sync(
+    session_id,
+    user_id=None,
+    ga4_client_id=None,
+    page_path='',
+    page_title='',
+    referrer='',
+    user_agent='',
+    ip_address='',
+    utm_source='',
+    utm_medium='',
+    utm_campaign='',
+    utm_term='',
+    utm_content='',
+):
+    """
+    Synchronous version of track_page_view_async.
+    Can be called directly when Celery is unavailable.
+    """
+    try:
+        user = None
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                pass
+        
+        # Parse user agent
+        ua_info = parse_user_agent_info(user_agent)
+        
+        # Determine source if UTM not provided
+        source = utm_source or get_referrer_source(referrer)
+        
+        # Create or update user activity
+        with transaction.atomic():
+            activity = UserActivity.objects.create(
+                user=user,
+                session_id=session_id,
+                page_path=page_path,
+                page_title=page_title,
+                referrer=referrer,
+                utm_source=utm_source or source,
+                utm_medium=utm_medium,
+                utm_campaign=utm_campaign,
+                utm_term=utm_term,
+                utm_content=utm_content,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                device_type=ua_info['device_type'],
+                browser=ua_info['browser'],
+                os=ua_info['os'],
+            )
+            
+            # Update or create lead if user is not authenticated
+            if not user and (utm_source or referrer):
+                lead, created = Lead.objects.get_or_create(
+                    email=f"session_{session_id}@temp.topteen.in",
+                    defaults={
+                        'source': source,
+                        'medium': utm_medium,
+                        'campaign': utm_campaign,
+                        'referrer': referrer,
+                        'landing_page': page_path,
+                        'first_visit': timezone.now(),
+                        'last_visit': timezone.now(),
+                    }
+                )
+                if not created:
+                    lead.last_visit = timezone.now()
+                    lead.visit_count += 1
+                    lead.save()
+        
+        return f"Tracked page view: {page_path}"
+    
+    except Exception as exc:
+        logger.error(f"Error tracking page view (sync): {exc}", exc_info=True)
+        return None
+
+
+def update_user_journey_sync(
+    session_id,
+    user_id=None,
+    ga4_client_id=None,
+    page_path='',
+    referrer='',
+    device_type=None,
+    country=None,
+    utm_source=None,
+):
+    """
+    Synchronous version of update_user_journey_async.
+    Can be called directly when Celery is unavailable.
+    """
+    try:
+        user = None
+        is_new_user = False
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+                # Check if user is new (registered in last 24 hours)
+                from datetime import timedelta
+                is_new_user = user.created > (timezone.now() - timedelta(hours=24))
+            except User.DoesNotExist:
+                pass
+        
+        with transaction.atomic():
+            defaults = {
+                'user': user,
+                'start_time': timezone.now(),
+                'entry_page': page_path,
+                'referrer': referrer,
+                'journey_path': [page_path],
+            }
+            if ga4_client_id:
+                defaults['ga4_client_id'] = ga4_client_id
+            if device_type:
+                defaults['device_type'] = device_type
+            if country:
+                defaults['country'] = country
+            if utm_source:
+                defaults['utm_source'] = utm_source
+            
+            journey, created = UserJourney.objects.get_or_create(
+                session_id=session_id,
+                defaults=defaults
+            )
+            
+            if not created:
+                # Update existing journey
+                journey.end_time = timezone.now()
+                journey.total_pages += 1
+                journey.exit_page = page_path
+                
+                # Update GA4 client ID if provided and not already set
+                if ga4_client_id and not journey.ga4_client_id:
+                    journey.ga4_client_id = ga4_client_id
+                
+                # Update device/country if not set
+                if device_type and not journey.device_type:
+                    journey.device_type = device_type
+                if country and not journey.country:
+                    journey.country = country
+                if utm_source and not journey.utm_source:
+                    journey.utm_source = utm_source
+                
+                # Add to journey path if not already there
+                if page_path not in journey.journey_path:
+                    journey.journey_path.append(page_path)
+                
+                journey.save()
+        
+        return f"Updated journey: {session_id}"
+    
+    except Exception as exc:
+        logger.error(f"Error updating user journey (sync): {exc}", exc_info=True)
+        return None
 
 
 @shared_task(bind=True, max_retries=3)
@@ -119,6 +279,9 @@ def update_user_journey_async(
     ga4_client_id=None,
     page_path='',
     referrer='',
+    device_type=None,
+    country=None,
+    utm_source=None,
 ):
     """
     Async task to update user journey.
@@ -128,12 +291,19 @@ def update_user_journey_async(
         user_id: User ID if authenticated
         page_path: URL path
         referrer: HTTP referrer
+        device_type: Device type (mobile, desktop, tablet)
+        country: User country
+        utm_source: UTM source (inquiry source)
     """
     try:
         user = None
+        is_new_user = False
         if user_id:
             try:
                 user = User.objects.get(id=user_id)
+                # Check if user is new (registered in last 24 hours)
+                from datetime import timedelta
+                is_new_user = user.created > (timezone.now() - timedelta(hours=24))
             except User.DoesNotExist:
                 pass
         
@@ -147,6 +317,12 @@ def update_user_journey_async(
             }
             if ga4_client_id:
                 defaults['ga4_client_id'] = ga4_client_id
+            if device_type:
+                defaults['device_type'] = device_type
+            if country:
+                defaults['country'] = country
+            if utm_source:
+                defaults['utm_source'] = utm_source
             
             journey, created = UserJourney.objects.get_or_create(
                 session_id=session_id,
@@ -163,6 +339,14 @@ def update_user_journey_async(
                 if ga4_client_id and not journey.ga4_client_id:
                     journey.ga4_client_id = ga4_client_id
                 
+                # Update device/country if not set
+                if device_type and not journey.device_type:
+                    journey.device_type = device_type
+                if country and not journey.country:
+                    journey.country = country
+                if utm_source and not journey.utm_source:
+                    journey.utm_source = utm_source
+                
                 # Add to journey path if not already there
                 if page_path not in journey.journey_path:
                     journey.journey_path.append(page_path)
@@ -174,6 +358,59 @@ def update_user_journey_async(
     except Exception as exc:
         logger.error(f"Error updating user journey: {exc}", exc_info=True)
         raise self.retry(exc=exc, countdown=60)
+
+
+def update_journey_from_event(event, session_id=None):
+    """
+    Update user journey based on event type.
+    Links events to journeys and updates journey flags.
+    """
+    try:
+        from user_analytics.models import UserJourney
+        
+        # Get session_id from event if not provided
+        if not session_id and event.session_id:
+            session_id = event.session_id
+        
+        if not session_id:
+            return
+        
+        # Find journeys with this session_id
+        journeys = UserJourney.objects.filter(session_id=session_id)
+        
+        for journey in journeys:
+            updated = False
+            
+            # Update based on event type
+            if event.event_type == 'registration':
+                journey.is_registered = True
+                journey.registration_event = event
+                updated = True
+            elif event.event_type == 'payment_success':
+                journey.has_payment = True
+                journey.payment_event = event
+                journey.converted = True
+                journey.conversion_event = event
+                updated = True
+            elif event.event_type == 'psychometric_test_started':
+                journey.has_psychometric_test = True
+                journey.psychometric_test_event = event
+                updated = True
+            elif event.event_type == 'psychometric_test_completed':
+                journey.test_completed = True
+                journey.test_completion_event = event
+                updated = True
+            elif event.event_type == 'result_generated' or 'result' in event.event_name.lower():
+                journey.result_generated = True
+                journey.result_generation_event = event
+                updated = True
+            
+            if updated:
+                journey.save()
+                logger.debug(f"Updated journey {journey.id} from event {event.id} ({event.event_type})")
+    
+    except Exception as e:
+        logger.error(f"Error updating journey from event: {e}", exc_info=True)
 
 
 @shared_task(bind=True, max_retries=3)
@@ -239,16 +476,9 @@ def track_user_event_async(
                     lead.conversion_value = float(event_value)
                     lead.save()
                 
-                # Update user journey conversion
-                if session_id:
-                    journeys = UserJourney.objects.filter(
-                        session_id=session_id,
-                        converted=False
-                    )
-                    for journey in journeys:
-                        journey.converted = True
-                        journey.conversion_event = event
-                        journey.save()
+            # Update user journey from this event (synchronous call since we're already in a task)
+            if session_id or event.session_id:
+                update_journey_from_event(event, session_id or event.session_id)
         
         return f"Tracked event: {event_name}"
     

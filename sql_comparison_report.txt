@@ -1,0 +1,94 @@
+================================================================================
+SQL STRUCTURE COMPARISON REPORT
+================================================================================
+
+File 1: /home/itpc6/Public/django/git-repo/7nov/topteenhtml/topteen12-structure.sql (topteen12)
+File 2: /home/itpc6/Public/django/git-repo/7nov/topteenhtml/topteen12-old-structure.sql (topteen12-old)
+
+================================================================================
+
+TABLE COUNT COMPARISON
+--------------------------------------------------------------------------------
+topteen12: 168 tables
+topteen12-old: 181 tables
+Difference: 13 tables (topteen12 has 13 fewer than topteen12-old)
+
+================================================================================
+MISSING TABLES
+================================================================================
+
+Missing in topteen12-old:
+  topteen12-old: app_results
+
+Missing in topteen12:
+  topteen12: blog_blogshortlist
+  topteen12: career_embeddings
+  topteen12: core_extracurricularactivity
+  topteen12: core_extracurricularactivitycategory
+  topteen12: core_extracurricularactivitysection
+  topteen12: core_vocationalcourse
+  topteen12: core_vocationalcoursecategory
+  topteen12: user_analytics_analyticscache
+  topteen12: user_analytics_lead
+  topteen12: user_analytics_useractivity
+  topteen12: user_analytics_userevent
+  topteen12: user_analytics_userjourney
+  topteen12: users_parentstudentbookmark
+  topteen12: users_parentstudentlink
+
+
+================================================================================
+MISSING FIELDS OR MISMATCHES
+================================================================================
+
+Missing fields in topteen12-old:
+  topteen12-old: blog_blog: idx_blog_created
+  topteen12-old: blog_blog: idx_blog_fulltext_search
+  topteen12-old: blog_blog: idx_blog_publish_modified
+  topteen12-old: blog_blog: idx_blog_publish_status
+  topteen12-old: blog_blog: idx_blog_publish_views
+  topteen12-old: blog_blog: idx_blog_summary
+  topteen12-old: blog_blog: idx_blog_title
+  topteen12-old: blog_blog: idx_blog_views_count
+  topteen12-old: careers_career: description_en
+  topteen12-old: careers_career: description_hi
+  topteen12-old: careers_career: eligibility
+  topteen12-old: careers_career: eligibility_en
+  topteen12-old: careers_career: eligibility_hi
+  topteen12-old: careers_career: idx_career_created
+  topteen12-old: careers_career: idx_career_fulltext_search
+  topteen12-old: careers_career: idx_career_name
+  topteen12-old: careers_career: idx_career_publish_name
+  topteen12-old: careers_career: idx_career_publish_status
+  topteen12-old: careers_career: idx_career_summary
+  topteen12-old: careers_career: name_en
+  topteen12-old: careers_career: name_hi
+  topteen12-old: careers_career: pros_cons
+  topteen12-old: careers_career: pros_cons_en
+  topteen12-old: careers_career: pros_cons_hi
+  topteen12-old: careers_career: role_description
+  topteen12-old: careers_career: role_description_en
+  topteen12-old: careers_career: role_description_hi
+  topteen12-old: careers_career: summary_en
+  topteen12-old: careers_career: summary_hi
+  topteen12-old: careers_videos: idx_videos_created
+  topteen12-old: careers_videos: idx_videos_name
+  topteen12-old: colleges_college: idx_college_created
+
+Missing fields in topteen12:
+  topteen12: careers_careercluster: careers_car_parent__5b2f85_idx
+  topteen12: careers_careercluster: careers_car_parent__f19632_idx
+  topteen12: careers_careercluster: careers_car_slug_15b042_idx
+
+Field type mismatches:
+  social_auth_partial: data
+    topteen12: json
+    topteen12-old: longtext
+  social_auth_usersocialauth: extra_data
+    topteen12: json
+    topteen12-old: longtext
+
+
+================================================================================
+END OF REPORT
+================================================================================

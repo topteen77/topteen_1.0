@@ -25,6 +25,7 @@ urlpatterns = [
     # User Journey
     path('user-journey/', views.user_journey_view, name='user_journey'),
     path('user-journey/<int:user_id>/', views.user_journey_view, name='user_journey_detail'),
+    path('user-journey/detail/<str:session_id>/', views.user_journey_detail_view, name='user_journey_session_detail'),
     
     # API Endpoints
     path('api/dashboard-data/', views.api_dashboard_data, name='api_dashboard_data'),

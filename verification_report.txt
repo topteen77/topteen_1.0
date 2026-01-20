@@ -1,0 +1,377 @@
+GA4 client initialized successfully
+GA4 client initialized successfully
+================================================================================
+WEB OWNER DASHBOARD DATA VERIFICATION - TODAY
+================================================================================
+
+Date Range: 2026-01-12 00:00:00 to 2026-01-12 11:12:27
+Duration: 0 days
+
+
+================================================================================
+SUMMARY METRICS
+================================================================================
+
+1. TOTAL USERS
+--------------------------------------------------------------------------------
+   Database: 0 users
+   GA4:      56 active users
+   ✓ Using:  GA4 (56)
+
+2. TOTAL SESSIONS
+--------------------------------------------------------------------------------
+   Database: 0 sessions
+   GA4:      59 sessions
+   ✓ Using:  GA4 (59)
+
+3. TOTAL PAGEVIEWS
+--------------------------------------------------------------------------------
+   Database: 0 pageviews
+   GA4:      76 pageviews
+   ✓ Using:  GA4 (76)
+
+4. NEW USERS
+--------------------------------------------------------------------------------
+   Database: 0 new users
+   GA4:      54 new users
+   ✓ Using:  GA4 (54)
+
+5. CONVERTED SESSIONS
+--------------------------------------------------------------------------------
+   Database: 0 converted sessions
+   ✓ Using:  Database (0)
+
+6. AVG SESSION DURATION
+--------------------------------------------------------------------------------
+   Database: 0.00 seconds (0.00 minutes)
+   ✓ Using:  Database (0.00 min)
+
+7. REAL-TIME USERS
+--------------------------------------------------------------------------------
+   GA4:      55 real-time users
+   ✓ Using:  GA4 (55)
+
+================================================================================
+TOP PAGES
+================================================================================
+
+Database Top Pages: 0 pages
+   No database pages found
+
+GA4 Top Pages: 20 pages
+    1. Career | Top Teen                                  |      7 views
+    2. Career | Top Teen                                  |      6 views
+    3. Careers | Top Teen                                 |      3 views
+    4. Every Student, Career Ready | Top Teen             |      3 views
+    5. Login Signup | Top Teen                            |      3 views
+    6. Crisis Management | Top Teen                       |      2 views
+    7. Gender and women studies | Top Teen                |      2 views
+    8. AI Ethics & Policy Specialist | Top Teen           |      1 views
+    9. AR - VR (XR) Developer | Top Teen                  |      1 views
+   10. Accessory Designer | Top Teen                      |      1 views
+
+   ✓ Using:  GA4 (20 pages)
+
+================================================================================
+TRAFFIC SOURCES (Database)
+================================================================================
+
+Database Traffic Sources: 0 sources
+   No traffic sources found
+
+================================================================================
+DEVICE BREAKDOWN (Database)
+================================================================================
+
+Database Device Breakdown: 0 device types
+   No device data found
+
+================================================================================
+TOP ENTRY PAGES
+================================================================================
+
+Database Entry Pages: 0 pages
+   No entry pages found
+
+================================================================================
+TOP EXIT PAGES
+================================================================================
+
+Database Exit Pages: 0 pages
+   No exit pages found
+
+================================================================================
+ENGAGEMENT METRICS (GA4)
+================================================================================
+
+   Avg Session Duration: 1.58 min
+   User Engagement: 5.38 min
+   Bounce Rate: 0.42%
+
+================================================================================
+DATA ACCURACY SUMMARY
+================================================================================
+
+✓ No major issues found
+
+⚠️  WARNINGS:
+   - No pageviews in database - Top Pages will only show GA4 data
+   - No sessions in database - Session metrics will only show GA4 data
+
+================================================================================
+VERIFICATION COMPLETE
+================================================================================
+
+
+
+================================================================================
+WEB OWNER DASHBOARD DATA VERIFICATION - 7DAYS
+================================================================================
+
+Date Range: 2026-01-05 11:12:30 to 2026-01-12 11:12:30
+Duration: 7 days
+
+
+================================================================================
+SUMMARY METRICS
+================================================================================
+
+1. TOTAL USERS
+--------------------------------------------------------------------------------
+   Database: 1 users
+   GA4:      1694 active users
+   ✓ Using:  GA4 (1694)
+
+2. TOTAL SESSIONS
+--------------------------------------------------------------------------------
+   Database: 0 sessions
+   GA4:      1722 sessions
+   ✓ Using:  GA4 (1722)
+
+3. TOTAL PAGEVIEWS
+--------------------------------------------------------------------------------
+   Database: 0 pageviews
+   GA4:      2305 pageviews
+   ✓ Using:  GA4 (2305)
+
+4. NEW USERS
+--------------------------------------------------------------------------------
+   Database: 1 new users
+   GA4:      1673 new users
+   ✓ Using:  GA4 (1673)
+
+5. CONVERTED SESSIONS
+--------------------------------------------------------------------------------
+   Database: 0 converted sessions
+   ✓ Using:  Database (0)
+
+6. AVG SESSION DURATION
+--------------------------------------------------------------------------------
+   Database: 0.00 seconds (0.00 minutes)
+   ✓ Using:  Database (0.00 min)
+
+7. REAL-TIME USERS
+--------------------------------------------------------------------------------
+   GA4:      55 real-time users
+   ✓ Using:  GA4 (55)
+
+================================================================================
+TOP PAGES
+================================================================================
+
+Database Top Pages: 0 pages
+   No database pages found
+
+GA4 Top Pages: 20 pages
+    1. Career | Top Teen                                  |    179 views
+    2. Every Student, Career Ready | Top Teen             |    121 views
+    3. Career | Top Teen                                  |    104 views
+    4. Career | Top Teen                                  |     87 views
+    5. Careers | Top Teen                                 |     38 views
+    6. About Us | Top Teen                                |     20 views
+    7. Login Signup | Top Teen                            |     18 views
+    8. Explore Career Videos - Page - 1 | Top Teen        |     10 views
+    9. ACCA- Association of Certified Chartered Accountan |      8 views
+   10. Actuary | Top Teen                                 |      8 views
+
+   ✓ Using:  GA4 (20 pages)
+
+================================================================================
+TRAFFIC SOURCES (Database)
+================================================================================
+
+Database Traffic Sources: 0 sources
+   No traffic sources found
+
+================================================================================
+DEVICE BREAKDOWN (Database)
+================================================================================
+
+Database Device Breakdown: 0 device types
+   No device data found
+
+================================================================================
+TOP ENTRY PAGES
+================================================================================
+
+Database Entry Pages: 0 pages
+   No entry pages found
+
+================================================================================
+TOP EXIT PAGES
+================================================================================
+
+Database Exit Pages: 0 pages
+   No exit pages found
+GA4 client initialized successfully
+
+================================================================================
+ENGAGEMENT METRICS (GA4)
+================================================================================
+
+   Avg Session Duration: 0.58 min
+   User Engagement: 206.27 min
+   Bounce Rate: 0.80%
+
+================================================================================
+DATA ACCURACY SUMMARY
+================================================================================
+
+⚠️  ISSUES FOUND:
+   - User count discrepancy: GA4=1694, DB=1 (diff: 1693)
+
+⚠️  WARNINGS:
+   - No pageviews in database - Top Pages will only show GA4 data
+   - No sessions in database - Session metrics will only show GA4 data
+
+================================================================================
+VERIFICATION COMPLETE
+================================================================================
+
+
+
+================================================================================
+WEB OWNER DASHBOARD DATA VERIFICATION - 30DAYS
+================================================================================
+
+Date Range: 2025-12-13 11:12:32 to 2026-01-12 11:12:32
+Duration: 30 days
+
+
+================================================================================
+SUMMARY METRICS
+================================================================================
+
+1. TOTAL USERS
+--------------------------------------------------------------------------------
+   Database: 19 users
+   GA4:      7880 active users
+   ✓ Using:  GA4 (7880)
+
+2. TOTAL SESSIONS
+--------------------------------------------------------------------------------
+   Database: 0 sessions
+   GA4:      7979 sessions
+   ✓ Using:  GA4 (7979)
+
+3. TOTAL PAGEVIEWS
+--------------------------------------------------------------------------------
+   Database: 0 pageviews
+   GA4:      9028 pageviews
+   ✓ Using:  GA4 (9028)
+
+4. NEW USERS
+--------------------------------------------------------------------------------
+   Database: 19 new users
+   GA4:      7793 new users
+   ✓ Using:  GA4 (7793)
+
+5. CONVERTED SESSIONS
+--------------------------------------------------------------------------------
+   Database: 0 converted sessions
+   ✓ Using:  Database (0)
+
+6. AVG SESSION DURATION
+--------------------------------------------------------------------------------
+   Database: 0.00 seconds (0.00 minutes)
+   ✓ Using:  Database (0.00 min)
+
+7. REAL-TIME USERS
+--------------------------------------------------------------------------------
+   GA4:      55 real-time users
+   ✓ Using:  GA4 (55)
+
+================================================================================
+TOP PAGES
+================================================================================
+
+Database Top Pages: 0 pages
+   No database pages found
+
+GA4 Top Pages: 20 pages
+    1. Every Student, Career Ready | Top Teen             |    401 views
+    2. Career | Top Teen                                  |    304 views
+    3. Career | Top Teen                                  |    229 views
+    4. Careers | Top Teen                                 |    118 views
+    5. Login Signup | Top Teen                            |     99 views
+    6. Career | Top Teen                                  |     93 views
+    7. Terms and Condition | Top Teen                     |     55 views
+    8. Blog List | Top Teen                               |     40 views
+    9. Business Lawyer | Top Teen                         |     32 views
+   10. Indian Railway Service of Signal Engineers (IRSSE) |     32 views
+
+   ✓ Using:  GA4 (20 pages)
+
+================================================================================
+TRAFFIC SOURCES (Database)
+================================================================================
+
+Database Traffic Sources: 0 sources
+   No traffic sources found
+
+================================================================================
+DEVICE BREAKDOWN (Database)
+================================================================================
+
+Database Device Breakdown: 0 device types
+   No device data found
+
+================================================================================
+TOP ENTRY PAGES
+================================================================================
+
+Database Entry Pages: 0 pages
+   No entry pages found
+
+================================================================================
+TOP EXIT PAGES
+================================================================================
+
+Database Exit Pages: 0 pages
+   No exit pages found
+
+================================================================================
+ENGAGEMENT METRICS (GA4)
+================================================================================
+
+   Avg Session Duration: 0.25 min
+   User Engagement: 603.52 min
+   Bounce Rate: 0.82%
+
+================================================================================
+DATA ACCURACY SUMMARY
+================================================================================
+
+⚠️  ISSUES FOUND:
+   - User count discrepancy: GA4=7880, DB=19 (diff: 7861)
+
+⚠️  WARNINGS:
+   - No pageviews in database - Top Pages will only show GA4 data
+   - No sessions in database - Session metrics will only show GA4 data
+
+================================================================================
+VERIFICATION COMPLETE
+================================================================================
+
+
+

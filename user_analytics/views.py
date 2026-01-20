@@ -521,6 +521,55 @@ def business_dashboard(request):
     
     conversion_value_rate = (total_revenue / total_attempted_revenue * 100) if total_attempted_revenue > 0 else 0
     
+    # Goal-Based Analytics
+    goal_events_query = UserEvent.objects.exclude(
+        event_type__in=['page_view', 'payment_failed', 'payment_pending']
+    )
+    if start_date is not None:
+        goal_events_query = goal_events_query.filter(
+            created__gte=start_date,
+            created__lte=end_date
+        )
+    
+    # Group goals by type
+    goal_analytics = {}
+    goal_types = [
+        ('registration', 'User Registration'),
+        ('payment_success', 'Payment Success'),
+        ('psychometric_test_started', 'Psychometric Test Started'),
+        ('psychometric_test_completed', 'Psychometric Test Completed'),
+        ('result_generated', 'Result Generated'),
+        ('course_enrolled', 'Course Enrolled'),
+        ('skilllab_enrolled', 'SkillLab Course Enrolled'),
+        ('institute_student_registered', 'Institute Student Registered'),
+    ]
+    
+    for goal_type, goal_name in goal_types:
+        goal_count = goal_events_query.filter(event_type=goal_type).count()
+        if goal_type == 'payment_success':
+            goal_value = goal_events_query.filter(event_type=goal_type).aggregate(
+                total=Sum('event_value')
+            )['total'] or Decimal('0')
+        else:
+            goal_value = Decimal('0')
+        
+        if goal_count > 0:
+            goal_analytics[goal_type] = {
+                'name': goal_name,
+                'count': goal_count,
+                'value': float(goal_value),
+            }
+    
+    # Calculate goal conversion rates
+    if total_visitors > 0:
+        for goal_type in goal_analytics:
+            goal_analytics[goal_type]['conversion_rate'] = (
+                goal_analytics[goal_type]['count'] / total_visitors * 100
+            )
+    else:
+        for goal_type in goal_analytics:
+            goal_analytics[goal_type]['conversion_rate'] = 0
+    
     context = {
         'time_period': time_period,
         'start_date': start_date,
@@ -548,6 +597,7 @@ def business_dashboard(request):
         'revenue_by_source': list(revenue_by_source),
         'daily_revenue': list(daily_revenue),
         'top_products': list(top_products),
+        'goal_analytics': goal_analytics,
     }
     
     return render(request, 'user_analytics/business_dashboard.html', context)
@@ -1071,6 +1121,7 @@ def user_journey_view(request, user_id=None):
     Supports filtering by user type (existing/registered vs organic/anonymous).
     """
     user_type_filter = request.GET.get('user_type', '')  # 'registered', 'organic', or ''
+    goal_filter = request.GET.get('goal', '')  # 'registered', 'payment', 'test_started', 'test_completed', 'result_generated'
     time_period = request.GET.get('period', '30days')
     search_query = request.GET.get('search', '')
     page_number = request.GET.get('page', 1)
@@ -1101,6 +1152,24 @@ def user_journey_view(request, user_id=None):
     elif user_type_filter == 'organic':
         journeys = journeys.filter(user__isnull=True)
         logger.info("Filtering for organic/anonymous users only")
+    
+    # Apply goal filter
+    if goal_filter:
+        if goal_filter == 'registered':
+            journeys = journeys.filter(is_registered=True)
+            logger.info("Filtering for journeys with registration goal")
+        elif goal_filter == 'payment':
+            journeys = journeys.filter(has_payment=True)
+            logger.info("Filtering for journeys with payment goal")
+        elif goal_filter == 'test_started':
+            journeys = journeys.filter(has_psychometric_test=True)
+            logger.info("Filtering for journeys with psychometric test started goal")
+        elif goal_filter == 'test_completed':
+            journeys = journeys.filter(test_completed=True)
+            logger.info("Filtering for journeys with test completed goal")
+        elif goal_filter == 'result_generated':
+            journeys = journeys.filter(result_generated=True)
+            logger.info("Filtering for journeys with result generated goal")
     
     # Apply search filter
     if search_query:
@@ -1135,6 +1204,7 @@ def user_journey_view(request, user_id=None):
         'journeys': journeys_page,
         'user_id': user_id,
         'user_type_filter': user_type_filter,
+        'goal_filter': goal_filter,
         'time_period': time_period,
         'search_query': search_query,
         'total_count': total_journeys,
@@ -1147,6 +1217,200 @@ def user_journey_view(request, user_id=None):
     logger.info("=" * 80)
     
     return render(request, 'user_analytics/user_journey.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def user_journey_detail_view(request, session_id):
+    """
+    Detailed view of a specific user journey showing all pages visited with timestamps.
+    """
+    try:
+        # Get the journey
+        journey = UserJourney.objects.select_related('user').get(session_id=session_id)
+        
+        # Get all activities for this session, ordered by time
+        activities = UserActivity.objects.filter(session_id=session_id).order_by('created')
+        
+        # Define goals based on UserJourney fields
+        goals_achieved = []
+        
+        # Goal 1: Registration
+        if journey.is_registered and journey.registration_event:
+            goals_achieved.append({
+                'event': journey.registration_event,
+                'goal': {'name': 'User Registration', 'color': 'success', 'icon': 'fa-user-plus'},
+            })
+        elif journey.is_registered:
+            # If registered but no event, create a placeholder
+            goals_achieved.append({
+                'event': None,
+                'event_time': journey.start_time,  # Use journey start as fallback
+                'goal': {'name': 'User Registration', 'color': 'success', 'icon': 'fa-user-plus'},
+            })
+        
+        # Goal 2: Payment
+        if journey.has_payment and journey.payment_event:
+            event_value = journey.payment_event.event_value or 0
+            goals_achieved.append({
+                'event': journey.payment_event,
+                'goal': {'name': f'Payment Success - ₹{event_value}', 'color': 'success', 'icon': 'fa-check-circle'},
+            })
+        elif journey.has_payment:
+            goals_achieved.append({
+                'event': None,
+                'event_time': journey.start_time,
+                'goal': {'name': 'Payment Success', 'color': 'success', 'icon': 'fa-check-circle'},
+            })
+        
+        # Goal 3: Psychometric Test Started
+        if journey.has_psychometric_test and journey.psychometric_test_event:
+            goals_achieved.append({
+                'event': journey.psychometric_test_event,
+                'goal': {'name': 'Psychometric Test Started', 'color': 'info', 'icon': 'fa-play-circle'},
+            })
+        elif journey.has_psychometric_test:
+            goals_achieved.append({
+                'event': None,
+                'event_time': journey.start_time,
+                'goal': {'name': 'Psychometric Test Started', 'color': 'info', 'icon': 'fa-play-circle'},
+            })
+        
+        # Goal 4: Test Completed
+        if journey.test_completed and journey.test_completion_event:
+            goals_achieved.append({
+                'event': journey.test_completion_event,
+                'goal': {'name': 'Psychometric Test Completed', 'color': 'primary', 'icon': 'fa-check-circle'},
+            })
+        elif journey.test_completed:
+            goals_achieved.append({
+                'event': None,
+                'event_time': journey.start_time,
+                'goal': {'name': 'Psychometric Test Completed', 'color': 'primary', 'icon': 'fa-check-circle'},
+            })
+        
+        # Goal 5: Result Generated
+        if journey.result_generated and journey.result_generation_event:
+            goals_achieved.append({
+                'event': journey.result_generation_event,
+                'goal': {'name': 'Result Generated', 'color': 'success', 'icon': 'fa-file-alt'},
+            })
+        elif journey.result_generated:
+            goals_achieved.append({
+                'event': None,
+                'event_time': journey.start_time,
+                'goal': {'name': 'Result Generated', 'color': 'success', 'icon': 'fa-file-alt'},
+            })
+        
+        # Create a mapping of event timestamps to goals
+        goal_map = {}
+        for goal_data in goals_achieved:
+            if goal_data['event']:
+                event_time = goal_data['event'].created
+            else:
+                event_time = goal_data.get('event_time', journey.start_time)
+            
+            goal_map[event_time] = goal_data
+        
+        # Also check for any other events in the session that might not be linked
+        events = UserEvent.objects.filter(session_id=session_id).order_by('created')
+        for event in events:
+            # Only add if not already in goal_map
+            if event.created not in goal_map:
+                goal_info = None
+                if event.event_type == 'registration':
+                    goal_info = {'name': 'User Registration', 'color': 'success', 'icon': 'fa-user-plus'}
+                elif event.event_type == 'payment_success':
+                    goal_info = {'name': f'Payment Success - ₹{event.event_value}', 'color': 'success', 'icon': 'fa-check-circle'}
+                elif event.event_type == 'psychometric_test_started':
+                    goal_info = {'name': 'Psychometric Test Started', 'color': 'info', 'icon': 'fa-play-circle'}
+                elif event.event_type == 'psychometric_test_completed':
+                    goal_info = {'name': 'Psychometric Test Completed', 'color': 'primary', 'icon': 'fa-check-circle'}
+                elif event.event_type == 'result_generated':
+                    goal_info = {'name': 'Result Generated', 'color': 'success', 'icon': 'fa-file-alt'}
+                
+                if goal_info:
+                    goal_map[event.created] = {
+                        'event': event,
+                        'goal': goal_info,
+                    }
+        
+        # Calculate time differences between pages and match goals
+        activity_list = []
+        prev_time = None
+        
+        for activity in activities:
+            if prev_time is None:
+                # First activity - calculate from journey start
+                time_diff = (activity.created - journey.start_time).total_seconds()
+            else:
+                # Calculate from previous activity
+                time_diff = (activity.created - prev_time).total_seconds()
+            
+            # Check if this activity corresponds to a goal (within 10 seconds tolerance)
+            matched_goal = None
+            matched_event_time = None
+            for event_time, goal_data in goal_map.items():
+                time_delta = abs((activity.created - event_time).total_seconds())
+                if time_delta <= 10:  # 10 second tolerance
+                    matched_goal = goal_data
+                    matched_event_time = event_time
+                    break
+            
+            # Remove matched goal from map
+            if matched_event_time:
+                del goal_map[matched_event_time]
+            
+            activity_list.append({
+                'activity': activity,
+                'time_since_previous': max(0, int(time_diff)),
+                'timestamp': activity.created,
+                'goal': matched_goal,
+            })
+            prev_time = activity.created
+        
+        # If there are unmatched goals, add them to the first activity or closest activity
+        if goal_map:
+            for event_time, goal_data in goal_map.items():
+                # Find the closest activity to this event time
+                closest_activity = None
+                min_time_diff = float('inf')
+                for item in activity_list:
+                    time_diff = abs((item['timestamp'] - event_time).total_seconds())
+                    if time_diff < min_time_diff:
+                        min_time_diff = time_diff
+                        closest_activity = item
+                
+                # If we found a close activity (within 60 seconds), add the goal
+                if closest_activity and min_time_diff <= 60:
+                    if not closest_activity['goal']:  # Only if no goal already assigned
+                        closest_activity['goal'] = goal_data
+        
+        # Collect all goals achieved for summary
+        all_goals = []
+        if journey.is_registered:
+            all_goals.append({'name': 'User Registration', 'color': 'success', 'icon': 'fa-user-plus'})
+        if journey.has_payment:
+            all_goals.append({'name': 'Payment Success', 'color': 'success', 'icon': 'fa-check-circle'})
+        if journey.has_psychometric_test:
+            all_goals.append({'name': 'Psychometric Test Started', 'color': 'info', 'icon': 'fa-play-circle'})
+        if journey.test_completed:
+            all_goals.append({'name': 'Psychometric Test Completed', 'color': 'primary', 'icon': 'fa-check-circle'})
+        if journey.result_generated:
+            all_goals.append({'name': 'Result Generated', 'color': 'success', 'icon': 'fa-file-alt'})
+        
+        context = {
+            'journey': journey,
+            'activities': activity_list,
+            'total_activities': len(activity_list),
+            'all_goals': all_goals,
+        }
+        
+        return render(request, 'user_analytics/user_journey_detail.html', context)
+    
+    except UserJourney.DoesNotExist:
+        from django.http import Http404
+        raise Http404("Journey not found")
 
 
 @csrf_exempt
