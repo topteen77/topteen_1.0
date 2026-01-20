@@ -20,5 +20,4 @@ urlpatterns = [
     path('api/ai-features/', views.AIFeaturesView.as_view(), name='ai-features'),
     path('api/ai-capabilities/', views.AICapabilitiesView.as_view(), name='ai-capabilities'),
     path('api/calculate-costs/', CostCalculatorView.as_view(), name='calculate-costs'),
-    path('api/debug-log/', views.DebugLogView.as_view(), name='debug-log'),
 ]

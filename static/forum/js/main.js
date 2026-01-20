@@ -441,47 +441,9 @@ async function loadAIFeatures() {
     const container = document.getElementById('aiFeatures');
     if (!container) return;
     
-    // #region agent log
-    const existingFeatures = container.querySelectorAll('li');
-    const existingLinks = container.querySelectorAll('a.feature-link');
-    const logData1 = {
-        sessionId: 'debug-session',
-        runId: 'run1',
-        hypothesisId: 'C',
-        location: 'static/forum/js/main.js:440',
-        message: 'loadAIFeatures called - checking existing DOM',
-        data: {
-            container_exists: !!container,
-            existing_li_count: existingFeatures.length,
-            existing_link_count: existingLinks.length,
-            existing_links: Array.from(existingLinks).map(link => ({
-                href: link.getAttribute('href'),
-                text: link.textContent.trim(),
-                has_href: !!link.getAttribute('href')
-            }))
-        },
-        timestamp: Date.now()
-    };
-    fetch(`${API_BASE_URL}/debug-log/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},body:JSON.stringify(logData1)}).catch(()=>{});
-    // #endregion
-    
     // Check if features are already rendered server-side
+    const existingFeatures = container.querySelectorAll('li');
     if (existingFeatures.length > 0 && !container.querySelector('li[style*="Loading"]')) {
-        // #region agent log
-        const logData2 = {
-            sessionId: 'debug-session',
-            runId: 'run1',
-            hypothesisId: 'C',
-            location: 'static/forum/js/main.js:448',
-            message: 'Skipping loadAIFeatures - server-side rendered',
-            data: {
-                skipped: true,
-                reason: 'Features already loaded server-side'
-            },
-            timestamp: Date.now()
-        };
-        fetch(`${API_BASE_URL}/debug-log/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},body:JSON.stringify(logData2)}).catch(()=>{});
-        // #endregion
         // Features already loaded server-side, skip
         return;
     }
@@ -501,27 +463,6 @@ async function loadAIFeatures() {
 function displayAIFeatures(features) {
     const container = document.getElementById('aiFeatures');
     if (!container) return;
-    
-    // #region agent log
-    const logData3 = {
-        sessionId: 'debug-session',
-        runId: 'run1',
-        hypothesisId: 'C',
-        location: 'static/forum/js/main.js:463',
-        message: 'displayAIFeatures called - overwriting DOM',
-        data: {
-            features_count: features ? features.length : 0,
-            features_with_links: features ? features.filter(f => f.link_url && f.link_url.trim()).length : 0,
-            features_data: features ? features.map(f => ({
-                name: f.name,
-                link_url: f.link_url,
-                has_link: !!(f.link_url && f.link_url.trim())
-            })) : []
-        },
-        timestamp: Date.now()
-    };
-            fetch(`${API_BASE_URL}/debug-log/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},body:JSON.stringify(logData3)}).catch(()=>{});
-    // #endregion
     
     container.innerHTML = '';
     
@@ -545,31 +486,6 @@ function displayAIFeatures(features) {
         
         container.appendChild(li);
     });
-    
-    // #region agent log
-    setTimeout(() => {
-        const finalLinks = container.querySelectorAll('a.feature-link');
-        const logData4 = {
-            sessionId: 'debug-session',
-            runId: 'run1',
-            hypothesisId: 'C',
-            location: 'static/forum/js/main.js:489',
-            message: 'After displayAIFeatures - final DOM state',
-            data: {
-                final_link_count: finalLinks.length,
-                final_links: Array.from(finalLinks).map(link => ({
-                    href: link.getAttribute('href'),
-                    text: link.textContent.trim(),
-                    has_href: !!link.getAttribute('href'),
-                    computed_style: window.getComputedStyle(link).pointerEvents,
-                    z_index: window.getComputedStyle(link).zIndex
-                }))
-            },
-            timestamp: Date.now()
-        };
-            fetch(`${API_BASE_URL}/debug-log/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},body:JSON.stringify(logData4)}).catch(()=>{});
-    }, 100);
-    // #endregion
 }
 
 // Load AI Capabilities (only if not already loaded server-side)
@@ -933,49 +849,6 @@ window.addEventListener('load', function() {
     
     // Show welcome message immediately on page load
     showWelcomeMessage();
-    
-    // #region agent log
-    setTimeout(() => {
-        const container = document.getElementById('aiFeatures');
-        if (container) {
-            const allLinks = container.querySelectorAll('a.feature-link');
-            const allLis = container.querySelectorAll('li');
-            const logData5 = {
-                sessionId: 'debug-session',
-                runId: 'run1',
-                hypothesisId: 'D',
-                location: 'static/forum/js/main.js:931',
-                message: 'Final DOM state after page load',
-                data: {
-                    total_li_count: allLis.length,
-                    total_link_count: allLinks.length,
-                    links_detail: Array.from(allLinks).map((link, idx) => {
-                        const li = link.closest('li');
-                        return {
-                            index: idx,
-                            href: link.getAttribute('href'),
-                            text: link.textContent.trim(),
-                            has_href: !!link.getAttribute('href'),
-                            href_length: link.getAttribute('href') ? link.getAttribute('href').length : 0,
-                            pointer_events: window.getComputedStyle(link).pointerEvents,
-                            z_index: window.getComputedStyle(link).zIndex,
-                            display: window.getComputedStyle(link).display,
-                            position: window.getComputedStyle(link).position,
-                            li_has_link: !!li.querySelector('a'),
-                            li_innerHTML_preview: li.innerHTML.substring(0, 100)
-                        };
-                    }),
-                    lis_without_links: Array.from(allLis).filter(li => !li.querySelector('a')).map(li => ({
-                        text: li.textContent.trim(),
-                        innerHTML_preview: li.innerHTML.substring(0, 100)
-                    }))
-                },
-                timestamp: Date.now()
-            };
-            fetch(`${API_BASE_URL}/debug-log/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},body:JSON.stringify(logData5)}).catch(()=>{});
-        }
-    }, 500);
-    // #endregion
 });
 
 // Auto-suggestions as user types (optional)

@@ -7,8 +7,6 @@ from django.template.loader import get_template
 from django.http import HttpResponse
 from django.utils import timezone
 from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from datetime import date
 from forum.models import Query, Response, Category, Country, PerformanceMetrics, AIFeature, AICapability
 from forum.serializers import (
@@ -260,36 +258,6 @@ def index(request):
                 'order': feature.order
             }
             
-            # #region agent log
-            import json
-            import os
-            log_data = {
-                'sessionId': 'debug-session',
-                'runId': 'run1',
-                'hypothesisId': 'A',
-                'location': 'forum/views.py:251',
-                'message': 'Feature loaded from DB',
-                'data': {
-                    'feature_id': feature.id,
-                    'feature_name': feature.name,
-                    'link_url_raw': str(feature.link_url) if feature.link_url else None,
-                    'link_url_type': type(feature.link_url).__name__,
-                    'link_url_bool': bool(feature.link_url),
-                    'link_url_len': len(feature.link_url) if feature.link_url else 0
-                },
-                'timestamp': int(time.time() * 1000)
-            }
-            try:
-                log_path = os.path.join(str(settings.BASE_DIR), '.cursor', 'debug.log')
-                os.makedirs(os.path.dirname(log_path), exist_ok=True)
-                with open(log_path, 'a') as f:
-                    f.write(json.dumps(log_data) + '\n')
-            except Exception as e:
-                import traceback
-                print(f"Debug log error: {e}")
-                traceback.print_exc()
-            # #endregion
-            
             # Update Psychometric Assessment Link based on class
             if feature.name == 'Psychometric Assessment Link':
                 if user_class is not None and user_class <= 10:
@@ -297,61 +265,7 @@ def index(request):
                 else:
                     feature_dict['link_url'] = '/psychometrictest/career-direction/'
             
-            # #region agent log
-            log_data2 = {
-                'sessionId': 'debug-session',
-                'runId': 'run1',
-                'hypothesisId': 'A',
-                'location': 'forum/views.py:268',
-                'message': 'Feature dict prepared for template',
-                'data': {
-                    'feature_id': feature.id,
-                    'feature_name': feature.name,
-                    'link_url_final': str(feature_dict['link_url']) if feature_dict['link_url'] else None,
-                    'link_url_final_bool': bool(feature_dict['link_url']),
-                    'link_url_final_len': len(feature_dict['link_url']) if feature_dict['link_url'] else 0
-                },
-                'timestamp': int(time.time() * 1000)
-            }
-            try:
-                log_path = os.path.join(str(settings.BASE_DIR), '.cursor', 'debug.log')
-                os.makedirs(os.path.dirname(log_path), exist_ok=True)
-                with open(log_path, 'a') as f:
-                    f.write(json.dumps(log_data2) + '\n')
-            except Exception as e:
-                import traceback
-                print(f"Debug log error: {e}")
-                traceback.print_exc()
-            # #endregion
-            
             features_data.append(feature_dict)
-        
-        # #region agent log
-        import os
-        log_data3 = {
-            'sessionId': 'debug-session',
-            'runId': 'run1',
-            'hypothesisId': 'B',
-            'location': 'forum/views.py:270',
-            'message': 'All features prepared, setting context',
-            'data': {
-                'total_features': len(features_data),
-                'features_with_links': sum(1 for f in features_data if f.get('link_url')),
-                'features_without_links': sum(1 for f in features_data if not f.get('link_url')),
-                'feature_names': [f['name'] for f in features_data]
-            },
-            'timestamp': int(time.time() * 1000)
-        }
-        try:
-            log_path = os.path.join(str(settings.BASE_DIR), '.cursor', 'debug.log')
-            os.makedirs(os.path.dirname(log_path), exist_ok=True)
-            with open(log_path, 'a') as f:
-                f.write(json.dumps(log_data3) + '\n')
-        except Exception as e:
-            import traceback
-            print(f"Debug log error: {e}")
-            traceback.print_exc()
-        # #endregion
         
         context['ai_features'] = features_data
     except Exception as e:
@@ -969,25 +883,6 @@ class PopularQueriesView(APIView):
         # No sample/fallback data - admin should seed database if needed
         
         return DRFResponse(queries_data)
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class DebugLogView(APIView):
-    """Receive debug logs from JavaScript and write to log file"""
-    permission_classes = [permissions.AllowAny]
-    
-    def post(self, request):
-        import json
-        import os
-        log_path = os.path.join(str(settings.BASE_DIR), '.cursor', 'debug.log')
-        try:
-            os.makedirs(os.path.dirname(log_path), exist_ok=True)
-            log_data = request.data
-            with open(log_path, 'a') as f:
-                f.write(json.dumps(log_data) + '\n')
-            return DRFResponse({'status': 'ok'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return DRFResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TrendingQueriesView(APIView):
