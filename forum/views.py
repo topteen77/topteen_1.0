@@ -280,9 +280,14 @@ def index(request):
                 'timestamp': int(time.time() * 1000)
             }
             try:
-                with open('/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug.log', 'a') as f:
+                log_path = os.path.join(str(settings.BASE_DIR), '.cursor', 'debug.log')
+                os.makedirs(os.path.dirname(log_path), exist_ok=True)
+                with open(log_path, 'a') as f:
                     f.write(json.dumps(log_data) + '\n')
-            except: pass
+            except Exception as e:
+                import traceback
+                print(f"Debug log error: {e}")
+                traceback.print_exc()
             # #endregion
             
             # Update Psychometric Assessment Link based on class
@@ -309,14 +314,20 @@ def index(request):
                 'timestamp': int(time.time() * 1000)
             }
             try:
-                with open('/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug.log', 'a') as f:
+                log_path = os.path.join(str(settings.BASE_DIR), '.cursor', 'debug.log')
+                os.makedirs(os.path.dirname(log_path), exist_ok=True)
+                with open(log_path, 'a') as f:
                     f.write(json.dumps(log_data2) + '\n')
-            except: pass
+            except Exception as e:
+                import traceback
+                print(f"Debug log error: {e}")
+                traceback.print_exc()
             # #endregion
             
             features_data.append(feature_dict)
         
         # #region agent log
+        import os
         log_data3 = {
             'sessionId': 'debug-session',
             'runId': 'run1',
@@ -332,9 +343,14 @@ def index(request):
             'timestamp': int(time.time() * 1000)
         }
         try:
-            with open('/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug.log', 'a') as f:
+            log_path = os.path.join(str(settings.BASE_DIR), '.cursor', 'debug.log')
+            os.makedirs(os.path.dirname(log_path), exist_ok=True)
+            with open(log_path, 'a') as f:
                 f.write(json.dumps(log_data3) + '\n')
-        except: pass
+        except Exception as e:
+            import traceback
+            print(f"Debug log error: {e}")
+            traceback.print_exc()
         # #endregion
         
         context['ai_features'] = features_data
@@ -963,8 +979,9 @@ class DebugLogView(APIView):
     def post(self, request):
         import json
         import os
-        log_path = '/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug.log'
+        log_path = os.path.join(str(settings.BASE_DIR), '.cursor', 'debug.log')
         try:
+            os.makedirs(os.path.dirname(log_path), exist_ok=True)
             log_data = request.data
             with open(log_path, 'a') as f:
                 f.write(json.dumps(log_data) + '\n')
