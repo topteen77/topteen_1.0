@@ -12,6 +12,51 @@ from core import choices
 from django.db.models import Q
 from functools import reduce
 from operator import or_
+from django.conf import settings
+
+
+def _should_show_chatbot(request):
+    """
+    Determine if chatbot should be shown based on CHATBOT_VISIBILITY and request path.
+    Options: home-only | students-parents | institutes | counselors
+    """
+    visibility = getattr(settings, 'CHATBOT_VISIBILITY', 'home-only')
+    path = (request.path or '/').rstrip('/') or '/'
+
+    # Excluded paths (never show chatbot)
+    excluded_prefixes = (
+        '/user/login', '/student/login', '/student/signup', '/parents/login',
+        '/institute/auth/login', '/counselor/auth/login',
+        '/contact-us', '/psychometric', '/psychometrictest',
+        '/topteenadmin', '/admin', '/api', '/oauth',
+    )
+    for prefix in excluded_prefixes:
+        if path == prefix or path.startswith(prefix + '/'):
+            return False
+
+    if visibility == 'home-only':
+        return path == '/'
+
+    if visibility == 'students-parents':
+        return (
+            path == '/' or
+            path.startswith('/student') or path.startswith('/parents') or
+            (path.startswith('/user') and 'dashboard' in path)
+        )
+
+    if visibility == 'institutes':
+        return (
+            path == '/' or
+            path.startswith('/student') or path.startswith('/parents') or
+            path.startswith('/institute') or
+            (path.startswith('/user') and 'dashboard' in path)
+        )
+
+    if visibility == 'counselors':
+        return True  # Show everywhere except excluded (already checked above)
+
+    return False
+
 
 def globals(request): 
     career_list=[]
@@ -41,6 +86,7 @@ def globals(request):
     # for p in popular_tags:
         # popular_tag_count=Career.objects.filter(career_tags=p).count()
     kwargs = {
+        "show_chatbot": _should_show_chatbot(request),
         "popular_categories":BlogCategory.objects.filter(id__in=popular_categories),
         "popular_tags":CareerTags.objects.filter(id__in=popular_tags),
         "blogs":Blog.get_published_objects().all(),

@@ -41,8 +41,9 @@ google-auth==2.40.3
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.2
 googleapis-common-protos==1.70.0
-grpcio==1.73.0
-grpcio-status==1.73.0
+# grpcio/grpcio-status: use <1.64 for protobuf<6 compatibility with google-generativeai
+grpcio>=1.60.0,<1.64.0
+grpcio-status>=1.60.0,<1.64.0
 gunicorn==20.1.0
 httplib2==0.22.0
 idna==3.10
@@ -61,7 +62,8 @@ pdfkit==1.0.0
 pillow==11.2.1
 prompt_toolkit==3.0.51
 proto-plus==1.26.1
-protobuf==6.31.1
+# protobuf: google-ai-generativelanguage requires <6; use 5.x for compatibility
+protobuf>=4.25.0,<6.0.0
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 pycparser==2.22

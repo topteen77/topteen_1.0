@@ -1,1 +1,22 @@
 media
+# MySQL data directory - large, restricted permissions, not needed for build
+dbdata_topteens
+# Python
+__pycache__
+*.py[cod]
+*.pyo
+*.egg-info
+.eggs
+.venv
+venv
+env
+envp*
+# Git
+.git
+.gitignore
+# Static/media collected at runtime
+staticfiles
+# Logs and local dev
+*.log
+*.sqlite3
+.env.local

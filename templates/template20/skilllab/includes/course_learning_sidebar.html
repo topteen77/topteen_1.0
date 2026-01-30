@@ -1,0 +1,232 @@
+<div class="course-sidebar">
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="fs-18 fw-semibold mb-3">Course Content</h5>
+      
+      {% if course and chapters_list %}
+      <div class="chapter-list">
+        {% for chapter in chapters_list %}
+        {% set is_current_chapter = current_chapter and current_chapter.id == chapter.id %}
+        {% set is_chapter_locked = chapter_locked_status.get(chapter.id, True) %}
+        {% set is_chapter_completed = chapter_progress.get(chapter.id, False) %}
+        <div class="chapter-item {% if is_current_chapter %}active{% endif %} {% if is_chapter_locked %}locked{% endif %}" data-chapter-id="{{ chapter.id }}">
+          <div class="chapter-header" {% if not is_chapter_locked %}onclick="navigateToChapter({{ chapter.id }})"{% endif %}>
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center flex-grow-1">
+                <div class="chapter-number me-3">
+                  {% if is_chapter_completed %}
+                    <i class='bx bx-check-circle text-success fs-18'></i>
+                  {% else %}
+                    <span class="chapter-index">{{ loop.index }}</span>
+                  {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                  <p class="fs-14 fw-semibold mb-0">{{ chapter.chapter_name }}</p>
+                  {% set chapter_activities = chapter.skilllabcourseactivity.all() %}
+                  {% if chapter_activities %}
+                  <small class="text-gray fs-12">{{ chapter_activities|length }} activit{{ 'y' if chapter_activities|length == 1 else 'ies' }}</small>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="d-flex align-items-center">
+                {% if is_chapter_locked %}
+                  <i class='bx bx-lock text-gray fs-18 me-2'></i>
+                {% elif is_current_chapter %}
+                  <i class='bx bx-chevron-down fs-18 me-2' style="color: rgba(255, 255, 255, 0.95);"></i>
+                {% else %}
+                  <i class='bx bx-chevron-right text-gray fs-18 me-2'></i>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Activities List (shown when chapter is active) -->
+          {% if is_current_chapter %}
+          {% set chapter_activities = chapter.skilllabcourseactivity.all() %}
+          {% if chapter_activities %}
+          <div class="activities-list mt-2 px-2 pb-2">
+            {% for activity in chapter_activities %}
+            {% set is_current_activity = current_activity and current_activity.id == activity.id %}
+            <div class="activity-item {% if is_current_activity %}active{% endif %}" 
+                 data-activity-id="{{ activity.id }}"
+                 onclick="navigateToActivity({{ activity.id }}, {{ chapter.id }})" 
+                 style="cursor: pointer; position: relative;">
+              {% if is_current_activity %}
+              <div style="position: absolute; left: -2px; top: 50%; transform: translateY(-50%); width: 5px; height: 65%; background: linear-gradient(180deg, #ff6b6b 0%, #ffa500 100%); border-radius: 0 6px 6px 0; box-shadow: 0 0 8px rgba(255, 107, 107, 0.5);"></div>
+              {% endif %}
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <div class="d-flex align-items-center flex-grow-1">
+                  <i class='bx {% if activity.type == 1 %}bx-file{% elif activity.type == 2 %}bx-file-blank{% else %}bx-file{% endif %} me-2 fs-16 {% if is_current_activity %}text-danger{% else %}text-primary{% endif %}' style="{% if is_current_activity %}color: #ff6b6b !important;{% endif %}"></i>
+                  <span class="fs-13 fw-semibold">{{ activity.name }}</span>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .course-sidebar {
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  
+  /* Chapter Item Styles */
+  .chapter-item {
+    margin-bottom: 10px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+  }
+  .chapter-item.locked {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  .chapter-item.locked .chapter-header {
+    cursor: not-allowed;
+    position: relative;
+  }
+  .chapter-item.locked:hover {
+    border-color: #ff6b6b;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.15);
+  }
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: #fff;
+  }
+  .chapter-item:hover {
+    border-color: #ffd89b;
+    box-shadow: 0 2px 8px rgba(255, 184, 0, 0.15);
+  }
+  .chapter-item.active {
+    border-color: transparent;
+    border-width: 2px;
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3), 0 0 0 2px rgba(255, 107, 107, 0.1);
+    background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+    position: relative;
+  }
+  
+  .chapter-header {
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: transparent;
+    position: relative;
+    z-index: 1;
+  }
+  .chapter-item.active .chapter-header {
+    color: #fff;
+  }
+  .chapter-item.active .chapter-header::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 0 6px 6px 0;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+  .chapter-item.active .chapter-header .text-gray {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+  .chapter-header:hover {
+    background: rgba(255, 107, 107, 0.08);
+  }
+  .chapter-item.active .chapter-header:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  
+  .chapter-number {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f0f0f5 0%, #e8e8f0 100%);
+    font-weight: 700;
+    font-size: 15px;
+    color: #ff6b6b;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .chapter-item.active .chapter-number {
+    background: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+    transform: scale(1.08);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+  }
+  .chapter-index {
+    font-size: 15px;
+  }
+  
+  /* Activities List Styles */
+  .activities-list {
+    padding: 12px 16px 16px 16px;
+    background: rgba(247, 247, 250, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .chapter-item.active .activities-list {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  
+  .activity-item {
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    background: #fff;
+    border-radius: 8px;
+    border-left: 4px solid #e9ecef;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  .activity-item:hover {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+    border-left-color: #ff6b6b;
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
+  }
+  .activity-item.active {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 240, 0.95) 100%);
+    color: #ff6b6b;
+    border-left-width: 5px;
+    border-left-color: #ff6b6b;
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.25), inset 0 0 0 2px rgba(255, 107, 107, 0.1);
+    transform: translateX(5px);
+    font-weight: 600;
+    position: relative;
+  }
+  .activity-item.active i {
+    color: #ff6b6b !important;
+  }
+  
+  /* Smooth scrollbar for sidebar */
+  .course-sidebar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .course-sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  .course-sidebar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+  }
+  .course-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+</style>

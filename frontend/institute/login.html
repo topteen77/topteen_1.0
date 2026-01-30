@@ -232,6 +232,8 @@
               </a>
             </p>
           </div>
+
+          {% include 'template20/includes/demo_credentials.html' %}
         </div>
       </div>
     </div>
@@ -241,6 +243,13 @@
 
 {% block additionaljs %}
 <script>
+// Demo login - institute: fill form and submit to API
+window.demoLoginAs = function(email, password, role) {
+  document.getElementById('email').value = email;
+  document.getElementById('password').value = password;
+  document.getElementById('instituteLoginForm').dispatchEvent(new Event('submit'));
+};
+
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('instituteLoginForm');
   const submitBtn = document.getElementById('submitBtn');

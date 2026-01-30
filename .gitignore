@@ -5,6 +5,7 @@ __pycache__/
 .vscode
 college_data
 etherpad
+dbdata_topteens/
 # C extensions
 *.so
 *.sql
@@ -302,3 +303,16 @@ scripts/verification_checklist.csv
 scripts/*.csv
 scripts/__pycache__/
 scripts/*.pyc
+dbdata_topteens/
+skilllabcourses_html-old/
+skilllabcourses_html/
+scripts/skilllabcourses_script/course_json/*
+scripts/skilllabcourses_script/course_json/*.json
+scripts/skilllabcourses_script/course_json/*.html
+scripts/skilllabcourses_script/course_json/*.pdf
+scripts/skilllabcourses_script/course_json/*.docx
+scripts/skilllabcourses_script/course_json/*.doc
+scripts/skilllabcourses_script/course_json/*.txt
+scripts/skilllabcourses_script/course_json/*.csv
+scripts/skilllabcourses_script/course_json/*.jsonl
+scripts/skilllabcourses_script/course_json/*.jsonl

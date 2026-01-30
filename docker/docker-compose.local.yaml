@@ -1,0 +1,80 @@
+# TopTeens - Local development: HTTP only, Django runserver
+# Usage: docker compose -f docker/docker-compose.local.yaml --env-file docker/.env.local up -d
+# Or:    export COMPOSE_FILE=docker/docker-compose.local.yaml && docker compose up -d
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: topteens-web:latest
+    stdin_open: true
+    tty: true
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    working_dir: /app
+    volumes:
+      - ..:/app
+    env_file: ../.env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DEBUG=True
+      - REDIS_HOST=redis
+      - ELASTICSEARCH_HOST=elasticsearch
+    depends_on:
+      redis:
+        condition: service_started
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  celery:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: topteens-web:latest
+    command: celery -A topteens worker -l info
+    working_dir: /app
+    volumes:
+      - ..:/app
+    env_file: ../.env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - REDIS_HOST=redis
+      - ELASTICSEARCH_HOST=elasticsearch
+    depends_on:
+      - web
+      - redis
+
+  celery_beat:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: topteens-web:latest
+    command: celery -A topteens beat -l info
+    working_dir: /app
+    volumes:
+      - ..:/app
+    env_file: ../.env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - REDIS_HOST=redis
+    depends_on:
+      - web
+      - redis
+
+  elasticsearch:
+    image: elasticsearch:7.17.10
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
+volumes:
+  elasticsearch_data:

@@ -3232,6 +3232,20 @@ class InstituteLoginView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['html_head'] = self.html_head()
+        from django.conf import settings
+        context['show_demo_credentials'] = (
+            getattr(settings, 'SHOW_DEMO_CREDENTIALS', False) and
+            getattr(settings, 'ENVIRONMENT', 'production') == 'development'
+        )
+        if context.get('show_demo_credentials'):
+            email = getattr(settings, 'DEMO_INSTITUTE_EMAIL', '')
+            pwd = getattr(settings, 'DEMO_INSTITUTE_PASSWORD', '')
+            context['demo_credentials'] = [{
+                'role': 'Institute', 'email': email, 'password': pwd,
+                'description': 'Access institute dashboard and manage students'
+            }] if email else []
+        else:
+            context['demo_credentials'] = []
         return context
 
 

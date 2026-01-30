@@ -1,0 +1,36 @@
+# TopTeens - Use existing mysql8 container (0innerdb) instead of creating new MySQL
+# Use when MYSQL_DATA_PATH has InnoDB conflicts or you want to share existing mysql8.
+#
+# Usage: docker compose -f docker-compose.yml -f docker-compose.db-external.yml up -d
+#
+# Requires: mysql8 container running on 0innerdb_default network (from 0innerdb project)
+
+services:
+  web:
+    networks:
+      - default
+      - external_db
+    environment:
+      - DB_HOST=mysql8
+      - DB_PORT=3306
+
+  celery:
+    networks:
+      - default
+      - external_db
+    environment:
+      - DB_HOST=mysql8
+      - DB_PORT=3306
+
+  celery_beat:
+    networks:
+      - default
+      - external_db
+    environment:
+      - DB_HOST=mysql8
+      - DB_PORT=3306
+
+networks:
+  external_db:
+    external: true
+    name: 0innerdb_default

@@ -298,6 +298,8 @@
                   </div>
                 </div>
               </div>
+
+              {% include 'template20/includes/demo_credentials.html' %}
             </div>
           </form>
         </div>
@@ -347,6 +349,52 @@
     } else {
       return -1;
     }
+  };
+
+  // Demo login - parent flow: loginsingup -> loginpwd (same as student)
+  window.demoLoginAs = function(email, password, role) {
+    var formData = new FormData();
+    formData.append('user_name', email);
+    $.ajax({
+      type: 'POST',
+      url: usersloginsignup,
+      data: formData,
+      success: function(data) {
+        if (data.show_password && data.enc_user_name) {
+          var pwdForm = new FormData();
+          pwdForm.append('enc_user_name', data.enc_user_name);
+          pwdForm.append('password', password);
+          $.ajax({
+            type: 'POST',
+            url: usersloginpwd,
+            data: pwdForm,
+            success: function(data2) {
+              if (data2.success && data2.redirect_url) {
+                window.location.href = data2.redirect_url;
+              } else if (data2.errMsg) {
+                if (typeof fireAlert === 'function') fireAlert(data2.errMsg, 'error');
+              }
+            },
+            error: function(xhr) {
+              var msg = (xhr.responseJSON && xhr.responseJSON.errMsg) || 'Login failed. Please try again.';
+              if (typeof fireAlert === 'function') fireAlert(msg, 'error');
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+          });
+        } else {
+          if (typeof fireAlert === 'function') fireAlert(data.message || 'Unable to login with demo credentials', 'error');
+        }
+      },
+      error: function(xhr) {
+        var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Unable to login. Please try again.';
+        if (typeof fireAlert === 'function') fireAlert(msg, 'error');
+      },
+      cache: false,
+      contentType: false,
+      processData: false
+    });
   };
 
   // URL variables for AJAX calls - Must be defined before loginsignup.js

@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Lab Courses - Complete Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 30px;
+        }
+        h4 {
+            color: #95a5a6;
+            margin-top: 20px;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 30px 0;
+        }
+        strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        p {
+            margin: 15px 0;
+        }
+        .toc {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 5px 0;
+        }
+        .toc a {
+            color: #34495e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Skill Lab Courses - Complete Documentation</h1>
+<br>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#features-implemented">Features Implemented</a></li>
+<li><a href="#admin-panel-enhancements">Admin Panel Enhancements</a></li>
+<li><a href="#course-learning-interface">Course Learning Interface</a></li>
+<li><a href="#progress-tracking">Progress Tracking</a></li>
+<li><a href="#management-commands">Management Commands</a></li>
+<li><a href="#url-namespace-fixes">URL Namespace Fixes</a></li>
+<li><a href="#technical-implementation-details">Technical Implementation Details</a></li>
+<li><a href="#api-endpoints">API Endpoints</a></li>
+<li><a href="#templates-structure">Templates Structure</a></li>
+</ol>
+<br>
+<hr>
+<br>
+<h2 id="overview">Overview</h2>
+<br>
+<p>This documentation covers the complete implementation of the Skill Lab Courses learning system, including admin panel enhancements, course learning interface, progress tracking, and data management tools.</p>
+<br>
+<h3 id="key-components">Key Components</h3>
+<ul>
+<li><strong>Admin Panel</strong>: Enhanced filtering, status display, and preview functionality</li>
+<li><strong>Learning Interface</strong>: Interactive course learning with chapter-by-chapter progression</li>
+<li><strong>Progress Tracking</strong>: User-specific completion tracking for chapters and activities</li>
+<li><strong>Data Management</strong>: Import scripts and verification tools for course data</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="features-implemented">Features Implemented</h2>
+<br>
+<h3 id="1-admin-panel-enhancements">1. Admin Panel Enhancements</h3>
+<br>
+<h4 id="status-display-and-filtering">Status Display and Filtering</h4>
+<ul>
+<li>Added <code>object_status</code> and <code>category</code> filters to <code>SkillLabCourseFilter</code></li>
+<li>Modified <code>SkillLabCourseListView</code> to show all courses (active, inactive, deleted) using <code>.complete()</code> manager</li>
+<li>Added status column with color-coded badges:</li>
+<li><strong>Active</strong>: Green badge</li>
+<li><strong>Inactive</strong>: Yellow badge</li>
+<li><strong>Deleted</strong>: Red badge</li>
+</ul>
+<br>
+<h4 id="preview-button">Preview Button</h4>
+<ul>
+<li>Added "Preview" button in admin actions menu</li>
+<li>Links to frontend course detail page using course slug</li>
+<li>Only visible when course has a valid slug</li>
+</ul>
+<br>
+<p><strong>Files Modified:</strong></p>
+<ul>
+<li><code>topteenadmin/filters.py</code></li>
+<li><code>topteenadmin/views.py</code></li>
+<li><code>templates/topteenadmin/skilllabcourse_list.html</code></li>
+</ul>
+<br>
+<hr>
+<br>
+<h3 id="2-course-category-assignment">2. Course Category Assignment</h3>
+<br>
+<h4 id="automatic-category-detection">Automatic Category Detection</h4>
+<p>Courses are automatically assigned categories based on keywords in their names:</p>
+<br>
+<ul>
+<li><strong>After 10th Class</strong> (<code>after_10_class</code>): Keywords like "class 7", "class 8", "career ready"</li>
+<li><strong>After 12th Class</strong> (<code>after_12_class</code>): Keywords like "class 12", "after 12", "soft skills"</li>
+<li><strong>After College</strong> (<code>after_college</code>): Keywords like "college", "graduate", "post-graduate"</li>
+<li><strong>Both</strong> (<code>BOTH</code>): Default fallback category</li>
+</ul>
+<br>
+<p><strong>Implementation:</strong></p>
+<ul>
+<li><code>get_course_category()</code> method in import script</li>
+<li>Category assignment during course import</li>
+<li>Separate management command for updating existing courses</li>
+</ul>
+<br>
+<p><strong>Files:</strong></p>
+<ul>
+<li><code>skilllab/management/commands/import_skilllab_courses.py</code></li>
+<li><code>skilllab/management/commands/update_skilllab_course_categories.py</code></li>
+</ul>
+<br>
+<hr>
+<br>
+<h3 id="3-course-learning-interface">3. Course Learning Interface</h3>
+<br>
+<h4 id="main-learning-view">Main Learning View</h4>
+<p>A dedicated learning interface similar to counselor courses, accessible at:</p>
+<pre><code class="language-">
+/skilllabcourse/course_learning/&lt;course_slug&gt;/
+</code></pre>
+<br>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Sidebar navigation with chapters and activities</li>
+<li>Progress bar showing overall course completion</li>
+<li>Chapter-by-chapter content display</li>
+<li>Sequential unlocking (chapters unlock after previous completion)</li>
+<li>Activity support (worksheets, MCQs, etc.)</li>
+</ul>
+<br>
+<p><strong>View:</strong> <code>SkillLabCourseLearningView</code> in <code>skilllab/views.py</code></p>
+<p><strong>Template:</strong> <code>templates/template20/skilllab/course_learning.html</code></p>
+<br>
+<h4 id="navigation-features">Navigation Features</h4>
+<ul>
+<li><strong>Chapter Navigation</strong>: Click on sidebar chapters to navigate</li>
+<li><strong>Activity Navigation</strong>: Access activities within chapters</li>
+<li><strong>Progress Indicators</strong>: Visual indicators for completed/locked chapters</li>
+<li><strong>Next Chapter Button</strong>: Automatically moves to next chapter after completion</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="progress-tracking">Progress Tracking</h2>
+<br>
+<h3 id="model-skilllabcourseprogress">Model: `SkillLabCourseProgress`</h3>
+<br>
+<p>Tracks user progress through Skill Lab Courses:</p>
+<br>
+<pre><code class="language-python">
+class SkillLabCourseProgress(BaseModel):
+    user = ForeignKey(User)
+    skilllab_course = ForeignKey(SkillLabCourse)
+    chapter = ForeignKey(SkillLabCourseChapter, null=True, blank=True)
+    completed = BooleanField(default=False)
+    completed_at = DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ((&#x27;user&#x27;, &#x27;chapter&#x27;),)
+</code></pre>
+<br>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Tracks completion status per chapter</li>
+<li>Records completion timestamp</li>
+<li>Unique constraint prevents duplicate progress records</li>
+<li>Indexed for performance</li>
+</ul>
+<br>
+<p><strong>Migration:</strong> <code>skilllab/migrations/0003_skilllabcourseprogress.py</code></p>
+<br>
+<hr>
+<br>
+<h3 id="chapter-locking-logic">Chapter Locking Logic</h3>
+<br>
+<p>Chapters are locked and unlocked based on sequential completion:</p>
+<br>
+<ol>
+<li><strong>First Chapter</strong>: Always unlocked</li>
+<li><strong>Subsequent Chapters</strong>: Unlocked only when previous chapter is completed</li>
+<li><strong>Activities</strong>: Locked if their parent chapter is not completed</li>
+</ol>
+<br>
+<p><strong>Implementation:</strong></p>
+<ul>
+<li><code>chapter_locked_status</code> dictionary in view context</li>
+<li>Calculated based on user's progress records</li>
+<li>Visual indicators in sidebar (lock icons)</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="management-commands">Management Commands</h2>
+<br>
+<h3 id="1-import-skill-lab-courses">1. Import Skill Lab Courses</h3>
+<br>
+<p><strong>Command:</strong> <code>python manage.py import_skilllab_courses</code></p>
+<br>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Imports courses from JSON data file</li>
+<li>Automatically assigns categories</li>
+<li>Handles slug conflicts (appends counter for duplicates)</li>
+<li>Updates existing courses or creates new ones</li>
+<li>Imports chapters and activities</li>
+<li>Handles character encoding issues</li>
+</ul>
+<br>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">
+python manage.py import_skilllab_courses
+</code></pre>
+<br>
+<p><strong>File:</strong> <code>skilllab/management/commands/import_skilllab_courses.py</code></p>
+<br>
+<hr>
+<br>
+<h3 id="2-update-course-categories">2. Update Course Categories</h3>
+<br>
+<p><strong>Command:</strong> <code>python manage.py update_skilllab_course_categories</code></p>
+<br>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Updates categories for already imported courses</li>
+<li>Uses same keyword-based logic as import script</li>
+<li>Supports dry-run mode</li>
+<li>Can filter by course ID or status</li>
+</ul>
+<br>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">
+# Dry run (preview changes)
+python manage.py update_skilllab_course_categories --dry-run
+
+# Apply changes
+python manage.py update_skilllab_course_categories
+
+# Update specific course
+python manage.py update_skilllab_course_categories --course-id 1
+</code></pre>
+<br>
+<p><strong>File:</strong> <code>skilllab/management/commands/update_skilllab_course_categories.py</code></p>
+<br>
+<hr>
+<br>
+<h3 id="3-check-upload-status">3. Check Upload Status</h3>
+<br>
+<p><strong>Command:</strong> <code>python manage.py check_skilllab_upload_status</code></p>
+<br>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Compares expected data (from JSON) with database</li>
+<li>Reports missing courses, chapters, and activities</li>
+<li>Provides detailed summary of upload status</li>
+</ul>
+<br>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">
+python manage.py check_skilllab_upload_status
+</code></pre>
+<br>
+<p><strong>File:</strong> <code>skilllab/management/commands/check_skilllab_upload_status.py</code></p>
+<br>
+<hr>
+<br>
+<h3 id="4-generate-course-images">4. Generate Course Images</h3>
+<br>
+<p><strong>Command:</strong> <code>python manage.py generate_skilllab_course_images</code></p>
+<br>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Generates placeholder images with course names</li>
+<li>Optionally fetches images from Unsplash API</li>
+<li>Supports dry-run mode</li>
+<li>Can target specific courses</li>
+</ul>
+<br>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">
+# Generate placeholder images
+python manage.py generate_skilllab_course_images --use-placeholder
+
+# Fetch from Unsplash
+python manage.py generate_skilllab_course_images --use-unsplash
+
+# Dry run
+python manage.py generate_skilllab_course_images --dry-run
+</code></pre>
+<br>
+<p><strong>File:</strong> <code>skilllab/management/commands/generate_skilllab_course_images.py</code></p>
+<br>
+<hr>
+<br>
+<h2 id="url-namespace-fixes">URL Namespace Fixes</h2>
+<br>
+<h3 id="issue">Issue</h3>
+<p>Multiple files were using incorrect namespace <code>'skilllab:'</code> instead of <code>'skilllabcourse:'</code>, causing <code>NoReverseMatch</code> errors.</p>
+<br>
+<h3 id="solution">Solution</h3>
+<p>Replaced all instances of <code>'skilllab:'</code> with <code>'skilllabcourse:'</code> across:</p>
+<br>
+<p><strong>Python Files:</strong></p>
+<ul>
+<li><code>skilllab/views.py</code></li>
+<li><code>skilllab/models.py</code></li>
+<li><code>skilllab/document_filters.py</code></li>
+</ul>
+<br>
+<p><strong>Template Files (17 files):</strong></p>
+<ul>
+<li><code>templates/template20/home_new.html</code></li>
+<li><code>templates/template20/skilllab_course_detail.html</code></li>
+<li><code>templates/topteenfrontend/skillabcoursechapter.html</code></li>
+<li>And 14 other template files</li>
+</ul>
+<br>
+<h3 id="correct-namespace-usage">Correct Namespace Usage</h3>
+<br>
+<p>All URL references should use:</p>
+<pre><code class="language-python">
+# Python
+reverse(&#x27;skilllabcourse:skilllabcourselist&#x27;)
+reverse(&#x27;skilllabcourse:skilllabcoursedetail&#x27;, args=[slug])
+
+# Templates (Jinja2)
+{{ url(&#x27;skilllabcourse:skilllabcourselist&#x27;) }}
+{{ url(&#x27;skilllabcourse:skilllabcoursedetail&#x27;, args=[course.slug]) }}
+</code></pre>
+<br>
+<hr>
+<br>
+<h2 id="technical-implementation-details">Technical Implementation Details</h2>
+<br>
+<h3 id="view-skilllabcourselearningview">View: SkillLabCourseLearningView</h3>
+<br>
+<p><strong>Location:</strong> <code>skilllab/views.py</code></p>
+<br>
+<p><strong>Key Methods:</strong></p>
+<ul>
+<li><code>get()</code>: Main view method that:</li>
+<li>Retrieves course and chapters</li>
+<li>Determines current chapter/activity from query params</li>
+<li>Calculates progress and lock status</li>
+<li>Prepares context for template</li>
+</ul>
+<br>
+<p><strong>Context Variables:</strong></p>
+<ul>
+<li><code>course</code>: Current SkillLabCourse object</li>
+<li><code>chapters_list</code>: All chapters for the course</li>
+<li><code>current_chapter</code>: Currently displayed chapter</li>
+<li><code>current_activity</code>: Currently displayed activity</li>
+<li><code>activities_list</code>: Activities for current chapter</li>
+<li><code>chapter_progress</code>: Dictionary of chapter completion status</li>
+<li><code>chapter_locked_status</code>: Dictionary of chapter lock status</li>
+<li><code>progress_percentage</code>: Overall course progress (0-100)</li>
+<li><code>next_chapter</code>: Next chapter object (if available)</li>
+</ul>
+<br>
+<hr>
+<br>
+<h3 id="api-endpoint-markchaptercompleteview">API Endpoint: MarkChapterCompleteView</h3>
+<br>
+<p><strong>URL:</strong> <code>/skilllabcourse/mark_chapter_complete/</code></p>
+<p><strong>Method:</strong> POST</p>
+<p><strong>Authentication:</strong> Required (login_required)</p>
+<br>
+<p><strong>Request Body:</strong></p>
+<pre><code class="language-json">
+{
+  &quot;chapter_id&quot;: 42,
+  &quot;course_id&quot;: 1
+}
+</code></pre>
+<br>
+<p><strong>Response (Success):</strong></p>
+<pre><code class="language-json">
+{
+  &quot;status&quot;: &quot;success&quot;,
+  &quot;message&quot;: &quot;Chapter marked as complete&quot;,
+  &quot;chapter_id&quot;: 42,
+  &quot;created&quot;: true,
+  &quot;next_chapter_id&quot;: 43,
+  &quot;course_slug&quot;: &quot;ai-future-work-preparedness&quot;
+}
+</code></pre>
+<br>
+<p><strong>Response (Error):</strong></p>
+<pre><code class="language-json">
+{
+  &quot;status&quot;: &quot;error&quot;,
+  &quot;error&quot;: &quot;Error message here&quot;
+}
+</code></pre>
+<br>
+<p><strong>Implementation:</strong></p>
+<ul>
+<li>Uses <code>SkillLabCourseProgress.objects.update_or_create()</code></li>
+<li>Automatically determines next chapter</li>
+<li>Returns next chapter ID for automatic navigation</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="templates-structure">Templates Structure</h2>
+<br>
+<h3 id="main-learning-template">Main Learning Template</h3>
+<br>
+<p><strong>File:</strong> <code>templates/template20/skilllab/course_learning.html</code></p>
+<br>
+<p><strong>Structure:</strong></p>
+<ul>
+<li>Extends <code>template20/logged-in-base.html</code></li>
+<li>Includes sidebar: <code>templates/template20/skilllab/includes/course_learning_sidebar.html</code></li>
+<li>Main content area for chapter/activity display</li>
+<li>Progress bar</li>
+<li>Next/Complete buttons</li>
+</ul>
+<br>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>Dynamic URL construction (no template variables in JavaScript)</li>
+<li>CSRF token handling for AJAX requests</li>
+<li>Automatic navigation after chapter completion</li>
+<li>Error handling with user-friendly messages</li>
+</ul>
+<br>
+<hr>
+<br>
+<h3 id="sidebar-template">Sidebar Template</h3>
+<br>
+<p><strong>File:</strong> <code>templates/template20/skilllab/includes/course_learning_sidebar.html</code></p>
+<br>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Lists all chapters with numbers</li>
+<li>Shows activity count per chapter</li>
+<li>Completion indicators (checkmarks)</li>
+<li>Lock indicators for locked chapters</li>
+<li>Click handlers for navigation (disabled for locked items)</li>
+</ul>
+<br>
+<hr>
+<br>
+<h3 id="course-detail-template">Course Detail Template</h3>
+<br>
+<p><strong>File:</strong> <code>templates/template20/skilllab_course_detail.html</code></p>
+<br>
+<p><strong>Enhancement:</strong></p>
+<ul>
+<li>Added "Start Learning" button</li>
+<li>Links to learning interface: <code>skilllabcourse:skilllab_course_learning</code></li>
+<li>Only visible if user has access and course has chapters</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="javascript-functions">JavaScript Functions</h2>
+<br>
+<h3 id="navigation-functions">Navigation Functions</h3>
+<br>
+<pre><code class="language-javascript">
+// Navigate to a specific chapter
+function navigateToChapter(chapterId) {
+  const currentUrl = window.location.href.split(&#x27;?&#x27;)[0];
+  window.location.href = currentUrl + &quot;?type=chapter&amp;id=&quot; + chapterId;
+}
+
+// Navigate to a specific activity
+function navigateToActivity(activityId, chapterId) {
+  const currentUrl = window.location.href.split(&#x27;?&#x27;)[0];
+  window.location.href = currentUrl + &quot;?type=activity&amp;id=&quot; + chapterId + &quot;&amp;activity_id=&quot; + activityId;
+}
+</code></pre>
+<br>
+<h3 id="chapter-completion">Chapter Completion</h3>
+<br>
+<pre><code class="language-javascript">
+// Mark chapter as complete and navigate to next
+function markChapterComplete(chapterId, courseId) {
+  // Constructs API URL dynamically
+  // Sends POST request with CSRF token
+  // Handles response and navigates to next chapter
+  // Shows error messages if request fails
+}
+</code></pre>
+<br>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Automatic navigation to next chapter after completion</li>
+<li>No alerts shown (seamless user experience)</li>
+<li>Reloads page if no next chapter exists</li>
+<li>Comprehensive error handling</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="database-schema">Database Schema</h2>
+<br>
+<h3 id="skilllabcourseprogress-table">SkillLabCourseProgress Table</h3>
+<br>
+<pre><code class="language-sql">
+CREATE TABLE skilllab_skilllabcourseprogress (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    skilllab_course_id INT NOT NULL,
+    chapter_id INT NULL,
+    completed BOOLEAN DEFAULT FALSE,
+    completed_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    modified_at DATETIME NOT NULL,
+    UNIQUE KEY (user_id, chapter_id),
+    INDEX (user_id, skilllab_course_id),
+    INDEX (user_id, chapter_id),
+    FOREIGN KEY (user_id) REFERENCES users_user(id),
+    FOREIGN KEY (skilllab_course_id) REFERENCES skilllab_skilllabcourse(id),
+    FOREIGN KEY (chapter_id) REFERENCES skilllab_skilllabcoursechapter(id)
+);
+</code></pre>
+<br>
+<hr>
+<br>
+<h2 id="url-patterns">URL Patterns</h2>
+<br>
+<h3 id="skill-lab-course-urls">Skill Lab Course URLs</h3>
+<br>
+<pre><code class="language-python">
+# skilllab/urls.py
+app_name = &quot;skilllabcourse&quot;
+
+urlpatterns = [
+    path(&quot;&quot;, views.SkillLabCourseList.as_view(), name=&quot;skilllabcourselist&quot;),
+    path(&quot;skilllabcoursedetail/&lt;slug:skilllab_slug&gt;/&quot;, 
+         views.SkillLabCourseDetail.as_view(), name=&quot;skilllabcoursedetail&quot;),
+    path(&quot;skilllabcoursechapterdetail/&lt;slug:chapter_slug&gt;/&quot;, 
+         views.SkillLabCourseChapterDetail.as_view(), name=&quot;skilllabcoursechapterdetail&quot;),
+    path(&quot;skilllabcourseactivityworksheetdetail/&lt;slug:workactive_slug&gt;/&quot;, 
+         views.SkillLabCourseActivityDetail.as_view(), name=&quot;skilllabcourseactivityworksheetdetail&quot;),
+    path(&#x27;course_learning/&lt;slug:course_slug&gt;/&#x27;, 
+         views.SkillLabCourseLearningView.as_view(), name=&#x27;skilllab_course_learning&#x27;),
+    path(&#x27;mark_chapter_complete/&#x27;, 
+         views.MarkChapterCompleteView.as_view(), name=&#x27;mark_chapter_complete&#x27;),
+    # ... payment URLs
+]
+</code></pre>
+<br>
+<hr>
+<br>
+<h2 id="error-handling">Error Handling</h2>
+<br>
+<h3 id="common-issues-and-solutions">Common Issues and Solutions</h3>
+<br>
+<h4 id="1-noreversematch-skilllab-is-not-a-registered-namespace">1. NoReverseMatch: 'skilllab' is not a registered namespace</h4>
+<p><strong>Solution:</strong> Ensure all URL references use <code>'skilllabcourse:'</code> namespace</p>
+<br>
+<h4 id="2-programmingerror-table-doesnt-exist">2. ProgrammingError: Table doesn't exist</h4>
+<p><strong>Solution:</strong> Run migrations: <code>python manage.py migrate</code></p>
+<br>
+<h4 id="3-duplicate-slug-errors-during-import">3. Duplicate slug errors during import</h4>
+<p><strong>Solution:</strong> Import script automatically handles by appending counter (e.g., <code>course-slug-1</code>)</p>
+<br>
+<h4 id="4-character-encoding-errors">4. Character encoding errors</h4>
+<p><strong>Solution:</strong> Import script uses BeautifulSoup to clean HTML content before saving</p>
+<br>
+<h4 id="5-csrf-token-errors">5. CSRF token errors</h4>
+<p><strong>Solution:</strong> Template includes hidden CSRF input field, JavaScript reads it for AJAX requests</p>
+<br>
+<hr>
+<br>
+<h2 id="testing-checklist">Testing Checklist</h2>
+<br>
+<h3 id="admin-panel">Admin Panel</h3>
+<ul>
+<li>[ ] Status filter works correctly</li>
+<li>[ ] Category filter works correctly</li>
+<li>[ ] Status badges display correctly</li>
+<li>[ ] Preview button links to correct URL</li>
+<li>[ ] All courses visible (including deleted)</li>
+</ul>
+<br>
+<h3 id="learning-interface">Learning Interface</h3>
+<ul>
+<li>[ ] Course learning page loads correctly</li>
+<li>[ ] Sidebar displays all chapters</li>
+<li>[ ] First chapter is unlocked</li>
+<li>[ ] Subsequent chapters are locked initially</li>
+<li>[ ] Chapter unlocks after previous completion</li>
+<li>[ ] Progress bar updates correctly</li>
+<li>[ ] Next button navigates to next chapter</li>
+<li>[ ] Completion status persists after page reload</li>
+</ul>
+<br>
+<h3 id="api-endpoints">API Endpoints</h3>
+<ul>
+<li>[ ] Mark chapter complete API works</li>
+<li>[ ] Returns correct next_chapter_id</li>
+<li>[ ] Handles errors gracefully</li>
+<li>[ ] CSRF protection works</li>
+</ul>
+<br>
+<h3 id="data-management">Data Management</h3>
+<ul>
+<li>[ ] Import script creates/updates courses</li>
+<li>[ ] Category assignment works correctly</li>
+<li>[ ] Status check script reports accurately</li>
+<li>[ ] Image generation works</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="future-enhancements">Future Enhancements</h2>
+<br>
+<h3 id="potential-improvements">Potential Improvements</h3>
+<ol>
+<li><strong>Activity Completion Tracking</strong>: Track completion of individual activities</li>
+<li><strong>Course Certificates</strong>: Generate certificates upon course completion</li>
+<li><strong>Progress Analytics</strong>: Dashboard showing user progress statistics</li>
+<li><strong>Bookmarking</strong>: Allow users to bookmark specific chapters</li>
+<li><strong>Notes</strong>: Allow users to take notes on chapters</li>
+<li><strong>Discussion Forum</strong>: Chapter-specific discussion threads</li>
+<li><strong>Video Progress</strong>: Track video watch time for video content</li>
+<li><strong>Quiz Scoring</strong>: Track and display quiz scores</li>
+<li><strong>Time Tracking</strong>: Track time spent on each chapter</li>
+<li><strong>Mobile App</strong>: Native mobile app for course learning</li>
+</ol>
+<br>
+<hr>
+<br>
+<h2 id="maintenance-notes">Maintenance Notes</h2>
+<br>
+<h3 id="regular-tasks">Regular Tasks</h3>
+<ol>
+<li><strong>Data Verification</strong>: Run `check_skilllab_upload_status` after data imports</li>
+<li><strong>Category Updates</strong>: Run `update_skilllab_course_categories` if category logic changes</li>
+<li><strong>Image Updates</strong>: Run `generate_skilllab_course_images` for new courses</li>
+<li><strong>Database Cleanup</strong>: Periodically clean up old progress records if needed</li>
+</ol>
+<br>
+<h3 id="backup-recommendations">Backup Recommendations</h3>
+<ul>
+<li>Backup <code>SkillLabCourseProgress</code> table regularly (user progress data)</li>
+<li>Backup course content (chapters, activities) before major updates</li>
+<li>Keep JSON data files for course content as source of truth</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="support-and-troubleshooting">Support and Troubleshooting</h2>
+<br>
+<h3 id="getting-help">Getting Help</h3>
+<ol>
+<li>Check Django logs for error messages</li>
+<li>Verify URL namespace is correct (`skilllabcourse:`)</li>
+<li>Ensure migrations are applied</li>
+<li>Check browser console for JavaScript errors</li>
+<li>Verify user authentication status</li>
+</ol>
+<br>
+<h3 id="common-commands">Common Commands</h3>
+<pre><code class="language-bash">
+# Check system status
+python manage.py check
+
+# Run migrations
+python manage.py migrate
+
+# Import courses
+python manage.py import_skilllab_courses
+
+# Check upload status
+python manage.py check_skilllab_upload_status
+
+# Update categories
+python manage.py update_skilllab_course_categories
+</code></pre>
+<br>
+<hr>
+<br>
+<h2 id="version-history">Version History</h2>
+<br>
+<h3 id="version-10-current">Version 1.0 (Current)</h3>
+<ul>
+<li>Initial implementation of learning interface</li>
+<li>Progress tracking system</li>
+<li>Admin panel enhancements</li>
+<li>Data import/management tools</li>
+<li>Namespace fixes</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="contributors">Contributors</h2>
+<br>
+<ul>
+<li>Development Team</li>
+<li>Documentation: AI Assistant</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="license">License</h2>
+<br>
+<p>[Your License Here]</p>
+<br>
+<hr>
+<br>
+<p><strong>Last Updated:</strong> January 2026</p>
+<p><strong>Documentation Version:</strong> 1.0</p>
+<br>
+    </div>
+</body>
+</html>

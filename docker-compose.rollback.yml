@@ -1,0 +1,65 @@
+# TopTeens - Rollback: same as production but use :previous images
+# Used by deploy.sh when health check fails after deploy
+
+services:
+  web:
+    image: topteens-web:previous
+    working_dir: /app
+    command: /start.sh
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    env_file: .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    expose:
+      - "8000"
+    depends_on:
+      - redis
+
+  nginx:
+    image: topteens-nginx:latest
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - static_volume:/var/www/html/static:ro
+      - media_volume:/var/www/html/media:ro
+      - ${SSL_CERT_PATH:-./ssl}:/etc/nginx/ssl:ro
+    depends_on:
+      - web
+
+  celery:
+    image: topteens-web:previous
+    command: celery -A topteens worker -l info
+    working_dir: /app
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    env_file: .env
+    depends_on:
+      - web
+      - redis
+
+  celery_beat:
+    image: topteens-web:previous
+    command: celery -A topteens beat -l info
+    working_dir: /app
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    env_file: .env
+    depends_on:
+      - web
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_volume:/data
+
+volumes:
+  static_volume:
+  media_volume:
+  redis_volume:

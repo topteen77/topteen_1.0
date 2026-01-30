@@ -385,6 +385,12 @@ class LoginView(TemplateView):
             ctx['enc_referral_user']=enc_id
         else:
             ctx['enc_referral_user']=False
+        # Demo credentials for development
+        ctx['show_demo_credentials'] = (
+            getattr(settings, 'SHOW_DEMO_CREDENTIALS', False) and
+            getattr(settings, 'ENVIRONMENT', 'production') == 'development'
+        )
+        ctx['demo_credentials'] = []
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -405,6 +411,13 @@ class StudentLoginView(LoginView):
             return redirect('users:userdashboard')
         ctx = self.get_context(request, *args, **kwargs)
         ctx['login_mode'] = 'student'
+        if ctx.get('show_demo_credentials'):
+            emails = getattr(settings, 'DEMO_STUDENT_EMAILS', []) or []
+            pwd = getattr(settings, 'DEMO_STUDENT_PASSWORD', '')
+            ctx['demo_credentials'] = [
+                {'role': 'Student', 'email': e.strip(), 'password': pwd, 'description': 'Access student dashboard and career resources'}
+                for e in emails if e.strip()
+            ]
         return render(request, self.template_name, ctx)
 
 
@@ -436,6 +449,13 @@ class ParentsLoginView(LoginView):
             return redirect('users:userdashboard')
         ctx = self.get_context(request, *args, **kwargs)
         ctx['login_mode'] = 'parent'
+        if ctx.get('show_demo_credentials'):
+            emails = getattr(settings, 'DEMO_PARENTS_EMAILS', []) or []
+            pwd = getattr(settings, 'DEMO_PARENTS_PASSWORD', '')
+            ctx['demo_credentials'] = [
+                {'role': 'Parent', 'email': e.strip(), 'password': pwd, 'description': 'View linked students and their progress'}
+                for e in emails if e.strip()
+            ]
         return render(request, self.template_name, ctx)
 
 
@@ -1621,6 +1641,9 @@ class LoginPassword(APIView):
                         data['redirect_url'] = reverse('institute:institutedashboard', args=[institute.slug])
                     else:
                         data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
+                # Check for parent users - redirect to parents dashboard
+                elif user.user_type == choices.UserType.PARENT:
+                    data['redirect_url'] = request.build_absolute_uri(reverse('parents_dashboard'))
                 # Check for institute group admin
                 elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
                     from institute.models import InstituteGroup

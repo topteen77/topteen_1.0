@@ -5,19 +5,19 @@ Career Tracks | Top Teen
 {% endblock %}
 
 {% block chatbot %}
-{% if not is_ai_mode %}
+{% if show_chatbot and not is_ai_mode %}
 {% include 'template20/includes/chatbot.html' %}
 {% endif %}
 {% endblock %}
 
 {% block chatbot_css %}
-{% if not is_ai_mode %}
+{% if show_chatbot and not is_ai_mode %}
 <link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />
 {% endif %}
 {% endblock %}
 
 {% block chatbot_js %}
-{% if not is_ai_mode %}
+{% if show_chatbot and not is_ai_mode %}
 <script src="{{ static('js_new/chatbot.js') }}"></script>
 {% endif %}
 {% endblock %}

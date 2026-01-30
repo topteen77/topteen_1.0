@@ -3152,4 +3152,18 @@ class CounselorLoginView(TemplateView):
         except Exception:
             # Fallback if build_html_head is not available
             context['html_head'] = None
+        from django.conf import settings
+        context['show_demo_credentials'] = (
+            getattr(settings, 'SHOW_DEMO_CREDENTIALS', False) and
+            getattr(settings, 'ENVIRONMENT', 'production') == 'development'
+        )
+        if context.get('show_demo_credentials'):
+            emails = getattr(settings, 'DEMO_COUNSELOR_EMAILS', []) or []
+            pwd = getattr(settings, 'DEMO_COUNSELOR_PASSWORD', '')
+            context['demo_credentials'] = [
+                {'role': 'Counselor', 'email': e.strip(), 'password': pwd, 'description': 'Access counselor dashboard and courses'}
+                for e in emails if e.strip()
+            ]
+        else:
+            context['demo_credentials'] = []
         return context

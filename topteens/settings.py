@@ -136,6 +136,15 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True # If needed for cookies or auth
 
+# HTTP vs HTTPS - controlled by USE_HTTPS env (True=HTTPS, False=HTTP)
+USE_HTTPS = config('USE_HTTPS', default=False, cast=bool)
+SECURE_SSL_REDIRECT = USE_HTTPS
+SESSION_COOKIE_SECURE = USE_HTTPS
+CSRF_COOKIE_SECURE = USE_HTTPS
+# When behind reverse proxy (nginx, etc.) that terminates SSL
+if USE_HTTPS:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 ROOT_URLCONF = 'topteens.urls'
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 TEMPLATES = [
@@ -502,7 +511,7 @@ LOGOUT_URL = '/'
 # LOGIN_REDIRECT_URL =  "/user/user-feeds"
 LOGIN_REDIRECT_URL =  "/test/home"
 LOGOUT_REDIRECT_URL = "/user/login"
-SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = USE_HTTPS
 
 
 # Payment Gateway Configuration from Environment
@@ -570,6 +579,28 @@ PSYCHOMETRIC_COURSE_FREE_ID=3
 
 DEMO_EMAIL=[]
 CREDIT_LIMIT=5000
+
+# Demo credentials for development - shown on login pages when SHOW_DEMO_CREDENTIALS=True and ENVIRONMENT=development
+SHOW_DEMO_CREDENTIALS = config('SHOW_DEMO_CREDENTIALS', default=False, cast=bool)
+ENVIRONMENT = config('ENVIRONMENT', default='production')
+
+def _parse_demo_emails(value):
+    """Parse comma-separated emails from env."""
+    if not value:
+        return []
+    return [e.strip() for e in str(value).split(',') if e.strip()]
+
+DEMO_STUDENT_EMAILS = _parse_demo_emails(config('DEMO_STUDENT_EMAILS', default=''))
+DEMO_STUDENT_PASSWORD = config('DEMO_STUDENT_PASSWORD', default='')
+DEMO_PARENTS_EMAILS = _parse_demo_emails(config('DEMO_PARENTS_EMAILS', default=''))
+DEMO_PARENTS_PASSWORD = config('DEMO_PARENTS_PASSWORD', default='')
+DEMO_INSTITUTE_EMAIL = config('DEMO_INSTITUTE_EMAIL', default='')
+DEMO_INSTITUTE_PASSWORD = config('DEMO_INSTITUTE_PASSWORD', default='')
+DEMO_COUNSELOR_EMAILS = _parse_demo_emails(config('DEMO_COUNSELOR_EMAILS', default=''))
+DEMO_COUNSELOR_PASSWORD = config('DEMO_COUNSELOR_PASSWORD', default='')
+
+# Chatbot visibility: home-only | students-parents | institutes | counselors
+CHATBOT_VISIBILITY = config('CHATBOT_VISIBILITY', default='home-only')
 
 # @manish
 # Master password settings

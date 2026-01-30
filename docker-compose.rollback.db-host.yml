@@ -1,0 +1,24 @@
+# TopTeens - Rollback with MySQL on host (use when DB_MODE=host)
+# Merged with docker-compose.rollback.yml
+
+services:
+  web:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=${DB_PORT:-3306}
+
+  celery:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=${DB_PORT:-3306}
+
+  celery_beat:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=${DB_PORT:-3306}

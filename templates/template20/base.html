@@ -36,7 +36,7 @@
   <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}" type="text/css" media="all" />
   <link rel="stylesheet" href="{{ static('css_new/search.css') }}" type="text/css" media="all" />
   {% block chatbot_css %}
-  <link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />
+  {% if show_chatbot %}<link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />{% endif %}
   {% endblock %}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -115,7 +115,7 @@
   {% include 'template20/includes/footer.html' %}
   {% endblock %}
   {% block chatbot %}
-  {% include 'template20/includes/chatbot.html' %}
+  {% if show_chatbot %}{% include 'template20/includes/chatbot.html' %}{% endif %}
   {% endblock %}
 
   {% block modals %}
@@ -132,7 +132,7 @@
   <script src="{{ static('js_new/main.js') }}?v=20251218-1"></script>
   <script src="{{ static('js_new/search.js') }}"></script>
   {% block chatbot_js %}
-  <script src="{{ static('js_new/chatbot.js') }}"></script>
+  {% if show_chatbot %}<script src="{{ static('js_new/chatbot.js') }}"></script>{% endif %}
   {% endblock %}
   <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 

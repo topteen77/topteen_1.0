@@ -369,8 +369,8 @@ class GA4Session(BaseModel):
             models.Index(fields=['date', 'source', 'country', 'device']),
             models.Index(fields=['-synced_at']),
         ]
-        # Unique constraint to prevent duplicates
-        unique_together = [['ga4_client_id', 'date', 'source', 'country', 'device', 'entry_page']]
+        # Unique constraint to prevent duplicates (entry_page excluded - exceeds MySQL 3072 byte index limit with utf8mb4)
+        unique_together = [['ga4_client_id', 'date', 'source', 'country', 'device']]
     
     @property
     def is_registered_user(self):

@@ -1,0 +1,2231 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Course Learning | {{ course.name }} | Top Teen{% endblock %}
+{% block description_content %}Learn at your own pace with interactive content.{% endblock %}
+
+{% block bodyclass %}{{ super() }} course-learning-page{% endblock %}
+
+{# Disable chatbot #}
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+
+{# Hide top navigation and footer for focused learning experience #}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  /* Hide navigation and footer completely for focused learning */
+  body.course-learning-page .header,
+  body.course-learning-page .navbar,
+  body.course-learning-page .tt-header,
+  body.course-learning-page header:not(.course-page-header),
+  body.course-learning-page .footer-cta,
+  body.course-learning-page footer,
+  body.course-learning-page .main-header,
+  body.course-learning-page nav:not(.course-sidebar) {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .course-learning-page {
+    padding-top: 0;
+  }
+  
+  /* Ensure body has no top padding when header is hidden */
+  body.course-learning-page {
+    padding-top: 0 !important;
+  }
+  
+  /* Keep course-page-header visible */
+  .course-page-header {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* Course Header Styles */
+  .course-page-header {
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    width: 100%;
+  }
+
+  .course-header-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .course-logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .course-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .course-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .course-progress-wrapper {
+    min-width: 200px;
+    max-width: 300px;
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 6px;
+  }
+
+  .course-progress-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 600;
+  }
+
+  .course-progress-percentage {
+    font-size: 0.9rem;
+    color: #5249DF;
+    font-weight: 700;
+  }
+
+  .course-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .course-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #5249DF 0%, #6438d0 100%);
+    transition: width 0.3s ease;
+    border-radius: 4px;
+  }
+
+  .back-to-course-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #5249DF;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+  }
+
+  .back-to-course-btn:hover {
+    color: #6438d0;
+    background: #f0eaff;
+    transform: translateX(-3px);
+  }
+
+  .mobile-sidebar-toggle {
+    display: none;
+    background: #5249DF;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .mobile-sidebar-toggle i {
+    font-size: 1.25rem;
+  }
+
+  /* Full Course Page Styles */
+  .full-course-section {
+    background: #f8f9fa;
+    min-height: calc(100vh - 80px);
+    padding-top: 1rem;
+    margin-top: 80px;
+  }
+
+  /* Sidebar Styles */
+  .course-sidebar {
+    background: #fff;
+    border-right: 1px solid #e0e0e0;
+    padding: 0;
+    position: sticky;
+    top: 80px;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    max-height: calc(100vh - 80px);
+    overflow-x: hidden;
+  }
+
+  .course-chapters-sidebar {
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+    flex-shrink: 0;
+  }
+
+  .sidebar-title i {
+    color: #5249DF;
+  }
+
+  .chapters-accordion {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chapter-accordion-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .chapter-accordion-item.active {
+    border-color: #5249DF;
+    box-shadow: 0 2px 8px rgba(82, 73, 223, 0.1);
+  }
+
+  .chapter-accordion-header {
+    padding: 1rem;
+    cursor: pointer;
+    background: #f8f9fa;
+    transition: background 0.3s ease;
+  }
+
+  .chapter-accordion-item.active .chapter-accordion-header {
+    background: #f0eaff;
+  }
+
+  .chapter-accordion-header:hover {
+    background: #f0eaff;
+  }
+
+  .chapter-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .chapter-title-text {
+    flex: 1;
+  }
+
+  .chapter-title i {
+    font-size: 1.25rem;
+    color: #5249DF;
+    transition: transform 0.3s ease;
+    margin-left: auto;
+  }
+
+  .chapter-accordion-item.active .chapter-title i {
+    transform: rotate(180deg);
+  }
+
+  .chapter-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .chapter-accordion-item.active .chapter-accordion-content {
+    max-height: 1000px;
+  }
+
+  .chapter-sections {
+    list-style: none;
+    padding: 0.5rem 0;
+    margin: 0;
+  }
+
+  .section-item {
+    padding: 0.75rem 1rem;
+    padding-right: 3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #666;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    position: relative;
+  }
+
+  .section-item:hover {
+    background: #f8f9fa;
+    color: #5249DF;
+  }
+
+  .section-item.active {
+    background: #f0eaff !important;
+    color: #5249DF !important;
+    border-left: 4px solid #5249DF;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px rgba(82, 73, 223, 0.15);
+  }
+
+  .section-item.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    color: #999 !important;
+  }
+  
+  .section-item.locked span {
+    color: #999 !important;
+  }
+  
+  .section-item.locked i.bx-lock {
+    color: #999 !important;
+  }
+
+  .section-item.locked::before {
+    content: "\eb49";
+    font-family: 'boxicons';
+    position: absolute;
+    right: 1rem;
+    color: #999;
+    font-size: 1.25rem;
+  }
+
+  .section-item i {
+    font-size: 1.1rem;
+  }
+
+  /* Content Area */
+  .course-content-area {
+    padding: 1.5rem;
+    min-height: calc(100vh - 80px);
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .course-content-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+    word-wrap: break-word;
+    box-sizing: border-box;
+  }
+
+  .content-section {
+    display: none;
+    padding: 2.5rem;
+  }
+
+  .content-section.active {
+    display: block;
+  }
+
+  .content-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .content-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .content-title i {
+    color: #5249DF;
+  }
+
+  .content-subtitle {
+    color: #666;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+
+  .content-body {
+    line-height: 1.8;
+    color: #555;
+    max-width: 100%;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    box-sizing: border-box;
+  }
+  
+  /* Fix bullet list styling - green ticks for lists */
+  .content-body ul,
+  .content-body .ckeditorStyles ul,
+  .content-body .parentIntro ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .content-body ul li,
+  .content-body .ckeditorStyles ul li,
+  .content-body .parentIntro ul li {
+    position: relative;
+    padding-left: 1.8rem;
+    margin-bottom: 0.75rem;
+    list-style: none;
+  }
+  
+  .content-body ul li::before,
+  .content-body .ckeditorStyles ul li::before,
+  .content-body .parentIntro ul li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #28a745;
+    font-weight: bold;
+    font-size: 1.2rem;
+    line-height: 1.5;
+  }
+  
+  /* Override any existing checkmarks or icons in lists - ensure green */
+  .content-body ul li i.bx-check,
+  .content-body .ckeditorStyles ul li i.bx-check,
+  .content-body .parentIntro ul li i.bx-check,
+  .content-body ul li i[class*="check"],
+  .content-body .ckeditorStyles ul li i[class*="check"],
+  .content-body .parentIntro ul li i[class*="check"] {
+    color: #28a745 !important;
+  }
+  
+  /* Remove any purple checkmarks and replace with green */
+  .content-body ul li i[style*="color"],
+  .content-body .ckeditorStyles ul li i[style*="color"],
+  .content-body .parentIntro ul li i[style*="color"] {
+    color: #28a745 !important;
+  }
+  
+  /* Ensure all list items have green ticks */
+  .content-body ul li::marker,
+  .content-body .ckeditorStyles ul li::marker,
+  .content-body .parentIntro ul li::marker {
+    color: #28a745;
+  }
+
+  /* Call-to-Action Box (Dynamic Colored Paragraph) */
+  .cta-box {
+    background: linear-gradient(135deg, #f0eaff 0%, #e8dfff 100%);
+    border: 2px solid #5249DF;
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 4px 12px rgba(82, 73, 223, 0.1);
+  }
+  
+  .cta-text {
+    color: #5249DF;
+    font-size: 1rem;
+    line-height: 1.8;
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .content-body * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .content-body img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .content-body table {
+    width: 100%;
+    table-layout: auto;
+    overflow-x: auto;
+    display: block;
+  }
+
+  /* Navigation Buttons */
+  .section-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid #f0f0f0;
+  }
+
+  .nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+  }
+
+  .nav-btn.prev-btn {
+    background: #f8f9fa;
+    color: #666;
+  }
+
+  .nav-btn.prev-btn:hover {
+    background: #e0e0e0;
+    color: #333;
+  }
+
+  .nav-btn.next-btn {
+    background: linear-gradient(135deg, #5249DF 0%, #6438d0 100%);
+    color: #fff;
+  }
+
+  .nav-btn.next-btn:hover {
+    transform: translateX(3px);
+    box-shadow: 0 4px 12px rgba(82, 73, 223, 0.3);
+  }
+  
+  .complete-btn {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    padding: 0.875rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .complete-btn:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  }
+  
+  .section-item.completed {
+    color: #28a745;
+  }
+  
+  .section-item.completed i.bx-check-circle {
+    color: #28a745 !important;
+  }
+  
+  /* Square checkbox style for completed items */
+  .section-item i.bx-check-circle {
+    color: #28a745 !important;
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    min-width: 1.2rem;
+    min-height: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #28a745;
+    border-radius: 3px;
+    background: #28a745;
+    position: relative;
+    flex-shrink: 0;
+  }
+  
+  .section-item i.bx-check-circle::before {
+    content: "\ea5e";
+    color: #fff;
+    font-size: 0.9rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 80px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+  }
+
+  .mobile-overlay.active {
+    display: block;
+  }
+
+  /* Completion Status */
+  .completion-status {
+    margin-top: 2rem;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .completion-status.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .completion-status.warning {
+    background: #fff3e0;
+    color: #e65100;
+  }
+
+  /* Quiz Styles */
+  .quiz-content {
+    padding: 2rem 0;
+  }
+
+  .quiz-header {
+    margin-bottom: 2rem;
+  }
+
+  .quiz-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .quiz-subtitle {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-bottom: 0;
+  }
+
+  .quiz-form {
+    margin-top: 2rem;
+  }
+
+  .quiz-question {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .question-header {
+    margin-bottom: 1rem;
+  }
+
+  .question-number {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .question-text {
+    font-size: 1rem;
+    color: #333;
+    line-height: 1.6;
+    margin-bottom: 0;
+  }
+
+  .question-options {
+    margin-top: 1rem;
+  }
+
+  .option-label {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .option-label:hover {
+    background: #f8f9fa;
+    border-color: #6c63ff;
+  }
+
+  .option-label input[type="radio"] {
+    margin-right: 0.75rem;
+    margin-top: 0.2rem;
+    cursor: pointer;
+  }
+
+  .option-label input[type="radio"]:checked + .option-letter {
+    color: #6c63ff;
+    font-weight: 600;
+  }
+
+  .option-letter {
+    font-weight: 600;
+    color: #6c757d;
+    margin-right: 0.5rem;
+    min-width: 1.5rem;
+  }
+
+  .option-text {
+    flex: 1;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  .quiz-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .submit-quiz-btn {
+    background: #6c63ff;
+    color: #fff;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .submit-quiz-btn:hover {
+    background: #5a52e5;
+    transform: translateY(-1px);
+  }
+
+  .reset-quiz-btn {
+    background: #6c757d;
+    color: #fff;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-quiz-btn:hover {
+    background: #5a6268;
+  }
+
+  .quiz-results {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+  }
+
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .results-header h4 {
+    margin: 0;
+    color: #2c3e50;
+  }
+
+  .score-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .score-text {
+    font-size: 1.1rem;
+    color: #333;
+  }
+
+  .score-percentage {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #6c63ff;
+  }
+
+  .quiz-feedback {
+    margin-top: 1rem;
+  }
+
+  .question-feedback {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 6px;
+  }
+
+  .question-feedback.correct {
+    background: #e8f5e9;
+    border-left: 4px solid #4caf50;
+  }
+
+  .question-feedback.incorrect {
+    background: #ffebee;
+    border-left: 4px solid #f44336;
+  }
+
+  .question-feedback p {
+    margin: 0.5rem 0;
+    color: #333;
+  }
+
+  @media (max-width: 991px) {
+    .course-page-header {
+      padding: 0.75rem 0;
+    }
+
+    .full-course-section {
+      margin-top: 0;
+      padding-top: 1rem;
+    }
+
+    .course-header-nav {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .course-logo {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .course-title {
+      font-size: 1.2rem;
+      white-space: normal;
+    }
+
+    .course-header-right {
+      width: 100%;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .course-header-right .course-progress-wrapper {
+      flex: 1;
+      min-width: 100%;
+      max-width: 100%;
+      margin-bottom: 0.5rem;
+    }
+
+    .mobile-sidebar-toggle {
+      display: flex;
+    }
+
+    .course-sidebar {
+      position: fixed;
+      top: 80px;
+      left: -100%;
+      width: 280px;
+      height: calc(100vh - 80px);
+      z-index: 999;
+      transition: left 0.3s ease;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      border-right: 1px solid #e0e0e0;
+    }
+
+    .course-sidebar.active {
+      left: 0;
+    }
+
+    .course-content-area {
+      padding: 1rem;
+      width: 100%;
+    }
+
+    .content-section {
+      padding: 1.25rem;
+    }
+
+    .content-title {
+      font-size: 1.4rem;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .course-sidebar {
+      width: 85%;
+    }
+
+    .course-title {
+      font-size: 1rem;
+    }
+
+    .content-section {
+      padding: 1rem;
+    }
+
+    .content-title {
+      font-size: 1.2rem;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .section-navigation {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .nav-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+<!-- Course Page Header -->
+<header class="course-page-header">
+  <div class="container-fluid">
+    <div class="course-header-nav">
+      <div class="course-logo d-flex align-items-center gap-2">
+        <button class="mobile-sidebar-toggle" onclick="toggleMobileSidebar()">
+          <i class='bx bx-menu'></i>
+          <span>Chapters</span>
+        </button>
+        <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[course.slug]) }}">
+          <img class="img-fluid me-3" src="{{ static('images_new/logo.svg') }}" alt="Logo" />
+        </a>
+        <h2 class="course-title mb-0">{{ course.name }}</h2>
+    </div>
+      <div class="course-header-right">
+        <div class="course-progress-wrapper">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h4 class="course-progress-title mb-0">Course Progress</h4>
+            <span class="course-progress-percentage">{{ progress_percentage }}%</span>
+        </div>
+          <div class="course-progress-bar">
+            <div class="course-progress-fill" style="width: {{ progress_percentage }}%"></div>
+      </div>
+          {% if user and user.is_authenticated %}
+          <p class="course-progress-user mb-0 mt-1 text-muted" style="font-size: 0.8rem;">Progress saved for <strong>{{ user.get_username() }}</strong></p>
+          {% endif %}
+            </div>
+        <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[course.slug]) }}" class="back-to-course-btn">
+          <i class='bx bx-arrow-back'></i>
+          <span>Back to Course</span>
+        </a>
+            </div>
+          </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="py-test-page skill-page">
+  <section class="full-course-section pt-3 pb-5">
+    <div class="container-fluid">
+      <!-- Mobile Overlay -->
+      <div class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
+      
+      <div class="row">
+        <!-- Left Sidebar: Chapter Accordion -->
+        <div class="col-lg-3 col-md-4 course-sidebar order-1">
+          <div class="course-chapters-sidebar">
+            <h3 class="sidebar-title">
+              <i class='bx bx-book-open'></i>
+              Course Chapters
+            </h3>
+            <div class="chapters-accordion">
+              {% if chapters_list %}
+                {% for chapter in chapters_list %}
+                  <div class="chapter-accordion-item {% if current_chapter and current_chapter.id == chapter.id %}active{% endif %}">
+                    <div class="chapter-accordion-header" onclick="toggleChapter({{ chapter.id }})">
+                      <h4 class="chapter-title">
+                        <span class="chapter-title-text">{{ chapter.chapter_name }}</span>
+                        <i class='bx bx-chevron-down'></i>
+                      </h4>
+              </div>
+                    <div class="chapter-accordion-content">
+                      <ul class="chapter-sections">
+                        {% set is_chapter_locked = chapter_locked_status and chapter.id in chapter_locked_status and (chapter_locked_status|get_item(chapter.id)) %}
+                        {% if not is_chapter_locked or (current_chapter and current_chapter.id == chapter.id) %}
+                          <!-- Chapter Introduction -->
+                          {% if chapter.intro_html or current_chapter and current_chapter.id == chapter.id %}
+                          {% set is_intro_completed = intro_completed_status and chapter.id in intro_completed_status and (intro_completed_status|get_item(chapter.id)) %}
+                          <li class="section-item {% if current_chapter and current_chapter.id == chapter.id and show_intro %}active{% endif %} {% if is_intro_completed %}completed{% endif %}" 
+                              onclick="navigateToChapter({{ chapter.id }})">
+                            <i class='bx {% if is_intro_completed %}bx-check-circle{% else %}bx-file-blank{% endif %}'></i>
+                            <span>Introduction</span>
+                            {% if is_intro_completed %}
+                            <i class='bx bx-check-circle' style="color: #28a745; margin-left: auto; font-size: 1.1rem; position: absolute; right: 1rem;"></i>
+                            {% endif %}
+                          </li>
+                          {% endif %}
+                          
+                          <!-- Chapter Sections: show completed (not locked) for sections in previous chapters -->
+                          {% if chapters_with_sections and chapter.id in chapters_with_sections %}
+                            {% for section in chapters_with_sections|get_item(chapter.id) %}
+                              {% set is_section_locked = section_locked_status and section.id in section_locked_status and (section_locked_status|get_item(section.id)) %}
+                              {% set is_section_completed = section_completed_status and section.id in section_completed_status and (section_completed_status|get_item(section.id)) %}
+                              {% if not is_section_locked %}
+                                <li class="section-item {% if current_section and current_section.id == section.id %}active{% endif %} {% if is_section_completed %}completed{% endif %}" 
+                                    onclick="navigateToSection({{ section.id }}, {{ chapter.id }})">
+                                  <i class='bx {% if is_section_completed %}bx-check-circle{% else %}bx-file-blank{% endif %}'></i>
+                                  <span>{{ section.heading }}</span>
+                                  {% if is_section_completed %}
+                                  <i class='bx bx-check-circle' style="color: #28a745; margin-left: auto; font-size: 1.2rem; position: absolute; right: 1rem;"></i>
+                                  {% endif %}
+                                </li>
+                              {% else %}
+                                <li class="section-item locked">
+                                  <i class='bx bx-lock'></i>
+                                  <span>{{ section.heading }}</span>
+                                  <i class='bx bx-lock' style="color: #999; margin-left: auto; font-size: 1.2rem; position: absolute; right: 1rem;"></i>
+                                </li>
+                              {% endif %}
+                            {% endfor %}
+              {% endif %}
+
+                          <!-- MCQs (Quiz) - Only show if unlocked -->
+                          {% set is_mcq_chapter_locked = chapter_locked_status and chapter.id in chapter_locked_status and (chapter_locked_status|get_item(chapter.id)) %}
+                          {% if not is_mcq_chapter_locked or (current_chapter and current_chapter.id == chapter.id) %}
+                            {% for mcq in chapter.mcqs.all() %}
+                              {% set is_mcq_locked = chapter_locked_status and chapter.id in chapter_locked_status and (chapter_locked_status|get_item(chapter.id)) %}
+                              {% if not is_mcq_locked or current_chapter and current_chapter.id == chapter.id %}
+                                <li class="section-item {% if current_mcq and current_mcq.id == mcq.id %}active{% endif %}" 
+                                    onclick="navigateToMCQ({{ mcq.id }}, {{ chapter.id }})">
+                                  <i class='bx bx-question-mark'></i>
+                                  <span>Quiz</span>
+                                </li>
+                            {% else %}
+                                <li class="section-item locked">
+                                  <i class='bx bx-lock'></i>
+                                  <span>Quiz</span>
+                                  <i class='bx bx-lock' style="color: #999; margin-left: auto; font-size: 1.2rem;"></i>
+                                </li>
+                            {% endif %}
+                            {% endfor %}
+                          {% endif %}
+                          
+                          <!-- Activities (Worksheet, etc.) - show completed when done -->
+                          {% set is_activity_chapter_locked = chapter_locked_status and chapter.id in chapter_locked_status and (chapter_locked_status|get_item(chapter.id)) %}
+                          {% if not is_activity_chapter_locked or (current_chapter and current_chapter.id == chapter.id) %}
+                            {% for activity in chapter.skilllabcourseactivity.all() %}
+                              {% set is_activity_locked = chapter_locked_status and chapter.id in chapter_locked_status and (chapter_locked_status|get_item(chapter.id)) %}
+                              {% set is_worksheet_completed = worksheet_completed_status and activity.id in worksheet_completed_status and (worksheet_completed_status|get_item(activity.id)) %}
+                              {% if not is_activity_locked or current_chapter and current_chapter.id == chapter.id %}
+                                <li class="section-item {% if current_activity and current_activity.id == activity.id %}active{% endif %} {% if is_worksheet_completed %}completed{% endif %}" 
+                                    onclick="navigateToActivity({{ activity.id }}, {{ chapter.id }})">
+                                  <i class='bx {% if is_worksheet_completed %}bx-check-circle{% elif activity.type == 1 %}bx-file{% elif activity.type == 2 %}bx-trophy{% else %}bx-file-blank{% endif %}'></i>
+                                  <span>{{ activity.name }}</span>
+                                  {% if is_worksheet_completed %}
+                                  <i class='bx bx-check-circle' style="color: #28a745; margin-left: auto; font-size: 1.2rem; position: absolute; right: 1rem;"></i>
+                                  {% endif %}
+                                </li>
+                              {% else %}
+                                <li class="section-item locked">
+                                  <i class='bx bx-lock'></i>
+                                  <span>{{ activity.name }}</span>
+                                  <i class='bx bx-lock' style="color: #999; margin-left: auto; font-size: 1.2rem;"></i>
+                                </li>
+                              {% endif %}
+                            {% endfor %}
+                          {% endif %}
+                        {% else %}
+                          <li class="section-item locked">
+                            <i class='bx bx-lock'></i>
+                            <span>Locked - Complete previous chapter</span>
+                          </li>
+                        {% endif %}
+                      </ul>
+                        </div>
+                      </div>
+                {% endfor %}
+              {% else %}
+                <p class="text-gray">No chapters available.</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+        <!-- Right Content Area -->
+        <div class="col-lg-9 col-md-8 course-content-area order-2">
+          <div class="course-content-wrapper">
+            {% if current_chapter %}
+              <!-- Chapter Content - LMS Style: Show one section at a time -->
+              <div class="content-section active">
+                <div class="content-header">
+                  <h2 class="content-title">
+                    <i class='bx bx-book-reader'></i>
+                    {{ current_chapter.chapter_name }}
+                  </h2>
+                </div>
+                <div class="content-body parentIntro text-[16px] font-normal leading-[26px] tracking-[-0.015em] text-[#4F4F4F] parentContainer ckeditorStyles">
+                  {% if show_intro %}
+                    <!-- Show Chapter Introduction (first thing user sees) -->
+                    {% if current_chapter.intro_html %}
+                      <div class="chapter-intro">
+                        {{ current_chapter.intro_html|safe }}
+                      </div>
+                    {% else %}
+                      <div class="chapter-intro">
+                        <p>Welcome to {{ current_chapter.chapter_name }}. Let's begin learning!</p>
+              </div>
+              {% endif %}
+
+                    <!-- Dynamic Call-to-Action Box -->
+                    <div class="cta-box">
+                      <p class="cta-text">
+                        Are you excited to unlock the secrets of {{ current_chapter.chapter_name|default('this chapter') }} and kickstart your tech adventure? 
+                        Dive into this chapter with an open mind and a thirst for discovery! 
+                        If you have questions, ideas, or want to explore any topic deeper, just let us know—we're here to fuel your passion and guide you every step of the way. 
+                        Let's decode the future together!
+                      </p>
+                  </div>
+                  {% elif current_section %}
+                    <!-- Show only the selected section (one at a time) -->
+                    <div class="chapter-section active-section" id="section-{{ current_section.id }}">
+                      <p class="section-breadcrumb text-muted mb-3" style="font-size: 0.9rem;">
+                        <i class='bx bx-current-location'></i> You are here: <strong>{{ current_section.heading or 'Section' }}</strong>{% if current_section_index and total_sections_in_chapter %}{{ ' (Section ' ~ current_section_index ~ ' of ' ~ total_sections_in_chapter ~ ')' }}{% endif %}
+                      </p>
+                      {% if current_section.heading_html %}
+                        {{ current_section.heading_html|safe }}
+                      {% elif current_section.heading %}
+                        <h2>{{ current_section.heading }}</h2>
+                {% endif %}
+                
+                      {% if current_section.content_html %}
+                        <div class="section-content">
+                          {{ current_section.content_html|safe }}
+                        </div>
+                      {% elif current_section.content %}
+                        <div class="section-content">
+                          {{ current_section.content|safe }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  {% elif current_mcq %}
+                    <!-- MCQ/Quiz content -->
+                    <div class="quiz-content">
+                      <div class="quiz-header">
+                        <h3 class="quiz-title">{{ current_mcq.title or ((current_chapter.chapter_name|default('Chapter')) ~ ' Quiz') }}</h3>
+                        {% if current_mcq.description %}
+                        <p class="quiz-subtitle">{{ current_mcq.description|safe }}</p>
+                      {% else %}
+                        <p class="quiz-subtitle">Test your understanding with these multiple choice questions</p>
+                      {% endif %}
+                      </div>
+                      
+                      <form id="quiz-form" class="quiz-form" data-mcq-id="{{ current_mcq.id }}">
+                        {% for question in current_mcq.questions.all() %}
+                        <div class="quiz-question" data-question-id="{{ question.id }}">
+                          <div class="question-header">
+                            <h4 class="question-number">Question {{ question.question_number }}:</h4>
+                            <p class="question-text">{{ question.question_text }}</p>
+                          </div>
+                          
+                          <div class="question-options">
+                            {% for answer in question.answers.all() %}
+                            <label class="option-label">
+                              <input type="radio" 
+                                     name="question_{{ question.id }}" 
+                                     value="{{ answer.answer_letter }}"
+                                     data-question-id="{{ question.id }}"
+                                     data-answer-letter="{{ answer.answer_letter }}">
+                              <span class="option-letter">{{ answer.answer_letter }})</span>
+                              <span class="option-text">{{ answer.answer_text }}</span>
+                            </label>
+                            {% endfor %}
+                          </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="quiz-actions">
+                          <button type="submit" class="btn btn-primary submit-quiz-btn">
+                            <i class='bx bx-check-circle me-2'></i>Submit Quiz
+                          </button>
+                        </div>
+                      </form>
+                      
+                      <div id="quiz-results" class="quiz-results" style="display: none;">
+                        <div class="results-header">
+                          <h4>Quiz Results</h4>
+                          <div class="score-display">
+                            <span class="score-text">Score: <strong id="quiz-score">0</strong>/<strong id="quiz-total">0</strong></span>
+                            <span class="score-percentage" id="quiz-percentage">0%</span>
+                          </div>
+                        </div>
+                        <div id="quiz-feedback" class="quiz-feedback"></div>
+                      </div>
+                    </div>
+                  {% elif current_activity %}
+                    <!-- Activity content (worksheet) -->
+                    <div class="activity-content">
+                      {% if current_activity.content %}
+                        {{ current_activity.content|safe }}
+                    {% endif %}
+                      
+                      {% if current_activity.downloadable_file %}
+                      <div class="mt-4">
+                        <a href="{{ current_activity.downloadable_file.url }}" 
+                           class="nav-btn next-btn" 
+                           download
+                           onclick="markWorksheetDownloaded({{ current_activity.id }}, true)">
+                          <i class='bx bx-download me-2'></i>Download {{ current_activity.name }}
+                        </a>
+                      </div>
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <p class="text-gray">No content available.</p>
+                  {% endif %}
+                </div>
+
+                <!-- Completion Status and Navigation - LMS Style -->
+                <div class="section-navigation">
+                  {% if show_intro %}
+                    <!-- Introduction Navigation -->
+                    <button class="nav-btn prev-btn" style="visibility: hidden;" disabled>
+                      <i class='bx bx-chevron-left'></i>
+                      Previous
+                    </button>
+                    
+                    {% if sections_list and sections_list|length > 0 %}
+                      <button class="nav-btn next-btn" 
+                              onclick="markIntroCompleteAndNavigate({{ current_chapter.id }}, {{ sections_list[0].id }}, {{ course.id }})">
+                        Next: Section 1 <i class='bx bx-chevron-right ms-2'></i>
+                      </button>
+                      {% else %}
+                      <p class="text-gray">No sections available in this chapter.</p>
+                      {% endif %}
+                    
+                  {% elif current_section %}
+                    <!-- Section Navigation -->
+                    <button class="nav-btn prev-btn" 
+                            onclick="navigateToPreviousSection({{ current_section.id }}, {{ current_chapter.id }})">
+                      <i class='bx bx-chevron-left'></i>
+                      <span>Previous</span>
+                    </button>
+                    
+                    {% if next_section %}
+                      <button class="nav-btn next-btn" 
+                              onclick="navigateToNextSectionWithCompletion({{ current_section.id }}, {{ next_section.id }}, {{ current_chapter.id }})">
+                        Next Section <i class='bx bx-chevron-right ms-2'></i>
+                      </button>
+                    {% elif next_mcq %}
+                      <a href="{{ url('skilllabcourse:skilllab_course_learning', args=[course.slug]) }}?id={{ current_chapter.id }}&mcq_id={{ next_mcq.id }}" 
+                         class="nav-btn next-btn">
+                        Next: Quiz <i class='bx bx-chevron-right ms-2'></i>
+                      </a>
+                    {% elif next_activity %}
+                      <button type="button" class="nav-btn next-btn" 
+                              onclick="markSectionCompleteAndGoToWorksheet({{ current_section.id }}, {{ current_chapter.id }}, {{ next_activity.id }})">
+                        Next: Worksheet <i class='bx bx-chevron-right ms-2'></i>
+                      </button>
+                    {% elif next_chapter %}
+                      <button class="nav-btn next-btn" 
+                              onclick="navigateToChapter({{ next_chapter.id }})">
+                        Next Chapter <i class='bx bx-chevron-right ms-2'></i>
+                      </button>
+                    {% else %}
+                      <p class="text-gray">Course completed!</p>
+                    {% endif %}
+                    
+                  {% elif current_mcq %}
+                    <!-- MCQ Navigation -->
+                    {% if last_section %}
+                      <a href="{{ url('skilllabcourse:skilllab_course_learning', args=[course.slug]) }}?id={{ current_chapter.id }}&section_id={{ last_section.id }}" 
+                         class="nav-btn prev-btn">
+                        <i class='bx bx-chevron-left'></i>
+                        Previous: Chapter Wrap-Up
+                      </a>
+                    {% else %}
+                      <a href="{{ url('skilllabcourse:skilllab_course_learning', args=[course.slug]) }}?id={{ current_chapter.id }}" 
+                         class="nav-btn prev-btn">
+                        <i class='bx bx-chevron-left'></i>
+                        Back to Chapter
+                      </a>
+                    {% endif %}
+                    
+                    {% if activities_list and activities_list|length > 0 %}
+                      <a href="{{ url('skilllabcourse:skilllab_course_learning', args=[course.slug]) }}?id={{ current_chapter.id }}&activity_id={{ activities_list[0].id }}" 
+                         class="nav-btn next-btn">
+                        Next: Worksheet <i class='bx bx-chevron-right ms-2'></i>
+                      </a>
+                    {% elif next_chapter %}
+                      <a href="{{ url('skilllabcourse:skilllab_course_learning', args=[course.slug]) }}?id={{ next_chapter.id }}" 
+                         class="nav-btn next-btn">
+                        Next Chapter <i class='bx bx-chevron-right ms-2'></i>
+                      </a>
+                    {% else %}
+                      <p class="text-gray">Course completed!</p>
+                    {% endif %}
+                  {% elif current_activity %}
+                    <!-- Activity (Worksheet) Navigation: Back to Chapter and Next Chapter -->
+                    <a href="{{ url('skilllabcourse:skilllab_course_learning', args=[course.slug]) }}?id={{ current_chapter.id }}" 
+                       class="nav-btn prev-btn">
+                      <i class='bx bx-chevron-left'></i>
+                      Back to Chapter
+                    </a>
+                    {% if next_chapter %}
+                      <a href="{{ url('skilllabcourse:skilllab_course_learning', args=[course.slug]) }}?id={{ next_chapter.id }}&show_intro=true" 
+                         class="nav-btn next-btn">
+                        Next Chapter <i class='bx bx-chevron-right ms-2'></i>
+                      </a>
+                    {% else %}
+                      <p class="text-gray mb-0">Course completed!</p>
+                    {% endif %}
+                  {% endif %}
+              </div>
+            </div>
+
+          {% elif content_type == 'activity' and current_activity %}
+            <!-- Activity Content -->
+              <div class="content-section active">
+                <div class="content-header">
+                  <h2 class="content-title">
+                    <i class='bx {% if current_activity.type == 1 %}bx-file{% elif current_activity.type == 2 %}bx-trophy{% else %}bx-file-blank{% endif %}'></i>
+                    {{ current_activity.name }}
+                  </h2>
+                </div>
+                <div class="content-body parentIntro text-[16px] font-normal leading-[26px] tracking-[-0.015em] text-[#4F4F4F] parentContainer ckeditorStyles">
+              {% if current_activity.content %}
+                {{ current_activity.content|safe }}
+              {% endif %}
+
+              {% if current_activity.downloadable_file %}
+              <div class="mt-4">
+                <a href="{{ current_activity.downloadable_file.url }}" 
+                       class="nav-btn next-btn" download>
+                  <i class='bx bx-download me-2'></i>Download {{ current_activity.name }}
+                </a>
+              </div>
+              {% endif %}
+                </div>
+
+                <div class="section-navigation">
+                <a href="{{ url('skilllabcourse:skilllab_course_learning', args=[course.slug]) }}?type=chapter&id={{ current_activity.skilllab_chapter.id }}" 
+                     class="nav-btn prev-btn">
+                    <i class='bx bx-chevron-left'></i>
+                    Back to Chapter
+                </a>
+              </div>
+            </div>
+
+          {% else %}
+            <!-- Default: Show first chapter or course intro -->
+            {% if chapters_list %}
+                {% for first_chapter in chapters_list %}
+                  {% if loop.first %}
+                  <div class="content-section active">
+                    <div class="content-header">
+                      <h2 class="content-title">
+                        <i class='bx bx-book-reader'></i>
+                        Welcome to {{ course.name }}
+                      </h2>
+                    </div>
+                    <div class="content-body parentIntro text-[16px] font-normal leading-[26px] tracking-[-0.015em] text-[#4F4F4F] parentContainer ckeditorStyles">
+                {% if course.description %}
+                  {{ course.description|safe }}
+                      {% else %}
+                        <p>Welcome to {{ course.name }}. Select a chapter from the sidebar to begin learning.</p>
+                {% endif %}
+                      
+                      <div class="mt-4">
+                <a href="{{ url('skilllabcourse:skilllab_course_learning', args=[course.slug]) }}?type=chapter&id={{ first_chapter.id }}" 
+                           class="nav-btn next-btn">
+                  Start with {{ first_chapter.chapter_name }} <i class='bx bx-chevron-right ms-2'></i>
+                </a>
+              </div>
+                    </div>
+                  </div>
+                  {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="content-section active">
+                <p class="text-gray">No chapters available for this course.</p>
+              </div>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function toggleMobileSidebar() {
+  const sidebar = document.querySelector('.course-sidebar');
+  const overlay = document.querySelector('.mobile-overlay');
+  sidebar.classList.toggle('active');
+  overlay.classList.toggle('active');
+}
+
+function toggleChapter(chapterId) {
+  const accordionItem = event.currentTarget.closest('.chapter-accordion-item');
+  const isActive = accordionItem.classList.contains('active');
+  
+  // Close all accordions
+  document.querySelectorAll('.chapter-accordion-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // Open clicked accordion if it wasn't active
+  if (!isActive) {
+    accordionItem.classList.add('active');
+  }
+}
+
+function navigateToChapter(chapterId) {
+  const currentUrl = window.location.href.split('?')[0];
+  // Add show_intro=true to explicitly show introduction when clicking "Introduction"
+  window.location.href = currentUrl + "?type=chapter&id=" + chapterId + "&show_intro=true";
+}
+
+function navigateToActivity(activityId, chapterId) {
+  const currentUrl = window.location.href.split('?')[0];
+  window.location.href = currentUrl + "?type=activity&id=" + chapterId + "&activity_id=" + activityId;
+}
+
+function navigateToMCQ(mcqId, chapterId) {
+  const currentUrl = window.location.href.split('?')[0];
+  window.location.href = currentUrl + "?id=" + chapterId + "&mcq_id=" + mcqId;
+}
+
+function navigateToSection(sectionId, chapterId) {
+  // Prevent navigation to locked sections
+  const sectionItem = document.querySelector(`[onclick*="navigateToSection(${sectionId}"]`);
+  if (sectionItem && sectionItem.classList.contains('locked')) {
+    alert('This section is locked. Please complete the previous sections first.');
+    return;
+  }
+  
+  const currentUrl = window.location.href.split('?')[0];
+  window.location.href = currentUrl + "?id=" + chapterId + "&section_id=" + sectionId;
+}
+
+function navigateToNextSectionWithCompletion(currentSectionId, nextSectionId, chapterId) {
+  // Mark current section as complete, then navigate to next section
+  if (currentSectionId) {
+    markSectionComplete(currentSectionId, chapterId, null, function(success, data) {
+      if (success) {
+        // After marking complete, navigate to next section
+        navigateToSection(nextSectionId, chapterId);
+      } else {
+        // If marking failed, still navigate (don't block user)
+        navigateToSection(nextSectionId, chapterId);
+      }
+    });
+  } else {
+    // No current section to mark, just navigate
+    navigateToSection(nextSectionId, chapterId);
+  }
+}
+
+function markSectionCompleteAndGoToWorksheet(currentSectionId, chapterId, activityId) {
+  // Mark current (last) section as complete before going to worksheet, so the view's lock check passes
+  if (currentSectionId) {
+    markSectionComplete(currentSectionId, chapterId, null, function(success, data) {
+      var base = window.location.pathname;
+      window.location.href = base + "?id=" + chapterId + "&activity_id=" + activityId;
+    });
+  } else {
+    window.location.href = window.location.pathname + "?id=" + chapterId + "&activity_id=" + activityId;
+  }
+}
+
+function markIntroCompleteAndNavigate(chapterId, firstSectionId, courseId) {
+  // Mark intro as complete by marking first section as viewed, then navigate to first section
+  let csrfToken = getCookie('csrftoken');
+  
+  if (!csrfToken) {
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+      csrfToken = csrfInput.value;
+    }
+  }
+  
+  if (!csrfToken) {
+    alert('CSRF token not found. Please refresh the page and try again.');
+    navigateToSection(firstSectionId, chapterId);
+    return;
+  }
+  
+  const currentPath = window.location.pathname;
+  let basePath = '/skilllabcourse';
+  const courseLearningIndex = currentPath.indexOf('/course_learning/');
+  if (courseLearningIndex !== -1) {
+    basePath = currentPath.substring(0, courseLearningIndex);
+  }
+  let url = basePath + '/mark_section_complete/';
+  
+  // Mark first section as viewed (not completed) to indicate intro is done, then navigate
+  const requestData = {
+    section_id: parseInt(firstSectionId),
+    chapter_id: parseInt(chapterId),
+    viewed_only: true  // Just mark as viewed, not completed
+  };
+  
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify(requestData),
+    credentials: 'same-origin'
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.text().then(text => {
+        let errorMsg = `HTTP ${response.status}`;
+        try {
+          const errorData = JSON.parse(text);
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          errorMsg = text || errorMsg;
+        }
+        throw new Error(errorMsg);
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data && data.status === 'success') {
+      // Navigate to first section after marking intro as complete
+      navigateToSection(firstSectionId, chapterId);
+    } else {
+      // Still navigate even if marking failed
+      navigateToSection(firstSectionId, chapterId);
+    }
+  })
+  .catch(error => {
+    // Still navigate even if marking failed
+    navigateToSection(firstSectionId, chapterId);
+  });
+}
+
+function navigateToPreviousSection(currentSectionId, chapterId) {
+  // Get all sections for this chapter from the sidebar
+  const chapterAccordion = document.querySelector(`[onclick*="toggleChapter(${chapterId})"]`)?.closest('.chapter-accordion-item');
+  if (!chapterAccordion) {
+    navigateToChapter(chapterId);
+    return;
+  }
+  
+  const sectionItems = chapterAccordion.querySelectorAll('.section-item[onclick*="navigateToSection"]');
+  let prevSectionId = null;
+  let foundCurrent = false;
+  
+  for (let i = sectionItems.length - 1; i >= 0; i--) {
+    const item = sectionItems[i];
+    const onclickAttr = item.getAttribute('onclick');
+    if (onclickAttr && onclickAttr.includes(`navigateToSection(${currentSectionId}`)) {
+      foundCurrent = true;
+      if (i > 0) {
+        // Get previous section ID
+        const prevOnclick = sectionItems[i - 1].getAttribute('onclick');
+        const match = prevOnclick.match(/navigateToSection\((\d+),/);
+        if (match) {
+          prevSectionId = match[1];
+        }
+      }
+      break;
+    }
+  }
+  
+  if (prevSectionId) {
+    navigateToSection(parseInt(prevSectionId), chapterId);
+  } else {
+    // No previous section, go back to introduction
+    navigateToChapter(chapterId);
+  }
+}
+
+function navigateToNextSection(currentSectionId, chapterId, nextChapterId) {
+  // Get all sections for this chapter from the sidebar
+  const chapterAccordion = document.querySelector(`[onclick*="toggleChapter(${chapterId})"]`)?.closest('.chapter-accordion-item');
+  if (!chapterAccordion) {
+    if (nextChapterId) {
+      navigateToChapter(nextChapterId);
+    }
+    return;
+  }
+  
+  const sectionItems = chapterAccordion.querySelectorAll('.section-item[onclick*="navigateToSection"]');
+  let nextSectionId = null;
+  let foundCurrent = false;
+  
+  for (let i = 0; i < sectionItems.length; i++) {
+    const item = sectionItems[i];
+    const onclickAttr = item.getAttribute('onclick');
+    if (onclickAttr && onclickAttr.includes(`navigateToSection(${currentSectionId}`)) {
+      foundCurrent = true;
+      if (i < sectionItems.length - 1) {
+        // Get next section ID
+        const nextOnclick = sectionItems[i + 1].getAttribute('onclick');
+        const match = nextOnclick.match(/navigateToSection\((\d+),/);
+        if (match) {
+          nextSectionId = parseInt(match[1]);
+        }
+      }
+      break;
+    }
+  }
+  
+  if (nextSectionId) {
+    // Mark current section as complete, then navigate to next section
+    if (currentSectionId) {
+      navigateToNextSectionWithCompletion(currentSectionId, nextSectionId, chapterId);
+    } else {
+      // No current section to mark, just navigate
+      navigateToSection(nextSectionId, chapterId);
+    }
+  } else if (nextChapterId) {
+    // No next section, go to next chapter
+    navigateToChapter(nextChapterId);
+  }
+}
+
+// Update navigation and scroll active sidebar item into view on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const sectionId = urlParams.get('section_id');
+  const chapterId = urlParams.get('id');
+  
+  // Scroll the active sidebar item into view so sidebar and content are clearly mapped
+  var activeItem = document.querySelector('.course-sidebar .section-item.active');
+  if (activeItem) {
+    activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth', inline: 'nearest' });
+  }
+  
+  if (sectionId && chapterId) {
+    // Update prev/next button text based on section position
+    const chapterAccordion = document.querySelector(`[onclick*="toggleChapter(${chapterId})"]`)?.closest('.chapter-accordion-item');
+    if (chapterAccordion) {
+      const sectionItems = chapterAccordion.querySelectorAll('.section-item[onclick*="navigateToSection"]');
+      let currentIndex = -1;
+      
+      for (let i = 0; i < sectionItems.length; i++) {
+        const onclickAttr = sectionItems[i].getAttribute('onclick');
+        if (onclickAttr && onclickAttr.includes(`navigateToSection(${sectionId}`)) {
+          currentIndex = i;
+          break;
+        }
+      }
+      
+      if (currentIndex >= 0) {
+        const prevBtn = document.querySelector('.nav-btn.prev-btn');
+        const nextBtn = document.querySelector('.nav-btn.next-btn');
+        
+        if (prevBtn) {
+          var prevText = prevBtn.querySelector('#prev-section-text');
+          if (prevText) {
+            if (currentIndex === 0) {
+              prevText.textContent = 'Back to Introduction';
+            } else {
+              prevText.textContent = 'Previous Section';
+            }
+          }
+        }
+        
+        if (nextBtn) {
+          var nextText = nextBtn.querySelector('#next-section-text');
+          if (nextText) {
+            if (currentIndex === sectionItems.length - 1) {
+              nextText.textContent = 'Next Chapter';
+            } else {
+              nextText.textContent = 'Next Section';
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+function markChapterComplete(chapterId, courseId) {
+  let csrfToken = getCookie('csrftoken');
+  
+  if (!csrfToken) {
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+      csrfToken = csrfInput.value;
+    }
+  }
+  
+  if (!csrfToken) {
+    alert('CSRF token not found. Please refresh the page and try again.');
+    return;
+  }
+  
+  const currentPath = window.location.pathname;
+  let basePath = '/skilllabcourse';
+  const courseLearningIndex = currentPath.indexOf('/course_learning/');
+  if (courseLearningIndex !== -1) {
+    basePath = currentPath.substring(0, courseLearningIndex);
+  }
+  let url = basePath + '/mark_chapter_complete/';
+  
+  const requestData = {
+    chapter_id: parseInt(chapterId),
+    course_id: parseInt(courseId)
+  };
+  
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify(requestData),
+    credentials: 'same-origin'
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.text().then(text => {
+        let errorMsg = `HTTP ${response.status}`;
+        try {
+          const errorData = JSON.parse(text);
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          errorMsg = text || errorMsg;
+        }
+        throw new Error(errorMsg);
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data && data.status === 'success') {
+      if (data.next_chapter_id) {
+        navigateToChapter(data.next_chapter_id);
+      } else {
+        window.location.reload();
+      }
+    } else {
+      const errorMsg = (data && data.error) ? data.error : 'Failed to mark chapter as complete';
+      alert('Error: ' + errorMsg);
+    }
+  })
+  .catch(error => {
+    alert('An error occurred: ' + error.message);
+  });
+}
+
+function markSectionComplete(sectionId, chapterId, courseId, callback) {
+  let csrfToken = getCookie('csrftoken');
+  
+  if (!csrfToken) {
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+      csrfToken = csrfInput.value;
+    }
+  }
+  
+  if (!csrfToken) {
+    alert('CSRF token not found. Please refresh the page and try again.');
+    if (callback) callback(false);
+    return;
+  }
+  
+  const currentPath = window.location.pathname;
+  let basePath = '/skilllabcourse';
+  const courseLearningIndex = currentPath.indexOf('/course_learning/');
+  if (courseLearningIndex !== -1) {
+    basePath = currentPath.substring(0, courseLearningIndex);
+  }
+  let url = basePath + '/mark_section_complete/';
+  
+  const requestData = {
+    section_id: parseInt(sectionId),
+    chapter_id: parseInt(chapterId)
+  };
+  
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify(requestData),
+    credentials: 'same-origin'
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.text().then(text => {
+        let errorMsg = `HTTP ${response.status}`;
+        try {
+          const errorData = JSON.parse(text);
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          errorMsg = text || errorMsg;
+        }
+        throw new Error(errorMsg);
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data && data.status === 'success') {
+      // Update sidebar to show section as completed
+      const sectionItem = document.querySelector(`[onclick*="navigateToSection(${sectionId}"]`);
+      if (sectionItem) {
+        sectionItem.classList.add('completed');
+        // Add checkmark icon if not present
+        if (!sectionItem.querySelector('i.bx-check-circle[style*="color: #28a745"]')) {
+          const checkIcon = document.createElement('i');
+          checkIcon.className = 'bx bx-check-circle';
+          checkIcon.style.cssText = 'color: #28a745; margin-left: auto; font-size: 1.2rem; position: absolute; right: 1rem;';
+          sectionItem.appendChild(checkIcon);
+        }
+      }
+      
+      // Update progress bar percentage (if available in response)
+      if (data.progress_percentage !== undefined) {
+        const progressFill = document.querySelector('.course-progress-fill');
+        const progressPercentage = document.querySelector('.course-progress-percentage');
+        if (progressFill) {
+          progressFill.style.width = data.progress_percentage + '%';
+        }
+        if (progressPercentage) {
+          progressPercentage.textContent = data.progress_percentage + '%';
+}
+      }
+      
+      // If callback provided, always call it first (e.g. "Next: Worksheet" must navigate even when chapter completes)
+      if (callback) {
+        callback(true, data);
+        return;
+      }
+      // No callback: use default behavior
+      if (data.chapter_completed) {
+        setTimeout(() => window.location.reload(), 500);
+      } else if (data.next_section_id) {
+        setTimeout(() => navigateToSection(data.next_section_id, chapterId), 500);
+      } else if (data.next_chapter_id) {
+        setTimeout(() => navigateToChapter(data.next_chapter_id), 500);
+      } else {
+        setTimeout(() => window.location.reload(), 500);
+      }
+    } else {
+      const errorMsg = (data && data.error) ? data.error : 'Failed to mark section as complete';
+      alert('Error: ' + errorMsg);
+      if (callback) callback(false);
+    }
+  })
+  .catch(error => {
+    alert('An error occurred: ' + error.message);
+    if (callback) callback(false);
+  });
+}
+
+function markIntroComplete(chapterId, courseId) {
+  // Mark intro as complete by marking first section as viewed (not completed)
+  // This allows intro to show as complete while keeping sections sequential
+  let csrfToken = getCookie('csrftoken');
+  
+  if (!csrfToken) {
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+      csrfToken = csrfInput.value;
+    }
+  }
+  
+  if (!csrfToken) {
+    alert('CSRF token not found. Please refresh the page and try again.');
+    return;
+  }
+  
+  const currentPath = window.location.pathname;
+  let basePath = '/skilllabcourse';
+  const courseLearningIndex = currentPath.indexOf('/course_learning/');
+  if (courseLearningIndex !== -1) {
+    basePath = currentPath.substring(0, courseLearningIndex);
+  }
+  let url = basePath + '/mark_section_complete/';
+  
+  // Get first section ID from the page
+  const firstSectionBtn = document.querySelector('[onclick*="navigateToSection"]');
+  if (!firstSectionBtn) {
+    alert('No sections found. Cannot mark intro as complete.');
+    return;
+  }
+  
+  const onclickAttr = firstSectionBtn.getAttribute('onclick');
+  const match = onclickAttr.match(/navigateToSection\((\d+),/);
+  if (!match) {
+    alert('Could not find first section. Please try navigating to the first section manually.');
+    return;
+  }
+  
+  const firstSectionId = parseInt(match[1]);
+  
+  // Mark first section as viewed (not completed) to indicate intro is done
+  // This is a workaround - intro completion is tracked via first section viewed status
+  // Mark first section as viewed only (not completed) to indicate intro is done
+  const requestData = {
+    section_id: firstSectionId,
+    chapter_id: parseInt(chapterId),
+    viewed_only: true  // Just mark as viewed, not completed
+  };
+  
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify(requestData),
+    credentials: 'same-origin'
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.text().then(text => {
+        let errorMsg = `HTTP ${response.status}`;
+        try {
+          const errorData = JSON.parse(text);
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          errorMsg = text || errorMsg;
+        }
+        throw new Error(errorMsg);
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data && data.status === 'success') {
+      // Reload to update UI and show intro as completed
+      window.location.reload();
+    } else {
+      const errorMsg = (data && data.error) ? data.error : 'Failed to mark introduction as complete';
+      alert('Error: ' + errorMsg);
+    }
+  })
+  .catch(error => {
+    alert('An error occurred: ' + error.message);
+  });
+}
+
+// Close mobile sidebar when clicking overlay
+document.querySelector('.mobile-overlay')?.addEventListener('click', toggleMobileSidebar);
+
+// Quiz functionality
+function resetQuiz() {
+  const form = document.getElementById('quiz-form');
+  if (form) {
+    form.reset();
+    const results = document.getElementById('quiz-results');
+    if (results) {
+      results.style.display = 'none';
+    }
+    // Remove any feedback classes
+    const questions = document.querySelectorAll('.quiz-question');
+    questions.forEach(q => {
+      q.classList.remove('correct', 'incorrect');
+    });
+  }
+}
+
+// Handle quiz form submission
+const quizForm = document.getElementById('quiz-form');
+if (quizForm) {
+  quizForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(quizForm);
+    const answers = {};
+    
+    // Collect all answers
+    const radioInputs = quizForm.querySelectorAll('input[type="radio"]:checked');
+    radioInputs.forEach(input => {
+      const questionId = input.getAttribute('data-question-id');
+      const answerLetter = input.getAttribute('data-answer-letter');
+      if (questionId) {
+        answers[questionId] = answerLetter;
+      }
+    });
+    
+    // Get MCQ ID from the page (we'll need to add this as a data attribute)
+    const mcqId = quizForm.getAttribute('data-mcq-id');
+    if (!mcqId) {
+      alert('MCQ ID not found. Please refresh the page.');
+      return;
+    }
+    
+    // Submit quiz
+    submitQuiz(mcqId, answers);
+  });
+}
+
+function submitQuiz(mcqId, answers) {
+  let csrfToken = getCookie('csrftoken');
+  
+  if (!csrfToken) {
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+      csrfToken = csrfInput.value;
+    }
+  }
+  
+  if (!csrfToken) {
+    alert('CSRF token not found. Please refresh the page and try again.');
+    return;
+  }
+  
+  const currentPath = window.location.pathname;
+  let basePath = '/skilllabcourse';
+  const courseLearningIndex = currentPath.indexOf('/course_learning/');
+  if (courseLearningIndex !== -1) {
+    basePath = currentPath.substring(0, courseLearningIndex);
+  }
+  let url = basePath + '/submit_quiz/';
+  
+  const requestData = {
+    mcq_id: parseInt(mcqId),
+    answers: answers
+  };
+  
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify(requestData),
+    credentials: 'same-origin'
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.text().then(text => {
+        let errorMsg = `HTTP ${response.status}`;
+        try {
+          const errorData = JSON.parse(text);
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          errorMsg = text || errorMsg;
+        }
+        throw new Error(errorMsg);
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data && data.status === 'success') {
+      // Display results
+      displayQuizResults(data);
+      } else {
+      const errorMsg = (data && data.error) ? data.error : 'Failed to submit quiz';
+      alert('Error: ' + errorMsg);
+    }
+  })
+  .catch(error => {
+    alert('An error occurred: ' + error.message);
+  });
+}
+
+function displayQuizResults(data) {
+  const resultsDiv = document.getElementById('quiz-results');
+  const feedbackDiv = document.getElementById('quiz-feedback');
+  const scoreSpan = document.getElementById('quiz-score');
+  const totalSpan = document.getElementById('quiz-total');
+  const percentageSpan = document.getElementById('quiz-percentage');
+  
+  if (resultsDiv && scoreSpan && totalSpan && percentageSpan) {
+    scoreSpan.textContent = data.score || 0;
+    totalSpan.textContent = data.total_questions || 0;
+    percentageSpan.textContent = (data.percentage || 0) + '%';
+    
+    // Display feedback for each question
+    if (feedbackDiv && data.feedback) {
+      let feedbackHTML = '';
+      data.feedback.forEach(item => {
+        const questionDiv = document.querySelector(`[data-question-id="${item.question_id}"]`);
+        if (questionDiv) {
+          if (item.correct) {
+            questionDiv.classList.add('correct');
+          } else {
+            questionDiv.classList.add('incorrect');
+          }
+        }
+        
+        feedbackHTML += `
+          <div class="question-feedback ${item.correct ? 'correct' : 'incorrect'}">
+            <p><strong>Question ${item.question_number}:</strong> ${item.correct ? 'Correct!' : 'Incorrect'}</p>
+            ${!item.correct && item.correct_answer ? `<p>Correct answer: ${item.correct_answer}</p>` : ''}
+          </div>
+        `;
+      });
+      feedbackDiv.innerHTML = feedbackHTML;
+    }
+    
+    resultsDiv.style.display = 'block';
+    
+    // Scroll to results
+    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function markWorksheetDownloaded(activityId, markAsCompleted) {
+  let csrfToken = getCookie('csrftoken');
+  
+  if (!csrfToken) {
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+      csrfToken = csrfInput.value;
+    }
+  }
+  
+  if (!csrfToken) {
+    console.warn('CSRF token not found. Worksheet download will not be tracked.');
+    return;
+  }
+  
+  const currentPath = window.location.pathname;
+  let basePath = '/skilllabcourse';
+  const courseLearningIndex = currentPath.indexOf('/course_learning/');
+  if (courseLearningIndex !== -1) {
+    basePath = currentPath.substring(0, courseLearningIndex);
+  }
+  let url = basePath + '/mark_worksheet_downloaded/';
+  
+  const requestData = {
+    activity_id: parseInt(activityId),
+    mark_as_completed: markAsCompleted || false
+  };
+  
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify(requestData),
+    credentials: 'same-origin'
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.text().then(text => {
+        let errorMsg = `HTTP ${response.status}`;
+        try {
+          const errorData = JSON.parse(text);
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          errorMsg = text || errorMsg;
+        }
+        throw new Error(errorMsg);
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data && data.status === 'success') {
+      console.log('Worksheet marked as downloaded' + (data.completed ? ' and completed' : ''));
+      // Optionally reload to update UI
+      if (data.completed) {
+        setTimeout(() => window.location.reload(), 500);
+      }
+    } else {
+      console.warn('Failed to mark worksheet as downloaded:', data?.error || 'Unknown error');
+    }
+  })
+  .catch(error => {
+    console.error('Error marking worksheet as downloaded:', error);
+  });
+}
+
+// Track worksheet download on link click
+document.addEventListener('DOMContentLoaded', function() {
+  const worksheetDownloadLinks = document.querySelectorAll('a[download][onclick*="markWorksheetDownloaded"]');
+  worksheetDownloadLinks.forEach(link => {
+    // The onclick handler will be called automatically
+    // But we also track the actual download event
+    link.addEventListener('click', function(e) {
+      // Small delay to ensure download starts
+      setTimeout(() => {
+        const onclickAttr = this.getAttribute('onclick');
+        if (onclickAttr && onclickAttr.includes('markWorksheetDownloaded')) {
+          // Extract activity ID from onclick
+          const match = onclickAttr.match(/markWorksheetDownloaded\((\d+),/);
+          if (match) {
+            const activityId = parseInt(match[1]);
+            markWorksheetDownloaded(activityId, true);
+          }
+        }
+      }, 100);
+    });
+  });
+});
+</script>
+{% endblock %}
