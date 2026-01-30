@@ -4,7 +4,7 @@ from careers.models import (Career, CareerFAQ, CareerMedia, CareerPath, CareerPa
 from core.utils import build_breadcrumb, build_html_head
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import (get_user_model, login, logout,
+from django.contrib.auth import (authenticate, get_user_model, login, logout,
                                  update_session_auth_hash)
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import (AuthenticationForm, PasswordChangeForm,
@@ -20,7 +20,6 @@ from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.generic import TemplateView, View
-from users.backends import CustomUserBackend
 from users.models import User
 from skilllab.models import SkillLabCourse,SkillLabCourseActivity,SkillLabCourseChapter
 
@@ -428,16 +427,16 @@ class ProfessionDetailView(BaseDetailView):
 
 
 class LoginView(TemplateView):
-    template_name ="template20/admin/login.html"
+    template_name = "topteenadmin/user/login.html"
     
     def post(self,request,*args,**kwargs):
         data={}
         email= request.POST.get('email')
         password = request.POST.get('password')
         if email and password:
-            user = CustomUserBackend.authenticate(self,username=email,password=password)
+            user = authenticate(request, username=email, password=password)
             if user and user.is_staff:
-                login(request,user,backend='django.contrib.auth.backends.ModelBackend')
+                login(request, user, backend='users.backends.CustomUserBackend')
                 return redirect(reverse('topteenadmin:topteendashboard'))
             else:
                 messages.info(request, "Login failed. Invalid username/password..")

@@ -117,7 +117,7 @@
     {% include 'template20/includes/messages.html' %}
 
     <form method="POST" action="{{ url('topteenadmin:login') }}" id="adminLoginForm">
-      {% csrf_token %}
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
       
       <div class="mb-3">
         <label for="email" class="form-label">Email Address</label>

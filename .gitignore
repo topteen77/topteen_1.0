@@ -316,3 +316,4 @@ scripts/skilllabcourses_script/course_json/*.txt
 scripts/skilllabcourses_script/course_json/*.csv
 scripts/skilllabcourses_script/course_json/*.jsonl
 scripts/skilllabcourses_script/course_json/*.jsonl
+.github/workflows/deploy-docker.yml
