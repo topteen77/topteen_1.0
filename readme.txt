@@ -328,3 +328,4 @@ To populate sample queries and responses:
 ```bash
 python manage.py generate_sample_content
 ```
+
