@@ -609,7 +609,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
               and personal development. Start learning today to stay ahead!
             </p>
           </div>
-          <a class="text-purple text-decoration-underline fs-17 d-md-block d-none" href="{{ url('skilllab:skilllabcourselist') }}">View All <i
+          <a class="text-purple text-decoration-underline fs-17 d-md-block d-none" href="{{ url('skilllabcourse:skilllabcourselist') }}">View All <i
               class='bx bx-chevrons-right'></i></a>
         </div>
         <div class="col-md-12">
@@ -626,10 +626,10 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
                 <div class="text-explore">
                   <p>{% if after_10_course %}{{ after_10_course.name }}{% else %}Are your Career Ready?{% endif %}</p>
                   {% if after_10_course %}
-                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[after_10_course.slug]) }}" class="btn custom-button blue-button ">Explore
+                  <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[after_10_course.slug]) }}" class="btn custom-button blue-button ">Explore
                     Now</a>
                   {% else %}
-                  <a href="{{ url('skilllab:skilllabcourselist') }}" class="btn custom-button blue-button ">Explore
+                  <a href="{{ url('skilllabcourse:skilllabcourselist') }}" class="btn custom-button blue-button ">Explore
                     Now</a>
                   {% endif %}
                 </div>
@@ -647,10 +647,10 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
                 <div class="text-explore">
                   <p>{% if after_12_course %}{{ after_12_course.name }}{% else %}Soft Skills{% endif %}</p>
                   {% if after_12_course %}
-                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[after_12_course.slug]) }}" class="btn custom-button blue-button ">Explore
+                  <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[after_12_course.slug]) }}" class="btn custom-button blue-button ">Explore
                     Now</a>
                   {% else %}
-                  <a href="{{ url('skilllab:skilllabcourselist') }}" class="btn custom-button blue-button ">Explore
+                  <a href="{{ url('skilllabcourse:skilllabcourselist') }}" class="btn custom-button blue-button ">Explore
                     Now</a>
                   {% endif %}
                 </div>
@@ -669,10 +669,10 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
                 <div class="text-explore">
                   <p>{% if after_college_course %}{{ after_college_course.name }}{% else %}Career Planning after College{% endif %}</p>
                   {% if after_college_course %}
-                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[after_college_course.slug]) }}" class="btn custom-button blue-button ">Explore
+                  <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[after_college_course.slug]) }}" class="btn custom-button blue-button ">Explore
                     Now</a>
                   {% else %}
-                  <a href="{{ url('skilllab:skilllabcourselist') }}" class="btn custom-button blue-button ">Explore
+                  <a href="{{ url('skilllabcourse:skilllabcourselist') }}" class="btn custom-button blue-button ">Explore
                     Now</a>
                   {% endif %}
                 </div>
@@ -682,7 +682,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
           <div class="col-md-12 text-center">
 
-            <a class="text-purple text-decoration-underline fs-17 d-md-none d-block" href="{{ url('skilllab:skilllabcourselist') }}">View All
+            <a class="text-purple text-decoration-underline fs-17 d-md-none d-block" href="{{ url('skilllabcourse:skilllabcourselist') }}">View All
               <i class='bx bx-chevrons-right'></i></a>
 
           </div>

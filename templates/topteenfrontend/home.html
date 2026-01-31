@@ -1587,7 +1587,7 @@ class="mx-auto relative z-10 lg:px-[0px] px-[17px] py-[17px] lg:py-0 overflow-hi
         Top Courses
       </span>
       <div class="text-[13px] leading-[18px] text-[#541BCF] semibold">
-        <a href="{{url('skilllab:skilllabcourselist')}}">View More</a>
+        <a href="{{url('skilllabcourse:skilllabcourselist')}}">View More</a>
       </div>
     </div>
     <div class="flex flex-col justify-start items-center gap-y-[10px]">
@@ -1608,7 +1608,7 @@ class="mx-auto relative z-10 lg:px-[0px] px-[17px] py-[17px] lg:py-0 overflow-hi
               {{skilllab_course.get_category_display()}}
             </p>
             <h5 class="text-[15px] leading-[20px] semibold text-white">
-              <a href="{{url('skilllab:skilllabcoursedetail',args=[skilllab_course.slug])}}">{{skilllab_course.name}}</a>
+              <a href="{{url('skilllabcourse:skilllabcoursedetail',args=[skilllab_course.slug])}}">{{skilllab_course.name}}</a>
             </h5>
           </div>
         </div>
@@ -1635,7 +1635,7 @@ class="mx-auto relative z-10 lg:px-[0px] px-[17px] py-[17px] lg:py-0 overflow-hi
     Top Courses
   </h3>
   <p class="text-[13px] leading-[18px] text-[#541BCF] semibold mb-0">
-    <a href="{{url('skilllab:skilllabcourselist')}}">View More</a>
+    <a href="{{url('skilllabcourse:skilllabcourselist')}}">View More</a>
   </p>
 </div>
  <!-- NAVIGATION ARROWS -->
@@ -1678,7 +1678,7 @@ class="mx-auto relative z-10 lg:px-[0px] px-[17px] py-[17px] lg:py-0 overflow-hi
            <h5
              class="semibold text-[15px] leading-[20px] tracking-[0.035em] col-start-2 col-span-3 text-white"
            >
-           <a href="{{url('skilllab:skilllabcoursedetail',args=[skilllab_course.slug])}}">{{skilllab_course.name}}</a>
+           <a href="{{url('skilllabcourse:skilllabcoursedetail',args=[skilllab_course.slug])}}">{{skilllab_course.name}}</a>
            </h5>
          </div>
 

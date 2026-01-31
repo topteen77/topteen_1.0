@@ -22,7 +22,7 @@ django.setup()
 from django.utils.text import slugify
 from skilllab.models import (
     SkillLabCourse, SkillLabCourseChapter, SkillLabCourseActivity,
-    SkillLabMCQ, SkillLabMCQQuestion, SkillLabMCQAnswer
+    SkillLabMCQ, SkillLabMCQQuestion, SkillLabMCQAnswer, SkillLabChapterSection
 )
 from core.utils import choices
 from core.s3_utils import get_s3_upload_service
@@ -74,91 +74,114 @@ def extract_body_content(html_content: str) -> str:
     return html_content
 
 
-def combine_chapter_html(chapter_dir: Path, chapter_num: int) -> Optional[str]:
+def extract_chapter_sections(chapter_dir: Path, chapter_num: int) -> List[Dict]:
     """
-    Combine chapter HTML files in order: intro, sections (h2), conclusion.
-    Returns combined HTML content.
+    Extract chapter content as sections.
+    Supports: (1) <p>Section N: ...</p> and <p>Chapter Wrap-Up</p> patterns,
+    (2) h2/h3 headings as fallback.
+    Returns list of {'title': str, 'content': str} for each section.
     """
-    html_parts = []
+    sections = []
     
-    # 1. Read intro
+    # 1. Read intro as first section
     intro_html_path = chapter_dir / "intro.html"
     if intro_html_path.exists():
         intro_html = read_html_file(intro_html_path)
         if intro_html:
             intro_content = extract_body_content(intro_html)
-            html_parts.append(f"<!-- Chapter Introduction -->\n{intro_content}")
+            sections.append({'title': 'Introduction', 'content': intro_content})
     
-    # 2. Read chapter HTML and extract sections (h2 headings)
+    # 2. Read chapter HTML - try <p>Section N:</p> pattern first, then h2/h3
     chapter_html_path = chapter_dir / f"chapter{chapter_num}.html"
+    if not chapter_html_path.exists():
+        chapter_html_path = chapter_dir / f"chapter_{chapter_num}.html"
     if chapter_html_path.exists():
         chapter_html = read_html_file(chapter_html_path)
         if chapter_html:
-            # Parse HTML to extract sections (h2 headings)
-            soup = BeautifulSoup(chapter_html, 'html.parser')
-            body = soup.find('body')
-            if not body:
-                body = soup
-            
-            # Find all h2 headings (sections) and their content
-            # Process elements in document order
-            sections = []
-            current_section = []
-            current_heading = None
-            
-            # Get all elements in document order (find_all preserves order)
-            all_elements = body.find_all(['h1', 'h2', 'p', 'ul', 'ol', 'table', 'div', 'h3', 'h4', 'h5', 'h6'])
-            
-            for element in all_elements:
-                # Skip if element is nested inside another element we've already processed
-                parent = element.parent
-                if parent and parent.name in ['p', 'li', 'td', 'th', 'div', 'ul', 'ol']:
-                    # Check if parent is in our list (means it's nested)
-                    if parent in all_elements:
-                        continue
-                
-                if element.name == 'h1':
-                    # Skip chapter heading (h1) - we'll use chapter name from database
-                    continue
-                elif element.name == 'h2':
-                    # Save previous section if exists
-                    if current_heading and current_section:
-                        sections.append({
-                            'heading': str(current_heading),
-                            'content': '\n'.join(str(e) for e in current_section)
-                        })
-                    # Start new section
-                    current_heading = element
-                    current_section = []
-                else:
-                    # Add to current section (including content before first h2)
-                    if current_heading or not sections:
-                        current_section.append(element)
-            
-            # Add last section
-            if current_heading and current_section:
-                sections.append({
-                    'heading': str(current_heading),
-                    'content': '\n'.join(str(e) for e in current_section)
-                })
-            elif current_section and not sections:
-                # Content before first h2 (should be commented out, but include it anyway)
-                html_parts.append('\n'.join(str(e) for e in current_section))
-            
-            # Combine sections in order: all sections including conclusion
-            if sections:
-                for section in sections:
-                    html_parts.append(section['heading'])
-                    html_parts.append(section['content'])
-            elif not html_parts:
-                # Fallback: get all content except h1
-                for element in body.find_all(['h2', 'p', 'ul', 'ol', 'table', 'div']):
-                    html_parts.append(str(element))
+            body_html = extract_body_content(chapter_html)
+            chapter_sections = _split_chapter_by_section_patterns(body_html)
+            if not chapter_sections:
+                chapter_sections = _split_chapter_by_h2_h3(body_html)
+            sections.extend(chapter_sections)
     
-    if not html_parts:
+    return sections
+
+
+def _split_chapter_by_h2_h3(body_html: str) -> List[Dict]:
+    """Fallback: split by h2/h3 headings."""
+    if not body_html or not body_html.strip():
+        return []
+    soup = BeautifulSoup(body_html, 'html.parser')
+    body = soup.find('body') or soup
+    parts = re.split(r'(?=<h[23][^>]*>)', str(body), flags=re.IGNORECASE)
+    result = []
+    for i, part in enumerate(parts):
+        part = part.strip()
+        if not part or len(part) < 10:
+            continue
+        title_match = re.search(r'<h[23][^>]*>([^<]+)</h[23]>', part, re.IGNORECASE | re.DOTALL)
+        title = title_match.group(1).strip() if title_match else (f'Section {i + 1}' if i > 0 else 'Content')
+        result.append({'title': title[:255], 'content': part})
+    return result if result else [{'title': 'Content', 'content': body_html}]
+
+
+def _split_chapter_by_section_patterns(body_html: str) -> List[Dict]:
+    """
+    Split chapter body HTML by <p>Section N:</p>, <p>Section N-</p>, or <p>Chapter Wrap-Up</p> patterns.
+    Content uses <p> tags for section headers, not h2/h3.
+    Supports: Section 1:, Section 1-, Section 1 -, Chapter Wrap-up, Chapter Wrap-Up, Chapter Wrap- up, etc.
+    """
+    if not body_html or not body_html.strip():
+        return []
+    
+    # Split by: <p>Section 1:, <p>Section 1-, <p>Section 1 -, ... or <p>Chapter Wrap-Up (and variants)
+    # Pattern matches position before these paragraph starts (case-insensitive)
+    # Section N: or Section N- or Section N - ; Chapter Wrap-up/Wrap-Up/Wrap- up/Wrap Up
+    split_pattern = re.compile(
+        r'(?=<p[^>]*>\s*(?:Section\s+\d+\s*[-:]|Chapter\s+Wrap[- ]?[\s-]*[Uu]p\b))',
+        re.IGNORECASE
+    )
+    parts = split_pattern.split(body_html)
+    
+    result = []
+    for i, part in enumerate(parts):
+        part = part.strip()
+        if not part or len(part) < 10:
+            continue
+        
+        # Extract title from first <p> tag - Section N: Title or Section N- Title or Chapter Wrap-Up
+        title_match = re.search(
+            r'<p[^>]*>\s*(?:Section\s+(\d+)\s*[-:]\s*([^<]+)|(Chapter\s+Wrap[- ]?[\s-]*[Uu]p[^<]*))',
+            part, re.IGNORECASE | re.DOTALL
+        )
+        if title_match:
+            if title_match.group(1):  # Section N
+                title = f"Section {title_match.group(1)}: {title_match.group(2).strip()}"
+            else:  # Chapter Wrap-Up
+                title = title_match.group(3).strip() if title_match.group(3) else 'Chapter Wrap-Up'
+            # Clean trailing colon/space from title
+            title = re.sub(r'[:\s]+$', '', title)
+        else:
+            # First part might be chapter title (before Section 1) - skip
+            if i == 0 and not re.search(r'Section\s+\d+\s*[-:]', part[:300], re.IGNORECASE):
+                continue  # Skip chapter title block
+            title = f'Section {len(result) + 1}'
+        
+        result.append({'title': title[:255], 'content': part})
+    
+    return result
+
+
+def combine_chapter_html(chapter_dir: Path, chapter_num: int) -> Optional[str]:
+    """
+    Combine chapter HTML (legacy fallback). Uses extract_chapter_sections.
+    """
+    sections = extract_chapter_sections(chapter_dir, chapter_num)
+    if not sections:
         return None
-    
-    return '\n\n'.join(html_parts)
+    return '\n\n'.join(
+        f'<h2>{s["title"]}</h2>\n{s["content"]}' for s in sections
+    )
 
 
 def upload_pdf_to_s3(pdf_path: Path, course_name: str, chapter_num: int, file_type: str) -> Optional[str]:
@@ -239,17 +262,9 @@ def process_course(course_dir: Path, dry_run: bool = False):
         if course_index_html:
             course_index_html = extract_body_content(course_index_html)
     
-    # Combine intro and index for description (both will be shown for non-logged in students)
-    course_description = ""
-    if course_intro_html:
-        course_description += course_intro_html
-    if course_index_html:
-        if course_description:
-            course_description += "\n\n"
-        course_description += course_index_html
-    
-    if not course_description:
-        course_description = f"Course: {course_name}"
+    # course_intro_html and course_index_html are stored in separate fields for tabs
+    # Fallback description for SEO if intro is empty
+    course_description = course_intro_html or f"Course: {course_name}"
     
     # Determine category
     category = get_course_category(course_name)
@@ -269,6 +284,8 @@ def process_course(course_dir: Path, dry_run: bool = False):
                 defaults={
                     'name': course_name,
                     'description': course_description,
+                    'course_intro_html': course_intro_html or '',
+                    'course_index_html': course_index_html or '',
                     'category': category,
                     'object_status': choices.ObjectStatus.ACTIVE,
                     'amount': 0,  # Free by default
@@ -280,6 +297,8 @@ def process_course(course_dir: Path, dry_run: bool = False):
                 # Update existing course
                 course.name = course_name
                 course.description = course_description
+                course.course_intro_html = course_intro_html or ''
+                course.course_index_html = course_index_html or ''
                 course.category = category
                 course.object_status = choices.ObjectStatus.ACTIVE
                 course.save()
@@ -312,48 +331,60 @@ def process_course(course_dir: Path, dry_run: bool = False):
         
         print(f"  Processing {chapter_name}...")
         
-        # Combine chapter HTML
-        chapter_html = combine_chapter_html(chapter_dir, chapter_num)
+        # Extract chapter sections (split by h2/h3 during upload)
+        chapter_sections = extract_chapter_sections(chapter_dir, chapter_num)
         
-        if not chapter_html:
+        if not chapter_sections:
             print(f"    Warning: No HTML content found for {chapter_name}")
             continue
         
         if dry_run:
             print(f"    Would create/update chapter: {chapter_name}")
-            print(f"      Content length: {len(chapter_html)} chars")
+            print(f"      Sections: {len(chapter_sections)}")
         else:
             try:
-                # Create or update chapter (unique by skilllab + chapter_name)
+                # Create or update chapter (content kept as fallback for chapters with no sections)
                 chapter, created = SkillLabCourseChapter.objects.get_or_create(
                     skilllab=course,
                     chapter_name=chapter_name,
                     defaults={
-                        'content': chapter_html,
+                        'content': '',  # Sections stored separately
                         'object_status': choices.ObjectStatus.ACTIVE
                     }
                 )
                 
                 if not created:
-                    # Update existing chapter
-                    chapter.content = chapter_html
                     chapter.object_status = choices.ObjectStatus.ACTIVE
                     chapter.save()
-                    stats['chapters'].append({
-                        'name': chapter_name,
-                        'id': chapter.id,
-                        'created': False,
-                        'updated': True
-                    })
-                    print(f"    Updated existing chapter: {chapter_name} (ID: {chapter.id})")
-                else:
-                    stats['chapters'].append({
-                        'name': chapter_name,
-                        'id': chapter.id,
-                        'created': True,
-                        'updated': False
-                    })
-                    print(f"    Created new chapter: {chapter_name} (ID: {chapter.id})")
+                
+                # Delete existing sections and create new ones (re-upload replaces all)
+                SkillLabChapterSection.objects.filter(chapter=chapter).delete()
+                
+                for order, sec in enumerate(chapter_sections):
+                    if order == 0:
+                        section_type = 'introduction'
+                    else:
+                        title_lower = (sec['title'] or '').lower()
+                        if any(kw in title_lower for kw in ('wrap-up', 'wrap up', 'conclusion', 'summary', 'chapter wrap')):
+                            section_type = 'chapter_wrap_up'
+                        else:
+                            section_type = 'section'
+                    SkillLabChapterSection.objects.create(
+                        chapter=chapter,
+                        order=order,
+                        section_type=section_type,
+                        title=sec['title'],
+                        content=sec['content']
+                    )
+                
+                stats['chapters'].append({
+                    'name': chapter_name,
+                    'id': chapter.id,
+                    'created': created,
+                    'updated': not created,
+                    'sections': len(chapter_sections)
+                })
+                print(f"    {'Created' if created else 'Updated'} chapter: {chapter_name} (ID: {chapter.id}, {len(chapter_sections)} sections)")
             except Exception as e:
                 print(f"    Error creating/updating chapter: {e}")
                 import traceback
@@ -418,14 +449,14 @@ def process_course(course_dir: Path, dry_run: bool = False):
         if mcq_pdf_path.exists() or mcq_json_path.exists():
             if dry_run:
                 if mcq_pdf_path.exists():
-                print(f"    Would upload MCQ PDF: {mcq_pdf_path.name}")
+                    print(f"    Would upload MCQ PDF: {mcq_pdf_path.name}")
                 if mcq_json_path.exists():
                     print(f"    Would import MCQ data from: {mcq_json_path.name}")
             else:
                 # Upload PDF if exists
                 s3_url = None
                 if mcq_pdf_path.exists():
-                s3_url = upload_pdf_to_s3(mcq_pdf_path, course_name, chapter_num, 'mcq')
+                    s3_url = upload_pdf_to_s3(mcq_pdf_path, course_name, chapter_num, 'mcq')
                 
                 # Import MCQ data from JSON if exists
                 if mcq_json_path.exists():
@@ -555,7 +586,7 @@ def process_course(course_dir: Path, dry_run: bool = False):
                         # Also create activity for MCQ
                         activity_name = f"MCQ Test - Chapter {chapter_num}"
                         activity_content = f'<p>Take the MCQ test for {chapter_name}</p>'
-                if s3_url:
+                        if s3_url:
                             activity_content += f'<p><a href="{s3_url}" target="_blank">Download MCQ PDF</a></p>'
                         
                         activity, created = SkillLabCourseActivity.objects.get_or_create(

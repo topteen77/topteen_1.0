@@ -1,0 +1,60 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}Certificate - {{ skilllab_course.name }} | Top Teen{% endblock %}
+{% block description_content %}Course completion certificate for {{ skilllab_course.name }}{% endblock %}
+
+{% block bodyclass %}skilllab-certificate-page{% endblock %}
+
+{% block content %}
+<style>
+.certificate-container { max-width: 800px; margin: 3rem auto; padding: 2rem; }
+.certificate-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 3rem; text-align: center; border: 2px solid #5249DF; }
+.certificate-title { font-size: 2rem; font-weight: 700; color: #5249DF; margin-bottom: 1rem; }
+.certificate-course { font-size: 1.5rem; font-weight: 600; color: #333; margin-bottom: 2rem; }
+.certificate-message { color: #666; line-height: 1.8; margin-bottom: 2rem; }
+.certificate-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.btn-certificate { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 2rem; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; }
+.btn-certificate.primary { background: linear-gradient(135deg, #5249DF 0%, #6438d0 100%); color: #fff; }
+.btn-certificate.primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(82,73,223,0.3); color: #fff; }
+.btn-certificate.secondary { background: #f8f9fa; color: #666; }
+.btn-certificate.secondary:hover { background: #e0e0e0; color: #333; }
+.certificate-incomplete { background: #fff5f5; border-color: #ef4444; }
+.certificate-incomplete .certificate-title { color: #dc2626; }
+</style>
+
+<div class="certificate-container">
+  <div class="certificate-card {% if not all_completed %}certificate-incomplete{% endif %}">
+    <h1 class="certificate-title">
+      <i class='bx bx-certificate'></i>
+      {% if all_completed %}Course Completion Certificate{% else %}Certificate Not Yet Available{% endif %}
+    </h1>
+    <h2 class="certificate-course">{{ skilllab_course.name }}</h2>
+    {% if all_completed %}
+    <p class="certificate-message">
+      Congratulations! You have successfully completed all chapters of <strong>{{ skilllab_course.name }}</strong>.
+      This certificate acknowledges your dedication and achievement.
+    </p>
+    <p class="certificate-message text-muted small">
+      Completed on {{ certificate_date.strftime('%B %d, %Y') if certificate_date else 'Today' }}
+    </p>
+    <div class="certificate-actions">
+      <a href="{{ url('skilllabcourse:course_learning', args=[skilllab_course.slug]) }}" class="btn-certificate secondary">
+        <i class='bx bx-book'></i> Back to Course
+      </a>
+    </div>
+    {% else %}
+    <p class="certificate-message">
+      Complete all chapters of this course to unlock your certificate.
+    </p>
+    <div class="certificate-actions">
+      <a href="{{ url('skilllabcourse:course_learning', args=[skilllab_course.slug]) }}" class="btn-certificate primary">
+        <i class='bx bx-play'></i> Continue Learning
+      </a>
+      <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug]) }}" class="btn-certificate secondary">
+        <i class='bx bx-arrow-back'></i> Back to Course
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

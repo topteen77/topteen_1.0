@@ -1,0 +1,36 @@
+<div class="section-mcq" data-mcq-id="{{ mcq.id }}">
+  <h4 class="mb-3">{{ mcq.title or 'Quiz' }}</h4>
+  {% if mcq.description %}<div class="mb-4">{{ mcq.description|safe }}</div>{% endif %}
+
+  {% if last_attempt %}
+  <div class="mcq-result-box mb-4 p-4 rounded" style="background: #f0eaff; border-left: 4px solid #5249DF;">
+    <h5 class="mb-2">Last Attempt: {{ last_attempt.score }}/{{ last_attempt.total }} ({{ (last_attempt.score * 100 / last_attempt.total)|int if last_attempt.total else 0 }}%)</h5>
+    <button type="button" class="btn-reattempt-mcq btn-mark-complete" data-mcq-id="{{ mcq.id }}">
+      <i class='bx bx-refresh'></i> Re-attempt Test
+    </button>
+  </div>
+  {% endif %}
+
+  <div class="mcq-form-container {% if last_attempt %}d-none{% endif %}" data-mcq-id="{{ mcq.id }}">
+    <form class="mcq-form" data-mcq-id="{{ mcq.id }}">
+      {% for q in questions %}
+      <div class="quiz-question mb-4 p-4 rounded" data-question-id="{{ q.id }}" style="background: #f8f9fa; border: 1px solid #e0e0e0;">
+        <h5 class="mb-3">{{ loop.index }}. {{ q.question_text }}</h5>
+        <div class="quiz-options">
+          {% for ans in q.answers.all() %}
+          <label class="quiz-option d-flex align-items-center gap-2 p-3 rounded mb-2" style="cursor: pointer; background: #fff; border: 2px solid transparent;">
+            <input type="radio" name="q_{{ q.id }}" value="{{ ans.id }}">
+            <span>{{ ans.answer_letter }}. {{ ans.answer_text }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn-submit-mcq btn-mark-complete">
+        <i class='bx bx-check'></i> Submit Quiz
+      </button>
+    </form>
+  </div>
+
+  <div class="mcq-result-detail d-none mt-4"></div>
+</div>

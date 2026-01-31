@@ -1,0 +1,7 @@
+<div class="section-content-intro introduction-content ckeditorStyles">
+  {% if content %}
+  {{ content|safe }}
+  {% else %}
+  <p>Welcome to {{ chapter.chapter_name }}.</p>
+  {% endif %}
+</div>

@@ -618,8 +618,8 @@ def process_chapter(chapter_dir: Path, course_name: str, chapter_num: int, outpu
             # Save MCQ document (using chapter[no]-mcq.docx format)
             mcq_docx_path = chapter_output / f"chapter{chapter_num}-mcq.docx"
             if force or not mcq_docx_path.exists():
-            mcq_doc.save(str(mcq_docx_path))
-            print(f"    Extracted MCQs to {mcq_docx_path.name}")
+                mcq_doc.save(str(mcq_docx_path))
+                print(f"    Extracted MCQs to {mcq_docx_path.name}")
             else:
                 print(f"    MCQ DOCX already exists: {mcq_docx_path.name} (use --force to regenerate)")
             
@@ -706,13 +706,7 @@ def process_chapter(chapter_dir: Path, course_name: str, chapter_num: int, outpu
                             f.write(mcq_html_from_json)
                         print(f"    Generated MCQ HTML from JSON: {mcq_html_path.name}")
                     else:
-                        # Update HTML from JSON when force is used
-                        if force:
-                with open(mcq_html_path, 'w', encoding='utf-8') as f:
-                                f.write(mcq_html_from_json)
-                            print(f"    Regenerated MCQ HTML from JSON: {mcq_html_path.name}")
-                        else:
-                            print(f"    MCQ HTML already exists: {mcq_html_path.name} (use --force to regenerate)")
+                        print(f"    MCQ HTML already exists: {mcq_html_path.name} (use --force to regenerate)")
                 except Exception as e:
                     print(f"    Warning: Could not generate MCQ HTML from JSON: {e}")
                     import traceback
@@ -807,31 +801,31 @@ def process_chapter(chapter_dir: Path, course_name: str, chapter_num: int, outpu
         
         # If MCQ only mode, skip chapter processing
         if not mcq_only:
-        # Remove MCQs from chapter
-        chapter_doc = remove_mcqs_from_chapter(chapter_doc)
-        
-        # Mark headings
-        mark_headings_in_chapter(chapter_doc, chapter_name)
-        
+            # Remove MCQs from chapter
+            chapter_doc = remove_mcqs_from_chapter(chapter_doc)
+            
+            # Mark headings
+            mark_headings_in_chapter(chapter_doc, chapter_name)
+            
             # Save modified chapter (keep original name for reference)
-        modified_chapter_path = chapter_output / f"chapter_{chapter_num}_modified.docx"
-        chapter_doc.save(str(modified_chapter_path))
+            modified_chapter_path = chapter_output / f"chapter_{chapter_num}_modified.docx"
+            chapter_doc.save(str(modified_chapter_path))
             
             # Also save with original name for consistency
             chapter_docx_original = chapter_output / f"chapter{chapter_num}.docx"
             chapter_doc.save(str(chapter_docx_original))
-        
-        # Generate chapter HTML
-        chapter_html = convert_docx_to_html(modified_chapter_path)
-        if chapter_html:
-            # Comment out text between Heading1 and first Heading2
-            chapter_html = comment_text_between_headings(chapter_html)
             
+            # Generate chapter HTML
+            chapter_html = convert_docx_to_html(modified_chapter_path)
+            if chapter_html:
+                # Comment out text between Heading1 and first Heading2
+                chapter_html = comment_text_between_headings(chapter_html)
+                
                 chapter_html_path = chapter_output / f"chapter{chapter_num}.html"
                 if force or not chapter_html_path.exists():
-            with open(chapter_html_path, 'w', encoding='utf-8') as f:
-                f.write(chapter_html)
-            print(f"    Generated chapter HTML: {chapter_html_path.name}")
+                    with open(chapter_html_path, 'w', encoding='utf-8') as f:
+                        f.write(chapter_html)
+                    print(f"    Generated chapter HTML: {chapter_html_path.name}")
                 else:
                     print(f"    Chapter HTML already exists: {chapter_html_path.name} (use --force to regenerate)")
         
@@ -847,9 +841,9 @@ def process_chapter(chapter_dir: Path, course_name: str, chapter_num: int, outpu
             if intro_html:
                 intro_html_path = chapter_output / "intro.html"
                 if force or not intro_html_path.exists():
-                with open(intro_html_path, 'w', encoding='utf-8') as f:
-                    f.write(intro_html)
-                print(f"    Generated intro HTML: {intro_html_path.name}")
+                    with open(intro_html_path, 'w', encoding='utf-8') as f:
+                        f.write(intro_html)
+                    print(f"    Generated intro HTML: {intro_html_path.name}")
                 else:
                     print(f"    Intro HTML already exists: {intro_html_path.name} (use --force to regenerate)")
         except Exception as e:
@@ -862,7 +856,7 @@ def process_chapter(chapter_dir: Path, course_name: str, chapter_num: int, outpu
             if force or not worksheet_pdf_path.exists():
                 if docx_to_pdf(worksheet_docx, worksheet_pdf_path, pdf_type='worksheet',
                               chapter_name=chapter_name, course_name=course_name):
-                print(f"    Generated worksheet PDF: {worksheet_pdf_path.name}")
+                    print(f"    Generated worksheet PDF: {worksheet_pdf_path.name}")
             else:
                 print(f"    Worksheet PDF already exists: {worksheet_pdf_path.name} (use --force to regenerate)")
         except Exception as e:
@@ -908,20 +902,20 @@ def process_course(course_dir: Path, output_base: Path, force: bool = False,
                 break
         
         if intro_course_docx and intro_course_docx.exists():
-        try:
-            intro_html = convert_docx_to_html(intro_course_docx)
-            if intro_html:
-                intro_path = course_output / "course_intro.html"
+            try:
+                intro_html = convert_docx_to_html(intro_course_docx)
+                if intro_html:
+                    intro_path = course_output / "course_intro.html"
                     if force or not intro_path.exists():
-                with open(intro_path, 'w', encoding='utf-8') as f:
-                    f.write(intro_html)
+                        with open(intro_path, 'w', encoding='utf-8') as f:
+                            f.write(intro_html)
                         print(f"  Generated course intro HTML from {intro_course_docx.name}")
                     else:
                         print(f"  Course intro HTML already exists (use --force to regenerate)")
                 else:
                     print(f"  Warning: Course intro HTML is empty for {intro_course_docx.name}")
-        except Exception as e:
-            print(f"  Error processing course intro: {e}")
+            except Exception as e:
+                print(f"  Error processing course intro: {e}")
                 import traceback
                 traceback.print_exc()
         else:
@@ -930,22 +924,22 @@ def process_course(course_dir: Path, output_base: Path, force: bool = False,
         
         # Process index (also from source directory)
         index_docx = source_course_dir / "index.docx"
-    
-    if index_docx.exists():
-        try:
-            index_html = convert_docx_to_html(index_docx)
-            if index_html:
-                index_path = course_output / "course_index.html"
+        
+        if index_docx.exists():
+            try:
+                index_html = convert_docx_to_html(index_docx)
+                if index_html:
+                    index_path = course_output / "course_index.html"
                     if force or not index_path.exists():
-                with open(index_path, 'w', encoding='utf-8') as f:
-                    f.write(index_html)
-                print(f"  Generated course index HTML")
+                        with open(index_path, 'w', encoding='utf-8') as f:
+                            f.write(index_html)
+                        print(f"  Generated course index HTML")
                     else:
                         print(f"  Course index HTML already exists (use --force to regenerate)")
                 else:
                     print(f"  Warning: Course index HTML is empty")
-        except Exception as e:
-            print(f"  Error processing course index: {e}")
+            except Exception as e:
+                print(f"  Error processing course index: {e}")
         else:
             print(f"  Warning: Course index DOCX not found (index.docx)")
     
@@ -1052,7 +1046,7 @@ def main():
             sys.exit(1)
         course_dirs = [course_path]
     else:
-    course_dirs = [d for d in SOURCE_DIR.iterdir() if d.is_dir() and not d.name.startswith('.')]
+        course_dirs = [d for d in SOURCE_DIR.iterdir() if d.is_dir() and not d.name.startswith('.')]
     
     course_dirs.sort()
     

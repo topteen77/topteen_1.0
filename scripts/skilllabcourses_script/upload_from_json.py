@@ -20,7 +20,7 @@ django.setup()
 from django.utils.text import slugify
 from skilllab.models import (
     SkillLabCourse, SkillLabCourseChapter, SkillLabCourseActivity,
-    SkillLabMCQ, SkillLabMCQQuestion, SkillLabMCQAnswer, SkillLabCourseSection
+    SkillLabMCQ, SkillLabMCQQuestion, SkillLabMCQAnswer,
 )
 from core.utils import choices
 from core.s3_utils import get_s3_upload_service
@@ -151,8 +151,8 @@ def upload_course_from_json(json_path: Path, dry_run: bool = False) -> Dict:
                 defaults={
                     'name': course_name,
                     'description': course_description,
-                    'courseintro': course_intro_html,
-                    'index': course_index_html,
+                    'course_intro_html': course_intro_html,
+                    'course_index_html': course_index_html,
                     'category': category,
                     'object_status': choices.ObjectStatus.ACTIVE,
                     'amount': 0,
@@ -163,8 +163,8 @@ def upload_course_from_json(json_path: Path, dry_run: bool = False) -> Dict:
             if not created:
                 course.name = course_name
                 course.description = course_description
-                course.courseintro = course_intro_html
-                course.index = course_index_html
+                course.course_intro_html = course_intro_html
+                course.course_index_html = course_index_html
                 course.category = category
                 course.object_status = choices.ObjectStatus.ACTIVE
                 course.save()
@@ -206,25 +206,20 @@ def upload_course_from_json(json_path: Path, dry_run: bool = False) -> Dict:
             print(f"      Combined content length: {len(chapter_html) if chapter_html else 0} chars")
         else:
             try:
-                # Create or update chapter
+                # Create or update chapter (content = intro + sections combined)
                 chapter, created = SkillLabCourseChapter.objects.get_or_create(
                     skilllab=course,
                     chapter_name=chapter_name,
                     defaults={
-                        'intro_html': intro_html,
                         'content': chapter_html,
                         'object_status': choices.ObjectStatus.ACTIVE
                     }
                 )
                 
                 if not created:
-                    chapter.intro_html = intro_html
                     chapter.content = chapter_html
                     chapter.object_status = choices.ObjectStatus.ACTIVE
                     chapter.save()
-                    
-                    # Delete existing sections to recreate them
-                    SkillLabCourseSection.objects.filter(skilllab_chapter=chapter).delete()
                     
                     stats['chapters'].append({
                         'name': chapter_name,
@@ -243,40 +238,6 @@ def upload_course_from_json(json_path: Path, dry_run: bool = False) -> Dict:
                         'sections_count': len(sections)
                     })
                     print(f"    Created new chapter: {chapter_name} (ID: {chapter.id}, {len(sections)} sections)")
-                
-                # Create sections
-                sections_created = 0
-                sections_updated = 0
-                for idx, section_data in enumerate(sections):
-                    section_heading = section_data.get('heading', f'Section {idx + 1}')
-                    section_heading_html = section_data.get('heading_html', '')
-                    section_content = section_data.get('content', '')
-                    section_content_html = section_data.get('content_html', '')
-                    
-                    section, s_created = SkillLabCourseSection.objects.get_or_create(
-                        skilllab_chapter=chapter,
-                        heading=section_heading,
-                        defaults={
-                            'heading_html': section_heading_html,
-                            'content': section_content,
-                            'content_html': section_content_html,
-                            'order': idx + 1,
-                            'object_status': choices.ObjectStatus.ACTIVE
-                        }
-                    )
-                    
-                    if not s_created:
-                        section.heading_html = section_heading_html
-                        section.content = section_content
-                        section.content_html = section_content_html
-                        section.order = idx + 1
-                        section.object_status = choices.ObjectStatus.ACTIVE
-                        section.save()
-                        sections_updated += 1
-                    else:
-                        sections_created += 1
-                
-                print(f"    Sections: {sections_created} created, {sections_updated} updated (Total: {len(sections)})")
                 
             except Exception as e:
                 print(f"    Error creating/updating chapter: {e}")
@@ -505,18 +466,32 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description='Upload course from verified JSON file')
-    parser.add_argument('--json-file', type=str, help='JSON file name (without path, required if --all not used)')
+    parser.add_argument('--json-file', type=str, help='JSON file name (without path, from course_json dir)')
+    parser.add_argument('--file', type=str, help='Full path to JSON file (e.g. course_json/Adaptability_&_Resilience_Skills_in_a_Changing_World.json)')
     parser.add_argument('--all', action='store_true', help='Upload all JSON files')
     parser.add_argument('--dry-run', action='store_true', help='Preview changes without making them')
     args = parser.parse_args()
     
-    if not JSON_DIR.exists():
-        print(f"Error: JSON directory not found: {JSON_DIR}")
-        sys.exit(1)
-    
     # Determine which JSON files to process
-    if args.all:
-        # Get all JSON files
+    if args.file:
+        # Full path specified
+        json_path = Path(args.file)
+        if not json_path.is_absolute():
+            json_path = Path(__file__).parent.parent.parent / args.file
+        if not json_path.exists():
+            print(f"Error: JSON file not found: {json_path}")
+            sys.exit(1)
+        json_files = [json_path]
+        print("=" * 80)
+        print("Course Upload from JSON")
+        print("=" * 80)
+        print(f"JSON file: {json_path}")
+        print(f"Dry run: {args.dry_run}")
+        print()
+    elif args.all:
+        if not JSON_DIR.exists():
+            print(f"Error: JSON directory not found: {JSON_DIR}")
+            sys.exit(1)
         json_files = list(JSON_DIR.glob("*.json"))
         if not json_files:
             print(f"Error: No JSON files found in {JSON_DIR}")
@@ -530,7 +505,10 @@ def main():
         print()
     else:
         if not args.json_file:
-            parser.error("Either --json-file or --all must be specified")
+            parser.error("Specify --json-file, --file, or --all")
+        if not JSON_DIR.exists():
+            print(f"Error: JSON directory not found: {JSON_DIR}")
+            sys.exit(1)
         json_path = JSON_DIR / args.json_file
         if not json_path.exists():
             print(f"Error: JSON file not found: {json_path}")

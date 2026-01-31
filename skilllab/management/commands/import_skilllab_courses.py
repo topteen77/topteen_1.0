@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.core.files import File
-from skilllab.models import SkillLabCourse, SkillLabCourseChapter, SkillLabCourseActivity
+from skilllab.models import SkillLabCourse, SkillLabCourseChapter, SkillLabCourseActivity, SkillLabChapterSection
 from core.choices import ObjectStatus, SkillLabCourseTypeChoice, Currency, SkillLabAcivityChoice
 
 # Import DOCX converter
@@ -27,6 +27,32 @@ except ImportError:
     # Fallback if import fails
     def convert_docx_to_html(docx_path):
         return None
+
+
+def get_section_type(title, order):
+    """Return section_type: introduction, chapter_wrap_up, or section."""
+    if order == 0:
+        return 'introduction'
+    if title and any(kw in title.lower() for kw in ('wrap-up', 'wrap up', 'conclusion', 'summary', 'chapter wrap')):
+        return 'chapter_wrap_up'
+    return 'section'
+
+
+def split_content_into_sections(html_content):
+    """Split HTML content by h2/h3 into sections. Returns list of (title, content) tuples."""
+    if not html_content or not html_content.strip():
+        return [('Introduction', html_content or '')]
+    import re
+    parts = re.split(r'(?=<h[23][^>]*>)', html_content, flags=re.IGNORECASE)
+    result = []
+    for i, part in enumerate(parts):
+        part = part.strip()
+        if not part:
+            continue
+        title_match = re.search(r'<h[23][^>]*>([^<]+)</h[23]>', part, re.IGNORECASE | re.DOTALL)
+        title = title_match.group(1).strip() if title_match else ('Introduction' if i == 0 else f'Section {i + 1}')
+        result.append((title, part))
+    return result if result else [('Introduction', html_content)]
 
 
 class Command(BaseCommand):
@@ -421,17 +447,25 @@ class Command(BaseCommand):
                 else:
                     continue
                 
+                # Split content into sections by h2/h3
+                sections_data = split_content_into_sections(chapter_content)
+                
                 # Create or update chapter
                 if chapter_name in existing_chapters:
                     chapter = existing_chapters[chapter_name]
-                    if chapter.content != chapter_content:
-                        chapter.content = chapter_content
-                        chapter.save()
+                    chapter.content = chapter_content
+                    chapter.save()
+                    SkillLabChapterSection.objects.filter(chapter=chapter).delete()
                 else:
                     chapter = SkillLabCourseChapter.objects.create(
                         skilllab=course,
                         chapter_name=chapter_name,
                         content=chapter_content
+                    )
+                
+                for order, (title, content) in enumerate(sections_data):
+                    SkillLabChapterSection.objects.create(
+                        chapter=chapter, order=order, section_type=get_section_type(title, order), title=title, content=content
                     )
                 
                 imported_count += 1
@@ -500,14 +534,22 @@ class Command(BaseCommand):
                     continue
                 chapter_content += str(child)
             
+            # Split content into sections by h2/h3
+            sections_data = split_content_into_sections(chapter_content)
+            
             # Check if chapter exists
             if chapter_name in existing_chapters:
                 # Update existing chapter
                 chapter = existing_chapters[chapter_name]
-                if chapter.content != chapter_content:
-                    chapter.content = chapter_content
-                    chapter.save()
-                    updated_count += 1
+                chapter.content = chapter_content  # Keep legacy fallback
+                chapter.save()
+                # Replace sections
+                SkillLabChapterSection.objects.filter(chapter=chapter).delete()
+                for order, (title, content) in enumerate(sections_data):
+                    SkillLabChapterSection.objects.create(
+                        chapter=chapter, order=order, section_type=get_section_type(title, order), title=title, content=content
+                    )
+                updated_count += 1
                 imported_count += 1
             else:
                 # Create new chapter
@@ -516,6 +558,10 @@ class Command(BaseCommand):
                     chapter_name=chapter_name,
                     content=chapter_content
                 )
+                for order, (title, content) in enumerate(sections_data):
+                    SkillLabChapterSection.objects.create(
+                        chapter=chapter, order=order, section_type=get_section_type(title, order), title=title, content=content
+                    )
                 created_count += 1
                 imported_count += 1
         

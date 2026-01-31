@@ -1,5 +1,10 @@
+from django.db import IntegrityError
 from django.shortcuts import render
-from .models import SkillLabCourse,SkillLabCourseActivity,SkillLabCourseChapter
+from .models import (
+    SkillLabCourse, SkillLabCourseActivity, SkillLabCourseChapter, SkillLabCourseProgress,
+    SkillLabCourseProgressSummary, SkillLabCourseResume, SkillLabWorksheetProgress, SkillLabMCQAttempt,
+    SkillLabMCQ, SkillLabMCQQuestion, SkillLabMCQAnswer, SkillLabChapterSection
+)
 from django.views.generic import TemplateView,View
 from django.urls import reverse_lazy
 from core.utils import build_breadcrumb,build_html_head,get_preferred_payment_gateway,is_gateway_available
@@ -9,13 +14,14 @@ from django.contrib.auth.decorators import login_required
 from django.core.signing import Signer
 from django.shortcuts import get_object_or_404
 from .models import SkilllabCoursePayment
-from django.http import Http404
+from django.http import Http404, HttpResponse, JsonResponse
 import re
 from payments.payment.icicieazypay import IciciEazyPayService
 from payments.models import Payment
 from core import choices
 from django.shortcuts import redirect,HttpResponseRedirect
 from django.urls import reverse
+from django.utils import timezone
 from .task import send_skillabcourse_payment_success_mail
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -42,7 +48,10 @@ class SkillLabCourseList(TemplateView):
             ctx = self.get_fallback_context(request)
         
         ctx["html_head"] = self.html_head()
-        ctx['breadcrumb'] = {'text': 'Skill Lab Courses', 'url': reverse('skilllabcourse:skilllabcourselist')}
+        ctx['breadcrumb'] = [
+            {'text': 'Home', 'url': reverse('core:home')},
+            {'text': 'Skill Lab Course', 'url': ''},
+        ]
         return ctx
     
     def get_fallback_context(self, request):
@@ -78,6 +87,7 @@ class SkillLabCourseDetail(TemplateView):
         ctx={}
         skillab=get_object_or_404(SkillLabCourse, slug=skil_slug)
         ctx['skilllab']=skillab
+        ctx['first_chapter']=skillab.skilllabcoursechapter.order_by('created').first()
         ctx['activecourses']=SkillLabCourse.objects.filter(category=skillab.category).exclude(id=skillab.id)
         bread_crumb =self._breadcrumb(skillab)
         ctx['breadcrumb']= bread_crumb[1]
@@ -94,28 +104,33 @@ class SkillLabCourseDetail(TemplateView):
     def get(self, request,skilllab_slug, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request,skilllab_slug,*args, **kwargs))
 
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
 class SkillLabCourseChapterDetail(TemplateView):
-    template_name = "topteenfrontend/skillabcoursechapter.html"
+    template_name = "template20/skilllab/skilllab_chapter_detail.html"
 
     def html_head(self,skilllab):
         t= skilllab.chapter_name 
-        d = skilllab.content
-
+        d = skilllab.content or ''
         return build_html_head(title=t, description=d)
     
     def get_context(self,request,chapter_slug,*args,**kwargs):
         ctx={}
         skillab_course_chapter=get_object_or_404(SkillLabCourseChapter, slug=chapter_slug)
+        skilllab_course = skillab_course_chapter.skilllab
+        chapters = list(skilllab_course.skilllabcoursechapter.order_by('created'))
         ctx['skilllab_course_chapter']=skillab_course_chapter
+        ctx['all_chapters']=chapters
+        idx = next((i for i, c in enumerate(chapters) if c.id == skillab_course_chapter.id), 0)
+        ctx['prev_chapter']=chapters[idx-1] if idx > 0 else None
+        ctx['next_chapter']=chapters[idx+1] if idx < len(chapters)-1 else None
         ctx['breadcrumb']=self._breadcrumb(skillab_course_chapter)
         ctx["html_head"] = self.html_head(skillab_course_chapter)
-        
         return ctx
     
     def _breadcrumb(self,skilllab_course_chapter):
         lst=[
-            {'title':"SkilllabCourse",'text':"SkilllabCourse","url":reverse_lazy('skilllab:skilllabcourselist')},
-            {'title':'{}'.format(skilllab_course_chapter.skilllab.name),'text':'{}'.format("skilllabcourse"),'url':reverse_lazy('skilllab:skilllabcoursedetail',args=[skilllab_course_chapter.skilllab.slug])},
+            {'title':"SkilllabCourse",'text':"SkilllabCourse","url":reverse_lazy('skilllabcourse:skilllabcourselist')},
+            {'title':'{}'.format(skilllab_course_chapter.skilllab.name),'text':'{}'.format("skilllabcourse"),'url':reverse_lazy('skilllabcourse:skilllabcoursedetail',args=[skilllab_course_chapter.skilllab.slug])},
             {'title':skilllab_course_chapter.chapter_name,"text":skilllab_course_chapter.chapter_name,"url":""},
             ]
         return build_breadcrumb(lst)
@@ -127,14 +142,577 @@ class SkillLabCourseChapterDetail(TemplateView):
             raise Http404
         return render(request, self.template_name, ctx)
 
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabCourseLearningView(TemplateView):
+    """Main learning interface at /skilllabcourse/course_learning/<course_slug>/"""
+    template_name = "template20/skilllab/course_learning.html"
+
+    def _get_chapter_progress(self, user, skilllab_course):
+        """Returns dict {chapter_id: completed} from SkillLabCourseProgress."""
+        records = SkillLabCourseProgress.objects.filter(
+            user=user, skilllab_course=skilllab_course, chapter__isnull=False
+        ).select_related('chapter')
+        return {r.chapter_id: r.completed for r in records if r.chapter_id}
+
+    def _get_chapter_locked_status(self, chapters, chapter_progress):
+        """Chapters are locked if previous chapter is not completed. First chapter always unlocked."""
+        locked = {}
+        for i, ch in enumerate(chapters):
+            if i == 0:
+                locked[ch.id] = False
+            else:
+                prev_ch = chapters[i - 1]
+                prev_completed = chapter_progress.get(prev_ch.id, False)
+                locked[ch.id] = not prev_completed
+        return locked
+
+    def _get_progress_percentage(self, chapters, chapter_progress):
+        """Percentage of completed chapters (used for locking, certificate)."""
+        if not chapters:
+            return 0
+        completed = sum(1 for ch in chapters if chapter_progress.get(ch.id, False))
+        return int((completed / len(chapters)) * 100)
+
+    def _get_section_progress_percentage(self, sections_flat, worksheet_progress, mcq_attempts_ids):
+        """Overall individual course progress: % of this course's sections completed (intro, worksheet downloaded, MCQ submitted)."""
+        if not sections_flat:
+            return 0
+        completed = 0
+        for sec in sections_flat:
+            if sec['type'] == 'intro':
+                completed += 1
+            elif sec['type'] == 'worksheet':
+                if sec['id'] in worksheet_progress:
+                    completed += 1
+            elif sec['type'] == 'mcq':
+                if sec['id'] in mcq_attempts_ids:
+                    completed += 1
+        return int((completed / len(sections_flat)) * 100)
+
+    def get_context(self, request, course_slug, *args, **kwargs):
+        skilllab_course = get_object_or_404(SkillLabCourse, slug=course_slug)
+        if not skilllab_course.is_user_vissible(request):
+            raise Http404("You do not have access to this course.")
+
+        chapters = list(skilllab_course.skilllabcoursechapter.order_by('created'))
+        chapter_progress = self._get_chapter_progress(request.user, skilllab_course)
+        chapter_locked_status = self._get_chapter_locked_status(chapters, chapter_progress)
+
+        # Current chapter from ?chapter=N or ?chapter_slug=slug
+        # When no URL params: resume at first incomplete chapter (based on progress)
+        chapter_index = 0
+        chapter_slug = request.GET.get('chapter_slug')
+        chapter_num = request.GET.get('chapter')
+        if chapter_slug:
+            idx = next((i for i, c in enumerate(chapters) if c.slug == chapter_slug), 0)
+            chapter_index = idx
+        elif chapter_num is not None:
+            try:
+                idx = int(chapter_num)
+                chapter_index = max(0, min(idx, len(chapters) - 1))
+            except ValueError:
+                pass
+        else:
+            chapter_index = 0  # Placeholder; will update after sections_flat if resume exists
+
+        current_chapter = chapters[chapter_index] if chapters else None
+        is_current_locked = chapter_locked_status.get(current_chapter.id, True) if current_chapter else False
+        is_current_completed = chapter_progress.get(current_chapter.id, False) if current_chapter else False
+
+        # Certificate: show if all chapters completed
+        all_completed = all(chapter_progress.get(ch.id, False) for ch in chapters) if chapters else False
+
+        def _short_section_title(t):
+            """Extract 'Section N' from 'Section N: Long title...' for nav/sidebar display."""
+            if not t:
+                return t
+            import re
+            m = re.match(r'^(Section\s+\d+)\s*:.*', t, re.I)
+            return m.group(1) if m else t
+
+        # Build sections per chapter: Introduction, Section 1, Section 2, ..., Worksheet, MCQ
+        sections_by_chapter = {}
+        for ch in chapters:
+            sections = []
+            chapter_sections = list(ch.sections.order_by('order'))
+            if chapter_sections:
+                section_num = 0
+                for sec in chapter_sections:
+                    if sec.section_type == 'introduction':
+                        title = sec.title or 'Introduction'
+                    elif sec.section_type == 'chapter_wrap_up':
+                        title = sec.title or 'Chapter Wrap-Up'
+                    else:
+                        section_num += 1
+                        title = sec.title or f"Section {section_num}"
+                    short_title = _short_section_title(title)
+                    sections.append({'type': 'intro', 'id': sec.id, 'title': title, 'short_title': short_title, 'section_type': sec.section_type})
+            else:
+                intro_parts = _split_content_by_headings(ch.content or '')
+                for idx, (step_title, _) in enumerate(intro_parts):
+                    short_title = _short_section_title(step_title)
+                    sections.append({'type': 'intro', 'id': ch.id, 'step': idx, 'title': step_title, 'short_title': short_title})
+            for act in ch.skilllabcourseactivity.filter(type=choices.SkillLabAcivityChoice.worksheet):
+                sections.append({'type': 'worksheet', 'id': act.id, 'title': act.name, 'short_title': act.name})
+            for mcq in ch.mcqs.all():
+                mcq_title = mcq.title or 'Quiz'
+                sections.append({'type': 'mcq', 'id': mcq.id, 'title': mcq_title, 'short_title': mcq_title})
+            sections_by_chapter[ch.id] = sections
+
+        # Worksheet progress (downloaded) - filter by this course only
+        activity_ids = [
+            act.id for ch in chapters
+            for act in ch.skilllabcourseactivity.filter(type=choices.SkillLabAcivityChoice.worksheet)
+        ]
+        worksheet_progress = set(
+            SkillLabWorksheetProgress.objects.filter(
+                user=request.user, activity_id__in=activity_ids
+            ).values_list('activity_id', flat=True)
+        )
+
+        # MCQ attempts (latest per mcq) - filter by this course only
+        mcq_ids = [m.id for ch in chapters for m in ch.mcqs.all()]
+        mcq_attempts = {}
+        for a in SkillLabMCQAttempt.objects.filter(
+            user=request.user, mcq_id__in=mcq_ids
+        ).select_related('mcq').order_by('-attempted_at'):
+            if a.mcq_id not in mcq_attempts:
+                mcq_attempts[a.mcq_id] = a
+
+        # Flat sections list for JS (include step for intro)
+        import json
+        sections_flat = []
+        for ch_idx, ch in enumerate(chapters):
+            for sec in sections_by_chapter.get(ch.id, []):
+                item = {
+                    'type': sec['type'], 'id': sec['id'], 'title': sec['title'],
+                    'shortTitle': sec.get('short_title', sec['title']),
+                    'chapterId': ch.id, 'chapterName': ch.chapter_name, 'chapterIndex': ch_idx,
+                }
+                if sec['type'] == 'intro' and 'step' in sec:
+                    item['step'] = sec.get('step', 0)
+                sections_flat.append(item)
+        sections_flat_json = json.dumps(sections_flat)
+        worksheet_progress_ids = list(worksheet_progress)
+        mcq_attempts_ids = list(mcq_attempts.keys())
+        progress_summary = SkillLabCourseProgressSummary.objects.filter(
+            user=request.user, skilllab_course=skilllab_course
+        ).first()
+        if progress_summary is None:
+            try:
+                update_skilllab_course_progress_summary(request.user, skilllab_course)
+            except IntegrityError:
+                pass
+            progress_summary = SkillLabCourseProgressSummary.objects.filter(
+                user=request.user, skilllab_course=skilllab_course
+            ).first()
+        if progress_summary is None:
+            # Last resort: create record so view never fails (e.g. if update_skilllab_course_progress_summary errored before save)
+            progress_summary, _ = SkillLabCourseProgressSummary.objects.get_or_create(
+                user=request.user,
+                skilllab_course=skilllab_course,
+                defaults={
+                    'progress_percentage': 0,
+                    'completed_sections_count': 0,
+                    'total_sections_count': len(sections_flat),
+                }
+            )
+        progress_percentage = progress_summary.progress_percentage
+
+        # When no URL params: restore from SkillLabCourseResume or first incomplete chapter
+        initial_section_idx = None
+        if chapter_slug is None and chapter_num is None:
+            resume = SkillLabCourseResume.objects.filter(
+                user=request.user, skilllab_course=skilllab_course
+            ).first()
+            if resume and 0 <= resume.last_section_index < len(sections_flat):
+                chapter_index = sections_flat[resume.last_section_index]['chapterIndex']
+                current_chapter = chapters[chapter_index] if chapters else None
+                initial_section_idx = resume.last_section_index
+            else:
+                for i, ch in enumerate(chapters):
+                    if not chapter_progress.get(ch.id, False):
+                        chapter_index = i
+                        current_chapter = chapters[chapter_index] if chapters else None
+                        break
+
+        ctx = {
+            'skilllab_course': skilllab_course,
+            'chapters': chapters,
+            'current_chapter': current_chapter,
+            'chapter_index': chapter_index,
+            'chapter_progress': chapter_progress,
+            'chapter_locked_status': chapter_locked_status,
+            'progress_percentage': progress_percentage,
+            'is_current_locked': is_current_locked,
+            'is_current_completed': is_current_completed,
+            'all_completed': all_completed,
+            'prev_chapter': chapters[chapter_index - 1] if chapter_index > 0 else None,
+            'next_chapter': chapters[chapter_index + 1] if chapter_index < len(chapters) - 1 else None,
+            'sections_by_chapter': sections_by_chapter,
+            'worksheet_progress': worksheet_progress,
+            'mcq_attempts': mcq_attempts,
+            'sections_flat_json': sections_flat_json,
+            'worksheet_progress_ids': worksheet_progress_ids,
+            'mcq_attempts_ids': mcq_attempts_ids,
+            'initial_section_idx': initial_section_idx,
+        }
+        ctx["html_head"] = build_html_head(
+            title=skilllab_course.name,
+            description=skilllab_course.description or skilllab_course.name
+        )
+        return ctx
+
+    def get(self, request, course_slug, *args, **kwargs):
+        ctx = self.get_context(request, course_slug, *args, **kwargs)
+        return render(request, self.template_name, ctx)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabSaveResumeView(APIView):
+    """API to save last viewed section for state restore. POST with course_slug, section_idx."""
+
+    def post(self, request):
+        course_slug = None
+        section_idx = None
+        if hasattr(request, 'data') and request.data:
+            course_slug = request.data.get('course_slug')
+            section_idx = request.data.get('section_idx')
+        if course_slug is None:
+            course_slug = request.POST.get('course_slug')
+        if section_idx is None:
+            section_idx = request.POST.get('section_idx')
+        if not course_slug:
+            return Response({'success': False, 'error': 'course_slug required'}, status=status.HTTP_400_BAD_REQUEST)
+        skilllab_course = get_object_or_404(SkillLabCourse, slug=course_slug)
+        if not skilllab_course.is_user_vissible(request):
+            return Response({'success': False, 'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            idx = int(section_idx) if section_idx is not None else 0
+            idx = max(0, idx)
+        except (TypeError, ValueError):
+            idx = 0
+        SkillLabCourseResume.objects.update_or_create(
+            user=request.user,
+            skilllab_course=skilllab_course,
+            defaults={'last_section_index': idx}
+        )
+        update_skilllab_course_progress_summary(request.user, skilllab_course)
+        summary = SkillLabCourseProgressSummary.objects.get(
+            user=request.user, skilllab_course=skilllab_course
+        )
+        return Response({'success': True, 'progress_percentage': summary.progress_percentage})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabMarkChapterCompleteView(APIView):
+    """API to mark a chapter as complete. POST with chapter_id."""
+
+    def post(self, request):
+        chapter_id = None
+        if hasattr(request, 'data') and request.data:
+            chapter_id = request.data.get('chapter_id')
+        if chapter_id is None:
+            chapter_id = request.POST.get('chapter_id')
+        if not chapter_id:
+            return Response({'success': False, 'error': 'chapter_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        chapter = get_object_or_404(SkillLabCourseChapter, id=chapter_id)
+        skilllab_course = chapter.skilllab
+        if not skilllab_course.is_user_vissible(request):
+            return Response({'success': False, 'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+        progress, _ = SkillLabCourseProgress.objects.update_or_create(
+            user=request.user,
+            skilllab_course=skilllab_course,
+            chapter=chapter,
+            defaults={'completed': True, 'completed_at': timezone.now()}
+        )
+        return Response({'success': True, 'completed': progress.completed})
+
+
+def _split_content_by_headings(html):
+    """Split HTML content by h2/h3 into steps. Returns list of (title, html) tuples."""
+    if not html or not html.strip():
+        return [('Introduction', html or '')]
+    import re
+    parts = re.split(r'(?=<h[23][^>]*>)', html, flags=re.IGNORECASE)
+    result = []
+    for i, part in enumerate(parts):
+        part = part.strip()
+        if not part:
+            continue
+        title_match = re.search(r'<h[23][^>]*>([^<]+)</h[23]>', part, re.IGNORECASE | re.DOTALL)
+        title = title_match.group(1).strip() if title_match else ('Introduction' if i == 0 else f'Section {i + 1}')
+        result.append((title, part))
+    return result if result else [('Introduction', html)]
+
+
+def update_skilllab_course_progress_summary(user, skilllab_course):
+    """Recalculate and store course progress in DB. Call when worksheet downloaded or MCQ submitted."""
+    chapters = list(skilllab_course.skilllabcoursechapter.order_by('created'))
+    sections_by_chapter = {}
+    for ch in chapters:
+        sections = []
+        chapter_sections = list(ch.sections.order_by('order'))
+        if chapter_sections:
+            section_num = 0
+            for sec in chapter_sections:
+                if sec.section_type == 'introduction':
+                    title = sec.title or 'Introduction'
+                elif sec.section_type == 'chapter_wrap_up':
+                    title = sec.title or 'Chapter Wrap-Up'
+                else:
+                    section_num += 1
+                    title = sec.title or f"Section {section_num}"
+                sections.append({'type': 'intro', 'id': sec.id})
+        else:
+            intro_parts = _split_content_by_headings(ch.content or '')
+            for idx in range(len(intro_parts)):
+                sections.append({'type': 'intro', 'id': ch.id, 'step': idx})
+        for act in ch.skilllabcourseactivity.filter(type=choices.SkillLabAcivityChoice.worksheet):
+            sections.append({'type': 'worksheet', 'id': act.id})
+        for mcq in ch.mcqs.all():
+            sections.append({'type': 'mcq', 'id': mcq.id})
+        sections_by_chapter[ch.id] = sections
+    sections_flat = []
+    for ch in chapters:
+        for sec in sections_by_chapter.get(ch.id, []):
+            sections_flat.append(sec)
+    activity_ids = [
+        act.id for ch in chapters
+        for act in ch.skilllabcourseactivity.filter(type=choices.SkillLabAcivityChoice.worksheet)
+    ]
+    worksheet_progress = set(
+        SkillLabWorksheetProgress.objects.filter(
+            user=user, activity_id__in=activity_ids
+        ).values_list('activity_id', flat=True)
+    )
+    mcq_ids = [m.id for ch in chapters for m in ch.mcqs.all()]
+    mcq_attempts_ids = list(
+        SkillLabMCQAttempt.objects.filter(user=user, mcq_id__in=mcq_ids)
+        .values_list('mcq_id', flat=True)
+        .distinct()
+    )
+    resume = SkillLabCourseResume.objects.filter(
+        user=user, skilllab_course=skilllab_course
+    ).first()
+    last_section_index = resume.last_section_index if resume else -1
+
+    completed = 0
+    total = len(sections_flat)
+    for idx, sec in enumerate(sections_flat):
+        if sec['type'] == 'intro':
+            if idx <= last_section_index:
+                completed += 1
+        elif sec['type'] == 'worksheet':
+            if sec['id'] in worksheet_progress:
+                completed += 1
+        elif sec['type'] == 'mcq':
+            if sec['id'] in mcq_attempts_ids:
+                completed += 1
+    pct = int((completed / total) * 100) if total > 0 else 0
+    try:
+        SkillLabCourseProgressSummary.objects.update_or_create(
+            user=user,
+            skilllab_course=skilllab_course,
+            defaults={
+                'progress_percentage': pct,
+                'completed_sections_count': completed,
+                'total_sections_count': total,
+            }
+        )
+    except IntegrityError:
+        # Race: another request created it. Fetch and update if visible (may not be committed yet).
+        obj = SkillLabCourseProgressSummary.objects.filter(
+            user=user, skilllab_course=skilllab_course
+        ).first()
+        if obj:
+            obj.progress_percentage = pct
+            obj.completed_sections_count = completed
+            obj.total_sections_count = total
+            obj.save()
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabSectionContentView(View):
+    """AJAX: Get section content (intro, worksheet, mcq). GET ?section_type=intro|worksheet|mcq&section_id=X&course_slug=Y&step=N (for intro)"""
+
+    def get(self, request):
+        section_type = request.GET.get('section_type')
+        section_id = request.GET.get('section_id')
+        course_slug = request.GET.get('course_slug')
+        step_str = request.GET.get('step', '0')
+        if not section_type or not section_id or not course_slug:
+            return HttpResponse('', status=400)
+        skilllab_course = get_object_or_404(SkillLabCourse, slug=course_slug)
+        if not skilllab_course.is_user_vissible(request):
+            return HttpResponse('', status=403)
+        ctx = {'skilllab_course': skilllab_course}
+        if section_type == 'intro':
+            # Try SkillLabChapterSection first (section-based storage)
+            section = SkillLabChapterSection.objects.filter(
+                id=section_id, chapter__skilllab=skilllab_course
+            ).select_related('chapter').first()
+            if section:
+                ctx['chapter'] = section.chapter
+                ctx['content'] = section.content or ''
+                return render(request, 'template20/skilllab/partials/section_intro.html', ctx)
+            # Fallback: legacy chapter.content with step param
+            chapter = get_object_or_404(SkillLabCourseChapter, id=section_id, skilllab=skilllab_course)
+            ctx['chapter'] = chapter
+            intro_parts = _split_content_by_headings(chapter.content or '')
+            step_idx = max(0, min(int(step_str) if step_str.isdigit() else 0, len(intro_parts) - 1))
+            ctx['content'] = intro_parts[step_idx][1] if intro_parts else ''
+            return render(request, 'template20/skilllab/partials/section_intro.html', ctx)
+        elif section_type == 'worksheet':
+            activity = get_object_or_404(SkillLabCourseActivity, id=section_id, skilllab_chapter__skilllab=skilllab_course)
+            ctx['activity'] = activity
+            ctx['downloaded'] = SkillLabWorksheetProgress.objects.filter(user=request.user, activity=activity).exists()
+            # Extract download URL from content when downloadable_file is empty (S3 URLs stored in content by upload script)
+            download_url = None
+            if activity.downloadable_file:
+                download_url = activity.downloadable_file.url
+            elif activity.content:
+                href_match = re.search(r'href=["\']([^"\']+)["\']', activity.content)
+                if href_match:
+                    download_url = href_match.group(1)
+            ctx['worksheet_download_url'] = download_url
+            return render(request, 'template20/skilllab/partials/section_worksheet.html', ctx)
+        elif section_type == 'mcq':
+            mcq = get_object_or_404(SkillLabMCQ, id=section_id, skilllab_chapter__skilllab=skilllab_course)
+            ctx['mcq'] = mcq
+            ctx['questions'] = mcq.questions.all().order_by('order', 'question_number')
+            last_attempt = SkillLabMCQAttempt.objects.filter(user=request.user, mcq=mcq).order_by('-attempted_at').first()
+            ctx['last_attempt'] = last_attempt
+            return render(request, 'template20/skilllab/partials/section_mcq.html', ctx)
+        return HttpResponse('', status=400)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabMarkWorksheetDownloadedView(View):
+    """AJAX: Mark worksheet as downloaded. POST activity_id."""
+
+    def post(self, request):
+        activity_id = request.POST.get('activity_id') or (request.data.get('activity_id') if hasattr(request, 'data') else None)
+        if not activity_id:
+            return JsonResponse({'success': False, 'error': 'activity_id required'}, status=400)
+        activity = get_object_or_404(SkillLabCourseActivity, id=activity_id)
+        if not activity.skilllab_chapter.skilllab.is_user_vissible(request):
+            return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+        prog, _ = SkillLabWorksheetProgress.objects.update_or_create(
+            user=request.user, activity=activity,
+            defaults={'downloaded_at': timezone.now()}
+        )
+        skilllab_course = activity.skilllab_chapter.skilllab
+        update_skilllab_course_progress_summary(request.user, skilllab_course)
+        summary = SkillLabCourseProgressSummary.objects.get(
+            user=request.user, skilllab_course=skilllab_course
+        )
+        return JsonResponse({'success': True, 'progress_percentage': summary.progress_percentage})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabSubmitMCQView(View):
+    """AJAX: Submit MCQ answers, return results. POST mcq_id, answers {question_id: answer_id}."""
+
+    def post(self, request):
+        import json
+        data = getattr(request, 'data', None) or {}
+        if not data and request.body:
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                data = dict(request.POST)
+        mcq_id = data.get('mcq_id') or request.POST.get('mcq_id')
+        answers = data.get('answers') or {}
+        if isinstance(answers, str):
+            try:
+                answers = json.loads(answers)
+            except (json.JSONDecodeError, TypeError):
+                answers = {}
+        if not mcq_id:
+            return JsonResponse({'success': False, 'error': 'mcq_id required'}, status=400)
+        mcq = get_object_or_404(SkillLabMCQ, id=mcq_id)
+        if not mcq.skilllab_chapter.skilllab.is_user_vissible(request):
+            return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+        questions = list(mcq.questions.all().order_by('order', 'question_number'))
+        correct_map = {}
+        for q in questions:
+            correct = q.answers.filter(is_correct=True).first()
+            if correct:
+                correct_map[str(q.id)] = correct.id
+        score = 0
+        result_detail = []
+        for q in questions:
+            user_ans = answers.get(str(q.id)) or answers.get(q.id)
+            if user_ans:
+                user_ans = int(user_ans) if isinstance(user_ans, (str, float)) and str(user_ans).isdigit() else user_ans
+            correct_id = correct_map.get(str(q.id))
+            is_correct = (user_ans == correct_id) if user_ans and correct_id else False
+            if is_correct:
+                score += 1
+            result_detail.append({
+                'question_id': q.id,
+                'question_text': q.question_text[:100],
+                'user_answer': user_ans,
+                'correct': is_correct,
+            })
+        total = len(questions)
+        attempt = SkillLabMCQAttempt.objects.create(
+            user=request.user, mcq=mcq, score=score, total=total, answers=answers
+        )
+        skilllab_course = mcq.skilllab_chapter.skilllab
+        update_skilllab_course_progress_summary(request.user, skilllab_course)
+        summary = SkillLabCourseProgressSummary.objects.get(
+            user=request.user, skilllab_course=skilllab_course
+        )
+        return JsonResponse({
+            'success': True,
+            'progress_percentage': summary.progress_percentage,
+            'score': score,
+            'total': total,
+            'percentage': int((score / total * 100)) if total else 0,
+            'result_detail': result_detail,
+        })
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabCourseCertificateView(TemplateView):
+    """Certificate view - shown when all chapters are completed."""
+    template_name = "template20/skilllab/course_certificate.html"
+
+    def get_context(self, request, course_slug, *args, **kwargs):
+        skilllab_course = get_object_or_404(SkillLabCourse, slug=course_slug)
+        if not skilllab_course.is_user_vissible(request):
+            raise Http404("You do not have access to this course.")
+        chapters = list(skilllab_course.skilllabcoursechapter.order_by('created'))
+        chapter_progress = SkillLabCourseProgress.objects.filter(
+            user=request.user, skilllab_course=skilllab_course, chapter__isnull=False
+        )
+        completed_ids = set(chapter_progress.filter(completed=True).values_list('chapter_id', flat=True))
+        all_completed = all(ch.id in completed_ids for ch in chapters) if chapters else False
+        ctx = {
+            'skilllab_course': skilllab_course,
+            'all_completed': all_completed,
+            'certificate_date': timezone.now(),
+        }
+        ctx["html_head"] = build_html_head(title=f"Certificate - {skilllab_course.name}", description=skilllab_course.name)
+        return ctx
+
+    def get(self, request, course_slug, *args, **kwargs):
+        ctx = self.get_context(request, course_slug, *args, **kwargs)
+        return render(request, self.template_name, ctx)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
 class SkillLabCourseActivityDetail(TemplateView):
     template_name="topteenfrontend/skilllabactivityworksheet.html"
 
     def _breadcrumb(self,skilllab_activity):
         lst=[
-            {'title':"SkilllabCourse",'text':"SkilllabCourse","url":reverse_lazy('skilllab:skilllabcourselist')},
-            {'title':'{}'.format(skilllab_activity.skilllab_chapter.skilllab.name),'text':'{}'.format(skilllab_activity.skilllab_chapter.skilllab.name),'url':reverse_lazy('skilllab:skilllabcoursedetail',args=[skilllab_activity.skilllab_chapter.skilllab.slug])},
-            {'title':'{}'.format(skilllab_activity.skilllab_chapter.chapter_name),'text':'{}'.format(skilllab_activity.skilllab_chapter.chapter_name),'url':reverse_lazy('skilllab:skilllabcoursechapterdetail',args=[skilllab_activity.skilllab_chapter.slug])},
+            {'title':"SkilllabCourse",'text':"SkilllabCourse","url":reverse_lazy('skilllabcourse:skilllabcourselist')},
+            {'title':'{}'.format(skilllab_activity.skilllab_chapter.skilllab.name),'text':'{}'.format(skilllab_activity.skilllab_chapter.skilllab.name),'url':reverse_lazy('skilllabcourse:skilllabcoursedetail',args=[skilllab_activity.skilllab_chapter.skilllab.slug])},
+            {'title':'{}'.format(skilllab_activity.skilllab_chapter.chapter_name),'text':'{}'.format(skilllab_activity.skilllab_chapter.chapter_name),'url':reverse_lazy('skilllabcourse:skilllabcoursechapterdetail',args=[skilllab_activity.skilllab_chapter.slug])},
             {'title':skilllab_activity.name,"text":skilllab_activity.name,"url":""},
             ]
         return build_breadcrumb(lst)
@@ -305,6 +883,9 @@ class CreateSkilllabCoursePaymentWithEazyPay(View):
     def get(self, request,slug,*args, **kwargs):
         from django.http import JsonResponse
         skillab_course=get_object_or_404(SkillLabCourse,slug=slug)
+        # Free courses: redirect to course learning instead of payment
+        if not skillab_course.amount or skillab_course.amount <= 0:
+            return redirect('skilllabcourse:course_learning', course_slug=skillab_course.slug)
         result = self.get_payment_url(request,slug,*args, **kwargs)
         
         # Get success/fail URLs
@@ -393,7 +974,7 @@ class UpdateSkilllabCoursePaymentWithEazyPay(APIView):
                     sp = get_object_or_404(SkilllabCoursePayment, id=payment_id, user=request.user)
                     redirect_url = sp.get_payment_success_fail_url().get("fail_url")
                 except:
-                    redirect_url = reverse('skilllab:skilllabcourselist')
+                    redirect_url = reverse('skilllabcourse:skilllabcourselist')
                 return HttpResponseRedirect(redirect_url)
         
         # ICICI Eazypay payment update (original logic)

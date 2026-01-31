@@ -5,306 +5,265 @@
 {% endblock %}
 
 {% block description_content %}
-{{ skilllab.description|striptags|truncate(160) if skilllab.description else skilllab.name }}
+{{ (skilllab.course_intro_html or skilllab.description)|striptags|truncate(160) if (skilllab.course_intro_html or skilllab.description) else skilllab.name }}
 {% endblock %}
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
 
 {% block content %}
+<style>
+/* Single Course Detail - from single-course-detail.html */
+.course-detail-container { padding: 3rem 0; }
+.course-image { border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+.course-image img { width: 100%; height: auto; object-fit: cover; }
+.course-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; }
+.meta-item { display: flex; align-items: center; color: #666; }
+.meta-item i { margin-right: 0.5rem; color: #5249DF; }
+.course-tabs { margin-bottom: 2rem; }
+.tab-buttons { display: flex; border-bottom: 2px solid #eee; margin-bottom: 2rem; gap: 0; }
+.tab-button { background: none; border: none; padding: 1rem 2rem; font-size: 1.1rem; font-weight: 600; color: #666; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; position: relative; top: 2px; display: flex; align-items: center; gap: 0.5rem; }
+.tab-button:hover { color: #5249DF; }
+.tab-button.active { color: #5249DF; border-bottom-color: #5249DF; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.course-introduction { line-height: 1.8; color: #555; }
+.course-introduction p:first-child { margin-top: 0; }
+.course-introduction p { margin-bottom: 1rem; }
+.course-introduction h2, .course-introduction h3, .course-introduction h4 { font-size: 1.25rem; color: #333; margin-top: 1.5rem; margin-bottom: 0.75rem; font-weight: 700; }
+.course-introduction strong { font-weight: 700; color: #333; }
+.course-introduction ul { list-style: none; padding-left: 0; margin: 0.5rem 0 1rem 0; }
+.course-introduction p + ul { margin-top: 0.25rem; }
+.course-introduction ul li { position: relative; padding-left: 2rem; margin-bottom: 0.6rem; line-height: 1.7; }
+.course-introduction ul li::before { content: "✓"; position: absolute; left: 0; top: 0.1rem; color: #fff; font-size: 0.85rem; font-weight: bold; width: 1.35rem; height: 1.35rem; display: inline-flex; align-items: center; justify-content: center; background-color: #5249DF; border-radius: 50%; line-height: 1; }
+.course-introduction ol { padding-left: 1.5rem; margin: 1rem 0; }
+.course-introduction ol li { margin-bottom: 0.5rem; line-height: 1.7; }
+.course-introduction * { max-width: 100%; box-sizing: border-box; }
+.chapters-overview-list { list-style: none; padding-left: 0; }
+.chapters-overview-list li { position: relative; padding-left: 2.5rem; margin-bottom: 1rem; line-height: 1.8; color: #555; }
+.chapters-overview-list li::before { content: "✓"; position: absolute; left: 0; top: 0.1rem; color: #fff; font-size: 1rem; font-weight: bold; width: 1.5rem; height: 1.5rem; display: inline-flex; align-items: center; justify-content: center; background-color: #5249DF; border-radius: 50%; line-height: 1; }
+.accordion-item { border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 1rem; overflow: hidden; background: #fff; transition: all 0.3s ease; }
+.accordion-item:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+.accordion-header { padding: 1.25rem 1.5rem; background-color: #f9f9f9; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.3s ease; }
+.accordion-header:hover { background-color: #f0f0f0; }
+.accordion-header.active { background-color: #5249DF; color: #fff; }
+.accordion-title { font-size: 1.1rem; font-weight: 600; margin: 0; color: #333; }
+.accordion-header.active .accordion-title { color: #fff; }
+.accordion-icon { font-size: 1.5rem; transition: transform 0.3s ease; color: #5249DF; }
+.accordion-header.active .accordion-icon { color: #fff; transform: rotate(180deg); }
+.accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.35s ease-out, padding 0.3s ease; padding: 0 1.5rem; }
+.accordion-content.active { max-height: 3000px; padding: 1.5rem; overflow-y: auto; }
+.accordion-content ul { list-style: none; padding-left: 0; margin: 0; }
+.accordion-content ul li { padding: 0.75rem 0; padding-left: 2rem; position: relative; color: #555; border-bottom: 1px solid #f0f0f0; }
+.accordion-content ul li:last-child { border-bottom: none; }
+.accordion-content ul li::before { content: "✓"; position: absolute; left: 0; top: 0.15rem; color: #fff; font-size: 0.85rem; font-weight: bold; width: 1.35rem; height: 1.35rem; display: inline-flex; align-items: center; justify-content: center; background-color: #5249DF; border-radius: 50%; line-height: 1; }
+.course-index-preamble { margin-bottom: 1.5rem; }
+.payment-card { background-color: #fff; border-radius: 12px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); padding: 1.5rem; position: sticky; top: 100px; }
+.price-container { display: flex; align-items: center; margin-bottom: 1.5rem; }
+.current-price { font-size: 2rem; font-weight: 700; color: #333; }
+.original-price { font-size: 1.25rem; text-decoration: line-through; color: #999; margin-left: 1rem; }
+.discount-badge { background-color: #e9f5ff; color: #0086f8; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: 600; margin-left: 1rem; }
+.payment-features { margin-bottom: 1.5rem; }
+.feature-item { display: flex; align-items: flex-start; margin-bottom: 0.75rem; }
+.feature-item i { color: #5249DF; margin-right: 0.75rem; margin-top: 0.25rem; }
+.payment-btn { background-color: #5249DF; color: white; border: none; border-radius: 6px; padding: 0.75rem 1.5rem; font-weight: 600; width: 100%; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: block; text-align: center; }
+.payment-btn:hover { background-color: #6438d0; color: white; }
+.money-back { display: flex; align-items: center; justify-content: center; margin-top: 1rem; color: #666; }
+.money-back i { margin-right: 0.5rem; color: #5249DF; }
+.related-courses-section { margin-top: 4rem; padding-top: 3rem; border-top: 2px solid #f0f0f0; }
+.related-courses-title { font-size: 2rem; font-weight: 700; color: #333; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; }
+.related-courses-title i { color: #5249DF; font-size: 2.25rem; }
+.related-courses-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+.related-course-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; border: 1px solid #f0f0f0; display: flex; flex-direction: column; height: 100%; }
+.related-course-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(82, 73, 223, 0.15); border-color: #5249DF; }
+.related-course-image { position: relative; width: 100%; height: 200px; overflow: hidden; }
+.related-course-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.related-course-card:hover .related-course-image img { transform: scale(1.1); }
+.course-badge { position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #5249DF 0%, #6438d0 100%); color: #fff; padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; z-index: 2; }
+.related-course-content { padding: 1.5rem; display: flex; flex-direction: column; flex-grow: 1; }
+.related-course-title { font-size: 1.25rem; font-weight: 700; color: #333; margin-bottom: 0.75rem; line-height: 1.4; }
+.related-course-description { color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.related-course-meta { display: flex; gap: 1.5rem; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid #f0f0f0; }
+.related-course-meta span { display: flex; align-items: center; gap: 0.4rem; color: #666; font-size: 0.875rem; }
+.related-course-meta i { color: #5249DF; font-size: 1rem; }
+.related-course-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+.view-course-btn { display: inline-flex; align-items: center; gap: 0.5rem; color: #5249DF; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.3s ease; padding: 0.5rem 1rem; border-radius: 6px; background: #f0eaff; }
+.view-course-btn:hover { background: #5249DF; color: #fff; }
+@media (max-width: 991px) { .payment-card { position: static; margin-top: 2rem; } .related-courses-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 576px) { .tab-buttons { flex-direction: column; } .tab-button { width: 100%; } .related-courses-grid { grid-template-columns: 1fr; } }
+</style>
 
-<!-- Hero Section -->
-<section class="course-detail-hero pt-md-18 pt-14 pb-8">
+<section class="hero-section-inner pt-md-18 pt-14 pb-5">
   <div class="container">
     <div class="row">
-      <!--breadcrumb-->
       <div class="col-md-12">
         {% include 'template20/includes/breadcrumb.html' %}
       </div>
-      <!--breadcrumb-->
+    </div>
+  </div>
+</section>
 
-      <div class="col-lg-9 skill-lab-details">
-
-         <h1 class="course-title mb-3 fw-bold">{{ skilllab.name }}</h1>
-
-
-        <!-- Video/Image Section -->
-        <div class="course-media mb-4">
+<section class="course-detail-container mt-0 pt-0">
+  <div class="container">
+    <div class="row">
+      <!-- Left: Course Details -->
+      <div class="col-lg-8">
+        <h1 class="mb-3">{{ skilllab.name }}</h1>
+        <div class="course-image">
           {% if skilllab.video_url %}
-          <div class="video-wrapper position-relative" style="padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px;">
-            <iframe src="{{ skilllab.video_url }}" frameborder="0" allowfullscreen 
-              class="position-absolute top-0 left-0 w-100 h-100" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              style="border-radius: 10px;"></iframe>
+          <div class="video-wrapper position-relative" style="padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px;">
+            <iframe src="{{ skilllab.video_url }}" frameborder="0" allowfullscreen class="position-absolute top-0 left-0 w-100 h-100" style="border-radius: 12px;"></iframe>
           </div>
           {% elif skilllab.image %}
-          <img src="{{ skilllab.image.url }}" alt="{{ skilllab.name }}" class="img-fluid w-100 rounded" style="max-height: 500px; object-fit: cover;">
+          <img src="{{ skilllab.image.url }}" alt="{{ skilllab.name }}" />
           {% else %}
-          <img src="{{ static('images_new/short-courses/course-placeholder.png') }}" alt="{{ skilllab.name }}" class="img-fluid w-100 rounded" style="max-height: 500px; object-fit: cover;">
+          <img src="{{ static('images_new/short-courses/course-placeholder.png') }}" alt="{{ skilllab.name }}" />
           {% endif %}
         </div>
-
-        <!-- Course Title and Description -->
-        <div class="course-header mb-4">
-         
-          
-          {% if skilllab.description %}
-          <div class="course-description">
-            {{ skilllab.description|safe }}
-          </div>
-          {% endif %}
+        <div class="course-meta">
+          <div class="meta-item"><i class='bx bx-book'></i><span>{{ skilllab.skilllabcoursechapter.all()|length }} Chapters</span></div>
+          <div class="meta-item"><i class='bx bx-file'></i><span>Downloadable resources</span></div>
+          <div class="meta-item"><i class='bx bx-globe'></i><span>Online access</span></div>
         </div>
 
-        <!-- Payment CTA (if course is paid and user hasn't paid) -->
-        {% if not skilllab.is_user_vissible(request) %}
-        <div class="payment-cta cta-purple p-4">
-          <div class="row align-items-center">
-            <div class="col-md-5 mb-3 mb-md-0">
-             <img src="{{ static('images_new/general/skill-labcourse-cta.png') }}" alt="{{ skilllab.name }}" class="img-fluid w-100 " >
-            </div>
-            <div class="col-md-7 text-center text-md-start">
-
-               <h4 class="text-white mb-2">Complete the payment to unlock exciting content</h4>
-              <p class="text-white-50 mb-3">Get full access to all course chapters and activities</p>
-              <a href="{{ url('skilllab:createskilllabcoursepayment', args=[skilllab.slug]) }}" class=" btn custom-button  blue-button ">
-                Pay {{ skilllab.get_display_price() if skilllab.get_display_price else currency_format(skilllab.amount) }} Now
-              </a>
-            </div>
+        <!-- Tabs -->
+        <div class="course-tabs">
+          <div class="tab-buttons">
+            <button class="tab-button active" data-tab="introduction"><i class='bx bx-book-open'></i><span>Course Introduction</span></button>
+            <button class="tab-button" data-tab="index"><i class='bx bx-list-ul'></i><span>Course Index</span></button>
           </div>
-        </div>
-        {% endif %}
 
-        <!-- Course Chapters Section -->
-        {% if skilllab.is_user_vissible(request) and skilllab.skilllabcoursechapter.all() %}
-        <section class="chapters-section mb-5">
-          <h3 class="section-title mb-4">Course Chapters</h3>
-          <div class="chapters-list">
-            {% for chapter in skilllab.skilllabcoursechapter.all() %}
-            <div class="chapter-item mb-3 p-3 border rounded">
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="flex-grow-1">
-                  <h5 class="mb-1">
-                    <a href="{{ url('skilllab:skilllabcoursechapterdetail', args=[chapter.slug]) }}" class="text-decoration-none">
-                      {{ chapter.chapter_name }}
-                    </a>
-                  </h5>
-                  {% if chapter.content %}
-                  <p class="text-gray fs-14 mb-0">{{ chapter.content|striptags|truncate(100) }}</p>
-                  {% endif %}
-                </div>
-                <div class="ms-3">
-                  <a href="{{ url('skilllab:skilllabcoursechapterdetail', args=[chapter.slug]) }}" class="btn btn-sm btn-outline-primary">
-                    View <i class='bx bx-right-arrow-alt'></i>
-                  </a>
-                </div>
-              </div>
-              
-              <!-- Chapter Activities -->
-              {% if chapter.skilllabcourseactivity.all() %}
-              <div class="activities-list mt-3 pt-3 border-top">
-                <h6 class="fs-14 fw-semibold mb-2">Activities:</h6>
-                <div class="row g-2">
-                  {% for activity in chapter.skilllabcourseactivity.all() %}
-                  <div class="col-md-6">
-                    <a href="{{ url('skilllab:skilllabcourseactivityworksheetdetail', args=[activity.slug]) }}" class="text-decoration-none">
-                      <div class="activity-item p-2 bg-light rounded">
-                        <div class="d-flex align-items-center">
-                          <i class='bx bx-file me-2 text-primary'></i>
-                          <span class="fs-14">{{ activity.name }}</span>
-                        </div>
-                      </div>
-                    </a>
-                  </div>
-                  {% endfor %}
-                </div>
-              </div>
+          <!-- Introduction Tab (course_intro_html) -->
+          <div id="tab-introduction" class="tab-content active">
+            <div class="course-introduction ckeditorStyles">
+              {% if skilllab.course_intro_html %}
+              {{ skilllab.course_intro_html|safe }}
+              {% elif skilllab.description %}
+              {{ skilllab.description|safe }}
+              {% else %}
+              <p>Welcome to {{ skilllab.name }}. Explore the course chapters and activities below.</p>
               {% endif %}
             </div>
-            {% endfor %}
-          </div>
-        </section>
-        {% elif not skilllab.is_user_vissible(request) %}
-        <div class="locked-content bg-light p-4 rounded text-center my-5">
-          <i class='bx bx-lock fs-41 text-gray mb-3'></i>
-          <h4 class="mb-2">Content Locked</h4>
-          <p class="text-gray mb-3">Complete the payment to access all course chapters and activities.</p>
-          <a href="{{ url('skilllab:createskilllabcoursepayment', args=[skilllab.slug]) }}" class="btn custom-button purple-button">
-            Unlock Course
-          </a>
-        </div>
-        {% endif %}
-
-        <!-- Related Courses -->
-        {% if activecourses %}
-        <section class="related-courses-section mb-5 skilllab-course-list">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="section-title mb-0">Related Courses</h3>
-              <a href="{{ url('skilllabcourse:skilllabcourselist') }}" class="text-purple">View All</a>
-          </div>
-          <div class="row">
-            {% for course in activecourses[:3] %}
-            <div class="col-md-4 col-sm-6 mb-4">
-              <div class="course-card h-100 rounded ">
-                <div class="course-image mb-3 position-relative">
-                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[course.slug]) }}">
-                    {% if course.video_url %}
-                    <div class="video-wrapper position-relative" style="padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px;">
-                      <iframe src="{{ course.video_url }}" frameborder="0" allowfullscreen class="position-absolute top-0 left-0 w-100 h-100" style="border-radius: 10px;"></iframe>
-                    </div>
-                    {% elif course.image %}
-                    <img src="{{ course.image.url }}" alt="{{ course.name }}" class="img-fluid w-100 rounded" style="height: 180px; object-fit: cover; box-shadow: 0 6px 18px rgba(24,40,72,.06);">
-                    {% else %}
-                    <img src="{{ static('images_new/short-courses/course-placeholder.png') }}" alt="{{ course.name }}" class="img-fluid w-100 rounded" style="height: 180px; object-fit: cover; box-shadow: 0 6px 18px rgba(24,40,72,.06);">
-                    {% endif %}
-                  </a>
-                </div>
-
-                <div class="course-content px-2 pb-3">
-
-                {% if course.category %}
-                <div class="mb-2">
-                  <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1">{{ course.get_category_display() if course.get_category_display else course.category }}</span>
-                </div>
-                {% endif %}
-                <h5 class="course-name mb-2">
-                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[course.slug]) }}" class="text-decoration-none text-dark">{{ course.name }}</a>
-                </h5>
-                {% if course.description %}
-                <p class="course-description text-muted fs-14 mb-3">{{ course.description|striptags|truncate(80) }}</p>
-                {% endif %}
-                <div class="d-flex justify-content-between align-items-center">
-                  {% if course.amount and course.amount > 0 %}
-                  <span class="fw-bold text-purple fs-20">
-                   {{ currency_format(course.amount) }}
-                  </span>
-                  {% else %}
-                  <span class="badge bg-success bg-opacity-10 text-success">Free</span>
-                  {% endif %}
-                  <a href="{{ url('skilllab:skilllabcoursedetail', args=[course.slug]) }}" class="btn btn-sm btn-primary rounded-pill text-white px-3">
-                    View <i class='bx bx-right-arrow-alt ms-1'></i>
-                  </a>
-                </div>
-                </div>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </section>
-        {% endif %}
-      </div>
-
-      <!-- Right Sidebar -->
-      <div class="col-lg-3">
-        <div class="course-sidebar">
-          <!-- Course Info Card -->
-          <div class="sidebar-card mb-4">
-            <h4 class="sidebar-title mb-3">Course Information</h4>
-            
-            {% if skilllab.category %}
-            <div class="info-item mb-3">
-              <div class="d-flex align-items-center mb-1 justify-content-between">
-              
-                <span class="fw-semibold">Category:</span>
-
-                <span class="badge bg-primary ct-m-badge">{{ skilllab.get_category_display() if skilllab.get_category_display else skilllab.category }}</span>
-            </div>
-              </div>
-              
-            {% endif %}
-
-            {% if skilllab.amount %}
-            <div class="info-item mb-3">
-              <div class="d-flex align-items-center mb-1 justify-content-between">
-                              <span class="fw-semibold">Price:</span>
-
-
-                                  <div class="price-display">
-                {% if skilllab.amount > 0 %}
-                <span class="fs-24 fw-bold text-purple">
-                {{ currency_format(skilllab.amount) }}
-                </span>
-                {% else %}
-                <span class="badge bg-success fs-16">Free</span>
-                {% endif %}
-              </div>
-              </div>
-          
-            </div>
-            {% endif %}
-
-            {% if skilllab.skilllabcoursechapter.all() %}
-            <div class="info-item mb-3">
-              <div class="d-flex align-items-center mb-1 justify-content-between">
-                
-                <span class="fw-semibold">Chapters:</span>
-
-                 <span class="fs-16">{{ skilllab.skilllabcoursechapter.all()|length }} Chapters</span>
-              </div>
-             
-            </div>
-            {% endif %}
           </div>
 
-          <!-- Enrollment Card -->
-          {% if skilllab.is_paid %}
-          <div class="sidebar-card mb-4">
-            {% if skilllab.is_user_vissible(request) %}
-            <div class="enrolled-badge bg-success text-white p-3 rounded text-center mb-3">
-              <i class='bx bx-check-circle fs-32 mb-2'></i>
-              <h5 class="text-white mb-0">You're Enrolled!</h5>
-              <p class="text-white-50 mb-0 fs-14">Access all course content</p>
+          <!-- Course Index Tab (course_index_html) -->
+          <div id="tab-index" class="tab-content">
+            {% if skilllab.course_index_html %}
+            <div id="course-index-html-wrapper" class="course-index-from-html">
+              <div class="course-introduction ckeditorStyles">
+                {{ skilllab.course_index_html|safe }}
+              </div>
             </div>
             {% else %}
-            <div class="enrollment-card">
-              
-            
-              <a href="{{ url('skilllab:createskilllabcoursepayment', args=[skilllab.slug]) }}" class=" btn custom-button w-100 blue-button mb-3">
-                <i class='bx bx-lock-open me-2'></i>Enroll Now
-              </a>
-              <ul class="enrollment-features list-unstyled">
-                <li class="mb-2">
-                  <i class='bx bx-check text-success me-2'></i>
-                  <span>Full course access</span>
-                </li>
-                <li class="mb-2">
-                  <i class='bx bx-check text-success me-2'></i>
-                  <span>All chapters unlocked</span>
-                </li>
-                <li class="mb-2">
-                  <i class='bx bx-check text-success me-2'></i>
-                  <span>Activities & worksheets</span>
-                </li>
-                <li class="mb-0">
-                  <i class='bx bx-check text-success me-2'></i>
-                  <span>Lifetime access</span>
-                </li>
-              </ul>
+            <div class="course-index-accordion">
+              {% for chapter in skilllab.skilllabcoursechapter.all() %}
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <h4 class="accordion-title">{{ chapter.chapter_name }}</h4>
+                  <i class='bx bx-chevron-down accordion-icon'></i>
+                </div>
+                <div class="accordion-content">
+                  <ul>
+                    {% for activity in chapter.skilllabcourseactivity.all() %}
+                    <li><a href="{{ url('skilllabcourse:skilllabcourseactivityworksheetdetail', args=[activity.slug]) }}" class="text-decoration-none text-dark">{{ activity.name }}</a></li>
+                    {% endfor %}
+                    {% for mcq in chapter.mcqs.all() %}
+                    <li>{{ mcq.title or 'Quiz' }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+              {% endfor %}
             </div>
             {% endif %}
           </div>
-          {% else %}
-          <div class="sidebar-card mb-4">
-            <div class="free-badge bg-info text-white p-3 rounded text-center">
-              <i class='bx bx-gift fs-32 mb-2'></i>
-              <h5 class="text-white mb-0">Free Course</h5>
-              <p class="text-white mb-0 fs-14">Access all content for free</p>
-            </div>
-          </div>
-          {% endif %}
+        </div>
+      </div>
 
-          <!-- Share Section -->
-          <div class="sidebar-card">
-            <h4 class="sidebar-title mb-3">Share Course</h4>
-            <div class="blog-share-icons">
-              <a href="#" class="blog-share-icon" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank'); return false;"><i class="bx bxl-facebook"></i></a>
-              <a href="#" class="blog-share-icon" onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(window.location.href) + '&text=' + encodeURIComponent('{{ skilllab.name }}'), '_blank'); return false;"><i class="bx bxl-twitter"></i></a>
-              <a href="#" class="blog-share-icon" onclick="window.open('https://www.linkedin.com/shareArticle?url=' + encodeURIComponent(window.location.href) + '&title=' + encodeURIComponent('{{ skilllab.name }}'), '_blank'); return false;"><i class="bx bxl-linkedin"></i></a>
-              <a href="#" class="blog-share-icon" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('{{ skilllab.name }} ' + window.location.href), '_blank'); return false;"><i class="bx bxl-whatsapp"></i></a>
-              <a href="#" class="blog-share-icon copy-link" data-url="{{ url('skilllab:skilllabcoursedetail', args=[skilllab.slug]) }}"><i class="bx bx-link"></i></a>
+      <!-- Right: Payment Card -->
+      <div class="col-lg-4">
+        <div class="payment-card">
+          <div class="price-container">
+            <span class="current-price">{{ currency_format(skilllab.amount) if skilllab.amount and skilllab.amount > 0 else 'Free' }}</span>
+            {% if skilllab.amount and skilllab.amount > 0 %}
+            <span class="original-price">{{ currency_format(skilllab.amount * 2) }}</span>
+            <span class="discount-badge">50% OFF</span>
+            {% endif %}
+          </div>
+          <div class="payment-features">
+            <div class="feature-item"><i class='bx bx-time'></i><span>Full lifetime access</span></div>
+            <div class="feature-item"><i class='bx bx-devices'></i><span>Access on mobile and desktop</span></div>
+            <div class="feature-item"><i class='bx bx-certification'></i><span>Certificate of completion</span></div>
+            <div class="feature-item"><i class='bx bx-support'></i><span>Expert support</span></div>
+            <div class="feature-item"><i class='bx bx-download'></i><span>Downloadable resources</span></div>
+            {% if skilllab.amount and skilllab.amount > 0 and not skilllab.is_user_vissible(request) %}
+            <p class="mb-0">Complete the payment to unlock exciting content</p>
+            {% else %}
+            <p class="mb-0">Start learning and unlock exciting content</p>
+            {% endif %}
+          </div>
+          {% if skilllab.is_user_vissible(request) %}
+          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn">Start</a>
+          {% elif skilllab.amount and skilllab.amount > 0 %}
+          <a href="{{ url('skilllabcourse:createskilllabcoursepayment', args=[skilllab.slug]) }}" class="payment-btn">Enroll Now</a>
+          {% else %}
+          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn">Start</a>
+          {% endif %}
+          {% if skilllab.amount and skilllab.amount > 0 %}
+          <div class="money-back"><i class='bx bx-shield'></i><span>30-Day Money-Back Guarantee</span></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Courses -->
+    {% if activecourses %}
+    <div class="row mt-5">
+      <div class="col-12">
+        <div class="related-courses-section">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="related-courses-title mb-0">
+              <i class='bx bx-book-reader'></i>
+              Related Courses
+            </h2>
+            <a href="{{ url('skilllabcourse:skilllabcourselist') }}" class="text-purple fw-semibold text-decoration-none">View All</a>
+          </div>
+          <div class="related-courses-grid">
+            {% for course in activecourses[:3] %}
+            <div class="related-course-card">
+              <div class="related-course-image">
+                <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[course.slug]) }}">
+                  {% if course.image %}
+                  <img src="{{ course.image.url }}" alt="{{ course.name }}" />
+                  {% else %}
+                  <img src="{{ static('images_new/short-courses/course-placeholder.png') }}" alt="{{ course.name }}" />
+                  {% endif %}
+                </a>
+                {% if course.category %}<div class="course-badge">{{ course.get_category_display() if course.get_category_display else 'Course' }}</div>{% endif %}
+              </div>
+              <div class="related-course-content">
+                <h3 class="related-course-title"><a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[course.slug]) }}" class="text-decoration-none text-dark">{{ course.name }}</a></h3>
+                <p class="related-course-description">{{ course.description|striptags|truncate(100) if course.description else course.name }}</p>
+                <div class="related-course-meta">
+                  <span><i class='bx bx-book'></i> {{ course.skilllabcoursechapter.all()|length }} Chapters</span>
+                </div>
+                <div class="related-course-footer">
+                  <div class="course-price">
+                    {% if course.amount and course.amount > 0 %}
+                    <span class="current-price">{{ currency_format(course.amount) }}</span>
+                    {% else %}
+                    <span class="current-price">Free</span>
+                    {% endif %}
+                  </div>
+                  <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[course.slug]) }}" class="view-course-btn">View Course <i class='bx bx-right-arrow-alt'></i></a>
+                </div>
+              </div>
             </div>
+            {% endfor %}
           </div>
         </div>
       </div>
     </div>
+    {% endif %}
   </div>
 </section>
 
@@ -312,20 +271,98 @@
 
 {% block additionaljs %}
 <script>
-// Copy Link Functionality
 document.addEventListener('DOMContentLoaded', function() {
-  const copyLinks = document.querySelectorAll('.copy-link');
-  copyLinks.forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      const url = this.getAttribute('data-url');
-      const fullUrl = window.location.origin + url;
-      navigator.clipboard.writeText(fullUrl).then(() => {
-        alert('Link copied to clipboard!');
-      });
+  const tabButtons = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const targetTab = this.getAttribute('data-tab');
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      tabContents.forEach(content => content.classList.remove('active'));
+      this.classList.add('active');
+      const target = document.getElementById('tab-' + targetTab);
+      if (target) target.classList.add('active');
     });
   });
+
+  function initAccordions(container) {
+    if (!container) return;
+    const headers = container.querySelectorAll('.accordion-header');
+    headers.forEach(header => {
+      header.addEventListener('click', function() {
+        const accordionItem = this.parentElement;
+        const accordionContent = accordionItem.querySelector('.accordion-content');
+        const isActive = this.classList.contains('active');
+        headers.forEach(h => {
+          h.classList.remove('active');
+          const c = h.parentElement.querySelector('.accordion-content');
+          if (c) c.classList.remove('active');
+        });
+        if (!isActive) {
+          this.classList.add('active');
+          if (accordionContent) accordionContent.classList.add('active');
+        }
+      });
+    });
+  }
+
+  // Dynamic accordions (chapters from DB)
+  initAccordions(document.querySelector('.course-index-accordion'));
+
+  // Convert course_index_html flat content to accordions
+  const htmlWrapper = document.getElementById('course-index-html-wrapper');
+  if (htmlWrapper) {
+    const introDiv = htmlWrapper.querySelector('.course-introduction');
+    if (introDiv) {
+      const children = Array.from(introDiv.childNodes);
+      const accordionContainer = document.createElement('div');
+      accordionContainer.className = 'course-index-accordion';
+      let preamble = [];
+      let currentChapter = null;
+      let currentContent = [];
+
+      function flushChapter() {
+        if (currentChapter && currentContent.length) {
+          const item = document.createElement('div');
+          item.className = 'accordion-item';
+          const contentHtml = currentContent.map(function(ul) { return ul.outerHTML; }).join('');
+          item.innerHTML = '<div class="accordion-header"><h4 class="accordion-title">' + currentChapter.innerHTML + '</h4><i class="bx bx-chevron-down accordion-icon"></i></div><div class="accordion-content">' + contentHtml + '</div>';
+          accordionContainer.appendChild(item);
+        }
+      }
+
+      for (let i = 0; i < children.length; i++) {
+        const node = children[i];
+        if (node.nodeType !== 1) continue; // skip non-elements
+        const tag = node.tagName ? node.tagName.toLowerCase() : '';
+        const text = (node.textContent || '').trim();
+        if (tag === 'p' && /Chapter\s+\d+/i.test(text)) {
+          flushChapter();
+          currentChapter = node;
+          currentContent = [];
+        } else if (currentChapter && tag === 'ul') {
+          currentContent.push(node);
+        } else if (!currentChapter && (tag === 'p' || tag === 'ul')) {
+          preamble.push(node.cloneNode(true));
+        }
+      }
+      flushChapter();
+
+      if (accordionContainer.children.length > 0) {
+        if (preamble.length) {
+          const preDiv = document.createElement('div');
+          preDiv.className = 'course-introduction ckeditorStyles course-index-preamble';
+          preamble.forEach(function(n) { preDiv.appendChild(n); });
+          htmlWrapper.innerHTML = '';
+          htmlWrapper.appendChild(preDiv);
+        } else {
+          htmlWrapper.innerHTML = '';
+        }
+        htmlWrapper.appendChild(accordionContainer);
+        initAccordions(accordionContainer);
+      }
+    }
+  }
 });
 </script>
 {% endblock %}
-

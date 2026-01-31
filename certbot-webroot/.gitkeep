@@ -1,0 +1,3 @@
+# Certbot webroot for Let's Encrypt ACME challenge
+# Run: certbot renew --webroot -w ./certbot-webroot --cert-name www.topteen.in --dry-run
+# Or set CERTBOT_WEBROOT=/path/to/your/webroot in .env if using a different path

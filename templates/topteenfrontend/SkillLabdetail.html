@@ -67,7 +67,7 @@
 
             <p class="text-[22px] leading-[30px] text-[#ffffff] semibold text-center">Complete the payment to unlock exciting content</p>
 
-            <button type="button" onclick="window.location='{{url('skilllab:createskilllabcoursepayment',args=[skilllab.slug])}}'"  class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px]">
+            <button type="button" onclick="window.location='{{url('skilllabcourse:createskilllabcoursepayment',args=[skilllab.slug])}}'"  class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px]">
               <div class="bg-[#ffffff] h-[48px] w-full absolute top-0 rounded-[10px] flex items-center justify-center">
                 <p class="text-[16px] text-[#4f4f4f] boldFont text-center">Pay {{skilllab.get_display_price()}} Now</p>
               </div>
@@ -112,7 +112,7 @@
             </button>
           #}
 
-            <button type="button" onclick="window.location='{{url('skilllab:createskilllabcoursepayment',args=[skilllab.slug])}}'"  class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px]">
+            <button type="button" onclick="window.location='{{url('skilllabcourse:createskilllabcoursepayment',args=[skilllab.slug])}}'"  class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px]">
               <div class="bg-[#ffffff] h-[48px] w-full absolute top-0 rounded-[10px] flex items-center justify-center">
                 <p class="text-[16px] text-[#4f4f4f] boldFont text-center">Pay {{skilllab.get_display_price()}} Now</p>
               </div>
@@ -506,7 +506,7 @@
                   <p
                     class="font-semibold text-[15px] leading-[20.25px] tracking-[0.035em]"
                   >
-                  <a href="{{url('skilllab:skilllabcoursedetail',args=[ac.slug])}}">{{ac.description|truncate(30)|safe}}</a>
+                  <a href="{{url('skilllabcourse:skilllabcoursedetail',args=[ac.slug])}}">{{ac.description|truncate(30)|safe}}</a>
                   </p>
                 </div>
                 <div class="absolute inset-0 z-1 brightness-50">
@@ -532,7 +532,7 @@
               >
                 Active Courses
               </h5>
-              <a href="{{url('skilllab:skilllabcourselist')}}" class="text-[#3f37c9] font-semibold text-xs"
+              <a href="{{url('skilllabcourse:skilllabcourselist')}}" class="text-[#3f37c9] font-semibold text-xs"
                 >View All</a
               >
             </div>
@@ -557,7 +557,7 @@
                       {{ac.name}} &#x2022; 18 hours
                     </p>
                     <p class="font-semibold text-sm tracking-[0.035em]">
-                      <a href="{{url('skilllab:skilllabcoursedetail',args=[ac.slug])}}">{{ac.description|truncate(30)|safe}}</a>
+                      <a href="{{url('skilllabcourse:skilllabcoursedetail',args=[ac.slug])}}">{{ac.description|truncate(30)|safe}}</a>
                     </p>
                   </div>
                   <div class="absolute inset-0 z-1 brightness-50">
@@ -583,7 +583,7 @@
               >
                 Skill Lab Course Chapter
               </h3>
-              <a href="{{url('skilllab:skilllabcourselist')}}">
+              <a href="{{url('skilllabcourse:skilllabcourselist')}}">
               <p
                 class="text-[#541BCF] text-[13px] leading-[18px] font-semibold"
               >
@@ -595,7 +595,7 @@
             <ul class="flex flex-col justify-start items-start gap-y-3.5">
               <!-- ALTERNATE -->
               {% for sklc in skilllab.skilllabcoursechapter.all() %}
-              <a class="w-full" href="{{url('skilllab:skilllabcoursechapterdetail',args=[sklc.slug])}}">
+              <a class="w-full" href="{{url('skilllabcourse:skilllabcoursechapterdetail',args=[sklc.slug])}}">
               <li
               class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
             >
@@ -632,7 +632,7 @@
 
             <!-- ALTERNATE -->
               {% for sklc in skilllab.skilllabcoursechapter.all() %}
-              <a class="w-full" href="{{url('skilllab:skilllabcoursechapterdetail',args=[sklc.slug])}}">
+              <a class="w-full" href="{{url('skilllabcourse:skilllabcoursechapterdetail',args=[sklc.slug])}}">
               <li
               class="px-[15px] py-[19px] rounded-[10px] bg-[#F7F7FA] flex flex-row justify-start items-center gap-x-[17px] w-full"
             >
@@ -668,7 +668,7 @@
               </div>
             </button>
           #}
-            <button type="button" onclick="window.location='{{url('skilllab:createskilllabcoursepayment',args=[skilllab.slug])}}'" class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px]">
+            <button type="button" onclick="window.location='{{url('skilllabcourse:createskilllabcoursepayment',args=[skilllab.slug])}}'" class="inline-block bg-[#eaeaea] h-[53px] relative rounded-[10px] w-[120px]">
               <div class="bg-[#ffffff] h-[48px] w-full absolute top-0 rounded-[10px] flex items-center justify-center">
                 <p class="text-[16px] text-[#4f4f4f] boldFont text-center">Pay {{skilllab.get_display_price()}} Now</p>
               </div>

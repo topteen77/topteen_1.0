@@ -1,0 +1,336 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}{{ skilllab_course_chapter.chapter_name }} | {{ skilllab_course_chapter.skilllab.name }} | Top Teen{% endblock %}
+{% block description_content %}{{ skilllab_course_chapter.content|striptags|truncate(160) if skilllab_course_chapter.content else skilllab_course_chapter.chapter_name }}{% endblock %}
+
+{% block bodyclass %}skilllab-chapter-page{% endblock %}
+
+{% block header %}
+{# Override: use course page header instead of main nav #}
+<header class="course-page-header">
+  <div class="container-fluid">
+    <div class="course-header-nav">
+      <div class="course-logo d-flex align-items-center gap-2">
+        <button class="mobile-sidebar-toggle" type="button" onclick="toggleMobileSidebar()" aria-label="Toggle chapters">
+          <i class='bx bx-menu'></i>
+          <span>Chapters</span>
+        </button>
+        <a href="{{ url('core:home') }}"><img class="img-fluid me-3" src="{{ static('images_new/logos/logo.svg') }}" alt="Top Teen" style="height: 40px;" /></a>
+        <h2 class="course-title mb-0">{{ skilllab_course_chapter.skilllab.name }}</h2>
+      </div>
+      <div class="course-header-right">
+        <div class="course-progress-wrapper">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h4 class="course-progress-title mb-0">Course Progress</h4>
+            <span class="course-progress-percentage" id="progress-percentage">0%</span>
+          </div>
+          <div class="course-progress-bar">
+            <div class="course-progress-fill" id="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+        <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course_chapter.skilllab.slug]) }}" class="back-to-course-btn">
+          <i class='bx bx-arrow-back'></i>
+          <span>Back to Course</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<style>
+/* Skill Lab Chapter - from skill-lab-full-course.html */
+.content-section ul { list-style: none; padding-left: 0; }
+.content-section ul li { position: relative; padding-left: 32px; margin-bottom: 10px; }
+.content-section ul li::before {
+  content: ""; position: absolute; left: 0; top: 4px; width: 18px; height: 14px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='19' viewBox='0 0 24 19'%3E%3Cpath fill='%233F37C9' d='M23.828 2.828 8.414 18.242 0 9.828 2.828 7l5.586 5.586L21 0l2.828 2.828Z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: contain;
+}
+.course-page-header {
+  background: #fff; border-bottom: 1px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000; width: 100%; padding: 1rem 0;
+}
+.course-header-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 1rem; flex-wrap: wrap; gap: 1rem; }
+.course-logo { display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 200px; }
+.course-title { font-size: 1.5rem; font-weight: 700; color: #333; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.course-header-right { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+.course-progress-wrapper { min-width: 200px; max-width: 300px; background: #f8f9fa; padding: 0.75rem; border-radius: 6px; }
+.course-progress-title { font-size: 0.9rem; margin-bottom: 0.5rem; color: #333; font-weight: 600; }
+.course-progress-percentage { font-size: 1rem; color: #5249DF; font-weight: 700; }
+.course-progress-bar { width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+.course-progress-fill { height: 100%; background: linear-gradient(90deg, #5249DF 0%, #6438d0 100%); transition: width 0.3s ease; border-radius: 4px; }
+.back-to-course-btn { display: inline-flex; align-items: center; gap: 0.5rem; color: #5249DF; text-decoration: none; font-weight: 600; transition: all 0.3s ease; }
+.back-to-course-btn:hover { color: #6438d0; transform: translateX(-3px); }
+.mobile-sidebar-toggle { display: none; background: #5249DF; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 1.1rem; cursor: pointer; align-items: center; gap: 0.5rem; }
+.full-course-section { background: #f8f9fa; min-height: calc(100vh - 80px); padding-top: 1rem; margin-top: 80px; }
+.mobile-overlay { display: none; position: fixed; top: 80px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+.mobile-overlay.active { display: block; }
+.course-sidebar {
+  background: #fff; border-right: 1px solid #e0e0e0; padding: 0; position: sticky; top: 80px;
+  height: calc(100vh - 80px); overflow-y: auto; max-height: calc(100vh - 80px); overflow-x: hidden;
+}
+.course-chapters-sidebar { padding: 1.5rem; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.sidebar-title { font-size: 1.5rem; font-weight: 700; color: #333; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; padding-bottom: 1rem; border-bottom: 2px solid #f0f0f0; flex-shrink: 0; }
+.sidebar-title i { color: #5249DF; }
+.chapters-accordion { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; margin-top: 1rem; }
+.chapter-accordion-item { border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 0.75rem; overflow: hidden; background: #fff; }
+.chapter-accordion-item.active { border-color: #5249DF; box-shadow: 0 2px 8px rgba(82,73,223,0.1); }
+.chapter-accordion-header { padding: 1rem; cursor: pointer; background: #f8f9fa; transition: background 0.3s ease; }
+.chapter-accordion-item.active .chapter-accordion-header { background: #f0eaff; }
+.chapter-accordion-header:hover { background: #f0eaff; }
+.chapter-title { font-size: 0.95rem; font-weight: 600; color: #333; margin: 0; display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.chapter-title-text { flex: 1; }
+.chapter-title i { font-size: 1.25rem; color: #5249DF; transition: transform 0.3s ease; margin-left: auto; }
+.chapter-accordion-item.active .chapter-title i { transform: rotate(180deg); }
+.chapter-accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+.chapter-accordion-item.active .chapter-accordion-content { max-height: 2000px; }
+.chapter-sections { list-style: none; padding: 0.5rem 0; margin: 0; }
+.section-item { padding: 0.75rem 1rem; padding-right: 3rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; color: #666; transition: all 0.3s ease; border-left: 3px solid transparent; position: relative; text-decoration: none !important; }
+.section-item:hover { background: #f8f9fa; color: #5249DF; }
+.section-item.active { background: #f0eaff; color: #5249DF; border-left-color: #5249DF; font-weight: 600; }
+.section-item i { font-size: 1.1rem; }
+.course-content-area { padding: 1.5rem; min-height: calc(100vh - 80px); max-width: 100%; overflow-x: hidden; }
+.course-content-wrapper { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; width: 100%; max-width: 100%; word-wrap: break-word; box-sizing: border-box; }
+.content-section { padding: 2.5rem; max-width: 100%; overflow-x: hidden; word-wrap: break-word; box-sizing: border-box; }
+.content-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid #f0f0f0; }
+.content-title { font-size: 2rem; font-weight: 700; color: #333; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
+.content-title i { color: #5249DF; }
+.content-subtitle { color: #666; font-size: 1.1rem; margin: 0; }
+.content-body { line-height: 1.8; color: #555; }
+.content-body * { max-width: 100%; box-sizing: border-box; }
+.introduction-content h3 { font-size: 1.75rem; color: #5249DF; margin-top: 2rem; margin-bottom: 1rem; }
+.introduction-content h4 { font-size: 1.5rem; color: #333; margin-top: 2rem; margin-bottom: 1rem; }
+.introduction-content p { margin-bottom: 1.25rem; font-size: 1.05rem; }
+.section-navigation { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #f0f0f0; }
+.nav-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 2rem; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; border: none; cursor: pointer; }
+.nav-btn.prev-btn { background: #f8f9fa; color: #666; }
+.nav-btn.prev-btn:hover { background: #e0e0e0; color: #333; }
+.nav-btn.next-btn { background: linear-gradient(135deg, #5249DF 0%, #6438d0 100%); color: #fff; }
+.nav-btn.next-btn:hover { transform: translateX(3px); box-shadow: 0 4px 12px rgba(82,73,223,0.3); }
+.nav-btn:disabled, .nav-btn[style*="visibility: hidden"] { opacity: 0.5; cursor: not-allowed; }
+@media (max-width: 991px) {
+  .mobile-sidebar-toggle { display: flex; }
+  .full-course-section { margin-top: var(--header-height, 120px); }
+  .course-sidebar { position: fixed; top: var(--header-height, 120px); left: -100%; width: 280px; height: calc(100vh - var(--header-height, 120px)); z-index: 999; transition: left 0.3s ease; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+  .course-sidebar.active { left: 0; }
+  .mobile-overlay.active { display: block; }
+  .course-title { font-size: 1.2rem; white-space: normal; }
+  .course-header-right .course-progress-wrapper { flex: 1; min-width: 100%; max-width: 100%; }
+}
+@media (max-width: 576px) {
+  .course-title { font-size: 1rem; }
+  .content-section { padding: 1rem; }
+  .content-title { font-size: 1.4rem; flex-direction: column; align-items: flex-start; }
+  .section-navigation { flex-direction: column; gap: 0.75rem; }
+  .nav-btn { width: 100%; justify-content: center; }
+}
+</style>
+
+<main class="py-test-page skill-page">
+  <section class="full-course-section pt-3 pb-5">
+    <div class="container-fluid">
+      <div class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
+      <div class="row">
+        <!-- Left Sidebar: Chapter Accordion -->
+        <div class="col-lg-3 col-md-4 course-sidebar order-1">
+          <div class="course-chapters-sidebar">
+            <h3 class="sidebar-title">
+              <i class='bx bx-book-open'></i>
+              Course Chapters
+            </h3>
+            <div class="chapters-accordion">
+              {% for ch in all_chapters %}
+              <div class="chapter-accordion-item {% if ch.id == skilllab_course_chapter.id %}active{% endif %}">
+                <div class="chapter-accordion-header" onclick="toggleChapterAccordion(this)">
+                  <h4 class="chapter-title">
+                    <span class="chapter-title-text">{{ ch.chapter_name }}</span>
+                    <i class='bx bx-chevron-down'></i>
+                  </h4>
+                </div>
+                <div class="chapter-accordion-content">
+                  <ul class="chapter-sections">
+                    <li>
+                      <a href="{{ url('skilllabcourse:skilllabcoursechapterdetail', args=[ch.slug]) }}" class="section-item {% if ch.id == skilllab_course_chapter.id %}active{% endif %} d-flex align-items-center gap-2 text-decoration-none">
+                        <i class='bx bx-file-blank'></i>
+                        <span>Introduction</span>
+                      </a>
+                    </li>
+                    {% for act in ch.skilllabcourseactivity.all() %}
+                    <li>
+                      {% if act.downloadable_file %}
+                      <a href="{{ act.downloadable_file.url }}" class="section-item d-flex align-items-center gap-2 text-decoration-none" download>
+                        <i class='bx bx-download'></i>
+                        <span>{{ act.name }}</span>
+                      </a>
+                      {% else %}
+                      <a href="{{ url('skilllabcourse:skilllabcourseactivityworksheetdetail', args=[act.slug]) }}" class="section-item d-flex align-items-center gap-2 text-decoration-none">
+                        <i class='bx bx-file-blank'></i>
+                        <span>{{ act.name }}</span>
+                      </a>
+                      {% endif %}
+                    </li>
+                    {% endfor %}
+                    {% for mcq in ch.mcqs.all() %}
+                    <li>
+                      <a href="{{ url('skilllabcourse:skilllabcoursechapterdetail', args=[ch.slug]) }}#mcq-{{ mcq.id }}" class="section-item d-flex align-items-center gap-2 text-decoration-none">
+                        <i class='bx bx-trophy'></i>
+                        <span>{{ mcq.title or 'Quiz' }}</span>
+                      </a>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Content Area -->
+        <div class="col-lg-9 col-md-8 course-content-area order-2">
+          <div class="course-content-wrapper">
+            <div class="content-section">
+              <div class="content-header">
+                <h2 class="content-title">
+                  <i class='bx bx-book-reader'></i>
+                  {{ skilllab_course_chapter.chapter_name }}
+                </h2>
+                <p class="content-subtitle">Introduction</p>
+              </div>
+              <div class="content-body">
+                <div class="introduction-content ckeditorStyles">
+                  {% if skilllab_course_chapter.content %}
+                  {{ skilllab_course_chapter.content|safe }}
+                  {% else %}
+                  <p>Welcome to {{ skilllab_course_chapter.chapter_name }}. Explore the activities and worksheets below.</p>
+                  {% endif %}
+                </div>
+
+                <!-- Activities & Worksheets List -->
+                {% if skilllab_course_chapter.skilllabcourseactivity.all() %}
+                <div class="mt-4">
+                  <h4 class="mb-3" style="color: #5249DF; font-weight: 600;"><i class='bx bx-clipboard'></i> Activities & Worksheets</h4>
+                  <ul class="list-unstyled">
+                    {% for act in skilllab_course_chapter.skilllabcourseactivity.all() %}
+                    <li class="mb-3">
+                      {% if act.downloadable_file %}
+                      <a href="{{ act.downloadable_file.url }}" class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none" style="background: #f8f9fa; border-left: 4px solid #5249DF; color: #333;" download>
+                        <i class='bx bx-download' style="font-size: 1.5rem; color: #5249DF;"></i>
+                        <div>
+                          <strong>{{ act.name }}</strong>
+                          {% if act.content %}<div class="text-muted small mt-1">{{ act.content|striptags|truncate(80) }}</div>{% endif %}
+                        </div>
+                      </a>
+                      {% else %}
+                      <a href="{{ url('skilllabcourse:skilllabcourseactivityworksheetdetail', args=[act.slug]) }}" class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none" style="background: #f8f9fa; border-left: 4px solid #5249DF; color: #333;">
+                        <i class='bx bx-file-blank' style="font-size: 1.5rem; color: #5249DF;"></i>
+                        <div>
+                          <strong>{{ act.name }}</strong>
+                          {% if act.content %}<div class="text-muted small mt-1">{{ act.content|striptags|truncate(80) }}</div>{% endif %}
+                        </div>
+                      </a>
+                      {% endif %}
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                {% endif %}
+
+                <!-- MCQs / Quizzes -->
+                {% for mcq in skilllab_course_chapter.mcqs.all() %}
+                <div class="mt-4" id="mcq-{{ mcq.id }}">
+                  <h4 class="mb-3" style="color: #5249DF; font-weight: 600;"><i class='bx bx-trophy'></i> {{ mcq.title or 'Quiz' }}</h4>
+                  {% if mcq.description %}<div class="mb-3">{{ mcq.description|safe }}</div>{% endif %}
+                  <p class="text-muted">Quiz content would be rendered here. Link to MCQ detail if available.</p>
+                </div>
+                {% endfor %}
+
+                <div class="section-navigation">
+                  {% if prev_chapter %}
+                  <a href="{{ url('skilllabcourse:skilllabcoursechapterdetail', args=[prev_chapter.slug]) }}" class="nav-btn prev-btn">
+                    <i class='bx bx-chevron-left'></i>
+                    Previous: {{ prev_chapter.chapter_name }}
+                  </a>
+                  {% else %}
+                  <span class="nav-btn prev-btn" style="visibility: hidden;" disabled><i class='bx bx-chevron-left'></i> Previous</span>
+                  {% endif %}
+                  {% if next_chapter %}
+                  <a href="{{ url('skilllabcourse:skilllabcoursechapterdetail', args=[next_chapter.slug]) }}" class="nav-btn next-btn">
+                    Next: {{ next_chapter.chapter_name }}
+                    <i class='bx bx-chevron-right'></i>
+                  </a>
+                  {% else %}
+                  <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course_chapter.skilllab.slug]) }}" class="nav-btn next-btn">
+                    Back to Course
+                    <i class='bx bx-chevron-right'></i>
+                  </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
+
+{% block additionaljs %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Set header height for mobile
+  const header = document.querySelector('.course-page-header');
+  if (header) {
+    const h = header.offsetHeight;
+    document.documentElement.style.setProperty('--header-height', h + 'px');
+    const fullSection = document.querySelector('.full-course-section');
+    if (fullSection) fullSection.style.marginTop = h + 'px';
+  }
+
+  // Chapter accordion
+  document.querySelectorAll('.chapter-accordion-header').forEach(function(hdr) {
+    hdr.addEventListener('click', function(e) {
+      if (e.target.tagName === 'A') return;
+      const item = this.closest('.chapter-accordion-item');
+      const wasActive = item.classList.contains('active');
+      document.querySelectorAll('.chapter-accordion-item').forEach(function(i) { i.classList.remove('active'); });
+      if (!wasActive) item.classList.add('active');
+    });
+  });
+
+});
+
+function toggleChapterAccordion(el) {
+  const item = el.closest('.chapter-accordion-item');
+  const wasActive = item.classList.contains('active');
+  document.querySelectorAll('.chapter-accordion-item').forEach(function(i) { i.classList.remove('active'); });
+  if (!wasActive) item.classList.add('active');
+}
+
+function toggleMobileSidebar() {
+  const sidebar = document.querySelector('.course-sidebar');
+  const overlay = document.querySelector('.mobile-overlay');
+  const header = document.querySelector('.course-page-header');
+  if (sidebar && overlay && header) {
+    const h = header.offsetHeight;
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+    sidebar.style.top = h + 'px';
+    sidebar.style.height = 'calc(100vh - ' + h + 'px)';
+    overlay.style.top = h + 'px';
+    document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+  }
+}
+
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 991) {
+    document.querySelectorAll('.course-sidebar').forEach(function(s) { s.classList.remove('active'); });
+    document.querySelectorAll('.mobile-overlay').forEach(function(o) { o.classList.remove('active'); });
+    document.body.style.overflow = '';
+  }
+});
+</script>
+{% endblock %}

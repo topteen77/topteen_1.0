@@ -14,7 +14,7 @@
             >
               <!-- FIRST COL -->
               {%for skill in skilllab %}
-              <a href="{{url('skilllab:skilllabcoursedetail',args=[skill.slug])}}">
+              <a href="{{url('skilllabcourse:skilllabcoursedetail',args=[skill.slug])}}">
                 
               <div
               class="shrink-0 flex flex-col justify-start items-start gap-y-[19px]"
@@ -34,7 +34,7 @@
                   </div>
                 <div
                     class=" px-[9px] py-[5px] rounded-[100px] bg-[#3F37C9] text-white inline-block semibold mt-3">
-                    <a href="{{url('skilllab:skilllabcoursedetail',args=[skill.slug])}}">{{skill.name}}</a>
+                    <a href="{{url('skilllabcourse:skilllabcoursedetail',args=[skill.slug])}}">{{skill.name}}</a>
                     </div> 
 
                   <div class="">
@@ -66,7 +66,7 @@
      <!-- IMAGE CARD -->
      <div>
          <br>
-       <a href="{{url('skilllab:skilllabcoursedetail',args=[skill.slug])}}">
+       <a href="{{url('skilllabcourse:skilllabcoursedetail',args=[skill.slug])}}">
        <div class="h-[208px] w-full max-w-[248px] mb-[23px]">
         {%if skill.video_url%}
         <iframe src="{{skill.video_url}}" frameborder="0"   class="w-full h-full rounded"
@@ -87,7 +87,7 @@
      <h5
      class="text-lg semibold text-[#333333] tracking-[0.01em] mb-[5px]"
      >
-     <a href="{{url('skilllab:skilllabcoursedetail',args=[skill.slug])}}">{{skill.name}}</a>
+     <a href="{{url('skilllabcourse:skilllabcoursedetail',args=[skill.slug])}}">{{skill.name}}</a>
    </h5>
    </a>
  </div>

@@ -37,6 +37,7 @@ services:
       - static_volume:/var/www/html/static:ro
       - media_volume:/var/www/html/media:ro
       - ${SSL_CERT_PATH:-./ssl}:/etc/nginx/ssl:ro
+      - ${CERTBOT_WEBROOT:-./certbot-webroot}:/var/www/acme:ro
     environment:
       - SSL_CERT_PATH=/etc/nginx/ssl
     depends_on:

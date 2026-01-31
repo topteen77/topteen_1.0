@@ -37,7 +37,7 @@ class SkillLabCourseDocumentFilter:
         return ctx
     
     def _breadcrumb(self,skilllab):
-        url=reverse_lazy('skilllab:skilllabcourselist')
+        url=reverse_lazy('skilllabcourse:skilllabcourselist')
         lst=[{'text':'{}'.format("skilllabcourse"),'url':url}]
         return build_breadcrumb(lst)
     

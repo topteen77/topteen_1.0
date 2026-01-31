@@ -321,7 +321,7 @@
     <section class="lg:mb-[60px] mx-auto">
       <div class="flex flex-row justify-between items-center mb-[22px]">
         <h2 class="text-xl font-semibold text-[#333333]">Courses</h2>
-        <a href="{{url('skilllab:skilllabcourselist')}}" class="text-xs text-[#3f37c9] font-semibold">View All</a>
+        <a href="{{url('skilllabcourse:skilllabcourselist')}}" class="text-xs text-[#3f37c9] font-semibold">View All</a>
       </div>
       <div class="lg:grid grid-cols-4 gap-x-[30px]">
         {% for skilllab_course in skilllab_courses[:4]%}
@@ -344,7 +344,7 @@
               <h5
                 class="semibold text-[15px] leading-[20px] tracking-[0.035em] col-start-2 col-span-3 text-white"
               >
-              <a href="{{url('skilllab:skilllabcoursedetail',args=[skilllab_course.slug])}}">{{skilllab_course.name}}</a>
+              <a href="{{url('skilllabcourse:skilllabcoursedetail',args=[skilllab_course.slug])}}">{{skilllab_course.name}}</a>
               </h5>
               <!-- </div> -->
             </div>

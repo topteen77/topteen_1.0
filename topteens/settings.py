@@ -34,6 +34,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver,
 # Application definition
 
 INSTALLED_APPS = [
+    'storages',
     'modeltranslation',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -372,6 +373,39 @@ S3_MAX_FILE_SIZE_MB = config('S3_MAX_FILE_SIZE_MB', default=2, cast=int)
 
 # Media Library Base Folder
 S3_MEDIA_LIBRARY_BASE_FOLDER = config('S3_MEDIA_LIBRARY_BASE_FOLDER', default='medialibrary')
+
+# Use S3 for media uploads (images, PDFs from admin). When True and AWS credentials exist,
+# FileField/ImageField uploads go to S3 instead of local MEDIA_ROOT.
+USE_S3_FOR_MEDIA = config('USE_S3_FOR_MEDIA', default=True, cast=bool)
+_USE_S3 = USE_S3_FOR_MEDIA and bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)
+
+if _USE_S3:
+    # Media files (images, PDFs) stored on S3 - admin uploads go to S3 bucket
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+                "region_name": AWS_REGION,
+                "location": "media",
+                "default_acl": "public-read",
+                "querystring_auth": False,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/media/"
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
 
 # Suppress CKEditor 4 deprecation warning
 # Note: CKEditor 4 is deprecated but still in use. Consider migrating to django-ckeditor-5 in the future.

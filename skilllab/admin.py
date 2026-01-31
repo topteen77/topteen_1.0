@@ -1,5 +1,295 @@
 from django.contrib import admin
-from .models import SkilllabCoursePayment,SkillLabCourse
-# Register your models here.
-admin.site.register(SkilllabCoursePayment)
-admin.site.register(SkillLabCourse)
+from django.utils.html import format_html
+from django.urls import reverse
+from django.db.models import Count
+from core import choices
+from .models import (
+    SkilllabCoursePayment,
+    SkillLabCourse,
+    SkillLabCourseChapter,
+    SkillLabChapterSection,
+    SkillLabCourseActivity,
+    SkillLabCourseProgress,
+    SkillLabCourseProgressSummary,
+    SkillLabMCQ,
+    SkillLabMCQQuestion,
+    SkillLabMCQAnswer,
+)
+
+
+# --- Admin actions for soft delete, hard delete, restore ---
+
+def soft_delete_selected(modeladmin, request, queryset):
+    """Mark selected records as Deleted (soft delete)."""
+    count = queryset.update(object_status=choices.ObjectStatus.DELETED)
+    modeladmin.message_user(request, f"{count} record(s) marked as Deleted.")
+
+
+soft_delete_selected.short_description = "Soft delete selected"
+
+
+def hard_delete_selected(modeladmin, request, queryset):
+    """Permanently delete selected records from database."""
+    count = queryset.count()
+    for obj in queryset:
+        obj.delete(hard_delete=True)
+    modeladmin.message_user(request, f"{count} record(s) permanently deleted.")
+
+
+hard_delete_selected.short_description = "Hard delete selected (permanent)"
+
+
+def restore_selected(modeladmin, request, queryset):
+    """Restore selected records to Active status."""
+    count = queryset.update(object_status=choices.ObjectStatus.ACTIVE)
+    modeladmin.message_user(request, f"{count} record(s) restored to Active.")
+
+
+restore_selected.short_description = "Restore selected"
+
+
+# --- Base mixin for Skill Lab models with object_status ---
+
+class SkillLabAdminMixin:
+    """Mixin for Skill Lab admins: show all records, status filter, delete actions."""
+
+    list_filter = ("object_status",)
+    actions = [soft_delete_selected, restore_selected, hard_delete_selected]
+
+    def get_queryset(self, request):
+        """Show all records including soft-deleted."""
+        qs = super().get_queryset(request)
+        if hasattr(qs.model, "objects") and hasattr(qs.model.objects, "complete"):
+            return qs.model.objects.complete()
+        return qs
+
+
+# --- ModelAdmin classes (each model on its own page, no inlines) ---
+
+@admin.register(SkillLabCourse)
+class SkillLabCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ["name", "category", "amount", "chapters_link", "sections_link", "activities_link", "mcqs_link", "object_status", "modified"]
+
+    def delete_model(self, request, obj):
+        """Hard delete: remove course + all chapters, activities, MCQs, images, PDFs, S3 files."""
+        obj.delete(hard_delete=True)
+
+    def delete_queryset(self, request, queryset):
+        """Hard delete selected courses: remove each with all related data and files."""
+        for obj in queryset:
+            obj.delete(hard_delete=True)
+    list_filter = ["category", "object_status"]
+    search_fields = ["name"]
+    list_editable = ["object_status"]
+    readonly_fields = ["related_content_links"]
+    fieldsets = (
+        (None, {"fields": ("name", "slug", "category", "amount", "image", "video_url", "object_status")}),
+        ("Course Introduction (tab content)", {"fields": ("course_intro_html",)}),
+        ("Course Index (tab content)", {"fields": ("course_index_html",)}),
+        ("Related content", {"fields": ("related_content_links",)}),
+    )
+
+    def chapters_link(self, obj):
+        if not obj.pk:
+            return "-"
+        count = obj.skilllabcoursechapter.count()
+        url = reverse("admin:skilllab_skilllabcoursechapter_changelist") + f"?skilllab__id__exact={obj.pk}"
+        return format_html('<a href="{}">{} Chapters</a>', url, count)
+
+    chapters_link.short_description = "Chapters"
+
+    def sections_link(self, obj):
+        if not obj.pk:
+            return "-"
+        count = SkillLabChapterSection.objects.filter(chapter__skilllab=obj).count()
+        url = reverse("admin:skilllab_skilllabchaptersection_changelist") + f"?chapter__skilllab__id__exact={obj.pk}"
+        return format_html('<a href="{}">{} Sections</a>', url, count)
+
+    sections_link.short_description = "Sections"
+
+    def activities_link(self, obj):
+        if not obj.pk:
+            return "-"
+        count = SkillLabCourseActivity.objects.filter(skilllab_chapter__skilllab=obj).count()
+        url = reverse("admin:skilllab_skilllabcourseactivity_changelist") + f"?skilllab_chapter__skilllab__id__exact={obj.pk}"
+        return format_html('<a href="{}">{} Activities</a>', url, count)
+
+    activities_link.short_description = "Activities"
+
+    def mcqs_link(self, obj):
+        if not obj.pk:
+            return "-"
+        count = SkillLabMCQ.objects.filter(skilllab_chapter__skilllab=obj).count()
+        url = reverse("admin:skilllab_skilllabmcq_changelist") + f"?skilllab_chapter__skilllab__id__exact={obj.pk}"
+        return format_html('<a href="{}">{} MCQs</a>', url, count)
+
+    mcqs_link.short_description = "MCQs"
+
+    def related_content_links(self, obj):
+        if not obj.pk:
+            return "-"
+        links = []
+        ch_url = reverse("admin:skilllab_skilllabcoursechapter_changelist") + f"?skilllab__id__exact={obj.pk}"
+        links.append(format_html('<a href="{}">View Chapters</a>', ch_url))
+        act_url = reverse("admin:skilllab_skilllabcourseactivity_changelist") + f"?skilllab_chapter__skilllab__id__exact={obj.pk}"
+        links.append(format_html('<a href="{}">View Activities</a>', act_url))
+        mcq_url = reverse("admin:skilllab_skilllabmcq_changelist") + f"?skilllab_chapter__skilllab__id__exact={obj.pk}"
+        links.append(format_html('<a href="{}">View MCQs</a>', mcq_url))
+        return format_html(" | ".join(str(l) for l in links))
+
+    related_content_links.short_description = "Related content"
+
+
+@admin.register(SkillLabCourseChapter)
+class SkillLabCourseChapterAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ["chapter_name", "skilllab", "sections_count", "sections_link", "activities_link", "mcqs_link", "object_status", "modified"]
+    list_filter = ["skilllab", "object_status"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(_sections_count=Count("sections"))
+    search_fields = ["chapter_name"]
+    list_editable = ["object_status"]
+    readonly_fields = ["related_content_links"]
+    fieldsets = (
+        (None, {"fields": ("chapter_name", "skilllab", "object_status")}),
+        ("Related content", {"fields": ("related_content_links",)}),
+        ("Legacy content (fallback when no sections)", {"fields": ("content",), "classes": ("collapse",)}),
+    )
+
+    def sections_link(self, obj):
+        if not obj.pk:
+            return "-"
+        count = obj.sections.count()
+        url = reverse("admin:skilllab_skilllabchaptersection_changelist") + f"?chapter__id__exact={obj.pk}"
+        return format_html('<a href="{}">{} Sections</a>', url, count)
+
+    sections_link.short_description = "Sections"
+
+    def sections_count(self, obj):
+        return getattr(obj, "_sections_count", obj.sections.count())
+
+    sections_count.short_description = "Sections"
+    sections_count.admin_order_field = "_sections_count"
+
+    def activities_link(self, obj):
+        if not obj.pk:
+            return "-"
+        count = obj.skilllabcourseactivity.count()
+        url = reverse("admin:skilllab_skilllabcourseactivity_changelist") + f"?skilllab_chapter__id__exact={obj.pk}"
+        return format_html('<a href="{}">{} Activities</a>', url, count)
+
+    activities_link.short_description = "Activities"
+
+    def mcqs_link(self, obj):
+        if not obj.pk:
+            return "-"
+        count = obj.mcqs.count()
+        url = reverse("admin:skilllab_skilllabmcq_changelist") + f"?skilllab_chapter__id__exact={obj.pk}"
+        return format_html('<a href="{}">{} MCQs</a>', url, count)
+
+    mcqs_link.short_description = "MCQs"
+
+    def related_content_links(self, obj):
+        if not obj.pk:
+            return "-"
+        links = []
+        sec_url = reverse("admin:skilllab_skilllabchaptersection_changelist") + f"?chapter__id__exact={obj.pk}"
+        links.append(format_html('<a href="{}">View Sections</a>', sec_url))
+        act_url = reverse("admin:skilllab_skilllabcourseactivity_changelist") + f"?skilllab_chapter__id__exact={obj.pk}"
+        links.append(format_html('<a href="{}">View Activities</a>', act_url))
+        mcq_url = reverse("admin:skilllab_skilllabmcq_changelist") + f"?skilllab_chapter__id__exact={obj.pk}"
+        links.append(format_html('<a href="{}">View MCQs</a>', mcq_url))
+        return format_html(" | ".join(str(l) for l in links))
+
+    related_content_links.short_description = "Related content"
+
+
+@admin.register(SkillLabChapterSection)
+class SkillLabChapterSectionAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ["order", "section_type", "title", "chapter", "content_preview", "object_status", "modified"]
+    list_filter = ["section_type", "chapter__skilllab", "chapter", "object_status"]
+    search_fields = ["title", "content", "chapter__chapter_name"]
+    list_editable = ["object_status"]
+    autocomplete_fields = ["chapter"]
+    ordering = ["chapter", "order"]
+    fieldsets = (
+        (None, {"fields": ("chapter", "section_type", "order", "title", "object_status")}),
+        ("Content", {"fields": ("content",)}),
+    )
+
+    def content_preview(self, obj):
+        text = (obj.content or "")[:80]
+        return text + "..." if len(obj.content or "") > 80 else text
+
+    content_preview.short_description = "Content"
+
+
+@admin.register(SkillLabCourseActivity)
+class SkillLabCourseActivityAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ["name", "type", "skilllab_chapter", "object_status", "modified"]
+    list_filter = ["type", "skilllab_chapter__skilllab", "object_status"]
+    search_fields = ["name", "content"]
+    list_editable = ["object_status"]
+
+
+@admin.register(SkillLabMCQ)
+class SkillLabMCQAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ["title", "skilllab_chapter", "object_status", "modified"]
+    list_filter = ["skilllab_chapter__skilllab", "object_status"]
+    search_fields = ["title", "description"]
+    list_editable = ["object_status"]
+
+
+@admin.register(SkillLabMCQQuestion)
+class SkillLabMCQQuestionAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ["question_number", "question_text_preview", "mcq", "order", "object_status", "modified"]
+    list_filter = ["mcq__skilllab_chapter__skilllab", "object_status"]
+    search_fields = ["question_text"]
+    list_editable = ["object_status"]
+
+    def question_text_preview(self, obj):
+        text = obj.question_text or ""
+        return text[:80] + "..." if len(text) > 80 else text
+
+    question_text_preview.short_description = "Question"
+
+
+@admin.register(SkillLabMCQAnswer)
+class SkillLabMCQAnswerAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ["answer_letter", "answer_text_preview", "is_correct", "question", "order", "object_status", "modified"]
+    list_filter = ["is_correct", "question__mcq__skilllab_chapter__skilllab", "object_status"]
+    search_fields = ["answer_text"]
+    list_editable = ["object_status"]
+
+    def answer_text_preview(self, obj):
+        text = obj.answer_text or ""
+        return text[:60] + "..." if len(text) > 60 else text
+
+    answer_text_preview.short_description = "Answer"
+
+
+@admin.register(SkillLabCourseProgress)
+class SkillLabCourseProgressAdmin(admin.ModelAdmin):
+    list_display = ["user", "skilllab_course", "chapter", "completed", "completed_at", "modified"]
+    list_filter = ["completed", "skilllab_course"]
+    search_fields = ["user__email", "skilllab_course__name", "chapter__chapter_name"]
+    raw_id_fields = ["user", "skilllab_course", "chapter"]
+
+
+@admin.register(SkillLabCourseProgressSummary)
+class SkillLabCourseProgressSummaryAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ["user", "skilllab_course", "progress_percentage", "completed_sections_count", "total_sections_count", "object_status", "updated_at"]
+    list_filter = ["skilllab_course", "object_status"]
+    search_fields = ["user__email", "user__username", "skilllab_course__name"]
+    raw_id_fields = ["user", "skilllab_course"]
+    readonly_fields = ["progress_percentage", "completed_sections_count", "total_sections_count", "updated_at"]
+    ordering = ["user", "-progress_percentage"]
+
+
+@admin.register(SkilllabCoursePayment)
+class SkilllabCoursePaymentAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ["id", "user", "skilllab_course", "is_success", "object_status", "modified"]
+    list_filter = ["is_success", "object_status"]
+    search_fields = ["user__email", "skilllab_course__name"]
+    list_editable = ["object_status"]
