@@ -315,14 +315,14 @@ skilllabcourses_html-old/
 #temprorarily hiding json files to avoid upload on server
 # scripts/skilllabcourses_script/course_json/*
 # scripts/skilllabcourses_script/course_json/*.json
-scripts/skilllabcourses_script/course_json/*.html
-scripts/skilllabcourses_script/course_json/*.pdf
-scripts/skilllabcourses_script/course_json/*.docx
-scripts/skilllabcourses_script/course_json/*.doc
-scripts/skilllabcourses_script/course_json/*.txt
-scripts/skilllabcourses_script/course_json/*.csv
-# scripts/skilllabcourses_script/course_json/*.jsonl
-# scripts/skilllabcourses_script/course_json/*.jsonl
+# scripts/skilllabcourses_script/course_json/*.html
+# scripts/skilllabcourses_script/course_json/*.pdf
+# scripts/skilllabcourses_script/course_json/*.docx
+# scripts/skilllabcourses_script/course_json/*.doc
+# scripts/skilllabcourses_script/course_json/*.txt
+# scripts/skilllabcourses_script/course_json/*.csv
+# # scripts/skilllabcourses_script/course_json/*.jsonl
+# # scripts/skilllabcourses_script/course_json/*.jsonl
 
 #hide github docker workflow files
 .github/workflows/deploy-docker.yml

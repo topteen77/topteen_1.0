@@ -30,8 +30,9 @@ from django.core.files import File
 import json
 
 
-# Configuration
-PROCESSED_DIR = Path("/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/skilllabcourses_html")
+# Configuration - use project root so it works locally and on server
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+PROCESSED_DIR = PROJECT_ROOT / "skilllabcourses_html"
 S3_FOLDER = "skilllab_courses"  # Folder in S3 for PDFs
 
 

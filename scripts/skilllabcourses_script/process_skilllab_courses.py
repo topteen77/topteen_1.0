@@ -44,10 +44,12 @@ except ImportError:
         WEASYPRINT_AVAILABLE = False
         print("Warning: Neither pdfkit nor weasyprint available. PDF generation will be skipped.")
 
-# Configuration
-SOURCE_DIR = Path("/home/itpc6/Public/share/content- Topteen/skill lab courses")
-OUTPUT_DIR = Path("/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/skilllabcourses_html")
-SCRIPT_DIR = Path("/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/scripts/skilllabcourses_script")
+# Configuration - use project root so it works locally and on server
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+SCRIPT_DIR = Path(__file__).resolve().parent
+OUTPUT_DIR = PROJECT_ROOT / "skilllabcourses_html"
+# SOURCE_DIR: override with env SKILLLAB_SOURCE_DIR if different on server
+SOURCE_DIR = Path(os.environ.get("SKILLLAB_SOURCE_DIR", "/home/itpc6/Public/share/content- Topteen/skill lab courses"))
 
 
 def extract_chapter_name_from_docx(chapter_docx_path: Path) -> Optional[str]:
