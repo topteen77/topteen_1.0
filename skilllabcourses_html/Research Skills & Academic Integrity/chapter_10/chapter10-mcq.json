@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to the chapter, how can research skills help with college and career readiness?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By helping you avoid all applications and interviews"
+        },
+        {
+          "letter": "B",
+          "text": "By providing solid facts for essays and showing initiative in interviews"
+        },
+        {
+          "letter": "C",
+          "text": "By focusing only on hobbies unrelated to your goals"
+        },
+        {
+          "letter": "D",
+          "text": "By spending large amounts like ₹50,000 (approx. $600) on resources"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "By providing solid facts for essays and showing initiative in interviews"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is one way the chapter suggests using research to solve everyday problems?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring small issues and hoping they resolve themselves"
+        },
+        {
+          "letter": "B",
+          "text": "Searching for product reviews before buying items like a ₹3,000 (approx. $36) phone case"
+        },
+        {
+          "letter": "C",
+          "text": "Relying solely on friends’ opinions without checking facts"
+        },
+        {
+          "letter": "D",
+          "text": "Spending ₹1,000 (approx. $12) on professional help for every issue"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Searching for product reviews before buying items like a ₹3,000 (approx. $36) phone case"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What does the chapter recommend for staying updated with credible news and information?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Believing every WhatsApp forward without verification"
+        },
+        {
+          "letter": "B",
+          "text": "Sticking to trusted sources like BBC India and fact-checking viral claims"
+        },
+        {
+          "letter": "C",
+          "text": "Only reading random blogs with sensational headlines"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding news altogether to save time and ₹100 (approx. $1.20) data"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Sticking to trusted sources like BBC India and fact-checking viral claims"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "How does the chapter describe lifelong learning through research?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "As something that stops after high school ends"
+        },
+        {
+          "letter": "B",
+          "text": "As a way to fuel curiosity and learn new skills or hobbies for free or low cost like ₹200 (approx. $2.40)"
+        },
+        {
+          "letter": "C",
+          "text": "As a process that requires expensive courses worth ₹5,000 (approx. $60)"
+        },
+        {
+          "letter": "D",
+          "text": "As unimportant compared to earning money immediately"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "As a way to fuel curiosity and learn new skills or hobbies for free or low cost like ₹200 (approx. $2.40)"
+      }
+    }
+  ],
+  "total_questions": 4
+}

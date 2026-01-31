@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "The Importance of Revision in Creative WritingWhy is revision an important step in writing, according to Chapter 8?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It’s only about fixing typos and grammar mistakes to avoid embarrassment."
+        },
+        {
+          "letter": "B",
+          "text": "It helps make your writing clearer, stronger, and more true to your voice."
+        },
+        {
+          "letter": "C",
+          "text": "It’s a quick way to finish your work without much effort."
+        },
+        {
+          "letter": "D",
+          "text": "It’s just for teachers to grade your work better.Correct Answer:B) It helps make your writing clearer, stronger, and more true to your voice."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Grammar, Punctuation, and Style BasicsWhich of these is the correct way to fix a common grammar mistake in a sentence like “Your gonna love this party!”?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Change “Your” to “You’re” because it means “you are.”"
+        },
+        {
+          "letter": "B",
+          "text": "Change “Your” to “Yours” to show possession."
+        },
+        {
+          "letter": "C",
+          "text": "Leave it as “Your” because it’s about the party belonging to someone."
+        },
+        {
+          "letter": "D",
+          "text": "Add a comma after “Your” to make it clearer.Correct Answer:A) Change “Your” to “You’re” because it means “you are.”"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Peer Review and Collaborative EditingWhat’s a good way to give constructive feedback during a peer review, based on Chapter 8?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Just say “This is bad” so they know to rewrite everything."
+        },
+        {
+          "letter": "B",
+          "text": "Start with something positive, then suggest a specific improvement."
+        },
+        {
+          "letter": "C",
+          "text": "Only point out what’s wrong without mentioning anything good."
+        },
+        {
+          "letter": "D",
+          "text": "Tell them to change their whole style to match yours.Correct Answer:B) Start with something positive, then suggest a specific improvement."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Preparing Your Work for Sharing or PublicationWhat’s an important step when prepping your writing for publication in a school magazine, as per Chapter 8?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Post it on social media first to get likes before submitting."
+        },
+        {
+          "letter": "B",
+          "text": "Ignore the magazine’s rules since your writing is already good."
+        },
+        {
+          "letter": "C",
+          "text": "Format it properly, like using the right font and following word count limits."
+        },
+        {
+          "letter": "D",
+          "text": "Only share it with friends instead of submitting it officially.Correct Answer:C) Format it properly, like using the right font and following word count limits."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

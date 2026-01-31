@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of branding for a teen’s side hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make products more expensive"
+        },
+        {
+          "letter": "B",
+          "text": "To create recognition and trust among customers"
+        },
+        {
+          "letter": "C",
+          "text": "To copy big companies like Nike or Coca-Cola"
+        },
+        {
+          "letter": "D",
+          "text": "To confuse customers with complicated designs"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To create recognition and trust among customers"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "When choosing a brand name for your hustle, what is an important factor to consider?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Making it as long and detailed as possible"
+        },
+        {
+          "letter": "B",
+          "text": "Ensuring it is short, catchy, and easy to remember"
+        },
+        {
+          "letter": "C",
+          "text": "Using a name that no one can pronounce"
+        },
+        {
+          "letter": "D",
+          "text": "Copying a popular brand’s name to gain attention"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Ensuring it is short, catchy, and easy to remember"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which free tool is recommended in the chapter for teens to create a simple logo for their hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Adobe Photoshop"
+        },
+        {
+          "letter": "B",
+          "text": "Microsoft Word"
+        },
+        {
+          "letter": "C",
+          "text": "Canva"
+        },
+        {
+          "letter": "D",
+          "text": "Paintbrush"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Canva"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can incorporating cultural elements into branding help a teen’s side hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes the brand look outdated and boring"
+        },
+        {
+          "letter": "B",
+          "text": "It creates an emotional connection with the local audience"
+        },
+        {
+          "letter": "C",
+          "text": "It confuses customers about the product"
+        },
+        {
+          "letter": "D",
+          "text": "It only works for international markets"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It creates an emotional connection with the local audience"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a key aspect of building a personal brand as a teen entrepreneur?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Pretending to be someone you’re not to impress others"
+        },
+        {
+          "letter": "B",
+          "text": "Being authentic and consistent in how you present yourself online and offline"
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding social media to keep your hustle private"
+        },
+        {
+          "letter": "D",
+          "text": "Only focusing on your product and ignoring your reputation"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Being authentic and consistent in how you present yourself online and offline"
+      }
+    }
+  ],
+  "total_questions": 5
+}

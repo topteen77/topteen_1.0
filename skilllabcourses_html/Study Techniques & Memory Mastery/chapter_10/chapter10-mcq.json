@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key strategy for succeeding in mathematics according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Memorizing formulas without understanding concepts"
+        },
+        {
+          "letter": "B",
+          "text": "Practicing regularly with a variety of problems to build problem-solving skills"
+        },
+        {
+          "letter": "C",
+          "text": "Focusing only on advanced topics and skipping fundamentals"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding visual aids like graphs and diagramsCorrect Answer: B) Practicing regularly with a variety of problems to build problem-solving skills"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which method is recommended for making science learning more meaningful and memorable?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Memorizing scientific terms without context"
+        },
+        {
+          "letter": "B",
+          "text": "Relating scientific principles to everyday life phenomena"
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding experiments and focusing only on theory"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring data analysis skills in lab reportsCorrect Answer: B) Relating scientific principles to everyday life phenomena"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a critical strategy for studying humanities subjects like history or literature?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Focusing solely on memorizing dates and facts"
+        },
+        {
+          "letter": "B",
+          "text": "Reading actively and asking questions about themes and perspectives"
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding discussions or debates with peers"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring historical context and focusing only on modern interpretationsCorrect Answer: B) Reading actively and asking questions about themes and perspectives"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which activity is suggested in the chapter to improve fluency in a new language?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Studying grammar rules without practicing them"
+        },
+        {
+          "letter": "B",
+          "text": "Engaging in conversations with native speakers or recording oneself speaking"
+        },
+        {
+          "letter": "C",
+          "text": "Learning vocabulary without cultural context"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding immersion through media like movies or podcastsCorrect Answer: B) Engaging in conversations with native speakers or recording oneself speaking"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a potential challenge of over-relying on quantitative study methods, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Developing too much creativity in problem-solving"
+        },
+        {
+          "letter": "B",
+          "text": "Neglecting critical thinking or contextual understanding"
+        },
+        {
+          "letter": "C",
+          "text": "Spending too much time on interpretive analysis"
+        },
+        {
+          "letter": "D",
+          "text": "Focusing excessively on personal reflectionsCorrect Answer: B) Neglecting critical thinking or contextual understanding"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "How does the chapter suggest balancing qualitative and quantitative study methods effectively?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Focusing only on quantitative tasks to ensure precision"
+        },
+        {
+          "letter": "B",
+          "text": "Alternating between quantitative and qualitative tasks in a study schedule"
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring qualitative methods in favor of data-driven learning"
+        },
+        {
+          "letter": "D",
+          "text": "Spending all study time on one method each weekCorrect Answer: B) Alternating between quantitative and qualitative tasks in a study schedule"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

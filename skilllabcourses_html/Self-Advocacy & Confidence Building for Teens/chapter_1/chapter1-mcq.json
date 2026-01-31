@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the best definition of self-advocacy?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Yelling at someone until you get what you want."
+        },
+        {
+          "letter": "B",
+          "text": "Speaking up for your needs and rights in a respectful way."
+        },
+        {
+          "letter": "C",
+          "text": "Letting others make decisions for you to avoid conflict."
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring your feelings to keep the peace.Correct Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How does self-advocacy differ from aggression?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Self-advocacy is loud and demanding, while aggression is quiet."
+        },
+        {
+          "letter": "B",
+          "text": "Self-advocacy is respectful and calm, while aggression disregards others’ feelings."
+        },
+        {
+          "letter": "C",
+          "text": "Self-advocacy avoids asking for help, while aggression seeks it forcefully."
+        },
+        {
+          "letter": "D",
+          "text": "There is no difference; they are the same thing.Correct Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is self-advocacy important for teens in school settings?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you avoid doing any hard work by making others do it for you."
+        },
+        {
+          "letter": "B",
+          "text": "It builds independence and helps you ask for support when needed."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you never have to follow rules or listen to teachers."
+        },
+        {
+          "letter": "D",
+          "text": "It stops you from ever needing to make decisions.Correct Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is an example of identifying a personal need and advocating for it?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Complaining to friends about a tough class but doing nothing about it."
+        },
+        {
+          "letter": "B",
+          "text": "Recognizing you need extra time on tests and asking a teacher for accommodations."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring a problem because you don’t want to seem weak."
+        },
+        {
+          "letter": "D",
+          "text": "Demanding a better grade without explaining why you think you deserve it.Correct Answer: B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

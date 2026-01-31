@@ -1,0 +1,99 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is digital content creation primarily about?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Writing essays for school assignments"
+        },
+        {
+          "letter": "B",
+          "text": "Creating videos, photos, or posts to share online"
+        },
+        {
+          "letter": "C",
+          "text": "Designing physical products for sale"
+        },
+        {
+          "letter": "D",
+          "text": "Playing video games without recording them"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Creating videos, photos, or posts to share online"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which platform is best suited for short, trendy videos lasting 15-60 seconds?",
+      "options": [
+        {
+          "letter": "C",
+          "text": "TikTok"
+        },
+        {
+          "letter": "D",
+          "text": "Twitter (X)"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is identifying a niche important for a digital content creator?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you use every platform at once"
+        },
+        {
+          "letter": "B",
+          "text": "It makes your content stand out and builds a loyal following"
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you never have to learn new skills"
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees you’ll make money immediately"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It makes your content stand out and builds a loyal following"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is an ethical consideration when creating digital content?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Using any music or video clip you like without permission"
+        },
+        {
+          "letter": "B",
+          "text": "Sharing personal information about others without consent"
+        },
+        {
+          "letter": "C",
+          "text": "Respecting copyright and privacy rules"
+        },
+        {
+          "letter": "D",
+          "text": "Spreading unverified information to gain views"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Respecting copyright and privacy rules"
+      }
+    }
+  ],
+  "total_questions": 4
+}

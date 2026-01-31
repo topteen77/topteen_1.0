@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the first step in using Design Thinking to address school challenges like study habits or bullying?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Brainstorming solutions without understanding the issue."
+        },
+        {
+          "letter": "B",
+          "text": "Observing your day and talking to others to spot problems."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring small issues to focus only on big problems."
+        },
+        {
+          "letter": "D",
+          "text": "Waiting for teachers to point out challenges.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which stage of Design Thinking involves creating a small, testable version of your solution for a classroom problem?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Empathize"
+        },
+        {
+          "letter": "B",
+          "text": "Define"
+        },
+        {
+          "letter": "C",
+          "text": "Ideate"
+        },
+        {
+          "letter": "D",
+          "text": "PrototypeAnswer: D"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a key reason to apply Design Thinking to extracurricular challenges, such as low attendance at club events?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make clubs more competitive with other schools."
+        },
+        {
+          "letter": "B",
+          "text": "To make activities more enjoyable and engaging for members."
+        },
+        {
+          "letter": "C",
+          "text": "To reduce the number of clubs offered at school."
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on sports teams instead of other activities.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is it important to involve teachers and peers as stakeholders in your Design Thinking process for school challenges?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They can provide support, input, and help make your ideas happen."
+        },
+        {
+          "letter": "B",
+          "text": "They will always agree with every idea you have."
+        },
+        {
+          "letter": "C",
+          "text": "They are not affected by the problems you’re trying to solve."
+        },
+        {
+          "letter": "D",
+          "text": "They should solve the problems instead of students.Answer: A"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is an effective way to start a presentation of your Design Thinking solution to classmates or teachers?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Talk only about your personal opinion on the solution."
+        },
+        {
+          "letter": "B",
+          "text": "Explain the problem clearly to show why a solution is needed."
+        },
+        {
+          "letter": "C",
+          "text": "Avoid mentioning any challenges to keep the audience happy."
+        },
+        {
+          "letter": "D",
+          "text": "Focus only on the feedback you expect to receive.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "How does using Design Thinking to solve school challenges benefit high school students beyond the classroom?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It limits creativity by focusing only on school problems."
+        },
+        {
+          "letter": "B",
+          "text": "It teaches problem-solving and teamwork skills useful for college and jobs."
+        },
+        {
+          "letter": "C",
+          "text": "It makes school more stressful by adding extra work."
+        },
+        {
+          "letter": "D",
+          "text": "It only helps teachers and not students.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

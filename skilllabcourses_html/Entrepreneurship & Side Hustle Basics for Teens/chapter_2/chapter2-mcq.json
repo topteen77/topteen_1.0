@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of self-assessment in discovering your passion for a side hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To compare your skills with your friends’ skills"
+        },
+        {
+          "letter": "B",
+          "text": "To identify your personal interests, hobbies, and strengths that can guide your hustle"
+        },
+        {
+          "letter": "C",
+          "text": "To decide how much money you want to earn immediately"
+        },
+        {
+          "letter": "D",
+          "text": "To copy successful entrepreneurs’ ideas"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To identify your personal interests, hobbies, and strengths that can guide your hustle"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "How can a hobby like cooking be turned into a hustle according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By cooking only for family and not charging anything"
+        },
+        {
+          "letter": "B",
+          "text": "By starting a YouTube channel without any planning"
+        },
+        {
+          "letter": "C",
+          "text": "By offering products like mini idli packs or services like teaching recipes to neighbors"
+        },
+        {
+          "letter": "D",
+          "text": "By spending a lot of money on a professional kitchen setup first"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "By offering products like mini idli packs or services like teaching recipes to neighbors"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is it important to consider market needs when planning a side hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Because your passion alone guarantees success"
+        },
+        {
+          "letter": "B",
+          "text": "Because a hustle only works if people want or need what you offer"
+        },
+        {
+          "letter": "C",
+          "text": "Because market needs are irrelevant to teen businesses"
+        },
+        {
+          "letter": "D",
+          "text": "Because you should ignore your skills and only focus on trends"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Because a hustle only works if people want or need what you offer"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a practical step suggested in the chapter for brainstorming your first hustle idea?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Waiting for someone else to give you an idea"
+        },
+        {
+          "letter": "B",
+          "text": "Combining your passion, hobby, skill, and a market need to create a simple plan"
+        },
+        {
+          "letter": "C",
+          "text": "Spending a large amount of money on advertising before starting"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring feedback from friends and family"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Combining your passion, hobby, skill, and a market need to create a simple plan"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "Which of the following is an example of a skill that a teen might turn into a hustle, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Watching TV all day without any goal"
+        },
+        {
+          "letter": "B",
+          "text": "Organizing events like Durga Puja or school projects for others"
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding schoolwork and responsibilities"
+        },
+        {
+          "letter": "D",
+          "text": "Spending money on expensive gadgets without a plan"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Organizing events like Durga Puja or school projects for others"
+      }
+    }
+  ],
+  "total_questions": 5
+}

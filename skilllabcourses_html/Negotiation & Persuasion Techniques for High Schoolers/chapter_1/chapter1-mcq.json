@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary goal of negotiation as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To win an argument at all costs"
+        },
+        {
+          "letter": "B",
+          "text": "To reach a mutual agreement that benefits everyone or feels fair"
+        },
+        {
+          "letter": "C",
+          "text": "To convince someone to fully adopt your idea without compromise"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid any discussion or conflict"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To reach a mutual agreement that benefits everyone or feels fair"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is a key concept of persuasion highlighted in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Flexibility in adjusting goals during a discussion"
+        },
+        {
+          "letter": "B",
+          "text": "Using emotion to connect with others and make your message impactful"
+        },
+        {
+          "letter": "C",
+          "text": "Focusing solely on logical arguments without considering feelings"
+        },
+        {
+          "letter": "D",
+          "text": "Ensuring both sides give up something to reach an agreement"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Using emotion to connect with others and make your message impactful"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does negotiation differ from persuasion according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Negotiation focuses on changing someone’s mind, while persuasion involves compromise."
+        },
+        {
+          "letter": "B",
+          "text": "Negotiation aims for a shared agreement through give-and-take, while persuasion seeks to inspire or convince without a direct trade-off."
+        },
+        {
+          "letter": "C",
+          "text": "Negotiation is only used in professional settings, while persuasion is for personal situations."
+        },
+        {
+          "letter": "D",
+          "text": "Negotiation relies on emotion, while persuasion relies on strict logic."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Negotiation aims for a shared agreement through give-and-take, while persuasion seeks to inspire or convince without a direct trade-off."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which of the following is a benefit of mastering negotiation and persuasion skills as a high schooler, as mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Guaranteeing you’ll always get your way in every situation"
+        },
+        {
+          "letter": "B",
+          "text": "Improving relationships by reducing drama and building trust through better communication"
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding the need to work in teams or collaborate with others"
+        },
+        {
+          "letter": "D",
+          "text": "Ensuring you never have to face challenges or disagreements"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Improving relationships by reducing drama and building trust through better communication"
+      }
+    }
+  ],
+  "total_questions": 4
+}

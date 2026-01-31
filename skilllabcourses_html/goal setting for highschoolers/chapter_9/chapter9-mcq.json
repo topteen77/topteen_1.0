@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key takeaway from the Teen Goal-Setter Spotlights in Chapter 9?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Teens should only focus on academic goals to succeed"
+        },
+        {
+          "letter": "B",
+          "text": "Setting SMART goals and breaking them into small steps can lead to big achievements"
+        },
+        {
+          "letter": "C",
+          "text": "Success happens overnight without planning or effort"
+        },
+        {
+          "letter": "D",
+          "text": "Only athletes can use goal setting effectivelyCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How do top companies like Google use goal systems, as described in Chapter 9?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They avoid setting measurable goals to encourage creativity"
+        },
+        {
+          "letter": "B",
+          "text": "They use systems like OKRs (Objectives and Key Results) to set ambitious goals and track progress"
+        },
+        {
+          "letter": "C",
+          "text": "They focus only on short-term goals without long-term vision"
+        },
+        {
+          "letter": "D",
+          "text": "They never adjust their goals, even when facing setbacksCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a primary benefit of setting goals for college applications and interviews, according to Chapter 9?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees acceptance into any college without effort"
+        },
+        {
+          "letter": "B",
+          "text": "It helps manage deadlines and stress while showcasing your strengths to admissions officers"
+        },
+        {
+          "letter": "C",
+          "text": "It eliminates the need to prepare for interviews"
+        },
+        {
+          "letter": "D",
+          "text": "It focuses only on writing essays and ignores other application componentsCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key lesson from the Community Impact section in Chapter 9 about setting goals to help others?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Community goals should only be pursued if they benefit you personally"
+        },
+        {
+          "letter": "B",
+          "text": "Setting SMART goals for community projects can create measurable change and build leadership skills"
+        },
+        {
+          "letter": "C",
+          "text": "Community impact goals are too complex for teens to achieve"
+        },
+        {
+          "letter": "D",
+          "text": "You should avoid involving others when planning community initiativesCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

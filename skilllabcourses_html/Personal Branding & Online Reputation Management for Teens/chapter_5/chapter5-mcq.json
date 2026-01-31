@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is engaging content important for personal branding as a teen?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you get more followers without any effort."
+        },
+        {
+          "letter": "B",
+          "text": "It builds relationships, grows your audience, and strengthens your online presence."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you always use the latest social media apps."
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees you will never make mistakes online.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a key tip for creating a strong visual aesthetic on your social media profile?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use a different style for every post to keep things exciting."
+        },
+        {
+          "letter": "B",
+          "text": "Stick to a consistent theme or color scheme for a cohesive look."
+        },
+        {
+          "letter": "C",
+          "text": "Avoid posting pictures to focus only on text updates."
+        },
+        {
+          "letter": "D",
+          "text": "Change your profile picture every day to stay fresh.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is one effective strategy for writing captions that increase engagement?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Write long paragraphs to explain every detail of your post."
+        },
+        {
+          "letter": "B",
+          "text": "Include a question or call to action to encourage comments."
+        },
+        {
+          "letter": "C",
+          "text": "Use only hashtags without any text."
+        },
+        {
+          "letter": "D",
+          "text": "Keep captions unrelated to the post to surprise followers.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How canhashtagsand trends help boost the visibility of your content?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They make your posts look more professional without extra effort."
+        },
+        {
+          "letter": "B",
+          "text": "They categorize your content and connect you with larger audiences searching for similar topics."
+        },
+        {
+          "letter": "C",
+          "text": "They automatically improve the quality of your photos and videos."
+        },
+        {
+          "letter": "D",
+          "text": "They prevent your posts from being seen by people outside your friend group.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

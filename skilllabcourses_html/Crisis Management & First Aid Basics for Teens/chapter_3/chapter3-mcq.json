@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of first aid?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To replace professional medical treatment completely"
+        },
+        {
+          "letter": "B",
+          "text": "To provide immediate, temporary care to prevent worsening of an injury or illness"
+        },
+        {
+          "letter": "C",
+          "text": "To diagnose the exact medical condition of the injured person"
+        },
+        {
+          "letter": "D",
+          "text": "To perform complex medical procedures in an emergencyCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What do Good Samaritan laws generally protect you from when providing first aid?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Any mistakes, even if you act recklessly"
+        },
+        {
+          "letter": "B",
+          "text": "Legal liability if you help in good faith and act reasonably"
+        },
+        {
+          "letter": "C",
+          "text": "The need to ask for consent before helping someone"
+        },
+        {
+          "letter": "D",
+          "text": "Having to call 911 after assisting someoneCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which item is NOT typically recommended for a teen’s first aid kit?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Antiseptic wipes for cleaning wounds"
+        },
+        {
+          "letter": "B",
+          "text": "Disposable gloves to protect against germs"
+        },
+        {
+          "letter": "C",
+          "text": "Prescription medication to share with friends"
+        },
+        {
+          "letter": "D",
+          "text": "Instant cold packs for swelling or sprainsCorrect Answer: C"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is the FIRST step you should take before helping someone in an emergency?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Immediately apply a bandage to any visible wound"
+        },
+        {
+          "letter": "B",
+          "text": "Call 911 even if the situation seems minor"
+        },
+        {
+          "letter": "C",
+          "text": "Assess the scene to ensure it’s safe for you to approach"
+        },
+        {
+          "letter": "D",
+          "text": "Move the injured person to a more comfortable locationCorrect Answer: C"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "When using an instant cold pack for a sprain, what is an important step to avoid injury?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Place it directly on the skin for maximum effect"
+        },
+        {
+          "letter": "B",
+          "text": "Wrap it in a cloth or shirt before applying to the area"
+        },
+        {
+          "letter": "C",
+          "text": "Keep it on the injury for at least an hour without a break"
+        },
+        {
+          "letter": "D",
+          "text": "Squeeze it as hard as possible to activate the cooling fasterCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

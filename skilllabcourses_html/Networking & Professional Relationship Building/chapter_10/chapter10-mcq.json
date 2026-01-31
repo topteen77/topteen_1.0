@@ -1,0 +1,51 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of role-playing scenarios in networking exercises?",
+      "options": [],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To practice real-life networking situations"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is an essential component of a strong introduction during networking?",
+      "options": [],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Mentioning your name and a relevant detail"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "When simulating a networking event, what is a recommended practice for participants?",
+      "options": [],
+      "correct_answer": {
+        "letter": "C",
+        "text": "To rotate partners and meet as many people as possible"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key benefit of setting personal networking goals?",
+      "options": [],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It provides direction and motivation"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What should you include in your networking journal to track progress effectively?",
+      "options": [],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Names, contact information, and conversation notes"
+      }
+    }
+  ],
+  "total_questions": 5
+}

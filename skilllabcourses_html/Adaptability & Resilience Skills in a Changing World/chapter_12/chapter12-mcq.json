@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key strategy for adapting to the fast-paced world of social media and technology without stress?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Trying to master every new app or trend immediately."
+        },
+        {
+          "letter": "B",
+          "text": "Learning new tools at your own pace and focusing on what’s useful to you."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring all technology updates to avoid change."
+        },
+        {
+          "letter": "D",
+          "text": "Spending all your time online to stay in the loop.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How can maintaining a healthy digital balance help build resilience?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It increases your screen time to stay connected."
+        },
+        {
+          "letter": "B",
+          "text": "It prevents online stress from overwhelming your emotions and boosts focus."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you never miss a social media post or notification."
+        },
+        {
+          "letter": "D",
+          "text": "It stops you from having any offline activities.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a common source of online stress for high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Spending too much time on hobbies offline."
+        },
+        {
+          "letter": "B",
+          "text": "Constant notifications and comparison on social media."
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding all digital platforms completely."
+        },
+        {
+          "letter": "D",
+          "text": "Having too few online friends.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a resilient response to cyberbullying or negative online interactions?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Arguing with the person to prove them wrong."
+        },
+        {
+          "letter": "B",
+          "text": "Deleting all your social media accounts permanently."
+        },
+        {
+          "letter": "C",
+          "text": "Blocking the person, not engaging, and seeking support if needed."
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring the issue and hoping it disappears on its own.Correct Answer:C"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why is setting time limits for social media use important for a healthy digital balance?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures you spend all your time online without distractions."
+        },
+        {
+          "letter": "B",
+          "text": "It helps reduce stress and frees up time for real-life connections and activities."
+        },
+        {
+          "letter": "C",
+          "text": "It prevents you from connecting with friends online."
+        },
+        {
+          "letter": "D",
+          "text": "It makes you miss out on important trends and updates.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

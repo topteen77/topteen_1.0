@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of productivity tools for high school students, as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To increase screen time and social media engagement."
+        },
+        {
+          "letter": "B",
+          "text": "To help organize time, manage tasks, and work more efficiently."
+        },
+        {
+          "letter": "C",
+          "text": "To replace the need for studying and homework."
+        },
+        {
+          "letter": "D",
+          "text": "To complicate daily schedules with unnecessary features."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which type of productivity tool is best suited for helping students stay focused during study sessions?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Task Management Apps like Todoist."
+        },
+        {
+          "letter": "B",
+          "text": "Calendar and Scheduling Tools like Google Calendar."
+        },
+        {
+          "letter": "C",
+          "text": "Time Management and Focus Apps like Forest or Pomodoro timers."
+        },
+        {
+          "letter": "D",
+          "text": "Collaboration Tools like Google Docs."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is an important feature to consider when choosing a task management app, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The app’s ability to play music in the background."
+        },
+        {
+          "letter": "B",
+          "text": "Cross-platform syncing to access tasks on multiple devices."
+        },
+        {
+          "letter": "C",
+          "text": "The app’s popularity on social media platforms."
+        },
+        {
+          "letter": "D",
+          "text": "The number of games included in the app."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why does the chapter recommend starting with just one or two task management apps?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Using multiple apps at once can be confusing and time-consuming."
+        },
+        {
+          "letter": "B",
+          "text": "Most apps are expensive and require subscriptions."
+        },
+        {
+          "letter": "C",
+          "text": "Students should avoid technology as much as possible."
+        },
+        {
+          "letter": "D",
+          "text": "Task management apps are only effective for professionals, not students."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "How can time tracking apps like RescueTime benefit high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They help students spend more time on social media without guilt."
+        },
+        {
+          "letter": "B",
+          "text": "They show how much time is spent on studying versus distractions."
+        },
+        {
+          "letter": "C",
+          "text": "They automatically complete assignments for students."
+        },
+        {
+          "letter": "D",
+          "text": "They limit access to educational resources to save time."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a recommended step for using progress tracking tools effectively, as outlined in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Track every possible activity to get the most data."
+        },
+        {
+          "letter": "B",
+          "text": "Review progress data regularly to spot trends and make adjustments."
+        },
+        {
+          "letter": "C",
+          "text": "Ignore the data if progress is slower than expected."
+        },
+        {
+          "letter": "D",
+          "text": "Use only paid apps for accurate tracking results."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

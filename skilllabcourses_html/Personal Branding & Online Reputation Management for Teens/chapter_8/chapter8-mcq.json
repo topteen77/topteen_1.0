@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key step in identifying fake news or misinformation online?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Believing every viral post because it has a lot of likes."
+        },
+        {
+          "letter": "B",
+          "text": "Checking the source of the information to see if it’s from a trusted or verified outlet."
+        },
+        {
+          "letter": "C",
+          "text": "Sharing the post immediately to warn others without verifying it."
+        },
+        {
+          "letter": "D",
+          "text": "Only reading the headline without looking at the full story.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is fact-checking important before sharing content on social media?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you get more followers by posting quickly."
+        },
+        {
+          "letter": "B",
+          "text": "It prevents spreading false information and protects your online reputation."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you always agree with everyone in your group chat."
+        },
+        {
+          "letter": "D",
+          "text": "It’s unnecessary since most online content is true.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How do algorithms shape your online experience as a teen?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They randomly show content with no connection to your activity."
+        },
+        {
+          "letter": "B",
+          "text": "They track your likes, searches, and views to customize your feed and keep you engaged."
+        },
+        {
+          "letter": "C",
+          "text": "They prevent you from seeing ads or targeted content."
+        },
+        {
+          "letter": "D",
+          "text": "They only show content from people you follow.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is an ethical way to use technology and respect others’ privacy online?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Post group photos or videos without asking anyone in them for permission."
+        },
+        {
+          "letter": "B",
+          "text": "Share personal information like addresses or schedules to seem friendly."
+        },
+        {
+          "letter": "C",
+          "text": "Ask for consent before posting content involving others and protect your own privacy with strong settings."
+        },
+        {
+          "letter": "D",
+          "text": "Use someone else’s account or content without giving credit.Correct Answer:C"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

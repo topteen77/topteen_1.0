@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary structure of a single cycle in thePomodoroTechnique?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "50 minutes of work followed by a 10-minute break"
+        },
+        {
+          "letter": "B",
+          "text": "25 minutes of work followed by a 5-minute break"
+        },
+        {
+          "letter": "C",
+          "text": "30 minutes of work followed by a 15-minute break"
+        },
+        {
+          "letter": "D",
+          "text": "20 minutes of work followed by a 10-minute breakCorrect Answer: B) 25 minutes of work followed by a 5-minute break"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is one key benefit of thePomodoroTechnique for students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It eliminates the need for planning study sessions"
+        },
+        {
+          "letter": "B",
+          "text": "It increases focus by working in short, manageable intervals"
+        },
+        {
+          "letter": "C",
+          "text": "It encourages multitasking during study time"
+        },
+        {
+          "letter": "D",
+          "text": "It allows students to study for hours without breaksCorrect Answer: B) It increases focus by working in short, manageable intervals"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "When applying thePomodoroTechnique to study sessions, what is a recommended strategy for maximizing focus?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Work on multiple subjects during a single Pomodoro"
+        },
+        {
+          "letter": "B",
+          "text": "Check social media briefly to stay motivated"
+        },
+        {
+          "letter": "C",
+          "text": "Focus on only one task or topic per Pomodoro"
+        },
+        {
+          "letter": "D",
+          "text": "Stop working if the task isn’t completed in 25 minutesCorrect Answer: C) Focus on only one task or topic per Pomodoro"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can thePomodoroTechnique be adapted for a student who finds 25-minute intervals too short for complex tasks?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Skip breaks entirely to maintain momentum"
+        },
+        {
+          "letter": "B",
+          "text": "Extend work intervals to 30 or 50 minutes with proportional breaks"
+        },
+        {
+          "letter": "C",
+          "text": "Reduce work intervals to 15 minutes for easier focus"
+        },
+        {
+          "letter": "D",
+          "text": "Ignore the timer and work until the task is completeCorrect Answer: B) Extend work intervals to 30 or 50 minutes with proportional breaks"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a recommended activity during a short 5-minute break to prevent burnout?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Review notes from the previous Pomodoro to reinforce learning"
+        },
+        {
+          "letter": "B",
+          "text": "Scroll through social media to relax quickly"
+        },
+        {
+          "letter": "C",
+          "text": "Stand up and stretch to improve blood flow"
+        },
+        {
+          "letter": "D",
+          "text": "Start planning the next study task immediatelyCorrect Answer: C) Stand up and stretch to improve blood flow"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "Why are breaks an essential part of thePomodoroTechnique in preventing burnout?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They allow students to complete more tasks in less time"
+        },
+        {
+          "letter": "B",
+          "text": "They provide a cognitive reset and reduce mental fatigue"
+        },
+        {
+          "letter": "C",
+          "text": "They encourage students to take longer naps during the day"
+        },
+        {
+          "letter": "D",
+          "text": "They help students avoid studying altogetherCorrect Answer: B) They provide a cognitive reset and reduce mental fatigue"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

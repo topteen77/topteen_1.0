@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a common reason high school students procrastinate due to fear of failure?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They enjoy the task too much to start early."
+        },
+        {
+          "letter": "B",
+          "text": "They worry their work won’t be good enough, so they delay starting."
+        },
+        {
+          "letter": "C",
+          "text": "They have too many immediate consequences for delaying."
+        },
+        {
+          "letter": "D",
+          "text": "They always have plenty of time to complete tasks.Correct Answer: B. They worry their work won’t be good enough, so they delay starting."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is an example of how distractions contribute to procrastination?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Setting clear goals for a study session."
+        },
+        {
+          "letter": "B",
+          "text": "Breaking tasks into smaller, manageable steps."
+        },
+        {
+          "letter": "C",
+          "text": "Spending time on social media instead of studying."
+        },
+        {
+          "letter": "D",
+          "text": "Creating a daily routine for homework.Correct Answer: C. Spending time on social media instead of studying."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is the main idea behind the “2-Minute Rule” as a strategy to overcome procrastination?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Work on a task for 2 hours without stopping."
+        },
+        {
+          "letter": "B",
+          "text": "Commit to starting a task for just 2 minutes to overcome initial resistance."
+        },
+        {
+          "letter": "C",
+          "text": "Take a 2-minute break after every hour of work."
+        },
+        {
+          "letter": "D",
+          "text": "Spend 2 minutes planning every task before starting.Correct Answer: B. Commit to starting a task for just 2 minutes to overcome initial resistance."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can “eating the frog” help combat procrastination?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By taking frequent breaks to avoid stress."
+        },
+        {
+          "letter": "B",
+          "text": "By tackling the easiest tasks first to build confidence."
+        },
+        {
+          "letter": "C",
+          "text": "By starting with the hardest or least appealing task when energy is highest."
+        },
+        {
+          "letter": "D",
+          "text": "By delaying difficult tasks until the deadline approaches.Correct Answer: C. By starting with the hardest or least appealing task when energy is highest."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a key step in building self-discipline through consistency?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Starting with large, complex habits to challenge yourself."
+        },
+        {
+          "letter": "B",
+          "text": "Beginning with small, manageable habits and repeating them daily."
+        },
+        {
+          "letter": "C",
+          "text": "Changing routines frequently to keep things interesting."
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding tracking progress to reduce pressure.Correct Answer: B. Beginning with small, manageable habits and repeating them daily."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "Why is practicing delayed gratification important for self-discipline?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It encourages immediate rewards to stay motivated."
+        },
+        {
+          "letter": "B",
+          "text": "It helps you choose long-term benefits over short-term pleasures."
+        },
+        {
+          "letter": "C",
+          "text": "It allows you to avoid setting goals altogether."
+        },
+        {
+          "letter": "D",
+          "text": "It focuses on taking breaks whenever you feel tired.Correct Answer: B. It helps you choose long-term benefits over short-term pleasures."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

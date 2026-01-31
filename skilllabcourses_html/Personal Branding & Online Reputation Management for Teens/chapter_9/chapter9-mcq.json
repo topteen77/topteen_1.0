@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why do colleges and employers often check your online presence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To see how many followers you have on social media."
+        },
+        {
+          "letter": "B",
+          "text": "To get a first impression of your personality, skills, and potential red flags."
+        },
+        {
+          "letter": "C",
+          "text": "To find out if you post funny memes or trending content."
+        },
+        {
+          "letter": "D",
+          "text": "To make sure you’re using the latest social media apps.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a good way to showcase your achievements and skills online as a teen?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Post about every small thing you do every day to flood your feed."
+        },
+        {
+          "letter": "B",
+          "text": "Share specific wins with a thoughtful caption and balance it with personal posts."
+        },
+        {
+          "letter": "C",
+          "text": "Exaggerate your accomplishments to seem more impressive."
+        },
+        {
+          "letter": "D",
+          "text": "Only post about achievements on private accounts where no one can see them.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is one benefit of creating a digital portfolio or blog for a high school student?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees you’ll get into any college or job you apply for."
+        },
+        {
+          "letter": "B",
+          "text": "It provides a controlled space to showcase your best work and impress colleges or employers."
+        },
+        {
+          "letter": "C",
+          "text": "It’s a place to share personal secrets and daily rants."
+        },
+        {
+          "letter": "D",
+          "text": "It’s only useful if you’re already a professional in your field.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can you align your personal brand with your career or academic aspirations?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Post random content without any connection to your goals to seem unpredictable."
+        },
+        {
+          "letter": "B",
+          "text": "Update your bio and share content related to your dream field while engaging with relevant communities."
+        },
+        {
+          "letter": "C",
+          "text": "Avoid mentioning your goals online to keep them a surprise."
+        },
+        {
+          "letter": "D",
+          "text": "Only follow friends and ignore professionals or pages in your field of interest.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

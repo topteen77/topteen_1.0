@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key advantage of using databases like JSTOR for research, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They provide free entertainment videos and memes"
+        },
+        {
+          "letter": "B",
+          "text": "They offer access to peer-reviewed studies and articles, often through school subscriptions"
+        },
+        {
+          "letter": "C",
+          "text": "They focus only on outdated information from the past decade"
+        },
+        {
+          "letter": "D",
+          "text": "They are mainly used for finding random blog posts"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "They offer access to peer-reviewed studies and articles, often through school subscriptions"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "How can advanced search techniques on search engines help with research, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By increasing the number of irrelevant results to scroll through"
+        },
+        {
+          "letter": "B",
+          "text": "By using tools like quotation marks and “site:” to find specific, relevant information faster"
+        },
+        {
+          "letter": "C",
+          "text": "By limiting searches to only paid advertisements"
+        },
+        {
+          "letter": "D",
+          "text": "By automatically downloading unrelated apps"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "By using tools like quotation marks and “site:” to find specific, relevant information faster"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a sign of bias in a source when evaluating information, as mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The source uses neutral language and presents multiple perspectives"
+        },
+        {
+          "letter": "B",
+          "text": "The source includes data and citations from credible studies"
+        },
+        {
+          "letter": "C",
+          "text": "The source pushes a single viewpoint with loaded words like “horrible” without evidence"
+        },
+        {
+          "letter": "D",
+          "text": "The source is published on a government or educational website"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "The source pushes a single viewpoint with loaded words like “horrible” without evidence"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is cross-referencing important in the research process, based on the chapter’s explanation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures you only use one source for all your information"
+        },
+        {
+          "letter": "B",
+          "text": "It helps confirm the accuracy of information by comparing it across multiple reliable sources"
+        },
+        {
+          "letter": "C",
+          "text": "It focuses on finding the most biased sources to balance opinions"
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees that all sources will disagree with each other"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It helps confirm the accuracy of information by comparing it across multiple reliable sources"
+      }
+    }
+  ],
+  "total_questions": 4
+}

@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is Event Planning?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The process of designing and organizing events to ensure they run smoothly and achieve their purpose."
+        },
+        {
+          "letter": "B",
+          "text": "The act of attending events to enjoy activities and socialize with others."
+        },
+        {
+          "letter": "C",
+          "text": "The skill of creating decorations for school and community gatherings."
+        },
+        {
+          "letter": "D",
+          "text": "The task of only budgeting for events without any other responsibilities."
+        }
+      ],
+      "correct_answer": {
+        "letter": "A",
+        "text": "The process of designing and organizing events to ensure they run smoothly and achieve their purpose."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is an example of a teen-relevant event that high schoolers might organize?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A corporate business conference for local companies."
+        },
+        {
+          "letter": "B",
+          "text": "A school talent show featuring student performers."
+        },
+        {
+          "letter": "C",
+          "text": "A city council meeting for urban planning."
+        },
+        {
+          "letter": "D",
+          "text": "A professional sports league championship game."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A school talent show featuring student performers."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which skill is emphasized as crucial for an event planner to handle unexpected issues during an event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Communication"
+        },
+        {
+          "letter": "B",
+          "text": "Creativity"
+        },
+        {
+          "letter": "C",
+          "text": "Problem-Solving"
+        },
+        {
+          "letter": "D",
+          "text": "Leadership"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Problem-Solving"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What lesson can be learned from the “MovieUnderthe Stars” case study in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Events should always be held indoors to avoid weather issues."
+        },
+        {
+          "letter": "B",
+          "text": "Social media can be a powerful tool to promote events and attract attendees."
+        },
+        {
+          "letter": "C",
+          "text": "Only professional equipment should be used for successful events."
+        },
+        {
+          "letter": "D",
+          "text": "Fundraising events are impossible without a large budget."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Social media can be a powerful tool to promote events and attract attendees."
+      }
+    }
+  ],
+  "total_questions": 4
+}

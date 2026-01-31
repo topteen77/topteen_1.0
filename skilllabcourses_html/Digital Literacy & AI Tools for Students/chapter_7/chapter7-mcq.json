@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to Section 1, why is cheating with AI considered a bad idea in high school?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes assignments too easy and boring"
+        },
+        {
+          "letter": "B",
+          "text": "It can lead to failing grades, suspension, and missed learning opportunities"
+        },
+        {
+          "letter": "C",
+          "text": "It prevents teachers from using AI detection tools"
+        },
+        {
+          "letter": "D",
+          "text": "It only affects college students, not high schoolersCorrect Answer: B) It can lead to failing grades, suspension, and missed learning opportunities"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is the key difference between fair use and plagiarism, as described in Section 2?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Fair use requires permission for all content, while plagiarism does not"
+        },
+        {
+          "letter": "B",
+          "text": "Fair use allows limited use of copyrighted material with conditions, while plagiarism is using others’ work without credit"
+        },
+        {
+          "letter": "C",
+          "text": "Fair use applies only to images, while plagiarism applies to text"
+        },
+        {
+          "letter": "D",
+          "text": "Fair use is illegal, while plagiarism is acceptable in school projectsCorrect Answer: B) Fair use allows limited use of copyrighted material with conditions, while plagiarism is using others’ work without credit"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Based on Section 3, what is one way high school students can respect privacy when using digital tools for group projects?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Share classmates’ personal information online to collaborate faster"
+        },
+        {
+          "letter": "B",
+          "text": "Post group work on public platforms without asking team members"
+        },
+        {
+          "letter": "C",
+          "text": "Ask permission before sharing content involving others and limit access to shared files"
+        },
+        {
+          "letter": "D",
+          "text": "Use unsecure apps to store project data for easy accessCorrect Answer: C) Ask permission before sharing content involving others and limit access to shared files"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What does Section 4 highlight as a potential issue with AI tools regarding fairness?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "AI tools are always accurate and unbiased"
+        },
+        {
+          "letter": "B",
+          "text": "AI can perpetuate biases from training data, like suggesting stereotypical roles"
+        },
+        {
+          "letter": "C",
+          "text": "AI refuses to provide answers on controversial topics"
+        },
+        {
+          "letter": "D",
+          "text": "AI only works for certain subjects like math and scienceCorrect Answer: B) AI can perpetuate biases from training data, like suggesting stereotypical roles"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "In Section 4, why is it important to fact-check AI output for school projects?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "AI always provides correct information without errors"
+        },
+        {
+          "letter": "B",
+          "text": "AI can “hallucinate” facts or give wrong information confidently"
+        },
+        {
+          "letter": "C",
+          "text": "AI only works for creative tasks, not factual ones"
+        },
+        {
+          "letter": "D",
+          "text": "Fact-checking AI is unnecessary if it sounds convincingCorrect Answer: B) AI can “hallucinate” facts or give wrong information confidently"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a key step in creating personal rules for responsible tech use, as discussed in Section 5?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Rely entirely on school policies without personal reflection"
+        },
+        {
+          "letter": "B",
+          "text": "Reflect on your values and set practical boundaries for when and how to use AI"
+        },
+        {
+          "letter": "C",
+          "text": "Use AI for all assignments to save time and effort"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid using digital tools to prevent ethical dilemmasCorrect Answer: B) Reflect on your values and set practical boundaries for when and how to use AI"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

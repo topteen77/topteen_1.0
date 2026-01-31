@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary role of body language in communication, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To replace verbal communication entirely"
+        },
+        {
+          "letter": "B",
+          "text": "To send unspoken messages through posture and gestures that show confidence or nervousness"
+        },
+        {
+          "letter": "C",
+          "text": "To distract the audience from the speaker’s words"
+        },
+        {
+          "letter": "D",
+          "text": "To only be used in formal settings like speechesCorrect Answer:B. To send unspoken messages through posture and gestures that show confidence or nervousness"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "According to the chapter, how do facial expressions enhance a speaker’s message?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They make the speaker appear more serious regardless of the topic"
+        },
+        {
+          "letter": "B",
+          "text": "They add authenticity and emotional connection by matching the speaker’s feelings to their words"
+        },
+        {
+          "letter": "C",
+          "text": "They are unnecessary if the speaker’s tone is clear"
+        },
+        {
+          "letter": "D",
+          "text": "They should always remain neutral to avoid confusionCorrect Answer:B. They add authenticity and emotional connection by matching the speaker’s feelings to their words"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is one benefit of maintaining appropriate eye contact, as highlighted in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes the speaker appear more intimidating to the audience"
+        },
+        {
+          "letter": "B",
+          "text": "It builds trust and engagement by showing attention and sincerity"
+        },
+        {
+          "letter": "C",
+          "text": "It allows the speaker to avoid looking at their notes"
+        },
+        {
+          "letter": "D",
+          "text": "It is only important in one-on-one conversations, not group settingsCorrect Answer:B. It builds trust and engagement by showing attention and sincerity"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How does the chapter suggest balancing eye contact to avoid discomfort?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By staring at the audience without breaking eye contact at all"
+        },
+        {
+          "letter": "B",
+          "text": "By avoiding eye contact entirely to focus on the message"
+        },
+        {
+          "letter": "C",
+          "text": "By holding eye contact for a few seconds, then briefly looking away before reconnecting"
+        },
+        {
+          "letter": "D",
+          "text": "By only looking at one person in the audience for the entire timeCorrect Answer:C. By holding eye contact for a few seconds, then briefly looking away before reconnecting"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What does the chapter say about personal space in communication?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It is the same for everyone regardless of culture or context"
+        },
+        {
+          "letter": "B",
+          "text": "It is the physical distance between people that shows respect and comfort, varying by culture"
+        },
+        {
+          "letter": "C",
+          "text": "It should always be as close as possible to build connection"
+        },
+        {
+          "letter": "D",
+          "text": "It is irrelevant in public speaking situationsCorrect Answer:B. It is the physical distance between people that shows respect and comfort, varying by culture"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a key tip from the chapter for using movement effectively during a presentation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To pace back and forth constantly to keep the audience’s attention"
+        },
+        {
+          "letter": "B",
+          "text": "To stay completely still to avoid any distraction"
+        },
+        {
+          "letter": "C",
+          "text": "To plan purposeful movements, like stepping forward for emphasis, tied to key points"
+        },
+        {
+          "letter": "D",
+          "text": "To move randomly to appear more energeticCorrect Answer:C. To plan purposeful movements, like stepping forward for emphasis, tied to key points"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

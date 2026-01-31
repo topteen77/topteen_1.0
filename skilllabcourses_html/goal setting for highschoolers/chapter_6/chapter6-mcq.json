@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key benefit of using digital tools like Todoist or Habitica for goal-setting?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They automatically complete your goals without any effort."
+        },
+        {
+          "letter": "B",
+          "text": "They provide reminders and help organize tasks to keep you on track."
+        },
+        {
+          "letter": "C",
+          "text": "They replace the need for setting SMART goals."
+        },
+        {
+          "letter": "D",
+          "text": "They focus only on tracking progress without planning.Correct Answer:B) They provide reminders and help organize tasks to keep you on track."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How can building a small habit help achieve a larger goal?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It replaces the need for a goal by focusing on random actions."
+        },
+        {
+          "letter": "B",
+          "text": "It breaks the goal into tiny, repeatable steps that build momentum over time."
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees instant success without any planning."
+        },
+        {
+          "letter": "D",
+          "text": "It makes the goal less important by focusing on daily routines.Correct Answer:B) It breaks the goal into tiny, repeatable steps that build momentum over time."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is the main purpose of tracking progress toward a goal?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make the goal more complicated with extra steps."
+        },
+        {
+          "letter": "B",
+          "text": "To show how far you’ve come and keep you motivated with visible results."
+        },
+        {
+          "letter": "C",
+          "text": "To avoid setting deadlines or making adjustments."
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on failures instead of successes.Correct Answer:B) To show how far you’ve come and keep you motivated with visible results."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How does having an accountability partner help with achieving goals?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They do the work for you so you don’t have to try."
+        },
+        {
+          "letter": "B",
+          "text": "They provide support and motivation by checking in on your progress."
+        },
+        {
+          "letter": "C",
+          "text": "They make the goal less important by sharing the responsibility."
+        },
+        {
+          "letter": "D",
+          "text": "They focus only on criticizing your mistakes.Correct Answer:B) They provide support and motivation by checking in on your progress."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why is it important to set rewards for milestones in a goal journey?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Rewards make the goal unnecessary by focusing on fun instead of work."
+        },
+        {
+          "letter": "B",
+          "text": "Rewards give you something to look forward to and boost motivation."
+        },
+        {
+          "letter": "C",
+          "text": "Rewards ensure you never fail at any step of the goal."
+        },
+        {
+          "letter": "D",
+          "text": "Rewards replace the need for tracking progress or planning.Correct Answer:B) Rewards give you something to look forward to and boost motivation."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is the primary function of a personal goal dashboard?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To list every possible goal you might ever have without focus."
+        },
+        {
+          "letter": "B",
+          "text": "To act as a visual command center for organizing and tracking active goals."
+        },
+        {
+          "letter": "C",
+          "text": "To replace the need for digital tools or accountability partners."
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on rewards without showing progress or plans.Correct Answer:B) To act as a visual command center for organizing and tracking active goals."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

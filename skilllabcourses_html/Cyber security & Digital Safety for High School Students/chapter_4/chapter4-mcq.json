@@ -1,0 +1,162 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is malware, and how does it typically infiltrate a device?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A type of hardware that boosts internet speed; installed through official stores"
+        },
+        {
+          "letter": "B",
+          "text": "Malicious software designed to harm devices; often enters through sketchy links or downloads"
+        },
+        {
+          "letter": "C",
+          "text": "A secure app for protecting passwords; installed by default on all devices"
+        },
+        {
+          "letter": "D",
+          "text": "A digital currency used by hackers; transferred through online payments"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Malicious software designed to harm devices; often enters through sketchy links or downloads"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What makes ransomware particularly dangerous for teens?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It speeds up your device but deletes unimportant files"
+        },
+        {
+          "letter": "B",
+          "text": "It locks your device or files and demands payment to unlock them, risking data loss"
+        },
+        {
+          "letter": "C",
+          "text": "It improves gaming performance but requires a subscription"
+        },
+        {
+          "letter": "D",
+          "text": "It automatically updates apps without user permission"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It locks your device or files and demands payment to unlock them, risking data loss"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can you identify a potential phishing attempt in a message or email?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It comes from a verified account with a blue checkmark and no links"
+        },
+        {
+          "letter": "B",
+          "text": "It uses urgent language like “Act now!” and has suspicious links or typos"
+        },
+        {
+          "letter": "C",
+          "text": "It offers a free subscription to a trusted app with clear instructions"
+        },
+        {
+          "letter": "D",
+          "text": "It includes a personal greeting from someone you know without any requests"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It uses urgent language like “Act now!” and has suspicious links or typos"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which of the following is an example of cyberbullying?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A friend sending you a funny meme in a private chat"
+        },
+        {
+          "letter": "B",
+          "text": "Someone repeatedly posting mean comments about you on social media for others to see"
+        },
+        {
+          "letter": "C",
+          "text": "A classmate asking for help with homework in a group chat"
+        },
+        {
+          "letter": "D",
+          "text": "An app notification reminding you to update your profile picture"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Someone repeatedly posting mean comments about you on social media for others to see"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a recommended step to take if you’re experiencing online harassment or cyberbullying?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Respond with insults to defend yourself and show strength"
+        },
+        {
+          "letter": "B",
+          "text": "Delete all your social media accounts immediately without telling anyone"
+        },
+        {
+          "letter": "C",
+          "text": "Save evidence like screenshots, block the person, and tell a trusted adult"
+        },
+        {
+          "letter": "D",
+          "text": "Ignore the messages completely and hope they stop on their own"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Save evidence like screenshots, block the person, and tell a trusted adult"
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "How can you verify if a viral social media post is fake news or misinformation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Share it immediately to see if others agree it’s true"
+        },
+        {
+          "letter": "B",
+          "text": "Check the source, cross-check with trusted news outlets, and use fact-checking sites"
+        },
+        {
+          "letter": "C",
+          "text": "Trust the post if it has a lot of likes and comments"
+        },
+        {
+          "letter": "D",
+          "text": "Assume it’s real if it matches your personal opinions"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Check the source, cross-check with trusted news outlets, and use fact-checking sites"
+      }
+    }
+  ],
+  "total_questions": 6
+}

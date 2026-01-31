@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the core definition of mindfulness as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Clearing your mind of all thoughts to achieve total relaxation"
+        },
+        {
+          "letter": "B",
+          "text": "Focusing on past regrets and future worries to prepare for challenges"
+        },
+        {
+          "letter": "C",
+          "text": "Paying attention to the present moment with intention and without judgment"
+        },
+        {
+          "letter": "D",
+          "text": "Engaging in long meditation sessions to escape stressCorrect Answer: C) Paying attention to the present moment with intention and without judgment"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is one historical origin of mindfulness mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It was developed in the 1970s by Western psychologists"
+        },
+        {
+          "letter": "B",
+          "text": "It traces back to ancient Buddhist meditation practices"
+        },
+        {
+          "letter": "C",
+          "text": "It originated from modern athletic training techniques"
+        },
+        {
+          "letter": "D",
+          "text": "It was first introduced in schools during the 20th centuryCorrect Answer: B) It traces back to ancient Buddhist meditation practices"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does mindfulness help in managing stress, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By increasing cortisol levels to boost energy for studying"
+        },
+        {
+          "letter": "B",
+          "text": "By activating the parasympathetic nervous system to promote relaxation"
+        },
+        {
+          "letter": "C",
+          "text": "By encouraging students to ignore their stress completely"
+        },
+        {
+          "letter": "D",
+          "text": "By focusing solely on physical exercise to distract from anxietyCorrect Answer: B) By activating the parasympathetic nervous system to promote relaxation"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key difference between mindfulness and overthinking as explained in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Mindfulness focuses on reacting to thoughts, while overthinking observes them"
+        },
+        {
+          "letter": "B",
+          "text": "Mindfulness anchors you in the present, while overthinking fixates on past or future"
+        },
+        {
+          "letter": "C",
+          "text": "Mindfulness amplifies negative thoughts, while overthinking reduces them"
+        },
+        {
+          "letter": "D",
+          "text": "Mindfulness requires hours of practice, while overthinking happens instantlyCorrect Answer: B) Mindfulness anchors you in the present, while overthinking fixates on past or future"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Which of the following is a step in the box breathing technique described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Inhale for 6 counts, exhale for 2 counts, and repeat without holding"
+        },
+        {
+          "letter": "B",
+          "text": "Inhale for 4 counts, hold for 4, exhale for 4, and hold for 4"
+        },
+        {
+          "letter": "C",
+          "text": "Breathe rapidly through the mouth for 1 minute to energize the body"
+        },
+        {
+          "letter": "D",
+          "text": "Hold your breath for 10 counts before exhaling slowlyCorrect Answer: B) Inhale for 4 counts, hold for 4, exhale for 4, and hold for 4"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "How can mindfulnessbeincorporated into daily life, based on the chapter’s suggestions?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By dedicating several hours each day to formal meditation sessions"
+        },
+        {
+          "letter": "B",
+          "text": "By practicing mindful eating or walking during routine activities"
+        },
+        {
+          "letter": "C",
+          "text": "By avoiding all study breaks to maintain constant focus"
+        },
+        {
+          "letter": "D",
+          "text": "By using social media mindfully to stay connected with friendsCorrect Answer: B) By practicing mindful eating or walking during routine activities"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

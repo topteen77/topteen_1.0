@@ -1,0 +1,109 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to the chapter, what is the primary purpose of understanding persuasion using ethos, pathos, and logos?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To manipulate audiences into agreeing without evidence"
+        },
+        {
+          "letter": "B",
+          "text": "To build convincing arguments by balancing credibility, emotion, and logic for effective influence"
+        },
+        {
+          "letter": "C",
+          "text": "To focus only on emotional appeals to win over listeners"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid using facts in order to seem more relatableCorrectAnswer:B. To build convincing arguments by balancing credibility, emotion, and logic for effective influence"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What does the chapter suggest as a key element when crafting persuasive arguments?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring opposing views to strengthen your position"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does the chapter recommend handling opposing views during a debate?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignore them completely to focus on your own points"
+        },
+        {
+          "letter": "B",
+          "text": "Attack the opponent personally to discredit their argument"
+        },
+        {
+          "letter": "C",
+          "text": "Rebut respectfully with phrases like “I see your point, but here’s why…” and support with evidence"
+        },
+        {
+          "letter": "D",
+          "text": "Agree with the opponent to avoid conflictCorrect Answer:C. Rebut respectfully with phrases like “I see your point, but here’s why…” and support with evidence"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a core principle of ethical communication as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Using exaggerated claims to make a stronger impact"
+        },
+        {
+          "letter": "B",
+          "text": "Persuading with honesty and transparency, avoiding manipulation or unfair tactics"
+        },
+        {
+          "letter": "C",
+          "text": "Focusing on winning arguments at any cost"
+        },
+        {
+          "letter": "D",
+          "text": "Hiding personal biases to seem more convincingCorrect Answer:B. Persuading with honesty and transparency, avoiding manipulation or unfair tactics"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a common challenge teens face when developing persuasive skills, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Always balancing ethos, pathos, and logos perfectly without effort"
+        },
+        {
+          "letter": "B",
+          "text": "Over-relying on emotion or lacking structure, which can make arguments unconvincing or unbalanced"
+        },
+        {
+          "letter": "C",
+          "text": "Never having opportunities to practice persuasion"
+        },
+        {
+          "letter": "D",
+          "text": "Finding ethical communication too easy to implementCorrect Answer:B. Over-relying on emotion or lacking structure, which can make arguments unconvincing or unbalanced"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

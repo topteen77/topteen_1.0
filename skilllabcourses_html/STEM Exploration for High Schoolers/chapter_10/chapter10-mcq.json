@@ -1,0 +1,124 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is Biomedical Science primarily focused on?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Designing bridges and buildings using engineering principles"
+        },
+        {
+          "letter": "B",
+          "text": "Combining biology and technology to solve health-related problems"
+        },
+        {
+          "letter": "C",
+          "text": "Studying weather patterns and climate change"
+        },
+        {
+          "letter": "D",
+          "text": "Developing new software for gaming applications"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Combining biology and technology to solve health-related problems"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which body system is responsible for pumping blood and delivering oxygen throughout the body?",
+      "options": [
+        {
+          "letter": "B",
+          "text": "Nervous System"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Circulatory System"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is the primary function of an MRI (Magnetic Resonance Imaging) machine in medical technology?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To take images of bones using radiation"
+        },
+        {
+          "letter": "B",
+          "text": "To provide detailed images of soft tissues like muscles and brain using magnets and radio waves"
+        },
+        {
+          "letter": "C",
+          "text": "To replace damaged limbs with robotic parts"
+        },
+        {
+          "letter": "D",
+          "text": "To measure heart rate and steps through wearable sensors"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To provide detailed images of soft tissues like muscles and brain using magnets and radio waves"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "In the context of engineering solutions for health, what is the first step in the design process for creating a medical device?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Building a prototype of the device"
+        },
+        {
+          "letter": "B",
+          "text": "Testing the device in real-world conditions"
+        },
+        {
+          "letter": "C",
+          "text": "Identifying a specific health problem to solve"
+        },
+        {
+          "letter": "D",
+          "text": "Finalizing the product for mass production"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Identifying a specific health problem to solve"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a key ethical concern related to gene editing in Biomedical Science?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Whether it is too expensive to develop new medical devices"
+        },
+        {
+          "letter": "B",
+          "text": "Whether it should be used to alter non-medical traits like appearance in humans"
+        },
+        {
+          "letter": "C",
+          "text": "Whether it requires too much time to test for safety"
+        },
+        {
+          "letter": "D",
+          "text": "Whether it can be used to improve computer software"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Whether it should be used to alter non-medical traits like appearance in humans"
+      }
+    }
+  ],
+  "total_questions": 5
+}

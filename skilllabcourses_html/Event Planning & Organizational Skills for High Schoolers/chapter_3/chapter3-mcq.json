@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Roles and ResponsibilitiesWhat is the main benefit of assigning specific roles to team members based on their strengths when planning an event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures everyone gets paid equally for their work"
+        },
+        {
+          "letter": "B",
+          "text": "It allows each person to focus on tasks they’re good at or enjoy, making the planning process more efficient"
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees the event will have no problems or delays"
+        },
+        {
+          "letter": "D",
+          "text": "It means the team leader doesn’t have to do any work"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It allows each person to focus on tasks they’re good at or enjoy, making the planning process more efficient"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Effective Communication StrategiesWhich of the following is the most effective way to keep a team updated and on the same page during event planning?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Only talking to team members when there’s a problem"
+        },
+        {
+          "letter": "B",
+          "text": "Holding regular short meetings and using tools like group chats or shared documents for updates"
+        },
+        {
+          "letter": "C",
+          "text": "Letting each person figure out their tasks without checking in"
+        },
+        {
+          "letter": "D",
+          "text": "Sending long emails every day with every small detail"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Holding regular short meetings and using tools like group chats or shared documents for updates"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Conflict Resolution in TeamsWhat is a key step in resolving a disagreement between team members planning an event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring the issue and hoping it goes away on its own"
+        },
+        {
+          "letter": "B",
+          "text": "Listening to both sides calmly and finding common ground or a compromise"
+        },
+        {
+          "letter": "C",
+          "text": "Telling the team leader to pick a side immediately"
+        },
+        {
+          "letter": "D",
+          "text": "Removing the arguing members from the team"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Listening to both sides calmly and finding common ground or a compromise"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Motivating Your CrewHow can a team leader best keep morale high during the stressful parts of event planning?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By focusing only on the tasks and ignoring how the team feels"
+        },
+        {
+          "letter": "B",
+          "text": "By showing appreciation, celebrating small wins, and adding fun elements to the process"
+        },
+        {
+          "letter": "C",
+          "text": "By giving everyone extra work to keep them busy"
+        },
+        {
+          "letter": "D",
+          "text": "By promising big rewards that might not be possible to deliver"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "By showing appreciation, celebrating small wins, and adding fun elements to the process"
+      }
+    }
+  ],
+  "total_questions": 4
+}

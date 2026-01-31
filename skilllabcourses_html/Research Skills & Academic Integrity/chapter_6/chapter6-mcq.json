@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is citation important in academic writing, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you avoid doing your own research for assignments"
+        },
+        {
+          "letter": "B",
+          "text": "It prevents plagiarism and builds credibility for your work"
+        },
+        {
+          "letter": "C",
+          "text": "It makes your project look longer without adding content"
+        },
+        {
+          "letter": "D",
+          "text": "It is only necessary for college students, not high schoolers"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It prevents plagiarism and builds credibility for your work"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which citation style is most commonly used for English and humanities subjects like literature, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "APA (American Psychological Association)"
+        },
+        {
+          "letter": "B",
+          "text": "Chicago (Chicago Manual of Style)"
+        },
+        {
+          "letter": "C",
+          "text": "MLA (Modern Language Association)"
+        },
+        {
+          "letter": "D",
+          "text": "Harvard Style"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "MLA (Modern Language Association)"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How would you cite a website in MLA style for a project on “Indian Street Foods under ₹100,” based on the chapter’s guidance?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Author. “Title of Page.”Website Name, Day Month Year, URL."
+        },
+        {
+          "letter": "B",
+          "text": "Author, Year, Website Name, URL."
+        },
+        {
+          "letter": "C",
+          "text": "Website Name, “Title of Page,” Author, Year."
+        },
+        {
+          "letter": "D",
+          "text": "URL, Author, “Title of Page,” Day Month Year."
+        }
+      ],
+      "correct_answer": {
+        "letter": "A",
+        "text": "Author. “Title of Page.”Website Name, Day Month Year, URL."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key tip for using citation generators responsibly, as explained in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Rely on the tool completely without checking the output"
+        },
+        {
+          "letter": "B",
+          "text": "Use only paid versions of citation tools for accuracy"
+        },
+        {
+          "letter": "C",
+          "text": "Double-check the generated citation for errors or missing details"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid using citation generators since they are always inaccurate"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Double-check the generated citation for errors or missing details"
+      }
+    }
+  ],
+  "total_questions": 4
+}

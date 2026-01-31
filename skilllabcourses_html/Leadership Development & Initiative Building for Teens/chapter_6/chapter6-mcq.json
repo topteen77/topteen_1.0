@@ -1,0 +1,162 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key way to inspire others through positive examples as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Giving long speeches about success"
+        },
+        {
+          "letter": "B",
+          "text": "Demonstrating resilience and integrity in your actions"
+        },
+        {
+          "letter": "C",
+          "text": "Telling peers what they should do to improve"
+        },
+        {
+          "letter": "D",
+          "text": "Focusing only on your own achievements"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Demonstrating resilience and integrity in your actions"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is specific praise more effective than generic compliments when offering encouragement?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It sounds more professional"
+        },
+        {
+          "letter": "B",
+          "text": "It shows you’re paying attention to their unique efforts"
+        },
+        {
+          "letter": "C",
+          "text": "It takes less time to say"
+        },
+        {
+          "letter": "D",
+          "text": "It makes you seem more authoritative"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It shows you’re paying attention to their unique efforts"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a recommended strategy for offering guidance to a peer who is struggling?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Tell them exactly how to solve their problem"
+        },
+        {
+          "letter": "B",
+          "text": "Focus on their mistakes to help them learn"
+        },
+        {
+          "letter": "C",
+          "text": "Suggest solutions while encouraging them to find their own way"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid giving advice so they don’t feel pressured"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Suggest solutions while encouraging them to find their own way"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What does the chapter identify as a core component of empathy in peer-to-peer coaching?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Solving problems for your peer quickly"
+        },
+        {
+          "letter": "B",
+          "text": "Understanding and acknowledging their emotions and perspective"
+        },
+        {
+          "letter": "C",
+          "text": "Telling them how you would handle their situation"
+        },
+        {
+          "letter": "D",
+          "text": "Keeping conversations short to avoid discomfort"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Understanding and acknowledging their emotions and perspective"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "How can active listening help in building empathy with a peer, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It shows you’re in a hurry to move on to solutions"
+        },
+        {
+          "letter": "B",
+          "text": "It allows you to interrupt with helpful advice"
+        },
+        {
+          "letter": "C",
+          "text": "It demonstrates that you’re fully engaged and value their thoughts"
+        },
+        {
+          "letter": "D",
+          "text": "It helps you avoid asking too many questions"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "It demonstrates that you’re fully engaged and value their thoughts"
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "What should you do if a peer shares a personal struggle during a coaching conversation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Share your own story immediately to relate to them"
+        },
+        {
+          "letter": "B",
+          "text": "Promise to keep it confidential and avoid judgment"
+        },
+        {
+          "letter": "C",
+          "text": "Suggest they talk to someone else for help"
+        },
+        {
+          "letter": "D",
+          "text": "Change the topic to make them feel more comfortable"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Promise to keep it confidential and avoid judgment"
+      }
+    }
+  ],
+  "total_questions": 6
+}

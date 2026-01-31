@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Which video editing software is free, beginner-friendly, and ideal for quick social media content like TikTok or Instagram Reels?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Adobe Premiere Pro"
+        },
+        {
+          "letter": "B",
+          "text": "DaVinci Resolve"
+        },
+        {
+          "letter": "C",
+          "text": "CapCut"
+        },
+        {
+          "letter": "D",
+          "text": "iMovie (only for Windows users)"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "CapCut"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is the main purpose of trimming a video clip during editing?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To remove an entire section from the middle of the clip"
+        },
+        {
+          "letter": "B",
+          "text": "To shorten a clip by adjusting its start or end points for better pacing"
+        },
+        {
+          "letter": "C",
+          "text": "To add special effects between two clips"
+        },
+        {
+          "letter": "D",
+          "text": "To overlay text or graphics on the video"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To shorten a clip by adjusting its start or end points for better pacing"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is Colour grading used in video editing, and how can it impact your content?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It fixes audio issues to make voices clearer"
+        },
+        {
+          "letter": "B",
+          "text": "It adjusts brightness and contrast to correct lighting mistakes"
+        },
+        {
+          "letter": "C",
+          "text": "It stylizes the video with specific Colour tones to create a mood or cinematic look"
+        },
+        {
+          "letter": "D",
+          "text": "It adds text and graphics for better storytelling"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "It stylizes the video with specific Colour tones to create a mood or cinematic look"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "When adding audio to a video, what should you consider to avoid copyright issues on platforms like YouTube or TikTok?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use any popular song as long as it’s trending"
+        },
+        {
+          "letter": "B",
+          "text": "Always add your own recorded music without checking platform rules"
+        },
+        {
+          "letter": "C",
+          "text": "Choose royalty-free music from app libraries or use platform-approved sounds"
+        },
+        {
+          "letter": "D",
+          "text": "Keep the music volume high to cover any copyright claims"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Choose royalty-free music from app libraries or use platform-approved sounds"
+      }
+    }
+  ],
+  "total_questions": 4
+}

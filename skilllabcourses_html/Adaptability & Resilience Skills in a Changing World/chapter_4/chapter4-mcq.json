@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the first step in the step-by-step approach to tackling big challenges?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Taking immediate action without planning."
+        },
+        {
+          "letter": "B",
+          "text": "Defining the problem by figuring out what’s really going on."
+        },
+        {
+          "letter": "C",
+          "text": "Brainstorming solutions without understanding the issue."
+        },
+        {
+          "letter": "D",
+          "text": "Giving up if the problem seems too big."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Defining the problem by figuring out what’s really going on."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "How can thinking outside the box help when solutions aren’t obvious?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It encourages you to stick to the same old methods."
+        },
+        {
+          "letter": "B",
+          "text": "It helps you look at the problem from a fresh, creative angle."
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees you’ll solve the problem instantly."
+        },
+        {
+          "letter": "D",
+          "text": "It prevents you from ever needing to ask for help."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It helps you look at the problem from a fresh, creative angle."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What does “pivoting” mean in the context of problem-solving?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Giving up on your goal completely."
+        },
+        {
+          "letter": "B",
+          "text": "Changing your plan or approach when the current one isn’t working."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring the problem and hoping it goes away."
+        },
+        {
+          "letter": "D",
+          "text": "Sticking to the original plan no matter what."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Changing your plan or approach when the current one isn’t working."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is it important to reflect and adjust after trying a solution?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To criticize yourself for making mistakes."
+        },
+        {
+          "letter": "B",
+          "text": "To see if the solution worked and make changes if needed."
+        },
+        {
+          "letter": "C",
+          "text": "To avoid trying any new ideas in the future."
+        },
+        {
+          "letter": "D",
+          "text": "To prove that the first solution is always the best."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To see if the solution worked and make changes if needed."
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "Which of the following is a way to think outside the box when solving a problem?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Only considering the most obvious solutions."
+        },
+        {
+          "letter": "B",
+          "text": "Asking “What if” questions to challenge the usual rules."
+        },
+        {
+          "letter": "C",
+          "text": "Refusing to try anything new or different."
+        },
+        {
+          "letter": "D",
+          "text": "Focusing only on why the problem can’t be solved."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Asking “What if” questions to challenge the usual rules."
+      }
+    }
+  ],
+  "total_questions": 5
+}

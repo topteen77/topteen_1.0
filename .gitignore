@@ -310,7 +310,7 @@ scripts/extracurricular_json_output/*
 # Hide database data directories
 dbdata_topteens/
 skilllabcourses_html-old/
-skilllabcourses_html/
+# skilllabcourses_html/
 
 #temprorarily hiding json files to avoid upload on server
 # scripts/skilllabcourses_script/course_json/*

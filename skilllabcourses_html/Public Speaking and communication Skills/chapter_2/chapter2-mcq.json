@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is stage fright, as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A rare condition that only affects professional speakers"
+        },
+        {
+          "letter": "B",
+          "text": "A normal reaction involving physical and mental nervousness when speaking in front of others"
+        },
+        {
+          "letter": "C",
+          "text": "A permanent fear that cannot be overcome with practice"
+        },
+        {
+          "letter": "D",
+          "text": "A sign that someone is not meant to be a public speakerCorrect Answer:B. A normal reaction involving physical and mental nervousness when speaking in front of others"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "According to the chapter, what is one benefit of using positive self-talk as a mindset shift for confidence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It eliminates all physical symptoms of nervousness instantly"
+        },
+        {
+          "letter": "B",
+          "text": "It helps replace negative thoughts with encouraging ones to reduce stress"
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees a perfect speech every time"
+        },
+        {
+          "letter": "D",
+          "text": "It prevents the need for any practice before speakingCorrect Answer:B. It helps replace negative thoughts with encouraging ones to reduce stress"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does the chapter suggest posture can impact a speaker’s confidence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Slouching makes a speaker appear more relatable to the audience"
+        },
+        {
+          "letter": "B",
+          "text": "Standing tall with shoulders back projects control and can make a speaker feel stronger"
+        },
+        {
+          "letter": "C",
+          "text": "Posture has no effect on how a speaker is perceived by others"
+        },
+        {
+          "letter": "D",
+          "text": "Only professional speakers need to worry about postureCorrect Answer:B. Standing tall with shoulders back projects control and can make a speaker feel stronger"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is one purpose of recording oneself as a practice strategy, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To share videos on social media for popularity"
+        },
+        {
+          "letter": "B",
+          "text": "To spot habits like saying “um” or looking down and track improvement over time"
+        },
+        {
+          "letter": "C",
+          "text": "To avoid practicing in front of others completely"
+        },
+        {
+          "letter": "D",
+          "text": "To memorize speeches without needing to understand themCorrect Answer:B. To spot habits like saying “um” or looking down and track improvement over time"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why does the chapter emphasize the importance of eye contact in body language?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It distracts the audience from noticing mistakes in the speech"
+        },
+        {
+          "letter": "B",
+          "text": "It shows engagement and builds trust with listeners"
+        },
+        {
+          "letter": "C",
+          "text": "It is only necessary for large audiences, not small groups"
+        },
+        {
+          "letter": "D",
+          "text": "It makes the speaker appear less nervous without any effortCorrect Answer:B. It shows engagement and builds trust with listeners"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is the main goal of reframing failure as growth, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To ignore mistakes and pretend they didn’t happen"
+        },
+        {
+          "letter": "B",
+          "text": "To view mistakes as lessons that help improve future performances"
+        },
+        {
+          "letter": "C",
+          "text": "To blame others for any errors during a speech"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid taking risks in public speaking altogetherCorrect Answer:B. To view mistakes as lessons that help improve future performances"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

@@ -1,0 +1,214 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of researching potential careers and job profiles?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To immediately decide on a lifelong career path"
+        },
+        {
+          "letter": "B",
+          "text": "To gather detailed information about roles and see if they align with your skills and interests"
+        },
+        {
+          "letter": "C",
+          "text": "To impress potential employers with your knowledge"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid taking career assessments like Holland Codes"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To gather detailed information about roles and see if they align with your skills and interests"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What does the Holland Code (RIASEC) assessment primarily help you identify?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The exact salary you will earn in a specific career"
+        },
+        {
+          "letter": "B",
+          "text": "Your personality type and matching career categories based on interests"
+        },
+        {
+          "letter": "C",
+          "text": "The best college major for your future job"
+        },
+        {
+          "letter": "D",
+          "text": "How to write a resume for job applications"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Your personality type and matching career categories based on interests"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "If your Holland Code result is “SAE” (Social, Artistic, Enterprising), which career might be a good match?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Software Engineer"
+        },
+        {
+          "letter": "B",
+          "text": "Event Planner"
+        },
+        {
+          "letter": "C",
+          "text": "Automotive Technician"
+        },
+        {
+          "letter": "D",
+          "text": "Data Analyst"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Event Planner"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "When evaluating a career’s working conditions, what factor should you consider to ensure it fits your lifestyle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The company’s stock price"
+        },
+        {
+          "letter": "B",
+          "text": "Whether the job offers a fast-paced or relaxed environment and matches your preferred work hours"
+        },
+        {
+          "letter": "C",
+          "text": "The number of social media followers the job role typically has"
+        },
+        {
+          "letter": "D",
+          "text": "The color of the office walls"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Whether the job offers a fast-paced or relaxed environment and matches your preferred work hours"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why is it important to research salary data for a career using tools like BLS.gov or Glassdoor.com?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To compare it with your friends’ earnings"
+        },
+        {
+          "letter": "B",
+          "text": "To determine if the starting pay and growth potential can support your financial needs and goals"
+        },
+        {
+          "letter": "C",
+          "text": "To decide if you should ask for a raise immediately"
+        },
+        {
+          "letter": "D",
+          "text": "To know how much to spend on work clothes"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To determine if the starting pay and growth potential can support your financial needs and goals"
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "What makes a career “future-proof” as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees a high salary from the start"
+        },
+        {
+          "letter": "B",
+          "text": "It is expected to grow and remain relevant due to global trends like technology and sustainability"
+        },
+        {
+          "letter": "C",
+          "text": "It requires no education or training to enter"
+        },
+        {
+          "letter": "D",
+          "text": "It is a traditional job that has existed for centuries"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It is expected to grow and remain relevant due to global trends like technology and sustainability"
+      }
+    },
+    {
+      "question_number": 7,
+      "question_text": "Which of the following is an example of a future-proof career in the Green Energy sector, and why?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Coal Miner, because it’s a hands-on job"
+        },
+        {
+          "letter": "B",
+          "text": "Solar Photovoltaic Installer, because of high growth due to sustainability goals"
+        },
+        {
+          "letter": "C",
+          "text": "Travel Blogger, because it involves outdoor work"
+        },
+        {
+          "letter": "D",
+          "text": "Retail Cashier, because it’s in high demand everywhere"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Solar Photovoltaic Installer, because of high growth due to sustainability goals"
+      }
+    },
+    {
+      "question_number": 8,
+      "question_text": "How can combining insights from a Holland Code assessment and research on future-proof careers help in career planning?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures you pick the highest-paying job immediately"
+        },
+        {
+          "letter": "B",
+          "text": "It helps you identify careers that match your personality while focusing on growing, relevant fields"
+        },
+        {
+          "letter": "C",
+          "text": "It eliminates the need to evaluate job tasks or salary data"
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees you’ll get hired in your chosen field"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It helps you identify careers that match your personality while focusing on growing, relevant fields"
+      }
+    }
+  ],
+  "total_questions": 8
+}

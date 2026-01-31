@@ -1,0 +1,144 @@
+{
+  "title": "MCQ Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a primary reason digital distractions like smartphones are so disruptive to high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They are rarely used for schoolwork."
+        },
+        {
+          "letter": "B",
+          "text": "They provide constant notifications that interrupt focus."
+        },
+        {
+          "letter": "C",
+          "text": "They are only used for educational purposes."
+        },
+        {
+          "letter": "D",
+          "text": "They have no impact on study habits.Correct Answer: B. They provide constant notifications that interrupt focus."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is an example of an internal distraction as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Background noise from family members."
+        },
+        {
+          "letter": "B",
+          "text": "Receiving a text message during homework."
+        },
+        {
+          "letter": "C",
+          "text": "Feeling anxious about an upcoming test."
+        },
+        {
+          "letter": "D",
+          "text": "A cluttered desk in your study area.Correct Answer: C. Feeling anxious about an upcoming test."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a recommended strategy for optimizing a physical workspace to minimize distractions?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keep the desk cluttered to feel more comfortable."
+        },
+        {
+          "letter": "B",
+          "text": "Study in a high-traffic area to stay motivated."
+        },
+        {
+          "letter": "C",
+          "text": "Choose a quiet, dedicated space away from relaxation areas like a bed."
+        },
+        {
+          "letter": "D",
+          "text": "Keep all devices on and nearby for quick access.Correct Answer: C. Choose a quiet, dedicated space away from relaxation areas like a bed."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can students mentally prepare to maintain focus in a distraction-free environment?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Start tasks without any specific goals in mind."
+        },
+        {
+          "letter": "B",
+          "text": "Set clear intentions by defining what to accomplish before beginning."
+        },
+        {
+          "letter": "C",
+          "text": "Keep distracting apps open to take quick breaks."
+        },
+        {
+          "letter": "D",
+          "text": "Avoid preparing materials in advance to stay spontaneous.Correct Answer: B. Set clear intentions by defining what to accomplish before beginning."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is the purpose of establishing tech-free zones or times, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To completely eliminate the use of technology from daily life."
+        },
+        {
+          "letter": "B",
+          "text": "To encourage focus or rest by limiting device access in specific areas or periods."
+        },
+        {
+          "letter": "C",
+          "text": "To increase screen time in other parts of the day."
+        },
+        {
+          "letter": "D",
+          "text": "To make technology more difficult to use for schoolwork.Correct Answer: B. To encourage focus or rest by limiting device access in specific areas or periods."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "How can students address the fear of missing out (FOMO) when setting boundaries with technology?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Check social media constantly to stay updated."
+        },
+        {
+          "letter": "B",
+          "text": "Schedule specific times to catch up on online content rather than checking all day."
+        },
+        {
+          "letter": "C",
+          "text": "Avoid communicating boundaries to friends to prevent conflict."
+        },
+        {
+          "letter": "D",
+          "text": "Ignore the feeling and delete all social media accounts.Correct Answer: B. Schedule specific times to catch up on online content rather than checking all day."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

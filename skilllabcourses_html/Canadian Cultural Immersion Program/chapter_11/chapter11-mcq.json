@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key benefit of learning to use public transit before arriving in Canada?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees you’ll never get lost in a new city"
+        },
+        {
+          "letter": "B",
+          "text": "It reduces stress and saves time when navigating to school or errands"
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you won’t need to ask for help from locals"
+        },
+        {
+          "letter": "D",
+          "text": "It allows you to avoid using transit apps or mapsCorrect Answer: b)"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is setting up a Canadian bank account important for international students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows you to avoid paying any fees for transactions"
+        },
+        {
+          "letter": "B",
+          "text": "It simplifies payments, avoids high international fees, and helps manage daily expenses"
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees immediate access to a credit card without any checks"
+        },
+        {
+          "letter": "D",
+          "text": "It is only necessary if you plan to work in CanadaCorrect Answer: b)"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is the primary purpose of a land acknowledgement for international students in Canada?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To fulfill a mandatory university assignment without personal reflection"
+        },
+        {
+          "letter": "B",
+          "text": "To show respect for Indigenous Peoples and recognize their traditional territories"
+        },
+        {
+          "letter": "C",
+          "text": "To focus solely on Canadian history without connecting to current contexts"
+        },
+        {
+          "letter": "D",
+          "text": "To replace learning about local customs with a written statementCorrect Answer: b)"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How does volunteering benefit international students integrating into Canadian life?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures students avoid interacting with local communities to focus on studies"
+        },
+        {
+          "letter": "B",
+          "text": "It builds skills, fosters connections, and aligns with Canadian values of giving back"
+        },
+        {
+          "letter": "C",
+          "text": "It is only useful for students who want to work in non-profit organizations"
+        },
+        {
+          "letter": "D",
+          "text": "It prevents students from needing to participate in campus activitiesCorrect Answer: b)"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is one purpose of creating a cultural immersion documentation portfolio?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To track and reflect on personal growth and cultural experiences in Canada"
+        },
+        {
+          "letter": "B",
+          "text": "To submit as a formal academic requirement for all courses"
+        },
+        {
+          "letter": "C",
+          "text": "To focus only on challenges without celebrating achievements"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid sharing experiences with family or friends back homeCorrect Answer: a)"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "Why is it important to regularly measure and adjust your integration progress in Canada?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To compare your success with other students and compete for recognition"
+        },
+        {
+          "letter": "B",
+          "text": "To recognize achievements, identify challenges, and adapt strategies for better integration"
+        },
+        {
+          "letter": "C",
+          "text": "To focus only on failures without celebrating small wins"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid seeking support from mentors or university resourcesCorrect Answer: b)"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

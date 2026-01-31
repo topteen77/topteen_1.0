@@ -1,0 +1,133 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "When making an emergency call, what is the FIRST piece of information you should provide to the operator?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Your name and phone number"
+        },
+        {
+          "letter": "B",
+          "text": "The condition of the victim"
+        },
+        {
+          "letter": "C",
+          "text": "Your exact location"
+        },
+        {
+          "letter": "D",
+          "text": "What you think caused the emergency"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Your exact location"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "If you’re in the United States and witness a friend collapse at a school event, which number should you dial for emergency help?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "112"
+        },
+        {
+          "letter": "B",
+          "text": "999"
+        },
+        {
+          "letter": "C",
+          "text": "911"
+        },
+        {
+          "letter": "D",
+          "text": "000"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "While waiting for help to arrive, how should you approach calming an injured friend who is panicking after falling off a bike?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Tell them, “Stop crying, it’s not a big deal.”"
+        },
+        {
+          "letter": "B",
+          "text": "Say, “I’m here with you, help is on the way.”"
+        },
+        {
+          "letter": "C",
+          "text": "Ask a lot of detailed questions about how they fell."
+        },
+        {
+          "letter": "D",
+          "text": "Ignore their emotions and focus on fixing their bike."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Say, “I’m here with you, help is on the way.”"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Before checking a classmate’s twisted ankle during a gym class injury, what is the BEST way to ask for their permission?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "“I’m going to look at your ankle now, okay?”"
+        },
+        {
+          "letter": "B",
+          "text": "“Can I take a look at your ankle to see how bad it is?”"
+        },
+        {
+          "letter": "C",
+          "text": "“You have to let me help you, just hold still.”"
+        },
+        {
+          "letter": "D",
+          "text": "“I’m checking it whether you like it or not.”"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "“Can I take a look at your ankle to see how bad it is?”"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "During a crisis at a school picnic where someone gets hurt, how should you delegate tasks to your friends to ensure help arrives quickly?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Yell, “Someone do something, hurry up!”"
+        },
+        {
+          "letter": "B",
+          "text": "Say, “Jake, call 911 and tell them we’re at the west field. Mia, stay with her and keep her calm.”"
+        },
+        {
+          "letter": "C",
+          "text": "Tell everyone to stand back and let you handle it alone."
+        },
+        {
+          "letter": "D",
+          "text": "Ask, “Who wants to help?” and wait for volunteers."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Say, “Jake, call 911 and tell them we’re at the west field. Mia, stay with her and keep her calm.”"
+      }
+    }
+  ],
+  "total_questions": 5
+}

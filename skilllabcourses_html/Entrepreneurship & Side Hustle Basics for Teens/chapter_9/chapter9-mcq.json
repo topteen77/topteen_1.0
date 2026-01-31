@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Which of the following is a clear sign that your side hustle is ready to scale up?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "You’re feeling bored with your hustle and want a change."
+        },
+        {
+          "letter": "B",
+          "text": "You’re consistently making a profit and have a high demand for your product."
+        },
+        {
+          "letter": "C",
+          "text": "You’ve just started your hustle and want to grow immediately."
+        },
+        {
+          "letter": "D",
+          "text": "You’re struggling to keep up with orders and missing deadlines.Correct Answer:B) You’re consistently making a profit and have a high demand for your product."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is an important step when forming a small team for your side hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Choosing friends who are popular, even if they’re not reliable."
+        },
+        {
+          "letter": "B",
+          "text": "Keeping all tasks to yourself to avoid sharing profits."
+        },
+        {
+          "letter": "C",
+          "text": "Defining clear roles for each team member to avoid confusion."
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding discussions about money to prevent arguments.Correct Answer:C) Defining clear roles for each team member to avoid confusion."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can feedback help improve your side hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It tells you to completely change your product without testing."
+        },
+        {
+          "letter": "B",
+          "text": "It helps identify small issues or patterns to fix for better customer satisfaction."
+        },
+        {
+          "letter": "C",
+          "text": "It should be ignored if it’s negative to stay confident."
+        },
+        {
+          "letter": "D",
+          "text": "It only matters if it comes from your best friends.Correct Answer:B) It helps identify small issues or patterns to fix for better customer satisfaction."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a practical way to balance your growing hustle with school responsibilities?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Skip homework to focus on hustle tasks when orders increase."
+        },
+        {
+          "letter": "B",
+          "text": "Set specific hours for hustle work and stick to a schedule."
+        },
+        {
+          "letter": "C",
+          "text": "Take on every order, even during exam weeks, to earn more."
+        },
+        {
+          "letter": "D",
+          "text": "Stop all school activities to make time for your hustle.Correct Answer:B) Set specific hours for hustle work and stick to a schedule."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

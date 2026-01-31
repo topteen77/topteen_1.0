@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is clear communication important during times of change?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes people like you more."
+        },
+        {
+          "letter": "B",
+          "text": "It reduces confusion and helps everyone stay on the same page."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you always get your way."
+        },
+        {
+          "letter": "D",
+          "text": "It prevents any change from happening.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a key part of active listening?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Thinking about what you’ll say next while the other person talks."
+        },
+        {
+          "letter": "B",
+          "text": "Focusing fully on the speaker without distractions."
+        },
+        {
+          "letter": "C",
+          "text": "Interrupting to share your own story."
+        },
+        {
+          "letter": "D",
+          "text": "Looking away to avoid making things awkward.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does empathy help during a challenging situation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows you to ignore someone’s feelings."
+        },
+        {
+          "letter": "B",
+          "text": "It helps you understand how others feel and builds stronger connections."
+        },
+        {
+          "letter": "C",
+          "text": "It makes you focus only on your own problems."
+        },
+        {
+          "letter": "D",
+          "text": "It stops you from having to listen to others.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is an effective way to express your needs or concerns in an uncertain situation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Using “I” statements to focus on your feelings without blaming others."
+        },
+        {
+          "letter": "B",
+          "text": "Yelling to make sure you’re heard."
+        },
+        {
+          "letter": "C",
+          "text": "Staying silent and hoping the issue goes away."
+        },
+        {
+          "letter": "D",
+          "text": "Complaining without suggesting any solutions.Correct Answer:A"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Which of the following is a benefit of expressing needs and concerns effectively?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees everyone will agree with you."
+        },
+        {
+          "letter": "B",
+          "text": "It prevents any conflict from ever happening."
+        },
+        {
+          "letter": "C",
+          "text": "It helps get your needs met and encourages collaboration."
+        },
+        {
+          "letter": "D",
+          "text": "It makes others stop talking to you.Correct Answer:C"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

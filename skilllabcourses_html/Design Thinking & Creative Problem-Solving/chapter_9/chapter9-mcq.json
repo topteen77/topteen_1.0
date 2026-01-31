@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What does \"scaling up\" mean in the context of Design Thinking for community and global issues?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Focusing only on personal problems like study stress."
+        },
+        {
+          "letter": "B",
+          "text": "Applying Design Thinking to larger issues that affect more people beyond your immediate circle."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring community problems to focus on global challenges."
+        },
+        {
+          "letter": "D",
+          "text": "Solving problems without using the Design Thinking stages.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a key step in identifying local community needs using Design Thinking?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Avoiding conversations with community members to save time."
+        },
+        {
+          "letter": "B",
+          "text": "Observing your surroundings and empathizing with residents about issues like accessibility or the environment."
+        },
+        {
+          "letter": "C",
+          "text": "Focusing only on global issues instead of local ones."
+        },
+        {
+          "letter": "D",
+          "text": "Waiting for someone else to point out community problems.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can high school students connect global issues like sustainability to their local area using Design Thinking?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By ignoring local problems and focusing only on worldwide challenges."
+        },
+        {
+          "letter": "B",
+          "text": "By identifying how a global issue, like plastic waste, shows up locally and taking small actions to address it."
+        },
+        {
+          "letter": "C",
+          "text": "By assuming global issues don’t affect their community."
+        },
+        {
+          "letter": "D",
+          "text": "By waiting for adults to solve global problems.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is partnering with community members important when using Design Thinking for community issues?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They can provide valuable insights, resources, and support to strengthen your solutions."
+        },
+        {
+          "letter": "B",
+          "text": "They will solve the problem for you without any input."
+        },
+        {
+          "letter": "C",
+          "text": "They are not affected by the issues you’re trying to address."
+        },
+        {
+          "letter": "D",
+          "text": "They always disagree with student ideas.Answer: A"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a strategy for designing solutions with limited resources using Design Thinking?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Waiting for a large budget before starting any project."
+        },
+        {
+          "letter": "B",
+          "text": "Focusing on low-cost ideas and leveraging people power or available resources to create impact."
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding testing small versions of your idea to save time."
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring partnerships to work alone on solutions.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "How does applying Design Thinking to community and global issues benefit high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It limits their focus to only personal challenges."
+        },
+        {
+          "letter": "B",
+          "text": "It builds skills like problem-solving, teamwork, and creativity for college, careers, and life."
+        },
+        {
+          "letter": "C",
+          "text": "It makes community issues more complicated to solve."
+        },
+        {
+          "letter": "D",
+          "text": "It discourages students from thinking about global challenges.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

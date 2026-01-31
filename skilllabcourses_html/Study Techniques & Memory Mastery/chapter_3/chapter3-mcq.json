@@ -1,0 +1,144 @@
+{
+  "title": "Questions Generated:",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary goal of active learning strategies?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To memorize facts quickly for short-term recall"
+        },
+        {
+          "letter": "B",
+          "text": "To engage with material for deeper understanding and retention"
+        },
+        {
+          "letter": "C",
+          "text": "To read as many chapters as possible in one sitting"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid asking questions during study sessions"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is a key step in the summarizing technique?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Copying sentences directly from the textbook"
+        },
+        {
+          "letter": "B",
+          "text": "Reading a section and then writing main ideas in your own words"
+        },
+        {
+          "letter": "C",
+          "text": "Highlighting every line without reflection"
+        },
+        {
+          "letter": "D",
+          "text": "Skipping difficult sections to save time"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does the questioning technique benefit students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps avoid thinking about complex topics"
+        },
+        {
+          "letter": "B",
+          "text": "It encourages curiosity and uncovers gaps in knowledge"
+        },
+        {
+          "letter": "C",
+          "text": "It reduces the need to review material"
+        },
+        {
+          "letter": "D",
+          "text": "It focuses only on memorizing answers"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a major advantage of teaching others as an active learning strategy?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows you to avoid studying difficult topics"
+        },
+        {
+          "letter": "B",
+          "text": "It reinforces your understanding by explaining concepts clearly"
+        },
+        {
+          "letter": "C",
+          "text": "It requires no preparation or prior knowledge"
+        },
+        {
+          "letter": "D",
+          "text": "It is only effective in large group settings"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why is active engagement more effective than passive reading for retention?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It involves less effort and time during study sessions"
+        },
+        {
+          "letter": "B",
+          "text": "It creates stronger memory through repeated mental processing"
+        },
+        {
+          "letter": "C",
+          "text": "It focuses solely on surface-level facts for quick learning"
+        },
+        {
+          "letter": "D",
+          "text": "It eliminates the need for critical thinking skills"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a practical tip for overcoming the challenge of feeling uncomfortable while teaching others?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Avoid teaching and focus only on reading"
+        },
+        {
+          "letter": "B",
+          "text": "Start by explaining concepts out loud to yourself or in small, supportive settings"
+        },
+        {
+          "letter": "C",
+          "text": "Only teach in large groups to build confidence quickly"
+        },
+        {
+          "letter": "D",
+          "text": "Ignore feedback from others to stay focused"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

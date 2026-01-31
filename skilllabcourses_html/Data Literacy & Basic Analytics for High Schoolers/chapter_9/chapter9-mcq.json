@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the first step in planning a Capstone Project, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Creating a colourful presentation for your class"
+        },
+        {
+          "letter": "B",
+          "text": "Choosing a topic of personal interest, like sports stats or environmental data"
+        },
+        {
+          "letter": "C",
+          "text": "Collecting data without a clear goal"
+        },
+        {
+          "letter": "D",
+          "text": "Sharing your findings on social mediaCorrect Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is the purpose of defining a problem statement and objectives for your project?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make the project look more professional with big words"
+        },
+        {
+          "letter": "B",
+          "text": "To keep your project focused by clearly stating the issue and specific goals"
+        },
+        {
+          "letter": "C",
+          "text": "To confuse your classmates with complicated ideas"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid collecting any data for the projectCorrect Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is an example of collecting and organizing data for a Capstone Project?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Guessing the results without any information"
+        },
+        {
+          "letter": "B",
+          "text": "Tracking your screen time for a week and entering it into a table in Google Sheets"
+        },
+        {
+          "letter": "C",
+          "text": "Drawing random pictures instead of using data"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring data and writing a fictional storyCorrect Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is creating visualizations, like charts or graphs, important for your project?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They make your project look pretty but don’t add any value"
+        },
+        {
+          "letter": "B",
+          "text": "They help others understand your data findings quickly and clearly"
+        },
+        {
+          "letter": "C",
+          "text": "They are only useful for art class, not data projects"
+        },
+        {
+          "letter": "D",
+          "text": "They replace the need to explain your project in wordsCorrect Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What should you include when presenting your Capstone Project to peers?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Only the parts that didn’t work, to get sympathy"
+        },
+        {
+          "letter": "B",
+          "text": "Your topic, key findings, visualizations, and a recommendation based on your data"
+        },
+        {
+          "letter": "C",
+          "text": "A long speech with no visuals or data insights"
+        },
+        {
+          "letter": "D",
+          "text": "Only the data collection process, without any conclusionsCorrect Answer:B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

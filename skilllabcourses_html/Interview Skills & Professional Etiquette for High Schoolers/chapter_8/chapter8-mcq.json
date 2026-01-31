@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "During a group interview for a summer job at a local store, your team is tasked with creating a quick marketing plan. You have a great idea for a social media campaign, but you notice others are hesitant to speak up. What is the best way to contribute while being a team player?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Explain your idea in detail and insist the group uses it since it’s the best option."
+        },
+        {
+          "letter": "B",
+          "text": "Share your idea briefly and invite input by saying, “I think a social media campaign could work—what do you all think, or do you have other ideas?”"
+        },
+        {
+          "letter": "C",
+          "text": "Stay quiet and let others take the lead, even if it means not sharing your idea at all."
+        },
+        {
+          "letter": "D",
+          "text": "Tell the group you’ll handle the marketing plan alone since no one else is contributing."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Share your idea briefly and invite input by saying, “I think a social media campaign could work—what do you all think, or do you have other ideas?”"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "In a group project for history class, a teammate suggests focusing on a holiday from their culture that you’ve never heard of. Some group members seem unsure about including it. What’s the most respectful and inclusive way to respond?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Say, “That’s interesting, but let’s stick to something more common that everyone knows.”"
+        },
+        {
+          "letter": "B",
+          "text": "Ask, “That sounds unique! Can you tell us more about it so we can see how to include it in our project?”"
+        },
+        {
+          "letter": "C",
+          "text": "Ignore the suggestion and move on to another topic to avoid any awkwardness."
+        },
+        {
+          "letter": "D",
+          "text": "Tell them, “We don’t have time to learn about that—let’s pick something easier.”"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Ask, “That sounds unique! Can you tell us more about it so we can see how to include it in our project?”"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "During a group project for science class, you and a teammate disagree on how to split the workload. They want to do less because they’re busy, but you feel it’s unfair. How should you handle this conflict professionally?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Say, “That’s not fair, you’re just being lazy,” and demand they do more."
+        },
+        {
+          "letter": "B",
+          "text": "Use an “I” statement like, “I feel worried about the balance of work—can we discuss a way that feels fair to everyone?”"
+        },
+        {
+          "letter": "C",
+          "text": "Ignore the issue and do their share of the work yourself to avoid a fight."
+        },
+        {
+          "letter": "D",
+          "text": "Tell the teacher immediately without talking to your teammate first."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Use an “I” statement like, “I feel worried about the balance of work—can we discuss a way that feels fair to everyone?”"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "In a club meeting, your team is planning a fundraiser, and ideas are all over the place with no clear direction. What’s the best way to show teamwork and leadership while helping the group focus?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Take over the meeting and decide on a plan yourself since no one else is stepping up."
+        },
+        {
+          "letter": "B",
+          "text": "Suggest, “Let’s take turns sharing one idea each and then vote on the top two to focus on—does that work?”"
+        },
+        {
+          "letter": "C",
+          "text": "Stay silent and wait for someone else to organize the group, even if it takes longer."
+        },
+        {
+          "letter": "D",
+          "text": "Criticize the group for being disorganized and tell them to get it together."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Suggest, “Let’s take turns sharing one idea each and then vote on the top two to focus on—does that work?”"
+      }
+    }
+  ],
+  "total_questions": 4
+}

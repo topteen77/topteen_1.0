@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What makes time a unique resource compared to other assets like money or possessions?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Time can be saved for future use."
+        },
+        {
+          "letter": "B",
+          "text": "Time is infinite and always available."
+        },
+        {
+          "letter": "C",
+          "text": "Time is finite and cannot be replaced once spent."
+        },
+        {
+          "letter": "D",
+          "text": "Time can be shared with others easily.Correct Answer:c) Time is finite and cannot be replaced once spent."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How does the chapter suggest thinking about time to better understand its value?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "As a tool that can be borrowed."
+        },
+        {
+          "letter": "B",
+          "text": "As a currency you invest in activities."
+        },
+        {
+          "letter": "C",
+          "text": "As a reward for hard work."
+        },
+        {
+          "letter": "D",
+          "text": "As something that grows with age.Correct Answer:b) As a currency you invest in activities."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "According to the chapter, how does time impact academic performance for high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It has no effect since grades depend only on intelligence."
+        },
+        {
+          "letter": "B",
+          "text": "It determines how well students can prepare for exams and complete assignments."
+        },
+        {
+          "letter": "C",
+          "text": "It only affects students who are in extracurricular activities."
+        },
+        {
+          "letter": "D",
+          "text": "It impacts only the amount of time spent in class.Correct Answer:b) It determines how well students can prepare for exams and complete assignments."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is one way poor time management can affect a student’s personal life, as mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It can lead to better focus on hobbies."
+        },
+        {
+          "letter": "B",
+          "text": "It can improve relationships with teachers."
+        },
+        {
+          "letter": "C",
+          "text": "It can strain relationships with family and friends due to being “too busy.”"
+        },
+        {
+          "letter": "D",
+          "text": "It can create more time for relaxation.Correct Answer:c) It can strain relationships with family and friends due to being “too busy.”"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a key benefit of effective time management for high school students, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees higher test scores without studying."
+        },
+        {
+          "letter": "B",
+          "text": "It reduces stress by providing a sense of control over tasks."
+        },
+        {
+          "letter": "C",
+          "text": "It eliminates the need for sleep and self-care."
+        },
+        {
+          "letter": "D",
+          "text": "It ensures students never have to prioritize tasks.Correct Answer:b) It reduces stress by providing a sense of control over tasks."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "How does the chapter suggest effective time management prepares students for the future?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps them avoid all responsibilities."
+        },
+        {
+          "letter": "B",
+          "text": "It builds skills like discipline and prioritization valued in college and careers."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures they never face challenges."
+        },
+        {
+          "letter": "D",
+          "text": "It teaches them to rely only on digital tools.Correct Answer:b) It builds skills like discipline and prioritization valued in college and careers."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

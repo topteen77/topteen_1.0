@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of building a personal goal system, as discussed in Chapter 10?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To impress teachers and peers with complex planning tools"
+        },
+        {
+          "letter": "B",
+          "text": "To create a repeatable, personalized process for setting and achieving goals that fits your lifestyle"
+        },
+        {
+          "letter": "C",
+          "text": "To focus only on academic goals without considering other life areas"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid reflecting on progress and focus solely on future tasksCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "According to Chapter 10, what is a key benefit of conducting an annual goal review?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows you to ignore past mistakes and only set new goals"
+        },
+        {
+          "letter": "B",
+          "text": "It helps you reflect on wins and setbacks, celebrate progress, and reset for the year ahead"
+        },
+        {
+          "letter": "C",
+          "text": "It focuses only on failures to ensure you don’t repeat them"
+        },
+        {
+          "letter": "D",
+          "text": "It eliminates the need to adapt goals to changing circumstancesCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a crucial step in adapting goals to a changing world, as outlined in Chapter 10?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Sticking to the original plan no matter the circumstances"
+        },
+        {
+          "letter": "B",
+          "text": "Assessing the core idea of your goal and brainstorming new ways to achieve it when faced with change"
+        },
+        {
+          "letter": "C",
+          "text": "Abandoning all goals when unexpected challenges arise"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring external changes and focusing only on personal effortCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is becoming a goal mentor important, according to Chapter 10?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows you to control others’ goals and decisions"
+        },
+        {
+          "letter": "B",
+          "text": "It reinforces your own goal-setting skills, builds leadership, and helps others succeed"
+        },
+        {
+          "letter": "C",
+          "text": "It focuses only on teaching complex systems that others may not understand"
+        },
+        {
+          "letter": "D",
+          "text": "It is solely about gaining recognition for your achievementsCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

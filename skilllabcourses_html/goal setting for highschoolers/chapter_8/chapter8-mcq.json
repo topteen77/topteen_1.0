@@ -1,0 +1,98 @@
+{
+  "title": "MCQ Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main purpose of Week 1: Assessment &amp; Goal Selection in the 4-week launch plan?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To start taking action on your goals immediately"
+        },
+        {
+          "letter": "B",
+          "text": "To evaluate your strengths, weaknesses, and schedule to choose 1-3 realistic goals"
+        },
+        {
+          "letter": "C",
+          "text": "To create a detailed 90-day plan for long-term success"
+        },
+        {
+          "letter": "D",
+          "text": "To celebrate early wins and adjust your action planCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is breaking down goals into weekly actions during Week 2 important for high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes goals feel less intimidating and fits progress into a busy schedule"
+        },
+        {
+          "letter": "B",
+          "text": "It ensures you complete all goals within one week"
+        },
+        {
+          "letter": "C",
+          "text": "It helps you avoid having a support system for accountability"
+        },
+        {
+          "letter": "D",
+          "text": "It focuses only on long-term 90-day planningCorrect Answer: A"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a key benefit of tracking and adjusting in real-time during Week 3?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows you to set new goals every day without a plan"
+        },
+        {
+          "letter": "B",
+          "text": "It helps you identify issues early and make changes before getting derailed"
+        },
+        {
+          "letter": "C",
+          "text": "It focuses solely on celebrating wins without reviewing progress"
+        },
+        {
+          "letter": "D",
+          "text": "It encourages skipping actions if they are too hardCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is the primary focus of the 90-Day Goal Achievement Plan as the final project of Chapter 8?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To review and celebrate only the past 4 weeks’ achievements"
+        },
+        {
+          "letter": "B",
+          "text": "To create a short-term plan for the next week of actions"
+        },
+        {
+          "letter": "C",
+          "text": "To extend the 4-week launch into a 3-month vision with monthly milestones"
+        },
+        {
+          "letter": "D",
+          "text": "To focus on selecting new focus areas without specific goalsCorrect Answer: C"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

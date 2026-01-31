@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of \"game mechanics\" in game design?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To create the background music for the game"
+        },
+        {
+          "letter": "B",
+          "text": "To define the rules and systems that make the game function"
+        },
+        {
+          "letter": "C",
+          "text": "To design the visual art and characters"
+        },
+        {
+          "letter": "D",
+          "text": "To write the storyline of the game"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To define the rules and systems that make the game function"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is a key difference between 2D and 3D game development?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "2D games always have better graphics than 3D games"
+        },
+        {
+          "letter": "B",
+          "text": "3D games include depth and allow movement in all directions, while 2D games are flat"
+        },
+        {
+          "letter": "C",
+          "text": "2D games require more powerful computers than 3D games"
+        },
+        {
+          "letter": "D",
+          "text": "3D games cannot be made with free tools like Unity"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "3D games include depth and allow movement in all directions, while 2D games are flat"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does Augmented Reality (AR) differ from Virtual Reality (VR)?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "AR fully immerses you in a digital world with a headset, while VR uses a phone screen"
+        },
+        {
+          "letter": "B",
+          "text": "AR overlays digital elements onto the real world, while VR creates a completely virtual environment"
+        },
+        {
+          "letter": "C",
+          "text": "VR is only used for gaming, while AR is only for education"
+        },
+        {
+          "letter": "D",
+          "text": "AR requires no technology, while VR needs expensive equipment"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "AR overlays digital elements onto the real world, while VR creates a completely virtual environment"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key advantage of using Scratch for beginner game developers?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It requires advanced coding knowledge in C#"
+        },
+        {
+          "letter": "B",
+          "text": "It allows for drag-and-drop coding without typing complex code"
+        },
+        {
+          "letter": "C",
+          "text": "It is only used for creating 3D games and VR experiences"
+        },
+        {
+          "letter": "D",
+          "text": "It is a paid tool with professional-grade features"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It allows for drag-and-drop coding without typing complex code"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "When designing a simple game as part of a hands-on activity, what is an important step to ensure the game is playable?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Focus only on creating detailed graphics before testing"
+        },
+        {
+          "letter": "B",
+          "text": "Test and tweak the game to balance difficulty and fix bugs"
+        },
+        {
+          "letter": "C",
+          "text": "Make the game as complex as possible to impress others"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid sharing the game with peers for feedback"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Test and tweak the game to balance difficulty and fix bugs"
+      }
+    }
+  ],
+  "total_questions": 5
+}

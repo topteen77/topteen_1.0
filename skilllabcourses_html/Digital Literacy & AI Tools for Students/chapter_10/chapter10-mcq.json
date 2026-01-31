@@ -1,0 +1,190 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to Section 1, what is the primary reason for choosing a specific high school issue to solve for your capstone project?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To impress teachers with a complex problem"
+        },
+        {
+          "letter": "B",
+          "text": "To ensure the project is meaningful and relevant, increasing its potential impact"
+        },
+        {
+          "letter": "C",
+          "text": "To focus only on issues that affect the entire school population"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid using technology for smaller challengesCorrect Answer: B) To ensure the project is meaningful and relevant, increasing its potential impact"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Based on Section 2, what is a key purpose of using digital or AI tools to create a solution for a high school challenge?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To demonstrate advanced coding skills even if unnecessary"
+        },
+        {
+          "letter": "B",
+          "text": "To provide efficiency, scalability, and personalization in addressing the issue"
+        },
+        {
+          "letter": "C",
+          "text": "To replace all traditional methods without considering their benefits"
+        },
+        {
+          "letter": "D",
+          "text": "To focus solely on expensive tools for professional resultsCorrect Answer: B) To provide efficiency, scalability, and personalization in addressing the issue"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is an important consideration when thinking about the ethical use of a tech tool, as discussed in Section 3?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring potential risks to focus only on benefits"
+        },
+        {
+          "letter": "B",
+          "text": "Identifying both right and wrong ways to use the tool to avoid harm or misuse"
+        },
+        {
+          "letter": "C",
+          "text": "Ensuring the tool is used only by tech experts"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding any discussion of privacy concerns to simplify the projectCorrect Answer: B) Identifying both right and wrong ways to use the tool to avoid harm or misuse"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "In Section 4, what is a recommended strategy for preparing an effective presentation of your tech solution to classmates?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Including as much technical jargon as possible to sound knowledgeable"
+        },
+        {
+          "letter": "B",
+          "text": "Structuring the talk into concise parts like introduction, solution overview, ethical use, and conclusion"
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding visuals to focus entirely on spoken explanations"
+        },
+        {
+          "letter": "D",
+          "text": "Speaking as quickly as possible to cover all details in under a minuteCorrect Answer: B) Structuring the talk into concise parts like introduction, solution overview, ethical use, and conclusion"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "According to Section 5, why is it important to set goals for improving tech skills before graduation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To guarantee immediate job offers after high school"
+        },
+        {
+          "letter": "B",
+          "text": "To stay adaptable and prepared for college, careers, and a tech-driven world"
+        },
+        {
+          "letter": "C",
+          "text": "To focus only on skills unrelated to the capstone project"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid learning new tools after high school endsCorrect Answer: B) To stay adaptable and prepared for college, careers, and a tech-driven world"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a suggested approach in Section 2 for creating a tech solution if you lack advanced coding skills?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Abandoning the project due to lack of expertise"
+        },
+        {
+          "letter": "B",
+          "text": "Focusing on a conceptual mockup or detailed plan using accessible tools like Canva or Google Docs"
+        },
+        {
+          "letter": "C",
+          "text": "Hiring a professional to build the solution for you"
+        },
+        {
+          "letter": "D",
+          "text": "Using only paid software to ensure quality resultsCorrect Answer: B) Focusing on a conceptual mockup or detailed plan using accessible tools like Canva or Google Docs"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 7,
+      "question_text": "As highlighted in Section 3, what is a potential “wrong way” to use a study schedule app that could undermine its purpose?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Setting realistic daily goals to stay on track"
+        },
+        {
+          "letter": "B",
+          "text": "Overloading it with unrealistic tasks, causing more stress than organization"
+        },
+        {
+          "letter": "C",
+          "text": "Checking it briefly each morning for updates"
+        },
+        {
+          "letter": "D",
+          "text": "Using color-coding to differentiate subjectsCorrect Answer: B) Overloading it with unrealistic tasks, causing more stress than organization"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 8,
+      "question_text": "What is a key benefit of sharing your tech solution idea with classmates, as discussed in Section 4?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees everyone will adopt your solution immediately"
+        },
+        {
+          "letter": "B",
+          "text": "It allows you to gain feedback, learn from peers, and build confidence in public speaking"
+        },
+        {
+          "letter": "C",
+          "text": "It eliminates the need to refine your project further"
+        },
+        {
+          "letter": "D",
+          "text": "It focuses only on competing with other students’ ideasCorrect Answer: B) It allows you to gain feedback, learn from peers, and build confidence in public speaking"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 8
+}

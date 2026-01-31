@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to the chapter, why are rehearsal techniques important for high school students preparing for a speech?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They allow students to avoid practicing altogether"
+        },
+        {
+          "letter": "B",
+          "text": "They help improve fluency, confidence, and delivery through structured practice, ensuring a smoother performance"
+        },
+        {
+          "letter": "C",
+          "text": "They focus only on memorizing lines without considering delivery"
+        },
+        {
+          "letter": "D",
+          "text": "They are unnecessary if a student is naturally confidentCorrect Answer:B. They help improve fluency, confidence, and delivery through structured practice, ensuring a smoother performance"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What does the chapter suggest as a key benefit of recording and self-review when polishing speech delivery?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows students to avoid feedback from others"
+        },
+        {
+          "letter": "B",
+          "text": "It provides an outside perspective to spot strengths and areas for improvement, like filler words or gestures"
+        },
+        {
+          "letter": "C",
+          "text": "It is only useful for professional speakers, not students"
+        },
+        {
+          "letter": "D",
+          "text": "It discourages students by focusing only on flawsCorrect Answer:B. It provides an outside perspective to spot strengths and areas for improvement, like filler words or gestures"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does the chapter recommend structuring peer feedback sessions to make them effective?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By only giving negative feedback to highlight mistakes"
+        },
+        {
+          "letter": "B",
+          "text": "By using a feedback sandwich—starting with a positive, suggesting a fix, and ending with praise—to balance encouragement and improvement"
+        },
+        {
+          "letter": "C",
+          "text": "By avoiding specific suggestions to keep things vague"
+        },
+        {
+          "letter": "D",
+          "text": "By refusing to accept feedback to maintain confidenceCorrect Answer:B. By using a feedback sandwich—starting with a positive, suggesting a fix, and ending with praise—to balance encouragement and improvement"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a primary focus of time management in speech delivery, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Speaking as quickly as possible to finish early"
+        },
+        {
+          "letter": "B",
+          "text": "Staying within time limits by pacing content and editing for efficiency, ensuring key points are covered without rushing or dragging"
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring time limits to include all possible details"
+        },
+        {
+          "letter": "D",
+          "text": "Adding extra stories to fill time even if irrelevantCorrect Answer:B. Staying within time limits by pacing content and editing for efficiency, ensuring key points are covered without rushing or dragging"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a common challenge teens face with peer feedback sessions, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Always receiving perfect feedback without effort"
+        },
+        {
+          "letter": "B",
+          "text": "Feeling fear of criticism or taking feedback personally, which can hinder participation or growth"
+        },
+        {
+          "letter": "C",
+          "text": "Never having peers available to practice with"
+        },
+        {
+          "letter": "D",
+          "text": "Finding feedback sessions too easy to organize and useCorrect Answer:B. Feeling fear of criticism or taking feedback personally, which can hinder participation or growth"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

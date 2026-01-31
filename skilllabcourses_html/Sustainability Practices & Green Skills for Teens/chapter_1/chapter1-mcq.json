@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary goal of sustainability?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To use up all resources as quickly as possible for economic growth"
+        },
+        {
+          "letter": "B",
+          "text": "To meet current needs without compromising the ability of future generations to meet theirs"
+        },
+        {
+          "letter": "C",
+          "text": "To focus only on environmental protection and ignore social needs"
+        },
+        {
+          "letter": "D",
+          "text": "To increase pollution to support industrial developmentCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is NOT one of the three pillars of sustainability?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Environmental Sustainability"
+        },
+        {
+          "letter": "B",
+          "text": "Social Sustainability"
+        },
+        {
+          "letter": "C",
+          "text": "Technological Sustainability"
+        },
+        {
+          "letter": "D",
+          "text": "Economic SustainabilityCorrect Answer: C"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is sustainability especially important for teens?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Teens are the only ones who can solve environmental problems"
+        },
+        {
+          "letter": "B",
+          "text": "Teens will inherit the future impacted by today’s environmental issues"
+        },
+        {
+          "letter": "C",
+          "text": "Teens are not affected by sustainability challenges"
+        },
+        {
+          "letter": "D",
+          "text": "Teens have no role in creating change for the environmentCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which of the following is an example of a global environmental challenge mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Lack of social media awareness"
+        },
+        {
+          "letter": "B",
+          "text": "Deforestation in the Amazon rainforest"
+        },
+        {
+          "letter": "C",
+          "text": "Increase in school homework"
+        },
+        {
+          "letter": "D",
+          "text": "Development of new video gamesCorrect Answer: B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

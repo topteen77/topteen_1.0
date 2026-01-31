@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of cyber security?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make the internet faster for users"
+        },
+        {
+          "letter": "B",
+          "text": "To protect devices, data, and online accounts from digital threats"
+        },
+        {
+          "letter": "C",
+          "text": "To create new social media platforms"
+        },
+        {
+          "letter": "D",
+          "text": "To design better video games"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To protect devices, data, and online accounts from digital threats"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is digital safety especially important for teens in their everyday life?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Teens spend a lot of time online, increasing their exposure to risks"
+        },
+        {
+          "letter": "B",
+          "text": "Teens don’t use the internet as much as adults"
+        },
+        {
+          "letter": "C",
+          "text": "Teens are not allowed to use social media"
+        },
+        {
+          "letter": "D",
+          "text": "Digital safety only matters for schoolwork"
+        }
+      ],
+      "correct_answer": {
+        "letter": "A",
+        "text": "Teens spend a lot of time online, increasing their exposure to risks"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is an example of a common digital risk?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Using a strong password for your accounts"
+        },
+        {
+          "letter": "B",
+          "text": "Clicking on a fake email link that asks for your login details"
+        },
+        {
+          "letter": "C",
+          "text": "Updating your device software regularly"
+        },
+        {
+          "letter": "D",
+          "text": "Sharing only with trusted friends on social media"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Clicking on a fake email link that asks for your login details"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a specific cyber threat that often targets teenagers on social media?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Updating privacy settings"
+        },
+        {
+          "letter": "B",
+          "text": "Cyberbullying through mean comments or rumors"
+        },
+        {
+          "letter": "C",
+          "text": "Using two-factor authentication"
+        },
+        {
+          "letter": "D",
+          "text": "Posting only educational content"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Cyberbullying through mean comments or rumors"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What can happen if you overshare personal information on social media as a teen?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Your account becomes more popular"
+        },
+        {
+          "letter": "B",
+          "text": "Strangers might track you or misuse your information"
+        },
+        {
+          "letter": "C",
+          "text": "Your privacy settings automatically improve"
+        },
+        {
+          "letter": "D",
+          "text": "You get more followers instantly"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Strangers might track you or misuse your information"
+      }
+    }
+  ],
+  "total_questions": 5
+}

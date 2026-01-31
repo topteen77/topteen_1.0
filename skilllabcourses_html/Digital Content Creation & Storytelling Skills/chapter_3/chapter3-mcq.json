@@ -1,0 +1,124 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main advantage of using a smartphone for photography compared to a DSLR camera?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Smartphones always produce higher quality images than DSLRs"
+        },
+        {
+          "letter": "B",
+          "text": "Smartphones are more expensive but have better lenses"
+        },
+        {
+          "letter": "C",
+          "text": "Smartphones are portable, always with you, and have easy-to-use features like portrait mode"
+        },
+        {
+          "letter": "D",
+          "text": "Smartphones allow for more manual control over settings than DSLRs"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Smartphones are portable, always with you, and have easy-to-use features like portrait mode"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What does the \"Rule of Thirds\" composition technique suggest for creating a balanced photo?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Place the subject in the exact center of the frame"
+        },
+        {
+          "letter": "B",
+          "text": "Place the subject along the lines or intersections of an imaginary 3x3 grid"
+        },
+        {
+          "letter": "C",
+          "text": "Always shoot from a low angle to make the subject look bigger"
+        },
+        {
+          "letter": "D",
+          "text": "Fill the entire frame with the subject to avoid empty space"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Place the subject along the lines or intersections of an imaginary 3x3 grid"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "When is the best time to shoot photos using natural light for a warm, flattering glow?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Midday when the sun is directly overhead"
+        },
+        {
+          "letter": "B",
+          "text": "Late at night using moonlight"
+        },
+        {
+          "letter": "C",
+          "text": "During golden hour, just after sunrise or before sunset"
+        },
+        {
+          "letter": "D",
+          "text": "On a completely overcast day with no visible sun"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "During golden hour, just after sunrise or before sunset"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which photo editing app is best suited for adding text and graphics to images, such as for YouTube thumbnails or Instagram Stories?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Lightroom"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Canva"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why is creating a consistent visual style important for your digital content?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes your content look boring and predictable"
+        },
+        {
+          "letter": "B",
+          "text": "It helps your content become instantly recognizable to followers and builds your brand identity"
+        },
+        {
+          "letter": "C",
+          "text": "It ensures all your photos are taken with the same camera"
+        },
+        {
+          "letter": "D",
+          "text": "It prevents you from experimenting with new photography techniques"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It helps your content become instantly recognizable to followers and builds your brand identity"
+      }
+    }
+  ],
+  "total_questions": 5
+}

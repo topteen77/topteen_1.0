@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary definition of conflict as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A physical fight between two or more people"
+        },
+        {
+          "letter": "B",
+          "text": "A disagreement or clash between differing opinions, needs, or goals"
+        },
+        {
+          "letter": "C",
+          "text": "A situation where someone always wins and another loses"
+        },
+        {
+          "letter": "D",
+          "text": "An unnatural occurrence that should be avoided at all costsCorrect Answer:B) A disagreement or clash between differing opinions, needs, or goals"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is conflict considered a natural part of relationships according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It shows that people don’t care about each other"
+        },
+        {
+          "letter": "B",
+          "text": "It happens because no two people will always have the same views or needs"
+        },
+        {
+          "letter": "C",
+          "text": "It only occurs in unhealthy relationships"
+        },
+        {
+          "letter": "D",
+          "text": "It prevents relationships from growing strongerCorrect Answer:B) It happens because no two people will always have the same views or needs"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is an example of an internal conflict as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Arguing with a friend over weekend plans"
+        },
+        {
+          "letter": "B",
+          "text": "Disagreeing with parents about curfew rules"
+        },
+        {
+          "letter": "C",
+          "text": "Feeling torn between joining a new club or staying with a sports team"
+        },
+        {
+          "letter": "D",
+          "text": "Having a dispute in a group chat over a misinterpreted commentCorrect Answer:C) Feeling torn between joining a new club or staying with a sports team"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a common cause of conflict among teens highlighted in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Lack of interest in social activities"
+        },
+        {
+          "letter": "B",
+          "text": "Miscommunication, especially over text or social media"
+        },
+        {
+          "letter": "C",
+          "text": "Always agreeing with peers and family"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding emotional discussionsCorrect Answer:B) Miscommunication, especially over text or social media"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "How can emotions escalate a conflict, based on the chapter’s discussion?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By encouraging calm and thoughtful responses"
+        },
+        {
+          "letter": "B",
+          "text": "By causing someone to use “I” statements to express feelings"
+        },
+        {
+          "letter": "C",
+          "text": "By leading to impulsive reactions like blaming or yelling"
+        },
+        {
+          "letter": "D",
+          "text": "By helping both parties understand each other’s perspectivesCorrect Answer:C) By leading to impulsive reactions like blaming or yelling"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is an effective way to recognize and manage emotional triggers during a disagreement, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring your feelings to avoid making the situation worse"
+        },
+        {
+          "letter": "B",
+          "text": "Reflecting on past conflicts to identify patterns that provoke strong emotions"
+        },
+        {
+          "letter": "C",
+          "text": "Immediately confronting the other person about their behavior"
+        },
+        {
+          "letter": "D",
+          "text": "Pretending the trigger doesn’t exist to keep the peaceCorrect Answer:B) Reflecting on past conflicts to identify patterns that provoke strong emotions"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

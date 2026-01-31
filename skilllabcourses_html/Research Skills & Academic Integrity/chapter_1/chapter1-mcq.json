@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of research as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To randomly search for information on the internet without a plan"
+        },
+        {
+          "letter": "B",
+          "text": "To ask questions and hunt for answers in a structured, curious way"
+        },
+        {
+          "letter": "C",
+          "text": "To copy information directly from books for school projects"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid asking questions and rely only on personal opinions"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To ask questions and hunt for answers in a structured, curious way"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is an example of primary research according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Reading an article on the history of the Indian Freedom Struggle on IndiaHistory.com"
+        },
+        {
+          "letter": "B",
+          "text": "Watching a YouTube documentary about gaming trends in India"
+        },
+        {
+          "letter": "C",
+          "text": "Surveying 15 classmates about their stress levels before exams using a Google Form"
+        },
+        {
+          "letter": "D",
+          "text": "Checking NCERT.org for timelines of historical events"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Surveying 15 classmates about their stress levels before exams using a Google Form"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can research skills help in everyday life decisions as mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By helping you guess the best option without any data"
+        },
+        {
+          "letter": "B",
+          "text": "By enabling you to compare prices and reviews before buying a phone worth ₹20,000 (approx. $240)"
+        },
+        {
+          "letter": "C",
+          "text": "By ensuring you always agree with your friends’ opinions"
+        },
+        {
+          "letter": "D",
+          "text": "By avoiding the need to check facts or information"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "By enabling you to compare prices and reviews before buying a phone worth ₹20,000 (approx. $240)"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which step of the research process involves spotting patterns or surprises in the collected data?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Identify Your Question or Topic"
+        },
+        {
+          "letter": "B",
+          "text": "Plan Your Approach"
+        },
+        {
+          "letter": "C",
+          "text": "Gather Information"
+        },
+        {
+          "letter": "D",
+          "text": "Analyze Your Findings"
+        }
+      ],
+      "correct_answer": {
+        "letter": "D",
+        "text": "Analyze Your Findings"
+      }
+    }
+  ],
+  "total_questions": 4
+}

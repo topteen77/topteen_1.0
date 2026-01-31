@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "SpeakingClearlyand ConfidentlyWhat is the primary benefit of avoiding filler words like “um” or “like” when speaking in a professional setting?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes you sound more casual and relatable."
+        },
+        {
+          "letter": "B",
+          "text": "It helps you speak faster and finish quicker."
+        },
+        {
+          "letter": "C",
+          "text": "It conveys confidence and clarity in your message."
+        },
+        {
+          "letter": "D",
+          "text": "It ensures you don’t need to pause while thinking."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "It conveys confidence and clarity in your message."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Active Listening in ConversationsWhich of the following is an example of active listening during a conversation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Checking your phone while someone is speaking to you."
+        },
+        {
+          "letter": "B",
+          "text": "Interrupting the speaker to share your own opinion."
+        },
+        {
+          "letter": "C",
+          "text": "Nodding and asking a follow-up question based on what was said."
+        },
+        {
+          "letter": "D",
+          "text": "Thinking about what you’ll say next while the other person talks."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Nodding and asking a follow-up question based on what was said."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Handling Awkward or Tough QuestionsWhen faced with a difficult question during an interview, such as “What is your biggest weakness?”, what is the most effective strategy to respond?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Avoid answering by changing the topic completely."
+        },
+        {
+          "letter": "B",
+          "text": "Admit the weakness honestly and explain how you’re working to improve it."
+        },
+        {
+          "letter": "C",
+          "text": "Say you don’t have any weaknesses to avoid seeming unprepared."
+        },
+        {
+          "letter": "D",
+          "text": "Give a long, detailed story about an unrelated success."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Admit the weakness honestly and explain how you’re working to improve it."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "General Communication SkillsWhy is maintaining an appropriate pace while speaking important in a professional or academic setting?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows you to finish your thoughts as quickly as possible."
+        },
+        {
+          "letter": "B",
+          "text": "It ensures your audience can understand and follow your ideas clearly."
+        },
+        {
+          "letter": "C",
+          "text": "It makes the conversation more exciting and dynamic."
+        },
+        {
+          "letter": "D",
+          "text": "It prevents you from needing to think about your words."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It ensures your audience can understand and follow your ideas clearly."
+      }
+    }
+  ],
+  "total_questions": 4
+}

@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "You’re struggling with a group project because one teammate isn’t doing their part. What’s the first step in solving this problem effectively?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Immediately tell the teacher to fix it for you."
+        },
+        {
+          "letter": "B",
+          "text": "Identify the specific issue, like “My teammate isn’t contributing,” and brainstorm solutions."
+        },
+        {
+          "letter": "C",
+          "text": "Ignore it and hope they start working eventually."
+        },
+        {
+          "letter": "D",
+          "text": "Confront the teammate angrily to demand they step up."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Identify the specific issue, like “My teammate isn’t contributing,” and brainstorm solutions."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "You’re deciding whether to join a new club that meets after school, but you’re already busy. What’s the best way to make an informed decision?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Flip a coin and go with whatever it lands on."
+        },
+        {
+          "letter": "B",
+          "text": "Ask your best friend what they think and do whatever they say."
+        },
+        {
+          "letter": "C",
+          "text": "Weigh the pros (new friends, fun) and cons (less free time, stress) before choosing."
+        },
+        {
+          "letter": "D",
+          "text": "Join without thinking because it sounds cool right now."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Weigh the pros (new friends, fun) and cons (less free time, stress) before choosing."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "During an argument with a friend about cancelling plans, you feel yourself getting angry. What’s the most constructive way to stay calm?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Yell louder to make your point and get it over with."
+        },
+        {
+          "letter": "B",
+          "text": "Walk away without saying anything and ignore them."
+        },
+        {
+          "letter": "C",
+          "text": "Take a deep breath, count to 5, and speak in a lower voice to discuss it."
+        },
+        {
+          "letter": "D",
+          "text": "Text someone else to complain about your friend mid-argument."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Take a deep breath, count to 5, and speak in a lower voice to discuss it."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "You and a sibling are fighting over who gets to use the family laptop tonight. What’s the best way to negotiate a win-win solution?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Insist you get it all night because you asked first."
+        },
+        {
+          "letter": "B",
+          "text": "Suggest, “I feel frustrated when I can’t finish my homework. Can we split the time—1 hour each?”"
+        },
+        {
+          "letter": "C",
+          "text": "Hide the laptop so neither of you can use it."
+        },
+        {
+          "letter": "D",
+          "text": "Let them have it but complain the whole time."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Suggest, “I feel frustrated when I can’t finish my homework. Can we split the time—1 hour each?”"
+      }
+    }
+  ],
+  "total_questions": 4
+}

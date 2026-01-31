@@ -1,0 +1,147 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What does the \"SMART\" framework for goal-setting stand for?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Simple, Motivated, Active, Realistic, Timely"
+        },
+        {
+          "letter": "B",
+          "text": "Specific, Measurable, Achievable, Relevant, Time-bound"
+        },
+        {
+          "letter": "C",
+          "text": "Strong, Manageable, Ambitious, Reliable, Targeted"
+        },
+        {
+          "letter": "D",
+          "text": "Strategic, Meaningful, Attainable, Resourceful, Timed"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Specific, Measurable, Achievable, Relevant, Time-bound"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "How can connecting emotions to goals enhance motivation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes goals easier to achieve automatically."
+        },
+        {
+          "letter": "B",
+          "text": "It helps you ignore setbacks and challenges."
+        },
+        {
+          "letter": "C",
+          "text": "It provides a personal “why” that fuels commitment and drive."
+        },
+        {
+          "letter": "D",
+          "text": "It ensures you never feel frustrated while pursuing goals."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "It provides a personal “why” that fuels commitment and drive."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which strategy is recommended in Section 2 to overcome procrastination by making starting a task less intimidating?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The 5-Minute Rule"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key time management tip tailored for teens mentioned in Section 2?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Focus on one task at a time instead of multitasking."
+        },
+        {
+          "letter": "B",
+          "text": "Spend all free time studying to avoid falling behind."
+        },
+        {
+          "letter": "C",
+          "text": "Avoid using planners as they are too restrictive."
+        },
+        {
+          "letter": "D",
+          "text": "Work on tasks only when you feel motivated."
+        }
+      ],
+      "correct_answer": {
+        "letter": "A",
+        "text": "Focus on one task at a time instead of multitasking."
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is the purpose of reframing negative thoughts, as discussed in Section 3?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To pretend challenges don’t exist and stay overly optimistic."
+        },
+        {
+          "letter": "B",
+          "text": "To replace harsh, self-critical thoughts with balanced, growth-focused ones."
+        },
+        {
+          "letter": "C",
+          "text": "To avoid thinking about personal goals altogether."
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on past successes and ignore current struggles."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To replace harsh, self-critical thoughts with balanced, growth-focused ones."
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "Which activity is suggested in Section 3 to build a habit of positivity?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Setting stricter deadlines for all tasks"
+        },
+        {
+          "letter": "B",
+          "text": "Keeping a positivity journal to record daily good things and lessons learned"
+        },
+        {
+          "letter": "C",
+          "text": "Comparing your progress with others to stay competitive"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding reflection on challenges to stay upbeat"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Keeping a positivity journal to record daily good things and lessons learned"
+      }
+    }
+  ],
+  "total_questions": 6
+}

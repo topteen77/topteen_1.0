@@ -1,0 +1,136 @@
+{
+  "title": "Quizlet: AI-Powered Study Helper",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a common example of AI that teens use every day, as mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A graphing calculator for math homework"
+        },
+        {
+          "letter": "B",
+          "text": "Siri or Google Assistant for voice commands and reminders"
+        },
+        {
+          "letter": "C",
+          "text": "A paper dictionary for looking up words"
+        },
+        {
+          "letter": "D",
+          "text": "A traditional alarm clock for waking upCorrect Answer: B) Siri or Google Assistant for voice commands and reminders"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "According to the chapter, how can AI help high school students with their writing assignments?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It writes complete essays without any student input"
+        },
+        {
+          "letter": "B",
+          "text": "It checks grammar, suggests better word choices, and improves sentence structure"
+        },
+        {
+          "letter": "C",
+          "text": "It blocks access to writing resources to prevent cheating"
+        },
+        {
+          "letter": "D",
+          "text": "It only works for math and science assignmentsCorrect Answer: B) It checks grammar, suggests better word choices, and improves sentence structure"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which AI tool mentioned in the chapter is particularly useful for studying and test preparation through personalized flashcards and quizzes?",
+      "options": [
+        {
+          "letter": "C",
+          "text": "Quizlet"
+        },
+        {
+          "letter": "C",
+          "text": "Quizlet"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is one limitation of AI highlighted in the chapter that students should be aware of when using it for schoolwork?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "AI always provides perfectly accurate information"
+        },
+        {
+          "letter": "B",
+          "text": "AI cannot process data quickly enough for student needs"
+        },
+        {
+          "letter": "C",
+          "text": "AI struggles to understand context fully and may give irrelevant answers"
+        },
+        {
+          "letter": "D",
+          "text": "AI can replace teachers and classmates entirelyCorrect Answer: C) AI struggles to understand context fully and may give irrelevant answers"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a common myth about AI debunked in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "AI is a tool that can assist with specific tasks like studying or writing"
+        },
+        {
+          "letter": "B",
+          "text": "AI is too complicated for teens to use without advanced tech skills"
+        },
+        {
+          "letter": "C",
+          "text": "AI can be personalized to adapt to a student’s learning pace"
+        },
+        {
+          "letter": "D",
+          "text": "AI helps with repetitive tasks to save timeCorrect Answer: B) AI is too complicated for teens to use without advanced tech skills"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "How does the chapter suggest students use AI responsibly for school assignments?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Rely on AI to complete all assignments without personal effort"
+        },
+        {
+          "letter": "B",
+          "text": "Use AI as a helper and fact-check its output to ensure accuracy"
+        },
+        {
+          "letter": "C",
+          "text": "Avoid using AI tools since they are not allowed in schools"
+        },
+        {
+          "letter": "D",
+          "text": "Share personal information with AI tools without checking privacy policiesCorrect Answer: B) Use AI as a helper and fact-check its output to ensure accuracy"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

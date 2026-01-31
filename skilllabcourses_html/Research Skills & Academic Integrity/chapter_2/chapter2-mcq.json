@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the role of curiosity in developing a research mindset as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To accept information without questioning it"
+        },
+        {
+          "letter": "B",
+          "text": "To spark interest and ask specific, actionable questions that guide investigation"
+        },
+        {
+          "letter": "C",
+          "text": "To focus only on topics already known to you"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid digging deeper into complex issues"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To spark interest and ask specific, actionable questions that guide investigation"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "How does critical thinking help in research according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By encouraging you to believe every claim you read online"
+        },
+        {
+          "letter": "B",
+          "text": "By helping you question information, analyze its credibility, and decide if it’s trustworthy"
+        },
+        {
+          "letter": "C",
+          "text": "By limiting your research to only one source of information"
+        },
+        {
+          "letter": "D",
+          "text": "By ignoring data that doesn’t match your opinion"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "By helping you question information, analyze its credibility, and decide if it’s trustworthy"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is a characteristic of a reliable source as mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It comes from a random blog with no author or evidence"
+        },
+        {
+          "letter": "B",
+          "text": "It is backed by evidence and comes from credible organizations like government or educational websites"
+        },
+        {
+          "letter": "C",
+          "text": "It is full of advertisements and clickbait headlines"
+        },
+        {
+          "letter": "D",
+          "text": "It provides outdated information without any references"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It is backed by evidence and comes from credible organizations like government or educational websites"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is the purpose of setting research goals and objectives in the research process?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make research more confusing and time-consuming"
+        },
+        {
+          "letter": "B",
+          "text": "To provide a clear roadmap with a big-picture goal and specific steps to stay focused"
+        },
+        {
+          "letter": "C",
+          "text": "To avoid planning and randomly collect information"
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on small details without a larger purpose"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To provide a clear roadmap with a big-picture goal and specific steps to stay focused"
+      }
+    }
+  ],
+  "total_questions": 4
+}

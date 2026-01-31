@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "How is data commonly used in sports to improve performance?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To design team uniforms for better style"
+        },
+        {
+          "letter": "B",
+          "text": "To track player stats like speed and scoring for strategy"
+        },
+        {
+          "letter": "C",
+          "text": "To decide ticket prices for games"
+        },
+        {
+          "letter": "D",
+          "text": "To choose the music played at stadiumsCorrect Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "In the case study of “BrightFuture High,” how did the school use data to improve student performance in science?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By canceling science classes to reduce stress"
+        },
+        {
+          "letter": "B",
+          "text": "By analyzing test scores and surveys to introduce fun lab workshops"
+        },
+        {
+          "letter": "C",
+          "text": "By increasing homework without checking student feedback"
+        },
+        {
+          "letter": "D",
+          "text": "By ignoring attendance records and focusing only on gradesCorrect Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is an example of data being used for disaster response, as mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Tracking student grades to assign extra credit"
+        },
+        {
+          "letter": "B",
+          "text": "Using satellite data to predict hurricane paths and guide rescuers"
+        },
+        {
+          "letter": "C",
+          "text": "Counting likes on social media posts for a campaign"
+        },
+        {
+          "letter": "D",
+          "text": "Measuring sales data for a local storeCorrect Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What did the Indian high school group “Team Swachh” achieve using data, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They created a new video game about cleaning"
+        },
+        {
+          "letter": "B",
+          "text": "They collected data on trash locations to push for cleanups, clearing over 50 dump sites"
+        },
+        {
+          "letter": "C",
+          "text": "They used data to improve school cafeteria food"
+        },
+        {
+          "letter": "D",
+          "text": "They tracked weather data for school eventsCorrect Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "In the group project from Section 3, what is a key step after identifying a local problem like litter in a park?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Immediately buying more trash cans without research"
+        },
+        {
+          "letter": "B",
+          "text": "Collecting data through observations or surveys to understand the issue"
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring the problem and choosing a different topic"
+        },
+        {
+          "letter": "D",
+          "text": "Writing a story about the park without evidenceCorrect Answer:B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

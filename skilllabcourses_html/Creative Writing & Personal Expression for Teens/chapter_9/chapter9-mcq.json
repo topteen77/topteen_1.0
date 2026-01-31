@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Which of the following is a benefit of sharing your writing on a platform like Wattpad, according to Chapter 9?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees you’ll become a famous author overnight."
+        },
+        {
+          "letter": "B",
+          "text": "It allows you to connect with other teen writers and get feedback from a global community."
+        },
+        {
+          "letter": "C",
+          "text": "It’s the only way to get your work published in a school magazine."
+        },
+        {
+          "letter": "D",
+          "text": "It automatically enters your work into writing contests.Correct Answer:B) It allows you to connect with other teen writers and get feedback from a global community."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is one key advantage of joining a writing workshop as a teen, based on Chapter 9?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "You are guaranteed to win a cash prize for every session you attend."
+        },
+        {
+          "letter": "B",
+          "text": "It provides a safe space to learn new skills, share work, and meet other writers your age."
+        },
+        {
+          "letter": "C",
+          "text": "It’s the only way to get your writing published online."
+        },
+        {
+          "letter": "D",
+          "text": "It ensures colleges will accept you without looking at your grades.Correct Answer:B) It provides a safe space to learn new skills, share work, and meet other writers your age."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is creating an online portfolio important for a teen writer, as discussed in Chapter 9?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It’s a way to show off your best work and stand out to colleges or contest judges."
+        },
+        {
+          "letter": "B",
+          "text": "It’s required to join any writing contest or workshop."
+        },
+        {
+          "letter": "C",
+          "text": "It’s the only way to share your writing with friends."
+        },
+        {
+          "letter": "D",
+          "text": "It automatically makes your writing go viral on social media.Correct Answer:A) It’s a way to show off your best work and stand out to colleges or contest judges."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a good strategy for handling criticism of your writing, according to Chapter 9?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignore all feedback because it’s always meant to hurt you."
+        },
+        {
+          "letter": "B",
+          "text": "Argue with the person giving feedback to prove they’re wrong."
+        },
+        {
+          "letter": "C",
+          "text": "Listen without getting defensive and use specific, helpful suggestions to improve."
+        },
+        {
+          "letter": "D",
+          "text": "Stop writing altogether if someone doesn’t like your work.Correct Answer:C) Listen without getting defensive and use specific, helpful suggestions to improve."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

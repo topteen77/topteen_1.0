@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a practical way to manage the challenge of limited time as a teen hustler?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Skip school activities to focus solely on your hustle."
+        },
+        {
+          "letter": "B",
+          "text": "Set a specific “Power Hour” each day to work on your hustle tasks."
+        },
+        {
+          "letter": "C",
+          "text": "Work on your hustle only when you feel like it, without a schedule."
+        },
+        {
+          "letter": "D",
+          "text": "Ignore homework to prioritize customer orders.Correct Answer:B) Set a specific “Power Hour” each day to work on your hustle tasks."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How should a teen entrepreneur handle rejection from a potential customer or business?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Take it personally and stop trying to avoid further rejection."
+        },
+        {
+          "letter": "B",
+          "text": "Ignore the rejection and keep doing things the same way."
+        },
+        {
+          "letter": "C",
+          "text": "Ask for feedback and use it to improve or pivot to a new approach."
+        },
+        {
+          "letter": "D",
+          "text": "Give up on that idea completely and start something unrelated.Correct Answer:C) Ask for feedback and use it to improve or pivot to a new approach."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is setting small milestones important for staying motivated in your side hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They make your big goals feel less important and easier to ignore."
+        },
+        {
+          "letter": "B",
+          "text": "They help you feel progress and keep your energy up with achievable wins."
+        },
+        {
+          "letter": "C",
+          "text": "They allow you to avoid celebrating until you reach the final goal."
+        },
+        {
+          "letter": "D",
+          "text": "They distract you from focusing on the challenges you face.Correct Answer:B) They help you feel progress and keep your energy up with achievable wins."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Where can a teen entrepreneur look for mentorship if they don’t know anyone locally to guide them?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Only ask friends who may not have business experience."
+        },
+        {
+          "letter": "B",
+          "text": "Avoid seeking help since no one nearby can offer advice."
+        },
+        {
+          "letter": "C",
+          "text": "Join online communities or follow entrepreneurs on social media for tips."
+        },
+        {
+          "letter": "D",
+          "text": "Wait until they’re older to find a mentor in person.Correct Answer:C) Join online communities or follow entrepreneurs on social media for tips."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

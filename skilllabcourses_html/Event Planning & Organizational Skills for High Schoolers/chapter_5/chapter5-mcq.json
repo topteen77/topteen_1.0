@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Understanding Budget BasicsWhat is the primary purpose of creating a budget for an event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To spend as much money as possible on decorations"
+        },
+        {
+          "letter": "B",
+          "text": "To track income and expenses to avoid overspending"
+        },
+        {
+          "letter": "C",
+          "text": "To impress friends with expensive event elements"
+        },
+        {
+          "letter": "D",
+          "text": "To ignore costs and focus only on ticket sales"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To track income and expenses to avoid overspending"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "BudgetSpreadsheetComponentsWhich of the following is NOT a typical column in a budget spreadsheet for an event?",
+      "options": [
+        {
+          "letter": "D",
+          "text": "Notes"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Favorite Songs for Playlist"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Fundraising StrategiesWhich of the following is a creative fundraising idea suitable for high school students organizing an event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Taking out a large bank loan"
+        },
+        {
+          "letter": "B",
+          "text": "Setting up a themed car wash or mehndi stall at school"
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring the need for funds and hoping for donations"
+        },
+        {
+          "letter": "D",
+          "text": "Spending personal savings without planning"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Setting up a themed car wash or mehndi stall at school"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Cost-Cutting TechniquesWhat is a cost-cutting tip mentioned for reducing event expenses without sacrificing quality?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Buying the most expensive decorations to impress guests"
+        },
+        {
+          "letter": "B",
+          "text": "Borrowing equipment like speakers from friends or school instead of renting"
+        },
+        {
+          "letter": "C",
+          "text": "Spending all the budget on food and ignoring other needs"
+        },
+        {
+          "letter": "D",
+          "text": "Printing hundreds of flyers even if digital promotion is free"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Borrowing equipment like speakers from friends or school instead of renting"
+      }
+    }
+  ],
+  "total_questions": 4
+}

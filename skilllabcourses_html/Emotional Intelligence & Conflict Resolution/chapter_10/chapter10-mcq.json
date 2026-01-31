@@ -1,0 +1,162 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Managing Stress During Exams (Section 1)What is a key Emotional Intelligence (EI) skill to use when feeling stressed before a big test?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Empathy – Understanding your teacher’s perspective on the test."
+        },
+        {
+          "letter": "B",
+          "text": "Self-Regulation – Taking deep breaths to calm down before studying."
+        },
+        {
+          "letter": "C",
+          "text": "Social Skills – Asking a friend to argue with the teacher for you."
+        },
+        {
+          "letter": "D",
+          "text": "Motivation – Ignoring the stress and focusing only on the grade."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Self-Regulation – Taking deep breaths to calm down before studying."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Dealing with Teacher Conflicts (Section 1)How can EI help when you disagree with a teacher about a grade?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use self-awareness to ignore your feelings and accept the grade."
+        },
+        {
+          "letter": "B",
+          "text": "Use empathy and social skills to calmly ask for feedback on how to improve."
+        },
+        {
+          "letter": "C",
+          "text": "Use motivation to argue until the teacher changes the grade."
+        },
+        {
+          "letter": "D",
+          "text": "Use self-regulation to avoid talking to the teacher altogether."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Use empathy and social skills to calmly ask for feedback on how to improve."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Managing Family Disagreements (Section 2)What is an effective EI strategy to use during an argument with a parent about rules?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Interrupt them to explain why they’re wrong."
+        },
+        {
+          "letter": "B",
+          "text": "Use active listening to show you understand their concerns before sharing your side."
+        },
+        {
+          "letter": "C",
+          "text": "Walk away without saying anything to avoid the conflict."
+        },
+        {
+          "letter": "D",
+          "text": "Blame them for not trusting you to make decisions."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Use active listening to show you understand their concerns before sharing your side."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Communication with Friends or Siblings (Section 2)Which communication tip based on EI is most helpful when discussing a problem with a sibling?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use “I” statements to express how you feel without blaming them."
+        },
+        {
+          "letter": "B",
+          "text": "Talk about the issue when they’re already upset to get it over with."
+        },
+        {
+          "letter": "C",
+          "text": "Tell them they’re wrong to make your point clear."
+        },
+        {
+          "letter": "D",
+          "text": "Avoid the conversation and hope the problem goes away."
+        }
+      ],
+      "correct_answer": {
+        "letter": "A",
+        "text": "Use “I” statements to express how you feel without blaming them."
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "Navigating Online Interactions (Section 3)How can EI help you respond to a rude comment on your social media post?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use self-regulation to pause before replying and avoid reacting in anger."
+        },
+        {
+          "letter": "B",
+          "text": "Immediately argue back to defend yourself."
+        },
+        {
+          "letter": "C",
+          "text": "Delete your account to avoid further comments."
+        },
+        {
+          "letter": "D",
+          "text": "Post something mean about the person to get even."
+        }
+      ],
+      "correct_answer": {
+        "letter": "A",
+        "text": "Use self-regulation to pause before replying and avoid reacting in anger."
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "Maintaining a Positive Online Presence (Section 3)What is a way to apply EI to create a positive online presence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Post whatever comes to mind without thinking about the impact."
+        },
+        {
+          "letter": "B",
+          "text": "Share kind or uplifting content and think before posting to avoid hurting others."
+        },
+        {
+          "letter": "C",
+          "text": "Follow accounts that make you feel bad to challenge yourself."
+        },
+        {
+          "letter": "D",
+          "text": "Ignore negative comments and never respond to anyone online."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Share kind or uplifting content and think before posting to avoid hurting others."
+      }
+    }
+  ],
+  "total_questions": 6
+}

@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is online privacy, as defined in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The ability to use social media without any restrictions"
+        },
+        {
+          "letter": "B",
+          "text": "The control over who has access to your personal information on the internet"
+        },
+        {
+          "letter": "C",
+          "text": "Ensuring no one can see your online activity, even companies"
+        },
+        {
+          "letter": "D",
+          "text": "Only sharing information with trusted friends onlineCorrect Answer: B) The control over who has access to your personal information on the internet"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a key characteristic of a strong password according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It should be short and easy to type, like your name"
+        },
+        {
+          "letter": "B",
+          "text": "It should be at least 12-16 characters with a mix of letters, numbers, and symbols"
+        },
+        {
+          "letter": "C",
+          "text": "It should be the same for all your accounts to avoid forgetting"
+        },
+        {
+          "letter": "D",
+          "text": "It should include your favorite sports team for memorabilityCorrect Answer: B) It should be at least 12-16 characters with a mix of letters, numbers, and symbols"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is a sign ofcatfishing, as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Someone sends you a funny meme on social media"
+        },
+        {
+          "letter": "B",
+          "text": "Someone refuses to video chat and their photos look too perfect or inconsistent"
+        },
+        {
+          "letter": "C",
+          "text": "Someone comments positively on all your posts"
+        },
+        {
+          "letter": "D",
+          "text": "Someone asks to follow you on a public platformCorrect Answer: B) Someone refuses to video chat and their photos look too perfect or inconsistent"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is one recommended step for safe social media use from the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Share your location in every post to connect with friends nearby"
+        },
+        {
+          "letter": "B",
+          "text": "Set your profile to private so only approved followers can see your content"
+        },
+        {
+          "letter": "C",
+          "text": "Post everything publicly to gain more followers quickly"
+        },
+        {
+          "letter": "D",
+          "text": "Accept all friend requests to build a larger networkCorrect Answer: B) Set your profile to private so only approved followers can see your content"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why is managing your digital footprint important for high schoolers?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures you’ll never make mistakes online"
+        },
+        {
+          "letter": "B",
+          "text": "It helps create a positive online presence for college and job applications"
+        },
+        {
+          "letter": "C",
+          "text": "It prevents anyone from searching your name online"
+        },
+        {
+          "letter": "D",
+          "text": "It only matters if you plan to work in technology fieldsCorrect Answer: B) It helps create a positive online presence for college and job applications"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What should you do if you suspect a message is a scam, based on the chapter’s advice?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Click the link to see what it’s about before deciding"
+        },
+        {
+          "letter": "B",
+          "text": "Reply to ask for more details to confirm it’s real"
+        },
+        {
+          "letter": "C",
+          "text": "Delete the message, report it as spam, and avoid clicking any links"
+        },
+        {
+          "letter": "D",
+          "text": "Share it with friends to warn them by forwarding itCorrect Answer: C) Delete the message, report it as spam, and avoid clicking any links"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

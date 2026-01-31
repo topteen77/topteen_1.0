@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key step to avoid plagiarism when paraphrasing or summarizing, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Changing just a few words without understanding the original idea"
+        },
+        {
+          "letter": "B",
+          "text": "Rewriting the content in your own words and citing the source"
+        },
+        {
+          "letter": "C",
+          "text": "Copying the original text and adding quotation marks"
+        },
+        {
+          "letter": "D",
+          "text": "Using the idea without mentioning where it came from"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Rewriting the content in your own words and citing the source"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "When should you use a direct quote in your writing, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "For every piece of information you find from a source"
+        },
+        {
+          "letter": "B",
+          "text": "Only when the original wording is impactful or precise and worth highlighting"
+        },
+        {
+          "letter": "C",
+          "text": "Whenever you want to make your essay longer"
+        },
+        {
+          "letter": "D",
+          "text": "When you don’t have time to paraphrase or summarize"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Only when the original wording is impactful or precise and worth highlighting"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is an effective way to integrate sources into your writing, as explained in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Copying large sections of text without any citation"
+        },
+        {
+          "letter": "B",
+          "text": "Using signal phrases like “According to” and connecting the source to your own ideas"
+        },
+        {
+          "letter": "C",
+          "text": "Listing all sources at the end without mentioning them in the text"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring sources and focusing only on your opinions"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Using signal phrases like “According to” and connecting the source to your own ideas"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which of the following is a common citation mistake to avoid, based on the chapter’s guidance?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Citing every borrowed idea or quote immediately after using it"
+        },
+        {
+          "letter": "B",
+          "text": "Forgetting to include a citation after paraphrasing a source’s idea"
+        },
+        {
+          "letter": "C",
+          "text": "Double-checking the format of your citation style for accuracy"
+        },
+        {
+          "letter": "D",
+          "text": "Including full details of the source in your bibliography"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Forgetting to include a citation after paraphrasing a source’s idea"
+      }
+    }
+  ],
+  "total_questions": 4
+}

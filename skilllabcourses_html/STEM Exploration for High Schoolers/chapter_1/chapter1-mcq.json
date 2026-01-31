@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What does STEM stand for, and how do its components work together?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Science, Technology, Education, Math; they work independently to solve different problems."
+        },
+        {
+          "letter": "B",
+          "text": "Science, Technology, Engineering, Math; they combine to create solutions like designing a self-driving car."
+        },
+        {
+          "letter": "C",
+          "text": "Systems, Tools, Engineering, Mechanics; they focus only on building physical structures."
+        },
+        {
+          "letter": "D",
+          "text": "Science, Teaching, Electronics, Math; they are used only in classroom settings.Correct Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How does STEM impact everyday life for high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It only affects activities outside of school, like playing video games."
+        },
+        {
+          "letter": "B",
+          "text": "It has no real impact on daily routines since it’s just for scientists."
+        },
+        {
+          "letter": "C",
+          "text": "It shapes daily life through things like smartphones, clean water, and school buses."
+        },
+        {
+          "letter": "D",
+          "text": "It is only relevant when studying for exams or doing homework.Correct Answer: C"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is an example of a STEM career that combines creativity and technology?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A civil engineer designing bridges."
+        },
+        {
+          "letter": "B",
+          "text": "A game developer coding virtual worlds like Minecraft."
+        },
+        {
+          "letter": "C",
+          "text": "A marine biologist studying ocean life."
+        },
+        {
+          "letter": "D",
+          "text": "An actuary calculating insurance risks.Correct Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key element of the STEM mindset, and why is it important?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Memorizing facts; it helps in passing tests easily."
+        },
+        {
+          "letter": "B",
+          "text": "Curiosity; it drives discovery and leads to asking questions like “Why does this happen?”"
+        },
+        {
+          "letter": "C",
+          "text": "Following instructions; it ensures you never make mistakes."
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding challenges; it keeps learning stress-free.Correct Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "How can STEM help address global challenges like climate change, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By ignoring the problem since it’s too big for teens to solve."
+        },
+        {
+          "letter": "B",
+          "text": "By using science to study carbon levels and engineering to build wind turbines."
+        },
+        {
+          "letter": "C",
+          "text": "By focusing only on local issues and avoiding global concerns."
+        },
+        {
+          "letter": "D",
+          "text": "By relying solely on math without involving other STEM fields.Correct Answer: B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

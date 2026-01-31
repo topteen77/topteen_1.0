@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is Debt?(Section 1: What is Debt? Understanding Loans in Family Contexts)\nDebt is best defined as:",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Money you save for future goals."
+        },
+        {
+          "letter": "B",
+          "text": "Money you borrow with a promise to repay, often with interest."
+        },
+        {
+          "letter": "C",
+          "text": "Money you earn from a job or allowance."
+        },
+        {
+          "letter": "D",
+          "text": "Money you spend on daily needs like food.Correct Answer: b) Money you borrow with a promise to repay, often with interest."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Common Reasons for FamilyLoans(Section 1: What is Debt? Understanding Loans in Family Contexts)\nWhich of the following is a common reason families might take on debt?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Buying a new video game console for entertainment."
+        },
+        {
+          "letter": "B",
+          "text": "Taking a luxury vacation abroad."
+        },
+        {
+          "letter": "C",
+          "text": "Paying for a home or car through a loan."
+        },
+        {
+          "letter": "D",
+          "text": "Purchasing daily groceries.Correct Answer: c) Paying for a home or car through a loan."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Understanding InterestRates(Section 2: Interest Rates and Borrowing: Education Loans, Personal Loans, and More)\nWhat is an interest rate?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The total amount of money borrowed."
+        },
+        {
+          "letter": "B",
+          "text": "A fee or percentage charged on borrowed money as the cost of borrowing."
+        },
+        {
+          "letter": "C",
+          "text": "The monthly payment made to repay a loan."
+        },
+        {
+          "letter": "D",
+          "text": "The time period over which a loan is repaid.Correct Answer: b) A fee or percentage charged on borrowed money as the cost of borrowing."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Types ofLoans(Section 2: Interest Rates and Borrowing: Education Loans, Personal Loans, and More)\nWhich type of loan typically has a higher interest rate due to being unsecured and riskier for lenders?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Education Loan"
+        },
+        {
+          "letter": "B",
+          "text": "Home Loan"
+        },
+        {
+          "letter": "C",
+          "text": "Personal Loan"
+        },
+        {
+          "letter": "D",
+          "text": "Car LoanCorrect Answer: c) Personal Loan"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Cultural Views onDebt(Section 3: Cultural Perspectives on Debt: Why Avoiding Unnecessary Borrowing Matters)\nIn many cultural contexts, such as in Indian traditions, debt is often:",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Encouraged for all types of purchases to build wealth."
+        },
+        {
+          "letter": "B",
+          "text": "Seen as a last resort and avoided for non-essential items."
+        },
+        {
+          "letter": "C",
+          "text": "Considered irrelevant to financial planning."
+        },
+        {
+          "letter": "D",
+          "text": "Always viewed as a positive way to achieve goals.Correct Answer: b) Seen as a last resort and avoided for non-essential items."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "Avoiding UnnecessaryDebt(Section 3: Cultural Perspectives on Debt: Why Avoiding Unnecessary Borrowing Matters)\nWhat is one key reason to avoid unnecessary debt, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you spend more on fun activities."
+        },
+        {
+          "letter": "B",
+          "text": "It prevents financial stress and preserves future freedom."
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees a higher credit score instantly."
+        },
+        {
+          "letter": "D",
+          "text": "It ensures you can borrow more in the future.Correct Answer: b) It prevents financial stress and preserves future freedom."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

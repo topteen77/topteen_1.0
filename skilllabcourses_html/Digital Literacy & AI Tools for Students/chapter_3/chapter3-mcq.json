@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is one effective way to narrow down Google search results for a school project, as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use broad terms like “history” to get more results"
+        },
+        {
+          "letter": "B",
+          "text": "Put exact phrases in quotation marks (e.g., “Civil War causes”)"
+        },
+        {
+          "letter": "C",
+          "text": "Only click on the first result for quick answers"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid using filters to see all possible websitesCorrect Answer: B) Put exact phrases in quotation marks (e.g., “Civil War causes”)"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is a common sign of fake news or an unreliable website according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A professional layout with no ads"
+        },
+        {
+          "letter": "B",
+          "text": "A sensational headline with extreme claims in all caps"
+        },
+        {
+          "letter": "C",
+          "text": "A clear author name and publication date"
+        },
+        {
+          "letter": "D",
+          "text": "Links to primary sources like government reportsCorrect Answer: B) A sensational headline with extreme claims in all caps"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which free academic resource mentioned in the chapter is best for finding classic literature or historical texts as eBooks?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Google Scholar"
+        },
+        {
+          "letter": "B",
+          "text": "Khan Academy"
+        },
+        {
+          "letter": "C",
+          "text": "Project Gutenberg"
+        },
+        {
+          "letter": "D",
+          "text": "Citation MachineCorrect Answer: C) Project Gutenberg"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key step to avoid plagiarism when taking notes for a research project, based on the chapter’s advice?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Copy text directly without marking it as a quote"
+        },
+        {
+          "letter": "B",
+          "text": "Write down the author, title, and URL for every source you might use"
+        },
+        {
+          "letter": "C",
+          "text": "Only cite sources if they are books, not websites"
+        },
+        {
+          "letter": "D",
+          "text": "Use the same notes for multiple projects without updating themCorrect Answer: B) Write down the author, title, and URL for every source you might use"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "How can citation tools likeEasyBibor Citation Machine help high school students with essays, as explained in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They automatically write the essay content for you"
+        },
+        {
+          "letter": "B",
+          "text": "They generate formatted citations and bibliographies in styles like MLA or APA"
+        },
+        {
+          "letter": "C",
+          "text": "They check for fake news in your sources"
+        },
+        {
+          "letter": "D",
+          "text": "They provide free access to premium academic journalsCorrect Answer: B) They generate formatted citations and bibliographies in styles like MLA or APA"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What should you do if you’re unsure about the credibility of an article found online for a school project, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use it anyway if it supports your argument"
+        },
+        {
+          "letter": "B",
+          "text": "Cross-check the information with trusted sources like BBC or .edu websites"
+        },
+        {
+          "letter": "C",
+          "text": "Ignore it and only use social media posts for research"
+        },
+        {
+          "letter": "D",
+          "text": "Assume it’s true if it has a professional-looking designCorrect Answer: B) Cross-check the information with trusted sources like BBC or .edu websites"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

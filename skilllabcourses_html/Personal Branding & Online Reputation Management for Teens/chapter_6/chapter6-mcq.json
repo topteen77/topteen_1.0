@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary goal of Online Reputation Management (ORM)?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To delete all negative content about yourself from the internet."
+        },
+        {
+          "letter": "B",
+          "text": "To control and influence how people perceive you online through your digital presence."
+        },
+        {
+          "letter": "C",
+          "text": "To avoid using social media altogether to prevent mistakes."
+        },
+        {
+          "letter": "D",
+          "text": "To create fake profiles to confuse people about your identity.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a recommended step for monitoring your online presence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Never Google yourself to avoid seeing negative content."
+        },
+        {
+          "letter": "B",
+          "text": "Only check your social media once a year to save time."
+        },
+        {
+          "letter": "C",
+          "text": "Set up Google Alerts to get notifications when your name appears online."
+        },
+        {
+          "letter": "D",
+          "text": "Ignore tags and mentions since they don’t affect your reputation.Correct Answer:C"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How should you handle negative feedback or a mistake on social media?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Immediately argue with the person who criticized you to defend yourself."
+        },
+        {
+          "letter": "B",
+          "text": "Ignore the feedback completely and hope it goes away."
+        },
+        {
+          "letter": "C",
+          "text": "Stay calm, own up to mistakes if necessary, and respond politely or apologize."
+        },
+        {
+          "letter": "D",
+          "text": "Delete your entire account to avoid further conflict.Correct Answer:C"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is an effective strategy to repair a damaged online reputation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Post as little as possible online to avoid further issues."
+        },
+        {
+          "letter": "B",
+          "text": "Share positive content regularly to outweigh past negativity in search results."
+        },
+        {
+          "letter": "C",
+          "text": "Create a new account and pretend the old one never existed."
+        },
+        {
+          "letter": "D",
+          "text": "Blame others for the damage to shift attention away from yourself.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

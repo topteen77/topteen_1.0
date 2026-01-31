@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main difference between competitive and collaborative negotiation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Competitive focuses on mutual gain, while collaborative focuses on winning at all costs"
+        },
+        {
+          "letter": "B",
+          "text": "Competitive is about one side winning, while collaborative aims for both sides to benefit"
+        },
+        {
+          "letter": "C",
+          "text": "Competitive builds long-term relationships, while collaborative is for one-time deals"
+        },
+        {
+          "letter": "D",
+          "text": "Competitive involves teamwork, while collaborative involves hiding information"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Competitive is about one side winning, while collaborative aims for both sides to benefit"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is it important to identify your interests before a negotiation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you hide your true goals from the other party"
+        },
+        {
+          "letter": "B",
+          "text": "It allows you to focus on the deeper reasons behind what you want and find flexible solutions"
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you always get exactly what you ask for without compromise"
+        },
+        {
+          "letter": "D",
+          "text": "It makes the other party agree with you immediately"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It allows you to focus on the deeper reasons behind what you want and find flexible solutions"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is an effective way to understand the other party’s perspective during a negotiation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Assume you know their reasons and push your own agenda"
+        },
+        {
+          "letter": "B",
+          "text": "Interrupt them to explain why your side is more important"
+        },
+        {
+          "letter": "C",
+          "text": "Ask open-ended questions and actively listen to their concerns"
+        },
+        {
+          "letter": "D",
+          "text": "Ignore their feelings to stay focused on your goals"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Ask open-ended questions and actively listen to their concerns"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key characteristic of a win-win solution in negotiation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "One party gets everything they want, while the other compromises completely"
+        },
+        {
+          "letter": "B",
+          "text": "Both parties feel satisfied because their core interests are addressed"
+        },
+        {
+          "letter": "C",
+          "text": "It only works in competitive negotiations where winning is the goal"
+        },
+        {
+          "letter": "D",
+          "text": "It avoids any form of compromise to keep things simple"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Both parties feel satisfied because their core interests are addressed"
+      }
+    }
+  ],
+  "total_questions": 4
+}

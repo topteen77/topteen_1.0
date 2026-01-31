@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is public speaking, as defined in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Only giving formal speeches on a stage with a microphone"
+        },
+        {
+          "letter": "B",
+          "text": "The art of communicating ideas, information, or emotions to an audience in any setting"
+        },
+        {
+          "letter": "C",
+          "text": "A skill that only applies to professional presenters"
+        },
+        {
+          "letter": "D",
+          "text": "A talent that cannot be learned or improvedCorrect Answer:B. The art of communicating ideas, information, or emotions to an audience in any setting"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "According to the chapter, how can public speaking impact academic success for high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It has no effect on grades or teacher impressions"
+        },
+        {
+          "letter": "B",
+          "text": "It can boost grades by improving presentations and class discussions"
+        },
+        {
+          "letter": "C",
+          "text": "It only helps in extracurricular activities, not academics"
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees perfect test scores without studyingCorrect Answer:B. It can boost grades by improving presentations and class discussions"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is one reason the chapter highlights communication as powerful for building leadership?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It prevents any conflicts from happening in a group"
+        },
+        {
+          "letter": "B",
+          "text": "It allows leaders to motivate, solve problems, and guide others with their words"
+        },
+        {
+          "letter": "C",
+          "text": "It ensures everyone agrees with the leader instantly"
+        },
+        {
+          "letter": "D",
+          "text": "It is only useful for leaders in professional settings, not in schoolCorrect Answer:B. It allows leaders to motivate, solve problems, and guide others with their words"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How does the chapter suggest students start overcoming initial fears of public speaking?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By avoiding speaking situations altogether"
+        },
+        {
+          "letter": "B",
+          "text": "By acknowledging the fear and starting with small, low-pressure speaking moments"
+        },
+        {
+          "letter": "C",
+          "text": "By waiting until they feel completely confident before trying"
+        },
+        {
+          "letter": "D",
+          "text": "By only speaking in front of large audiences to get over nerves quicklyCorrect Answer:B. By acknowledging the fear and starting with small, low-pressure speaking moments"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What does the SMART framework for setting communication goals stand for, as explained in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Simple, Manageable, Attractive, Realistic, Timely"
+        },
+        {
+          "letter": "B",
+          "text": "Specific, Measurable, Achievable, Relevant, Time-Bound"
+        },
+        {
+          "letter": "C",
+          "text": "Strong, Motivated, Active, Reliable, Targeted"
+        },
+        {
+          "letter": "D",
+          "text": "Smart, Meaningful, Ambitious, Routine, TemporaryCorrect Answer:B. Specific, Measurable, Achievable, Relevant, Time-Bound"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

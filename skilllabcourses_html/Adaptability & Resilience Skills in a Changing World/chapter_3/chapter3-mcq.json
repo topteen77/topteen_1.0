@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key benefit of identifying your emotions during a setback?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes the setback disappear instantly."
+        },
+        {
+          "letter": "B",
+          "text": "It helps you understand what you’re feeling and manage it better."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you never feel upset again."
+        },
+        {
+          "letter": "D",
+          "text": "It prevents you from ever facing challenges."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It helps you understand what you’re feeling and manage it better."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is an example of a mindfulness technique to calm your mind?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Writing a long essay about your problems."
+        },
+        {
+          "letter": "B",
+          "text": "Using the “5-4-3-2-1” method to focus on your surroundings."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring your feelings and distracting yourself with games."
+        },
+        {
+          "letter": "D",
+          "text": "Thinking about all the things that could go wrong in the future."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Using the “5-4-3-2-1” method to focus on your surroundings."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can breathing exercises help during tough times?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They make you forget why you were upset."
+        },
+        {
+          "letter": "B",
+          "text": "They slow your heart rate and help you feel calmer."
+        },
+        {
+          "letter": "C",
+          "text": "They solve all your problems immediately."
+        },
+        {
+          "letter": "D",
+          "text": "They stop you from needing to talk to anyone."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "They slow your heart rate and help you feel calmer."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is it important to lean on friends, family, or mentors during difficult moments?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They can do everything for you so you don’t have to try."
+        },
+        {
+          "letter": "B",
+          "text": "They provide support, perspective, and help you feel less alone."
+        },
+        {
+          "letter": "C",
+          "text": "They will always agree with everything you say."
+        },
+        {
+          "letter": "D",
+          "text": "They can prevent any tough times from happening."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "They provide support, perspective, and help you feel less alone."
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a practical way to express emotions safely after a setback?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keeping all your feelings bottled up to avoid conflict."
+        },
+        {
+          "letter": "B",
+          "text": "Yelling at someone to let out your frustration."
+        },
+        {
+          "letter": "C",
+          "text": "Writing a letter about your feelings or talking to a trusted person."
+        },
+        {
+          "letter": "D",
+          "text": "Pretending nothing happened and moving on without reflection."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Writing a letter about your feelings or talking to a trusted person."
+      }
+    }
+  ],
+  "total_questions": 5
+}

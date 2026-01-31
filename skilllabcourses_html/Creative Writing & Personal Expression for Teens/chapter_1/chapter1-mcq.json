@@ -1,0 +1,78 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of creative writing as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To strictly follow rules and facts like in academic writing"
+        },
+        {
+          "letter": "B",
+          "text": "To express personal feelings and imagination through words"
+        },
+        {
+          "letter": "C",
+          "text": "To write reports and essays for school assignments"
+        },
+        {
+          "letter": "D",
+          "text": "To copy famous authors’ styles and storiesCorrect Answer:B) To express personal feelings and imagination through words"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is NOT listed as a form of creative writing in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Stories"
+        },
+        {
+          "letter": "B",
+          "text": "Poetry"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is one suggested way to overcome writer’s block according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Stop writing forever and give up on creativity"
+        },
+        {
+          "letter": "B",
+          "text": "Use a writing prompt to spark new ideas"
+        },
+        {
+          "letter": "C",
+          "text": "Only write when you feel completely inspired"
+        },
+        {
+          "letter": "D",
+          "text": "Copy someone else’s work to get startedCorrect Answer:B) Use a writing prompt to spark new ideas"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What does the “T” in the SMART goal-setting method stand for in the context of creative writing?",
+      "options": [
+        {
+          "letter": "B",
+          "text": "Thoughtful"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

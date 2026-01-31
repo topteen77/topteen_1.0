@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "You’re at a school lunch, and your friend starts clutching their throat, unable to speak, with a panicked look. Their face is turning red. What should you do first?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Tell them to drink water to clear their throat."
+        },
+        {
+          "letter": "B",
+          "text": "Ask, “Are you choking?” and if they can’t answer but signal yes, perform the Heimlich maneuver."
+        },
+        {
+          "letter": "C",
+          "text": "Wait a few minutes to see if they cough it out on their own."
+        },
+        {
+          "letter": "D",
+          "text": "Pat them on the back gently until they stop choking.Correct Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "While at a park, you see someone collapse and become unresponsive. You check, and their chest isn’t moving—they’re not breathing normally. What is the first thing you should do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Start chest compressions without calling for help to save time."
+        },
+        {
+          "letter": "B",
+          "text": "Check for a pulse to confirm if their heart has stopped."
+        },
+        {
+          "letter": "C",
+          "text": "Call 911 or yell for someone to call while you prepare to start hands-only CPR."
+        },
+        {
+          "letter": "D",
+          "text": "Wait for a trained adult to arrive before doing anything.Correct Answer: C"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "During gym class, a classmate has a seizure and starts shaking on the floor. What is the most important action to take while the seizure is happening?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Hold them down to stop the shaking so they don’t hurt themselves."
+        },
+        {
+          "letter": "B",
+          "text": "Put a spoon in their mouth to prevent them from biting their tongue."
+        },
+        {
+          "letter": "C",
+          "text": "Clear the area of objects and protect their head with something soft like a jacket."
+        },
+        {
+          "letter": "D",
+          "text": "Leave them alone and go find a teacher to handle it.Correct Answer: C"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "At a hot outdoor event, your friend faints and falls to the ground. They’re unresponsive for a moment. What should you do immediately after ensuring they’re on the ground safely?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Splash cold water on their face to wake them up quickly."
+        },
+        {
+          "letter": "B",
+          "text": "Lay them flat on their back and elevate their legs to improve blood flow to the brain."
+        },
+        {
+          "letter": "C",
+          "text": "Make them sit up right away to get air."
+        },
+        {
+          "letter": "D",
+          "text": "Give them food to raise their blood sugar.Correct Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "You’re at a party, and a friend who ate a cookie starts wheezing, their face swells, and they say their throat feels tight. You suspect anaphylaxis. They have an EpiPen in their bag. What is the correct sequence of actions?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Wait to see if symptoms get worse before using the EpiPen, then call for help."
+        },
+        {
+          "letter": "B",
+          "text": "Use the EpiPen on their thigh, call 911 immediately, and stay with them until help arrives."
+        },
+        {
+          "letter": "C",
+          "text": "Call 911 first, wait for paramedics to arrive, and let them use the EpiPen."
+        },
+        {
+          "letter": "D",
+          "text": "Give them water to drink and use the EpiPen only if they stop breathing.Correct Answer: B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

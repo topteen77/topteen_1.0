@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main purpose of developing a Personal Branding Plan as a teen?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To post as much content as possible on every social media platform."
+        },
+        {
+          "letter": "B",
+          "text": "To create a roadmap that defines your online identity, sets goals, and ensures consistency while staying true to yourself."
+        },
+        {
+          "letter": "C",
+          "text": "To copy the branding style of popular influencers to gain followers quickly."
+        },
+        {
+          "letter": "D",
+          "text": "To avoid using social media and focus only on offline activities.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a key step in implementing and reviewing your online presence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Posting randomly without a schedule to keep things spontaneous."
+        },
+        {
+          "letter": "B",
+          "text": "Launching content based on your plan, engaging with followers, tracking progress, and adjusting based on what works after a few weeks."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring feedback from analytics or followers to maintain your original idea."
+        },
+        {
+          "letter": "D",
+          "text": "Changing your entire brand every week to keep it fresh.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why are peer feedback and group discussions important for teens building their personal brand?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They allow you to compete with friends to see who has the most followers."
+        },
+        {
+          "letter": "B",
+          "text": "They provide fresh perspectives, new ideas, and support from peers to improve your brand and build confidence."
+        },
+        {
+          "letter": "C",
+          "text": "They are only useful if everyone agrees with everything you do."
+        },
+        {
+          "letter": "D",
+          "text": "They focus on criticizing others’ work to make your brand look better.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is one benefit of reflecting on your growth and planning future steps after completing a personal branding course?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you forget past mistakes and start over with a completely new identity."
+        },
+        {
+          "letter": "B",
+          "text": "It allows you to celebrate wins, learn from challenges, and set new goals to keep your brand evolving with purpose."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you never have to change or update your brand again."
+        },
+        {
+          "letter": "D",
+          "text": "It focuses only on comparing your brand to others’ to see who did better.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

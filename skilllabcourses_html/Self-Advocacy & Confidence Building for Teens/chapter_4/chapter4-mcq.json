@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What type of boundary is being set when you tell a friend, “I can’t talk about heavy stuff every day—it’s stressing me out. Can we chat about something lighter?”",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Physical Boundary"
+        },
+        {
+          "letter": "B",
+          "text": "Emotional Boundary"
+        },
+        {
+          "letter": "C",
+          "text": "Time Boundary"
+        },
+        {
+          "letter": "D",
+          "text": "Social Boundary"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Emotional Boundary"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Your classmate asks to copy your homework right before class, but you’re not comfortable with it. What’s the best way to say “no” confidently and respectfully?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "“No way, do your own work!”"
+        },
+        {
+          "letter": "B",
+          "text": "“I’m not sure, maybe next time, I guess…”"
+        },
+        {
+          "letter": "C",
+          "text": "“I can’t share my homework, but good luck with yours!”"
+        },
+        {
+          "letter": "D",
+          "text": "“Why are you always asking me? Stop it!”"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "“I can’t share my homework, but good luck with yours!”"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is a sign that your time boundary has been crossed?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A friend hugs you without asking, even though you’re not okay with it."
+        },
+        {
+          "letter": "B",
+          "text": "A teammate keeps texting you during your designated “no phone” study hours after you’ve asked them not to."
+        },
+        {
+          "letter": "C",
+          "text": "A classmate teases you about your appearance despite you saying it bothers you."
+        },
+        {
+          "letter": "D",
+          "text": "A sibling takes your snack from your bag without permission."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A teammate keeps texting you during your designated “no phone” study hours after you’ve asked them not to."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Your younger sibling keeps barging into your room without knocking, even after you’ve asked them to stop. What’s the most effective strategy to reinforce your boundary?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignore it and hope they eventually stop on their own."
+        },
+        {
+          "letter": "B",
+          "text": "Yell at them every time it happens to scare them off."
+        },
+        {
+          "letter": "C",
+          "text": "Say, “I need my privacy, so if you come in without knocking again, I’ll lock the door for the day.”"
+        },
+        {
+          "letter": "D",
+          "text": "Complain to a friend about it but don’t address it with your sibling."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Say, “I need my privacy, so if you come in without knocking again, I’ll lock the door for the day.”"
+      }
+    }
+  ],
+  "total_questions": 4
+}

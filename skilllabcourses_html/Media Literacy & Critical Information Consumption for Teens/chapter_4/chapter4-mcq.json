@@ -1,0 +1,162 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary difference between misinformation and disinformation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Misinformation is always about politics, while disinformation is about health."
+        },
+        {
+          "letter": "B",
+          "text": "Misinformation is shared unintentionally, while disinformation is spread deliberately to deceive."
+        },
+        {
+          "letter": "C",
+          "text": "Misinformation is created by teens, while disinformation is created by adults."
+        },
+        {
+          "letter": "D",
+          "text": "Misinformation is fake news, while disinformation is a type of meme."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Misinformation is shared unintentionally, while disinformation is spread deliberately to deceive."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why are teens particularly vulnerable to misinformation on social media?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They lack access to fact-checking tools."
+        },
+        {
+          "letter": "B",
+          "text": "They rely heavily on platforms that prioritize engagement over accuracy and are influenced by peer pressure."
+        },
+        {
+          "letter": "C",
+          "text": "They are not allowed to use credible news sources."
+        },
+        {
+          "letter": "D",
+          "text": "They do not understand how the internet works."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "They rely heavily on platforms that prioritize engagement over accuracy and are influenced by peer pressure."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is a common trick used by creators of fake news to deceive readers?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Providing detailed sources for every claim."
+        },
+        {
+          "letter": "B",
+          "text": "Using misleading headlines to grab attention with clickbait phrases."
+        },
+        {
+          "letter": "C",
+          "text": "Sharing content only in long, detailed articles."
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding the use of images or videos."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Using misleading headlines to grab attention withclickbaitphrases."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a practical tool mentioned in the chapter for verifying the authenticity of a suspicious photo?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Posting the photo on social media to ask friends."
+        },
+        {
+          "letter": "B",
+          "text": "Using a reverse image search tool like Google Images or TinEye."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring the photo if it looks suspicious."
+        },
+        {
+          "letter": "D",
+          "text": "Editing the photo to see if it changes."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Using a reverse image search tool like Google Images orTinEye."
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a real-world consequence of sharing health-related misinformation, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It can improve public awareness of health issues."
+        },
+        {
+          "letter": "B",
+          "text": "It can lead to dangerous behaviors, like ingesting harmful substances during a health crisis."
+        },
+        {
+          "letter": "C",
+          "text": "It only affects online communities and not real life."
+        },
+        {
+          "letter": "D",
+          "text": "It encourages people to visit doctors more often."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It can lead to dangerousbehaviors, like ingesting harmful substances during a health crisis."
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "What personal risk might a teen face by sharing false information online?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Gaining more followers on social media."
+        },
+        {
+          "letter": "B",
+          "text": "Damaging their reputation or facing legal issues for spreading defamatory content."
+        },
+        {
+          "letter": "C",
+          "text": "Receiving awards for creative content."
+        },
+        {
+          "letter": "D",
+          "text": "Being praised by teachers for online activity."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Damaging their reputation or facing legal issues for spreading defamatory content."
+      }
+    }
+  ],
+  "total_questions": 6
+}

@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to the chapter, why is preparing for questions important for a speaker?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures the audience won’t ask any questions"
+        },
+        {
+          "letter": "B",
+          "text": "It helps anticipate audience queries and practice thoughtful responses, boosting credibility and calmness"
+        },
+        {
+          "letter": "C",
+          "text": "It allows the speaker to avoid answering difficult questions"
+        },
+        {
+          "letter": "D",
+          "text": "It is only necessary for professional speakers, not studentsCorrect Answer:B. It helps anticipate audience queries and practice thoughtful responses, boosting credibility and calmness"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a key component of active listening skills as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Thinking about your response while the other person is speaking"
+        },
+        {
+          "letter": "B",
+          "text": "Fully focusing on and understanding the question before answering, showing respect through attention and body language"
+        },
+        {
+          "letter": "C",
+          "text": "Interrupting to answer quickly and show confidence"
+        },
+        {
+          "letter": "D",
+          "text": "Looking at notes or the audience instead of the askerCorrect Answer:B. Fully focusing on and understanding the question before answering, showing respect through attention and body language"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does the chapter suggest responding with confidence to a tough or unexpected question?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Immediately say “I don’t know” and move on"
+        },
+        {
+          "letter": "B",
+          "text": "Pause briefly, stay calm, use a confident tone, and structure a short, clear answer even if unsure"
+        },
+        {
+          "letter": "C",
+          "text": "Avoid answering by changing the topic"
+        },
+        {
+          "letter": "D",
+          "text": "Speak as quickly as possible to hide uncertaintyCorrect Answer:B. Pause briefly, stay calm, use a confident tone, and structure a short, clear answer even if unsure"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What does the chapter recommend for accepting and using feedback effectively?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignore criticism and focus only on positive comments"
+        },
+        {
+          "letter": "B",
+          "text": "Listen without defending, ask for specifics, and apply actionable points to improve skills"
+        },
+        {
+          "letter": "C",
+          "text": "Argue with the person giving feedback to clarify your intent"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid seeking feedback to prevent hearing negative commentsCorrect Answer:B. Listen without defending, ask for specifics, and apply actionable points to improve skills"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a common challenge teens face when handling feedback, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Always receiving too much positive feedback, making it hard to improve"
+        },
+        {
+          "letter": "B",
+          "text": "Feeling embarrassed or defensive about criticism, often brushing it off instead of using it for growth"
+        },
+        {
+          "letter": "C",
+          "text": "Never receiving feedback because they don’t ask for it"
+        },
+        {
+          "letter": "D",
+          "text": "Finding feedback too easy to apply without effortCorrect Answer:B. Feeling embarrassed or defensive about criticism, often brushing it off instead of using it for growth"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

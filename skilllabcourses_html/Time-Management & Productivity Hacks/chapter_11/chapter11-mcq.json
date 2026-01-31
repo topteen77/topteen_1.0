@@ -1,0 +1,144 @@
+{
+  "title": "MCQ Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key difference between stress and burnout as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Stress is always long-term, while burnout is short-term."
+        },
+        {
+          "letter": "B",
+          "text": "Stress often involves over-engagement, while burnout involves feeling depleted and detached."
+        },
+        {
+          "letter": "C",
+          "text": "Stress only affects physical health, while burnout affects emotions."
+        },
+        {
+          "letter": "D",
+          "text": "Stress is unrelated to burnout and cannot lead to it.Correct Answer: B. Stress often involves over-engagement, while burnout involves feeling depleted and detached."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is a common sign of burnout rather than typical stress, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Feeling anxious before a test."
+        },
+        {
+          "letter": "B",
+          "text": "Having occasional headaches from studying."
+        },
+        {
+          "letter": "C",
+          "text": "Feeling emotionally exhausted and detached from school or activities for a prolonged period."
+        },
+        {
+          "letter": "D",
+          "text": "Worrying about an upcoming deadline.Correct Answer: C. Feeling emotionally exhausted and detached from school or activities for a prolonged period."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is the purpose of the 4-7-8 breathing technique mentioned in the chapter as a quick stress-relief method?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To increase heart rate and energize the body before a test."
+        },
+        {
+          "letter": "B",
+          "text": "To calm the heart rate and signal the brain to relax in under 5 minutes."
+        },
+        {
+          "letter": "C",
+          "text": "To replace the need for sleep or exercise."
+        },
+        {
+          "letter": "D",
+          "text": "To focus on future tasks instead of current stress.Correct Answer: B. To calm the heart rate and signal the brain to relax in under 5 minutes."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which long-term stress management habit does the chapter recommend to prevent burnout?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Avoiding all social interactions to focus on schoolwork."
+        },
+        {
+          "letter": "B",
+          "text": "Using time management with a planner to break tasks into smaller steps."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring stress symptoms until they go away on their own."
+        },
+        {
+          "letter": "D",
+          "text": "Taking long breaks without planning, regardless of deadlines.Correct Answer: B. Using time management with a planner to break tasks into smaller steps."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why does the chapter emphasize sleep as critical for high school students in managing stress?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows students to avoid responsibilities by sleeping more."
+        },
+        {
+          "letter": "B",
+          "text": "It consolidates memories, regulates emotions, and lowers stress hormone levels."
+        },
+        {
+          "letter": "C",
+          "text": "It is only necessary for students who are physically active."
+        },
+        {
+          "letter": "D",
+          "text": "It replaces the need for stress-relief techniques like meditation.Correct Answer: B. It consolidates memories, regulates emotions, and lowers stress hormone levels."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is one way the chapter suggests incorporating exercise into a busy high school schedule?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Only exercising if you’re on a sports team or in PE class."
+        },
+        {
+          "letter": "B",
+          "text": "Starting with small, manageable sessions like a 10-minute walk during study breaks."
+        },
+        {
+          "letter": "C",
+          "text": "Exercising intensely every day, even if it means sacrificing sleep."
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding exercise if it doesn’t fit into a gym routine.Correct Answer: B. Starting with small, manageable sessions like a 10-minute walk during study breaks."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

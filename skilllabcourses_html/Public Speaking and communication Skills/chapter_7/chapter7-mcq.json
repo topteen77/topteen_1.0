@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to the chapter, what is the primary purpose of using visual aids in a speech or presentation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To replace the speaker’s message with detailed visuals"
+        },
+        {
+          "letter": "B",
+          "text": "To enhance the message by clarifying, engaging, and reinforcing key points without distracting"
+        },
+        {
+          "letter": "C",
+          "text": "To make the presentation longer and more complex"
+        },
+        {
+          "letter": "D",
+          "text": "To use as many aids as possible to impress the audienceCorrect Answer:B. To enhance the message by clarifying, engaging, and reinforcing key points without distracting"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a key tip from the chapter for designing clear slides?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use as much text as possible to explain every detail"
+        },
+        {
+          "letter": "B",
+          "text": "Keep text minimal, use readable fonts, and include impactful visuals"
+        },
+        {
+          "letter": "C",
+          "text": "Choose bright, clashing colors to grab attention"
+        },
+        {
+          "letter": "D",
+          "text": "Add multiple animations and transitions to every slideCorrect Answer:B. Keep text minimal, use readable fonts, and include impactful visuals"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why does the chapter emphasize practicing with technology before a presentation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To ensure the speaker spends more time on tech than content"
+        },
+        {
+          "letter": "B",
+          "text": "To prepare for potential glitches like projector or mic issues and ensure a smooth delivery"
+        },
+        {
+          "letter": "C",
+          "text": "To avoid using technology altogether if it fails"
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on software without testing hardwareCorrect Answer:B. To prepare for potential glitches like projector or mic issues and ensure a smooth delivery"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What does the chapter suggest for balancing visuals and speech during a presentation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Read directly from slides to ensure accuracy"
+        },
+        {
+          "letter": "B",
+          "text": "Ensure the speaker’s delivery remains the focus while visuals support, not overshadow, the message"
+        },
+        {
+          "letter": "C",
+          "text": "Ignore visuals completely to focus on speaking"
+        },
+        {
+          "letter": "D",
+          "text": "Use visuals as the main content and minimize speakingCorrect Answer:B. Ensure the speaker’s delivery remains the focus while visuals support, not overshadow, the message"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a common challenge teens face when using visual aids, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Always using too few visuals, making presentations boring"
+        },
+        {
+          "letter": "B",
+          "text": "Overloading slides with text or relying on them too much, losing audience connection"
+        },
+        {
+          "letter": "C",
+          "text": "Never considering visual aids because they seem unnecessary"
+        },
+        {
+          "letter": "D",
+          "text": "Finding visual aids too easy to design and use effectivelyCorrect Answer:B. Overloading slides with text or relying on them too much, losing audience connection"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a recommended strategy from the chapter for handling technology glitches during a presentation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Stop the presentation and wait for the issue to be fixed"
+        },
+        {
+          "letter": "B",
+          "text": "Have a backup plan like saved files on USB or printed notes, and stay calm with a prepared recovery line"
+        },
+        {
+          "letter": "C",
+          "text": "Avoid using technology to prevent any risk of failure"
+        },
+        {
+          "letter": "D",
+          "text": "Blame the equipment and apologize repeatedly to the audienceCorrect Answer:B. Have a backup plan like saved files on USB or printed notes, and stay calm with a prepared recovery line"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key component of active listening that shows you are fully engaged in the conversation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Checking your phone occasionally to stay updated"
+        },
+        {
+          "letter": "B",
+          "text": "Interrupting to share your own opinion quickly"
+        },
+        {
+          "letter": "C",
+          "text": "Nodding and paraphrasing what the speaker said"
+        },
+        {
+          "letter": "D",
+          "text": "Thinking about what to say next while the other person talks"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Nodding and paraphrasing what the speaker said"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "When asking a teacher for extra help, which approach demonstrates effective verbal communication?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Mumbling, “Uh, I don’t get this… can you help or whatever?”"
+        },
+        {
+          "letter": "B",
+          "text": "Saying clearly, “I’m struggling with this topic. Could we go over it together?”"
+        },
+        {
+          "letter": "C",
+          "text": "Complaining, “This is too hard, I can’t do it at all!”"
+        },
+        {
+          "letter": "D",
+          "text": "Whispering, “I need help,” so quietly the teacher can’t hear"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Saying clearly, “I’m struggling with this topic. Could we go over it together?”"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can non-verbal communication impact a conversation during a group project discussion?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Slouching and avoiding eye contact can show you’re confident"
+        },
+        {
+          "letter": "B",
+          "text": "Smiling and leaning forward can show interest and encourage others to share"
+        },
+        {
+          "letter": "C",
+          "text": "Crossing your arms and frowning can make you seem more approachable"
+        },
+        {
+          "letter": "D",
+          "text": "Looking at your phone constantly can show you’re a good multitasker"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Smiling and leaning forward can show interest and encourage others to share"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is an empathetic response if a friend tells you they’re upset about not getting picked for a school play?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "“Just try again next time, it’s not a big deal.”"
+        },
+        {
+          "letter": "B",
+          "text": "“I know how disappointing that feels. I’m here if you want to talk about it.”"
+        },
+        {
+          "letter": "C",
+          "text": "“Why didn’t you practice more? That’s probably why.”"
+        },
+        {
+          "letter": "D",
+          "text": "“Let’s not talk about it, you’ll get over it soon.”"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "“I know how disappointing that feels. I’m here if you want to talk about it.”"
+      }
+    }
+  ],
+  "total_questions": 4
+}

@@ -1,0 +1,110 @@
+{
+  "title": "Questions to Ask Before Posting:",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why are privacy settings important for teens on social media?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They make your posts look cooler and get more likes"
+        },
+        {
+          "letter": "B",
+          "text": "They control who can see your content and personal info, protecting you from unwanted attention"
+        },
+        {
+          "letter": "C",
+          "text": "They automatically delete old posts to keep your profile clean"
+        },
+        {
+          "letter": "D",
+          "text": "They are only useful for professional platforms like LinkedIn"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "They control who can see your content and personal info, protecting you from unwanted attention"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a key reason to think before posting content online?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Posts can be permanent and impact your future, like college or job opportunities"
+        },
+        {
+          "letter": "B",
+          "text": "Posting quickly gets you more followers instantly"
+        },
+        {
+          "letter": "C",
+          "text": "Only public accounts need to worry about what they share"
+        },
+        {
+          "letter": "D",
+          "text": "Deleted posts are gone forever and can’t be seen by anyone"
+        }
+      ],
+      "correct_answer": {
+        "letter": "A",
+        "text": "Posts can be permanent and impact your future, like college or job opportunities"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a recommended step to handle cyberbullying or negative comments on social media?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Reply angrily to show you’re not affected by the comments"
+        },
+        {
+          "letter": "B",
+          "text": "Ignore it completely and hope it goes away on its own"
+        },
+        {
+          "letter": "C",
+          "text": "Save evidence, block/report the user, and talk to a trusted person for support"
+        },
+        {
+          "letter": "D",
+          "text": "Delete your account to avoid any further issues"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Save evidence, block/report the user, and talk to a trusted person for support"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can teens protect themselves from online scams and predators?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Share personal info only with people who seem nice online"
+        },
+        {
+          "letter": "B",
+          "text": "Keep personal info private, verify strangers, and trust their gut if something feels off"
+        },
+        {
+          "letter": "C",
+          "text": "Accept all friend requests to build a bigger online network"
+        },
+        {
+          "letter": "D",
+          "text": "Click on links promising free prizes to test if they’re real"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Keep personal info private, verify strangers, and trust their gut if something feels off"
+      }
+    }
+  ],
+  "total_questions": 4
+}

@@ -1,0 +1,121 @@
+{
+  "title": "Questions:Ask for opinions or quick answers (e.g., “Raise your hand if you’ve ever…?”).",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to the chapter, why is knowing your audience important for a speech or presentation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows you to use the same content for every group without changes"
+        },
+        {
+          "letter": "B",
+          "text": "It helps you tailor your content to their demographics, interests, and expectations for better connection"
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you can avoid speaking to unfamiliar groups"
+        },
+        {
+          "letter": "D",
+          "text": "It is only necessary for professional speakers, not studentsCorrect Answer:B. It helps you tailor your content to their demographics, interests, and expectations for better connection"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is one benefit of using storytelling techniques in a speech, as highlighted in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes the speech longer and more detailed"
+        },
+        {
+          "letter": "B",
+          "text": "It helps make the speech memorable and emotionally engaging through personal or relatable narratives"
+        },
+        {
+          "letter": "C",
+          "text": "It replaces the need for facts or evidence in a presentation"
+        },
+        {
+          "letter": "D",
+          "text": "It is only useful for entertainment speeches, not educational onesCorrect Answer:B. It helps make the speech memorable and emotionally engaging through personal or relatable narratives"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does the chapter suggest using interactive elements to engage an audience?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By including as many activities as possible to fill time"
+        },
+        {
+          "letter": "B",
+          "text": "By incorporating questions, polls, or short activities to keep listeners involved and energized"
+        },
+        {
+          "letter": "C",
+          "text": "By avoiding interaction to maintain full control of the speech"
+        },
+        {
+          "letter": "D",
+          "text": "By only using props without audience participationCorrect Answer:B. By incorporating questions, polls, or short activities to keep listeners involved and energized"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a recommended strategy from the chapter for handling distractions during a speech?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring all distractions completely and continuing without pause"
+        },
+        {
+          "letter": "B",
+          "text": "Stopping the speech entirely until the distraction is resolved"
+        },
+        {
+          "letter": "C",
+          "text": "Staying calm, pausing briefly, and re-engaging the audience with a hook or question"
+        },
+        {
+          "letter": "D",
+          "text": "Scolding the audience for being distracted to regain focusCorrect Answer:C. Staying calm, pausing briefly, and re-engaging the audience with a hook or question"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a common challenge teens face when using interactive elements, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Always having too many interactive ideas, making the speech chaotic"
+        },
+        {
+          "letter": "B",
+          "text": "Worrying that the audience won’t respond, leading to awkward silence or loss of control"
+        },
+        {
+          "letter": "C",
+          "text": "Never considering interaction because it feels unnecessary"
+        },
+        {
+          "letter": "D",
+          "text": "Finding interaction too easy and over-relying on it instead of contentCorrect Answer:B. Worrying that the audience won’t respond, leading to awkward silence or loss of control"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

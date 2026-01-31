@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to the chapter, why is discovering your unique voice important for high school students in communication?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It encourages students to copy others’ styles to fit in"
+        },
+        {
+          "letter": "B",
+          "text": "It helps identify personal strengths and quirks to create an authentic, memorable speaking style that boosts confidence and connection"
+        },
+        {
+          "letter": "C",
+          "text": "It is only relevant for professional speakers, not students"
+        },
+        {
+          "letter": "D",
+          "text": "It focuses on hiding personality to avoid standing outCorrect Answer:B. It helps identify personal strengths and quirks to create an authentic, memorable speaking style that boosts confidence and connection"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What does the chapter suggest as a key aspect of balancing authenticity and adaptation in communication?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Always changing your entire style to match every situation, even if it feels fake"
+        },
+        {
+          "letter": "B",
+          "text": "Staying true to your core personality while making small adjustments to fit different audiences or contexts"
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring the audience and situation to focus only on being yourself"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding any adaptation to prevent confusionCorrect Answer:B. Staying true to your core personality while making small adjustments to fit different audiences or contexts"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does the chapter define vocal identity, and why is it important for effective communication?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It is mimicking popular voices to gain attention, which is important for popularity"
+        },
+        {
+          "letter": "B",
+          "text": "It is the distinct sound and energy of your voice through tone, pitch, and expression, which is important for making delivery memorable and engaging"
+        },
+        {
+          "letter": "C",
+          "text": "It is speaking in a monotone to avoid mistakes, which is important for clarity"
+        },
+        {
+          "letter": "D",
+          "text": "It is unnecessary for high school students since their voices are still changingCorrect Answer:B. It is the distinct sound and energy of your voice through tone, pitch, and expression, which is important for making delivery memorable and engaging"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a primary focus of continuous growth in communication, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Sticking to the same style forever to maintain consistency"
+        },
+        {
+          "letter": "B",
+          "text": "Setting ongoing goals to refine your style through practice, feedback, and new experiences to keep evolving as a speaker"
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding feedback to prevent criticism"
+        },
+        {
+          "letter": "D",
+          "text": "Only focusing on big, unachievable goals to push yourselfCorrect Answer:B. Setting ongoing goals to refine your style through practice, feedback, and new experiences to keep evolving as a speaker"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a common challenge teens face when developing their vocal identity, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Always having a naturally distinct voice without effort"
+        },
+        {
+          "letter": "B",
+          "text": "Speaking in a monotone due to nerves or unawareness, or mimicking others, which can make delivery forgettable or inauthentic"
+        },
+        {
+          "letter": "C",
+          "text": "Finding vocal experimentation too easy and overdoing it"
+        },
+        {
+          "letter": "D",
+          "text": "Never having opportunities to practice vocal skillsCorrect Answer:B. Speaking in a monotone due to nerves or unawareness, or mimicking others, which can make delivery forgettable or inauthentic"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

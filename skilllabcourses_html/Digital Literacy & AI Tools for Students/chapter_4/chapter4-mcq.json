@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key feature of Google Classroom that helps high school students stay organized, as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It automatically completes assignments for you"
+        },
+        {
+          "letter": "B",
+          "text": "It provides a “To-Do” list to track upcoming and overdue tasks across classes"
+        },
+        {
+          "letter": "C",
+          "text": "It blocks distracting websites during class time"
+        },
+        {
+          "letter": "D",
+          "text": "It offers premium games for study breaksCorrect Answer: B) It provides a “To-Do” list to track upcoming and overdue tasks across classes"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "According to the chapter, how can Google Calendar help students balance school and extracurricular activities?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It writes essays and creates study guides automatically"
+        },
+        {
+          "letter": "B",
+          "text": "It allows color-coding of events and setting reminders for deadlines and practices"
+        },
+        {
+          "letter": "C",
+          "text": "It limits screen time by shutting down apps after a set period"
+        },
+        {
+          "letter": "D",
+          "text": "It connects directly to social media for quick updatesCorrect Answer: B) It allows color-coding of events and setting reminders for deadlines and practices"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which feature of Microsoft OneNote makes it particularly useful for note-taking during high school classes, based on the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It provides pre-made flashcards for every subject"
+        },
+        {
+          "letter": "B",
+          "text": "It lets you search keywords across all notebooks for quick test prep"
+        },
+        {
+          "letter": "C",
+          "text": "It restricts access to notes to prevent sharing with classmates"
+        },
+        {
+          "letter": "D",
+          "text": "It only works offline to avoid distractionsCorrect Answer: B) It lets you search keywords across all notebooks for quick test prep"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a primary advantage of using Google Docs for group projects, as highlighted in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It blocks teammates from editing to maintain control"
+        },
+        {
+          "letter": "B",
+          "text": "It allows real-time collaboration and commenting to assign tasks and edit together"
+        },
+        {
+          "letter": "C",
+          "text": "It automatically grades the project for submission"
+        },
+        {
+          "letter": "D",
+          "text": "It works only on desktop computers for securityCorrect Answer: B) It allows real-time collaboration and commenting to assign tasks and edit together"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is one strategy from the chapter to avoid digital distractions during study time?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keep all notifications on to stay updated with friends"
+        },
+        {
+          "letter": "B",
+          "text": "Use the Pomodoro Technique with 25-minute study blocks followed by short breaks"
+        },
+        {
+          "letter": "C",
+          "text": "Study while watching videos to stay entertained"
+        },
+        {
+          "letter": "D",
+          "text": "Keep your phone visible to answer urgent calls instantlyCorrect Answer: B) Use the Pomodoro Technique with 25-minute study blocks followed by short breaks"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "How canPadletbeused effectively for group projects, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It creates automatic citations for research sources"
+        },
+        {
+          "letter": "B",
+          "text": "It serves as a virtual bulletin board for brainstorming and sharing ideas, links, or images"
+        },
+        {
+          "letter": "C",
+          "text": "It limits group access to one user at a time for clarity"
+        },
+        {
+          "letter": "D",
+          "text": "It schedules study sessions without input from team membersCorrect Answer: B) It serves as a virtual bulletin board for brainstorming and sharing ideas, links, or images"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

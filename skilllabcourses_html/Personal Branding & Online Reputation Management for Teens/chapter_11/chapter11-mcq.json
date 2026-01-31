@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is balancing online and offline life important for teens building their personal brand?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures you get more followers by posting constantly."
+        },
+        {
+          "letter": "B",
+          "text": "It helps recharge your mental health, boosts real-world connections, and keeps your content fresh and authentic."
+        },
+        {
+          "letter": "C",
+          "text": "It means you should avoid social media completely to focus on school."
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees you’ll never miss out on online trends or events.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How can social media pressure and comparison affect a teen’s mental health, and what’s one way to handle it?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It always makes teens more confident by showing them how to improve."
+        },
+        {
+          "letter": "B",
+          "text": "It can lower self-esteem and cause stress by comparing to others’ highlight reels; unfollowing negative accounts can help."
+        },
+        {
+          "letter": "C",
+          "text": "It encourages teens to post more often to keep up with friends."
+        },
+        {
+          "letter": "D",
+          "text": "It has no impact on mental health since social media is just for fun.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is a sign of digital overload or addiction that teens should watch for?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Feeling energized and focused after spending 5 hours straight on social media."
+        },
+        {
+          "letter": "B",
+          "text": "Spending hours online without noticing, feeling anxious without your phone, or skipping IRL activities."
+        },
+        {
+          "letter": "C",
+          "text": "Using your phone only for schoolwork and nothing else."
+        },
+        {
+          "letter": "D",
+          "text": "Checking social media once a day for 10 minutes.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is one strategy for healthy social media use that can help teens maintain mental well-being?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Spend as much time as possible on social media to build a bigger following."
+        },
+        {
+          "letter": "B",
+          "text": "Set time boundaries, like limiting social media to 1-2 hours a day, to stay in control and reduce stress."
+        },
+        {
+          "letter": "C",
+          "text": "Post every single moment of your day to stay relevant online."
+        },
+        {
+          "letter": "D",
+          "text": "Keep notifications on all the time to never miss a like or comment.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

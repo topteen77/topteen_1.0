@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main difference between kinetic energy and potential energy?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Kinetic energy is stored energy, while potential energy is energy of motion."
+        },
+        {
+          "letter": "B",
+          "text": "Kinetic energy is energy of motion, while potential energy is stored energy."
+        },
+        {
+          "letter": "C",
+          "text": "Kinetic energy is only found in living things, while potential energy is in objects."
+        },
+        {
+          "letter": "D",
+          "text": "Kinetic energy is caused by gravity, while potential energy is caused by friction.Correct Answer: b) Kinetic energy is energy of motion, while potential energy is stored energy."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What happens during a chemical reaction?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Substances mix together without changing their properties."
+        },
+        {
+          "letter": "B",
+          "text": "Substances transform into new substances with different properties."
+        },
+        {
+          "letter": "C",
+          "text": "Substances only change their physical shape or size."
+        },
+        {
+          "letter": "D",
+          "text": "Substances disappear completely into energy.Correct Answer: b) Substances transform into new substances with different properties."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following best describes the role of the circulatory system in the human body?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you think and react by sending signals through nerves."
+        },
+        {
+          "letter": "B",
+          "text": "It breaks down food into energy for the body to use."
+        },
+        {
+          "letter": "C",
+          "text": "It transports oxygen and nutrients to cells via blood."
+        },
+        {
+          "letter": "D",
+          "text": "It supports the body with bones and allows movement.Correct Answer: c) It transports oxygen and nutrients to cells via blood."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is the purpose of forming a hypothesis in the scientific method?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To prove your experiment will work before testing it."
+        },
+        {
+          "letter": "B",
+          "text": "To make an educated guess about what might happen in an experiment."
+        },
+        {
+          "letter": "C",
+          "text": "To write down the final results of your experiment."
+        },
+        {
+          "letter": "D",
+          "text": "To ask a random question without any research.Correct Answer: b) To make an educated guess about what might happen in an experiment."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "In the “Pendulum Power” experiment from the chapter, what factor most likely affects the time it takes for a pendulum to complete a swing?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The color of the string used in the pendulum."
+        },
+        {
+          "letter": "B",
+          "text": "The length of the string holding the weight."
+        },
+        {
+          "letter": "C",
+          "text": "The temperature of the room where the experiment is conducted."
+        },
+        {
+          "letter": "D",
+          "text": "The type of material the weight is made of.Correct Answer: b) The length of the string holding the weight."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>chapter_6_modified</title>
+</head>
+<body>
+<p>Chapter 6: Introduction to Web Development with HTML and CSS</p>
+<p>&nbsp;</p>
+<p>Section 1: What is Web Development? How Websites Work</p>
+<p><strong>Overview</strong>: Web development is the process of creating websites and web applications that you use every day. It&#8217;s like building a digital house&#8212;there&#8217;s a structure (HTML), decorations (CSS), and sometimes interactive features (JavaScript, which we&#8217;ll touch on later). As a beginner, understanding how websites work is the first step to becoming a web creator.</p>
+<p><strong>Detailed Explanation</strong>:</p>
+<ul>
+<li><strong>What is Web Development?</strong>&#160;Think of web development as crafting a digital space where people can visit, interact, and get information. It involves designing the look, building the structure, and sometimes adding functionality (like buttons or forms). There are three main parts:</li>
+<ul>
+<li><strong>Frontend</strong>: What you see (design and layout, handled by HTML and CSS).</li>
+<li><strong>Backend</strong>: What happens behind the scenes (databases and servers, which we&#8217;ll explore in later chapters).</li>
+<li><strong>Full-Stack</strong>: Combining both frontend and backend. For now, we&#8217;re focusing on frontend!</li>
+</ul>
+<li><strong>How Websites Work</strong>: When you type a website URL (like&#160;) into your browser, here&#8217;s what happens:</li>
+<ul>
+<li>Your browser sends a request to a server (a powerful computer storing website files).</li>
+<li>The server sends back files like HTML, CSS, and images.</li>
+<li>Your browser reads these files and displays the website.
+Imagine it like ordering food at a restaurant&#8212;the browser is you, the server is the kitchen, and the website is the yummy dish delivered to your table!</li>
+<p>&nbsp;</p>
+</ul>
+<li><strong>Key Players in Web Development</strong>:</li>
+<ul>
+<li><strong>Web Developers</strong>: People like you who code the site.</li>
+<li><strong>Web Designers</strong>: Focus on how it looks (colours, layouts).</li>
+<li><strong>Web Hosts</strong>: Companies that store your site on servers (like GoDaddy or free options we&#8217;ll use).</li>
+</ul>
+</ul>
+<p><strong>Relatable Example for Teens</strong>: Think about your favourite TikTok page. The videos, colours, and buttons you see are all created with web development tools. HTML builds the skeleton (where things go), CSS makes it look trendy (colours and fonts), and other code makes it interactive (like clicking &#8220;like&#8221;). Cool, right?</p>
+<p><strong>Practical Insight</strong>: Websites are everywhere&#8212;school portals, gaming sites, online shops. Learning web development lets you create your own digital space to express yourself or even start a small business (like selling custom T-shirt designs online)! Plus, it&#8217;s a skill that looks great on college applications or resumes&#8212;imagine saying, &#8220;I built my own website!&#8221;</p>
+<p><strong>Fun Element</strong>: Did you know the first website ever made (in 1991) is still online? It&#8217;s super basic compared to today&#8217;s flashy sites, but it started the internet revolution! Search for &#8220;first website CERN&#8221; to see it&#8212;it&#8217;s like looking at a digital dinosaur! Compare it to a modern site like Netflix. What differences do you notice?</p>
+<p><strong>Challenge</strong>: Take a screenshot of your favourite website (like a gaming hub or social media page). Write down three things you think HTML controls (like text or images) and three things CSS might control (like colours or spacing). Discuss with a friend or classmate&#8212;see if you can guess how it&#8217;s built!</p>
+<p>&nbsp;</p>
+<p>Section 2: Basics of HTML: Structure and Tags</p>
+<p><strong>Overview</strong>: HTML (HyperText Markup Language) is the foundation of every webpage. It&#8217;s like the blueprint of a house&#8212;it tells the browser where to put text, images, and other elements. Let&#8217;s learn the basics and write some code!</p>
+<p><strong>Detailed Explanation</strong>:</p>
+<ul>
+<li><strong>What is HTML?</strong>&#160;HTML uses &#8220;tags&#8221; to define the structure of a webpage. Tags are like containers that hold content (text, pictures, links) and tell the browser what that content is (a heading, a paragraph, etc.). Tags usually come in pairs with an opening tag&#160;&amp;lt;tag&amp;gt;&#160;and a closing tag&#160;&amp;lt;/tag&amp;gt;, though some are self-closing (like&#160;&amp;lt;img&amp;gt;).</li>
+<li><strong>Basic HTML Structure</strong>: Every HTML file starts with a specific layout:</li>
+<ul>
+<li>&amp;lt;!DOCTYPE html&amp;gt;: Tells the browser this is an HTML5 document.</li>
+<li>&amp;lt;html&amp;gt;: The root element that wraps everything.</li>
+<li>&amp;lt;head&amp;gt;: Contains metadata (like the title) that isn&#8217;t visible on the page.</li>
+<li>&amp;lt;body&amp;gt;: Contains the visible content (text, images, etc.).</li>
+</ul>
+<li><strong>Common Tags</strong>:</li>
+<ul>
+<li>&amp;lt;h1&amp;gt;&#160;to&#160;&amp;lt;h6&amp;gt;: Headings (h1 is the biggest, h6 is smallest).</li>
+<li>&amp;lt;p&amp;gt;: Paragraphs for text.</li>
+<li>&amp;lt;img src="image.jpg"&amp;gt;: Adds an image (src is the file path).</li>
+<li>&amp;lt;a href="link"&amp;gt;: Creates a clickable link (href is the URL).</li>
+<li>&amp;lt;div&amp;gt;: A container to group elements together.</li>
+<li>&amp;lt;ul&amp;gt;&#160;and&#160;&amp;lt;li&amp;gt;: Unordered lists (bullet points).</li>
+<li>&amp;lt;ol&amp;gt;&#160;and&#160;&amp;lt;li&amp;gt;: Ordered lists (numbered).</li>
+<li>&amp;lt;br&amp;gt;: Line break (self-closing, adds a new line).</li>
+<p>&nbsp;</p>
+</ul>
+</ul>
+<p><strong>Coding Sequence 1</strong>: Let&#8217;s write a simple HTML page about your favorite game or hobby.</p>
+<ul>
+<li>Open a text editor (like Notepad on Windows, TextEdit on Mac, or free online editors like Replit or CodePen).</li>
+<li>Type this code:</li>
+</ul>
+<p>&amp;lt;!DOCTYPE html&amp;gt;</p>
+<p>&amp;lt;html&amp;gt;</p>
+<p>&amp;lt;head&amp;gt;</p>
+<p>    &amp;lt;title&amp;gt;My Favorite Game&amp;lt;/title&amp;gt;</p>
+<p>&amp;lt;/head&amp;gt;</p>
+<p>&amp;lt;body&amp;gt;</p>
+<p>    &amp;lt;h1&amp;gt;Welcome to My Page!&amp;lt;/h1&amp;gt;</p>
+<p>    &amp;lt;h2&amp;gt;About My Favorite Game: Fortnite&amp;lt;/h2&amp;gt;</p>
+<p>    &amp;lt;p&amp;gt;I love playing Fortnite because of the cool skins and building mechanics. My best rank is Diamond!&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;img src="<a href="https://via.placeholder.com/400x200?text=" target="_blank">https://via.placeholder.com/400x200?text=</a>Fortnite+Image" alt="Fortnite Battle Royale"&amp;gt;</p>
+<p>    &amp;lt;p&amp;gt;Check out the official site: &amp;lt;a href="<a href="https://www.epicgames.com/fortnite" target="_blank">https://www.epicgames.com/fortnite</a>"&amp;gt;Fortnite Website&amp;lt;/a&amp;gt;&amp;lt;/p&amp;gt;</p>
+<p>&amp;lt;/body&amp;gt;</p>
+<p>&amp;lt;/html&amp;gt;</p>
+<ul>
+<li>Save the file as&#160;mygame.html&#160;(make sure it ends with .html).</li>
+<li>Open it in a browser (double-click the file)&#8212;you&#8217;ll see your webpage! (Note: I&#8217;ve used a placeholder image URL from via.placeholder.com since local images require a file on your computer. You can replace it with a real online image URL by right-clicking an image online and copying its address.)</li>
+<p>&nbsp;</p>
+</ul>
+<p><strong>Practical Explanation for Coding Sequence 1</strong>:</p>
+<ul>
+<li>&amp;lt;h1&amp;gt;&#160;makes a big title&#8212;great for your main heading.</li>
+<li>&amp;lt;p&amp;gt;&#160;is for regular text, like a description.</li>
+<li>&amp;lt;img&amp;gt;&#160;needs an &#8220;alt&#8221; attribute (alternative text) so if the image doesn&#8217;t load, people (and screen readers for accessibility) know what it&#8217;s about.</li>
+<li>&amp;lt;a&amp;gt;&#160;lets you link to other sites&#8212;super useful for sharing resources.</li>
+<p>&nbsp;</p>
+</ul>
+<p><strong>Coding Sequence 2</strong>: Let&#8217;s expand this page with a list of reasons why you love the game and add some extra elements. Update mygame.html with:</p>
+<p>&amp;lt;!DOCTYPE html&amp;gt;</p>
+<p>&amp;lt;html&amp;gt;</p>
+<p>&amp;lt;head&amp;gt;</p>
+<p>    &amp;lt;title&amp;gt;My Favorite Game&amp;lt;/title&amp;gt;</p>
+<p>&amp;lt;/head&amp;gt;</p>
+<p>&amp;lt;body&amp;gt;</p>
+<p>    &amp;lt;h1&amp;gt;Welcome to My Page!&amp;lt;/h1&amp;gt;</p>
+<p>    &amp;lt;h2&amp;gt;About My Favorite Game: Fortnite&amp;lt;/h2&amp;gt;</p>
+<p>    &amp;lt;p&amp;gt;I love playing Fortnite because of the cool skins and building mechanics. My best rank is Diamond!&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;img src="<a href="https://via.placeholder.com/400x200?text=" target="_blank">https://via.placeholder.com/400x200?text=</a>Fortnite+Image" alt="Fortnite Battle Royale"&amp;gt;</p>
+<p>    &amp;lt;h3&amp;gt;Top 3 Reasons I Play Fortnite&amp;lt;/h3&amp;gt;</p>
+<p>    &amp;lt;ul&amp;gt;</p>
+<p>        &amp;lt;li&amp;gt;The adrenaline rush of a Victory Royale!&amp;lt;/li&amp;gt;</p>
+<p>        &amp;lt;li&amp;gt;Chatting and teaming up with friends online.&amp;lt;/li&amp;gt;</p>
+<p>        &amp;lt;li&amp;gt;Customizing my character with unique skins.&amp;lt;/li&amp;gt;</p>
+<p>    &amp;lt;/ul&amp;gt;</p>
+<p>    &amp;lt;p&amp;gt;Check out the official site: &amp;lt;a href="<a href="https://www.epicgames.com/fortnite" target="_blank">https://www.epicgames.com/fortnite</a>"&amp;gt;Fortnite Website&amp;lt;/a&amp;gt;&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;p&amp;gt;Have a favorite game too? Tell me about it! &amp;lt;br&amp;gt; Drop a comment if we ever play together!&amp;lt;/p&amp;gt;</p>
+<p>&amp;lt;/body&amp;gt;</p>
+<p>&amp;lt;/html&amp;gt;</p>
+<p><strong>Practical Explanation for Coding Sequence 2</strong>:</p>
+<ul>
+<li>&amp;lt;ul&amp;gt;&#160;and&#160;&amp;lt;li&amp;gt;&#160;create a bullet list&#8212;perfect for listing items like reasons or favorite features.</li>
+<li>&amp;lt;h3&amp;gt;&#160;is a smaller heading to organize subtopics.</li>
+<li>&amp;lt;br&amp;gt;&#160;adds a line break within a paragraph for better readability.</li>
+</ul>
+<p><strong>Fun Element for Teens</strong>: Try adding a meme or GIF to your page using an &amp;lt;img&amp;gt; tag with a URL (search for &#8220;free meme GIF&#8221; on Google, right-click, and copy the image address). Make your page hilarious&#8212;imagine showing it to your friends during lunch!</p>
+<p><strong>Challenge 1</strong>: Add a second paragraph and heading about another game or hobby you enjoy. Include an ordered list (&amp;lt;ol&amp;gt;) of two or three fun facts about it. Save and refresh your browser to see the update. You&#8217;re already coding a website!</p>
+<p><strong>Challenge 2</strong>: Experiment by adding a fake &#8220;comment section&#8221; at the bottom of your page. Use a &amp;lt;h3&amp;gt; tag for &#8220;Comments&#8221; and a few &amp;lt;p&amp;gt; tags with made-up friend comments like &#8220;Yo, let&#8217;s play Fortnite tonight!&#8221; See how it looks in your browser.</p>
+<p>&nbsp;</p>
+<p>Section 3: Styling with CSS: Colours, Fonts, and Layouts</p>
+<p><strong>Overview</strong>: CSS (Cascading Style Sheets) is what makes websites look awesome. It controls colours, fonts, sizes, and layouts. If HTML is the skeleton, CSS is the outfit&#8212;let&#8217;s make your webpage pop!</p>
+<p><strong>Detailed Explanation</strong>:</p>
+<ul>
+<li><strong>What is CSS?</strong>&#160;CSS styles your HTML elements by applying rules like &#8220;make this text red&#8221; or &#8220;center this image.&#8221; You can write CSS in three ways:</li>
+<ul>
+<li>Inline (inside an HTML tag with&#160;style="").</li>
+<li>Internal (inside&#160;&amp;lt;style&amp;gt;&#160;tags in the&#160;&amp;lt;head&amp;gt;).</li>
+<li>External (in a separate .css file linked with&#160;&amp;lt;link&amp;gt;). We&#8217;ll start with internal CSS for simplicity.</li>
+</ul>
+<li><strong>Basic CSS Properties</strong>:</li>
+<ul>
+<li>colour: Changes text colour (e.g.,&#160;colour: blue;&#160;or&#160;colour: #FF0000;&#160;for red in hex code).</li>
+<li>background-colour: Sets background colour.</li>
+<li>font-family: Changes text style (e.g.,&#160;font-family: Arial;).</li>
+<li>font-size: Adjusts text size (e.g.,&#160;font-size: 20px;).</li>
+<li>text-align: Aligns text (e.g.,&#160;text-align: center;).</li>
+<li>margin&#160;and&#160;padding: Controls spacing around elements (margin&#160;is outside,&#160;padding&#160;is inside).</li>
+<li>border: Adds a border around elements (e.g.,&#160;border: 1px solid black;).</li>
+<li>width&#160;and&#160;height: Sets size of elements like images or divs.</li>
+</ul>
+<li><strong>CSS Selectors</strong>: Rules target elements using tags (h1), classes (.myclass), or IDs (#myid). Classes and IDs are custom names you add to HTML tags for specific styling.</li>
+</ul>
+<p><strong>Coding Sequence 1</strong>: Let&#8217;s style the HTML page we made. Add CSS to make it look trendy. Update your mygame.html like this:</p>
+<p>&amp;lt;!DOCTYPE html&amp;gt;</p>
+<p>&amp;lt;html&amp;gt;</p>
+<p>&amp;lt;head&amp;gt;</p>
+<p>    &amp;lt;title&amp;gt;My Favorite Game&amp;lt;/title&amp;gt;</p>
+<p>    &amp;lt;style&amp;gt;</p>
+<p>        body {</p>
+<p>            background-colour: #E6F2FF; /* Light blue background */</p>
+<p>            font-family: Arial, sans-serif;</p>
+<p>            margin: 20px;</p>
+<p>        }</p>
+<p>        h1 {</p>
+<p>            colour: #0066CC; /* Dark blue */</p>
+<p>            text-align: center;</p>
+<p>            font-size: 40px;</p>
+<p>        }</p>
+<p>        h2 {</p>
+<p>            colour: #FF6600; /* Orange */</p>
+<p>        }</p>
+<p>        h3 {</p>
+<p>            colour: #008000; /* Green */</p>
+<p>        }</p>
+<p>        p {</p>
+<p>            colour: #333; /* Dark gray */</p>
+<p>            font-size: 16px;</p>
+<p>        }</p>
+<p>        img {</p>
+<p>            width: 400px; /* Resize image */</p>
+<p>            display: block; /* Center with margin */</p>
+<p>            margin: 0 auto;</p>
+<p>            border: 2px solid #0066CC; /* Add a border */</p>
+<p>        }</p>
+<p>        a {</p>
+<p>            colour: #FF0000; /* Red link */</p>
+<p>            text-decoration: none; /* No underline */</p>
+<p>        }</p>
+<p>        ul {</p>
+<p>            font-size: 16px;</p>
+<p>            colour: #444;</p>
+<p>            margin-left: 30px;</p>
+<p>        }</p>
+<p>    &amp;lt;/style&amp;gt;</p>
+<p>&amp;lt;/head&amp;gt;</p>
+<p>&amp;lt;body&amp;gt;</p>
+<p>    &amp;lt;h1&amp;gt;Welcome to My Page!&amp;lt;/h1&amp;gt;</p>
+<p>    &amp;lt;h2&amp;gt;About My Favorite Game: Fortnite&amp;lt;/h2&amp;gt;</p>
+<p>    &amp;lt;p&amp;gt;I love playing Fortnite because of the cool skins and building mechanics. My best rank is Diamond!&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;img src="<a href="https://via.placeholder.com/400x200?text=" target="_blank">https://via.placeholder.com/400x200?text=</a>Fortnite+Image" alt="Fortnite Battle Royale"&amp;gt;</p>
+<p>    &amp;lt;h3&amp;gt;Top 3 Reasons I Play Fortnite&amp;lt;/h3&amp;gt;</p>
+<p>    &amp;lt;ul&amp;gt;</p>
+<p>        &amp;lt;li&amp;gt;The adrenaline rush of a Victory Royale!&amp;lt;/li&amp;gt;</p>
+<p>        &amp;lt;li&amp;gt;Chatting and teaming up with friends online.&amp;lt;/li&amp;gt;</p>
+<p>        &amp;lt;li&amp;gt;Customizing my character with unique skins.&amp;lt;/li&amp;gt;</p>
+<p>    &amp;lt;/ul&amp;gt;</p>
+<p>    &amp;lt;p&amp;gt;Check out the official site: &amp;lt;a href="<a href="https://www.epicgames.com/fortnite" target="_blank">https://www.epicgames.com/fortnite</a>"&amp;gt;Fortnite Website&amp;lt;/a&amp;gt;&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;p&amp;gt;Have a favorite game too? Tell me about it! &amp;lt;br&amp;gt; Drop a comment if we ever play together!&amp;lt;/p&amp;gt;</p>
+<p>&amp;lt;/body&amp;gt;</p>
+<p>&amp;lt;/html&amp;gt;</p>
+<p><strong>Practical Explanation for Coding Sequence 1</strong>:</p>
+<ul>
+<li><strong>Selectors</strong>: In CSS,&#160;h1 {}&#160;targets all&#160;&amp;lt;h1&amp;gt;&#160;tags.&#160;body {}&#160;styles the entire page.</li>
+<li><strong>Colour</strong><strong>s</strong>: Use names (like &#8220;blue&#8221;) or hex codes (like&#160;#E6F2FF)&#8212;you can find hex codes on sites like colour-hex.com.</li>
+<li><strong>Layout</strong>:&#160;margin: 0 auto;&#160;centers the image.&#160;display: block;&#160;helps with alignment.</li>
+<li><strong>Borders</strong>: Adding a border to the image makes it stand out like a framed picture.
+Save and refresh your browser&#8212;your page now looks way cooler with colours and centered elements!</li>
+<p>&nbsp;</p>
+</ul>
+<p><strong>Coding Sequence 2</strong>: Let&#8217;s introduce classes and IDs for more targeted styling. Add a custom &#8220;highlight&#8221; class for important text and an ID for a special section. Update mygame.html:</p>
+<p>&amp;lt;!DOCTYPE html&amp;gt;</p>
+<p>&amp;lt;html&amp;gt;</p>
+<p>&amp;lt;head&amp;gt;</p>
+<p>    &amp;lt;title&amp;gt;My Favorite Game&amp;lt;/title&amp;gt;</p>
+<p>    &amp;lt;style&amp;gt;</p>
+<p>        body {</p>
+<p>            background-colour: #E6F2FF; /* Light blue background */</p>
+<p>            font-family: Arial, sans-serif;</p>
+<p>            margin: 20px;</p>
+<p>        }</p>
+<p>        h1 {</p>
+<p>            colour: #0066CC; /* Dark blue */</p>
+<p>            text-align: center;</p>
+<p>            font-size: 40px;</p>
+<p>        }</p>
+<p>        h2 {</p>
+<p>            colour: #FF6600; /* Orange */</p>
+<p>        }</p>
+<p>        h3 {</p>
+<p>            colour: #008000; /* Green */</p>
+<p>        }</p>
+<p>        p {</p>
+<p>            colour: #333; /* Dark gray */</p>
+<p>            font-size: 16px;</p>
+<p>        }</p>
+<p>        img {</p>
+<p>            width: 400px; /* Resize image */</p>
+<p>            display: block; /* Center with margin */</p>
+<p>            margin: 0 auto;</p>
+<p>            border: 2px solid #0066CC; /* Add a border */</p>
+<p>        }</p>
+<p>        a {</p>
+<p>            colour: #FF0000; /* Red link */</p>
+<p>            text-decoration: none; /* No underline */</p>
+<p>        }</p>
+<p>        ul {</p>
+<p>            font-size: 16px;</p>
+<p>            colour: #444;</p>
+<p>            margin-left: 30px;</p>
+<p>        }</p>
+<p>        .highlight {</p>
+<p>            background-colour: yellow; /* Highlight text */</p>
+<p>            font-weight: bold;</p>
+<p>        }</p>
+<p>        #special-note {</p>
+<p>            background-colour: #FFD700; /* Gold background */</p>
+<p>            padding: 10px;</p>
+<p>            border: 1px dashed black;</p>
+<p>            text-align: center;</p>
+<p>        }</p>
+<p>    &amp;lt;/style&amp;gt;</p>
+<p>&amp;lt;/head&amp;gt;</p>
+<p>&amp;lt;body&amp;gt;</p>
+<p>    &amp;lt;h1&amp;gt;Welcome to My Page!&amp;lt;/h1&amp;gt;</p>
+<p>    &amp;lt;h2&amp;gt;About My Favorite Game: Fortnite&amp;lt;/h2&amp;gt;</p>
+<p>    &amp;lt;p&amp;gt;I love playing Fortnite because of the cool skins and building mechanics. My best rank is &amp;lt;span class="highlight"&amp;gt;Diamond&amp;lt;/span&amp;gt;!&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;img src="<a href="https://via.placeholder.com/400x200?text=" target="_blank">https://via.placeholder.com/400x200?text=</a>Fortnite+Image" alt="Fortnite Battle Royale"&amp;gt;</p>
+<p>    &amp;lt;h3&amp;gt;Top 3 Reasons I Play Fortnite&amp;lt;/h3&amp;gt;</p>
+<p>    &amp;lt;ul&amp;gt;</p>
+<p>        &amp;lt;li&amp;gt;The adrenaline rush of a &amp;lt;span class="highlight"&amp;gt;Victory Royale&amp;lt;/span&amp;gt;!&amp;lt;/li&amp;gt;</p>
+<p>        &amp;lt;li&amp;gt;Chatting and teaming up with friends online.&amp;lt;/li&amp;gt;</p>
+<p>        &amp;lt;li&amp;gt;Customizing my character with unique skins.&amp;lt;/li&amp;gt;</p>
+<p>    &amp;lt;/ul&amp;gt;</p>
+<p>    &amp;lt;p&amp;gt;Check out the official site: &amp;lt;a href="<a href="https://www.epicgames.com/fortnite" target="_blank">https://www.epicgames.com/fortnite</a>"&amp;gt;Fortnite Website&amp;lt;/a&amp;gt;&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;p id="special-note"&amp;gt;Have a favorite game too? Tell me about it! &amp;lt;br&amp;gt; Drop a comment if we ever play together!&amp;lt;/p&amp;gt;</p>
+<p>&amp;lt;/body&amp;gt;</p>
+<p>&amp;lt;/html&amp;gt;</p>
+<p><strong>Practical Explanation for Coding Sequence 2</strong>:</p>
+<ul>
+<li><strong>Classes</strong>: Use&#160;.highlight&#160;to style specific text with&#160;class="highlight"&#160;in HTML. Classes can be reused on multiple elements.</li>
+<li><strong>IDs</strong>: Use&#160;#special-note&#160;to style a unique section with&#160;id="special-note". IDs are for one-time use per page.</li>
+<li><strong>Styling Effects</strong>:&#160;font-weight: bold;&#160;makes text stand out, and&#160;border: 1px dashed black;&#160;creates a cool dashed line.
+Refresh your browser&#8212;see how specific parts of your page now have unique styles!</li>
+</ul>
+<p><strong>Fun Element for Teens</strong>: Experiment with wild colours! Change background-colour of .highlight to something like #FF69B4 (hot pink) or add a funky font like font-family: "Comic Sans MS"; (if available). Make your page scream &#8220;you&#8221; and share a screenshot with friends on Discord or Snapchat!</p>
+<p><strong>Challenge 1</strong>: Play with CSS&#8212;change the font-size of paragraphs to 18px and add a background-colour to h2 (try #FFFF00 for yellow). See how small tweaks change the vibe of your page.</p>
+<p><strong>Challenge 2</strong>: Create a new class called .fun-fact and apply it to one of your list items. Style it with a different colour and italic text (font-style: italic;). Refresh to see your custom touch.</p>
+<p>&nbsp;</p>
+<p>Section 4: Creating Your First Webpage (Personal Portfolio or Blog)</p>
+<p><strong>Overview</strong>: Now that you know HTML and CSS basics, let&#8217;s build a full webpage&#8212;a personal portfolio or blog. This is your chance to show off who you are or what you love!</p>
+<p><strong>Detailed Explanation</strong>:</p>
+<ul>
+<li><strong>What&#8217;s a Portfolio/Blog?</strong>&#160;A portfolio shows your skills, hobbies, or achievements (like art, gaming stats, or school projects). A blog is a space to write about stuff you care about (like music reviews or travel stories). Both are awesome ways to express yourself online.</li>
+<li><strong>Planning Your Page</strong>: Before coding, sketch your idea. Decide:</li>
+<ul>
+<li>What&#8217;s the theme? (e.g., &#8220;My Gaming Journey&#8221; or &#8220;My Art Showcase&#8221;)</li>
+<li>What sections? (e.g., About Me, My Work, Contact)</li>
+<li>What colours/fonts? (Pick a vibe&#8212;dark and mysterious or bright and bubbly)</li>
+</ul>
+<li><strong>Navigation</strong>: Add a simple menu at the top so people can jump to sections (we&#8217;ll use anchor links with&#160;#).</li>
+</ul>
+<p><strong>Coding Sequence 1</strong>: Let&#8217;s build a simple portfolio page called &#8220;My World.&#8221; Create a new file portfolio.html:</p>
+<p>&amp;lt;!DOCTYPE html&amp;gt;</p>
+<p>&amp;lt;html&amp;gt;</p>
+<p>&amp;lt;head&amp;gt;</p>
+<p>    &amp;lt;title&amp;gt;My World - Portfolio&amp;lt;/title&amp;gt;</p>
+<p>    &amp;lt;style&amp;gt;</p>
+<p>        body {</p>
+<p>            background-colour: #F0F0F0; /* Light gray */</p>
+<p>            font-family: Verdana, sans-serif;</p>
+<p>            margin: 0;</p>
+<p>            padding: 20px;</p>
+<p>        }</p>
+<p>        .header {</p>
+<p>            background-colour: #4CAF50; /* Green */</p>
+<p>            colour: white;</p>
+<p>            text-align: center;</p>
+<p>            padding: 30px;</p>
+<p>            font-size: 24px;</p>
+<p>        }</p>
+<p>        .nav {</p>
+<p>            background-colour: #333; /* Dark gray */</p>
+<p>            padding: 10px;</p>
+<p>        }</p>
+<p>        .nav a {</p>
+<p>            colour: white;</p>
+<p>            text-decoration: none;</p>
+<p>            margin: 0 15px;</p>
+<p>            font-weight: bold;</p>
+<p>        }</p>
+<p>        .nav a:hover {</p>
+<p>            colour: #4CAF50; /* Green on hover */</p>
+<p>        }</p>
+<p>        .section {</p>
+<p>            background-colour: white;</p>
+<p>            margin: 20px 0;</p>
+<p>            padding: 15px;</p>
+<p>            border: 1px solid #DDD;</p>
+<p>        }</p>
+<p>        h2 {</p>
+<p>            colour: #4CAF50;</p>
+<p>        }</p>
+<p>        .footer {</p>
+<p>            text-align: center;</p>
+<p>            margin-top: 40px;</p>
+<p>            colour: #666;</p>
+<p>        }</p>
+<p>        img {</p>
+<p>            width: 200px;</p>
+<p>            border-radius: 50%; /* Makes image circular */</p>
+<p>            display: block;</p>
+<p>            margin: 0 auto;</p>
+<p>        }</p>
+<p>    &amp;lt;/style&amp;gt;</p>
+<p>&amp;lt;/head&amp;gt;</p>
+<p>&amp;lt;body&amp;gt;</p>
+<p>    &amp;lt;div class="header"&amp;gt;</p>
+<p>        &amp;lt;h1&amp;gt;Welcome to My World!&amp;lt;/h1&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;div class="nav"&amp;gt;</p>
+<p>        &amp;lt;a href="#about"&amp;gt;About Me&amp;lt;/a&amp;gt;</p>
+<p>        &amp;lt;a href="#hobbies"&amp;gt;Hobbies&amp;lt;/a&amp;gt;</p>
+<p>        &amp;lt;a href="#contact"&amp;gt;Contact&amp;lt;/a&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;div class="section" id="about"&amp;gt;</p>
+<p>        &amp;lt;h2&amp;gt;About Me&amp;lt;/h2&amp;gt;</p>
+<p>        &amp;lt;img src="<a href="https://via.placeholder.com/200?text=" target="_blank">https://via.placeholder.com/200?text=</a>My+Photo" alt="My Photo"&amp;gt;</p>
+<p>        &amp;lt;p&amp;gt;Hey, I&#8217;m [Your Name]! I&#8217;m a high school student who loves gaming, drawing, and coding. This is my space to share my passions.&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;div class="section" id="hobbies"&amp;gt;</p>
+<p>        &amp;lt;h2&amp;gt;My Hobbies&amp;lt;/h2&amp;gt;</p>
+<p>        &amp;lt;p&amp;gt;I&#8217;m obsessed with playing Minecraft and Fortnite. I also sketch anime characters&#8212;check out my Instagram for pics!&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;div class="section" id="contact"&amp;gt;</p>
+<p>        &amp;lt;h2&amp;gt;Contact Me&amp;lt;/h2&amp;gt;</p>
+<p>        &amp;lt;p&amp;gt;DM me on Instagram @yourhandle or email me at example@email.com.&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;div class="footer"&amp;gt;</p>
+<p>        &amp;lt;p&amp;gt;Created by [Your Name] - 2023&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>&amp;lt;/body&amp;gt;</p>
+<p>&amp;lt;/html&amp;gt;</p>
+<p><strong>Practical Explanation for Coding Sequence 1</strong>:</p>
+<ul>
+<li><strong>Classes</strong>: CSS uses&#160;.header&#160;to style specific&#160;&amp;lt;div&amp;gt;&#160;sections. This helps organize your design.</li>
+<li><strong>Navigation</strong>: The&#160;.nav&#160;class styles a menu, and&#160;a:hover&#160;changes link colour when you mouse over it&#8212;cool effect!</li>
+<li><strong>Anchor Links</strong>:&#160;href="#about"&#160;links to the section with&#160;id="about". Click it in the browser to jump down.</li>
+<li><strong>Border and Padding</strong>: Adds a neat box around sections for clarity.</li>
+<li><strong>Personal Touch</strong>: Replace placeholders (like&#160;[Your Name]) with your info. Use a real photo URL or keep the placeholder.
+Save and open in a browser&#8212;it&#8217;s your first full webpage!</li>
+<p>&nbsp;</p>
+</ul>
+<p><strong>Coding Sequence 2</strong>: Let&#8217;s add a &#8220;Projects&#8221; section with a grid-like layout for showcasing work (like art or game scores). Update portfolio.html:</p>
+<p>&amp;lt;!DOCTYPE html&amp;gt;</p>
+<p>&amp;lt;html&amp;gt;</p>
+<p>&amp;lt;head&amp;gt;</p>
+<p>    &amp;lt;title&amp;gt;My World - Portfolio&amp;lt;/title&amp;gt;</p>
+<p>    &amp;lt;style&amp;gt;</p>
+<p>        body {</p>
+<p>            background-colour: #F0F0F0; /* Light gray */</p>
+<p>            font-family: Verdana, sans-serif;</p>
+<p>            margin: 0;</p>
+<p>            padding: 20px;</p>
+<p>        }</p>
+<p>        .header {</p>
+<p>            background-colour: #4CAF50; /* Green */</p>
+<p>            colour: white;</p>
+<p>            text-align: center;</p>
+<p>            padding: 30px;</p>
+<p>            font-size: 24px;</p>
+<p>        }</p>
+<p>        .nav {</p>
+<p>            background-colour: #333; /* Dark gray */</p>
+<p>            padding: 10px;</p>
+<p>        }</p>
+<p>        .nav a {</p>
+<p>            colour: white;</p>
+<p>            text-decoration: none;</p>
+<p>            margin: 0 15px;</p>
+<p>            font-weight: bold;</p>
+<p>        }</p>
+<p>        .nav a:hover {</p>
+<p>            colour: #4CAF50; /* Green on hover */</p>
+<p>        }</p>
+<p>        .section {</p>
+<p>            background-colour: white;</p>
+<p>            margin: 20px 0;</p>
+<p>            padding: 15px;</p>
+<p>            border: 1px solid #DDD;</p>
+<p>        }</p>
+<p>        h2 {</p>
+<p>            colour: #4CAF50;</p>
+<p>        }</p>
+<p>        .footer {</p>
+<p>            text-align: center;</p>
+<p>            margin-top: 40px;</p>
+<p>            colour: #666;</p>
+<p>        }</p>
+<p>        img {</p>
+<p>            width: 200px;</p>
+<p>            border-radius: 50%; /* Makes image circular */</p>
+<p>            display: block;</p>
+<p>            margin: 0 auto;</p>
+<p>        }</p>
+<p>        .project-grid {</p>
+<p>            display: flex; /* Creates a flexible layout */</p>
+<p>            justify-content: space-around; /* Spaces items evenly */</p>
+<p>            flex-wrap: wrap; /* Wraps items to next line if needed */</p>
+<p>            margin-top: 20px;</p>
+<p>        }</p>
+<p>        .project {</p>
+<p>            background-colour: #F9F9F9;</p>
+<p>            border: 1px solid #CCC;</p>
+<p>            padding: 10px;</p>
+<p>            margin: 10px;</p>
+<p>            width: 200px; /* Fixed width for each project box */</p>
+<p>            text-align: center;</p>
+<p>        }</p>
+<p>        .project img {</p>
+<p>            width: 150px;</p>
+<p>            border-radius: 0; /* No circular effect here */</p>
+<p>        }</p>
+<p>    &amp;lt;/style&amp;gt;</p>
+<p>&amp;lt;/head&amp;gt;</p>
+<p>&amp;lt;body&amp;gt;</p>
+<p>    &amp;lt;div class="header"&amp;gt;</p>
+<p>        &amp;lt;h1&amp;gt;Welcome to My World!&amp;lt;/h1&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;div class="nav"&amp;gt;</p>
+<p>        &amp;lt;a href="#about"&amp;gt;About Me&amp;lt;/a&amp;gt;</p>
+<p>        &amp;lt;a href="#hobbies"&amp;gt;Hobbies&amp;lt;/a&amp;gt;</p>
+<p>        &amp;lt;a href="#projects"&amp;gt;Projects&amp;lt;/a&amp;gt;</p>
+<p>        &amp;lt;a href="#contact"&amp;gt;Contact&amp;lt;/a&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;div class="section" id="about"&amp;gt;</p>
+<p>        &amp;lt;h2&amp;gt;About Me&amp;lt;/h2&amp;gt;</p>
+<p>        &amp;lt;img src="<a href="https://via.placeholder.com/200?text=" target="_blank">https://via.placeholder.com/200?text=</a>My+Photo" alt="My Photo"&amp;gt;</p>
+<p>        &amp;lt;p&amp;gt;Hey, I&#8217;m [Your Name]! I&#8217;m a high school student who loves gaming, drawing, and coding. This is my space to share my passions.&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;div class="section" id="hobbies"&amp;gt;</p>
+<p>        &amp;lt;h2&amp;gt;My Hobbies&amp;lt;/h2&amp;gt;</p>
+<p>        &amp;lt;p&amp;gt;I&#8217;m obsessed with playing Minecraft and Fortnite. I also sketch anime characters&#8212;check out my Instagram for pics!&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;div class="section" id="projects"&amp;gt;</p>
+<p>        &amp;lt;h2&amp;gt;My Projects&amp;lt;/h2&amp;gt;</p>
+<p>        &amp;lt;p&amp;gt;Check out some cool stuff I&#8217;ve worked on!&amp;lt;/p&amp;gt;</p>
+<p>        &amp;lt;div class="project-grid"&amp;gt;</p>
+<p>            &amp;lt;div class="project"&amp;gt;</p>
+<p>                &amp;lt;img src="<a href="https://via.placeholder.com/150?text=" target="_blank">https://via.placeholder.com/150?text=</a>Game+Art" alt="Game Art"&amp;gt;</p>
+<p>                &amp;lt;h3&amp;gt;Game Art&amp;lt;/h3&amp;gt;</p>
+<p>                &amp;lt;p&amp;gt;Drew a custom Fortnite skin concept.&amp;lt;/p&amp;gt;</p>
+<p>            &amp;lt;/div&amp;gt;</p>
+<p>            &amp;lt;div class="project"&amp;gt;</p>
+<p>                &amp;lt;img src="<a href="https://via.placeholder.com/150?text=" target="_blank">https://via.placeholder.com/150?text=</a>School+Project" alt="School Project"&amp;gt;</p>
+<p>                &amp;lt;h3&amp;gt;Science Project&amp;lt;/h3&amp;gt;</p>
+<p>                &amp;lt;p&amp;gt;Built a model volcano for class!&amp;lt;/p&amp;gt;</p>
+<p>            &amp;lt;/div&amp;gt;</p>
+<p>            &amp;lt;div class="project"&amp;gt;</p>
+<p>                &amp;lt;img src="<a href="https://via.placeholder.com/150?text=" target="_blank">https://via.placeholder.com/150?text=</a>Coding+App" alt="Coding App"&amp;gt;</p>
+<p>                &amp;lt;h3&amp;gt;First App&amp;lt;/h3&amp;gt;</p>
+<p>                &amp;lt;p&amp;gt;Coded a simple game in Python.&amp;lt;/p&amp;gt;</p>
+<p>            &amp;lt;/div&amp;gt;</p>
+<p>        &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;div class="section" id="contact"&amp;gt;</p>
+<p>        &amp;lt;h2&amp;gt;Contact Me&amp;lt;/h2&amp;gt;</p>
+<p>        &amp;lt;p&amp;gt;DM me on Instagram @yourhandle or email me at example@email.com.&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>    &amp;lt;div class="footer"&amp;gt;</p>
+<p>        &amp;lt;p&amp;gt;Created by [Your Name] - 2023&amp;lt;/p&amp;gt;</p>
+<p>    &amp;lt;/div&amp;gt;</p>
+<p>&amp;lt;/body&amp;gt;</p>
+<p>&amp;lt;/html&amp;gt;</p>
+<p><strong>Practical Explanation for Coding Sequence 2</strong>:</p>
+<ul>
+<li><strong>Flexbox</strong>:&#160;display: flex;&#160;creates a flexible grid layout for projects.&#160;justify-content: space-around;&#160;spaces them evenly, and&#160;flex-wrap: wrap;&#160;ensures they stack nicely on smaller screens.</li>
+<li><strong>Nested Styling</strong>:&#160;.project img&#160;targets images only inside&#160;.project&#160;divs, overriding the circular style from the main&#160;img&#160;rule.</li>
+<li><strong>Personalization</strong>: Add real projects or hobbies&#8212;replace placeholder text and images with your own content if possible.
+Refresh your browser&#8212;your portfolio now has a slick project showcase!</li>
+</ul>
+<p><strong>Fun Element for Teens</strong>: Add a &#8220;Favorite Memes&#8221; section with funny images or GIFs. Or link to your Spotify playlist with a line like &#8220;Listen to my vibe here!&#8221; Make it a page you&#8217;d want to share on social media.</p>
+<p><strong>Challenge 1</strong>: Add a new section called &#8220;My Goals&#8221; with a short paragraph about what you want to achieve (like &#8220;Become a game developer!&#8221;). Style it with a different background colour.</p>
+<p><strong>Challenge 2</strong>: Add a fourth project to your project-grid. Use a placeholder image and describe something fun or imaginary (like &#8220;Designed a dream skateboard&#8221;). Adjust the width of .project if it looks too crowded.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>Section 5: Hosting and Sharing Your Webpage Online (Free Tools)</p>
+<p><strong>Overview</strong>: Building a webpage is awesome, but sharing it with the world is even better! Hosting means putting your files on a server so anyone can see them online. Let&#8217;s use free tools to do this.</p>
+<p><strong>Detailed Explanation</strong>:</p>
+<ul>
+<li><strong>What is Hosting?</strong>&#160;Hosting is like renting space on the internet to store your webpage files so others can access them via a URL. Normally, hosting costs money, but there are free options for beginners.</li>
+<li><strong>Free Hosting Tools</strong>:</li>
+<ul>
+<li><strong>GitHub</strong><strong> Pages</strong>: A free service to host static websites (HTML/CSS). Perfect for portfolios.</li>
+<li><strong>Netlify</strong>: Another free tool that&#8217;s easy to use&#8212;just drag and drop your files.</li>
+<li><strong>Replit</strong>: An online coding platform where you can code and host small projects for free.</li>
+<li><strong>CodePen</strong>: Great for testing and sharing small projects (though not full hosting).</li>
+</ul>
+<li><strong>Domain Names</strong>: This is your website&#8217;s address (like&#160;). Free hosting often gives a subdomain (like myname.github.io), but you can buy a custom domain later if you want.</li>
+<li><strong>Why Share Online?</strong>&#160;Hosting lets friends, family, or even future employers see your work. It&#8217;s a digital portfolio that shows off your creativity and skills.</li>
+</ul>
+<p><strong>Step-by-Step Guide 1 (Using </strong><strong>GitHub</strong><strong> Pages)</strong>:</p>
+<ul>
+<li><strong>Create a </strong><strong>GitHub</strong><strong> Account</strong>: Go to github.com and sign up (it&#8217;s free).</li>
+<li><strong>Create a Repository</strong>: Click the &#8220;+&#8221; icon, choose &#8220;New Repository,&#8221; name it&#160;username.github.io&#160;(replace &#8220;username&#8221; with your GitHub username), and make it public.</li>
+<li><strong>Upload Files</strong>: Upload your&#160;portfolio.html&#160;(and any images) to this repository. If you have a separate CSS file or images, upload them in the same folder structure.</li>
+<li><strong>Enable </strong><strong>GitHub</strong><strong> Pages</strong>: Go to the &#8220;Settings&#8221; tab of your repository, scroll to &#8220;Pages,&#8221; and set the source to the &#8220;main&#8221; branch.</li>
+<li><strong>Visit Your Site</strong>: After a few minutes, go to&#160;username.github.io&#160;in your browser&#8212;your site is live!
+(If this feels tricky, ask a teacher or friend for help, or try the next option.)</li>
+</ul>
+<p><strong>Step-by-Step Guide 2 (Using </strong><strong>Netlify</strong><strong>)</strong>:</p>
+<ul>
+<li><strong>Sign Up for </strong><strong>Netlify</strong>: Go to netlify.com and create a free account.</li>
+<li><strong>Create a New Site</strong>: Click &#8220;New site from Git&#8221; or use the &#8220;Drag and Drop&#8221; option if you don&#8217;t use Git.</li>
+<li><strong>Upload Files</strong>: Drag your folder containing&#160;portfolio.html&#160;(and any images or CSS files) into the upload area.</li>
+<li><strong>Deploy</strong>: Netlify will give you a random URL (like&#160;random-name.netlify.app). You can customize it slightly if needed.</li>
+<li><strong>Visit Your Site</strong>: Open the provided URL in your browser&#8212;your site is online!
+(Note: Netlify is super beginner-friendly and doesn&#8217;t require learning Git, unlike GitHub Pages.)</li>
+</ul>
+<p><strong>Practical Explanation</strong>:</p>
+<ul>
+<li>Hosting makes your site accessible 24/7 to anyone with the link.</li>
+<li>Free tools have limits (like no custom domains or less storage), but they&#8217;re perfect for starting out.</li>
+<li>Always double-check your links and images work after uploading&#8212;sometimes file paths break if images aren&#8217;t in the right folder.</li>
+<li><strong>Safety Tip</strong>: Don&#8217;t share super personal info (like your home address) on a public site. Keep it fun and general (like hobbies or nicknames).</li>
+</ul>
+<p><strong>Coding Sequence (Organizing Files for Hosting)</strong>: If you have images or a separate CSS file, organize them before uploading. Create a folder called my-portfolio on your computer. Inside it:</p>
+<ul>
+<li>Save&#160;portfolio.html.</li>
+<li>Create a subfolder called&#160;images&#160;and save any image files there (e.g.,&#160;me.jpg).</li>
+<li>If using external CSS, save it as&#160;styles.css&#160;in the main folder and link it in HTML with:</li>
+</ul>
+<p>&amp;lt;head&amp;gt;</p>
+<p>    &amp;lt;title&amp;gt;My World - Portfolio&amp;lt;/title&amp;gt;</p>
+<p>    &amp;lt;link rel="stylesheet" href="styles.css"&amp;gt;</p>
+<p>&amp;lt;/head&amp;gt;</p>
+<p>Update image paths in HTML to match: &amp;lt;img src="images/me.jpg" alt="My Photo"&amp;gt;. Test locally first, then upload the entire my-portfolio folder to Netlify or GitHub Pages.</p>
+<p><strong>Fun Element for Teens</strong>: Once your site is live, share the link in your Instagram bio or group chats with a caption like &#8220;Check out my website&#8212;I&#8217;m a coder now! &#128187;&#8221; Imagine your friends reacting to your custom page&#8212;it&#8217;s like going viral IRL! Bonus: Take a screenshot of your live site and make it your phone wallpaper for ultimate bragging rights.</p>
+<p><strong>Challenge 1</strong>: After hosting, add a small update to your page (like a new sentence or colour) and re-upload it. Refresh the online link to see your changes live. You&#8217;re officially a web developer!</p>
+<p><strong>Challenge 2</strong>: Create a &#8220;Guestbook&#8221; section on your site with a fake comment from a friend (e.g., &#8220;Wow, this site is epic!&#8221;). Style it with a unique background colour and border. Upload the update to your hosted site and check if it works online.</p>
+<p>&nbsp;</p>
+<p>Chapter Wrap-Up</p>
+<p><strong>Reflection for Students</strong>: Congrats, you&#8217;ve just learned the basics of web development! You&#8217;ve built a webpage with HTML and CSS, styled it to match your personality, and even shared it online. These skills aren&#8217;t just for fun&#8212;they&#8217;re real-world tools. Companies, artists, and influencers all need websites, and you&#8217;ve taken the first step to create them. Keep experimenting&#8212;maybe your next project could be a fan site for your favorite band, a blog about your high school adventures, or even a mini online shop for your crafts!</p>
+<p><strong>Fun Final Project Idea</strong>: Team up with a friend to create a &#8220;Class Meme Page&#8221; with funny quotes or inside jokes from your school. Use HTML for structure, CSS for a hilarious design (neon colours, anyone?), and host it for the whole class to see. Add sections like &#8220;Top 10 Memes of the Week&#8221; or &#8220;Teacher Quotes&#8221; with fake comments. Who knows, you might start a trend!</p>
+<p>&nbsp;</p>
+</body>
+</html>

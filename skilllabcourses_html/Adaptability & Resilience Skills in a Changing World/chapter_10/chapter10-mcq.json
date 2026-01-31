@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is organizing tasks important when facing unexpected challenges?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes you look busy to others."
+        },
+        {
+          "letter": "B",
+          "text": "It helps you stay focused and reduces stress by breaking tasks into manageable pieces."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you never have to deal with surprises."
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees you’ll finish everything on time.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a key strategy for balancing school, personal life, and unexpected disruptions?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring personal life to focus only on school."
+        },
+        {
+          "letter": "B",
+          "text": "Setting boundaries and using a weekly calendar to allocate time for different areas."
+        },
+        {
+          "letter": "C",
+          "text": "Doing everything at the last minute to save time."
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding communication with others to stay focused.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does the Eisenhower Matrix help with time management?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It sorts tasks by urgency and importance to decide what to do first."
+        },
+        {
+          "letter": "B",
+          "text": "It helps you avoid doing any tasks at all."
+        },
+        {
+          "letter": "C",
+          "text": "It focuses only on urgent tasks, ignoring long-term goals."
+        },
+        {
+          "letter": "D",
+          "text": "It makes all tasks seem equally important.Correct Answer:A"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a benefit of setting realistic deadlines under pressure?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures you’ll never miss a deadline."
+        },
+        {
+          "letter": "B",
+          "text": "It avoids last-minute panic and helps maintain the quality of your work."
+        },
+        {
+          "letter": "C",
+          "text": "It allows you to ignore tasks that take too long."
+        },
+        {
+          "letter": "D",
+          "text": "It makes others do your work for you.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why is adjusting priorities important when unexpected events occur?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you focus on what’s most urgent and adapt to changes without losing control."
+        },
+        {
+          "letter": "B",
+          "text": "It means you can skip all your responsibilities."
+        },
+        {
+          "letter": "C",
+          "text": "It prevents you from ever having to plan ahead."
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees you’ll always have extra time.Correct Answer:A"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

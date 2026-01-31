@@ -1,0 +1,42 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is mentorship primarily defined as?",
+      "options": [],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A relationship in which a more experienced person guides a less experienced individual."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is NOT a benefit of having a mentor?",
+      "options": [],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Access to exclusive job offers"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is one key difference between formal and informal mentors?",
+      "options": [],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Formal mentors are part of structured programs, while informal mentors arise from personal connections."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "When approaching a potential mentor, what is an important step to take?",
+      "options": [],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Send a brief message introducing yourself and explaining why you are reaching out."
+      }
+    }
+  ],
+  "total_questions": 4
+}

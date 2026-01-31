@@ -1,0 +1,133 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is Artificial Intelligence (AI)?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A type of hardware that makes computers faster"
+        },
+        {
+          "letter": "B",
+          "text": "A branch of computer science where machines learn from data to make decisions"
+        },
+        {
+          "letter": "C",
+          "text": "A programming language used to create websites"
+        },
+        {
+          "letter": "D",
+          "text": "A tool for designing video games only"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A branch of computer science where machines learn from data to make decisions"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "When was the term \"Artificial Intelligence\" first coined?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "1997"
+        },
+        {
+          "letter": "B",
+          "text": "1956"
+        },
+        {
+          "letter": "C",
+          "text": "2011"
+        },
+        {
+          "letter": "D",
+          "text": "1980"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is an example of AI in everyday life for teens?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Using a calculator for math homework"
+        },
+        {
+          "letter": "B",
+          "text": "Snapchat filters that detect and transform your face"
+        },
+        {
+          "letter": "C",
+          "text": "Typing a document on a computer"
+        },
+        {
+          "letter": "D",
+          "text": "Charging your phone"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Snapchat filters that detect and transform your face"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which statement is a common myth about AI?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "AI can make mistakes if trained on bad data"
+        },
+        {
+          "letter": "B",
+          "text": "AI will take over the world and control humans"
+        },
+        {
+          "letter": "C",
+          "text": "AI is a tool that humans design and manage"
+        },
+        {
+          "letter": "D",
+          "text": "AI creates new job opportunities in tech fields"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "AI will take over the world and control humans"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is an ethical concern related to AI?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "AI makes games more fun to play"
+        },
+        {
+          "letter": "B",
+          "text": "AI collects personal data, raising privacy issues"
+        },
+        {
+          "letter": "C",
+          "text": "AI helps predict weather more accurately"
+        },
+        {
+          "letter": "D",
+          "text": "AI improves smartphone camera quality"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "AI collects personal data, raising privacy issues"
+      }
+    }
+  ],
+  "total_questions": 5
+}

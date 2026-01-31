@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is cultural competency?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The ability to speak multiple languages fluently"
+        },
+        {
+          "letter": "B",
+          "text": "The ability to interact effectively and respectfully with people from different cultures"
+        },
+        {
+          "letter": "C",
+          "text": "The knowledge of every culture in the world"
+        },
+        {
+          "letter": "D",
+          "text": "The practice of ignoring cultural differences to treat everyone the same"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "The ability to interact effectively and respectfully with people from different cultures"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "How does cultural understanding help reduce conflict?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It teaches you to avoid people from different cultures"
+        },
+        {
+          "letter": "B",
+          "text": "It helps you understand the reasons behind people’s behaviors based on their cultural norms"
+        },
+        {
+          "letter": "C",
+          "text": "It ensures everyone agrees on the same rules"
+        },
+        {
+          "letter": "D",
+          "text": "It eliminates all differences between people"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It helps you understand the reasons behind people’s behaviors based on their cultural norms"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a stereotype?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A true fact about a group of people"
+        },
+        {
+          "letter": "B",
+          "text": "A personal opinion based on extensive research"
+        },
+        {
+          "letter": "C",
+          "text": "A fixed, often oversimplified idea about a group that is usually based on assumptions"
+        },
+        {
+          "letter": "D",
+          "text": "A detailed and accurate description of a culture"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "A fixed, often oversimplified idea about a group that is usually based on assumptions"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is self-reflection important in developing cultural competency?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you prove that you have no biases"
+        },
+        {
+          "letter": "B",
+          "text": "It allows you to understand your own cultural background and biases to better connect with others"
+        },
+        {
+          "letter": "C",
+          "text": "It focuses on changing other people’s perspectives"
+        },
+        {
+          "letter": "D",
+          "text": "It teaches you to hide your cultural identity"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It allows you to understand your own cultural background and biases to better connect with others"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "Which of the following is an example of cultural awareness?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Assuming everyone celebrates the same holidays as you do"
+        },
+        {
+          "letter": "B",
+          "text": "Recognizing that some cultures view direct eye contact as disrespectful while others see it as a sign of respect"
+        },
+        {
+          "letter": "C",
+          "text": "Insisting that your way of greeting people is the best way"
+        },
+        {
+          "letter": "D",
+          "text": "Refusing to try foods from other cultures because they seem strange"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Recognizing that some cultures view direct eye contact as disrespectful while others see it as a sign of respect"
+      }
+    }
+  ],
+  "total_questions": 5
+}

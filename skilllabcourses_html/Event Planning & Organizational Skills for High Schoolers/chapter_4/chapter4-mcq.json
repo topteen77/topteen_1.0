@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Creating a Timeline for Your EventWhat is the first step in creating a timeline for an event, and why is it important?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Brainstorming all tasks to ensure nothing is forgotten."
+        },
+        {
+          "letter": "B",
+          "text": "Setting the event date to establish a clear finish line."
+        },
+        {
+          "letter": "C",
+          "text": "Assigning tasks to team members to divide the workload."
+        },
+        {
+          "letter": "D",
+          "text": "Building buffer time to avoid last-minute stress."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Setting the event date to establish a clear finish line."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Using Tools for OrganizationWhich of the following is a key benefit of using a digital tool like Google Calendar or Trello for event planning?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows you to decorate your plans with stickers and doodles."
+        },
+        {
+          "letter": "B",
+          "text": "It automatically completes tasks for you without manual input."
+        },
+        {
+          "letter": "C",
+          "text": "It enables easy sharing with your team and setting reminders for deadlines."
+        },
+        {
+          "letter": "D",
+          "text": "It works without an internet connection or phone access."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "It enables easy sharing with your team and setting reminders for deadlines."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Prioritizing TasksUsing the Urgency-Importance Matrix, how should you handle a task that is high urgency but low importance, such as posting a last-minute social media update?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Do it first, as it requires immediate attention over all other tasks."
+        },
+        {
+          "letter": "B",
+          "text": "Plan for it soon, as it still contributes to the event’s success."
+        },
+        {
+          "letter": "C",
+          "text": "Delegate it if possible, since it’s time-sensitive but not critical."
+        },
+        {
+          "letter": "D",
+          "text": "Do it last, as it doesn’t impact the event significantly."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Delegate it if possible, since it’s time-sensitive but not critical."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Handling Delays and SetbacksWhat is a recommended strategy for handling a setback like a vendor cancelling at the last minute?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Panic and cancel the event immediately to avoid further issues."
+        },
+        {
+          "letter": "B",
+          "text": "Ignore the problem and hope it resolves itself before the event."
+        },
+        {
+          "letter": "C",
+          "text": "Stay calm, assess the impact, and activate a backup plan."
+        },
+        {
+          "letter": "D",
+          "text": "Blame the team for not anticipating the issue earlier."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Stay calm, assess the impact, and activate a backup plan."
+      }
+    }
+  ],
+  "total_questions": 4
+}

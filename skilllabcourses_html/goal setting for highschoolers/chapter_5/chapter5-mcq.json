@@ -1,0 +1,167 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What does the \"S\" in SMART Goals 2.0 stand for, and why is it important?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Simple – It ensures goals are easy to achieve."
+        },
+        {
+          "letter": "B",
+          "text": "Specific – It provides clarity by defining exactly what you want to do."
+        },
+        {
+          "letter": "C",
+          "text": "Strong – It focuses on building confidence in goal-setting."
+        },
+        {
+          "letter": "D",
+          "text": "Strategic – It emphasizes planning over action.Correct Answer:B) Specific – It provides clarity by defining exactly what you want to do."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How does making a goal \"Measurable\" help in achieving it?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It connects the goal to your personal values."
+        },
+        {
+          "letter": "B",
+          "text": "It sets a deadline to create urgency."
+        },
+        {
+          "letter": "C",
+          "text": "It allows you to track progress with numbers or milestones."
+        },
+        {
+          "letter": "D",
+          "text": "It ensures the goal is realistic and doable.Correct Answer:C) It allows you to track progress with numbers or milestones."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is an example of an \"Achievable\" goal for a high school student who has never run before?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Run a full marathon next week."
+        },
+        {
+          "letter": "B",
+          "text": "Run 1 mile twice a week for a month."
+        },
+        {
+          "letter": "C",
+          "text": "Win a national running competition this year."
+        },
+        {
+          "letter": "D",
+          "text": "Run 10 miles every day starting tomorrow.Correct Answer:B) Run 1 mile twice a week for a month."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is the purpose of making a goal \"Relevant\" in the SMART framework?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To ensure it has a clear deadline."
+        },
+        {
+          "letter": "B",
+          "text": "To make sure it connects to your personal \"why\" or values."
+        },
+        {
+          "letter": "C",
+          "text": "To break it into smaller, measurable steps."
+        },
+        {
+          "letter": "D",
+          "text": "To keep it specific and detailed.Correct Answer:B) To make sure it connects to your personal \"why\" or values."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why is setting a \"Time-Bound\" goal important for high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes the goal easier to achieve with less effort."
+        },
+        {
+          "letter": "B",
+          "text": "It creates urgency and helps fight procrastination."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures the goal is specific and clear."
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees the goal will be relevant to your life.Correct Answer:B) It creates urgency and helps fight procrastination."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "Which of the following best represents a transformation from a vague wish to a SMART goal?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "\"I want to be popular\" to \"I’ll be the most liked person in school.\""
+        },
+        {
+          "letter": "B",
+          "text": "\"I want to get fit\" to \"I’ll exercise every day somehow.\""
+        },
+        {
+          "letter": "C",
+          "text": "\"I want to save money\" to \"I’ll save $5 a week from my allowance in a jar every Sunday, aiming for $50, because I want new sneakers, by March 1st.\""
+        },
+        {
+          "letter": "D",
+          "text": "\"I want good grades\" to \"I’ll study a lot this year.\"Correct Answer:C) \"I want to save money\" to \"I’ll save $5 a week from my allowance in a jar every Sunday, aiming for $50, because I want new sneakers, by March 1st.\""
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 7,
+      "question_text": "How can a digital tool like the SMART Goal Generator App help with goal-setting?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It automatically achieves goals for you without effort."
+        },
+        {
+          "letter": "B",
+          "text": "It provides guided prompts to build SMART goals and reminders for deadlines."
+        },
+        {
+          "letter": "C",
+          "text": "It replaces the need to understand the SMART framework."
+        },
+        {
+          "letter": "D",
+          "text": "It focuses only on setting deadlines without other SMART elements.Correct Answer:B) It provides guided prompts to build SMART goals and reminders for deadlines."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 7
+}

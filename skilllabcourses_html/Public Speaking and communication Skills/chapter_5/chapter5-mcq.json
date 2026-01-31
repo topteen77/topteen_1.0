@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to the chapter, why is structure important in a speech or presentation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes the speech longer and more detailed"
+        },
+        {
+          "letter": "B",
+          "text": "It provides a clear framework with a beginning, middle, and end to help the audience follow and understand"
+        },
+        {
+          "letter": "C",
+          "text": "It allows the speaker to avoid preparing main points"
+        },
+        {
+          "letter": "D",
+          "text": "It is only necessary for formal speeches, not casual talksCorrect Answer:B. It provides a clear framework with a beginning, middle, and end to help the audience follow and understand"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is one technique the chapter suggests for crafting a strong introduction?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Starting with a long, detailed explanation of the topic"
+        },
+        {
+          "letter": "B",
+          "text": "Using an attention-grabbing hook like a story, question, or shocking statistic"
+        },
+        {
+          "letter": "C",
+          "text": "Skipping the introduction to save time for the body"
+        },
+        {
+          "letter": "D",
+          "text": "Only stating the purpose without previewing main pointsCorrect Answer:B. Using an attention-grabbing hook like a story, question, or shocking statistic"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a key element of developing the body of a speech, as highlighted in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Including as many points as possible to cover all ideas"
+        },
+        {
+          "letter": "B",
+          "text": "Organizing 2-3 main points logically with evidence, examples, and transitions"
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding examples to keep the speech concise"
+        },
+        {
+          "letter": "D",
+          "text": "Focusing only on personal opinions without supporting factsCorrect Answer:B. Organizing 2-3 main points logically with evidence, examples, and transitions"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How does the chapter recommend creating a memorable conclusion?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By introducing new ideas that weren’t discussed in the speech"
+        },
+        {
+          "letter": "B",
+          "text": "By summarizing key points and ending with a call-to-action or powerful takeaway"
+        },
+        {
+          "letter": "C",
+          "text": "By ending abruptly without a summary to surprise the audience"
+        },
+        {
+          "letter": "D",
+          "text": "By repeating the introduction word for wordCorrect Answer:B. By summarizing key points and ending with a call-to-action or powerful takeaway"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a common challenge teens face when structuring a speech, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Always having too much structure, making speeches rigid"
+        },
+        {
+          "letter": "B",
+          "text": "Struggling to organize thoughts, leading to rambling or confusing flow"
+        },
+        {
+          "letter": "C",
+          "text": "Never needing structure because they are naturally good speakers"
+        },
+        {
+          "letter": "D",
+          "text": "Focusing only on the conclusion and ignoring the introduction and bodyCorrect Answer:B. Struggling to organize thoughts, leading to rambling or confusing flow"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

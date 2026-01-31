@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a Business Plan?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A detailed 50-page document required for all businesses"
+        },
+        {
+          "letter": "B",
+          "text": "A written guide that acts like a GPS for your side hustle, showing where you’re headed and how to get there"
+        },
+        {
+          "letter": "C",
+          "text": "A playlist of motivational songs to inspire your hustle"
+        },
+        {
+          "letter": "D",
+          "text": "A list of products you want to buy for your business"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A written guide that acts like a GPS for your side hustle, showing where you’re headed and how to get there"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What does the 'M' in SMART goals stand for?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Motivational"
+        },
+        {
+          "letter": "B",
+          "text": "Measurable"
+        },
+        {
+          "letter": "C",
+          "text": "Manageable"
+        },
+        {
+          "letter": "D",
+          "text": "Marketable"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Measurable"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is budgeting important for a teen’s side hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you spend all your money on cool packaging"
+        },
+        {
+          "letter": "B",
+          "text": "It ensures you make every dollar (or rupee) count by tracking costs and income"
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees you’ll make a profit immediately"
+        },
+        {
+          "letter": "D",
+          "text": "It’s only necessary for big companies, not small hustles"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It ensures you make every dollar (or rupee) count by tracking costs and income"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which of the following is a good time management tip for balancing school and a side hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Work on your hustle all night and skip sleep"
+        },
+        {
+          "letter": "B",
+          "text": "Set specific hustle hours, like 1-2 hours a few days a week, to avoid clashing with schoolwork"
+        },
+        {
+          "letter": "C",
+          "text": "Take on as many orders as possible, even during exam week"
+        },
+        {
+          "letter": "D",
+          "text": "Ignore school deadlines to focus on your business"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Set specific hustle hours, like 1-2 hours a few days a week, to avoid clashing with schoolwork"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a key part of a mini business model for a teen’s side hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Writing a 100-page report on market trends"
+        },
+        {
+          "letter": "B",
+          "text": "Outlining how you deliver your product or service to customers"
+        },
+        {
+          "letter": "C",
+          "text": "Creating a playlist for motivation while working"
+        },
+        {
+          "letter": "D",
+          "text": "Buying expensive equipment before starting"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Outlining how you deliver your product or service to customers"
+      }
+    }
+  ],
+  "total_questions": 5
+}

@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to Section 1, how can digital skills enhance a college application?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By ensuring automatic acceptance into top schools"
+        },
+        {
+          "letter": "B",
+          "text": "By showcasing tech-savviness through polished essays, presentations, or online course certificates"
+        },
+        {
+          "letter": "C",
+          "text": "By replacing the need for extracurricular activities"
+        },
+        {
+          "letter": "D",
+          "text": "By focusing only on gaming skills to demonstrate creativityCorrect Answer: B) By showcasing tech-savviness through polished essays, presentations, or online course certificates"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Based on Section 2, what is a key benefit of using AI tools like LinkedIn Learning for career exploration?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They guarantee a job offer after completing a course"
+        },
+        {
+          "letter": "B",
+          "text": "They provide personalized career suggestions and skill-building courses based on your interests"
+        },
+        {
+          "letter": "C",
+          "text": "They eliminate the need to attend college for career preparation"
+        },
+        {
+          "letter": "D",
+          "text": "They focus solely on tech-related careers, ignoring other fieldsCorrect Answer: B) They provide personalized career suggestions and skill-building courses based on your interests"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a recommended way to stay updated on new apps and tech trends, as discussed in Section 3?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring tech news to avoid information overload"
+        },
+        {
+          "letter": "B",
+          "text": "Following tech channels on YouTube or subscribing to newsletters like TechCrunch for updates"
+        },
+        {
+          "letter": "C",
+          "text": "Only using apps that friends recommend without further research"
+        },
+        {
+          "letter": "D",
+          "text": "Spending hours daily on social media to spot trendsCorrect Answer: B) Following tech channels on YouTube or subscribing to newsletters like TechCrunch for updates"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "In Section 4, what is a key aspect of developing a “learn as you go” attitude for technology?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Mastering every tech tool before using it in real scenarios"
+        },
+        {
+          "letter": "B",
+          "text": "Avoiding new technology to prevent making mistakes"
+        },
+        {
+          "letter": "C",
+          "text": "Embracing curiosity and adaptability by learning through trial and error"
+        },
+        {
+          "letter": "D",
+          "text": "Relying solely on teachers to explain all tech conceptsCorrect Answer: C) Embracing curiosity and adaptability by learning through trial and error"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "According to Section 5, what is an important consideration when building a mini digital portfolio of high school projects?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Including every project ever completed to show quantity"
+        },
+        {
+          "letter": "B",
+          "text": "Selecting 3-5 high-quality pieces with descriptions of your role and lessons learned"
+        },
+        {
+          "letter": "C",
+          "text": "Using only paid platforms to ensure a professional look"
+        },
+        {
+          "letter": "D",
+          "text": "Sharing personal details like your home address for authenticityCorrect Answer: B) Selecting 3-5 high-quality pieces with descriptions of your role and lessons learned"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a general benefit of mastering digital and AI skills, as highlighted in the chapter conclusion?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees immediate success in any career field"
+        },
+        {
+          "letter": "B",
+          "text": "It prepares you to stand out in college applications, jobs, and future opportunities through adaptability"
+        },
+        {
+          "letter": "C",
+          "text": "It eliminates the need for traditional education"
+        },
+        {
+          "letter": "D",
+          "text": "It ensures you’ll never face tech-related challengesCorrect Answer: B) It prepares you to stand out in college applications, jobs, and future opportunities through adaptability"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

@@ -1,0 +1,162 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Howdoes social mediaoften influence teen self-esteem?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It has no impact since teens focus on real-life interactions."
+        },
+        {
+          "letter": "B",
+          "text": "It boosts self-esteem only through offline validation."
+        },
+        {
+          "letter": "C",
+          "text": "It can affect self-esteem through likes, comments, and shares, tying worth to online feedback."
+        },
+        {
+          "letter": "D",
+          "text": "It always improves self-esteem by connecting teens with friends."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "It can affect self-esteem through likes, comments, and shares, tying worth to online feedback."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is meant by “social comparison” on social media?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Comparing the number of followers between different platforms."
+        },
+        {
+          "letter": "B",
+          "text": "Comparing one’s own life to the curated, often perfect-looking lives of others online, this can lower self-esteem."
+        },
+        {
+          "letter": "C",
+          "text": "Comparing privacy settings to ensure safety online."
+        },
+        {
+          "letter": "D",
+          "text": "Comparing the quality of posts to improve content creation."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Comparing one’s own life to the curated, often perfect-looking lives of others online, which can lower self-esteem."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a digital footprint?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The physical space your phone takes up when using social media."
+        },
+        {
+          "letter": "B",
+          "text": "The trail of data left behind by your online activities, like posts and likes, which can be permanent."
+        },
+        {
+          "letter": "C",
+          "text": "The number of apps you have downloaded on your device."
+        },
+        {
+          "letter": "D",
+          "text": "The time you spend scrolling through social media daily."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "The trail of data left behind by your online activities, like posts and likes, which can be permanent."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is oversharing on social media considered risky?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It can make your posts less popular among friends."
+        },
+        {
+          "letter": "B",
+          "text": "It can expose personal information to strangers, increasing dangers like identity theft or harassment."
+        },
+        {
+          "letter": "C",
+          "text": "It always leads to losing followers on your accounts."
+        },
+        {
+          "letter": "D",
+          "text": "It prevents you from updating privacy settings."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It can expose personal information to strangers, increasing dangers like identity theft or harassment."
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a recommended first step when dealing with online trolls or cyberbullying?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Argue with the troll to defend yourself and prove them wrong."
+        },
+        {
+          "letter": "B",
+          "text": "Ignore the hate and avoid engaging, as trolls often want a reaction."
+        },
+        {
+          "letter": "C",
+          "text": "Delete your social media accounts immediately to avoid further issues."
+        },
+        {
+          "letter": "D",
+          "text": "Post a public response to shame the troll in front of others."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Ignore the hate and avoid engaging, as trolls often want a reaction."
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "How can teens contribute to a positive online environment?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By posting as much personal information as possible to build trust."
+        },
+        {
+          "letter": "B",
+          "text": "By hyping up friends’ posts, supporting targets of bullying, and reporting toxic behaviour."
+        },
+        {
+          "letter": "C",
+          "text": "By joining every group chat to stay updated on drama."
+        },
+        {
+          "letter": "D",
+          "text": "By following accounts that spread rumours to stay informed."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "By hyping up friends’ posts, supporting targets of bullying, and reporting toxic behaviour."
+      }
+    }
+  ],
+  "total_questions": 6
+}

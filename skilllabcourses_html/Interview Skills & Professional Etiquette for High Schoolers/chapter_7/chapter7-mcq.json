@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the best way to receive constructive criticism gracefully during a school project review or mock interview?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Interrupt the person giving feedback to explain why they’re wrong"
+        },
+        {
+          "letter": "B",
+          "text": "Listen without interrupting, ask clarifying questions if needed, and thank them for their input"
+        },
+        {
+          "letter": "C",
+          "text": "Ignore the feedback and focus only on what you think you did well"
+        },
+        {
+          "letter": "D",
+          "text": "Get upset and walk away to avoid hearing more criticism"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Listen without interrupting, ask clarifying questions if needed, and thank them for their input"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "How can you turn rejection into motivation after not getting selected for a club or job?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Give up on trying for similar opportunities since you weren’t chosen"
+        },
+        {
+          "letter": "B",
+          "text": "Feel disappointed for a short time, ask for feedback if possible, and use it as a learning opportunity to improve"
+        },
+        {
+          "letter": "C",
+          "text": "Blame others for the decision and refuse to try again"
+        },
+        {
+          "letter": "D",
+          "text": "Pretend the rejection didn’t happen and avoid thinking about it"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Feel disappointed for a short time, ask for feedback if possible, and use it as a learning opportunity to improve"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is self-reflection important after a mock interview or class presentation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you criticize yourself harshly so you never make mistakes again"
+        },
+        {
+          "letter": "B",
+          "text": "It allows you to identify what went well and what to improve, setting goals for next time"
+        },
+        {
+          "letter": "C",
+          "text": "It’s only useful if someone else tells you what you did wrong"
+        },
+        {
+          "letter": "D",
+          "text": "It wastes time since you can’t change what already happened"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It allows you to identify what went well and what to improve, setting goals for next time"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What should you do if feedback from a teacher or coach feels unclear or confusing?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Assume they don’t know what they’re talking about and ignore it"
+        },
+        {
+          "letter": "B",
+          "text": "Politely ask for clarification with a question like, “Can you explain what you mean by that?”"
+        },
+        {
+          "letter": "C",
+          "text": "Argue with them to prove your point instead of listening"
+        },
+        {
+          "letter": "D",
+          "text": "Nod and pretend you understand, even if you don’t"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Politely ask for clarification with a question like, “Can you explain what you mean by that?”"
+      }
+    }
+  ],
+  "total_questions": 4
+}

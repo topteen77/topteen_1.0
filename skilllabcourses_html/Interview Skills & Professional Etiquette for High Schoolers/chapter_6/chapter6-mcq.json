@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the best way to show respect during a classroom discussion or when a guest speaker is presenting at a school event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Checking your phone for updates to stay informed"
+        },
+        {
+          "letter": "B",
+          "text": "Listening actively, keeping side conversations to a minimum, and raising your hand to ask questions"
+        },
+        {
+          "letter": "C",
+          "text": "Talking to a friend quietly about unrelated topics"
+        },
+        {
+          "letter": "D",
+          "text": "Leaving early if you’re not interested in the topic"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Listening actively, keeping side conversations to a minimum, and raising your hand to ask questions"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is punctuality important in a workplace setting like an internship or part-time job?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It shows you can manage your time and don’t need supervision"
+        },
+        {
+          "letter": "B",
+          "text": "It proves you’re serious, reliable, and value the team’s schedule"
+        },
+        {
+          "letter": "C",
+          "text": "It allows you to take longer breaks later in the day"
+        },
+        {
+          "letter": "D",
+          "text": "It’s only important if your boss notices you’re late"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It proves you’re serious, reliable, and value the team’s schedule"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "When writing a professional email to a teacher or potential employer, what should you include to make a good impression?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A vague subject line like “Hey” and lots of emojis for personality"
+        },
+        {
+          "letter": "B",
+          "text": "A clear subject line, polite greeting, concise message, and a proper sign-off"
+        },
+        {
+          "letter": "C",
+          "text": "Texting slang like “u” instead of “you” to keep it casual"
+        },
+        {
+          "letter": "D",
+          "text": "A long message with every detail of your day to show effort"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A clear subject line, polite greeting, concise message, and a proper sign-off"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key tip for maintaining digital etiquette during a virtual meeting or Zoom call for school or work?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Joining late to avoid small talk with others"
+        },
+        {
+          "letter": "B",
+          "text": "Keeping your camera off and staying on mute the entire time, even when asked to speak"
+        },
+        {
+          "letter": "C",
+          "text": "Testing your tech beforehand, joining a few minutes early, and dressing appropriately"
+        },
+        {
+          "letter": "D",
+          "text": "Using a funny virtual background to entertain everyone"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Testing your tech beforehand, joining a few minutes early, and dressing appropriately"
+      }
+    }
+  ],
+  "total_questions": 4
+}

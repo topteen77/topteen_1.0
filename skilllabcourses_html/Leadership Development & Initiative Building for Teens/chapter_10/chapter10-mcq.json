@@ -1,0 +1,60 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What does integrity in leadership primarily involve?",
+      "options": [],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Being honest and adhering to moral principles"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is fairness important in leadership?",
+      "options": [],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It ensures that all team members feel valued and included"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is one practical strategy for embracing accountability as a leader?",
+      "options": [],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Asking for feedback from team members"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can a leader use their influence for positive social impact?",
+      "options": [],
+      "correct_answer": {
+        "letter": "B",
+        "text": "By engaging in community service and advocacy"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is social responsibility?",
+      "options": [],
+      "correct_answer": {
+        "letter": "B",
+        "text": "The idea that individuals should act in ways that benefit society"
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a recommended action when a leader makes a mistake?",
+      "options": [],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Reflect on the mistake and discuss improvements with the team"
+      }
+    }
+  ],
+  "total_questions": 6
+}

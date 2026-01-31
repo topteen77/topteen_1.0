@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Provincial Alcohol RegulationsWhat is the legal drinking age in most Canadian provinces, such as Ontario and British Columbia?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "18 years old"
+        },
+        {
+          "letter": "B",
+          "text": "19 years old"
+        },
+        {
+          "letter": "C",
+          "text": "21 years old"
+        },
+        {
+          "letter": "D",
+          "text": "16 years oldCorrect Answer: b) 19 years old"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Cannabis LawsWhere can you legally purchase cannabis for recreational use in Canada?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "From any private individual"
+        },
+        {
+          "letter": "B",
+          "text": "From government-authorized retailers or licensed online sources"
+        },
+        {
+          "letter": "C",
+          "text": "From any convenience store"
+        },
+        {
+          "letter": "D",
+          "text": "From friends at a discounted rateCorrect Answer: b) From government-authorized retailers or licensed online sources"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Consent Laws and Campus Safety PoliciesWhat is a key principle of consent under Canadian law?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Consent is assumed unless someone says “no”"
+        },
+        {
+          "letter": "B",
+          "text": "Consent must be clear, voluntary, and ongoing"
+        },
+        {
+          "letter": "C",
+          "text": "Consent is only required for physical contact"
+        },
+        {
+          "letter": "D",
+          "text": "Consent cannot be withdrawn once givenCorrect Answer: b) Consent must be clear, voluntary, and ongoing"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Tenant Rights and Housing Legal ProtectionsWhat is a legal right for renters under most provincial landlord-tenant laws in Canada?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Landlords can enter your rental unit anytime without notice"
+        },
+        {
+          "letter": "B",
+          "text": "Landlords must provide 24-hour notice before entering, except in emergencies"
+        },
+        {
+          "letter": "C",
+          "text": "Landlords can evict you without any notice"
+        },
+        {
+          "letter": "D",
+          "text": "Landlords can increase rent without any limits or noticeCorrect Answer: b) Landlords must provide 24-hour notice before entering, except in emergencies"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Consumer Rights and Financial Legal ProtectionsWhat should you do if you purchase a defective product in Canada, such as a malfunctioning laptop?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Accept the loss since it’s your responsibility"
+        },
+        {
+          "letter": "B",
+          "text": "Return it to the store for a repair or refund if within a reasonable time, with a receipt"
+        },
+        {
+          "letter": "C",
+          "text": "Ignore the issue and buy a new one"
+        },
+        {
+          "letter": "D",
+          "text": "Complain on social media without contacting the sellerCorrect Answer: b) Return it to the store for a repair or refund if within a reasonable time, with a receipt"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

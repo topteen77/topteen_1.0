@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a digital footprint?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A physical mark left by your device on the internet"
+        },
+        {
+          "letter": "B",
+          "text": "The collection of data and information about you that exists online due to your internet activities"
+        },
+        {
+          "letter": "C",
+          "text": "Only the social media accounts you create"
+        },
+        {
+          "letter": "D",
+          "text": "A temporary record of your online searches that disappears after a day"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "The collection of data and information about you that exists online due to your internet activities"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is the difference between an active and a passive digital footprint?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Active is what you delete online, while passive is what you post"
+        },
+        {
+          "letter": "B",
+          "text": "Active is what you choose to share, like posts, while passive is data collected without your direct input, like search history"
+        },
+        {
+          "letter": "C",
+          "text": "Active is only on social media, while passive is only on websites"
+        },
+        {
+          "letter": "D",
+          "text": "Active is private, while passive is public"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Active is what you choose to share, like posts, while passive is data collected without your direct input, like search history"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can your online actions leave a trace in your digital footprint?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Only through posts you share on social media"
+        },
+        {
+          "letter": "B",
+          "text": "Through likes, comments, searches, location data, and tagged content, even if you delete them later"
+        },
+        {
+          "letter": "C",
+          "text": "Only if you use public Wi-Fi to access the internet"
+        },
+        {
+          "letter": "D",
+          "text": "Only if you give permission for websites to track you"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Through likes, comments, searches, location data, and tagged content, even if you delete them later"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is assessing your current digital footprint important for teens?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you get more followers on social media"
+        },
+        {
+          "letter": "B",
+          "text": "It lets you see what’s online about you and if it matches the personal brand you want to build"
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees that nothing bad will ever show up online"
+        },
+        {
+          "letter": "D",
+          "text": "It’s only necessary if you’re applying for a job right now"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It lets you see what’s online about you and if it matches the personal brand you want to build"
+      }
+    }
+  ],
+  "total_questions": 4
+}

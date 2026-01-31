@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Which of the following is an example of a renewable energy source that harnesses natural elements to generate power?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Coal-powered plants"
+        },
+        {
+          "letter": "B",
+          "text": "Wind turbines"
+        },
+        {
+          "letter": "C",
+          "text": "Gasoline engines"
+        },
+        {
+          "letter": "D",
+          "text": "Nuclear reactorsCorrect Answer:B) Wind turbines"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a common economic barrier to adopting sustainable practices on a large scale?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Lack of public interest in green technologies"
+        },
+        {
+          "letter": "B",
+          "text": "High upfront costs of installing solutions like solar panels"
+        },
+        {
+          "letter": "C",
+          "text": "Too many renewable energy options available"
+        },
+        {
+          "letter": "D",
+          "text": "Overproduction of eco-friendly productsCorrect Answer:B) High upfront costs of installing solutions like solar panels"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is it challenging to balance development with environmental protection in growing cities?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Development always leads to cleaner air and water"
+        },
+        {
+          "letter": "B",
+          "text": "Building infrastructure often harms natural habitats or increases pollution"
+        },
+        {
+          "letter": "C",
+          "text": "Environmental protection laws are too easy to enforce"
+        },
+        {
+          "letter": "D",
+          "text": "Cities have unlimited resources to protect the environmentCorrect Answer:B) Building infrastructure often harms natural habitats or increases pollution"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What does “carbon neutrality” mean in the context of a sustainable future?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Producing more carbon dioxide to balance global temperatures"
+        },
+        {
+          "letter": "B",
+          "text": "Ensuring no net carbon dioxide emissions by offsetting pollution"
+        },
+        {
+          "letter": "C",
+          "text": "Completely stopping all industrial activities"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring carbon emissions to focus on waste reductionCorrect Answer:B) Ensuring no net carbon dioxide emissions by offsetting pollution"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

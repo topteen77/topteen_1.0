@@ -1,0 +1,162 @@
+{
+  "title": "MCQ Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Which of the following is a commonphysicalindicator of stress in teens?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Feeling irritable or snapping at others"
+        },
+        {
+          "letter": "B",
+          "text": "Worrying constantly about the future"
+        },
+        {
+          "letter": "C",
+          "text": "Experiencing frequent headaches or stomachaches"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding social situations or responsibilities"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Experiencing frequent headaches or stomachaches"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "When should a teen consider seeking support for stress?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "When they feel stressed for a single day"
+        },
+        {
+          "letter": "B",
+          "text": "When stress feels unmanageable or lasts for weeks"
+        },
+        {
+          "letter": "C",
+          "text": "Only when they have a big test coming up"
+        },
+        {
+          "letter": "D",
+          "text": "When they feel a little tired after school"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "When stress feels unmanageable or lasts for weeks"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is one benefit of practicing mindfulness as a stress-relief technique?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps build physical strength and endurance"
+        },
+        {
+          "letter": "B",
+          "text": "It quiets a racing mind and reduces anxiety"
+        },
+        {
+          "letter": "C",
+          "text": "It organizes your schoolwork and deadlines"
+        },
+        {
+          "letter": "D",
+          "text": "It improves your grades automatically"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It quiets a racing mind and reduces anxiety"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which strategy can help balance school and personal life for a teen?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Studying all night to finish assignments"
+        },
+        {
+          "letter": "B",
+          "text": "Setting a cutoff time for schoolwork to allow personal time"
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring friends to focus only on grades"
+        },
+        {
+          "letter": "D",
+          "text": "Taking on extra activities even when overwhelmed"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Setting a cutoff time for schoolwork to allow personal time"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why is downtime considered an important part of self-care for teens?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows you to avoid all responsibilities permanently"
+        },
+        {
+          "letter": "B",
+          "text": "It helps recharge your energy and prevent burnout"
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees better grades without studying"
+        },
+        {
+          "letter": "D",
+          "text": "It means spending all day on social media"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It helps recharge your energy and prevent burnout"
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "Which of the following is a healthy habit that supports emotional well-being?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Staying up late every night to finish homework"
+        },
+        {
+          "letter": "B",
+          "text": "Skipping meals to save time for activities"
+        },
+        {
+          "letter": "C",
+          "text": "Aiming for 8-10 hours of sleep per night"
+        },
+        {
+          "letter": "D",
+          "text": "Spending all free time on social media"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Aiming for 8-10 hours of sleep per night"
+      }
+    }
+  ],
+  "total_questions": 6
+}

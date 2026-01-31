@@ -1,0 +1,136 @@
+{
+  "title": "MCQ Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Exploring STEM Education PathwaysWhat is a primary benefit of taking AP or IB STEM courses in high school?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They guarantee admission to top colleges."
+        },
+        {
+          "letter": "B",
+          "text": "They provide an opportunity to earn college credit and prepare for advanced studies."
+        },
+        {
+          "letter": "C",
+          "text": "They are easier than regular high school courses."
+        },
+        {
+          "letter": "D",
+          "text": "They focus only on theoretical knowledge without practical skills."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "They provide an opportunity to earn college credit and prepare for advanced studies."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Skills for SuccessWhich skill is most essential when working on a group STEM project, such as building a robot for a competition?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Working alone to ensure perfection."
+        },
+        {
+          "letter": "B",
+          "text": "Teamwork to collaborate and combine diverse skills like coding and design."
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding communication to prevent conflicts."
+        },
+        {
+          "letter": "D",
+          "text": "Focusing only on personal tasks without considering others’ contributions."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Teamwork to collaborate and combine diverse skills like coding and design."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Building a STEM PortfolioWhat is a key purpose of including a “failures” section in a STEM portfolio?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To show that you give up easily when projects don’t work."
+        },
+        {
+          "letter": "B",
+          "text": "To demonstrate grit and growth by explaining lessons learned from challenges."
+        },
+        {
+          "letter": "C",
+          "text": "To prove that STEM is too difficult for most students."
+        },
+        {
+          "letter": "D",
+          "text": "To avoid showcasing successful projects."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To demonstrate grit and growth by explaining lessons learned from challenges."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Inspiring StoriesWhat lesson can high school students learn from teen innovator Gitanjali Rao, who created a device to detect lead in water?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "STEM achievements are only possible for adults with advanced degrees."
+        },
+        {
+          "letter": "B",
+          "text": "High school projects are unimportant and cannot make a real impact."
+        },
+        {
+          "letter": "C",
+          "text": "Age is no barrier to innovation, and small projects can address big problems."
+        },
+        {
+          "letter": "D",
+          "text": "STEM should only focus on theoretical research, not practical solutions."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Age is no barrier to innovation, and small projects can address big problems."
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "Final Project - Proposing a STEM SolutionWhat is a critical first step in proposing a STEM solution for a real-world problem?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Immediately building a prototype without planning."
+        },
+        {
+          "letter": "B",
+          "text": "Identifying a specific problem in your community or the world that you care about."
+        },
+        {
+          "letter": "C",
+          "text": "Copying an existing solution without research."
+        },
+        {
+          "letter": "D",
+          "text": "Focusing only on global issues that are impossible to solve locally."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Identifying a specific problem in your community or the world that you care about."
+      }
+    }
+  ],
+  "total_questions": 5
+}

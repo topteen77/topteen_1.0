@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key characteristic of a strong password?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It should be short and easy to remember, like your name"
+        },
+        {
+          "letter": "B",
+          "text": "It should be at least 12 characters long with a mix of letters, numbers, and symbols"
+        },
+        {
+          "letter": "C",
+          "text": "It should be the same for all your accounts to avoid forgetting"
+        },
+        {
+          "letter": "D",
+          "text": "It should include your birthdate for personal significance"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It should be at least 12 characters long with a mix of letters, numbers, and symbols"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "How does a password manager help with account security?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It automatically logs you into websites without a password"
+        },
+        {
+          "letter": "B",
+          "text": "It stores unique, complex passwords securely so you don’t have to remember them"
+        },
+        {
+          "letter": "C",
+          "text": "It shares your passwords with trusted friends for backup"
+        },
+        {
+          "letter": "D",
+          "text": "It creates weak passwords that are easy to type quickly"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It stores unique, complex passwords securely so you don’t have to remember them"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is the purpose of Two-Factor Authentication (2FA)?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make logging in faster by skipping passwords"
+        },
+        {
+          "letter": "B",
+          "text": "To add an extra layer of security by requiring a second step, like a code sent to your phone"
+        },
+        {
+          "letter": "C",
+          "text": "To allow others to access your account with a shared code"
+        },
+        {
+          "letter": "D",
+          "text": "To store your passwords in a second location for safety"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To add an extra layer of security by requiring a second step, like a code sent to your phone"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which of the following is a common sign of a phishing attempt?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "An email from a trusted company with no links or urgent requests"
+        },
+        {
+          "letter": "B",
+          "text": "A message claiming “Your account will be deleted in 24 hours!” with a suspicious link"
+        },
+        {
+          "letter": "C",
+          "text": "A text from a friend asking how you’re doing without any links"
+        },
+        {
+          "letter": "D",
+          "text": "A notification from an app you use with correct spelling and branding"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A message claiming “Your account will be deleted in 24 hours!” with a suspicious link"
+      }
+    }
+  ],
+  "total_questions": 4
+}

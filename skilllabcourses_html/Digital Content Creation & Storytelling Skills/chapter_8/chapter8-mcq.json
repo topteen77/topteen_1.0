@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main purpose of checking analytics like views, watch time, and engagement metrics for your online content?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To compare your stats with popular creators and feel discouraged"
+        },
+        {
+          "letter": "B",
+          "text": "To understand how your audience interacts with your content and identify what works or flops"
+        },
+        {
+          "letter": "C",
+          "text": "To ignore the numbers and focus only on making random videos"
+        },
+        {
+          "letter": "D",
+          "text": "To change your niche every week based on small changes in data"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To understand how your audience interacts with your content and identify what works or flops"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "How can insights about your audience, such as their age range and active times, help improve your content on platforms like TikTok or Instagram?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They tell you to post at random times to confuse your followers"
+        },
+        {
+          "letter": "B",
+          "text": "They help you create content that matches their vibe and post when they’re most likely to see it"
+        },
+        {
+          "letter": "C",
+          "text": "They are useless since all audiences behave the same way"
+        },
+        {
+          "letter": "D",
+          "text": "They only matter if you already have thousands of followers"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "They help you create content that matches their vibe and post when they’re most likely to see it"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is it important to jump on trends and understand platform algorithms when creating content for social media?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To copy every trend exactly without adding your personal style"
+        },
+        {
+          "letter": "B",
+          "text": "To stay relevant, increase visibility, and get pushed to more viewers by the platform’s system"
+        },
+        {
+          "letter": "C",
+          "text": "To avoid using trending hashtags or sounds that could boost your reach"
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on old content styles that are no longer popular"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To stay relevant, increase visibility, and get pushed to more viewers by the platform’s system"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key benefit of collaborations and cross-promotions with other creators for growing your online presence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They make your content less interesting by involving too many people"
+        },
+        {
+          "letter": "B",
+          "text": "They help you reach new audiences, build creator friendships, and create fun, engaging content"
+        },
+        {
+          "letter": "C",
+          "text": "They only work if the other creator has millions of followers"
+        },
+        {
+          "letter": "D",
+          "text": "They are a waste of time compared to working solo on every post"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "They help you reach new audiences, build creator friendships, and create fun, engaging content"
+      }
+    }
+  ],
+  "total_questions": 4
+}

@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key benefit of using the Cornell Method for note-taking, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It focuses on drawing detailed pictures instead of writing notes"
+        },
+        {
+          "letter": "B",
+          "text": "It organizes notes into sections for keywords, main ideas, and summaries, making review easier"
+        },
+        {
+          "letter": "C",
+          "text": "It requires writing every word from a source without summarizing"
+        },
+        {
+          "letter": "D",
+          "text": "It is only useful for digital note-taking on apps like Evernote"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It organizes notes into sections for keywords, main ideas, and summaries, making review easier"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is the main purpose of creating an annotated bibliography, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To list sources without any additional information for quick reference"
+        },
+        {
+          "letter": "B",
+          "text": "To provide a summary, evaluation, and relevance of each source used in research"
+        },
+        {
+          "letter": "C",
+          "text": "To copy and paste full articles into a single document"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid citing sources properly in a research paper"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To provide a summary, evaluation, and relevance of each source used in research"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can digital tools likeZoterohelp with research organization, based on the chapter’s explanation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They automatically write essays and reports for students"
+        },
+        {
+          "letter": "B",
+          "text": "They manage sources, store citations, and auto-format bibliographies, saving time"
+        },
+        {
+          "letter": "C",
+          "text": "They only work for storing unrelated personal photos and videos"
+        },
+        {
+          "letter": "D",
+          "text": "They prevent students from accessing online articles and PDFs"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "They manage sources, store citations, and auto-format bibliographies, saving time"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a recommended strategy to avoid procrastination in research, as mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Waiting until the last day before a deadline to start working"
+        },
+        {
+          "letter": "B",
+          "text": "Breaking down tasks into smaller goals with a timeline and using techniques like Pomodoro"
+        },
+        {
+          "letter": "C",
+          "text": "Spending most of the time on social media to relax before starting"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring deadlines and working only when feeling motivated"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Breaking down tasks into smaller goals with a timeline and using techniques like Pomodoro"
+      }
+    }
+  ],
+  "total_questions": 4
+}

@@ -1,0 +1,121 @@
+{
+  "title": "MCQ Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is adaptability, as described in Chapter 5?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The ability to stick to a plan no matter what happens."
+        },
+        {
+          "letter": "B",
+          "text": "The skill of changing your approach or mindset to fit new situations."
+        },
+        {
+          "letter": "C",
+          "text": "The habit of avoiding challenges to stay comfortable."
+        },
+        {
+          "letter": "D",
+          "text": "The talent of predicting every possible change in life.Correct Answer:b) The skill of changing your approach or mindset to fit new situations."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "In the real-life example of Mia’s group project, how did adaptability help her succeed?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "She ignored the problem and hoped it would resolve itself."
+        },
+        {
+          "letter": "B",
+          "text": "She quickly reassigned tasks and simplified the presentation to make it work with fewer teammates."
+        },
+        {
+          "letter": "C",
+          "text": "She refused to change the original plan and worked alone all night."
+        },
+        {
+          "letter": "D",
+          "text": "She canceled the project and asked for an extension.Correct Answer:b) She quickly reassigned tasks and simplified the presentation to make it work with fewer teammates."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is the purpose of the “Switch It Up” Challenge in the chapter’s practical exercises?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make students feel uncomfortable for no reason."
+        },
+        {
+          "letter": "B",
+          "text": "To encourage students to never change their routines."
+        },
+        {
+          "letter": "C",
+          "text": "To help students practice flexibility by trying small, new experiences."
+        },
+        {
+          "letter": "D",
+          "text": "To force students to abandon all their habits permanently.Correct Answer:c) To help students practice flexibility by trying small, new experiences."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which strategy from Chapter 5 helps you stay calm during a sudden change by grounding yourself in the moment?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Make a Quick Plan B with the 3-Step Pivot."
+        },
+        {
+          "letter": "B",
+          "text": "Reframe the Change to find a hidden win."
+        },
+        {
+          "letter": "C",
+          "text": "Use the 5-4-3-2-1 Trick to focus on your senses."
+        },
+        {
+          "letter": "D",
+          "text": "Create a Plan B Playlist for motivation.Correct Answer:c) Use the 5-4-3-2-1 Trick to focus on your senses."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "How does reframing a sudden change, as discussed in the chapter, help with adaptability?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It encourages you to ignore the change and pretend it didn’t happen."
+        },
+        {
+          "letter": "B",
+          "text": "It shifts your mindset to find a positive opportunity or benefit in the situation."
+        },
+        {
+          "letter": "C",
+          "text": "It forces you to stick to the original plan no matter the cost."
+        },
+        {
+          "letter": "D",
+          "text": "It makes you focus only on what went wrong.Correct Answer:b) It shifts your mindset to find a positive opportunity or benefit in the situation."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

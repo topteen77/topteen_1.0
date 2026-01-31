@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "How does recognizing progress help boost self-esteem, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees you’ll never fail again."
+        },
+        {
+          "letter": "B",
+          "text": "It shows you that you’re better than everyone else."
+        },
+        {
+          "letter": "C",
+          "text": "It reminds you that you’re stronger than you think by noticing small victories."
+        },
+        {
+          "letter": "D",
+          "text": "It means you don’t have to try hard anymore."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "It reminds you that you’re stronger than you think by noticing small victories."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is a tool mentioned in the chapter to quiet negative thoughts?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring your feelings completely."
+        },
+        {
+          "letter": "B",
+          "text": "Using the “Thought Swap” technique to replace negative thoughts with kinder, realistic ones."
+        },
+        {
+          "letter": "C",
+          "text": "Comparing yourself to others on social media."
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding challenges to prevent self-doubt."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Using the “Thought Swap” technique to replace negative thoughts with kinder, realistic ones."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "In the story of Kayla from the chapter, how did she build confidence through resilience?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "She ignored the bullying and pretended it didn’t happen."
+        },
+        {
+          "letter": "B",
+          "text": "She joined a mental health awareness club and started a campaign against cyberbullying."
+        },
+        {
+          "letter": "C",
+          "text": "She quit social media and avoided all school events permanently."
+        },
+        {
+          "letter": "D",
+          "text": "She fought back by bullying others online."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "She joined a mental health awareness club and started a campaign against cyberbullying."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is the purpose of the “Power Pose” trick described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To impress others with your physical strength."
+        },
+        {
+          "letter": "B",
+          "text": "To lower stress and boost confidence by standing in a confident posture for a short time."
+        },
+        {
+          "letter": "C",
+          "text": "To avoid doing difficult tasks by focusing on your body instead."
+        },
+        {
+          "letter": "D",
+          "text": "To make you feel like a superhero without actually helping your mindset."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To lower stress and boost confidence by standing in a confident posture for a short time."
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What lesson can high school students learn from Marcus’ story about his basketball injury?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "If you get injured, you should give up on your dreams."
+        },
+        {
+          "letter": "B",
+          "text": "Resilience can help you discover new strengths, like leadership, even during setbacks."
+        },
+        {
+          "letter": "C",
+          "text": "Confidence only comes from being the best at something."
+        },
+        {
+          "letter": "D",
+          "text": "You should avoid taking risks to prevent injuries."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Resilience can help you discover new strengths, like leadership, even during setbacks."
+      }
+    }
+  ],
+  "total_questions": 5
+}

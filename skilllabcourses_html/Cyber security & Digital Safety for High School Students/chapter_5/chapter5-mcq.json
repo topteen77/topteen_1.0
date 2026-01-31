@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What does the “S” in HTTPS stand for, and why is it important when browsing the internet?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Speed; it makes websites load faster for better streaming"
+        },
+        {
+          "letter": "B",
+          "text": "Secure; it encrypts your data to protect it from hackers"
+        },
+        {
+          "letter": "C",
+          "text": "Simple; it simplifies the website design for easier use"
+        },
+        {
+          "letter": "D",
+          "text": "Social; it connects you to social media platforms safely"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Secure; it encrypts your data to protect it from hackers"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a major risk of using public Wi-Fi, and how can you stay safe?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It’s too slow for gaming; use a wired connection instead"
+        },
+        {
+          "letter": "B",
+          "text": "It’s often unsecured, allowing hackers to spy; use a VPN for protection"
+        },
+        {
+          "letter": "C",
+          "text": "It costs money to connect; avoid it by using mobile data always"
+        },
+        {
+          "letter": "D",
+          "text": "It limits app downloads; only download apps at home"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It’s often unsecured, allowing hackers to spy; use a VPN for protection"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "When downloading apps, what is a key safety tip to follow to avoid malware or scams?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Download from random websites for exclusive free versions"
+        },
+        {
+          "letter": "B",
+          "text": "Only use official stores like Google Play or Apple App Store and check reviews"
+        },
+        {
+          "letter": "C",
+          "text": "Install apps that ask for access to all your data for full features"
+        },
+        {
+          "letter": "D",
+          "text": "Always download “cracked” versions to save money on paid apps"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Only use official stores like Google Play or Apple App Store and check reviews"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can you identify clickbait or a suspicious link before clicking on it?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It promises realistic rewards and comes from a trusted friend"
+        },
+        {
+          "letter": "B",
+          "text": "It uses over-the-top headlines like “SHOCKING!” and has a weird URL"
+        },
+        {
+          "letter": "C",
+          "text": "It’s posted by a verified account with a blue checkmark"
+        },
+        {
+          "letter": "D",
+          "text": "It leads to a well-known website with an HTTPS lock icon"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It uses over-the-top headlines like “SHOCKING!” and has a weird URL"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What should you do if you receive a message with a link saying, “Win Free Robux Now!” from an unknown sender?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Click it immediately to claim the reward before it’s gone"
+        },
+        {
+          "letter": "B",
+          "text": "Ignore or delete it, as it’s likely clickbait or a scam, and don’t click the link"
+        },
+        {
+          "letter": "C",
+          "text": "Share it with friends to see if they think it’s real"
+        },
+        {
+          "letter": "D",
+          "text": "Enter your gaming login to verify the offer is legit"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Ignore or delete it, as it’s likely clickbait or a scam, and don’t click the link"
+      }
+    }
+  ],
+  "total_questions": 5
+}

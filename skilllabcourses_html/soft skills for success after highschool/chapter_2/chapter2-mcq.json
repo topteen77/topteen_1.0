@@ -1,0 +1,150 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key tip for speaking with confidence during a job interview?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Speak as quickly as possible to show enthusiasm."
+        },
+        {
+          "letter": "B",
+          "text": "Use slang to make the conversation casual."
+        },
+        {
+          "letter": "C",
+          "text": "Speak clearly and slowly to ensure your message is understood."
+        },
+        {
+          "letter": "D",
+          "text": "Avoid making eye contact to stay focused on your thoughts."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Speak clearly and slowly to ensure your message is understood."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "When writing a professional email to a teacher, what should you include to make it effective?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use emojis to express your emotions."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Include a clear subject line and a polite greeting."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which non-verbal cue can make you appear more confident in a professional setting?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Crossing your arms and looking down."
+        },
+        {
+          "letter": "B",
+          "text": "Standing tall with an open posture and making eye contact."
+        },
+        {
+          "letter": "C",
+          "text": "Fidgeting with your hands while speaking."
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding smiles to seem serious."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Standing tall with an open posture and making eye contact."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is an important guideline for respectful online interactions in a group chat for a school project?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Send multiple messages if no one replies immediately."
+        },
+        {
+          "letter": "B",
+          "text": "Type in all caps to get attention quickly."
+        },
+        {
+          "letter": "C",
+          "text": "Use polite language and start with a greeting."
+        },
+        {
+          "letter": "D",
+          "text": "Post personal complaints to vent frustration."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Use polite language and start with a greeting."
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "How can you maintain a positive digital footprint for future employers or colleges to see?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Post everything publicly to show transparency."
+        },
+        {
+          "letter": "B",
+          "text": "Share content that reflects your achievements and values."
+        },
+        {
+          "letter": "C",
+          "text": "Avoid using social media altogether."
+        },
+        {
+          "letter": "D",
+          "text": "Ignore privacy settings since they don’t matter."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Share content that reflects your achievements and values."
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a practical step to protect your personal information online?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use the same password for all accounts for easy recall."
+        },
+        {
+          "letter": "B",
+          "text": "Share your location on social media to connect with friends."
+        },
+        {
+          "letter": "C",
+          "text": "Enable two-factor authentication (2FA) on your accounts."
+        },
+        {
+          "letter": "D",
+          "text": "Click on links in emails to verify your account details."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Enable two-factor authentication (2FA) on your accounts."
+      }
+    }
+  ],
+  "total_questions": 6
+}

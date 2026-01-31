@@ -1,0 +1,124 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is Entrepreneurship?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Working for a large company to earn a salary"
+        },
+        {
+          "letter": "B",
+          "text": "Creating a product, service, or solution and turning it into a business"
+        },
+        {
+          "letter": "C",
+          "text": "Following someone else’s business plan without changes"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding risks and sticking to safe ideas only"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Creating a product, service, or solution and turning it into a business"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is NOT a key trait of a young entrepreneur’s mindset?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Resilience"
+        },
+        {
+          "letter": "B",
+          "text": "Creativity"
+        },
+        {
+          "letter": "C",
+          "text": "Fear of failure"
+        },
+        {
+          "letter": "D",
+          "text": "Problem-solving"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Fear of failure"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a side hustle, as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A full-time job that replaces school"
+        },
+        {
+          "letter": "B",
+          "text": "A small, manageable business or gig done alongside other activities"
+        },
+        {
+          "letter": "C",
+          "text": "A business that requires a large investment to start"
+        },
+        {
+          "letter": "D",
+          "text": "A hobby with no intention of earning money"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A small, manageable business or gig done alongside other activities"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which teen entrepreneur started a delivery service using Mumbai’sdabbawalas?",
+      "options": [
+        {
+          "letter": "C",
+          "text": "Elon Musk"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Tilak Mehta"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why is starting a hustle as a teen beneficial, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees instant wealth and success"
+        },
+        {
+          "letter": "B",
+          "text": "It allows teens to avoid school and responsibilities"
+        },
+        {
+          "letter": "C",
+          "text": "It builds skills, confidence, and financial independence early in life"
+        },
+        {
+          "letter": "D",
+          "text": "It eliminates the need to learn from mistakes"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "It builds skills, confidence, and financial independence early in life"
+      }
+    }
+  ],
+  "total_questions": 5
+}

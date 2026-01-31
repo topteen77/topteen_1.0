@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is networking important for teens?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps in avoiding social media altogether to focus on studies."
+        },
+        {
+          "letter": "B",
+          "text": "It builds relationships that can offer friendships, advice, and future opportunities like college or jobs."
+        },
+        {
+          "letter": "C",
+          "text": "It’s only useful for adults and not relevant to high school students."
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees immediate job offers without any effort.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a safe and effective way to connect with someone online as a teen?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Share your home address and phone number right away to build trust."
+        },
+        {
+          "letter": "B",
+          "text": "Send a short, friendly message about a shared interest and avoid sharing personal information."
+        },
+        {
+          "letter": "C",
+          "text": "Spam multiple messages until they reply to show your enthusiasm."
+        },
+        {
+          "letter": "D",
+          "text": "Only connect with strangers in private chats without telling anyone.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can you engage in a meaningful conversation on social platforms?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ask open-ended questions and share a bit about yourself to keep the chat flowing."
+        },
+        {
+          "letter": "B",
+          "text": "Send one-word replies like “cool” to keep things short and simple."
+        },
+        {
+          "letter": "C",
+          "text": "Argue with others to show you have strong opinions."
+        },
+        {
+          "letter": "D",
+          "text": "Avoid responding to messages to seem mysterious.Correct Answer:A"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key tip for building a professional profile as a teen on platforms like LinkedIn?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use a silly profile picture with filters to stand out."
+        },
+        {
+          "letter": "B",
+          "text": "Post personal drama and memes to show your personality."
+        },
+        {
+          "letter": "C",
+          "text": "List achievements like school projects or volunteer work and keep posts positive and relevant."
+        },
+        {
+          "letter": "D",
+          "text": "Connect with as many random people as possible without personalizing messages.Correct Answer:C"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

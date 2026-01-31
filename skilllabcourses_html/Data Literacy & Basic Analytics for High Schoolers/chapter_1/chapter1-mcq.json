@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the best definition of data?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A type of computer software"
+        },
+        {
+          "letter": "B",
+          "text": "Information or facts collected to understand something"
+        },
+        {
+          "letter": "C",
+          "text": "A set of opinions without evidence"
+        },
+        {
+          "letter": "D",
+          "text": "A tool used only by scientists"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Information or facts collected to understand something"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is an example of qualitative data?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The temperature today is 28°C."
+        },
+        {
+          "letter": "B",
+          "text": "There are 25 students in the classroom."
+        },
+        {
+          "letter": "C",
+          "text": "The movie was incredibly funny."
+        },
+        {
+          "letter": "D",
+          "text": "I ran 5 kilometres this morning."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "The movie was incredibly funny."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is data literacy important in today’s world?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you learn how to code."
+        },
+        {
+          "letter": "B",
+          "text": "It allows you to understand and question information to make better decisions."
+        },
+        {
+          "letter": "C",
+          "text": "It is only useful for getting high grades in school."
+        },
+        {
+          "letter": "D",
+          "text": "It teaches you how to use social media."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It allows you to understand and question information to make better decisions."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is an example of a data-driven decision in the real world?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Guessing what to wear without checking the weather."
+        },
+        {
+          "letter": "B",
+          "text": "Using sports statistics to plan a game strategy."
+        },
+        {
+          "letter": "C",
+          "text": "Choosing a movie based on a friend’s opinion alone."
+        },
+        {
+          "letter": "D",
+          "text": "Deciding to study without looking at test scores."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Using sports statistics to plan a game strategy."
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a key concern related to data in the digital age?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Data is too difficult to collect."
+        },
+        {
+          "letter": "B",
+          "text": "Data is only used by big companies."
+        },
+        {
+          "letter": "C",
+          "text": "Privacy issues arise from sharing personal information online."
+        },
+        {
+          "letter": "D",
+          "text": "Data cannot be used to solve real-world problems."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Privacy issues arise from sharing personal information online."
+      }
+    }
+  ],
+  "total_questions": 5
+}

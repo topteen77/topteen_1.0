@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is goal-setting important for time management?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees instant success without effort."
+        },
+        {
+          "letter": "B",
+          "text": "It helps prioritize tasks and provides direction."
+        },
+        {
+          "letter": "C",
+          "text": "It eliminates the need to plan daily activities."
+        },
+        {
+          "letter": "D",
+          "text": "It ensures you never face any challenges.Correct Answer: B) It helps prioritize tasks and provides direction."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How does achieving a small goal impact a student’s confidence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It has no effect on confidence."
+        },
+        {
+          "letter": "B",
+          "text": "It can discourage them from setting bigger goals."
+        },
+        {
+          "letter": "C",
+          "text": "It boosts self-esteem and proves they can succeed."
+        },
+        {
+          "letter": "D",
+          "text": "It makes them overconfident and careless.Correct Answer: C) It boosts self-esteem and proves they can succeed."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What does the “M” in SMART stand for, and why is it important?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Motivated – It ensures you stay excited about the goal."
+        },
+        {
+          "letter": "B",
+          "text": "Measurable – It allows you to track progress with specific criteria."
+        },
+        {
+          "letter": "C",
+          "text": "Manageable – It ensures the goal isn’t too hard."
+        },
+        {
+          "letter": "D",
+          "text": "Meaningful – It connects the goal to personal values.Correct Answer: B) Measurable – It allows you to track progress with specific criteria."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which of the following is an example of a SMART goal for a high school student?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "I want to get better at science."
+        },
+        {
+          "letter": "B",
+          "text": "I will study science every day."
+        },
+        {
+          "letter": "C",
+          "text": "I will improve my science grade by studying 30 minutes daily after school for the next 4 weeks to score at least 85% on the next test."
+        },
+        {
+          "letter": "D",
+          "text": "I will become the best science student in my class.Correct Answer: C) I will improve my science grade by studying 30 minutes daily after school for the next 4 weeks to score at least 85% on the next test."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a key strategy for aligning daily actions with long-term goals?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Setting unrealistic deadlines to push yourself harder."
+        },
+        {
+          "letter": "B",
+          "text": "Breaking goals into smaller, actionable steps and scheduling them."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring distractions completely without planning for them."
+        },
+        {
+          "letter": "D",
+          "text": "Working on multiple big goals at once without prioritizing.Correct Answer: B) Breaking goals into smaller, actionable steps and scheduling them."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "If a student’s goal is to prepare for a math competition but they keep getting distracted by social media, what should they do to align their actions with their goal?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Give up on the goal since distractions are unavoidable."
+        },
+        {
+          "letter": "B",
+          "text": "Spend more time on social media to relax before studying."
+        },
+        {
+          "letter": "C",
+          "text": "Identify and minimize distractions by using apps to limit screen time or studying in a quiet place."
+        },
+        {
+          "letter": "D",
+          "text": "Ignore the goal and focus on something easier.Correct Answer: C) Identify and minimize distractions by using apps to limit screen time or studying in a quiet place."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

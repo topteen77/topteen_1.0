@@ -1,0 +1,162 @@
+{
+  "title": "MCQ Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of career planning as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To secure the highest-paying job immediately after graduation"
+        },
+        {
+          "letter": "B",
+          "text": "To design a professional journey that aligns with personal values, interests, and long-term aspirations"
+        },
+        {
+          "letter": "C",
+          "text": "To follow the career path chosen by family or peers"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid changing jobs or industries in the future"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To design a professional journey that aligns with personal values, interests, and long-term aspirations"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is NOT a key component of the career planning process outlined in Section 2?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Self-Assessment"
+        },
+        {
+          "letter": "B",
+          "text": "Goal Setting"
+        },
+        {
+          "letter": "C",
+          "text": "Immediate Job Placement"
+        },
+        {
+          "letter": "D",
+          "text": "Review and Adjust"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Immediate Job Placement"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is self-awareness considered the foundation of career planning in Section 3?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees a high salary in your chosen field"
+        },
+        {
+          "letter": "B",
+          "text": "It helps you understand your strengths, passions, and values to choose a fitting career path"
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you avoid any career changes in the future"
+        },
+        {
+          "letter": "D",
+          "text": "It eliminates the need for research or informed decision-making"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It helps you understand your strengths, passions, and values to choose a fitting career path"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "According to Section 4, which common myth about career planning is debunked with the idea that careers can evolve over time?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "“A High-Paying Job Equals Success”"
+        },
+        {
+          "letter": "B",
+          "text": "“You Must Choose One Career for Life”"
+        },
+        {
+          "letter": "C",
+          "text": "“Career Planning Is Only for ‘Serious’ or ‘Ambitious’ People”"
+        },
+        {
+          "letter": "D",
+          "text": "“You Need a College Degree for a Good Career”"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "“You Must Choose One Career for Life”"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "In the activity “Defining Personal Career Success” from Section 5, what is the main goal for participants?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To compare their career goals with peers for competition"
+        },
+        {
+          "letter": "B",
+          "text": "To define success based on societal standards like salary or job title"
+        },
+        {
+          "letter": "C",
+          "text": "To create a personal vision of career success that reflects individual values and aspirations"
+        },
+        {
+          "letter": "D",
+          "text": "To finalize a permanent career path without future adjustments"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "To create a personal vision of career success that reflects individual values and aspirations"
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a key benefit of informed decision-making in career planning, as discussed in Section 3?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees immediate job offers without effort"
+        },
+        {
+          "letter": "B",
+          "text": "It prevents wasting time on paths that don’t match reality or personal goals through research and facts"
+        },
+        {
+          "letter": "C",
+          "text": "It eliminates the need for self-awareness or reflection"
+        },
+        {
+          "letter": "D",
+          "text": "It ensures you will never face career challenges or setbacks"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It prevents wasting time on paths that don’t match reality or personal goals through research and facts"
+      }
+    }
+  ],
+  "total_questions": 6
+}

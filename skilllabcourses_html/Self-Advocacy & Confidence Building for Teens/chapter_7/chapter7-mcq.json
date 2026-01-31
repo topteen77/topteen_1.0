@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main difference between a Growth Mindset and a Fixed Mindset?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A Growth Mindset means you’re naturally talented, while a Fixed Mindset means you’re not."
+        },
+        {
+          "letter": "B",
+          "text": "A Growth Mindset believes abilities can improve with effort, while a Fixed Mindset sees abilities as unchangeable."
+        },
+        {
+          "letter": "C",
+          "text": "A Growth Mindset avoids challenges, while a Fixed Mindset embraces them."
+        },
+        {
+          "letter": "D",
+          "text": "A Growth Mindset focuses on perfection, while a Fixed Mindset accepts flaws.Correct Answer:B) A Growth Mindset believes abilities can improve with effort, while a Fixed Mindset sees abilities as unchangeable."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How can viewing challenges as opportunities to learn help you in high school?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees you’ll never fail at anything you try."
+        },
+        {
+          "letter": "B",
+          "text": "It makes you avoid difficult tasks to protect your confidence."
+        },
+        {
+          "letter": "C",
+          "text": "It builds confidence and skills by encouraging you to face tough situations and learn from them."
+        },
+        {
+          "letter": "D",
+          "text": "It ensures everyone will like you for trying hard.Correct Answer:C) It builds confidence and skills by encouraging you to face tough situations and learn from them."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "After messing up a presentation in class, how would someone with a Growth Mindset likely respond?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "“I’m terrible at this and should never try again.”"
+        },
+        {
+          "letter": "B",
+          "text": "“I’ll pretend it didn’t happen and avoid future presentations.”"
+        },
+        {
+          "letter": "C",
+          "text": "“I struggled, but I can practice more and ask for feedback to improve next time.”"
+        },
+        {
+          "letter": "D",
+          "text": "“Everyone thinks I’m a failure now, so I’ll quit.”Correct Answer:C) “I struggled, but I can practice more and ask for feedback to improve next time.”"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can keeping a gratitude journal improve your mindset as a teen?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It forces you to ignore all your problems and pretend everything is perfect."
+        },
+        {
+          "letter": "B",
+          "text": "It trains your brain to notice positive things in your life, balancing out stress and negatives."
+        },
+        {
+          "letter": "C",
+          "text": "It makes you compare yourself to others who have more to be thankful for."
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees you’ll never feel sad or stressed again.Correct Answer:B) It trains your brain to notice positive things in your life, balancing out stress and negatives."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What should you do if you’ve been feeling overwhelmed and sad for weeks, and it’s not getting better?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keep it to yourself because asking for help shows weakness."
+        },
+        {
+          "letter": "B",
+          "text": "Distract yourself by spending all your time on social media or gaming."
+        },
+        {
+          "letter": "C",
+          "text": "Use a quick breathing trick like 4-7-8 and hope it fixes everything."
+        },
+        {
+          "letter": "D",
+          "text": "Reach out to a trusted friend, family member, or counselor for support and consider professional help.Correct Answer:D) Reach out to a trusted friend, family member, or counselor for support and consider professional help."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

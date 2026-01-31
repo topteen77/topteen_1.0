@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of crafting an event brand for a school event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make the event more expensive by adding logos and themes"
+        },
+        {
+          "letter": "B",
+          "text": "To create a unique and memorable identity that helps people recognize and remember the event"
+        },
+        {
+          "letter": "C",
+          "text": "To confuse attendees with complex designs and names"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid using social media for promotion"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To create a unique and memorable identity that helps people recognize and remember the event"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is an effective social media strategy for promoting a school event on TikTok?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Posting long, detailed videos explaining every aspect of the event"
+        },
+        {
+          "letter": "B",
+          "text": "Creating short, trendy videos with popular sounds or challenges to grab attention"
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding hashtags to keep the event exclusive"
+        },
+        {
+          "letter": "D",
+          "text": "Posting only once a month to avoid annoying followers"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Creating short, trendy videos with popular sounds or challenges to grab attention"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can traditional promotion methods like flyers be made more interactive for a high school audience?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By using small, hard-to-read text to save space"
+        },
+        {
+          "letter": "B",
+          "text": "By placing them only in teachers’ lounges where students can’t see them"
+        },
+        {
+          "letter": "C",
+          "text": "By adding a QR code that links to a signup form or sneak peek video"
+        },
+        {
+          "letter": "D",
+          "text": "By making them black and white to save on printing costs"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "By adding a QR code that links to a signup form or sneak peek video"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is engaging your audience early an important part of event promotion?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures that tickets are more expensive closer to the event date"
+        },
+        {
+          "letter": "B",
+          "text": "It gives people time to plan to attend and builds excitement well before the event"
+        },
+        {
+          "letter": "C",
+          "text": "It prevents anyone from knowing about the event until the last minute"
+        },
+        {
+          "letter": "D",
+          "text": "It makes the event planning process more complicated"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It gives people time to plan to attend and builds excitement well before the event"
+      }
+    }
+  ],
+  "total_questions": 4
+}

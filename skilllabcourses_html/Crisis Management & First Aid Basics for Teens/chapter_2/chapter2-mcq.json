@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key sign that a situation might be an emergency?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Someone is laughing and joking around after a small fall."
+        },
+        {
+          "letter": "B",
+          "text": "A person is unconscious and not responding after collapsing."
+        },
+        {
+          "letter": "C",
+          "text": "Your friend is annoyed about losing a game."
+        },
+        {
+          "letter": "D",
+          "text": "The room is a bit messy after a party.Correct Answer: B) A person is unconscious and not responding after collapsing."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is an example of aminoremergency?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A classmate faints during gym class and doesn’t wake up quickly."
+        },
+        {
+          "letter": "B",
+          "text": "A small paper cut from flipping through a notebook in class."
+        },
+        {
+          "letter": "C",
+          "text": "A fire starts spreading in the school cafeteria."
+        },
+        {
+          "letter": "D",
+          "text": "Someone is choking and can’t breathe or speak.Correct Answer: B) A small paper cut from flipping through a notebook in class."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is the best first step to take if a friend faints during a hot day at a school event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Shake them hard to wake them up immediately."
+        },
+        {
+          "letter": "B",
+          "text": "Lay them flat, elevate their legs if possible, and get an adult."
+        },
+        {
+          "letter": "C",
+          "text": "Tell them to stand up and walk it off."
+        },
+        {
+          "letter": "D",
+          "text": "Leave them alone to rest while you go get a snack.Correct Answer: B) Lay them flat, elevate their legs if possible, and get an adult."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which item shouldalwaysbe included in a teen’s emergency kit for on-the-go situations?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A gaming console for entertainment during a crisis."
+        },
+        {
+          "letter": "B",
+          "text": "A phone charger or power bank to keep communication open."
+        },
+        {
+          "letter": "C",
+          "text": "A heavy textbook to use as a weight."
+        },
+        {
+          "letter": "D",
+          "text": "A large bag of perishable snacks that spoil quickly.Correct Answer: B) A phone charger or power bank to keep communication open."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "When should you call 911 instead of a parent or school nurse?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "When you need help with homework after school hours."
+        },
+        {
+          "letter": "B",
+          "text": "When a small cut on your finger won’t stop bleeding a little."
+        },
+        {
+          "letter": "C",
+          "text": "When someone is not breathing after a serious accident."
+        },
+        {
+          "letter": "D",
+          "text": "When you’re late for class and need a quick ride.Correct Answer: C) When someone is not breathing after a serious accident."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

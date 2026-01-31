@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is saving early important for teens?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps buy expensive gadgets immediately."
+        },
+        {
+          "letter": "B",
+          "text": "It gives more time for money to grow and builds financial discipline."
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees a high-paying job in the future."
+        },
+        {
+          "letter": "D",
+          "text": "It prevents the need for a bank account.Correct Answer: B) It gives more time for money to grow and builds financial discipline."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is compound interest?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Interest earned only on the initial amount saved."
+        },
+        {
+          "letter": "B",
+          "text": "A fee charged by banks for saving money."
+        },
+        {
+          "letter": "C",
+          "text": "Interest earned on the initial amount and on the interest already earned."
+        },
+        {
+          "letter": "D",
+          "text": "A type of loan for teens.Correct Answer: C) Interest earned on the initial amount and on the interest already earned."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which savings option is best for a teen wanting easy access to their money for short-term needs?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Fixed Deposit (FD)"
+        },
+        {
+          "letter": "B",
+          "text": "Recurring Deposit (RD)"
+        },
+        {
+          "letter": "C",
+          "text": "Minor Savings Account in a Bank"
+        },
+        {
+          "letter": "D",
+          "text": "Long-term Government BondCorrect Answer: C) Minor Savings Account in a Bank"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key benefit of a Post Office Savings Account for teens?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It offers the highest interest rates compared to banks."
+        },
+        {
+          "letter": "B",
+          "text": "It is government-backed, safe, and accessible in many areas."
+        },
+        {
+          "letter": "C",
+          "text": "It allows unlimited withdrawals without any fees."
+        },
+        {
+          "letter": "D",
+          "text": "It provides a credit card for teens.Correct Answer: B) It is government-backed, safe, and accessible in many areas."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is the first step in saving for a big goal like higher education or a vehicle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Withdraw money from a savings account."
+        },
+        {
+          "letter": "B",
+          "text": "Define the goal by specifying the amount needed and timeline."
+        },
+        {
+          "letter": "C",
+          "text": "Spend extra money on wants to stay motivated."
+        },
+        {
+          "letter": "D",
+          "text": "Open multiple bank accounts for different goals.Correct Answer: B) Define the goal by specifying the amount needed and timeline."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "How can a teen save for a big goal like a ₹12,000 phone in one year?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Save the entire amount at once in a Fixed Deposit."
+        },
+        {
+          "letter": "B",
+          "text": "Break it down to save ₹1,000 per month and track progress."
+        },
+        {
+          "letter": "C",
+          "text": "Borrow the money from a friend and repay later."
+        },
+        {
+          "letter": "D",
+          "text": "Ignore smaller expenses to save faster.Correct Answer: B) Break it down to save ₹1,000 per month and track progress."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is organizing a post-event cleanup important after a school event like a dance?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It’s only necessary if the venue charges a cleaning fee"
+        },
+        {
+          "letter": "B",
+          "text": "It shows responsibility and ensures you can use the space again for future events"
+        },
+        {
+          "letter": "C",
+          "text": "It’s a way to avoid returning borrowed items"
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees the next event will be bigger"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It shows responsibility and ensures you can use the space again for future events"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a key step in financial reconciliation after a school fundraiser?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring expenses to focus only on money earned"
+        },
+        {
+          "letter": "B",
+          "text": "Calculating profit or loss by subtracting total expenses from total income"
+        },
+        {
+          "letter": "C",
+          "text": "Guessing the final numbers without checking receipts"
+        },
+        {
+          "letter": "D",
+          "text": "Spending any profit immediately without reporting to anyone"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Calculating profit or loss by subtracting total expenses from total income"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can you effectively gather feedback after a school talent show?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Avoid asking attendees anything to keep things simple"
+        },
+        {
+          "letter": "B",
+          "text": "Use quick surveys or casual chats to learn what people liked and what could be improved"
+        },
+        {
+          "letter": "C",
+          "text": "Only ask your best friends for their opinions"
+        },
+        {
+          "letter": "D",
+          "text": "Wait until the next event to see if anyone complains"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Use quick surveys or casual chats to learn what people liked and what could be improved"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a good way to celebrate success and learn from mistakes after a school movie night?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Focus only on what went wrong and skip any celebration"
+        },
+        {
+          "letter": "B",
+          "text": "Host a small team hangout to thank everyone and reflect on wins and areas to improve"
+        },
+        {
+          "letter": "C",
+          "text": "Ignore the team’s efforts and start planning the next event right away"
+        },
+        {
+          "letter": "D",
+          "text": "Only celebrate if the event made a huge profit"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Host a small team hangout to thank everyone and reflect on wins and areas to improve"
+      }
+    }
+  ],
+  "total_questions": 4
+}

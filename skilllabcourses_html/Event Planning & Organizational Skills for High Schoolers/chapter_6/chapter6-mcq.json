@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key factor to consider when selecting a venue for a school event like a talent show?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Picking the most expensive location to impress attendees"
+        },
+        {
+          "letter": "B",
+          "text": "Ensuring the space can accommodate the expected number of people"
+        },
+        {
+          "letter": "C",
+          "text": "Choosing a venue far from school to make it exciting"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring accessibility since everyone can figure out how to get there"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Ensuring the space can accommodate the expected number of people"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which item would likely be included in an equipment checklist for a school sports day?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A personal diary for writing thoughts"
+        },
+        {
+          "letter": "B",
+          "text": "A first-aid kit for handling minor injuries"
+        },
+        {
+          "letter": "C",
+          "text": "A gaming console for entertainment"
+        },
+        {
+          "letter": "D",
+          "text": "A stack of novels for reading during breaks"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A first-aid kit for handling minor injuries"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is an effective strategy when negotiating with a vendor for event supplies like food or decor?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Accepting the first price quoted without discussion"
+        },
+        {
+          "letter": "B",
+          "text": "Politely asking for a discount or free extras since it’s a school event"
+        },
+        {
+          "letter": "C",
+          "text": "Demanding a lower price without explaining your budget"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding contact with vendors and hoping they lower prices on their own"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Politely asking for a discount or free extras since it’s a school event"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is it important to secure permissions before hosting a school event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make the event look more professional on social media"
+        },
+        {
+          "letter": "B",
+          "text": "To avoid last-minute cancellations and ensure compliance with school or local rules"
+        },
+        {
+          "letter": "C",
+          "text": "To spend extra money on unnecessary paperwork"
+        },
+        {
+          "letter": "D",
+          "text": "To complicate the planning process for no reason"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To avoid last-minute cancellations and ensure compliance with school or local rules"
+      }
+    }
+  ],
+  "total_questions": 4
+}

@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key advantage of using a smartphone for video creation compared to a DSLR camera?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Smartphones always have better video quality than DSLRs"
+        },
+        {
+          "letter": "B",
+          "text": "Smartphones are more expensive but offer superior manual controls"
+        },
+        {
+          "letter": "C",
+          "text": "Smartphones are portable, easy to use, and can shoot HD video right from your pocket"
+        },
+        {
+          "letter": "D",
+          "text": "Smartphones allow for interchangeable lenses for cinematic effects"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Smartphones are portable, easy to use, and can shoot HD video right from your pocket"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is the purpose of a storyboard in video planning?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To write detailed dialogue for every scene in the video"
+        },
+        {
+          "letter": "B",
+          "text": "To create a visual map of shots and scenes to organize the video’s flow"
+        },
+        {
+          "letter": "C",
+          "text": "To list all the equipment needed for filming"
+        },
+        {
+          "letter": "D",
+          "text": "To edit the video after filming is complete"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To create a visual map of shots and scenes to organize the video’s flow"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which shooting technique would you use to make a subject look powerful or intimidating in a video?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Eye-Level Angle"
+        },
+        {
+          "letter": "B",
+          "text": "High Angle (Looking Down)"
+        },
+        {
+          "letter": "C",
+          "text": "Low Angle (Looking Up)"
+        },
+        {
+          "letter": "D",
+          "text": "Wide Shot"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Low Angle (Looking Up)"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Why is recording quality audio important for videos, and how can you improve it on a budget?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Audio doesn’t matter as long as the visuals are good; use any mic"
+        },
+        {
+          "letter": "B",
+          "text": "Clear audio keeps viewers engaged; use a cheap lavalier mic or earbuds with a built-in mic"
+        },
+        {
+          "letter": "C",
+          "text": "Audio is only important for music videos; record in noisy areas for realism"
+        },
+        {
+          "letter": "D",
+          "text": "Good audio requires expensive studio equipment; avoid recording without it"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Clear audio keeps viewers engaged; use a cheap lavalier mic or earbuds with a built-in mic"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a simple way to build confidence and engage your audience when appearing on camera?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Memorize a long script to avoid mistakes and sound professional"
+        },
+        {
+          "letter": "B",
+          "text": "Avoid looking at the camera to feel less nervous"
+        },
+        {
+          "letter": "C",
+          "text": "Talk to the camera like it’s a friend, make eye contact with the lens, and ask viewers questions"
+        },
+        {
+          "letter": "D",
+          "text": "Keep videos silent to focus on visuals instead of speaking"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Talk to the camera like it’s a friend, make eye contact with the lens, and ask viewers questions"
+      }
+    }
+  ],
+  "total_questions": 5
+}

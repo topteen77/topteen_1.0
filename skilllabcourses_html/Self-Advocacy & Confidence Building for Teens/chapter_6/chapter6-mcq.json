@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "You’re struggling with history assignments because the readings are hard to follow. What’s the best way to advocate for yourself?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keep quiet and hope it gets easier on its own."
+        },
+        {
+          "letter": "B",
+          "text": "Ask your teacher, “I’m having trouble with the readings—can we go over them or get extra help?”"
+        },
+        {
+          "letter": "C",
+          "text": "Skip the assignments since they’re too difficult."
+        },
+        {
+          "letter": "D",
+          "text": "Complain to your friends but don’t tell anyone who can help."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Ask your teacher, “I’m having trouble with the readings—can we go over them or get extra help?”"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "At a hangout, some friends are pushing you to sneak out past curfew, but you’re not comfortable with it. How should you handle this negative influence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Go along with it so you don’t look lame."
+        },
+        {
+          "letter": "B",
+          "text": "Say, “Nah, I’m good—gotta be home. Catch you tomorrow,” and change the subject."
+        },
+        {
+          "letter": "C",
+          "text": "Argue with them loudly to prove your point."
+        },
+        {
+          "letter": "D",
+          "text": "Pretend to agree but secretly stay behind without telling them."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Say, “Nah, I’m good—gotta be home. Catch you tomorrow,” and change the subject."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "You want to surround yourself with positive friends who respect your choices. What’s the best way to start building this kind of circle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Stick with people who pressure you because they’re popular."
+        },
+        {
+          "letter": "B",
+          "text": "Join a club or activity you enjoy, like art or sports, to meet people with similar interests."
+        },
+        {
+          "letter": "C",
+          "text": "Avoid making new friends since it’s too risky."
+        },
+        {
+          "letter": "D",
+          "text": "Only hang out with people who agree with everything you say."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Join a club or activity you enjoy, like art or sports, to meet people with similar interests."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "You’re applying for a part-time job and have an interview. How can you practice self-advocacy during the process?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Stay silent and hope they guess what you need."
+        },
+        {
+          "letter": "B",
+          "text": "Say, “I’m excited to work here, but I have school until 3 PM. Can shifts fit my schedule?”"
+        },
+        {
+          "letter": "C",
+          "text": "Don’t ask questions because it might look bad."
+        },
+        {
+          "letter": "D",
+          "text": "Demand they give you the job without explaining why you’re a good fit."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Say, “I’m excited to work here, but I have school until 3 PM. Can shifts fit my schedule?”"
+      }
+    }
+  ],
+  "total_questions": 4
+}

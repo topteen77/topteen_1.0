@@ -1,0 +1,110 @@
+{
+  "title": "Quiz Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main difference between a dream and a goal?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A dream is specific, while a goal is vague."
+        },
+        {
+          "letter": "B",
+          "text": "A dream is a broad idea or wish, while a goal is a specific, actionable target with a timeframe."
+        },
+        {
+          "letter": "C",
+          "text": "A dream is something you can achieve quickly, while a goal takes years."
+        },
+        {
+          "letter": "D",
+          "text": "A dream is always unrealistic, while a goal is always practical."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A dream is a broad idea or wish, while a goal is a specific, actionable target with a timeframe."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is goal setting especially important during your teen years?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you avoid doing homework and focus on fun activities."
+        },
+        {
+          "letter": "B",
+          "text": "It prepares you for adulthood, builds confidence, and reduces stress by giving direction."
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees you will become successful overnight."
+        },
+        {
+          "letter": "D",
+          "text": "It stops you from having any challenges or failures."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It prepares you for adulthood, builds confidence, and reduces stress by giving direction."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What does the “SMART” in SMART goals stand for?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Simple, Meaningful, Amazing, Realistic, Timely"
+        },
+        {
+          "letter": "B",
+          "text": "Specific, Measurable, Achievable, Relevant, Time-bound"
+        },
+        {
+          "letter": "C",
+          "text": "Strong, Motivated, Active, Reliable, Tough"
+        },
+        {
+          "letter": "D",
+          "text": "Smart, Modern, Attractive, Rapid, True"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Specific, Measurable, Achievable, Relevant, Time-bound"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What can you learn from the real stories of teen goal-setters like Jake and Mia?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "You need to aim for huge goals right from the start."
+        },
+        {
+          "letter": "B",
+          "text": "Small, consistent goals can lead to big achievements over time."
+        },
+        {
+          "letter": "C",
+          "text": "Only talented teens can achieve their goals."
+        },
+        {
+          "letter": "D",
+          "text": "Goal setting only works for sports and arts, not other areas."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Small, consistent goals can lead to big achievements over time."
+      }
+    }
+  ],
+  "total_questions": 4
+}

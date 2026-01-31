@@ -1,0 +1,140 @@
+{
+  "title": "MCQ Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of conducting a “time audit” as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To compare your time habits with those of your friends"
+        },
+        {
+          "letter": "B",
+          "text": "To understand how you are currently spending your 24 hours each day"
+        },
+        {
+          "letter": "C",
+          "text": "To immediately change all unproductive habits"
+        },
+        {
+          "letter": "D",
+          "text": "To create a strict daily schedule without flexibilityCorrect Answer:B) To understand how you are currently spending your 24 hours each day"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which activity is recommended in the chapter to get a detailed view of how you spend a single day?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Weekly Overview"
+        },
+        {
+          "letter": "C",
+          "text": "24-Hour Time Log"
+        },
+        {
+          "letter": "C",
+          "text": "24-Hour Time Log"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "According to the chapter, which of the following is a common time-waster for high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Attending classes regularly"
+        },
+        {
+          "letter": "B",
+          "text": "Excessive screen time on social media or videos"
+        },
+        {
+          "letter": "C",
+          "text": "Completing homework on time"
+        },
+        {
+          "letter": "D",
+          "text": "Participating in extracurricular activitiesCorrect Answer:B) Excessive screen time on social media or videos"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is one way the chapter suggests to minimize a time-waster like social media?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Avoid using social media completely for a month"
+        },
+        {
+          "letter": "B",
+          "text": "Set a specific time limit, such as 20 minutes per day, using a timer"
+        },
+        {
+          "letter": "C",
+          "text": "Use social media only during peak productivity hours"
+        },
+        {
+          "letter": "D",
+          "text": "Replace social media with more screen time on educational appsCorrect Answer:B) Set a specific time limit, such as 20 minutes per day, using a timer"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What does recognizing productivity patterns help you do, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Spend more time on leisure activities without guilt"
+        },
+        {
+          "letter": "B",
+          "text": "Schedule important tasks during your peak energy times"
+        },
+        {
+          "letter": "C",
+          "text": "Avoid working in environments with any distractions"
+        },
+        {
+          "letter": "D",
+          "text": "Focus only on tasks during the morning hoursCorrect Answer:B) Schedule important tasks during your peak energy times"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "Why does the chapter emphasize starting with small changes after assessing time habits?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Small changes are less noticeable to others"
+        },
+        {
+          "letter": "B",
+          "text": "Big changes are impossible to achieve for high school students"
+        },
+        {
+          "letter": "C",
+          "text": "Small changes are more manageable and can build into lasting habits"
+        },
+        {
+          "letter": "D",
+          "text": "Small changes require no effort or planningCorrect Answer:C) Small changes are more manageable and can build into lasting habits"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

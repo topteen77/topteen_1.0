@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a key first step in managing multiple responsibilities as a high school student, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Taking on as many activities as possible to build a resume."
+        },
+        {
+          "letter": "B",
+          "text": "Assessing all your commitments by listing them out in categories like school and extracurriculars."
+        },
+        {
+          "letter": "C",
+          "text": "Focusing only on schoolwork and ignoring extracurriculars."
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding personal responsibilities to save time for studying.Correct Answer: B. Assessing all your commitments by listing them out in categories like school and extracurriculars."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How does the chapter suggest prioritizing tasks when juggling multiple roles?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By focusing only on the most enjoyable activities first."
+        },
+        {
+          "letter": "B",
+          "text": "By using the Eisenhower Matrix to sort tasks by urgency and importance."
+        },
+        {
+          "letter": "C",
+          "text": "By completing all tasks randomly without a specific order."
+        },
+        {
+          "letter": "D",
+          "text": "By always prioritizing extracurriculars over schoolwork.Correct Answer: B. By using the Eisenhower Matrix to sort tasks by urgency and importance."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why does the chapter emphasize downtime as essential for high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows students to spend more time on social media without guilt."
+        },
+        {
+          "letter": "B",
+          "text": "It helps reduce stress, improve productivity, and prevent burnout."
+        },
+        {
+          "letter": "C",
+          "text": "It encourages students to avoid responsibilities completely."
+        },
+        {
+          "letter": "D",
+          "text": "It is only necessary for students who are not busy.Correct Answer: B. It helps reduce stress, improve productivity, and prevent burnout."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a common myth about downtime mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Downtime is a necessary part of maintaining mental health."
+        },
+        {
+          "letter": "B",
+          "text": "Downtime is wasting time and should be avoided."
+        },
+        {
+          "letter": "C",
+          "text": "Downtime can improve focus and creativity."
+        },
+        {
+          "letter": "D",
+          "text": "Downtime is important even during busy periods like finals.Correct Answer: B. Downtime is wasting time and should be avoided."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is one strategy the chapter recommends for achieving work-life balance as a high school student?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring personal time to focus entirely on school and extracurriculars."
+        },
+        {
+          "letter": "B",
+          "text": "Using a time-blocking system to allocate specific periods for different activities."
+        },
+        {
+          "letter": "C",
+          "text": "Taking on more commitments to stay busy at all times."
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding the use of technology to manage schedules.Correct Answer: B. Using a time-blocking system to allocate specific periods for different activities."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "How does the chapter suggest handling the feeling of guilt about taking breaks?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By reminding yourself that rest improves performance and starting with small, guilt-free breaks."
+        },
+        {
+          "letter": "B",
+          "text": "By avoiding breaks altogether to focus on responsibilities."
+        },
+        {
+          "letter": "C",
+          "text": "By taking long breaks without planning, even if deadlines are approaching."
+        },
+        {
+          "letter": "D",
+          "text": "By only taking breaks after all tasks are completed, no matter how long it takes.Correct Answer: A. By reminding yourself that rest improves performance and starting with small, guilt-free breaks."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

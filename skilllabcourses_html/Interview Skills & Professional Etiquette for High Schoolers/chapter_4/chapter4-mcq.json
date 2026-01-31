@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is researching a company, school, or role before an interview important for high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you memorize every detail about the organization to impress the interviewer."
+        },
+        {
+          "letter": "B",
+          "text": "It shows genuine interest, helps tailor your answers, and reduces pre-interview nerves by making the unknown familiar."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you can avoid answering tough questions by focusing on random facts."
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees you’ll get the position since you’ll know more than other candidates."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "When answering the question “What is your biggest weakness?” in an interview, what is the best approach?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Say you have no weaknesses to appear confident."
+        },
+        {
+          "letter": "B",
+          "text": "Choose a fake weakness like “I work too hard” to sound impressive."
+        },
+        {
+          "letter": "C",
+          "text": "Admit a real but non-critical weakness and explain how you’re working to improve it."
+        },
+        {
+          "letter": "D",
+          "text": "Avoid answering by changing the subject to your strengths."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is the primary purpose of creating a personal cheat sheet before an interview?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To write down answers word-for-word so you can memorize them exactly."
+        },
+        {
+          "letter": "B",
+          "text": "To bring into the interview as a reference in case you forget something."
+        },
+        {
+          "letter": "C",
+          "text": "To organize key points about your skills, experiences, and goals to recall confidently during the interview."
+        },
+        {
+          "letter": "D",
+          "text": "To list every single detail of your life to share with the interviewer."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can researching a company’s social media presence benefit you during an interview?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows you to criticize their posts if you disagree with their views."
+        },
+        {
+          "letter": "B",
+          "text": "It gives you up-to-date insights or events to mention, showing engagement and relevance."
+        },
+        {
+          "letter": "C",
+          "text": "It helps you avoid talking about the company altogether by focusing on personal stories."
+        },
+        {
+          "letter": "D",
+          "text": "It ensures you can copy their exact wording in your answers to sound professional."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

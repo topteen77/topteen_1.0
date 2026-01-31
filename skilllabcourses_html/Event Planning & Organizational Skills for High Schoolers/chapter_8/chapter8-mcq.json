@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is a day-before checklist important for a school event like a dance or talent show?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you avoid doing any work on the event day itself"
+        },
+        {
+          "letter": "B",
+          "text": "It ensures all details, like team roles and vendor arrivals, are confirmed to prevent last-minute chaos"
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees that nothing will go wrong during the event"
+        },
+        {
+          "letter": "D",
+          "text": "It’s only necessary if you’re planning an outdoor event"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It ensures all details, like team roles and vendor arrivals, are confirmed to prevent last-minute chaos"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a good way to manage the event schedule during a school fundraiser if an activity runs late?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignore the delay and hope no one notices"
+        },
+        {
+          "letter": "B",
+          "text": "Cancel the rest of the activities to save time"
+        },
+        {
+          "letter": "C",
+          "text": "Use a backup plan like playing music or hosting a quick game to fill the gap while keeping the crowd engaged"
+        },
+        {
+          "letter": "D",
+          "text": "Tell everyone to leave early since the schedule is off"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Use a backup plan like playing music or hosting a quick game to fill the gap while keeping the crowd engaged"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can you handle a problem like low turnout at your school’s movie night event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Focus on making the smaller crowd feel special by hyping up the energy and rearranging the space to feel full"
+        },
+        {
+          "letter": "B",
+          "text": "Cancel the event since not enough people showed up"
+        },
+        {
+          "letter": "C",
+          "text": "Ignore the attendees and focus only on cleaning up early"
+        },
+        {
+          "letter": "D",
+          "text": "Refuse to let anyone else in to keep it exclusive"
+        }
+      ],
+      "correct_answer": {
+        "letter": "A",
+        "text": "Focus on making the smaller crowd feel special by hyping up the energy and rearranging the space to feel full"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is an effective way to ensure guest satisfaction at a school talent show?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Avoid talking to attendees so they can focus on the performances"
+        },
+        {
+          "letter": "B",
+          "text": "Greet guests warmly, plan interactive moments like contests, and check on their comfort with access to water and rest areas"
+        },
+        {
+          "letter": "C",
+          "text": "Only focus on the performers and ignore the audience"
+        },
+        {
+          "letter": "D",
+          "text": "Make the event as short as possible so guests don’t get bored"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Greet guests warmly, plan interactive moments like contests, and check on their comfort with access to water and rest areas"
+      }
+    }
+  ],
+  "total_questions": 4
+}

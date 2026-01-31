@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Defining the Purpose of Your EventWhat is the primary reason for defining the purpose of an event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To decide on the event’s decorations and theme"
+        },
+        {
+          "letter": "B",
+          "text": "To guide every decision and keep the planning focused on a specific goal"
+        },
+        {
+          "letter": "C",
+          "text": "To choose the best location for the event"
+        },
+        {
+          "letter": "D",
+          "text": "To determine how much money to spend on food"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To guide every decision and keep the planning focused on a specific goal"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Identifying Your Target AudienceWhy is it important to understand your target audience when planning an event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you set a budget for the event"
+        },
+        {
+          "letter": "B",
+          "text": "It ensures the event’s timing, activities, and promotion match the needs and interests of the attendees"
+        },
+        {
+          "letter": "C",
+          "text": "It determines how many team members you need to plan the event"
+        },
+        {
+          "letter": "D",
+          "text": "It decides the type of food you should serve"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It ensures the event’s timing, activities, and promotion match the needs and interests of the attendees"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Creating a Vision BoardWhat is the main purpose of creating a vision board for an event?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To create a detailed budget plan for the event"
+        },
+        {
+          "letter": "B",
+          "text": "To visually capture the theme, vibe, and goals of the event to inspire and guide the planning team"
+        },
+        {
+          "letter": "C",
+          "text": "To list all the tasks needed to complete before the event"
+        },
+        {
+          "letter": "D",
+          "text": "To convince the school principal to approve the event"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To visually capture the theme, vibe, and goals of the event to inspire and guide the planning team"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "SMART Goals for EventsWhich of the following is an example of a SMART goal for a school fundraiser?",
+      "options": [
+        {
+          "letter": "B",
+          "text": "”"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "“Raise $200 for the drama club by selling 100 cookies at $2 each by next Friday, promoting during lunch periods, to support our upcoming play.”"
+      }
+    }
+  ],
+  "total_questions": 4
+}

@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is one major advantage of starting a digital side hustle for teens, as discussed in Section 1?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It requires a large budget to start."
+        },
+        {
+          "letter": "B",
+          "text": "It offers a massive global reach compared to offline hustles."
+        },
+        {
+          "letter": "C",
+          "text": "It can only be done during fixed working hours."
+        },
+        {
+          "letter": "D",
+          "text": "It limits your audience to your local area.Correct Answer:b) It offers a massive global reach compared to offline hustles."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "According to Section 2, what is an important step in setting up a strong online presence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Posting blurry photos to keep things casual."
+        },
+        {
+          "letter": "B",
+          "text": "Using a consistent, catchy username across platforms for branding."
+        },
+        {
+          "letter": "C",
+          "text": "Sharing personal details like your home address in your bio."
+        },
+        {
+          "letter": "D",
+          "text": "Posting only once a year to avoid spamming.Correct Answer:b) Using a consistent, catchy username across platforms for branding."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is a popular online side hustle for teens mentioned in Section 3?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Opening a physical store in a mall."
+        },
+        {
+          "letter": "B",
+          "text": "Selling digital products like printable planners on Etsy."
+        },
+        {
+          "letter": "C",
+          "text": "Working a full-time office job remotely."
+        },
+        {
+          "letter": "D",
+          "text": "Buying expensive equipment to start a business.Correct Answer:b) Selling digital products like printable planners on Etsy."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "In Section 4, what is the primary benefit of using free tools like Canva and Google Sheets for your hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They require advanced technical skills to use."
+        },
+        {
+          "letter": "B",
+          "text": "They help save money and time while looking professional."
+        },
+        {
+          "letter": "C",
+          "text": "They are only useful for offline businesses."
+        },
+        {
+          "letter": "D",
+          "text": "They cost a lot but guarantee success.Correct Answer:b) They help save money and time while looking professional."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a key online safety tip for teens from Section 5?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Share your full name and address on public profiles to build trust."
+        },
+        {
+          "letter": "B",
+          "text": "Click on every link sent in DMs to check for opportunities."
+        },
+        {
+          "letter": "C",
+          "text": "Use Two-Factor Authentication (2FA) to secure your accounts."
+        },
+        {
+          "letter": "D",
+          "text": "Keep the same password for all apps for easy recall.Correct Answer:c) Use Two-Factor Authentication (2FA) to secure your accounts."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

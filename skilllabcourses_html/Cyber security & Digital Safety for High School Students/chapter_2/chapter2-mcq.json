@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is considered personal data?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A random meme you found online"
+        },
+        {
+          "letter": "B",
+          "text": "Your full name and home address"
+        },
+        {
+          "letter": "C",
+          "text": "A public news article"
+        },
+        {
+          "letter": "D",
+          "text": "A funny video with no identifiable info"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Your full name and home address"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is privacy important for teens online?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you get more followers on social media"
+        },
+        {
+          "letter": "B",
+          "text": "It protects you from risks like identity theft and stalking"
+        },
+        {
+          "letter": "C",
+          "text": "It makes your posts go viral faster"
+        },
+        {
+          "letter": "D",
+          "text": "It ensures your phone battery lasts longer"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It protects you from risks like identity theft and stalking"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a safe way to use privacy settings on social media?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keep your account public so everyone can see your posts"
+        },
+        {
+          "letter": "B",
+          "text": "Set your account to private so only approved followers can view your content"
+        },
+        {
+          "letter": "C",
+          "text": "Share your location in every post to connect with friends"
+        },
+        {
+          "letter": "D",
+          "text": "Allow strangers to send you direct messages without restrictions"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Set your account to private so only approved followers can view your content"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which of the following should you avoid posting online to stay safe?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A picture of your pet without any location tags"
+        },
+        {
+          "letter": "B",
+          "text": "Your home address and school schedule in a public post"
+        },
+        {
+          "letter": "C",
+          "text": "A funny meme with no personal information"
+        },
+        {
+          "letter": "D",
+          "text": "A group photo where everyone agreed to be shared"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Your home address and school schedule in a public post"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a potential risk of oversharing personal data on social media?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Your account might get more likes and shares"
+        },
+        {
+          "letter": "B",
+          "text": "Strangers could use your info for cyberbullying or scams"
+        },
+        {
+          "letter": "C",
+          "text": "Your friends will automatically protect your privacy"
+        },
+        {
+          "letter": "D",
+          "text": "Your posts will be deleted by the app automatically"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Strangers could use your info for cyberbullying or scams"
+      }
+    }
+  ],
+  "total_questions": 5
+}

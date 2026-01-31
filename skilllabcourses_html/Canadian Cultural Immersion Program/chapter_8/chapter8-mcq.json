@@ -1,0 +1,162 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of mandatory university health insurance plans like UHIP for international students in Canada?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To cover travel expenses during holidays"
+        },
+        {
+          "letter": "B",
+          "text": "To provide coverage for basic medical services like doctor visits and hospital stays"
+        },
+        {
+          "letter": "C",
+          "text": "To pay for university tuition fees"
+        },
+        {
+          "letter": "D",
+          "text": "To offer discounts on gym memberships"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To provide coverage for basic medical services like doctor visits and hospital stays"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "If you have a mild fever and sore throat but can’t get a doctor’s appointment for a few days, what is the most appropriate first step to seek care in Canada?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Go directly to the emergency room (ER)"
+        },
+        {
+          "letter": "B",
+          "text": "Visit a walk-in clinic or call a provincial telehealth service for advice"
+        },
+        {
+          "letter": "C",
+          "text": "Wait until the symptoms worsen before seeking help"
+        },
+        {
+          "letter": "D",
+          "text": "Order prescription medicine online without a consultation"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Visit a walk-in clinic or call a provincial telehealth service for advice"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a common free resource offered by Canadian universities to support student mental health?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Paid private therapy sessions off-campus"
+        },
+        {
+          "letter": "B",
+          "text": "Free counseling services and workshops at campus wellness centers"
+        },
+        {
+          "letter": "C",
+          "text": "Mandatory fitness memberships for stress relief"
+        },
+        {
+          "letter": "D",
+          "text": "Exclusive access to international travel programs"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Free counselling services and workshops at campus wellness centers"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which clothing item is essential for staying safe and warm during a Canadian winter with temperatures below -20°C?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A light rain jacket"
+        },
+        {
+          "letter": "B",
+          "text": "A high-quality insulated winter coat rated for extreme cold"
+        },
+        {
+          "letter": "C",
+          "text": "Cotton t-shirts as base layers"
+        },
+        {
+          "letter": "D",
+          "text": "Open-toed sandals with socks"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A high-quality insulated winter coat rated for extreme cold"
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "When should you call 9-1-1 for a medical emergency in Canada?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "For a mild headache that lasts a few hours"
+        },
+        {
+          "letter": "B",
+          "text": "For life-threatening conditions like chest pain or severe bleeding"
+        },
+        {
+          "letter": "C",
+          "text": "For scheduling a routine doctor’s appointment"
+        },
+        {
+          "letter": "D",
+          "text": "For advice on over-the-counter medications"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "For life-threatening conditions like chest pain or severe bleeding"
+      }
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a recommended strategy to combat Seasonal Affective Disorder (SAD) during Canada’s dark winter months?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Avoid all outdoor activities until spring"
+        },
+        {
+          "letter": "B",
+          "text": "Use a light therapy lamp to mimic natural sunlight"
+        },
+        {
+          "letter": "C",
+          "text": "Skip regular sleep schedules to stay up later"
+        },
+        {
+          "letter": "D",
+          "text": "Limit social interactions to focus on studies"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Use a light therapy lamp to mimic natural sunlight"
+      }
+    }
+  ],
+  "total_questions": 6
+}

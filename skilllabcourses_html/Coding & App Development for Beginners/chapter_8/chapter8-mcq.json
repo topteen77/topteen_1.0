@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What does the term \"User Interface (UI)\" refer to in app development?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The code that makes the app function behind the scenes"
+        },
+        {
+          "letter": "B",
+          "text": "The process of testing and fixing bugs in the app"
+        },
+        {
+          "letter": "C",
+          "text": "The visual elements like buttons and text that users interact with"
+        },
+        {
+          "letter": "D",
+          "text": "The speed at which an app loads on a deviceCorrect Answer: C) The visual elements like buttons and text that users interact with"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is the primary purpose of Pygame in game development?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To design mobile apps using block-based coding"
+        },
+        {
+          "letter": "B",
+          "text": "To create 2D games using Python with features like graphics and sound"
+        },
+        {
+          "letter": "C",
+          "text": "To test and debug mobile applications on different devices"
+        },
+        {
+          "letter": "D",
+          "text": "To build user interfaces for web applicationsCorrect Answer: B) To create 2D games using Python with features like graphics and sound"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "In the “Dodge the Squares!” game, what happens when an enemy square reaches the bottom of the screen?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The game ends immediately"
+        },
+        {
+          "letter": "B",
+          "text": "The enemy is removed, and a new one spawns at the top"
+        },
+        {
+          "letter": "C",
+          "text": "The player’s speed increases automatically"
+        },
+        {
+          "letter": "D",
+          "text": "The enemy changes colour and moves fasterCorrect Answer: B) The enemy is removed, and a new one spawns at the top"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key advantage of using MIT App Inventor for beginners?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It requires advanced knowledge of Python programming"
+        },
+        {
+          "letter": "B",
+          "text": "It allows coding through drag-and-drop blocks instead of typing syntax"
+        },
+        {
+          "letter": "C",
+          "text": "It is used only for creating complex 3D games"
+        },
+        {
+          "letter": "D",
+          "text": "It works exclusively on desktop computers without mobile supportCorrect Answer: B) It allows coding through drag-and-drop blocks instead of typing syntax"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "In the “Random Meme Picker” app, what component is used to display the random meme quote to the user?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Button"
+        },
+        {
+          "letter": "B",
+          "text": "Image"
+        },
+        {
+          "letter": "C",
+          "text": "Label"
+        },
+        {
+          "letter": "D",
+          "text": "ClockCorrect Answer: C) Label"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "Why is testing an essential step in app or game development?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures the app uses the latest programming language"
+        },
+        {
+          "letter": "B",
+          "text": "It helps identify and fix bugs while improving user experience"
+        },
+        {
+          "letter": "C",
+          "text": "It automatically adds new features to the app"
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees the app will be popular among usersCorrect Answer: B) It helps identify and fix bugs while improving user experience"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

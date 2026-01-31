@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary purpose of combining visuals and audio in digital storytelling?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make the video longer and fill up time"
+        },
+        {
+          "letter": "B",
+          "text": "To create a specific mood or emotion and enhance the story’s impact"
+        },
+        {
+          "letter": "C",
+          "text": "To confuse viewers with mismatched elements for surprise"
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on background music without considering visuals"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To create a specific mood or emotion and enhance the story’s impact"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "How does fast pacing in video storytelling affect the viewer’s experience?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It slows down the story to build deeper emotional connections"
+        },
+        {
+          "letter": "B",
+          "text": "It creates boredom by rushing through important moments"
+        },
+        {
+          "letter": "C",
+          "text": "It builds excitement and energy with quick cuts and short clips"
+        },
+        {
+          "letter": "D",
+          "text": "It focuses only on long, detailed scenes for clarity"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "It builds excitement and energy with quick cuts and short clips"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "Why is creating a series or thematic content important for audience retention on platforms like TikTok or YouTube?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It confuses viewers by changing topics every video"
+        },
+        {
+          "letter": "B",
+          "text": "It gives viewers consistent content to look forward to, building loyalty"
+        },
+        {
+          "letter": "C",
+          "text": "It prevents creators from trying new ideas or formats"
+        },
+        {
+          "letter": "D",
+          "text": "It focuses only on one-time viral videos without planning"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It gives viewers consistent content to look forward to, building loyalty"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key benefit of using feedback to improve storytelling techniques in digital content?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It allows creators to ignore their audience and focus on personal style"
+        },
+        {
+          "letter": "B",
+          "text": "It helps identify strengths and weaknesses to make content more engaging"
+        },
+        {
+          "letter": "C",
+          "text": "It discourages creators from experimenting with new ideas"
+        },
+        {
+          "letter": "D",
+          "text": "It only focuses on negative comments to demotivate creators"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It helps identify strengths and weaknesses to make content more engaging"
+      }
+    }
+  ],
+  "total_questions": 4
+}

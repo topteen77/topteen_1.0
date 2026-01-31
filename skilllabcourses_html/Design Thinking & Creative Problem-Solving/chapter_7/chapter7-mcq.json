@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is one key benefit of teamwork for high school students in solving complex problems through Design Thinking?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It increases individual workload."
+        },
+        {
+          "letter": "B",
+          "text": "It limits the number of ideas generated."
+        },
+        {
+          "letter": "C",
+          "text": "It allows for diverse perspectives to create solutions for more people."
+        },
+        {
+          "letter": "D",
+          "text": "It makes projects more stressful by involving more people.Answer: C"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is the primary responsibility of the Timekeeper role in a Design Thinking team?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To write down key ideas and feedback during meetings."
+        },
+        {
+          "letter": "B",
+          "text": "To guide the team by setting goals and solving disagreements."
+        },
+        {
+          "letter": "C",
+          "text": "To manage time during tasks and ensure the team sticks to schedules."
+        },
+        {
+          "letter": "D",
+          "text": "To brainstorm creative solutions for the project.Answer: C"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What does active listening involve in a Design Thinking team?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Interrupting teammates to share your own ideas quickly."
+        },
+        {
+          "letter": "B",
+          "text": "Paying full attention without interrupting and showing understanding."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring distractions by focusing on your own thoughts."
+        },
+        {
+          "letter": "D",
+          "text": "Only listening to ideas that agree with your own.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is the first step recommended for resolving conflicts in a Design Thinking team?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Blame the person responsible for the disagreement."
+        },
+        {
+          "letter": "B",
+          "text": "Stay calm and take a break if emotions are high."
+        },
+        {
+          "letter": "C",
+          "text": "Ignore the conflict and move on to the next task."
+        },
+        {
+          "letter": "D",
+          "text": "Immediately vote on a solution without discussion.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why is it important to learn from challenges in a Design Thinking project?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To assign blame to team members for mistakes."
+        },
+        {
+          "letter": "B",
+          "text": "To avoid repeating mistakes and improve for future projects."
+        },
+        {
+          "letter": "C",
+          "text": "To focus only on the negative aspects of the project."
+        },
+        {
+          "letter": "D",
+          "text": "To ignore the successes and only critique the team.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "How does teamwork contribute to the different stages of Design Thinking, such as Empathize and Ideation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It slows down the process by involving too many opinions."
+        },
+        {
+          "letter": "B",
+          "text": "It allows for broader insights through interviews and generates more ideas through group brainstorming."
+        },
+        {
+          "letter": "C",
+          "text": "It limits the team to only one stage at a time."
+        },
+        {
+          "letter": "D",
+          "text": "It prevents iteration by focusing on a single solution.Answer: B"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

@@ -1,0 +1,144 @@
+{
+  "title": "MCQ Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the primary benefit of identifying your learning style?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you avoid studying difficult subjects."
+        },
+        {
+          "letter": "B",
+          "text": "It allows you to tailor study methods to maximize efficiency and engagement."
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you only use one type of study technique."
+        },
+        {
+          "letter": "D",
+          "text": "It guarantees higher grades without effort.Correct Answer: B) It allows you to tailor study methods to maximize efficiency and engagement."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which learning style is most likely to benefit from using diagrams, charts, and color-coded notes?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Auditory"
+        },
+        {
+          "letter": "B",
+          "text": "Kinesthetic"
+        },
+        {
+          "letter": "C",
+          "text": "Visual"
+        },
+        {
+          "letter": "D",
+          "text": "Read/WriteCorrect Answer: C) Visual"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "A student who prefers to learn by reading textbooks and writing detailed summaries is likely a:",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Visual learner"
+        },
+        {
+          "letter": "B",
+          "text": "Auditory learner"
+        },
+        {
+          "letter": "C",
+          "text": "Kinesthetic learner"
+        },
+        {
+          "letter": "D",
+          "text": "Read/Write learnerCorrect Answer: D) Read/Write learner"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a recommended study strategy for an auditory learner?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Building physical models to represent concepts."
+        },
+        {
+          "letter": "B",
+          "text": "Recording lectures and reading notes aloud."
+        },
+        {
+          "letter": "C",
+          "text": "Creating mind maps with lots of images."
+        },
+        {
+          "letter": "D",
+          "text": "Writing long essays for every topic.Correct Answer: B) Recording lectures and reading notes aloud."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "How can a kinesthetic learner adapt their study habits to match their strengths?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By focusing solely on reading textbooks silently."
+        },
+        {
+          "letter": "B",
+          "text": "By incorporating movement, like pacing while reviewing notes."
+        },
+        {
+          "letter": "C",
+          "text": "By avoiding hands-on activities during study sessions."
+        },
+        {
+          "letter": "D",
+          "text": "By listening to podcasts without taking breaks.Correct Answer: B) By incorporating movement, like pacing while reviewing notes."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is the purpose of the Learning Style Discovery Test available on the platform?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To test students’ knowledge of academic subjects."
+        },
+        {
+          "letter": "B",
+          "text": "To provide a quick, interactive way to assess personal learning preferences."
+        },
+        {
+          "letter": "C",
+          "text": "To replace traditional studying with online games."
+        },
+        {
+          "letter": "D",
+          "text": "To assign grades based on learning style.Correct Answer: B) To provide a quick, interactive way to assess personal learning preferences."
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

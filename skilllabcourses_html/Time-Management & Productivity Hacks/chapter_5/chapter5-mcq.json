@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is it important to include buffer time in a daily schedule?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make the schedule look more professional"
+        },
+        {
+          "letter": "B",
+          "text": "To account for unexpected delays or tasks taking longer than planned"
+        },
+        {
+          "letter": "C",
+          "text": "To fill gaps with extra study sessions"
+        },
+        {
+          "letter": "D",
+          "text": "To ensure every minute of the day is planned"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is a key advantage of using digital apps like Google Calendar over paper planners?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They are more visually appealing with stickers and colors"
+        },
+        {
+          "letter": "B",
+          "text": "They allow for tactile writing which improves memory"
+        },
+        {
+          "letter": "C",
+          "text": "They can sync across devices and send reminders for deadlines"
+        },
+        {
+          "letter": "D",
+          "text": "They are less distracting than paper planners"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "According to the chapter, what is the primary goal of balancing study and relaxation?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To spend equal time on both activities every day"
+        },
+        {
+          "letter": "B",
+          "text": "To achieve a sustainable rhythm where work is effective and rest is refreshing"
+        },
+        {
+          "letter": "C",
+          "text": "To eliminate all stress from academic responsibilities"
+        },
+        {
+          "letter": "D",
+          "text": "To maximize study time by minimizing relaxation"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "When building a weekly schedule, what should students do to manage larger tasks effectively?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Complete the entire task in one day to get it over with"
+        },
+        {
+          "letter": "B",
+          "text": "Break the task into smaller chunks and assign them to specific days"
+        },
+        {
+          "letter": "C",
+          "text": "Ignore the task until the deadline approaches"
+        },
+        {
+          "letter": "D",
+          "text": "Delegate the task to someone else to save time"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is a recommended strategy to avoid procrastination during scheduled relaxation time?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Skip relaxation time altogether to focus on studying"
+        },
+        {
+          "letter": "B",
+          "text": "Set a timer to limit relaxation and return to the schedule afterward"
+        },
+        {
+          "letter": "C",
+          "text": "Allow relaxation to extend as long as desired to fully unwind"
+        },
+        {
+          "letter": "D",
+          "text": "Replace relaxation with additional academic tasks"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "Which of the following is a benefit of using a paper planner over a digital app?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It provides automatic reminders for upcoming tasks"
+        },
+        {
+          "letter": "B",
+          "text": "It syncs across multiple devices for easy access"
+        },
+        {
+          "letter": "C",
+          "text": "It offers a distraction-free way to organize tasks without notifications"
+        },
+        {
+          "letter": "D",
+          "text": "It allows for quick searching of past entries"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

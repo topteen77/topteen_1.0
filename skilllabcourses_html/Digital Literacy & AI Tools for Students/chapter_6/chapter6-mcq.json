@@ -1,0 +1,132 @@
+{
+  "title": "MCQ Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Which AI tool mentioned in the chapter is best suited for helping high school students polish their essays by checking grammar and suggesting style improvements?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Quizlet"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How can AI summarization tools likeQuillBotassist students with research projects, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By writing complete research papers without student input"
+        },
+        {
+          "letter": "B",
+          "text": "By condensing long articles into shorter summaries to highlight key points"
+        },
+        {
+          "letter": "C",
+          "text": "By designing presentation slides for research topics"
+        },
+        {
+          "letter": "D",
+          "text": "By creating flashcards for research termsCorrect Answer: B) By condensing long articles into shorter summaries to highlight key points"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a key benefit of using AI study tools likeQuizlet’sLearn mode for test preparation, as described in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It automatically completes homework assignments"
+        },
+        {
+          "letter": "B",
+          "text": "It adapts to your performance by focusing on areas you struggle with"
+        },
+        {
+          "letter": "C",
+          "text": "It designs visual aids for presentations"
+        },
+        {
+          "letter": "D",
+          "text": "It summarizes entire textbooks in one clickCorrect Answer: B) It adapts to your performance by focusing on areas you struggle with"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "In the chapter, what is one wayCanva’sAI features help students create presentations?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By writing full speech scripts for presentations"
+        },
+        {
+          "letter": "B",
+          "text": "By suggesting templates and images based on the topic"
+        },
+        {
+          "letter": "C",
+          "text": "By solving math problems for slide content"
+        },
+        {
+          "letter": "D",
+          "text": "By creating study flashcards for presentation topicsCorrect Answer: B) By suggesting templates and images based on the topic"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "According to Section 5 of the chapter, when should students avoid using AI and rely on their own efforts?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "When checking grammar or formatting documents"
+        },
+        {
+          "letter": "B",
+          "text": "When brainstorming initial ideas for a project"
+        },
+        {
+          "letter": "C",
+          "text": "When doing core thinking or analysis for an assignment"
+        },
+        {
+          "letter": "D",
+          "text": "When summarizing long articles for researchCorrect Answer: C) When doing core thinking or analysis for an assignment"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is an important tip from the chapter for maintaining a balance between using AI tools and doing schoolwork yourself?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Always let AI complete assignments to save time"
+        },
+        {
+          "letter": "B",
+          "text": "Start with your own work before using AI as a supportive tool"
+        },
+        {
+          "letter": "C",
+          "text": "Use AI for every part of an assignment to ensure high grades"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid using AI entirely to prevent plagiarism risksCorrect Answer: B) Start with your own work before using AI as a supportive tool"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

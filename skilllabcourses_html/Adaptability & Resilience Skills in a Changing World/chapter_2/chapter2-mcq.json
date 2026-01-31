@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main difference between a fixed mindset and a growth mindset?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A fixed mindset believes effort is unnecessary, while a growth mindset ignores challenges."
+        },
+        {
+          "letter": "B",
+          "text": "A fixed mindset sees abilities as unchangeable, while a growth mindset believes abilities can develop with effort."
+        },
+        {
+          "letter": "C",
+          "text": "A fixed mindset focuses on learning, while a growth mindset avoids mistakes."
+        },
+        {
+          "letter": "D",
+          "text": "A fixed mindset encourages taking risks, while a growth mindset sticks to what’s easy."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "A fixed mindset sees abilities as unchangeable, while a growth mindset believes abilities can develop with effort."
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why does a growth mindset matter for high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees perfect grades without studying."
+        },
+        {
+          "letter": "B",
+          "text": "It helps students avoid all challenges and obstacles."
+        },
+        {
+          "letter": "C",
+          "text": "It encourages persistence and resilience in facing academic and personal challenges."
+        },
+        {
+          "letter": "D",
+          "text": "It ensures students never make mistakes."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "It encourages persistence and resilience in facing academic and personal challenges."
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How can obstacles be viewed through a growth mindset?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "As proof that you’re not good enough to succeed."
+        },
+        {
+          "letter": "B",
+          "text": "As annoying problems that should be ignored."
+        },
+        {
+          "letter": "C",
+          "text": "As chances to learn new skills or strategies."
+        },
+        {
+          "letter": "D",
+          "text": "As reasons to give up on your goals."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "As chances to learn new skills or strategies."
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a practical way to turn mistakes into stepping stones, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Pretend the mistake never happened and move on."
+        },
+        {
+          "letter": "B",
+          "text": "Blame someone else for the mistake to avoid feeling bad."
+        },
+        {
+          "letter": "C",
+          "text": "Break down what went wrong and brainstorm how to improve next time."
+        },
+        {
+          "letter": "D",
+          "text": "Avoid trying anything new to prevent future mistakes."
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Break down what went wrong and brainstorm how to improve next time."
+      }
+    },
+    {
+      "question_number": 5,
+      "question_text": "Which of the following is an example of a daily growth mindset habit?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Telling yourself you’re not good at something and giving up."
+        },
+        {
+          "letter": "B",
+          "text": "Starting your day with a positive mantra like, “I’m ready to learn something new today.”"
+        },
+        {
+          "letter": "C",
+          "text": "Comparing yourself to others and feeling discouraged."
+        },
+        {
+          "letter": "D",
+          "text": "Focusing only on results and ignoring the effort you put in."
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Starting your day with a positive mantra like, “I’m ready to learn something new today.”"
+      }
+    }
+  ],
+  "total_questions": 5
+}

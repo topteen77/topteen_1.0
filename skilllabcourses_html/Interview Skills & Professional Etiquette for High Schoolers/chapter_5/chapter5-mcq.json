@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the recommended time to arrive before an interview to show punctuality and preparedness?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Right on time, to avoid waiting around"
+        },
+        {
+          "letter": "B",
+          "text": "5 minutes early, to keep things casual"
+        },
+        {
+          "letter": "C",
+          "text": "10-15 minutes early, to account for unexpected delays"
+        },
+        {
+          "letter": "D",
+          "text": "30 minutes early, to make a strong impression"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "10-15 minutes early, to account for unexpected delays"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is a key element of making a strong first impression during an interview?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Checking your phone to stay updated"
+        },
+        {
+          "letter": "B",
+          "text": "Smiling, making eye contact, and offering a firm handshake (if in-person)"
+        },
+        {
+          "letter": "C",
+          "text": "Talking about your personal hobbies right away"
+        },
+        {
+          "letter": "D",
+          "text": "Sitting with crossed arms to appear relaxed"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Smiling, making eye contact, and offering a firm handshake (if in-person)"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is the purpose of sending a thank-you note or email after an interview?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To ask immediately if you got the position"
+        },
+        {
+          "letter": "B",
+          "text": "To show gratitude, keep yourself memorable, and reinforce your interest"
+        },
+        {
+          "letter": "C",
+          "text": "To explain any mistakes you made during the interview"
+        },
+        {
+          "letter": "D",
+          "text": "To request feedback on how you performed"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To show gratitude, keep yourself memorable, and reinforce your interest"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "When reflecting on your interview performance, what is a helpful strategy to improve for future interviews?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Focus only on what went wrong to avoid repeating mistakes"
+        },
+        {
+          "letter": "B",
+          "text": "Ignore the experience if you don’t get the opportunity"
+        },
+        {
+          "letter": "C",
+          "text": "Jot down what went well, what was tricky, and how you can improve"
+        },
+        {
+          "letter": "D",
+          "text": "Wait for the interviewer to give you feedback before reflecting"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Jot down what went well, what was tricky, and how you can improve"
+      }
+    }
+  ],
+  "total_questions": 4
+}

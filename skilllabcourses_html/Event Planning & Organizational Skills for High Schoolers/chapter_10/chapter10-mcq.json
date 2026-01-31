@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main purpose of the Mini-Event Planning Challenge in Chapter 10?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To plan a massive school-wide event with an unlimited budget"
+        },
+        {
+          "letter": "B",
+          "text": "To practice event planning skills on a small scale with a limited budget and timeline"
+        },
+        {
+          "letter": "C",
+          "text": "To avoid working with a team and plan everything solo"
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on creating a portfolio without hosting an actual event"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To practice event planning skills on a small scale with a limited budget and timeline"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "During the Group Project to organize a school event, what is an important step to ensure success?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Assigning all tasks to one person to keep things simple"
+        },
+        {
+          "letter": "B",
+          "text": "Ignoring the budget since it’s a school event"
+        },
+        {
+          "letter": "C",
+          "text": "Dividing roles among team members based on their strengths and collaborating on a detailed plan"
+        },
+        {
+          "letter": "D",
+          "text": "Waiting until the last minute to start planning to build excitement"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Dividing roles among team members based on their strengths and collaborating on a detailed plan"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "In the Scenario-Based Problem Solving section, what should you do if your main sponsor backs out at the last minute?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Cancel the event immediately without exploring other options"
+        },
+        {
+          "letter": "B",
+          "text": "Brainstorm solutions like finding a new sponsor or cutting costs, then pick the best action plan"
+        },
+        {
+          "letter": "C",
+          "text": "Ignore the problem and hope no one notices"
+        },
+        {
+          "letter": "D",
+          "text": "Spend your own money to cover all the costs without telling anyone"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Brainstorm solutions like finding a new sponsor or cutting costs, then pick the best action plan"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a key component of creating a Portfolio of Skills for event planning?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Only including photos of events without any written explanations"
+        },
+        {
+          "letter": "B",
+          "text": "Collecting budgets, plans, and reflections to showcase your growth and skills over time"
+        },
+        {
+          "letter": "C",
+          "text": "Leaving out any mistakes or challenges to make it look perfect"
+        },
+        {
+          "letter": "D",
+          "text": "Making it as short as possible with only one item to save time"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Collecting budgets, plans, and reflections to showcase your growth and skills over time"
+      }
+    }
+  ],
+  "total_questions": 4
+}

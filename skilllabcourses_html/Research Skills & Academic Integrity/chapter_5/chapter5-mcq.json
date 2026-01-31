@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is a core principle of academic integrity, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Copying others’ work to save time on assignments"
+        },
+        {
+          "letter": "B",
+          "text": "Being honest, fair, and responsible in your schoolwork"
+        },
+        {
+          "letter": "C",
+          "text": "Submitting work without citing any sources"
+        },
+        {
+          "letter": "D",
+          "text": "Only focusing on getting high grades regardless of methods"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Being honest, fair, and responsible in your schoolwork"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is an example of plagiarism, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Quoting a source on “Indian Economy” with proper citation in your essay"
+        },
+        {
+          "letter": "B",
+          "text": "Rewriting a YouTube video’s ideas on “Best Laptops under ₹30,000” without giving credit"
+        },
+        {
+          "letter": "C",
+          "text": "Writing an original essay based on your own research and thoughts"
+        },
+        {
+          "letter": "D",
+          "text": "Mentioning a friend’s idea in a project with their permission and a shoutout"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Rewriting a YouTube video’s ideas on “Best Laptops under ₹30,000” without giving credit"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a key aspect of the ethical use of information and ideas, as explained in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Using others’ work without mentioning them to make your project look original"
+        },
+        {
+          "letter": "B",
+          "text": "Giving credit to creators through citations or mentions when using their content"
+        },
+        {
+          "letter": "C",
+          "text": "Only using your own ideas without ever referencing external sources"
+        },
+        {
+          "letter": "D",
+          "text": "Copying exact paragraphs from websites to improve your writing"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Giving credit to creators through citations or mentions when using their content"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can honestybedemonstrated in academic collaboration, based on the chapter’s guidance?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Letting one teammate do all the work while claiming equal credit"
+        },
+        {
+          "letter": "B",
+          "text": "Contributing fairly to group tasks and clearly defining each person’s role"
+        },
+        {
+          "letter": "C",
+          "text": "Copying a teammate’s ideas without acknowledging their input"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding group work entirely to ensure individual honesty"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Contributing fairly to group tasks and clearly defining each person’s role"
+      }
+    }
+  ],
+  "total_questions": 4
+}

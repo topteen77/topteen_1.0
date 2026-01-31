@@ -1,0 +1,144 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "According to the chapter, what is a primary reason public speaking anxiety matters for high school students?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It prevents students from ever speaking in public"
+        },
+        {
+          "letter": "B",
+          "text": "It can disrupt focus and performance, but can be managed with tools to stay calm and deliver effectively"
+        },
+        {
+          "letter": "C",
+          "text": "It only affects professional speakers, not students"
+        },
+        {
+          "letter": "D",
+          "text": "It is an unavoidable barrier that cannot be overcomeCorrect Answer:B. It can disrupt focus and performance, but can be managed with tools to stay calm and deliver effectively"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is one practical tool the chapter suggests for dealing with public speaking anxiety?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Avoiding practice to reduce stress"
+        },
+        {
+          "letter": "B",
+          "text": "Using deep breathing exercises, like inhaling for 4 seconds, holding for 4, and exhaling for 4, to calm nerves"
+        },
+        {
+          "letter": "C",
+          "text": "Speaking as quickly as possible to finish sooner"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring physical symptoms like shaky handsCorrect Answer:B. Using deep breathing exercises, like inhaling for 4 seconds, holding for 4, and exhaling for 4, to calm nerves"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does the chapter recommend managing mistakes during a speech, such as forgetting lines?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Stop speaking entirely and apologize repeatedly to the audience"
+        },
+        {
+          "letter": "B",
+          "text": "Pause briefly, take a breath, use a recovery line like “Let me rephrase that,” and continue smoothly"
+        },
+        {
+          "letter": "C",
+          "text": "Ignore the mistake and pretend it didn’t happen"
+        },
+        {
+          "letter": "D",
+          "text": "Laugh loudly to distract the audience from the errorCorrect Answer:B. Pause briefly, take a breath, use a recovery line like “Let me rephrase that,” and continue smoothly"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What strategy does the chapter offer for handling difficult audiences, such as hecklers?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Argue with them immediately to defend your point"
+        },
+        {
+          "letter": "B",
+          "text": "Stay calm, keep a steady tone, and respond with a polite line like “Thanks for the input, let’s discuss after”"
+        },
+        {
+          "letter": "C",
+          "text": "Stop the speech and ask them to leave"
+        },
+        {
+          "letter": "D",
+          "text": "Ignore them completely and focus only on your notesCorrect Answer:B. Stay calm, keep a steady tone, and respond with a polite line like “Thanks for the input, let’s discuss after”"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "According to the chapter, what does building resilience in public speaking involve?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Avoiding all setbacks by not speaking in public"
+        },
+        {
+          "letter": "B",
+          "text": "Viewing setbacks as learning opportunities and maintaining motivation to improve over time"
+        },
+        {
+          "letter": "C",
+          "text": "Focusing only on perfect performances to build confidence"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring feedback to prevent feeling discouragedCorrect Answer:B. Viewing setbacks as learning opportunities and maintaining motivation to improve over time"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What is a common challenge teens face when building resilience, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Always receiving positive feedback, which prevents growth"
+        },
+        {
+          "letter": "B",
+          "text": "Taking setbacks personally or losing motivation after a flop, instead of seeing them as chances to learn"
+        },
+        {
+          "letter": "C",
+          "text": "Never experiencing setbacks in public speaking"
+        },
+        {
+          "letter": "D",
+          "text": "Finding resilience too easy to develop without effortCorrect Answer:B. Taking setbacks personally or losing motivation after a flop, instead of seeing them as chances to learn"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

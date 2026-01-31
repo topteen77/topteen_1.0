@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>chapter_4_modified</title>
+</head>
+<body>
+<p>Chapter 4: Building Logic with Algorithms and Flowcharts </p>
+<p>&nbsp;</p>
+<p>Section 1: What are Algorithms? Breaking Down Problems</p>
+<p><strong>What is an Algorithm?</strong></p>
+<p>Imagine you&#8217;re trying to solve a Rubik&#8217;s Cube or plan a group outing. You don&#8217;t just act randomly; you follow a set of steps to reach your goal. In programming, an <strong>algorithm</strong> is a step-by-step set of instructions to solve a problem or complete a task. Algorithms are like recipes for your computer to follow&#8212;they break down complex challenges into simple, actionable steps. They&#8217;re not written in a specific programming language; they&#8217;re just logical plans.</p>
+<p>For high school students, think of algorithms as the way you strategize in a video game. For example:</p>
+<ul>
+<li>To win a battle in a game, you might think: Choose a weapon &#8594; Find the enemy &#8594; Attack if health is high &#8594; Retreat if health is low. Each step is clear and in order. If you skip a step or mess up the sequence, you might lose the game. Algorithms in coding ensure the computer executes tasks in the right sequence to avoid errors.</li>
+</ul>
+<p><strong>Why </strong><strong>are</strong><strong> Algorithms Important?</strong></p>
+<p>Algorithms are the backbone of problem-solving in coding. They help you:</p>
+<ul>
+<li>Break down big, complicated problems into smaller, manageable pieces.</li>
+<li>Avoid mistakes by planning your solution before writing code.</li>
+<li>Make your code efficient (faster and less resource-heavy).</li>
+<li>Communicate ideas clearly to others, like teammates or teachers, before coding begins.</li>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</ul>
+<p><strong>Real-Life Examples for Teens</strong></p>
+<ul>
+<li><strong>Organizing a Study Group</strong>: Let&#8217;s say you&#8217;re setting up a study session with friends for a big test. You need an algorithm to plan it:</li>
+<ul>
+<li>Step 1: Make a list of friends who need help.</li>
+<li>Step 2: Check everyone&#8217;s availability for a common time.</li>
+<li>Step 3: Decide on a location (library, online, someone&#8217;s house).</li>
+<li>Step 4: Assign topics for each person to explain.</li>
+<li>Step 5: Send reminders a day before. This is an algorithm&#8212;a clear plan to solve the problem of &#8220;how to prepare for the test together.&#8221;</li>
+</ul>
+<li><strong>Choosing a Movie to Watch</strong>: When deciding on a movie with friends, your algorithm might be:</li>
+<ul>
+<li>Step 1: List everyone&#8217;s favourite genres (action, comedy, horror).</li>
+<li>Step 2: Eliminate genres no one likes.</li>
+<li>Step 3: Pick a movie from the remaining genres on a streaming app.</li>
+<li>Step 4: If everyone agrees, watch it; if not, repeat from Step 2. This decision-making process is an algorithm you use without even realizing it!</li>
+</ul>
+</ul>
+<p><strong>Fun Activity: Create Your Own Algorithm</strong></p>
+<ul>
+<li><strong>Morning Routine Algorithm</strong>: Write down every single step of your morning routine before school, from waking up to leaving the house. Be super detailed (e.g., &#8220;Turn off alarm clock,&#8221; &#8220;Put on left sock, then right sock&#8221;). Share your algorithm with a friend and see if they can follow it exactly. Did they run into any problems? This shows how important clear, precise instructions are in algorithms!</li>
+<li><strong>Snack Run Algorithm</strong>: Plan a trip to the store to buy snacks for a movie night. Include steps like &#8220;Check how much money I have,&#8221; &#8220;If less than $10, ask parents for more,&#8221; and &#8220;Pick snacks under budget.&#8221; Test your algorithm by pretending to follow it&#8212;did you miss any steps?</li>
+</ul>
+<p><strong>Deeper Dive: Types of Algorithms</strong></p>
+<p>Not all algorithms are the same. Here are a few types you&#8217;ll encounter in coding (don&#8217;t worry, we&#8217;ll keep it simple!):</p>
+<ul>
+<li><strong>Sequential Algorithms</strong>: Steps happen one after another, like a to-do list (e.g., making a sandwich).</li>
+<li><strong>Conditional Algorithms</strong>: Include decisions, like &#8220;if this, then that&#8221; (e.g., if it&#8217;s raining, take an umbrella).</li>
+<li><strong>Iterative Algorithms</strong>: Repeat steps until a goal is reached (e.g., keep guessing a password until it&#8217;s correct). These types will come up as we solve problems later in this chapter.</li>
+</ul>
+<p><strong>Key Takeaway</strong></p>
+<p>An algorithm isn&#8217;t code&#8212;it&#8217;s a plan. It&#8217;s your way of telling the computer, &#8220;Hey, let&#8217;s solve this problem step by step.&#8221; Once you have a solid algorithm, turning it into code becomes much easier. Think of it as planning a road trip before you start driving&#8212;you&#8217;re less likely to get lost!</p>
+<p>&nbsp;</p>
+<p>Section 2: Creating Flowcharts for Simple Tasks</p>
+<p><strong>What is a Flowchart?</strong></p>
+<p>A <strong>flowchart</strong> is a visual representation of an algorithm. It uses shapes like ovals, rectangles, and diamonds to show the steps of a process and how they connect. Flowcharts are like a map for your program, making it easy to see the &#8220;flow&#8221; of logic before you start coding. They&#8217;re especially useful for spotting where decisions are made or where the process might loop.</p>
+<p><strong>Why Use Flowcharts?</strong></p>
+<ul>
+<li>They help you visualize the steps of your algorithm, making complex ideas clearer.</li>
+<li>They make it easier to spot mistakes or missing steps before coding.</li>
+<li>They&#8217;re great for explaining your ideas to others (like a teacher, teammate, or even yourself when revisiting a project).</li>
+<li>They simplify debugging by showing where the logic might go wrong.</li>
+</ul>
+<p><strong>Common Flowchart Symbols</strong></p>
+<p>Here are the basic shapes you&#8217;ll use (think of them as your flowchart &#8220;stickers&#8221;):</p>
+<ul>
+<li><strong>Oval</strong>: Start or End of the process.</li>
+<li><strong>Rectangle</strong>: A step or action (e.g., &#8220;Print a message&#8221; or &#8220;Add two numbers&#8221;).</li>
+<li><strong>Diamond</strong>: A decision point with Yes/No or True/False outcomes (e.g., &#8220;Is it raining?&#8221;).</li>
+<li><strong>Parallelogram</strong>: Input or Output (e.g., &#8220;Get user input&#8221; or &#8220;Display result&#8221;).</li>
+<li><strong>Arrow</strong>: Shows the direction of the flow (connects the shapes).</li>
+</ul>
+<p><strong>Example 1: Flowchart for Deciding What to Wear</strong></p>
+<p>Let&#8217;s create a flowchart for a simple decision teens make every day: &#8220;What should I wear based on the weather?&#8221;</p>
+<ul>
+<li>Start (Oval)</li>
+<li>Check the weather (Diamond: &#8220;Is it cold?&#8221;)</li>
+<ul>
+<li>If Yes &#8594; Wear a jacket (Rectangle) &#8594; End (Oval)</li>
+<li>If No &#8594; Check if sunny (Diamond: &#8220;Is it sunny?&#8221;)</li>
+<ul>
+<li>If Yes &#8594; Wear a t-shirt and sunglasses (Rectangle) &#8594; End (Oval)</li>
+<li>If No &#8594; Wear a light sweater (Rectangle) &#8594; End (Oval)</li>
+</ul>
+</ul>
+</ul>
+<p><strong>Visual Description (since I can&#8217;t draw here):</strong></p>
+<ul>
+<li>Start in an oval at the top.</li>
+<li>Arrow down to a diamond labeled &#8220;Is it cold?&#8221;</li>
+<li>From the diamond, two arrows split: &#8220;Yes&#8221; goes left to a rectangle &#8220;Wear jacket,&#8221; then to an oval &#8220;End.&#8221;</li>
+<li>&#8220;No&#8221; goes right to another diamond &#8220;Is it sunny?&#8221;</li>
+<li>From this diamond, &#8220;Yes&#8221; goes to a rectangle &#8220;Wear t-shirt and sunglasses,&#8221; then &#8220;End&#8221;; &#8220;No&#8221; goes to a rectangle &#8220;Wear light sweater,&#8221; then &#8220;End.&#8221;</li>
+</ul>
+<p><strong>Example 2: Flowchart for Homework Completion</strong></p>
+<p>Here&#8217;s another flowchart for something relevant to students: &#8220;Should I do homework now?&#8221;</p>
+<ul>
+<li>Start (Oval)</li>
+<li>Check time (Diamond: &#8220;Is it before 8 PM?&#8221;)</li>
+<ul>
+<li>If Yes &#8594; Check energy (Diamond: &#8220;Am I tired?&#8221;)</li>
+<ul>
+<li>If No &#8594; Do homework (Rectangle) &#8594; End (Oval)</li>
+<li>If Yes &#8594; Take a short break (Rectangle) &#8594; Back to &#8220;Am I tired?&#8221;</li>
+</ul>
+<li>If No &#8594; Set alarm for tomorrow (Rectangle) &#8594; End (Oval)</li>
+<p>&nbsp;</p>
+</ul>
+</ul>
+<p><strong>Visual Description</strong>:</p>
+<ul>
+<li>Start at the top (oval).</li>
+<li>Arrow to diamond &#8220;Is it before 8 PM?&#8221;</li>
+<li>&#8220;Yes&#8221; leads to diamond &#8220;Am I tired?&#8221;; &#8220;No&#8221; leads to rectangle &#8220;Set alarm for tomorrow,&#8221; then &#8220;End.&#8221;</li>
+<li>From &#8220;Am I tired?,&#8221; &#8220;No&#8221; goes to rectangle &#8220;Do homework,&#8221; then &#8220;End&#8221;; &#8220;Yes&#8221; goes to rectangle &#8220;Take short break,&#8221; then loops back to &#8220;Am I tired?&#8221;</li>
+</ul>
+<p><strong>Practical Explanation for Teens</strong></p>
+<p>Flowcharts are like planning a TikTok video or a group chat decision. You decide: &#8220;If I get 100 likes, I&#8217;ll post a follow-up. If not, I&#8217;ll try a different trend.&#8221; Mapping this out visually helps you see all possible outcomes before you act. In coding, flowcharts prevent you from writing messy code by showing exactly where decisions and actions happen.</p>
+<p><strong>Fun Activity: Draw Your Own Flowchart</strong></p>
+<ul>
+<li><strong>Survive a Boring Class</strong>: Grab a piece of paper and draw a flowchart for &#8220;How to survive a boring class.&#8221; Include decisions like &#8220;Is the teacher looking at me?&#8221; and actions like &#8220;Doodle in notebook&#8221; or &#8220;Pay attention.&#8221; Use the shapes above and show it to a friend&#8212;does it make sense to them?</li>
+<li><strong>Plan a Weekend Hangout</strong>: Create a flowchart for deciding what to do on a Saturday with friends. Include decisions like &#8220;Is everyone free?&#8221; and &#8220;Is the weather good?&#8221; with actions like &#8220;Go to the mall&#8221; or &#8220;Play video games online.&#8221; Add at least two decision points and three possible outcomes.</li>
+</ul>
+<p><strong>Deeper Dive: Loops in Flowcharts</strong></p>
+<p>Sometimes, a flowchart includes a loop&#8212;repeating steps until a condition is met. In the &#8220;Homework Completion&#8221; example above, the &#8220;Take a short break&#8221; loops back to &#8220;Am I tired?&#8221; until you&#8217;re ready to work. Loops are common in coding (like playing a song on repeat until you skip it), and flowcharts help visualize them clearly.</p>
+<p><strong>Key Takeaway</strong></p>
+<p>Flowcharts turn your thoughts into a picture. They&#8217;re a super helpful tool to plan out programs, especially when decisions (like &#8220;if this, then that&#8221;) or repetitions (loops) are involved. They&#8217;re your first step to making sure your logic is solid before coding.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>Section 3: Writing Pseudocode to Plan Programs</p>
+<p><strong>What is </strong><strong>Pseudocode</strong><strong>?</strong></p>
+<p><strong>Pseudocode</strong> is a way to write down your algorithm in plain English (or any language) mixed with some coding-like structure. It&#8217;s not real code, so you don&#8217;t need to worry about syntax (rules like semicolons or brackets in Python). It&#8217;s like a rough draft of your program, helping you plan what your code will do without getting bogged down by technical details.</p>
+<p><strong>Why Use </strong><strong>Pseudocode</strong><strong>?</strong></p>
+<ul>
+<li>It bridges the gap between your algorithm and actual code.</li>
+<li>It lets you focus on logic without stressing about coding rules.</li>
+<li>It&#8217;s easy to read and share with others for feedback, even if they don&#8217;t know how to code.</li>
+<li>It helps catch logical errors before you start writing real code.</li>
+</ul>
+<p><strong>Example 1: </strong><strong>Pseudocode</strong><strong> for a Simple Game</strong></p>
+<p>Let&#8217;s plan a &#8220;Guess the Number&#8221; game where the computer picks a number between 1 and 10, and the player guesses it.</p>
+<p>BEGIN</p>
+<p>  Set secret_number to a random number between 1 and 10</p>
+<p>  Set guess to 0</p>
+<p>  Set attempts to 0</p>
+<p>  WHILE guess is not equal to secret_number AND attempts is less than 5</p>
+<p>    Ask player to input a guess</p>
+<p>    Store input as guess</p>
+<p>    Increase attempts by 1</p>
+<p>    IF guess is less than secret_number</p>
+<p>      Say "Too low, try again!"</p>
+<p>    ELSE IF guess is greater than secret_number</p>
+<p>      Say "Too high, try again!"</p>
+<p>    ELSE</p>
+<p>      Say "Congratulations, you got it in", attempts, "tries!"</p>
+<p>    END IF</p>
+<p>  END WHILE</p>
+<p>  IF guess is not equal to secret_number</p>
+<p>    Say "Game Over! The number was", secret_number</p>
+<p>  END IF</p>
+<p>END</p>
+<p>&nbsp;</p>
+<p><strong>Example 2: </strong><strong>Pseudocode</strong><strong> for a To-Do List App</strong></p>
+<p>Imagine you&#8217;re building a simple app to manage daily tasks for school.</p>
+<p>BEGIN</p>
+<p>  Create an empty list called tasks</p>
+<p>  Display menu: 1. Add task, 2. View tasks, 3. Mark task done, 4. Exit</p>
+<p>  Ask user to choose an option</p>
+<p>  Store choice</p>
+<p>  WHILE choice is not 4</p>
+<p>    IF choice is 1</p>
+<p>      Ask user for task description</p>
+<p>      Add description to tasks list</p>
+<p>      Say "Task added!"</p>
+<p>    ELSE IF choice is 2</p>
+<p>      IF tasks list is empty</p>
+<p>        Say "No tasks yet!"</p>
+<p>      ELSE</p>
+<p>        Display all tasks with numbers (1, 2, 3, ...)</p>
+<p>      END IF</p>
+<p>    ELSE IF choice is 3</p>
+<p>      IF tasks list is empty</p>
+<p>        Say "No tasks to mark done!"</p>
+<p>      ELSE</p>
+<p>        Ask user for task number to mark done</p>
+<p>        Remove that task from list</p>
+<p>        Say "Task marked as done!"</p>
+<p>      END IF</p>
+<p>    ELSE</p>
+<p>      Say "Invalid choice, try again"</p>
+<p>    END IF</p>
+<p>    Display menu again</p>
+<p>    Ask user to choose an option</p>
+<p>    Store choice</p>
+<p>  END WHILE</p>
+<p>  Say "Goodbye!"</p>
+<p>END</p>
+<p>&nbsp;</p>
+<p><strong>Practical Explanation for Teens</strong></p>
+<p>Think of pseudocode as texting a friend about a plan for a group project. You don&#8217;t write every detail, just the main ideas: &#8220;First, we pick a topic. Then, if everyone agrees, we start research; if not, we pick another.&#8221; It&#8217;s casual but structured enough to follow. In coding, pseudocode lets you focus on &#8220;what&#8221; your program does (the logic) before worrying about &#8220;how&#8221; to write it in Python.</p>
+<p>&nbsp;</p>
+<p><strong>How to Write Good </strong><strong>Pseudocode</strong></p>
+<ul>
+<li>Use simple language (e.g., &#8220;Ask for name&#8221; instead of complicated terms).</li>
+<li>Include keywords like IF, ELSE, WHILE to show decisions and loops.</li>
+<li>Indent lines to show which steps belong together (like in the examples above).</li>
+<li>Be specific enough that someone else could understand your plan, but don&#8217;t stress about exact wording.</li>
+</ul>
+<p><strong>Fun Activity: Write </strong><strong>Pseudocode</strong><strong> for Real-Life Scenarios</strong></p>
+<ul>
+<li><strong>Meme Generator App</strong>: Imagine you&#8217;re creating a meme generator app. Write pseudocode for this process: The user picks a meme template, adds text, and shares it. Include a decision like &#8220;If the text is too long, ask to shorten it.&#8221; Share your pseudocode with a classmate&#8212;can they understand your plan?</li>
+<li><strong>Pizza Order System</strong>: Write pseudocode for ordering pizza online. Include steps like choosing size, toppings, and payment method, with decisions like &#8220;If delivery address is outside area, add extra fee.&#8221; Test it by reading it aloud&#8212;does it cover all possibilities?</li>
+</ul>
+<p><strong>Deeper Dive: </strong><strong>Pseudocode</strong><strong> vs. Code</strong></p>
+<p>Pseudocode is language-agnostic&#8212;it&#8217;s not tied to Python, Java, or any specific language. For example, in pseudocode, you might write &#8220;Ask for age,&#8221; but in Python, it becomes age = int(input("Enter your age: ")). Pseudocode focuses on the idea, while code focuses on the implementation. This separation helps beginners avoid getting stuck on syntax early on.</p>
+<p><strong>Key Takeaway</strong></p>
+<p>Pseudocode is your coding &#8220;cheat sheet.&#8221; It helps you organize your thoughts and makes writing real code much smoother since you already know what to do. It&#8217;s like sketching a drawing before painting the final piece.</p>
+<p>&nbsp;</p>
+<p>Section 4: Solving Basic Problems Using Algorithms in Python</p>
+<p><strong>Turning Plans into Code</strong></p>
+<p>Now that we&#8217;ve learned algorithms, flowcharts, and pseudocode, let&#8217;s put it all together by writing real Python programs. We&#8217;ll solve a variety of simple problems step by step, using the planning tools we&#8217;ve discussed. This is where the &#8220;rubber meets the road&#8221;&#8212;turning logic into action! We&#8217;ll include more examples to give you plenty of practice.</p>
+<p><strong>Problem 1: Even or Odd Number Checker</strong></p>
+<p><strong>Goal</strong>: Write a program to check if a number (input by the user) is even or odd.</p>
+<ul>
+<li><strong>Algorithm</strong>:</li>
+<ul>
+<li>Start.</li>
+<li>Ask the user for a number.</li>
+<li>If the number divided by 2 has no remainder, it&#8217;s even.</li>
+<li>Otherwise, it&#8217;s odd.</li>
+<li>Print the result.</li>
+<li>End.</li>
+</ul>
+<li><strong>Flowchart Description</strong>: Start (oval) &#8594; Input number (parallelogram) &#8594; Decision &#8220;Number % 2 == 0?&#8221; (diamond) &#8594; If Yes, &#8220;Print Even&#8221; (rectangle) &#8594; End (oval); If No, &#8220;Print Odd&#8221; (rectangle) &#8594; End (oval).</li>
+<li><strong>Pseudocode</strong>:</li>
+</ul>
+<p>BEGIN</p>
+<p>  Ask user to input a number</p>
+<p>  Store input as num</p>
+<p>  IF num modulo 2 equals 0</p>
+<p>    Print "The number is even"</p>
+<p>  ELSE</p>
+<p>    Print "The number is odd"</p>
+<p>  END IF</p>
+<p>END</p>
+<p>&nbsp;</p>
+<ul>
+<li><strong>Python Code</strong>:</li>
+</ul>
+<p># Get input from user</p>
+<p>num = int(input("Enter a number: "))</p>
+<p>&nbsp;</p>
+<p># Check if even or odd using modulo operator</p>
+<p>if num % 2 == 0:</p>
+<p>    print("The number is even")</p>
+<p>else:</p>
+<p>    print("The number is odd")</p>
+<ul>
+<li><strong>Explanation for Teens</strong>: The&#160;%&#160;(modulo) operator gives the remainder after division. If a number divided by 2 has a remainder of 0, it&#8217;s even (like 4 or 10). Otherwise, it&#8217;s odd (like 3 or 7). Try running this code with different numbers&#8212;see how it works! Bonus: What happens if you enter a negative number? Does it still work?</li>
+<li><strong>Output Example</strong>:</li>
+<ul>
+<li>Input: 6 &#8594; Output: "The number is even"</li>
+<li>Input: 5 &#8594; Output: "The number is odd"</li>
+</ul>
+</ul>
+<p><strong>Problem 2: Simple Vending Machine Simulator</strong></p>
+<p><strong>Goal</strong>: Create a program that simulates a vending machine. The user picks an item (soda, chips, or candy) and pays for it.</p>
+<ul>
+<li><strong>Algorithm</strong>:</li>
+<ul>
+<li>Start.</li>
+<li>Show menu (soda = $1.50, chips = $1.00, candy = $0.75).</li>
+<li>Ask user to choose an item.</li>
+<li>Ask user to input money.</li>
+<li>If money is enough, give item and change (if any).</li>
+<li>If not enough, ask for more money or cancel.</li>
+<li>End.</li>
+</ul>
+<li><strong>Flowchart Description</strong>: Start (oval) &#8594; Show menu (rectangle) &#8594; Input choice (parallelogram) &#8594; Decision &#8220;Valid choice?&#8221; (diamond) &#8594; If No, &#8220;Error, try again&#8221; (rectangle) &#8594; Back to menu; If Yes, &#8220;Input money&#8221; (parallelogram) &#8594; Decision &#8220;Enough money?&#8221; (diamond) &#8594; If Yes, &#8220;Give item and change&#8221; (rectangle) &#8594; End (oval); If No, &#8220;Ask for more or cancel&#8221; (rectangle) &#8594; End (oval).</li>
+<li><strong>Pseudocode</strong>:</li>
+</ul>
+<p>BEGIN</p>
+<p>  Display menu: Soda ($1.50), Chips ($1.00), Candy ($0.75)</p>
+<p>  Ask user to choose item (1 for Soda, 2 for Chips, 3 for Candy)</p>
+<p>  Store choice</p>
+<p>  IF choice is 1</p>
+<p>    Set cost to 1.50</p>
+<p>    Set item to "Soda"</p>
+<p>  ELSE IF choice is 2</p>
+<p>    Set cost to 1.00</p>
+<p>    Set item to "Chips"</p>
+<p>  ELSE IF choice is 3</p>
+<p>    Set cost to 0.75</p>
+<p>    Set item to "Candy"</p>
+<p>  ELSE</p>
+<p>    Print "Invalid choice"</p>
+<p>    Stop</p>
+<p>  END IF</p>
+<p>  Ask user to input money</p>
+<p>  Store money</p>
+<p>  IF money is greater than or equal to cost</p>
+<p>    Calculate change as money minus cost</p>
+<p>    Print "Here's your", item, "and your change is", change</p>
+<p>  ELSE</p>
+<p>    Print "Not enough money. Please add more or cancel."</p>
+<p>  END IF</p>
+<p>END</p>
+<p>&nbsp;</p>
+<ul>
+<li><strong>Python Code</strong>:</li>
+</ul>
+<p># Display menu</p>
+<p>print("Welcome to the Vending Machine!")</p>
+<p>print("1. Soda ($1.50)")</p>
+<p>print("2. Chips ($1.00)")</p>
+<p>print("3. Candy ($0.75)")</p>
+<p>&nbsp;</p>
+<p># Get user's choice</p>
+<p>choice = int(input("Enter your choice (1, 2, or 3): "))</p>
+<p>&nbsp;</p>
+<p># Set cost and item based on choice</p>
+<p>if choice == 1:</p>
+<p>    cost = 1.50</p>
+<p>    item = "Soda"</p>
+<p>elif choice == 2:</p>
+<p>    cost = 1.00</p>
+<p>    item = "Chips"</p>
+<p>elif choice == 3:</p>
+<p>    cost = 0.75</p>
+<p>    item = "Candy"</p>
+<p>else:</p>
+<p>    print("Invalid choice. Please try again.")</p>
+<p>    exit()</p>
+<p>&nbsp;</p>
+<p># Get money from user</p>
+<p>money = float(input("Enter the amount of money ($): "))</p>
+<p>&nbsp;</p>
+<p># Check if enough money is provided</p>
+<p>if money &amp;gt;= cost:</p>
+<p>    change = money - cost</p>
+<p>    print(f"Here's your {item} and your change is ${change:.2f}")</p>
+<p>else:</p>
+<p>    print("Not enough money. Please add more or cancel.")</p>
+<ul>
+<li><strong>Explanation for Teens</strong>: This program is like running a mini-store! You&#8217;re using&#160;if-elif-else&#160;to handle choices and decisions, just like a real vending machine checks if you&#8217;ve paid enough. The&#160;.2f&#160;in the&#160;print&#160;statement formats the change to show only 2 decimal places (like real money). Run it and pretend you&#8217;re buying snacks&#8212;try different amounts of money and see what happens! Bonus: What if you enter a negative amount of money? How could you improve the code to handle that?</li>
+<li><strong>Output Example</strong>:</li>
+<ul>
+<li>Input: Choice = 1, Money = 2.00 &#8594; Output: "Here's your Soda and your change is $0.50"</li>
+<li>Input: Choice = 3, Money = 0.50 &#8594; Output: "Not enough money. Please add more or cancel."</li>
+</ul>
+</ul>
+<p><strong>Problem 3: Grade Calculator</strong></p>
+<p><strong>Goal</strong>: Write a program to calculate a student&#8217;s grade based on their score (0-100).</p>
+<ul>
+<li><strong>Algorithm</strong>:</li>
+<ul>
+<li>Start.</li>
+<li>Ask user for a test score.</li>
+<li>Assign a letter grade based on ranges (e.g., 90-100 = A, 80-89 = B, etc.).</li>
+<li>Print the grade.</li>
+<li>End.</li>
+</ul>
+<li><strong>Flowchart Description</strong>: Start (oval) &#8594; Input score (parallelogram) &#8594; Decision &#8220;Score &amp;gt;= 90?&#8221; (diamond) &#8594; If Yes, &#8220;Grade = A&#8221; (rectangle) &#8594; Print grade (rectangle) &#8594; End (oval); If No, Decision &#8220;Score &amp;gt;= 80?&#8221; (diamond) &#8594; If Yes, &#8220;Grade = B&#8221; &#8594; Print &#8594; End; Continue for C, D, F.</li>
+<li><strong>Pseudocode</strong>:</li>
+</ul>
+<p>BEGIN</p>
+<p>  Ask user to input test score (0-100)</p>
+<p>  Store input as score</p>
+<p>  IF score is greater than or equal to 90</p>
+<p>    Set grade to "A"</p>
+<p>  ELSE IF score is greater than or equal to 80</p>
+<p>    Set grade to "B"</p>
+<p>  ELSE IF score is greater than or equal to 70</p>
+<p>    Set grade to "C"</p>
+<p>  ELSE IF score is greater than or equal to 60</p>
+<p>    Set grade to "D"</p>
+<p>  ELSE</p>
+<p>    Set grade to "F"</p>
+<p>  END IF</p>
+<p>  Print "Your grade is", grade</p>
+<p>END</p>
+<p>&nbsp;</p>
+<ul>
+<li><strong>Python Code</strong>:</li>
+</ul>
+<p># Get test score from user</p>
+<p>score = int(input("Enter your test score (0-100): "))</p>
+<p>&nbsp;</p>
+<p># Determine grade based on score</p>
+<p>if score &amp;gt;= 90:</p>
+<p>    grade = "A"</p>
+<p>elif score &amp;gt;= 80:</p>
+<p>    grade = "B"</p>
+<p>elif score &amp;gt;= 70:</p>
+<p>    grade = "C"</p>
+<p>elif score &amp;gt;= 60:</p>
+<p>    grade = "D"</p>
+<p>else:</p>
+<p>    grade = "F"</p>
+<p>&nbsp;</p>
+<p># Display result</p>
+<p>print(f"Your grade is {grade}")</p>
+<ul>
+<li><strong>Explanation for Teens</strong>: This program uses multiple conditions to assign a grade, just like teachers do with your tests. It&#8217;s a great example of nested decisions (if-elif-else). Run it with different scores to see what grade you&#8217;d get! Bonus: How could you add error handling if someone enters a score outside 0-100 (like 150 or -5)?</li>
+<li><strong>Output Example</strong>:</li>
+<ul>
+<li>Input: 85 &#8594; Output: "Your grade is B"</li>
+<li>Input: 55 &#8594; Output: "Your grade is F"</li>
+</ul>
+</ul>
+<p><strong>Problem 4: Rock, Paper, Scissors Game</strong></p>
+<p><strong>Goal</strong>: Create a simple game where the user plays Rock, Paper, Scissors against the computer.</p>
+<ul>
+<li><strong>Algorithm</strong>:</li>
+<ul>
+<li>Start.</li>
+<li>Computer randomly picks Rock, Paper, or Scissors.</li>
+<li>Ask user to pick Rock, Paper, or Scissors.</li>
+<li>Compare choices to decide winner (Rock beats Scissors, Paper beats Rock, Scissors beats Paper).</li>
+<li>Print result (win, lose, or tie).</li>
+<li>End.</li>
+</ul>
+<li><strong>Flowchart Description</strong>: Start (oval) &#8594; Computer picks choice (rectangle) &#8594; User inputs choice (parallelogram) &#8594; Decision &#8220;Valid user choice?&#8221; (diamond) &#8594; If No, &#8220;Error, try again&#8221; (rectangle) &#8594; Back to input; If Yes, Decision &#8220;User = Computer?&#8221; (diamond) &#8594; If Yes, &#8220;Tie&#8221; (rectangle) &#8594; Print result &#8594; End; If No, multiple decisions to check who wins &#8594; Print result &#8594; End.</li>
+<li><strong>Pseudocode</strong>:</li>
+</ul>
+<p>BEGIN</p>
+<p>  Import random module</p>
+<p>  Set computer_choice to random selection from ["Rock", "Paper", "Scissors"]</p>
+<p>  Ask user to input choice (Rock, Paper, or Scissors)</p>
+<p>  Store input as user_choice</p>
+<p>  Convert user_choice to proper case (e.g., "rock" to "Rock")</p>
+<p>  IF user_choice is not in ["Rock", "Paper", "Scissors"]</p>
+<p>    Print "Invalid choice, please try again"</p>
+<p>    Stop</p>
+<p>  END IF</p>
+<p>  Print "Computer chose", computer_choice</p>
+<p>  IF user_choice equals computer_choice</p>
+<p>    Print "It's a tie!"</p>
+<p>  ELSE IF (user_choice is "Rock" AND computer_choice is "Scissors") OR </p>
+<p>          (user_choice is "Paper" AND computer_choice is "Rock") OR </p>
+<p>          (user_choice is "Scissors" AND computer_choice is "Paper")</p>
+<p>    Print "You win!"</p>
+<p>  ELSE</p>
+<p>    Print "Computer wins!"</p>
+<p>  END IF</p>
+<p>END</p>
+<p>&nbsp;</p>
+<ul>
+<li><strong>Python Code</strong>:</li>
+</ul>
+<p>import random</p>
+<p>&nbsp;</p>
+<p># Computer makes a random choice</p>
+<p>choices = ["Rock", "Paper", "Scissors"]</p>
+<p>computer_choice = random.choice(choices)</p>
+<p>&nbsp;</p>
+<p># Get user's choice</p>
+<p>user_choice = input("Enter your choice (Rock, Paper, Scissors): ").capitalize()</p>
+<p>&nbsp;</p>
+<p># Validate user's input</p>
+<p>if user_choice not in choices:</p>
+<p>    print("Invalid choice, please try again.")</p>
+<p>else:</p>
+<p>    print(f"Computer chose {computer_choice}")</p>
+<p>    # Determine winner</p>
+<p>    if user_choice == computer_choice:</p>
+<p>        print("It's a tie!")</p>
+<p>    elif (user_choice == "Rock" and computer_choice == "Scissors") or \</p>
+<p>         (user_choice == "Paper" and computer_choice == "Rock") or \</p>
+<p>         (user_choice == "Scissors" and computer_choice == "Paper"):</p>
+<p>        print("You win!")</p>
+<p>    else:</p>
+<p>        print("Computer wins!")</p>
+<ul>
+<li><strong>Explanation for Teens</strong>: This game uses the&#160;random&#160;module to let the computer pick randomly, just like flipping a coin. The logic checks all winning conditions using&#160;if-elif-else. Play it multiple times&#8212;can you beat the computer? Bonus: How could you add a &#8220;Play again?&#8221; option to loop the game?</li>
+<li><strong>Output Example</strong>:</li>
+<ul>
+<li>Input: Rock, Computer: Scissors &#8594; Output: "Computer chose Scissors" "You win!"</li>
+<li>Input: Paper, Computer: Paper &#8594; Output: "Computer chose Paper" "It's a tie!"</li>
+</ul>
+</ul>
+<p><strong>Problem 5: Simple Countdown Timer</strong></p>
+<p><strong>Goal</strong>: Write a program that counts down from 10 to 1, then prints &#8220;Blast Off!&#8221;</p>
+<ul>
+<li><strong>Algorithm</strong>:</li>
+<ul>
+<li>Start.</li>
+<li>Set counter to 10.</li>
+<li>While counter is greater than 0, print counter and decrease by 1.</li>
+<li>When counter reaches 0, print &#8220;Blast Off!&#8221;</li>
+<li>End.</li>
+</ul>
+<li><strong>Flowchart Description</strong>: Start (oval) &#8594; Set counter = 10 (rectangle) &#8594; Decision &#8220;Counter &amp;gt; 0?&#8221; (diamond) &#8594; If Yes, &#8220;Print counter&#8221; (rectangle) &#8594; &#8220;Decrease counter by 1&#8221; (rectangle) &#8594; Back to decision; If No, &#8220;Print Blast Off!&#8221; (rectangle) &#8594; End (oval).</li>
+<li><strong>Pseudocode</strong>:</li>
+</ul>
+<p>BEGIN</p>
+<p>  Set counter to 10</p>
+<p>  WHILE counter is greater than 0</p>
+<p>    Print counter</p>
+<p>    Decrease counter by 1</p>
+<p>  END WHILE</p>
+<p>  Print "Blast Off!"</p>
+<p>END</p>
+<ul>
+<li><strong>Python Code</strong>:</li>
+</ul>
+<p># Set starting point</p>
+<p>counter = 10</p>
+<p>&nbsp;</p>
+<p># Countdown loop</p>
+<p>while counter &amp;gt; 0:</p>
+<p>    print(counter)</p>
+<p>    counter -= 1</p>
+<p>&nbsp;</p>
+<p># Final message</p>
+<p>print("Blast Off!")</p>
+<ul>
+<li><strong>Explanation for Teens</strong>: This program uses a&#160;while&#160;loop to repeat an action (printing the counter) until a condition is met (counter reaches 0). It&#8217;s like counting down to launch a rocket in a game. Run it and imagine you&#8217;re at NASA! Bonus: Can you add a 1-second delay between numbers to make it feel more like a real countdown? (Hint: Look up the&#160;time&#160;module and&#160;sleep()&#160;function.)</li>
+<li><strong>Output Example</strong>:</li>
+</ul>
+<p>10</p>
+<p>9</p>
+<p>8</p>
+<p>7</p>
+<p>6</p>
+<p>5</p>
+<p>4</p>
+<p>3</p>
+<p>2</p>
+<p>1</p>
+<p>Blast Off!</p>
+<p><strong>Interesting Element: </strong><strong>Gamify</strong><strong> Your Learning</strong></p>
+<p>Turn coding into a game! Challenge a friend to a &#8220;Logic Race.&#8221; Pick a simple problem (like &#8220;Check if a year is a leap year,&#8221; &#8220;Calculate a tip for a restaurant bill,&#8221; or &#8220;Guess a secret word&#8221;). Both of you write an algorithm, flowchart, and pseudocode for it. Then, code it in Python and see whose program runs faster or handles more edge cases (like invalid inputs). Winner gets bragging rights as the &#8220;Logic Master&#8221;! &#127918;</p>
+<p><strong>Additional Fun Challenge: Build a &#8220;Mood Checker&#8221; App</strong></p>
+<p>Use what you&#8217;ve learned to create a mini app that asks the user how they&#8217;re feeling (e.g., &#8220;Happy,&#8221; &#8220;Sad,&#8221; &#8220;Tired&#8221;) and responds with a funny message or meme idea. Plan it with an algorithm, sketch a flowchart, write pseudocode, and code it in Python. Here&#8217;s a starter idea:</p>
+<ul>
+<li><strong>Algorithm</strong>: Ask mood &#8594; If &#8220;Happy,&#8221; say &#8220;Awesome, let&#8217;s dance!&#8221; &#8594; If &#8220;Sad,&#8221; say &#8220;Here&#8217;s a virtual hug!&#8221; &#8594; If &#8220;Tired,&#8221; say &#8220;Time for a nap meme!&#8221; &#8594; Else, say &#8220;Hmm, tell me more!&#8221;</li>
+<li><strong>Python Code Starter</strong>:</li>
+</ul>
+<p>mood = input("How are you feeling? (Happy, Sad, Tired): ").capitalize()</p>
+<p>if mood == "Happy":</p>
+<p>    print("Awesome, let's dance!")</p>
+<p>elif mood == "Sad":</p>
+<p>    print("Here's a virtual hug!")</p>
+<p>elif mood == "Tired":</p>
+<p>    print("Time for a nap meme!")</p>
+<p>else:</p>
+<p>    print("Hmm, tell me more!")</p>
+<p>Share your app with friends and see who can make the funniest responses!</p>
+<p><strong>Practical Explanation for Teens</strong></p>
+<p>Coding isn&#8217;t just typing random stuff&#8212;it&#8217;s about solving real problems. Algorithms, flowcharts, and pseudocode are like your &#8220;pre-game strategy&#8221; in a video game. You plan your moves before jumping in. By practicing with small programs like the ones above, you&#8217;re building skills to tackle bigger projects&#8212;like creating your own app, game, or even a viral TikTok filter someday.</p>
+<p><strong>Key Takeaway</strong></p>
+<p>Algorithms come to life in code. Start with a plan (algorithm), visualize it (flowchart), draft it (pseudocode), and then write the Python code. This process makes coding less scary and more logical, even for beginners. The more problems you solve, the better you get at thinking like a programmer.</p>
+<p>&nbsp;</p>
+<p>Chapter Wrap-up</p>
+<p><strong>Coding Challenge: Build a &#8220;School Survival Bot&#8221;</strong></p>
+<p>Create a mini app that helps with school decisions. For example, ask the user &#8220;What&#8217;s your problem?&#8221; with options like &#8220;Forgot homework,&#8221; &#8220;Late for class,&#8221; or &#8220;Need snack.&#8221; Respond with funny or helpful advice (e.g., &#8220;Forgot homework? Beg for an extension with puppy eyes!&#8221;). Plan it with an algorithm, flowchart, pseudocode, and code it. Share it with classmates for laughs!</p>
+<p><strong>Additional Coding Challenge: &#8220;Dice Roller Game&#8221;</strong></p>
+<p>Build a program where two players roll virtual dice (using random), and the higher number wins. Include a &#8220;Roll again?&#8221; option to loop the game. Plan it out first, then code it. Here&#8217;s a hint: Use random.randint(1, 6) to simulate a die roll. Who can win the most rounds against a friend?</p>
+<p><strong>Why This Matters to You</strong></p>
+<p>Learning algorithms and flowcharts isn&#8217;t just for &#8220;nerds&#8221;&#8212;it&#8217;s a superpower! It&#8217;s how apps like Instagram decide what posts to show you, how games like Fortnite manage player actions, and how Spotify recommends songs. By mastering logic now, you&#8217;re setting yourself up to create cool stuff that could change the world (or at least impress your friends). Imagine coding your own game or app&#8212;logic is the first step!</p>
+<p><strong>Quick Tips to Keep Going</strong></p>
+<ul>
+<li><strong>Practice</strong>: Try planning everyday decisions (like &#8220;What to do after school&#8221; or &#8220;How to save allowance money&#8221;) as algorithms or flowcharts.</li>
+<li><strong>Play</strong>: Use online tools like Lucidchart, Draw.io, or even Canva to make digital flowcharts&#8212;they&#8217;re free and fun!</li>
+<li><strong>Experiment</strong>: Modify the Python examples above. Add features like error handling (e.g., invalid input messages) or extra options (e.g., more vending machine items).</li>
+<li><strong>Ask</strong>: Stuck on a problem? Talk to a friend, teacher, or check online forums like Stack Overflow (with adult permission).</li>
+<p>&nbsp;</p>
+</ul>
+<p><strong>Chapter Summary</strong>
+In this expanded Chapter 4, we&#8217;ve learned that coding starts with logic. Algorithms are your step-by-step plans, flowcharts are your visual maps, pseudocode is your rough draft, and Python brings it all to life. These tools help you think like a programmer, breaking down problems into solvable pieces. With multiple examples and activities, you&#8217;ve practiced turning ideas into working programs. Keep experimenting with small projects, and soon, you&#8217;ll be ready to build amazing apps and games. Let&#8217;s move to the next chapter and level up your coding skills!</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</body>
+</html>

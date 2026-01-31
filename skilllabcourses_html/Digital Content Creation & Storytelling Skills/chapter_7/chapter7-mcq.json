@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main purpose of creating a personal or channel brand identity for your online content?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To copy popular creators and gain quick followers"
+        },
+        {
+          "letter": "B",
+          "text": "To make your content recognizable and unique so people remember and connect with your vibe"
+        },
+        {
+          "letter": "C",
+          "text": "To change your style constantly to confuse your audience"
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on visuals without considering your personality or niche"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To make your content recognizable and unique so people remember and connect with your vibe"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why are thumbnails, logos, and channel art important for your online presence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "They make your profile look cluttered and hard to navigate"
+        },
+        {
+          "letter": "B",
+          "text": "They act as the first impression to grab attention and reflect your brand before viewers click"
+        },
+        {
+          "letter": "C",
+          "text": "They are unnecessary if your content is good enough"
+        },
+        {
+          "letter": "D",
+          "text": "They should be changed daily to keep things fresh"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "They act as the first impression to grab attention and reflect your brand before viewers click"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a key strategy for writing effective titles, descriptions, and tags to improve visibility on platforms like YouTube or TikTok?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use long, complicated titles to explain every detail of the video"
+        },
+        {
+          "letter": "B",
+          "text": "Include catchy phrases, keywords, and calls-to-action to attract clicks and boost searchability"
+        },
+        {
+          "letter": "C",
+          "text": "Avoid using hashtags or tags to keep your content exclusive"
+        },
+        {
+          "letter": "D",
+          "text": "Write descriptions that are unrelated to the video to surprise viewers"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Include catchy phrases, keywords, and calls-to-action to attract clicks and boost searchability"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "How does engaging with your audience through comments, polls, and community building benefit your online presence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It discourages followers from interacting with your content"
+        },
+        {
+          "letter": "B",
+          "text": "It builds a loyal community that feels connected, increasing likes, shares, and growth"
+        },
+        {
+          "letter": "C",
+          "text": "It only works if you ignore negative comments completely"
+        },
+        {
+          "letter": "D",
+          "text": "It takes too much time and has no real impact on your following"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It builds a loyal community that feels connected, increasing likes, shares, and growth"
+      }
+    }
+  ],
+  "total_questions": 4
+}

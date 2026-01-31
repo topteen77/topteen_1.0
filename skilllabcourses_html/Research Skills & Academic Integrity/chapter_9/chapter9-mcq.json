@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the purpose of a strong introduction in a research paper or project, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To list all references and sources upfront"
+        },
+        {
+          "letter": "B",
+          "text": "To hook the reader and explain what the paper will cover"
+        },
+        {
+          "letter": "C",
+          "text": "To summarize the conclusion immediately"
+        },
+        {
+          "letter": "D",
+          "text": "To include random facts unrelated to the topic"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To hook the reader and explain what the paper will cover"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "According to the chapter, what is a key tip for creating effective visual aids like charts or slides?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Cram as much data as possible into one visual"
+        },
+        {
+          "letter": "B",
+          "text": "Use bright, clashing colors to grab attention"
+        },
+        {
+          "letter": "C",
+          "text": "Keep it clear and simple with labeled elements"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid crediting sources for images or data used"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Keep it clear and simple with labeled elements"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is one way to build confidence when delivering an oral presentation, based on the chapter’s advice?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Read directly from your notes without looking at the audience"
+        },
+        {
+          "letter": "B",
+          "text": "Practice multiple times in front of a mirror or by recording yourself"
+        },
+        {
+          "letter": "C",
+          "text": "Speak as fast as possible to finish quickly"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid using any visual aids to keep focus on your words"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Practice multiple times in front of a mirror or by recording yourself"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "How should you respond to feedback or questions after a presentation, according to the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Get defensive and argue if someone critiques your work"
+        },
+        {
+          "letter": "B",
+          "text": "Ignore questions you don’t know the answer to"
+        },
+        {
+          "letter": "C",
+          "text": "Listen actively, stay calm, and answer honestly or ask for clarity"
+        },
+        {
+          "letter": "D",
+          "text": "Dismiss feedback as unimportant to your project"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "Listen actively, stay calm, and answer honestly or ask for clarity"
+      }
+    }
+  ],
+  "total_questions": 4
+}

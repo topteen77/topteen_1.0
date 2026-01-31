@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Why is identifying your values, strengths, and passions important when building an online presence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps you copy popular trends online"
+        },
+        {
+          "letter": "B",
+          "text": "It forms the foundation of your personal brand and guides what you share"
+        },
+        {
+          "letter": "C",
+          "text": "It guarantees you’ll get more followers instantly"
+        },
+        {
+          "letter": "D",
+          "text": "It’s only necessary for professional platforms like LinkedIn"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It forms the foundation of your personal brand and guides what you share"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "What is an online persona, and how should it relate to who you are?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It’s a completely made-up character you pretend to be online"
+        },
+        {
+          "letter": "B",
+          "text": "It’s the version of yourself you show online, and it should be authentic to your real personality"
+        },
+        {
+          "letter": "C",
+          "text": "It’s only about looking perfect and professional for everyone to like you"
+        },
+        {
+          "letter": "D",
+          "text": "It’s something you change every day based on trends"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "It’s the version of yourself you show online, and it should be authentic to your real personality"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "How should teens choose the right platforms for self-expression?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By joining every platform to reach the most people"
+        },
+        {
+          "letter": "B",
+          "text": "By picking platforms that match their goals, persona, and the type of content they want to share"
+        },
+        {
+          "letter": "C",
+          "text": "By only using the most popular platform among their friends"
+        },
+        {
+          "letter": "D",
+          "text": "By avoiding platforms like LinkedIn since they’re only for adults"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "By picking platforms that match their goals, persona, and the type of content they want to share"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "What does it mean to create consistent and authentic content for your online presence?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Posting random things every day to stay active"
+        },
+        {
+          "letter": "B",
+          "text": "Sharing content that follows a similar style or theme and reflects your true self, not a fake version"
+        },
+        {
+          "letter": "C",
+          "text": "Only posting polished, perfect photos to impress others"
+        },
+        {
+          "letter": "D",
+          "text": "Copying what popular influencers post to gain followers"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Sharing content that follows a similar style or theme and reflects your true self, not a fake version"
+      }
+    }
+  ],
+  "total_questions": 4
+}

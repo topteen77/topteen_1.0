@@ -1,0 +1,121 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is one effective method for brainstorming short story ideas, as discussed in Chapter 4?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Writing a detailed outline before coming up with any ideas"
+        },
+        {
+          "letter": "B",
+          "text": "Asking “What if” questions to spark imaginative scenarios"
+        },
+        {
+          "letter": "C",
+          "text": "Copying plots from popular movies without any changes"
+        },
+        {
+          "letter": "D",
+          "text": "Focusing only on ideas that are completely realisticCorrect Answer:B) Asking “What if” questions to spark imaginative scenarios"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "According to Chapter 4, what is a key element in creating relatable characters for a short story?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Making them perfect with no flaws or struggles"
+        },
+        {
+          "letter": "B",
+          "text": "Giving them a clear goal or want, along with flaws and fears"
+        },
+        {
+          "letter": "C",
+          "text": "Describing their appearance in extreme detail in the first paragraph"
+        },
+        {
+          "letter": "D",
+          "text": "Ensuring they are based entirely on fictional, unrealistic traitsCorrect Answer:B) Giving them a clear goal or want, along with flaws and fears"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does Chapter 4 suggest making dialogue sound natural and authentic for teen characters?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Writing long, formal speeches that explain every detail"
+        },
+        {
+          "letter": "B",
+          "text": "Using slang and short, casual exchanges like real teen conversations"
+        },
+        {
+          "letter": "C",
+          "text": "Avoiding any conflict or emotion in what characters say"
+        },
+        {
+          "letter": "D",
+          "text": "Having characters speak in complete, grammatically perfect sentencesCorrect Answer:B) Using slang and short, casual exchanges like real teen conversations"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is the purpose of conflict in a short story, based on Chapter 4?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To confuse readers with unnecessary side plots"
+        },
+        {
+          "letter": "B",
+          "text": "To create tension and keep readers engaged by presenting a struggle"
+        },
+        {
+          "letter": "C",
+          "text": "To avoid showing any character growth or change"
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on describing the setting in detailCorrect Answer:B) To create tension and keep readers engaged by presenting a struggle"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is an important step in revising a short story, as outlined in Chapter 4?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Leaving the first draft unchanged because it’s already perfect"
+        },
+        {
+          "letter": "B",
+          "text": "Cutting parts that don’t support the main conflict and polishing language for impact"
+        },
+        {
+          "letter": "C",
+          "text": "Adding as many new characters as possible to make the story longer"
+        },
+        {
+          "letter": "D",
+          "text": "Ignoring feedback and focusing only on grammar correctionsCorrect Answer:B) Cutting parts that don’t support the main conflict and polishing language for impact"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

@@ -1,0 +1,110 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the purpose of a \"conflict\" in a story?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To introduce the main character"
+        },
+        {
+          "letter": "B",
+          "text": "To make the story boring and predictable"
+        },
+        {
+          "letter": "C",
+          "text": "To create a problem or challenge that keeps the audience interested"
+        },
+        {
+          "letter": "D",
+          "text": "To wrap up the story with a happy ending"
+        }
+      ],
+      "correct_answer": {
+        "letter": "C",
+        "text": "To create a problem or challenge that keeps the audience interested"
+      }
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which narrative structure starts with the end of the story and then flashes back to show how it happened?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Linear Structure"
+        },
+        {
+          "letter": "B",
+          "text": "Non-Linear Structure"
+        },
+        {
+          "letter": "C",
+          "text": "Three-Act Structure"
+        },
+        {
+          "letter": "D",
+          "text": "Circular Structure"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "Non-Linear Structure"
+      }
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is the main goal of a \"hook\" in digital content?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To explain the entire story in the first few seconds"
+        },
+        {
+          "letter": "B",
+          "text": "To grab the audience’s attention and make them want to keep watching"
+        },
+        {
+          "letter": "C",
+          "text": "To show the resolution of the story right at the start"
+        },
+        {
+          "letter": "D",
+          "text": "To confuse the audience so they rewatch the content"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "To grab the audience’s attention and make them want to keep watching"
+      }
+    },
+    {
+      "question_number": 4,
+      "question_text": "How can emotional storytelling help connect with your audience?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "By using only funny content to make them laugh"
+        },
+        {
+          "letter": "B",
+          "text": "By sharing genuine feelings and relatable experiences that make them feel something"
+        },
+        {
+          "letter": "C",
+          "text": "By avoiding personal stories to keep the content professional"
+        },
+        {
+          "letter": "D",
+          "text": "By using loud music to cover up any emotional moments"
+        }
+      ],
+      "correct_answer": {
+        "letter": "B",
+        "text": "By sharing genuine feelings and relatable experiences that make them feel something"
+      }
+    }
+  ],
+  "total_questions": 4
+}

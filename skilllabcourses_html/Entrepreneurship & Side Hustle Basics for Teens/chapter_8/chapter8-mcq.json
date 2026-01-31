@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is profit in the context of a side hustle?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The total money you earn from sales"
+        },
+        {
+          "letter": "B",
+          "text": "The money you spend on materials and supplies"
+        },
+        {
+          "letter": "C",
+          "text": "The money left after subtracting expenses from income"
+        },
+        {
+          "letter": "D",
+          "text": "The money you save for personal goalsCorrect Answer:c) The money left after subtracting expenses from income"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "What does reinvesting mean for a teen entrepreneur?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Spending all your profit on personal items like gadgets"
+        },
+        {
+          "letter": "B",
+          "text": "Putting money back into your hustle to grow it, like buying better tools"
+        },
+        {
+          "letter": "C",
+          "text": "Saving all your earnings in a bank without using them"
+        },
+        {
+          "letter": "D",
+          "text": "Giving money to friends to help with their hustlesCorrect Answer:b) Putting money back into your hustle to grow it, like buying better tools"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "Which of the following is a simple way for a teen to track their hustle’s finances?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Ignoring small transactions since they don’t matter"
+        },
+        {
+          "letter": "B",
+          "text": "Using a notebook to write down income and expenses"
+        },
+        {
+          "letter": "C",
+          "text": "Guessing how much money is earned or spent each month"
+        },
+        {
+          "letter": "D",
+          "text": "Only checking bank statements once a yearCorrect Answer:b) Using a notebook to write down income and expenses"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "In India, when might a teen hustler need to worry about income tax?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "If they earn less than ₹1,000 per year from their hustle"
+        },
+        {
+          "letter": "B",
+          "text": "If their total yearly income exceeds ₹2.5 lakh"
+        },
+        {
+          "letter": "C",
+          "text": "If they sell only one product online"
+        },
+        {
+          "letter": "D",
+          "text": "If they use a free app to track moneyCorrect Answer:b) If their total yearly income exceeds ₹2.5 lakh"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

@@ -1,0 +1,109 @@
+{
+  "title": "MCQ Questions",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "How does physical health impact emotional strength and resilience?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It has no effect on emotions or stress levels."
+        },
+        {
+          "letter": "B",
+          "text": "A healthy body boosts mood, focus, and the ability to handle stress better."
+        },
+        {
+          "letter": "C",
+          "text": "It only matters for athletes and not for regular students."
+        },
+        {
+          "letter": "D",
+          "text": "It makes you immune to all emotional challenges.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Which of the following is a simple habit to boost resilience through physical wellness?",
+      "options": [
+        {
+          "letter": "C",
+          "text": "Getting 8-10 hours of sleep most nights."
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a common sign of burnout that high school students should watch for?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Feeling energized and motivated every day."
+        },
+        {
+          "letter": "B",
+          "text": "Constant tiredness, irritability, or losing interest in usual activities."
+        },
+        {
+          "letter": "C",
+          "text": "Wanting to spend more time with friends and family."
+        },
+        {
+          "letter": "D",
+          "text": "Completing all tasks with ease and no stress.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is a proactive step to recharge when you’re feeling burned out?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Pushing harder to finish everything without breaks."
+        },
+        {
+          "letter": "B",
+          "text": "Taking mini-breaks or doing something fun to lift your mood."
+        },
+        {
+          "letter": "C",
+          "text": "Ignoring how you feel and hoping it goes away."
+        },
+        {
+          "letter": "D",
+          "text": "Adding more tasks to distract yourself from stress.Correct Answer:B"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "Why does nutrition play a role in building resilience?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It keeps your energy steady, helping you stay calm and focused under pressure."
+        },
+        {
+          "letter": "B",
+          "text": "It only matters if you’re trying to lose weight."
+        },
+        {
+          "letter": "C",
+          "text": "It makes you study longer without needing sleep."
+        },
+        {
+          "letter": "D",
+          "text": "It prevents you from ever feeling stressed.Correct Answer:A"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 5
+}

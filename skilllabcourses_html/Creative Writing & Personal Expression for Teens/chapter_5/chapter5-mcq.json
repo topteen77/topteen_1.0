@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "Which of the following best describes a Haiku, as discussed in Chapter 5?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A long poem with no specific structure or rhyme scheme"
+        },
+        {
+          "letter": "B",
+          "text": "A short, three-line poem with a 5-7-5 syllable structure, often focusing on nature"
+        },
+        {
+          "letter": "C",
+          "text": "A poem with a strict rhyme scheme like A-B-A-B"
+        },
+        {
+          "letter": "D",
+          "text": "A performance-based poem meant to be rapped or sungCorrect Answer:B) A short, three-line poem with a 5-7-5 syllable structure, often focusing on nature"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "According to Chapter 5, what is the main purpose of using imagery, metaphors, and similes in poetry?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To make the poem longer and more complicated"
+        },
+        {
+          "letter": "B",
+          "text": "To create vivid pictures and deeper meanings that help readers feel the poet’s emotions"
+        },
+        {
+          "letter": "C",
+          "text": "To follow strict rules about rhyme and rhythm"
+        },
+        {
+          "letter": "D",
+          "text": "To avoid expressing personal feelings or experiencesCorrect Answer:B) To create vivid pictures and deeper meanings that help readers feel the poet’s emotions"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is one key tip from Chapter 5 for expressing emotions through poetic language?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Always name the emotion directly, like saying “I’m sad” or “I’m happy”"
+        },
+        {
+          "letter": "B",
+          "text": "Use vague words to keep the poem mysterious and hard to understand"
+        },
+        {
+          "letter": "C",
+          "text": "Show the emotion through specific images, strong verbs, and line breaks instead of just naming it"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid personal feelings and focus only on describing nature or objectsCorrect Answer:C) Show the emotion through specific images, strong verbs, and line breaks instead of just naming it"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "What is an important aspect of performing a poem, as outlined in Chapter 5?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Reading it as quickly as possible to finish before getting nervous"
+        },
+        {
+          "letter": "B",
+          "text": "Using voice tone, pauses, and body language to match the poem’s mood and connect with listeners"
+        },
+        {
+          "letter": "C",
+          "text": "Changing the poem completely during performance to surprise the audience"
+        },
+        {
+          "letter": "D",
+          "text": "Avoiding any practice to keep the performance spontaneous and unplannedCorrect Answer:B) Using voice tone, pauses, and body language to match the poem’s mood and connect with listeners"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}

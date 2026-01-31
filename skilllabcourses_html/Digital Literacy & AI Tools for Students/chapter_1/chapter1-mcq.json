@@ -1,0 +1,136 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is Digital Literacy?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The ability to play video games and use social media apps effectively"
+        },
+        {
+          "letter": "B",
+          "text": "The set of skills to find, evaluate, create, and communicate information using digital technology"
+        },
+        {
+          "letter": "C",
+          "text": "Knowing how to fix broken computers and other devices"
+        },
+        {
+          "letter": "D",
+          "text": "Using technology only for entertainment and hobbiesCorrect Answer: B) The set of skills to find, evaluate, create, and communicate information using digital technology"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "Why is digital literacy important for high schoolers?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It helps them spend more time on social media without getting caught"
+        },
+        {
+          "letter": "B",
+          "text": "It empowers them to stay safe online, save time on schoolwork, and prepare for future opportunities"
+        },
+        {
+          "letter": "C",
+          "text": "It ensures they can avoid all technology-related problems forever"
+        },
+        {
+          "letter": "D",
+          "text": "It is only useful for students who want to work in tech fieldsCorrect Answer: B) It empowers them to stay safe online, save time on schoolwork, and prepare for future opportunities"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "How does technology shape high school life in academics?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It makes learning harder by replacing textbooks with confusing apps"
+        },
+        {
+          "letter": "B",
+          "text": "It offers tools like online platforms and tutorials to enhance learning, but can also be distracting"
+        },
+        {
+          "letter": "C",
+          "text": "It is only used for playing games during study breaks"
+        },
+        {
+          "letter": "D",
+          "text": "It prevents students from collaborating on projects effectivelyCorrect Answer: B) It offers tools like online platforms and tutorials to enhance learning, but can also be distracting"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "Which of the following is NOT a key digital skill for high schoolers mentioned in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Online Research"
+        },
+        {
+          "letter": "B",
+          "text": "Digital Communication"
+        },
+        {
+          "letter": "C",
+          "text": "Advanced Computer Programming"
+        },
+        {
+          "letter": "D",
+          "text": "Media LiteracyCorrect Answer: C) Advanced Computer Programming"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 5,
+      "question_text": "What is one benefit of being digitally literate for future goals?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It guarantees you will never fail a class in high school"
+        },
+        {
+          "letter": "B",
+          "text": "It makes you stand out when applying for colleges, jobs, or internships due to tech adaptability"
+        },
+        {
+          "letter": "C",
+          "text": "It ensures you won’t need to learn new skills after high school"
+        },
+        {
+          "letter": "D",
+          "text": "It only helps if you plan to become a social media influencerCorrect Answer: B) It makes you stand out when applying for colleges, jobs, or internships due to tech adaptability"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 6,
+      "question_text": "What does the 'S' in the SMART goal framework stand for, as discussed in the chapter?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Simple"
+        },
+        {
+          "letter": "C",
+          "text": "Strong"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 6
+}

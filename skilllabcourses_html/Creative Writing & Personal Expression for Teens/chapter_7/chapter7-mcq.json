@@ -1,0 +1,98 @@
+{
+  "title": "MCQs",
+  "questions": [
+    {
+      "question_number": 1,
+      "question_text": "What is the main purpose of writing with clarity and precision, as discussed in Chapter 7?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "To use as many fancy words as possible to impress readers"
+        },
+        {
+          "letter": "B",
+          "text": "To make your message easy to understand and specific to avoid confusion"
+        },
+        {
+          "letter": "C",
+          "text": "To write long paragraphs that cover every possible detail"
+        },
+        {
+          "letter": "D",
+          "text": "To focus only on emotional language without worrying about structureCorrect Answer:B) To make your message easy to understand and specific to avoid confusion"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 2,
+      "question_text": "How does understanding your audience and tone help in writing, according to Chapter 7?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "It ensures that everyone will agree with your opinions"
+        },
+        {
+          "letter": "B",
+          "text": "It helps you adjust your language and attitude to connect better with who you’re writing for"
+        },
+        {
+          "letter": "C",
+          "text": "It allows you to use the same style for every piece of writing"
+        },
+        {
+          "letter": "D",
+          "text": "It focuses only on making your writing sound formal regardless of the readerCorrect Answer:B) It helps you adjust your language and attitude to connect better with who you’re writing for"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 3,
+      "question_text": "What is a key tip for giving constructive feedback on someone’s writing, as outlined in Chapter 7?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Start by pointing out everything that is wrong with the piece"
+        },
+        {
+          "letter": "B",
+          "text": "Be vague so you don’t hurt their feelings with specific criticism"
+        },
+        {
+          "letter": "C",
+          "text": "Begin with something positive before suggesting areas for improvement"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid offering any suggestions to keep the feedback shortCorrect Answer:C) Begin with something positive before suggesting areas for improvement"
+        }
+      ],
+      "correct_answer": null
+    },
+    {
+      "question_number": 4,
+      "question_text": "In Chapter 7, what is one strategy for writing a persuasive piece with impact?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Focus only on storytelling without considering facts or emotions"
+        },
+        {
+          "letter": "B",
+          "text": "Use logic, appeal to emotions, and address potential objections to convince your audience"
+        },
+        {
+          "letter": "C",
+          "text": "Write a long piece to ensure every possible argument is included"
+        },
+        {
+          "letter": "D",
+          "text": "Avoid mentioning your goal so the audience figures it out on their ownCorrect Answer:B) Use logic, appeal to emotions, and address potential objections to convince your audience"
+        }
+      ],
+      "correct_answer": null
+    }
+  ],
+  "total_questions": 4
+}
