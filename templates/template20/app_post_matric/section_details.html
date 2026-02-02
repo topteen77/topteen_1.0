@@ -198,6 +198,7 @@
     z-index: 1000;
     justify-content: center;
     align-items: center;
+    backdrop-filter: blur(4px);
   }
   .modal-overlay.show {
     display: flex;
@@ -209,6 +210,47 @@
     max-width: 90%;
     padding: 20px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  .modal-content.submit-modal-content {
+    border-radius: 16px;
+    width: 420px;
+    padding: 28px;
+    box-shadow: 0 10px 40px rgba(63, 55, 201, 0.15), 0 4px 20px rgba(0, 0, 0, 0.1);
+    animation: modalSlideIn 0.3s ease;
+  }
+  @keyframes modalSlideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .modal-content.submit-modal-content .modal-title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+  }
+  .modal-content.submit-modal-content .modal-message {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .modal-content.submit-modal-content .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  .modal-content.submit-modal-content .modal-actions .btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+  .modal-content.submit-modal-content .modal-actions .btn-success {
+    background: #3f37c9;
+    border-color: #3f37c9;
+  }
+  .modal-content.submit-modal-content .modal-actions .btn-success:hover {
+    background: #2d28a0;
+    border-color: #2d28a0;
   }
   .image-modal-content {
     max-width: 90%;
@@ -224,12 +266,9 @@
   }
 </style>
 
-{# Test Features CSS #}
-{% set mode = 'css' %}
-{% set enable_internet_speed_meter = true %}
-{% set enable_answer_quality_widget = true %}
-{% set enable_auto_advance = true %}
-{% include 'template20/includes/test_features.html' %}
+{# Test Features CSS - instruction (internet) + test (answer quality) #}
+{% with mode='css', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
+{% with mode='css', page_type='test' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
 {% endblock %}
 
 {% block content %}
@@ -237,6 +276,9 @@
   <div class="container">
     <!-- Introduction Section -->
     <section id="introduction-section" class="introduction" style="display: block;">
+      {# Internet stable check - instruction page only #}
+      <div class="d-none d-lg-block mb-3">{% with mode='desktop', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}</div>
+      <div class="d-lg-none mb-3">{% with mode='mobile', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}</div>
       <div class="row">
         <div class="col-md-4 d-flex align-items-center bg-light">
           <div class="inimg d-md-block d-none p-4">
@@ -296,18 +338,13 @@
               </div>
             </div>
 
-            {# Test Features - Desktop (Sidebar) #}
-            {% set mode = 'desktop' %}
-            {% set enable_internet_speed_meter = true %}
-            {% set enable_answer_quality_widget = true %}
-            {% set enable_auto_advance = true %}
-            {% include 'template20/includes/test_features.html' %}
-
           </div>
         </div>
 
         <!-- Main Content Area -->
         <div class="col-lg-8">
+          {# Answer quality widget - single instance, works on mobile and desktop #}
+          {% with mode='mobile', page_type='test' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
           <!-- Mobile Header -->
           <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
             <div class="d-flex align-items-center">
@@ -322,15 +359,6 @@
                 <h5 class="mb-0">{{ request.user.name|default(request.user.email) }}</h5>
               </div>
             </div>
-          </div>
-
-          {# Test Features - Mobile (Header) #}
-          <div class="d-lg-none mb-3">
-            {% set mode = 'mobile' %}
-            {% set enable_internet_speed_meter = true %}
-            {% set enable_answer_quality_widget = true %}
-            {% set enable_auto_advance = true %}
-            {% include 'template20/includes/test_features.html' %}
           </div>
 
           <!-- Mobile Test Stats -->
@@ -400,7 +428,7 @@
 
 <!-- Submit Confirmation Modal -->
 <div id="submitConfirmationModal" class="modal-overlay">
-  <div class="modal-content">
+  <div class="modal-content submit-modal-content">
     <div class="modal-title">Submit Section</div>
     <div class="modal-message">
       Are you sure you want to submit this section? You won't be able to change your answers after submission.
@@ -433,11 +461,9 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-{# Test Features JavaScript #}
-{% set enable_internet_speed_meter = true %}
-{% set enable_answer_quality_widget = true %}
-{% set enable_auto_advance = true %}
-{% include 'template20/includes/test_features_js.html' %}
+{# Test Features JavaScript - instruction (internet) + test (answer quality + auto-advance) #}
+{% with page_type='instruction' %}{% include 'template20/includes/test_features_js.html' %}{% endwith %}
+{% with page_type='test', enable_auto_advance=enable_auto_forward %}{% include 'template20/includes/test_features_js.html' %}{% endwith %}
 
 <script>
 // Ensure jQuery is loaded before proceeding
@@ -980,6 +1006,9 @@ $(document).ready(function() {
     if (currentQuestionIndex < questions.length - 1) {
       currentQuestionIndex++;
       window.currentQuestionIndex = currentQuestionIndex; // Sync with window
+      if (typeof window.showQuestionChangedToast === 'function') window.showQuestionChangedToast();
+      var $qc = $('#questions-container');
+      if ($qc.length) $qc[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
       renderCurrentQuestion();
       updateProgress();
       questionStartTimes[currentQuestionIndex] = Date.now();

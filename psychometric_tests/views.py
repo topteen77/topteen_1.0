@@ -77,7 +77,16 @@ class PsychometricTest(TemplateView):
             ctx['delete_demo_payment_url']=False
         return ctx
 
-    def get(self, request,*args, **kwargs):      
+    def get(self, request,*args, **kwargs):
+        # Redirect users who have already paid for Stream Sorter (BASIC) to their dashboard
+        if request.user.is_authenticated:
+            has_paid = PsychometricTestPayment.objects.filter(
+                user=request.user,
+                test_type=choices.PsychometricTestType.BASIC,
+                is_success=choices.YesNoChoices.YES
+            ).exists()
+            if has_paid:
+                return redirect(reverse('app:test_buttons'))
         return render(request, self.template_name, self.get_context(request,args, kwargs))
 
 
@@ -126,7 +135,16 @@ class PsychometricTest12(TemplateView):
             ctx['delete_demo_payment_url']=False
         return ctx
 
-    def get(self, request,*args, **kwargs):      
+    def get(self, request,*args, **kwargs):
+        # Redirect users who have already paid for Career Direction (ADVANCED) to their dashboard
+        if request.user.is_authenticated:
+            has_paid = PsychometricTestPayment.objects.filter(
+                user=request.user,
+                test_type=choices.PsychometricTestType.ADVANCED,
+                is_success=choices.YesNoChoices.YES
+            ).exists()
+            if has_paid:
+                return redirect(reverse('post_matric:tests'))
         return render(request, self.template_name, self.get_context(request,args, kwargs))
 
 
@@ -208,7 +226,27 @@ class CreatePsychometricTestPayment(APIView):
                 # Use Career Direction test amount from settings
                 amount=settings.CAREER_DIRECTION_TEST_AMOUNT
             else:
-                return Response({"error": "Invalid test type. Use 10 for BASIC or 20 for ADVANCED"}, status=status.HTTP_400_BAD_REQUEST) 
+                return Response({"error": "Invalid test type. Use 10 for BASIC or 20 for ADVANCED"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Prevent duplicate payment: if user has already paid for this test type, redirect to dashboard
+            existing_payment = PsychometricTestPayment.objects.filter(
+                user=user,
+                test_type=test_type,
+                is_success=choices.YesNoChoices.YES
+            ).exists()
+            if existing_payment:
+                redirect_url = (
+                    reverse("app:test_buttons")
+                    if test_type == choices.PsychometricTestType.BASIC
+                    else reverse("post_matric:tests")
+                )
+                return Response(
+                    {
+                        "already_paid": True,
+                        "redirect_url": request.build_absolute_uri(redirect_url),
+                    },
+                    status=status.HTTP_200_OK,
+                )
             
             test,_=PsychometricTestPayment.objects.get_or_create(user=user,gateway_receipt=gateway_receipt,test_type=test_type,is_success=choices.YesNoChoices.NO,amount=amount,currency=choices.Currency.IND)
             

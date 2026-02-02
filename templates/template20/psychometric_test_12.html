@@ -557,6 +557,11 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = data.redirect_url;
         return;
       }
+      // Already paid - redirect to dashboard
+      if (data && data.already_paid && data.redirect_url) {
+        window.location.href = data.redirect_url;
+        return;
+      }
       // Check for error in response
       if (data.error) {
         throw new Error(data.error);

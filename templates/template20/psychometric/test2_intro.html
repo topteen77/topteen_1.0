@@ -70,6 +70,7 @@
     background-color: #e2e2e2;
   }
 </style>
+{% with mode='css', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
 {% endblock %}
 
 {% block content %}
@@ -109,6 +110,7 @@
             </div>
             <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">Settings</a>
           </div>
+          {% with mode='desktop', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
         </div>
       </div>
 
@@ -133,6 +135,7 @@
             <i class='bx bx-cog'></i>
           </button>
         </div>
+        {% with mode='mobile', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
 
         <h2 class="fs-24 fw-semibold mb-4">Psychometric Test</h2>
 
@@ -243,6 +246,7 @@
 
 {% block additionaljs %}
 {{ super() }}
+{% with page_type='instruction' %}{% include 'template20/includes/test_features_js.html' %}{% endwith %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Drawer functionality for mobile

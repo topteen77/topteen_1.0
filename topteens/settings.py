@@ -100,7 +100,13 @@ SEMANTIC_SIMILARITY_THRESHOLD = config('SEMANTIC_SIMILARITY_THRESHOLD', default=
 ENABLE_EMBEDDING_CACHE = config('ENABLE_EMBEDDING_CACHE', default=True, cast=bool)
 EMBEDDING_CACHE_TTL = config('EMBEDDING_CACHE_TTL', default=86400, cast=int)  # 24 hours
 QUERY_EMBEDDING_CACHE_TTL = config('QUERY_EMBEDDING_CACHE_TTL', default=3600, cast=int)  # 1 hour
-    
+
+# Psychometric Test Widget Configuration
+# ENABLE_ANSWERING_CAREFULLY_WIDGET: Show "Answering Carefully" / "Rushing Through" widget on test pages (default: True)
+ENABLE_ANSWERING_CAREFULLY_WIDGET = config('ENABLE_ANSWERING_CAREFULLY_WIDGET', default=True, cast=bool)
+# ENABLE_AUTO_FORWARD: Auto-advance to next question when user selects an answer (default: True)
+ENABLE_AUTO_FORWARD = config('ENABLE_AUTO_FORWARD', default=True, cast=bool)
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

@@ -235,60 +235,6 @@
       grid-template-columns: repeat(1, 1fr);
     }
   }
-  /* Internet Speed Meter Styles */
-  .internet-speed-meter {
-    background: #f7f7fa;
-    border-radius: 8px;
-    padding: 10px 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-  }
-  .speed-status-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .speed-status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .speed-status-indicator.status-stable {
-    background-color: #28a745;
-    box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
-  }
-  .speed-status-indicator.status-unstable {
-    background-color: #dc3545;
-    box-shadow: 0 0 4px rgba(220, 53, 69, 0.5);
-  }
-  .speed-status-text {
-    font-weight: 600;
-    font-size: 11px;
-  }
-  .speed-status-text.status-stable {
-    color: #28a745;
-  }
-  .speed-status-text.status-unstable {
-    color: #dc3545;
-  }
-  .speed-values {
-    display: flex;
-    gap: 12px;
-    color: #666;
-  }
-  .speed-download, .speed-upload {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-  }
-  .speed-download-value, .speed-upload-value {
-    font-weight: 600;
-    color: #333;
-  }
   /* Answer Quality Widget Styles */
   .answer-quality-widget {
     background: #fff3cd !important;
@@ -430,27 +376,8 @@
             </div>
           </div>
 
-          <!-- Internet Speed Meter (Desktop) -->
-          <div class="mt-4">
-            <div class="internet-speed-meter d-none d-lg-flex mb-3">
-              <div class="speed-status-badge">
-                <span class="speed-status-indicator status-stable"></span>
-                <span class="speed-status-text status-stable">Internet Stable</span>
-              </div>
-              <div class="speed-values">
-                <div class="speed-download">
-                  <span>↓</span>
-                  <span class="speed-download-value">0.0 Mbps</span>
-                </div>
-                <div class="speed-upload">
-                  <span>↑</span>
-                  <span class="speed-upload-value">0.0 Mbps</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Answer Quality Widget (Desktop) -->
+          <!-- Answer Quality Widget (Desktop) - controlled by ENABLE_ANSWERING_CAREFULLY_WIDGET -->
+          {% if enable_answering_carefully_widget %}
           <div class="mt-3 answer-quality-widget-desktop-container">
             <div class="answer-quality-widget careful mb-3" id="answerQualityWidgetDesktop">
               <div class="quality-status-badge">
@@ -462,6 +389,7 @@
               </div>
             </div>
           </div>
+          {% endif %}
         </div>
       </div>
 
@@ -487,25 +415,8 @@
           </button>
         </div>
 
-        <!-- Internet Speed Meter -->
-        <div class="internet-speed-meter d-lg-none mb-3">
-          <div class="speed-status-badge">
-            <span class="speed-status-indicator status-stable"></span>
-            <span class="speed-status-text status-stable">Internet Stable</span>
-          </div>
-          <div class="speed-values">
-            <div class="speed-download">
-              <span>↓</span>
-              <span class="speed-download-value">0.0 Mbps</span>
-            </div>
-            <div class="speed-upload">
-              <span>↑</span>
-              <span class="speed-upload-value">0.0 Mbps</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Answer Quality Widget (Mobile) -->
+        <!-- Answer Quality Widget (Mobile) - controlled by ENABLE_ANSWERING_CAREFULLY_WIDGET -->
+        {% if enable_answering_carefully_widget %}
         <div class="answer-quality-widget careful d-lg-none mb-3" id="answerQualityWidgetMobile">
           <div class="quality-status-badge">
             <span class="quality-status-indicator status-careful"></span>
@@ -515,6 +426,7 @@
             <span id="avgTimeMobile">-- sec/q</span>
           </div>
         </div>
+        {% endif %}
 
         <!-- Mobile Test Stats -->
         <div class="d-lg-none mb-4">
@@ -699,7 +611,6 @@
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- Internet Speed Meter -->
-<script src="{{ static('topteenfrontend/assets/js/internet-speed-meter.js') }}"></script>
 
 <script>
   $(document).ready(function () {

@@ -291,7 +291,7 @@
             <a href="{{blog.url()}}">
           <div class="h-[208px] w-full lg:max-w-[248px] mb-3.5">
             <img
-              src="{{blog.image.url}}"
+              src="{% if blog.image %}{{blog.image.url}}{% else %}{{static('images/blog-default.png')}}{% endif %}"
               class="w-full h-full"
             />
           </div>
@@ -352,7 +352,7 @@
             <!-- BG IMAGE -->
             <div class="absolute inset-0">
               <img
-                src="{{skilllab_course.image.url}}"
+                src="{% if skilllab_course.image %}{{skilllab_course.image.url}}{% else %}{{static('images/skilllab-default.png')}}{% endif %}"
                 class="h-full w-full object-cover brightness-50"
               />
             </div>

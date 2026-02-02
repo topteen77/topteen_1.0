@@ -1,47 +1,36 @@
 {# 
-  Centralized Test Features Component
+  Single Reusable Test Features Component
+  Used for both Class 10 (Stream Sorter) and Class 12 (Career Direction) tests.
   
   Usage:
-  For CSS (include once in head):
-  {% include 'template20/includes/test_features.html' 
-     with mode='css'
-          enable_internet_speed_meter=true 
-          enable_answer_quality_widget=true 
-          enable_auto_advance=true %}
+  Instruction page (internet stable check only):
+    {% include 'template20/includes/test_features.html' with mode='css' page_type='instruction' %}
+    {% include 'template20/includes/test_features.html' with mode='desktop' page_type='instruction' %}
+    {% include 'template20/includes/test_features.html' with mode='mobile' page_type='instruction' %}
   
-  For Desktop HTML (in sidebar):
-  {% include 'template20/includes/test_features.html' 
-     with mode='desktop'
-          enable_internet_speed_meter=true 
-          enable_answer_quality_widget=true 
-          enable_auto_advance=true %}
+  Test page (Answering Carefully widget only, controlled by .env):
+    {% include 'template20/includes/test_features.html' with mode='css' page_type='test' %}
+    {% include 'template20/includes/test_features.html' with mode='desktop' page_type='test' %}
+    {% include 'template20/includes/test_features.html' with mode='mobile' page_type='test' %}
   
-  For Mobile HTML (in header):
-  {% include 'template20/includes/test_features.html' 
-     with mode='mobile'
-          enable_internet_speed_meter=true 
-          enable_answer_quality_widget=true 
-          enable_auto_advance=true %}
-  
-  Configuration Flags:
-  - mode: 'css', 'desktop', 'mobile', or 'all' (default: 'all')
-  - enable_internet_speed_meter: Show/hide Internet Speed Meter (default: true)
-  - enable_answer_quality_widget: Show/hide Answer Quality Widget (default: true)
-  - enable_auto_advance: Enable/disable auto-advance feature (default: true)
+  Parameters:
+  - mode: 'css' | 'desktop' | 'mobile'
+  - page_type: 'instruction' (internet only) | 'test' (answer quality only, respects ENABLE_ANSWERING_CAREFULLY_WIDGET)
 #}
 
-{# Variables are set in parent template before include #}
-{# Set defaults if not defined #}
 {% set mode = mode|default('all') %}
-{% set enable_internet_speed_meter = enable_internet_speed_meter|default(true) %}
-{% set enable_answer_quality_widget = enable_answer_quality_widget|default(true) %}
-{% set enable_auto_advance = enable_auto_advance|default(true) %}
+{% set page_type = page_type|default('test') %}
+{# enable_answering_carefully_widget from context (globals) - set via .env ENABLE_ANSWERING_CAREFULLY_WIDGET #}
+{% set _enable_widget = enable_answering_carefully_widget|default(true) %}
+{% set show_internet = (page_type == 'instruction') %}
+{% set show_answer_quality = (page_type == 'test' and _enable_widget) %}
 
-{# Internet Speed Meter and Answer Quality Widget CSS #}
+{# CSS - include once in head #}
 {% if mode == 'css' %}
 <style>
-  /* Internet Speed Meter Styles */
-  {% if enable_internet_speed_meter %}
+  {% if show_internet or show_answer_quality %}
+  /* Internet Speed Meter Styles (instruction page only) */
+  {% if show_internet %}
   .internet-speed-meter {
     background: #f7f7fa;
     border-radius: 8px;
@@ -51,54 +40,20 @@
     align-items: center;
     font-size: 12px;
   }
-  .speed-status-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .speed-status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .speed-status-indicator.status-stable {
-    background-color: #28a745;
-    box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
-  }
-  .speed-status-indicator.status-unstable {
-    background-color: #dc3545;
-    box-shadow: 0 0 4px rgba(220, 53, 69, 0.5);
-  }
-  .speed-status-text {
-    font-weight: 600;
-    font-size: 11px;
-  }
-  .speed-status-text.status-stable {
-    color: #28a745;
-  }
-  .speed-status-text.status-unstable {
-    color: #dc3545;
-  }
-  .speed-values {
-    display: flex;
-    gap: 12px;
-    color: #666;
-  }
-  .speed-download, .speed-upload {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-  }
-  .speed-download-value, .speed-upload-value {
-    font-weight: 600;
-    color: #333;
-  }
+  .speed-status-badge { display: flex; align-items: center; gap: 6px; }
+  .speed-status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .speed-status-indicator.status-stable { background-color: #28a745; box-shadow: 0 0 4px rgba(40, 167, 69, 0.5); }
+  .speed-status-indicator.status-unstable { background-color: #dc3545; box-shadow: 0 0 4px rgba(220, 53, 69, 0.5); }
+  .speed-status-text { font-weight: 600; font-size: 11px; }
+  .speed-status-text.status-stable { color: #28a745; }
+  .speed-status-text.status-unstable { color: #dc3545; }
+  .speed-values { display: flex; gap: 12px; color: #666; }
+  .speed-download, .speed-upload { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+  .speed-download-value, .speed-upload-value { font-weight: 600; color: #333; }
   {% endif %}
 
-  /* Answer Quality Widget Styles */
-  {% if enable_answer_quality_widget %}
+  /* Answer Quality Widget Styles (test page only, when enabled) */
+  {% if show_answer_quality %}
   .answer-quality-widget {
     background: #fff3cd !important;
     border: 2px solid #ffc107 !important;
@@ -114,133 +69,96 @@
     width: 100%;
     z-index: 1000;
   }
-  .answer-quality-widget.warning {
-    background: #fff3cd;
-    border-color: #ffc107;
-  }
-  .answer-quality-widget.careful {
-    background: #d4edda;
-    border-color: #28a745;
-  }
-  .quality-status-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .quality-status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .quality-status-indicator.status-warning {
-    background-color: #ffc107;
-    box-shadow: 0 0 4px rgba(255, 193, 7, 0.5);
-    animation: pulse-warning 2s infinite;
-  }
-  .quality-status-indicator.status-careful {
-    background-color: #28a745;
-    box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
-  }
-  @keyframes pulse-warning {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-  .quality-status-text {
+  .answer-quality-widget.warning { background: #fff3cd; border-color: #ffc107; }
+  .answer-quality-widget.careful { background: #d4edda; border-color: #28a745; }
+  .quality-status-badge { display: flex; align-items: center; gap: 6px; }
+  .quality-status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .quality-status-indicator.status-warning { background-color: #ffc107; box-shadow: 0 0 4px rgba(255, 193, 7, 0.5); animation: pulse-warning 2s infinite; }
+  .quality-status-indicator.status-careful { background-color: #28a745; box-shadow: 0 0 4px rgba(40, 167, 69, 0.5); }
+  @keyframes pulse-warning { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .quality-status-text { font-weight: 600; font-size: 11px; }
+  .quality-status-text.status-warning { color: #856404; }
+  .quality-status-text.status-careful { color: #155724; }
+  .quality-value { font-size: 11px; color: #666; font-weight: 600; }
+  .answer-quality-widget-desktop-container { display: none; }
+  @media (min-width: 992px) { .answer-quality-widget-desktop-container { display: block; } }
+  {% endif %}
+  {% endif %}
+
+  {% if page_type == 'test' %}
+  /* Question changed toast */
+  .test-answer-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #28a745;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
     font-weight: 600;
-    font-size: 11px;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 9999;
+    animation: test-toast-in 0.3s ease;
   }
-  .quality-status-text.status-warning {
-    color: #856404;
-  }
-  .quality-status-text.status-careful {
-    color: #155724;
-  }
-  .quality-value {
-    font-size: 11px;
-    color: #666;
-    font-weight: 600;
-  }
-  /* Desktop widget container - hidden on mobile, visible on desktop */
-  .answer-quality-widget-desktop-container {
-    display: none;
-  }
-  @media (min-width: 992px) {
-    .answer-quality-widget-desktop-container {
-      display: block;
-    }
-  }
+  .test-answer-toast.toast-out { animation: test-toast-out 0.3s ease forwards; }
+  @keyframes test-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+  @keyframes test-toast-out { from { opacity: 1; } to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
   {% endif %}
 </style>
 {% endif %}
 
-{# Internet Speed Meter HTML - Desktop (Sidebar) #}
+{# Desktop HTML - Sidebar #}
 {% if mode == 'desktop' %}
-<div class="mt-4">
-  <div class="internet-speed-meter d-none d-lg-flex mb-3">
+  {% if show_internet %}
+  <div class="mt-4">
+    <div class="internet-speed-meter d-none d-lg-flex mb-3">
+      <div class="speed-status-badge">
+        <span class="speed-status-indicator status-stable"></span>
+        <span class="speed-status-text status-stable">Internet Stable</span>
+      </div>
+      <div class="speed-values">
+        <div class="speed-download"><span>↓</span><span class="speed-download-value">0.0 Mbps</span></div>
+        <div class="speed-upload"><span>↑</span><span class="speed-upload-value">0.0 Mbps</span></div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  {% if show_answer_quality %}
+  <div class="mt-3 answer-quality-widget-desktop-container d-none d-lg-block">
+    <div class="answer-quality-widget careful mb-3" id="answerQualityWidgetDesktop" style="display: flex !important;">
+      <div class="quality-status-badge">
+        <span class="quality-status-indicator status-careful"></span>
+        <span class="quality-status-text status-careful">Answering Carefully</span>
+      </div>
+      <div class="quality-value"><span id="avgTimeDesktop">-- sec/q</span></div>
+    </div>
+  </div>
+  {% endif %}
+{% endif %}
+
+{# Mobile HTML - Header area (hidden on desktop) #}
+{% if mode == 'mobile' %}
+  {% if show_internet %}
+  <div class="internet-speed-meter d-lg-none mb-3">
     <div class="speed-status-badge">
       <span class="speed-status-indicator status-stable"></span>
       <span class="speed-status-text status-stable">Internet Stable</span>
     </div>
     <div class="speed-values">
-      <div class="speed-download">
-        <span>↓</span>
-        <span class="speed-download-value">0.0 Mbps</span>
-      </div>
-      <div class="speed-upload">
-        <span>↑</span>
-        <span class="speed-upload-value">0.0 Mbps</span>
-      </div>
+      <div class="speed-download"><span>↓</span><span class="speed-download-value">0.0 Mbps</span></div>
+      <div class="speed-upload"><span>↑</span><span class="speed-upload-value">0.0 Mbps</span></div>
     </div>
   </div>
-</div>
-{% endif %}
-
-{# Answer Quality Widget HTML - Desktop (Sidebar) #}
-{% if mode == 'desktop' %}
-<div class="mt-3 answer-quality-widget-desktop-container">
-  <div class="answer-quality-widget careful mb-3" id="answerQualityWidgetDesktop">
+  {% endif %}
+  {% if show_answer_quality %}
+  <div class="answer-quality-widget careful mb-3" id="answerQualityWidgetMobile" style="display: flex !important;">
     <div class="quality-status-badge">
       <span class="quality-status-indicator status-careful"></span>
       <span class="quality-status-text status-careful">Answering Carefully</span>
     </div>
-    <div class="quality-value">
-      <span id="avgTimeDesktop">-- sec/q</span>
-    </div>
+    <div class="quality-value"><span id="avgTimeMobile">-- sec/q</span></div>
   </div>
-</div>
+  {% endif %}
 {% endif %}
-
-{# Internet Speed Meter HTML - Mobile (Header) #}
-{% if mode == 'mobile' %}
-<div class="internet-speed-meter d-lg-none mb-3">
-  <div class="speed-status-badge">
-    <span class="speed-status-indicator status-stable"></span>
-    <span class="speed-status-text status-stable">Internet Stable</span>
-  </div>
-  <div class="speed-values">
-    <div class="speed-download">
-      <span>↓</span>
-      <span class="speed-download-value">0.0 Mbps</span>
-    </div>
-    <div class="speed-upload">
-      <span>↑</span>
-      <span class="speed-upload-value">0.0 Mbps</span>
-    </div>
-  </div>
-</div>
-{% endif %}
-
-{# Answer Quality Widget HTML - Mobile (Header) #}
-{% if mode == 'mobile' %}
-<div class="answer-quality-widget careful d-lg-none mb-3" id="answerQualityWidgetMobile">
-  <div class="quality-status-badge">
-    <span class="quality-status-indicator status-careful"></span>
-    <span class="quality-status-text status-careful">Answering Carefully</span>
-  </div>
-  <div class="quality-value">
-    <span id="avgTimeMobile">-- sec/q</span>
-  </div>
-</div>
-{% endif %}
-

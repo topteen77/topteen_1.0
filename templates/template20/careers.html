@@ -1524,71 +1524,82 @@ document.addEventListener('DOMContentLoaded', function() {
     lastQuery: null
   };
   
-  // Map mindmap node topic to career section (for node click -> show section + scroll)
+  // Careers page radial mindmap - isolated module for zoom and links
+  const CareersRadialMindmap = {
+    LOGICAL_SIZE: 800,
+    mapTopicToSection: function(topic) {
+      if (!topic) return null;
+      const t = (topic + '').toLowerCase().replace(/\s+/g, ' ');
+      if (/salary|expectation/i.test(t)) return { sectionId: 'salary_expectations', sectionLabel: 'Salary Expectations' };
+      if (/skill|trend|industry|key\s*soft|softwa/i.test(t)) return { sectionId: 'skills_trends', sectionLabel: 'Skills & Trends' };
+      if (/career\s*description|responsibili/i.test(t)) return { sectionId: 'career_description', sectionLabel: 'Career Description' };
+      if (/overview|leading|progressing|profession/i.test(t)) return { sectionId: 'overview', sectionLabel: 'Career Overview' };
+      if (/role/i.test(t)) return { sectionId: 'roles', sectionLabel: 'Roles & Responsibilities' };
+      if (/eligibility|entrance|study\s*route|institute|criteri/i.test(t)) return { sectionId: 'eligibility', sectionLabel: 'Study Route & Eligibility' };
+      if (/course|specialization/i.test(t)) return { sectionId: 'courses_spec', sectionLabel: 'Courses & Specializations' };
+      if (/internship|practical|observation|expe\s*[^c]/i.test(t)) return { sectionId: 'internships', sectionLabel: 'Internships & Practical Experience' };
+      if (/employer|industry\s*leader|professional|stable\s*industry/i.test(t)) return { sectionId: 'employers', sectionLabel: 'Prominent Employers' };
+      if (/advice|aspiring/i.test(t)) return { sectionId: 'advice', sectionLabel: 'Advice for Aspiring' };
+      if (/major\s*area|other\s*area/i.test(t)) return { sectionId: 'employment', sectionLabel: 'Employment Areas' };
+      return null;
+    },
+    applyZoom: function(careerId) {
+      const data = window.radialMindmapData && window.radialMindmapData[careerId];
+      if (!data || !data.svgId || !data.logicalSize) return;
+      const svg = document.getElementById(data.svgId);
+      if (!svg) return;
+      const zoom = data.zoom;
+      const L = data.logicalSize;
+      const cx = L / 2;
+      const cy = L / 2;
+      const viewedSize = L / zoom;
+      const vx = Math.max(0, cx - viewedSize / 2);
+      const vy = Math.max(0, cy - viewedSize / 2);
+      const vw = Math.min(L, viewedSize);
+      const vh = Math.min(L, viewedSize);
+      svg.setAttribute('viewBox', vx + ' ' + vy + ' ' + vw + ' ' + vh);
+      svg.style.transform = 'none';
+    },
+    zoomIn: function(careerId) {
+      const data = window.radialMindmapData && window.radialMindmapData[careerId];
+      if (!data) return;
+      const maxZoom = 2.5;
+      data.zoom = Math.min(data.zoom + 0.2, maxZoom);
+      this.applyZoom(careerId);
+    },
+    zoomOut: function(careerId) {
+      const data = window.radialMindmapData && window.radialMindmapData[careerId];
+      if (!data) return;
+      const minZoom = 0.5;
+      data.zoom = Math.max(data.zoom - 0.2, minZoom);
+      this.applyZoom(careerId);
+    },
+    handleNodeClick: function(careerId, child, mindmapData) {
+      const topic = (child.topic || child.title || '').toString();
+      const mapped = this.mapTopicToSection(topic);
+      if (mapped && mindmapData && mindmapData.career) {
+        showCareerSectionInChat(careerId, mapped.sectionId, mapped.sectionLabel, mindmapData.career);
+      } else if (child.children && child.children.length > 0) {
+        mindmapData.currentCenter = child;
+        renderRadialMindmapForCareer(careerId, child, mindmapData.containerId, mindmapData.svgId, mindmapData.loadingId, mindmapData.controlsId);
+      }
+    }
+  };
+  
   function mapMindmapTopicToSection(topic) {
-    if (!topic) return null;
-    const t = topic.replace(/\s+/g, ' ');
-    if (/skill|trend|industry/i.test(t)) return { sectionId: 'skills_trends', sectionLabel: 'Skills & Trends' };
-    if (/salary|expectation/i.test(t)) return { sectionId: 'salary_expectations', sectionLabel: 'Salary Expectations' };
-    if (/career\s*description|overview/i.test(t)) return { sectionId: 'career_description', sectionLabel: 'Career Description' };
-    if (/role|responsibili/i.test(t)) return { sectionId: 'roles', sectionLabel: 'Roles & Responsibilities' };
-    if (/eligibility|entrance|study\s*route/i.test(t)) return { sectionId: 'eligibility', sectionLabel: 'Study Route & Eligibility' };
-    if (/course|institute|specialization/i.test(t)) return { sectionId: 'courses_spec', sectionLabel: 'Courses & Specializations' };
-    if (/internship|practical|observation/i.test(t)) return { sectionId: 'internships', sectionLabel: 'Internships & Practical Experience' };
-    if (/employer|industry\s*leader|professional\s*org/i.test(t)) return { sectionId: 'employers', sectionLabel: 'Prominent Employers' };
-    if (/advice|aspiring/i.test(t)) return { sectionId: 'advice', sectionLabel: 'Advice for Aspiring' };
-    if (/software|key\s*soft/i.test(t)) return { sectionId: 'skills_trends', sectionLabel: 'Skills & Trends' };
-    if (/major\s*area|other\s*area/i.test(t)) return { sectionId: 'employment', sectionLabel: 'Employment Areas' };
-    if (/leading|progressing/i.test(t)) return { sectionId: 'overview', sectionLabel: 'Career Overview' };
-    return null;
+    return CareersRadialMindmap.mapTopicToSection(topic);
   }
   
-  // Radial mindmap zoom functions - defined early so they work for chat mindmaps
-  window.radialMindmapZoomIn = function(careerId) {
-    const data = window.radialMindmapData && window.radialMindmapData[careerId];
-    if (!data) return;
-    const isMobile = window.innerWidth <= 768;
-    const maxZoom = isMobile ? 1.5 : 2;
-    data.zoom = Math.min(data.zoom + 0.1, maxZoom);
-    applyRadialMindmapZoom(careerId);
-  };
-  window.radialMindmapZoomOut = function(careerId) {
-    const data = window.radialMindmapData && window.radialMindmapData[careerId];
-    if (!data) return;
-    const isMobile = window.innerWidth <= 768;
-    const minZoom = isMobile ? 0.6 : 0.5;
-    data.zoom = Math.max(data.zoom - 0.1, minZoom);
-    applyRadialMindmapZoom(careerId);
-  };
+  window.radialMindmapZoomIn = function(careerId) { CareersRadialMindmap.zoomIn(careerId); };
+  window.radialMindmapZoomOut = function(careerId) { CareersRadialMindmap.zoomOut(careerId); };
   window.radialMindmapReset = function(careerId) {
     const data = window.radialMindmapData && window.radialMindmapData[careerId];
     if (!data || !data.svgId || !data.containerId) return;
-    const container = document.getElementById(data.containerId);
-    if (!container) return;
-    const isMobile = window.innerWidth <= 768;
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-    // Fit to width: calculate zoom so content fits (approximate for radial layout)
-    const childDistance = isMobile ? 160 : 220;
-    const centerRadius = isMobile ? 70 : 100;
-    const contentWidth = 2 * (centerRadius + 2 * childDistance);
-    const fitZoom = Math.min(containerWidth / contentWidth, containerHeight / contentWidth);
-    data.zoom = Math.max(isMobile ? 0.6 : 0.5, Math.min(fitZoom, 1));
-    data.transform = { x: 0, y: 0 };
+    data.zoom = 1;
     data.currentCenter = data.rootNode;
     renderRadialMindmapForCareer(careerId, data.rootNode, data.containerId, data.svgId, data.loadingId, data.controlsId);
-    setTimeout(function() { applyRadialMindmapZoom(careerId); }, 100);
+    setTimeout(function() { CareersRadialMindmap.applyZoom(careerId); }, 50);
   };
-  function applyRadialMindmapZoom(careerId) {
-    const data = window.radialMindmapData && window.radialMindmapData[careerId];
-    if (!data || !data.svgId) return;
-    const svg = document.getElementById(data.svgId);
-    if (!svg) return;
-    const zoom = data.zoom;
-    const transform = data.transform;
-    svg.style.transformOrigin = 'center center';
-    svg.style.transform = 'scale(' + zoom + ') translate(' + transform.x + 'px, ' + transform.y + 'px)';
-  }
   
   // Load sample career questions on initial load
   function loadSampleCareerQuestions() {
@@ -3052,7 +3063,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <small style="opacity: 0.9;">Nodes arranged in concentric circles</small>
                   </div>
                   <div class="card-body p-3" style="display: flex; justify-content: center; align-items: center;">
-                    <div class="radial-mindmap-container" id="${mindmapContainerId}" style="height: 500px; max-height: 70vh; width: 100%; overflow: hidden; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 12px; position: relative; touch-action: pan-x pan-y; display: flex; justify-content: center; align-items: center;">
+                    <div class="radial-mindmap-container" id="${mindmapContainerId}" style="height: 500px; max-height: 70vh; width: 100%; overflow: auto; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 12px; position: relative; touch-action: pan-x pan-y; display: flex; justify-content: center; align-items: center;">
                       <div id="${loadingId}" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; position: absolute; top: 0; left: 0;">
                         <div style="text-align: center;">
                           <div class="spinner-border text-primary" role="status"></div>
@@ -3622,7 +3633,7 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
         
-        // Store data in window for zoom functions (include IDs and career for node clicks)
+        // Store data for careers page radial (viewBox zoom, no clipping)
         if (!window.radialMindmapData) window.radialMindmapData = {};
         window.radialMindmapData[career.id] = {
           data: data,
@@ -3630,12 +3641,12 @@ document.addEventListener('DOMContentLoaded', function() {
           currentCenter: data.data,
           nodeMap: {},
           zoom: 1,
-          transform: { x: 0, y: 0 },
           containerId: containerId,
           svgId: svgId,
           loadingId: loadingId,
           controlsId: controlsId,
-          career: career
+          career: career,
+          logicalSize: CareersRadialMindmap.LOGICAL_SIZE
         };
         
         // Build node map
@@ -3654,6 +3665,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Render the mindmap
         renderRadialMindmapForCareer(career.id, data.data, containerId, svgId, loadingId, controlsId);
+        CareersRadialMindmap.applyZoom(career.id);
         
         // Call onComplete callback if provided
         if (onComplete && typeof onComplete === 'function') {
@@ -3668,7 +3680,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
   
-  // Render radial mindmap for career in chat (reuse existing function with different IDs)
+  // Render radial mindmap for career - uses fixed logical coords for viewBox zoom (no clipping)
   function renderRadialMindmapForCareer(careerId, centerNode, containerId, svgId, loadingId, controlsId) {
     const container = document.getElementById(containerId);
     const svg = document.getElementById(svgId);
@@ -3682,23 +3694,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (loadingEl) loadingEl.style.display = 'none';
     if (controlsEl) controlsEl.style.display = 'block';
     
+    const L = CareersRadialMindmap.LOGICAL_SIZE;
     const isMobile = window.innerWidth <= 768;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    const centerRadius = isMobile ? 70 : 100;
+    const childDistance = isMobile ? 160 : 220;
     
-    svg.setAttribute('width', width);
-    svg.setAttribute('height', height);
-    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    svg.setAttribute('viewBox', '0 0 ' + L + ' ' + L);
     svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     svg.style.width = '100%';
     svg.style.height = '100%';
     svg.style.display = 'block';
+    svg.style.pointerEvents = 'auto';
     svg.innerHTML = '';
     
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const centerRadius = isMobile ? 70 : 100;
-    const childDistance = isMobile ? 160 : 220;
+    const centerX = L / 2;
+    const centerY = L / 2;
     
     // Add gradients
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -3760,7 +3772,7 @@ document.addEventListener('DOMContentLoaded', function() {
         line.setAttribute('opacity', '0.6');
         svg.insertBefore(line, centerCircle);
         
-        // Draw child circle - make all nodes clickable to show section content
+        // Draw child circle - all nodes clickable, pointer-events for reliable clicks
         const childCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         childCircle.setAttribute('cx', x);
         childCircle.setAttribute('cy', y);
@@ -3768,16 +3780,13 @@ document.addEventListener('DOMContentLoaded', function() {
         childCircle.setAttribute('fill', 'hsl(' + (index * 360 / centerNode.children.length) + ', 70%, 60%)');
         childCircle.setAttribute('stroke', 'white');
         childCircle.setAttribute('stroke-width', '3');
+        childCircle.setAttribute('data-topic', (child.topic || '').toString());
         childCircle.style.cursor = 'pointer';
-        childCircle.onclick = function() {
-          const topic = (child.topic || '').toLowerCase();
-          const mapped = mapMindmapTopicToSection(topic);
-          if (mapped && mindmapData.career) {
-            showCareerSectionInChat(careerId, mapped.sectionId, mapped.sectionLabel, mindmapData.career);
-          } else if (child.children && child.children.length > 0) {
-            mindmapData.currentCenter = child;
-            renderRadialMindmapForCareer(careerId, child, containerId, svgId, loadingId, controlsId);
-          }
+        childCircle.style.pointerEvents = 'all';
+        childCircle.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          CareersRadialMindmap.handleNodeClick(careerId, child, mindmapData);
         };
         svg.appendChild(childCircle);
         
@@ -4247,7 +4256,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 '<small style="opacity: 0.9;">Nodes arranged in concentric circles</small>' +
               '</div>' +
               '<div class="card-body p-3" style="display: flex; justify-content: center; align-items: center;">' +
-                '<div class="radial-mindmap-container" id="' + mindmapContainerId + '" style="height: 500px; max-height: 70vh; width: 100%; overflow: hidden; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 12px; position: relative; touch-action: pan-x pan-y; display: flex; justify-content: center; align-items: center;">' +
+                '<div class="radial-mindmap-container" id="' + mindmapContainerId + '" style="height: 500px; max-height: 70vh; width: 100%; overflow: auto; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 12px; position: relative; touch-action: pan-x pan-y; display: flex; justify-content: center; align-items: center;">' +
                   '<div id="' + loadingId + '" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; position: absolute; top: 0; left: 0;">' +
                     '<div style="text-align: center;">' +
                       '<div class="spinner-border text-primary" role="status"></div>' +
@@ -4293,7 +4302,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
               }
               
-              // Store data in window for zoom functions (include IDs and career for node clicks)
+              // Store data for careers page radial (viewBox zoom)
               if (!window.radialMindmapData) window.radialMindmapData = {};
               window.radialMindmapData[career.id] = {
                 data: data,
@@ -4301,12 +4310,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentCenter: data.data,
                 nodeMap: {},
                 zoom: 1,
-                transform: { x: 0, y: 0 },
                 containerId: mindmapContainerId,
                 svgId: svgId,
                 loadingId: loadingId,
                 controlsId: controlsId,
-                career: career
+                career: career,
+                logicalSize: CareersRadialMindmap.LOGICAL_SIZE
               };
               
               // Build node map
@@ -4323,8 +4332,9 @@ document.addEventListener('DOMContentLoaded', function() {
               }
               buildNodeMap(data.data, null);
               
-              // Render the mindmap
+              // Render the mindmap (global - viewBox zoom, no clipping)
               renderRadialMindmapForCareer(career.id, data.data, mindmapContainerId, svgId, loadingId, controlsId);
+              CareersRadialMindmap.applyZoom(career.id);
             })
             .catch(error => {
               console.error('Error loading mindmap:', error);
@@ -4334,135 +4344,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        function renderRadialMindmapForCareer(careerId, centerNode) {
-          const container = document.getElementById(mindmapContainerId);
-          const svg = document.getElementById(svgId);
-          const loadingEl = document.getElementById(loadingId);
-          const controlsEl = document.getElementById(controlsId);
-          const mindmapData = window.radialMindmapData[careerId];
-          
-          if (!container || !svg || !mindmapData) return;
-          
-          svg.style.display = 'block';
-          if (loadingEl) loadingEl.style.display = 'none';
-          if (controlsEl) controlsEl.style.display = 'block';
-          
-          const isMobile = window.innerWidth <= 768;
-          const width = container.clientWidth;
-          const height = container.clientHeight;
-          
-          svg.setAttribute('width', width);
-          svg.setAttribute('height', height);
-          svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
-          svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-          svg.style.width = '100%';
-          svg.style.height = '100%';
-          svg.style.display = 'block';
-          svg.innerHTML = '';
-          
-          const centerX = width / 2;
-          const centerY = height / 2;
-          const centerRadius = isMobile ? 70 : 100;
-          const childDistance = isMobile ? 160 : 220;
-          
-          // Add gradients
-          const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-          const centerGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-          centerGradient.setAttribute('id', 'centerGradient' + careerId);
-          centerGradient.setAttribute('x1', '0%');
-          centerGradient.setAttribute('y1', '0%');
-          centerGradient.setAttribute('x2', '100%');
-          centerGradient.setAttribute('y2', '100%');
-          const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-          stop1.setAttribute('offset', '0%');
-          stop1.setAttribute('stop-color', '#667eea');
-          const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-          stop2.setAttribute('offset', '100%');
-          stop2.setAttribute('stop-color', '#764ba2');
-          centerGradient.appendChild(stop1);
-          centerGradient.appendChild(stop2);
-          defs.appendChild(centerGradient);
-          svg.appendChild(defs);
-          
-          // Draw center circle
-          const centerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-          centerCircle.setAttribute('cx', centerX);
-          centerCircle.setAttribute('cy', centerY);
-          centerCircle.setAttribute('r', centerRadius);
-          centerCircle.setAttribute('fill', 'url(#centerGradient' + careerId + ')');
-          centerCircle.setAttribute('stroke', '#ffffff');
-          centerCircle.setAttribute('stroke-width', '5');
-          svg.appendChild(centerCircle);
-          
-          // Draw center text
-          const centerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          centerText.setAttribute('x', centerX);
-          centerText.setAttribute('y', centerY);
-          centerText.setAttribute('text-anchor', 'middle');
-          centerText.setAttribute('dominant-baseline', 'middle');
-          centerText.setAttribute('fill', 'white');
-          centerText.setAttribute('font-size', '18');
-          centerText.setAttribute('font-weight', 'bold');
-          centerText.textContent = centerNode.topic || 'Root';
-          svg.appendChild(centerText);
-          
-          // Draw children if available
-          if (centerNode.children && centerNode.children.length > 0) {
-            const angleStep = (2 * Math.PI) / centerNode.children.length;
-            centerNode.children.forEach((child, index) => {
-              const angle = index * angleStep;
-              const x = centerX + childDistance * Math.cos(angle);
-              const y = centerY + childDistance * Math.sin(angle);
-              
-              // Draw line
-              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-              line.setAttribute('x1', centerX);
-              line.setAttribute('y1', centerY);
-              line.setAttribute('x2', x);
-              line.setAttribute('y2', y);
-              line.setAttribute('stroke', '#667eea');
-              line.setAttribute('stroke-width', '3');
-              line.setAttribute('opacity', '0.6');
-              svg.insertBefore(line, centerCircle);
-              
-              // Draw child circle - make all nodes clickable to show section content
-              const childCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-              childCircle.setAttribute('cx', x);
-              childCircle.setAttribute('cy', y);
-              childCircle.setAttribute('r', 65);
-              childCircle.setAttribute('fill', 'hsl(' + (index * 360 / centerNode.children.length) + ', 70%, 60%)');
-              childCircle.setAttribute('stroke', 'white');
-              childCircle.setAttribute('stroke-width', '3');
-              childCircle.style.cursor = 'pointer';
-              childCircle.onclick = function() {
-                const topic = (child.topic || '').toLowerCase();
-                const mapped = mapMindmapTopicToSection(topic);
-                if (mapped && mindmapData.career) {
-                  showCareerSectionInChat(careerId, mapped.sectionId, mapped.sectionLabel, mindmapData.career);
-                } else if (child.children && child.children.length > 0) {
-                  mindmapData.currentCenter = child;
-                  renderRadialMindmapForCareer(careerId, child);
-                }
-              };
-              svg.appendChild(childCircle);
-              
-              // Draw child text
-              const childText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-              childText.setAttribute('x', x);
-              childText.setAttribute('y', y);
-              childText.setAttribute('text-anchor', 'middle');
-              childText.setAttribute('dominant-baseline', 'middle');
-              childText.setAttribute('fill', 'white');
-              childText.setAttribute('font-size', '13');
-              childText.setAttribute('font-weight', '700');
-              childText.textContent = child.topic || 'Node';
-              childText.style.pointerEvents = 'none';
-              svg.appendChild(childText);
-            });
-          }
-        }
-        
-        // Zoom functions are defined globally at page load - use stored IDs in radialMindmapData
+        // Uses global renderRadialMindmapForCareer - viewBox zoom, CareersRadialMindmap.handleNodeClick for links
         
         if (accordionButton) {
           accordionButton.addEventListener('shown.bs.collapse', function() {
@@ -4555,7 +4437,7 @@ document.addEventListener('DOMContentLoaded', function() {
               </h6>
             </div>
             <div class="card-body p-2" style="display: flex; justify-content: center; align-items: center;">
-              <div class="radial-mindmap-container" id="${mindmapContainerId}" style="height: 300px; max-height: 50vh; width: 100%; overflow: hidden; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 8px; position: relative; touch-action: pan-x pan-y;">
+              <div class="radial-mindmap-container" id="${mindmapContainerId}" style="height: 300px; max-height: 50vh; width: 100%; overflow: auto; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 8px; position: relative; touch-action: pan-x pan-y;">
                 <div id="${loadingId}" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; position: absolute; top: 0; left: 0;">
                   <div style="text-align: center;">
                     <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
@@ -4597,7 +4479,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
           }
           
-          // Store data in window for zoom functions (include IDs and career for node clicks)
+          // Store data for careers page radial (viewBox zoom)
           if (!window.radialMindmapData) window.radialMindmapData = {};
           window.radialMindmapData[career.id] = {
             data: data,
@@ -4605,12 +4487,12 @@ document.addEventListener('DOMContentLoaded', function() {
             currentCenter: data.data,
             nodeMap: {},
             zoom: 1,
-            transform: { x: 0, y: 0 },
             containerId: mindmapContainerId,
             svgId: svgId,
             loadingId: loadingId,
             controlsId: controlsId,
-            career: career
+            career: career,
+            logicalSize: CareersRadialMindmap.LOGICAL_SIZE
           };
           
           // Build node map
@@ -4627,8 +4509,9 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           buildNodeMap(data.data, null);
           
-          // Render the mindmap
+          // Render the mindmap (viewBox zoom, no clipping)
           renderRadialMindmapForCareer(career.id, data.data, mindmapContainerId, svgId, loadingId, controlsId);
+          CareersRadialMindmap.applyZoom(career.id);
         })
         .catch(error => {
           console.error('Error loading mindmap:', error);

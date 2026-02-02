@@ -15,6 +15,15 @@ from operator import or_
 from django.conf import settings
 
 
+def _config_bool(key, settings_default=True):
+    """Get boolean from Configuration (Admin-managed), fallback to settings."""
+    try:
+        val = Configuration.get(key, default=str(settings_default).lower(), editable=True)
+        return str(val).lower() in ('true', '1', 'yes', 'on')
+    except Exception:
+        return getattr(settings, key, settings_default)
+
+
 def _should_show_chatbot(request):
     """
     Determine if chatbot should be shown based on CHATBOT_VISIBILITY and request path.
@@ -87,6 +96,8 @@ def globals(request):
         # popular_tag_count=Career.objects.filter(career_tags=p).count()
     kwargs = {
         "show_chatbot": _should_show_chatbot(request),
+        "enable_answering_carefully_widget": _config_bool('ENABLE_ANSWERING_CAREFULLY_WIDGET', getattr(settings, 'ENABLE_ANSWERING_CAREFULLY_WIDGET', True)),
+        "enable_auto_forward": _config_bool('ENABLE_AUTO_FORWARD', getattr(settings, 'ENABLE_AUTO_FORWARD', True)),
         "popular_categories":BlogCategory.objects.filter(id__in=popular_categories),
         "popular_tags":CareerTags.objects.filter(id__in=popular_tags),
         "blogs":Blog.get_published_objects().all(),

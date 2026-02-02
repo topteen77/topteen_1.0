@@ -230,6 +230,21 @@
     opacity: 0.6;
     cursor: not-allowed;
   }
+  /* SweetAlert2 submit confirmation - beautiful styling */
+  .submit-confirm-popup {
+    border-radius: 16px !important;
+    padding: 28px !important;
+    box-shadow: 0 10px 40px rgba(63, 55, 201, 0.15) !important;
+  }
+  .submit-confirm-popup .swal2-title {
+    font-size: 1.35rem !important;
+    color: #333 !important;
+  }
+  .submit-confirm-popup .swal2-html-container {
+    font-size: 15px !important;
+    color: #666 !important;
+    line-height: 1.6 !important;
+  }
   .instruction-content {
     overflow-y: scroll;
     height: 450px;
@@ -417,121 +432,21 @@
     height: 3rem;
     border-width: 0.3em;
   }
-  /* Internet Speed Meter */
-  .speed-meter {
-    background: white;
-    border-radius: 8px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 14px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  .speed-meter.mobile {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    border-radius: 0;
-    padding: 8px 16px;
-  }
-  .speed-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .speed-status.stable {
-    color: #28a745;
-  }
-  .speed-status.unstable {
-    color: #dc3545;
-  }
-  .speed-status i {
-    font-size: 12px;
-  }
-  .speed-values {
-    display: flex;
-    gap: 16px;
-    font-size: 12px;
-    color: #666;
-  }
-  /* Answer Quality Widget */
-  .answer-quality-widget {
-    background: white;
-    border-radius: 8px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 14px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  .answer-quality-widget.mobile {
-    position: fixed;
-    top: 50px;
-    left: 0;
-    right: 0;
-    z-index: 999;
-    border-radius: 0;
-    padding: 8px 16px;
-  }
-  .quality-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .quality-status.careful {
-    color: #28a745;
-  }
-  .quality-status.rushing {
-    color: #ffc107;
-  }
-  .quality-status i {
-    font-size: 12px;
-  }
-  @media (min-width: 992px) {
-    .speed-meter.mobile,
-    .answer-quality-widget.mobile {
-      display: none !important;
-    }
-  }
-  @media (max-width: 991px) {
-    .speed-meter.desktop,
-    .answer-quality-widget.desktop {
-      display: none !important;
-    }
-  }
 </style>
+{# Test Features CSS - instruction (internet) + test (answer quality) #}
+{% with mode='css', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
+{% with mode='css', page_type='test' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
 {% endblock %}
 
 {% block content %}
 <section class="take-test-page">
   <div class="test-container">
-    <!-- Mobile Speed Meter (Top Bar) -->
-    <div class="speed-meter mobile" id="speedMeterMobile">
-      <div class="speed-status stable" id="speedStatusMobile">
-        <i class="fas fa-circle"></i>
-        <span>Internet Stable</span>
-      </div>
-      <div class="speed-values">
-        <span>↓ <span id="downloadSpeedMobile">0.0</span> Mbps</span>
-        <span>↑ <span id="uploadSpeedMobile">0.0</span> Mbps</span>
-      </div>
-    </div>
-
-    <!-- Mobile Answer Quality Widget (Top Bar) -->
-    <div class="answer-quality-widget mobile" id="answerQualityMobile" style="display: none;">
-      <div class="quality-status careful" id="qualityStatusMobile">
-        <i class="fas fa-check-circle"></i>
-        <span>Answering Carefully</span>
-      </div>
-    </div>
-
     <!-- Test-Specific Introduction Sections -->
     {% if test_id == 1 %}
     <section id="instructionsSection" class="introduction" style="display: none;">
+      {# Internet stable check - instruction page only #}
+      <div class="d-none d-lg-block mb-3">{% with mode='desktop', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}</div>
+      <div class="d-lg-none mb-3">{% with mode='mobile', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}</div>
       <div class="intro-row">
         <div class="intro-image-col d-none d-md-flex">
           <img src="{{ static('images/giant-checklist.png') }}" alt="Giant Checklist" class="w-full h-auto">
@@ -573,6 +488,9 @@
     </section>
     {% elif test_id == 2 %}
     <section id="instructionsSection" class="introduction" style="display: none;">
+      {# Internet stable check - instruction page only #}
+      <div class="d-none d-lg-block mb-3">{% with mode='desktop', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}</div>
+      <div class="d-lg-none mb-3">{% with mode='mobile', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}</div>
       <div class="intro-row">
         <div class="intro-image-col d-none d-md-flex">
           <img src="{{ static('images/giant-checklist.png') }}" alt="Giant Checklist" class="w-full h-auto">
@@ -607,6 +525,9 @@
     </section>
     {% elif test_id == 3 %}
     <section id="instructionsSection" class="introduction" style="display: none;">
+      {# Internet stable check - instruction page only #}
+      <div class="d-none d-lg-block mb-3">{% with mode='desktop', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}</div>
+      <div class="d-lg-none mb-3">{% with mode='mobile', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}</div>
       <div class="intro-row">
         <div class="intro-image-col d-none d-md-flex">
           <img src="{{ static('images/giant-checklist.png') }}" alt="Giant Checklist" class="w-full h-auto">
@@ -655,6 +576,9 @@
     {% else %}
     <!-- Default Instructions Section -->
     <div id="instructionsSection" class="instructions-section">
+      {# Internet stable check - instruction page only #}
+      <div class="d-none d-lg-block mb-3">{% with mode='desktop', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}</div>
+      <div class="d-lg-none mb-3">{% with mode='mobile', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}</div>
       <h3>Test Instructions</h3>
       <ul class="instructions-list">
         <li>Read each question carefully before answering</li>
@@ -692,25 +616,8 @@
         </div>
       </div>
 
-      <!-- Desktop Sidebar (for speed meter and answer quality) -->
-      <div class="d-none d-lg-block mb-3">
-        <div class="speed-meter desktop" id="speedMeterDesktop">
-          <div class="speed-status stable" id="speedStatusDesktop">
-            <i class="fas fa-circle"></i>
-            <span>Internet Stable</span>
-          </div>
-          <div class="speed-values">
-            <span>↓ <span id="downloadSpeedDesktop">0.0</span> Mbps</span>
-            <span>↑ <span id="uploadSpeedDesktop">0.0</span> Mbps</span>
-          </div>
-        </div>
-        <div class="answer-quality-widget desktop mt-3" id="answerQualityDesktop" style="display: none;">
-          <div class="quality-status careful" id="qualityStatusDesktop">
-            <i class="fas fa-check-circle"></i>
-            <span>Answering Carefully</span>
-          </div>
-        </div>
-      </div>
+      <!-- Answer quality widget - single instance, works on mobile and desktop -->
+      <div class="mb-3">{% with mode='mobile', page_type='test' %}{% include 'template20/includes/test_features.html' %}{% endwith %}</div>
 
       <!-- Progress Bar -->
       <div class="progress-bar-container">
@@ -728,7 +635,13 @@
 
       <!-- Test Actions -->
       <div class="test-actions">
-        <div></div>
+        <div>
+          {% if not enable_auto_forward %}
+          <button id="nextQuestionBtn" class="btn-submit" style="display: none; margin-right: 8px;">
+            <i class="fas fa-arrow-right me-2"></i>Next
+          </button>
+          {% endif %}
+        </div>
         <button id="submitTestBtn" class="btn-submit" disabled>
           <i class="fas fa-check me-2"></i>
           Submit Test
@@ -749,9 +662,14 @@
 
 {% block additionaljs %}
 {{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{# Test Features JavaScript - instruction (internet) + test (answer quality) #}
+{% with page_type='instruction' %}{% include 'template20/includes/test_features_js.html' %}{% endwith %}
+{% with page_type='test' %}{% include 'template20/includes/test_features_js.html' %}{% endwith %}
 <script>
 $(document).ready(function() {
   const testId = {{ test_id }};
+  const ENABLE_AUTO_FORWARD = {{ 'true' if enable_auto_forward else 'false' }};
   let currentSession = null;
   let questions = [];
   let currentQuestionIndex = 0;
@@ -759,15 +677,11 @@ $(document).ready(function() {
   let timerInterval = null;
   let timeRemaining = 0;
   
-  // Internet Speed Meter
-  let downloadSpeed = 0;
-  let uploadSpeed = 0;
-  let isStable = true;
-  
-  // Answer Quality Tracking
+  // Answer Quality Tracking (used by test_features component)
   let answerTimes = [];
   let questionStartTime = null;
-  const RUSHING_THRESHOLD = 3000; // 3 seconds per question
+  window.answerTimes = answerTimes;
+  window.MIN_TIME_PER_QUESTION = 3;
   
   // Initialize
   init();
@@ -778,21 +692,32 @@ $(document).ready(function() {
     $('#testContent').hide();
     $('#loadingState').hide();
     
-    // Start internet speed monitoring
-    startSpeedMonitoring();
-    
-    // Start answer quality widget
-    updateAnswerQualityWidget();
-    
     // Handle start test button
     $('#startTestBtn').on('click', function() {
       startTest();
     });
     
-    // Handle submit button
+    // Handle submit button - beautiful SweetAlert2 confirmation
     $('#submitTestBtn').on('click', function() {
-      if (confirm('Are you sure you want to submit your test? You cannot change your answers after submission.')) {
-submitTest();
+      Swal.fire({
+        title: 'Submit Test?',
+        html: 'Are you sure you want to submit your test? You cannot change your answers after submission.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Submit',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#3f37c9',
+        cancelButtonColor: '#6c757d',
+        customClass: { popup: 'submit-confirm-popup' }
+      }).then((result) => {
+        if (result.isConfirmed) submitTest();
+      });
+    });
+    
+    // Next button (when ENABLE_AUTO_FORWARD is false)
+    $('#nextQuestionBtn').on('click', function() {
+      if (currentQuestionIndex < questions.length - 1) {
+        renderQuestion(currentQuestionIndex + 1);
       }
     });
   }
@@ -924,11 +849,12 @@ submitTest();
         const answerId = $(this).val();
         const questionId = question.id;
         
-        // Track answer time
+        // Track answer time (seconds for test_features component)
         if (questionStartTime) {
-          const timeSpent = Date.now() - questionStartTime;
-          answerTimes.push(timeSpent);
-          updateAnswerQualityWidget();
+          const timeSpentSec = (Date.now() - questionStartTime) / 1000;
+          answerTimes.push(timeSpentSec);
+          window.answerTimes = answerTimes;
+          if (typeof window.updateAnswerQualityWidget === 'function') window.updateAnswerQualityWidget();
         }
         
         // Save answer
@@ -947,20 +873,33 @@ submitTest();
         
         // UI update is handled by CSS :checked selector
         
-        // Auto-advance after 300ms
-        setTimeout(() => {
-          if (currentQuestionIndex < questions.length - 1) {
-            renderQuestion(currentQuestionIndex + 1);
-          } else {
-            // Last question - enable submit button
-            $('#submitTestBtn').prop('disabled', false);
-          }
-        }, 300);
+        // Auto-advance after 300ms (controlled by ENABLE_AUTO_FORWARD in .env)
+        if (ENABLE_AUTO_FORWARD) {
+          setTimeout(() => {
+            if (currentQuestionIndex < questions.length - 1) {
+              if (typeof window.showQuestionChangedToast === 'function') window.showQuestionChangedToast();
+              renderQuestion(currentQuestionIndex + 1);
+            } else {
+              // Last question - enable submit button
+              $('#submitTestBtn').prop('disabled', false);
+            }
+          }, 300);
+        } else if (currentQuestionIndex === questions.length - 1) {
+          $('#submitTestBtn').prop('disabled', false);
+        }
       });
       
       // Enable submit if all questions answered
       if (Object.keys(answers).length === questions.length) {
         $('#submitTestBtn').prop('disabled', false);
+      }
+      
+      // Show/hide Next button when auto-forward is disabled
+      if (!ENABLE_AUTO_FORWARD) {
+        const $nextBtn = $('#nextQuestionBtn');
+        if ($nextBtn.length) {
+          $nextBtn.toggle(currentQuestionIndex < questions.length - 1);
+        }
       }
     });
   }
@@ -989,8 +928,15 @@ submitTest();
       
       if (timeRemaining <= 0) {
         clearInterval(timerInterval);
-        alert('Time is up! Submitting your test...');
-        submitTest();
+        Swal.fire({
+          title: "Time's Up!",
+          html: 'Submitting your test...',
+          icon: 'info',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          allowOutsideClick: false
+        }).then(() => submitTest());
       } else if (timeRemaining <= 60) {
         $('#timerDisplay').addClass('danger');
       } else if (timeRemaining <= 300) {
@@ -1011,10 +957,22 @@ submitTest();
       return;
     }
     
-    // Validate all questions answered
+    // Validate all questions answered - beautiful SweetAlert2 confirmation
     const unanswered = questions.filter(q => !answers[q.id] || (Array.isArray(answers[q.id]) && answers[q.id].length === 0));
     if (unanswered.length > 0) {
-      if (!confirm(`You have ${unanswered.length} unanswered question(s). Are you sure you want to submit?`)) {
+      const result = await Swal.fire({
+        title: 'Unanswered Questions',
+        html: `You have <strong>${unanswered.length}</strong> unanswered question(s). Are you sure you want to submit?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Submit Anyway',
+        cancelButtonText: 'Review Answers',
+        confirmButtonColor: '#3f37c9',
+        cancelButtonColor: '#6c757d',
+        customClass: { popup: 'submit-confirm-popup' }
+      });
+      if (!result.isConfirmed) {
+        $('#submitTestBtn').prop('disabled', false).html('<i class="fas fa-check me-2"></i>Submit Test');
         return;
       }
     }
@@ -1079,69 +1037,6 @@ submitTest();
       });
       $('#submitTestBtn').prop('disabled', false).html('<i class="fas fa-check me-2"></i>Submit Test');
     }
-  }
-  
-  // Internet Speed Monitoring
-  async function startSpeedMonitoring() {
-    setInterval(async () => {
-      await measureInternetSpeed();
-      updateSpeedMeter();
-    }, 5000);
-    measureInternetSpeed();
-  }
-  
-  async function measureInternetSpeed() {
-    try {
-      const startTime = performance.now();
-      const response = await fetch('/static/css_new/bootstrap.min.css?' + Date.now(), {
-        cache: 'no-cache'
-      });
-      const endTime = performance.now();
-      const duration = (endTime - startTime) / 1000; // seconds
-      const fileSize = 200000; // Approximate file size in bytes
-      downloadSpeed = ((fileSize * 8) / duration / 1000000).toFixed(1); // Mbps
-      
-      isStable = downloadSpeed >= 1.0;
-    } catch (error) {
-      downloadSpeed = 0;
-      isStable = false;
-    }
-    uploadSpeed = downloadSpeed * 0.1; // Approximate upload speed
-  }
-  
-  function updateSpeedMeter() {
-    $('#downloadSpeedDesktop, #downloadSpeedMobile').text(downloadSpeed);
-    $('#uploadSpeedDesktop, #uploadSpeedMobile').text(uploadSpeed);
-    
-    const statusClass = isStable ? 'stable' : 'unstable';
-    const statusText = isStable ? 'Internet Stable' : 'Internet Unstable';
-    
-    $('#speedStatusDesktop, #speedStatusMobile')
-      .removeClass('stable unstable')
-      .addClass(statusClass)
-      .find('span').last().text(statusText);
-  }
-  
-  // Answer Quality Widget
-  function updateAnswerQualityWidget() {
-    if (answerTimes.length === 0) {
-      $('#answerQualityDesktop, #answerQualityMobile').show();
-      return;
-    }
-    
-    const avgTime = answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length;
-    const isRushing = avgTime < RUSHING_THRESHOLD;
-    
-    const statusClass = isRushing ? 'rushing' : 'careful';
-    const statusText = isRushing ? 'Rushing Through' : 'Answering Carefully';
-    const icon = isRushing ? 'fa-exclamation-triangle' : 'fa-check-circle';
-    
-    $('#qualityStatusDesktop, #qualityStatusMobile')
-      .removeClass('rushing careful')
-      .addClass(statusClass)
-      .html(`<i class="fas ${icon}"></i><span>${statusText}</span>`);
-    
-    $('#answerQualityDesktop, #answerQualityMobile').show();
   }
   
   function getCookie(name) {

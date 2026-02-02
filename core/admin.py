@@ -2,7 +2,9 @@ from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
-from django.urls import reverse
+from django.urls import path, reverse
+from django.shortcuts import render, redirect
+from django.contrib import messages
 from .models import (
     Configuration,
     City,
@@ -26,6 +28,20 @@ from .models import (
 
 
 
+class PsychometricSettingsForm(forms.Form):
+    """Form for psychometric test site settings (Admin-managed)."""
+    ENABLE_ANSWERING_CAREFULLY_WIDGET = forms.BooleanField(
+        required=False,
+        label='Show "Answering Carefully" widget',
+        help_text='Display the "Answering Carefully" / "Rushing Through" widget on test pages.',
+    )
+    ENABLE_AUTO_FORWARD = forms.BooleanField(
+        required=False,
+        label='Auto-advance on answer selection',
+        help_text='Automatically move to the next question when user selects an answer.',
+    )
+
+
 class ConfigurationAdmin(admin.ModelAdmin):
     readonly_fields = ('created','modified','key')
     fields = ['created','modified','key','value']
@@ -47,6 +63,48 @@ class ConfigurationAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request, obj=None):
         return False
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path('psychometric-settings/', self.admin_site.admin_view(self.psychometric_settings_view), name='core_configuration_psychometric_settings'),
+        ]
+        return custom + urls
+
+    def psychometric_settings_view(self, request):
+        """Custom admin view for Psychometric Test Settings."""
+        from core.models import Configuration
+
+        def _config_bool(key):
+            try:
+                val = Configuration.get(key, default='true', editable=True)
+                return str(val).lower() in ('true', '1', 'yes', 'on')
+            except Exception:
+                return True
+
+        if request.method == 'POST':
+            form = PsychometricSettingsForm(request.POST)
+            if form.is_valid():
+                for key in ['ENABLE_ANSWERING_CAREFULLY_WIDGET', 'ENABLE_AUTO_FORWARD']:
+                    val = 'true' if form.cleaned_data.get(key, False) else 'false'
+                    config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                    config.value = val
+                    config.save()
+                messages.success(request, 'Psychometric test settings saved successfully.')
+                return redirect('admin:core_configuration_psychometric_settings')
+        else:
+            form = PsychometricSettingsForm(initial={
+                'ENABLE_ANSWERING_CAREFULLY_WIDGET': _config_bool('ENABLE_ANSWERING_CAREFULLY_WIDGET'),
+                'ENABLE_AUTO_FORWARD': _config_bool('ENABLE_AUTO_FORWARD'),
+            })
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Psychometric Test Settings',
+            'form': form,
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/core/configuration/psychometric_settings.html', context)
 
 
 class CityAdmin(admin.ModelAdmin):
