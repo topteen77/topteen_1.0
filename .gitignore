@@ -325,5 +325,5 @@ skilllabcourses_html-old/
 # # scripts/skilllabcourses_script/course_json/*.jsonl
 
 #hide github docker workflow files
-.github/workflows/deploy-docker.yml
+*/deploy-docker.yml
 scripts/extracurricular_json_output/*.json
