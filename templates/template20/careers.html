@@ -1524,6 +1524,72 @@ document.addEventListener('DOMContentLoaded', function() {
     lastQuery: null
   };
   
+  // Map mindmap node topic to career section (for node click -> show section + scroll)
+  function mapMindmapTopicToSection(topic) {
+    if (!topic) return null;
+    const t = topic.replace(/\s+/g, ' ');
+    if (/skill|trend|industry/i.test(t)) return { sectionId: 'skills_trends', sectionLabel: 'Skills & Trends' };
+    if (/salary|expectation/i.test(t)) return { sectionId: 'salary_expectations', sectionLabel: 'Salary Expectations' };
+    if (/career\s*description|overview/i.test(t)) return { sectionId: 'career_description', sectionLabel: 'Career Description' };
+    if (/role|responsibili/i.test(t)) return { sectionId: 'roles', sectionLabel: 'Roles & Responsibilities' };
+    if (/eligibility|entrance|study\s*route/i.test(t)) return { sectionId: 'eligibility', sectionLabel: 'Study Route & Eligibility' };
+    if (/course|institute|specialization/i.test(t)) return { sectionId: 'courses_spec', sectionLabel: 'Courses & Specializations' };
+    if (/internship|practical|observation/i.test(t)) return { sectionId: 'internships', sectionLabel: 'Internships & Practical Experience' };
+    if (/employer|industry\s*leader|professional\s*org/i.test(t)) return { sectionId: 'employers', sectionLabel: 'Prominent Employers' };
+    if (/advice|aspiring/i.test(t)) return { sectionId: 'advice', sectionLabel: 'Advice for Aspiring' };
+    if (/software|key\s*soft/i.test(t)) return { sectionId: 'skills_trends', sectionLabel: 'Skills & Trends' };
+    if (/major\s*area|other\s*area/i.test(t)) return { sectionId: 'employment', sectionLabel: 'Employment Areas' };
+    if (/leading|progressing/i.test(t)) return { sectionId: 'overview', sectionLabel: 'Career Overview' };
+    return null;
+  }
+  
+  // Radial mindmap zoom functions - defined early so they work for chat mindmaps
+  window.radialMindmapZoomIn = function(careerId) {
+    const data = window.radialMindmapData && window.radialMindmapData[careerId];
+    if (!data) return;
+    const isMobile = window.innerWidth <= 768;
+    const maxZoom = isMobile ? 1.5 : 2;
+    data.zoom = Math.min(data.zoom + 0.1, maxZoom);
+    applyRadialMindmapZoom(careerId);
+  };
+  window.radialMindmapZoomOut = function(careerId) {
+    const data = window.radialMindmapData && window.radialMindmapData[careerId];
+    if (!data) return;
+    const isMobile = window.innerWidth <= 768;
+    const minZoom = isMobile ? 0.6 : 0.5;
+    data.zoom = Math.max(data.zoom - 0.1, minZoom);
+    applyRadialMindmapZoom(careerId);
+  };
+  window.radialMindmapReset = function(careerId) {
+    const data = window.radialMindmapData && window.radialMindmapData[careerId];
+    if (!data || !data.svgId || !data.containerId) return;
+    const container = document.getElementById(data.containerId);
+    if (!container) return;
+    const isMobile = window.innerWidth <= 768;
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+    // Fit to width: calculate zoom so content fits (approximate for radial layout)
+    const childDistance = isMobile ? 160 : 220;
+    const centerRadius = isMobile ? 70 : 100;
+    const contentWidth = 2 * (centerRadius + 2 * childDistance);
+    const fitZoom = Math.min(containerWidth / contentWidth, containerHeight / contentWidth);
+    data.zoom = Math.max(isMobile ? 0.6 : 0.5, Math.min(fitZoom, 1));
+    data.transform = { x: 0, y: 0 };
+    data.currentCenter = data.rootNode;
+    renderRadialMindmapForCareer(careerId, data.rootNode, data.containerId, data.svgId, data.loadingId, data.controlsId);
+    setTimeout(function() { applyRadialMindmapZoom(careerId); }, 100);
+  };
+  function applyRadialMindmapZoom(careerId) {
+    const data = window.radialMindmapData && window.radialMindmapData[careerId];
+    if (!data || !data.svgId) return;
+    const svg = document.getElementById(data.svgId);
+    if (!svg) return;
+    const zoom = data.zoom;
+    const transform = data.transform;
+    svg.style.transformOrigin = 'center center';
+    svg.style.transform = 'scale(' + zoom + ') translate(' + transform.x + 'px, ' + transform.y + 'px)';
+  }
+  
   // Load sample career questions on initial load
   function loadSampleCareerQuestions() {
     const questionChips = document.getElementById('sample-career-questions');
@@ -1692,6 +1758,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Scroll to bottom of chat
   function scrollToBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  
+  // Scroll to updated content (used when info buttons add new content)
+  // Uses requestAnimationFrame to ensure layout is complete, then scrollIntoView for reliability
+  function scrollToUpdatedContent(element) {
+    if (!element) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      });
+    });
   }
   
   function performSearch(customQuery) {
@@ -2082,6 +2159,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon.style.display = 'flex';
               });
               this.innerHTML = `<i class='bx bx-chevron-up'></i> Show Less`;
+              
+              // Scroll to updated content when expanding
+              scrollToUpdatedContent(container);
               
               // Attach click handlers to newly shown icons
               hiddenIcons.forEach(icon => {
@@ -2481,6 +2561,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             this.innerHTML = `<i class='bx bx-chevron-up'></i> Show Less`;
             
+            // Scroll to updated content when expanding
+            scrollToUpdatedContent(container);
+            
             // Attach click handlers to newly shown icons
             hiddenIcons.forEach(icon => {
               icon.addEventListener('click', function() {
@@ -2617,6 +2700,9 @@ document.addEventListener('DOMContentLoaded', function() {
                       icon.style.display = 'flex';
                     });
                     this.innerHTML = `<i class='bx bx-chevron-up'></i> Show Less`;
+                    
+                    // Scroll to updated content when expanding
+                    scrollToUpdatedContent(container);
                     
                     // Attach click handlers to newly shown icons
                     hiddenIcons.forEach(icon => {
@@ -2978,7 +3064,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="btn-group-vertical" style="gap: 8px;">
                           <button class="btn btn-sm btn-light shadow" onclick="window.radialMindmapZoomIn(${career.id})" title="Zoom In">🔍+</button>
                           <button class="btn btn-sm btn-light shadow" onclick="window.radialMindmapZoomOut(${career.id})" title="Zoom Out">🔍-</button>
-                          <button class="btn btn-sm btn-light shadow" onclick="window.radialMindmapReset(${career.id})" title="Reset">🎯</button>
                         </div>
                       </div>
                     </div>
@@ -2991,6 +3076,8 @@ document.addEventListener('DOMContentLoaded', function() {
           // Initialize mindmap after message is added
           setTimeout(function() {
             initializeChatMindmap(career, mindmapContainerId, svgId, loadingId, controlsId, function() {
+              // Scroll to updated content when mindmap finishes loading
+              scrollToUpdatedContent(messageDiv);
               // After mindmap loads, show suggestions for other sections
               showOtherCareerSectionsSuggestions(career);
             });
@@ -3055,7 +3142,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     chatMessages.appendChild(messageDiv);
-    scrollToBottom();
+    scrollToUpdatedContent(messageDiv);
     
     // Show questions for other sections of this career + explore other careers (Case 2)
     // Skip for mindmap - it's already handled in the mindmap case above
@@ -3246,7 +3333,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     chatMessages.appendChild(suggestionDiv);
-    scrollToBottom();
+    scrollToUpdatedContent(suggestionDiv);
     
     // Attach click handlers
     const questionChips = suggestionDiv.querySelectorAll('.question-chip');
@@ -3535,7 +3622,7 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
         
-        // Store data in window for zoom functions
+        // Store data in window for zoom functions (include IDs and career for node clicks)
         if (!window.radialMindmapData) window.radialMindmapData = {};
         window.radialMindmapData[career.id] = {
           data: data,
@@ -3543,7 +3630,12 @@ document.addEventListener('DOMContentLoaded', function() {
           currentCenter: data.data,
           nodeMap: {},
           zoom: 1,
-          transform: { x: 0, y: 0 }
+          transform: { x: 0, y: 0 },
+          containerId: containerId,
+          svgId: svgId,
+          loadingId: loadingId,
+          controlsId: controlsId,
+          career: career
         };
         
         // Build node map
@@ -3668,7 +3760,7 @@ document.addEventListener('DOMContentLoaded', function() {
         line.setAttribute('opacity', '0.6');
         svg.insertBefore(line, centerCircle);
         
-        // Draw child circle
+        // Draw child circle - make all nodes clickable to show section content
         const childCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         childCircle.setAttribute('cx', x);
         childCircle.setAttribute('cy', y);
@@ -3676,13 +3768,17 @@ document.addEventListener('DOMContentLoaded', function() {
         childCircle.setAttribute('fill', 'hsl(' + (index * 360 / centerNode.children.length) + ', 70%, 60%)');
         childCircle.setAttribute('stroke', 'white');
         childCircle.setAttribute('stroke-width', '3');
-        if (child.children && child.children.length > 0) {
-          childCircle.style.cursor = 'pointer';
-          childCircle.onclick = function() {
+        childCircle.style.cursor = 'pointer';
+        childCircle.onclick = function() {
+          const topic = (child.topic || '').toLowerCase();
+          const mapped = mapMindmapTopicToSection(topic);
+          if (mapped && mindmapData.career) {
+            showCareerSectionInChat(careerId, mapped.sectionId, mapped.sectionLabel, mindmapData.career);
+          } else if (child.children && child.children.length > 0) {
             mindmapData.currentCenter = child;
             renderRadialMindmapForCareer(careerId, child, containerId, svgId, loadingId, controlsId);
-          };
-        }
+          }
+        };
         svg.appendChild(childCircle);
         
         // Draw child text
@@ -3695,6 +3791,7 @@ document.addEventListener('DOMContentLoaded', function() {
         childText.setAttribute('font-size', '13');
         childText.setAttribute('font-weight', '700');
         childText.textContent = child.topic || 'Node';
+        childText.style.pointerEvents = 'none';
         svg.appendChild(childText);
       });
     }
@@ -4162,7 +4259,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     '<div class="btn-group-vertical" style="gap: 8px;">' +
                       '<button class="btn btn-sm btn-light shadow" onclick="window.radialMindmapZoomIn(' + career.id + ')" title="Zoom In">🔍+</button>' +
                       '<button class="btn btn-sm btn-light shadow" onclick="window.radialMindmapZoomOut(' + career.id + ')" title="Zoom Out">🔍-</button>' +
-                      '<button class="btn btn-sm btn-light shadow" onclick="window.radialMindmapReset(' + career.id + ')" title="Reset">🎯</button>' +
                     '</div>' +
                   '</div>' +
                 '</div>' +
@@ -4197,7 +4293,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
               }
               
-              // Store data in window for zoom functions
+              // Store data in window for zoom functions (include IDs and career for node clicks)
               if (!window.radialMindmapData) window.radialMindmapData = {};
               window.radialMindmapData[career.id] = {
                 data: data,
@@ -4205,7 +4301,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentCenter: data.data,
                 nodeMap: {},
                 zoom: 1,
-                transform: { x: 0, y: 0 }
+                transform: { x: 0, y: 0 },
+                containerId: mindmapContainerId,
+                svgId: svgId,
+                loadingId: loadingId,
+                controlsId: controlsId,
+                career: career
               };
               
               // Build node map
@@ -4324,7 +4425,7 @@ document.addEventListener('DOMContentLoaded', function() {
               line.setAttribute('opacity', '0.6');
               svg.insertBefore(line, centerCircle);
               
-              // Draw child circle
+              // Draw child circle - make all nodes clickable to show section content
               const childCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
               childCircle.setAttribute('cx', x);
               childCircle.setAttribute('cy', y);
@@ -4332,13 +4433,17 @@ document.addEventListener('DOMContentLoaded', function() {
               childCircle.setAttribute('fill', 'hsl(' + (index * 360 / centerNode.children.length) + ', 70%, 60%)');
               childCircle.setAttribute('stroke', 'white');
               childCircle.setAttribute('stroke-width', '3');
-              if (child.children && child.children.length > 0) {
-                childCircle.style.cursor = 'pointer';
-                childCircle.onclick = function() {
+              childCircle.style.cursor = 'pointer';
+              childCircle.onclick = function() {
+                const topic = (child.topic || '').toLowerCase();
+                const mapped = mapMindmapTopicToSection(topic);
+                if (mapped && mindmapData.career) {
+                  showCareerSectionInChat(careerId, mapped.sectionId, mapped.sectionLabel, mindmapData.career);
+                } else if (child.children && child.children.length > 0) {
                   mindmapData.currentCenter = child;
                   renderRadialMindmapForCareer(careerId, child);
-                };
-              }
+                }
+              };
               svg.appendChild(childCircle);
               
               // Draw child text
@@ -4351,52 +4456,13 @@ document.addEventListener('DOMContentLoaded', function() {
               childText.setAttribute('font-size', '13');
               childText.setAttribute('font-weight', '700');
               childText.textContent = child.topic || 'Node';
+              childText.style.pointerEvents = 'none';
               svg.appendChild(childText);
             });
           }
         }
         
-        // Zoom functions
-        window.radialMindmapZoomIn = window.radialMindmapZoomIn || function(careerId) {
-          if (window.radialMindmapData && window.radialMindmapData[careerId]) {
-            const isMobile = window.innerWidth <= 768;
-            const maxZoom = isMobile ? 1.5 : 2;
-            window.radialMindmapData[careerId].zoom = Math.min(window.radialMindmapData[careerId].zoom + 0.1, maxZoom);
-            applyRadialZoom(careerId);
-          }
-        };
-        
-        window.radialMindmapZoomOut = window.radialMindmapZoomOut || function(careerId) {
-          if (window.radialMindmapData && window.radialMindmapData[careerId]) {
-            const isMobile = window.innerWidth <= 768;
-            const minZoom = isMobile ? 0.6 : 0.5;
-            window.radialMindmapData[careerId].zoom = Math.max(window.radialMindmapData[careerId].zoom - 0.1, minZoom);
-            applyRadialZoom(careerId);
-          }
-        };
-        
-        window.radialMindmapReset = window.radialMindmapReset || function(careerId) {
-          if (window.radialMindmapData && window.radialMindmapData[careerId]) {
-            const isMobile = window.innerWidth <= 768;
-            window.radialMindmapData[careerId].zoom = isMobile ? 0.75 : 1;
-            window.radialMindmapData[careerId].transform = { x: 0, y: 0 };
-            window.radialMindmapData[careerId].currentCenter = window.radialMindmapData[careerId].rootNode;
-            renderRadialMindmapForCareer(careerId, window.radialMindmapData[careerId].rootNode);
-            setTimeout(function() { applyRadialZoom(careerId); }, 100);
-          }
-        };
-        
-        function applyRadialZoom(careerId) {
-          const svg = document.getElementById(svgId);
-          if (!svg || !window.radialMindmapData || !window.radialMindmapData[careerId]) return;
-          
-          const isMobile = window.innerWidth <= 768;
-          const zoom = window.radialMindmapData[careerId].zoom;
-          const transform = window.radialMindmapData[careerId].transform;
-          
-          svg.style.transformOrigin = 'center center';
-          svg.style.transform = 'scale(' + zoom + ') translate(' + transform.x + 'px, ' + transform.y + 'px)';
-        }
+        // Zoom functions are defined globally at page load - use stored IDs in radialMindmapData
         
         if (accordionButton) {
           accordionButton.addEventListener('shown.bs.collapse', function() {
@@ -4501,7 +4567,6 @@ document.addEventListener('DOMContentLoaded', function() {
                   <div class="btn-group-vertical" style="gap: 4px;">
                     <button class="btn btn-sm btn-light shadow-sm" onclick="window.radialMindmapZoomIn(${career.id})" title="Zoom In" style="font-size: 0.75rem; padding: 2px 6px;">🔍+</button>
                     <button class="btn btn-sm btn-light shadow-sm" onclick="window.radialMindmapZoomOut(${career.id})" title="Zoom Out" style="font-size: 0.75rem; padding: 2px 6px;">🔍-</button>
-                    <button class="btn btn-sm btn-light shadow-sm" onclick="window.radialMindmapReset(${career.id})" title="Reset" style="font-size: 0.75rem; padding: 2px 6px;">🎯</button>
                   </div>
                 </div>
               </div>
@@ -4532,7 +4597,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
           }
           
-          // Store data in window for zoom functions
+          // Store data in window for zoom functions (include IDs and career for node clicks)
           if (!window.radialMindmapData) window.radialMindmapData = {};
           window.radialMindmapData[career.id] = {
             data: data,
@@ -4540,7 +4605,12 @@ document.addEventListener('DOMContentLoaded', function() {
             currentCenter: data.data,
             nodeMap: {},
             zoom: 1,
-            transform: { x: 0, y: 0 }
+            transform: { x: 0, y: 0 },
+            containerId: mindmapContainerId,
+            svgId: svgId,
+            loadingId: loadingId,
+            controlsId: controlsId,
+            career: career
           };
           
           // Build node map

@@ -1,0 +1,98 @@
+<div class="card card-flush py-4">
+    <!--begin::Card header-->
+    {% if form.non_field_errors() %}
+    <div class="card-header">
+        <div class="card-title">
+            <div class="fv-plugins-message-container invalid-feedback">{{ form.non_field_errors() }}</div>
+        </div>  
+    </div>
+    {% endif %}
+    <!--end::Card header-->
+    
+    <!--begin::Card body-->
+    <div class="card-body pt-0">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <!--begin::Input group-->
+        {% for field in form %}
+        {% if field.name == 'description_json' %}
+        {# Skip description_json - hidden from this page #}
+        {% elif field.name == 'description' %}
+        {# Description Editor + Accordion Preview - rendered in special section below #}
+        {% else %}
+        <div class="mb-10 fv-row">
+            <label class="form-label {% if field.field.required %}fw-bolder required{%endif%}">{{field.label}}</label>
+            {% if form.get_foreign_key_add_url(field)%}
+                <span><a href="javascript:void()" onclick='OpenWindow("{{form.get_foreign_key_add_url(field)}}")'>add</a></span>
+            {%endif%}
+            {% if field.errors %}
+            <div class="fv-plugins-message-container invalid-feedback"><div data-field="{{field.label}}" data-validator="nonEmpty">{{field.errors|striptags}}</div></div>
+            {% endif %}
+            {{field}}
+            <div class="text-muted fs-7">{{field.help_text}}</div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% if request.GET.get('_popup') == "1" %}
+        <input type="hidden" name="_popup" value="1">
+        <input type="hidden" name="foreign_key" value="{{request.GET.get('foreign_key')}}">
+        {% endif %}
+        <!--end::Input group-->
+        
+        <!-- Description Editor + Accordion Preview -->
+        <div class="mb-10 fv-row description-tools-wrapper" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px;">
+            <div class="career-editor-accordion-grid">
+                <div class="career-editor-col">
+                    <h3 style="margin-top: 0; margin-bottom: 15px; color: #417690;">Description Editor</h3>
+                    {% for field in form %}
+                    {% if field.name == 'description' %}
+                    <label class="form-label {% if field.field.required %}fw-bolder required{%endif%}">{{field.label}}</label>
+                    {% if field.errors %}
+                    <div class="fv-plugins-message-container invalid-feedback"><div data-field="{{field.label}}" data-validator="nonEmpty">{{field.errors|striptags}}</div></div>
+                    {% endif %}
+                    <div id="career-description-field-container" data-field="description">{{field}}</div>
+                    <div class="text-muted fs-7">{{field.help_text}}</div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="career-accordion-col">
+                    <h3 style="margin-top: 0; margin-bottom: 15px; color: #417690;">Accordion Preview</h3>
+                    <div id="career-accordion-preview-container">
+                        <p style="color: #666; font-style: italic;">Start editing the description to see accordion preview here...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.career-editor-accordion-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 10px;
+    align-items: stretch;
+}
+.career-editor-col,
+.career-accordion-col {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    padding: 20px;
+    min-height: 450px;
+}
+#career-description-field-container,
+#career-accordion-preview-container {
+    flex: 1;
+    min-height: 350px;
+}
+#career-accordion-preview-container {
+    overflow-y: auto;
+    overflow-x: auto;
+}
+.career-accordion-item { border: 1px solid #e4e7fb; border-radius: 16px; margin-bottom: 18px; overflow: hidden; box-shadow: 0 8px 24px rgba(12, 15, 37, 0.06); }
+.career-accordion-button { font-weight: 600; font-size: 16px; padding: 15px 20px; width: 100%; text-align: left; background: #f4f3ff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+.career-accordion-body { padding: 20px 24px; background: #fff; border-top: 1px solid #e4e7fb; }
+</style>

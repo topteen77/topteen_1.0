@@ -120,7 +120,9 @@
 									-
 								{% endif %}
 							</td>
-							<td>{{career.get_publish_status_display()}}</td>
+							<td>
+								<a href="{{career.edit_url}}" class="text-gray-800 text-hover-primary">{{career.get_publish_status_display()}}</a>
+							</td>
 							<td>
 								{% set errs = career.get_validation_errors() %}
 								{% if errs|length == 0 %}

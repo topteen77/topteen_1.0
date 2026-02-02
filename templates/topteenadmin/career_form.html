@@ -23,7 +23,7 @@
                     <div class="tab-pane fade show active" id="kt_ecommerce_add_product_general" role="tab-panel">
                         <div class="d-flex flex-column gap-7 gap-lg-10">
                             <!--begin::General options-->
-                            {% include 'topteenadmin/includes/base_form.html' %}
+                            {% include 'topteenadmin/includes/career_form_fields.html' %}
                         </div>
                     </div>
                     <!--end::Tab pane-->
@@ -49,4 +49,8 @@
     <!--end::Container-->
 </div>
 <!--end::Post-->
+{% endblock %}
+
+{% block endscript %}
+{% include 'topteenadmin/includes/career_accordion_preview_script.html' %}
 {% endblock %}

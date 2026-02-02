@@ -208,6 +208,7 @@ class CareerAdminForm(forms.ModelForm):
     class Meta:
         model = Career
         fields = '__all__'
+        exclude = ['description_json']
         widgets = {
             'career_cluster': CareerClusterSelectWidget(),
         }

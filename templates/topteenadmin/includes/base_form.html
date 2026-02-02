@@ -1,9 +1,9 @@
 <div class="card card-flush py-4">
     <!--begin::Card header-->
-    {% if form.non_field_error %}
+    {% if form.non_field_errors() %}
     <div class="card-header">
         <div class="card-title">
-            <div class="fv-plugins-message-container invalid-feedback">{{form.non_field_errors}}</div>
+            <div class="fv-plugins-message-container invalid-feedback">{{ form.non_field_errors() }}</div>
         </div>  
     </div>
     {% endif %}

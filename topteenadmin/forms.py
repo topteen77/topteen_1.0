@@ -287,6 +287,7 @@ class CareerModelForm(TranslationModelForm):
         model = Career
         # Show all model fields to mirror Django Admin create/edit
         fields = '__all__'
+        exclude = ['description_json']
         
 
 class CareerClusterModelForm(TranslationModelForm):

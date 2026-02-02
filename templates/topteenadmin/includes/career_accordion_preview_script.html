@@ -1,0 +1,105 @@
+<script>
+(function() {
+    function parseDescriptionToAccordion(html) {
+        if (!html || typeof html !== 'string') return [];
+        var accordionItems = [];
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        var h2Elements = tempDiv.querySelectorAll('h2');
+        if (h2Elements.length === 0) h2Elements = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        if (h2Elements.length === 0) {
+            var text = tempDiv.textContent.trim();
+            if (text) accordionItems.push({ title: 'Description', content: html });
+            return accordionItems;
+        }
+        for (var i = 0; i < h2Elements.length; i++) {
+            var heading = h2Elements[i];
+            var title = heading.textContent.trim();
+            var content = '';
+            var nextElement = heading.nextElementSibling;
+            while (nextElement) {
+                if (nextElement.tagName && nextElement.tagName.match(/^H[1-6]$/)) break;
+                content += nextElement.outerHTML || nextElement.textContent;
+                nextElement = nextElement.nextElementSibling;
+            }
+            if (!content.trim()) {
+                var current = heading.nextSibling;
+                while (current) {
+                    if (current.nodeType === 1 && current.tagName && current.tagName.match(/^H[1-6]$/)) break;
+                    if (current.nodeType === 1) content += current.outerHTML;
+                    else if (current.nodeType === 3) content += current.textContent;
+                    current = current.nextSibling;
+                }
+            }
+            accordionItems.push({ title: title || 'Untitled Section', content: content.trim() || '<p>No content</p>' });
+        }
+        return accordionItems;
+    }
+    function updateAccordionPreview(html) {
+        var container = document.getElementById('career-accordion-preview-container');
+        if (!container) return;
+        var accordionData = parseDescriptionToAccordion(html);
+        if (accordionData.length === 0) {
+            container.innerHTML = '<p style="color: #666; font-style: italic;">No accordion structure found. Add H2 headings to create accordion items.</p>';
+            return;
+        }
+        var out = '<div style="max-height: 500px; overflow-y: auto;"><div style="margin-bottom: 15px; padding: 10px; background: #e9ecef; border-radius: 4px;"><strong>Found ' + accordionData.length + ' accordion item(s) - All expanded:</strong></div>';
+        accordionData.forEach(function(item, index) {
+            var itemId = 'career-preview-accordion-' + index;
+            out += '<div class="career-accordion-item"><button class="career-accordion-button" type="button" onclick="window.toggleCareerAccordion(\'' + itemId + '\')"><span><span style="background: #417690; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-right: 10px;">' + (index + 1) + '</span>' + item.title + '</span><span style="font-size: 24px; color: #5046e5;">−</span></button><div id="' + itemId + '" class="career-accordion-body" style="display: block;">' + item.content + '</div></div>';
+        });
+        out += '</div>';
+        container.innerHTML = out;
+    }
+    window.toggleCareerAccordion = function(itemId) {
+        var el = document.getElementById(itemId);
+        if (!el) return;
+        var btn = el.previousElementSibling;
+        var icon = btn ? btn.querySelector('span:last-child') : null;
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            if (btn) btn.style.background = '#f4f3ff';
+            if (icon) icon.textContent = '−';
+        } else {
+            el.style.display = 'none';
+            if (btn) btn.style.background = '#fff';
+            if (icon) icon.textContent = '+';
+        }
+    };
+    function getDescriptionHtml() {
+        var container = document.getElementById('career-description-field-container');
+        if (!container) return '';
+        var editable = container.querySelector('.ck-editor__editable') || container.querySelector('[contenteditable="true"]');
+        if (editable) return editable.innerHTML || '';
+        var ta = container.querySelector('textarea[name="description"]') || document.querySelector('textarea[name="description"]');
+        if (ta) return ta.value || '';
+        ta = document.querySelector('#editordescription');
+        if (ta) return ta.value || '';
+        return '';
+    }
+    function initCareerAccordionPreview() {
+        var container = document.getElementById('career-description-field-container');
+        if (!container) return;
+        var syncAndUpdate = function() { updateAccordionPreview(getDescriptionHtml()); };
+        var editableAttached = false;
+        var pollCount = 0;
+        function tryAttachAndSync() {
+            syncAndUpdate();
+            if (editableAttached) return;
+            var editable = container.querySelector('.ck-editor__editable') || container.querySelector('[contenteditable="true"]');
+            if (editable) {
+                editableAttached = true;
+                editable.addEventListener('input', syncAndUpdate);
+                editable.addEventListener('blur', syncAndUpdate);
+                editable.addEventListener('change', syncAndUpdate);
+            }
+        }
+        var pollInterval = setInterval(function() {
+            tryAttachAndSync();
+            if (++pollCount >= 60) clearInterval(pollInterval);
+        }, 300);
+        setTimeout(function() { clearInterval(pollInterval); tryAttachAndSync(); }, 20000);
+    }
+    setTimeout(initCareerAccordionPreview, 800);
+})();
+</script>
