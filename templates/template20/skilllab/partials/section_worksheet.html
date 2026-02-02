@@ -6,7 +6,7 @@
       {% if activity.content %}<div class="text-muted small">{{ activity.content|striptags|truncate(120) }}</div>{% endif %}
     </div>
     {% if worksheet_download_url %}
-    <a href="{{ worksheet_download_url }}" class="btn-download-worksheet btn-mark-complete" data-activity-id="{{ activity.id }}" target="_blank" rel="noopener" download style="text-decoration: none;">
+    <a href="{{ worksheet_download_url }}" class="btn-download-worksheet btn-mark-complete" data-activity-id="{{ activity.id }}" target="_blank" rel="noopener" style="text-decoration: none;">
       <i class='bx bx-download'></i> Download Worksheet
     </a>
     {% else %}
