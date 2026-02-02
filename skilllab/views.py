@@ -27,6 +27,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
+from core.s3_utils import get_s3_upload_service
 # Create your views here.
 
 class SkillLabCourseList(TemplateView):
@@ -320,12 +321,22 @@ class SkillLabCourseLearningView(TemplateView):
             )
         progress_percentage = progress_summary.progress_percentage
 
+        # Reached sections for green tick: intro/section/wrap-up show tick when user has viewed them
+        resume = SkillLabCourseResume.objects.filter(
+            user=request.user, skilllab_course=skilllab_course
+        ).first()
+        last_section_idx = resume.last_section_index if (resume and resume.last_section_index is not None) else -1
+        reached_sections = set()
+        for i, sec in enumerate(sections_flat):
+            if i <= last_section_idx:
+                if sec['type'] == 'intro':
+                    reached_sections.add(('intro', sec['id'], sec.get('step', 0)))
+                else:
+                    reached_sections.add((sec['type'], sec['id']))
+
         # When no URL params: restore from SkillLabCourseResume or first incomplete chapter
         initial_section_idx = None
         if chapter_slug is None and chapter_num is None:
-            resume = SkillLabCourseResume.objects.filter(
-                user=request.user, skilllab_course=skilllab_course
-            ).first()
             if resume and 0 <= resume.last_section_index < len(sections_flat):
                 chapter_index = sections_flat[resume.last_section_index]['chapterIndex']
                 current_chapter = chapters[chapter_index] if chapters else None
@@ -357,6 +368,7 @@ class SkillLabCourseLearningView(TemplateView):
             'worksheet_progress_ids': worksheet_progress_ids,
             'mcq_attempts_ids': mcq_attempts_ids,
             'initial_section_idx': initial_section_idx,
+            'reached_sections': reached_sections,
         }
         ctx["html_head"] = build_html_head(
             title=skilllab_course.name,
@@ -568,14 +580,11 @@ class SkillLabSectionContentView(View):
             activity = get_object_or_404(SkillLabCourseActivity, id=section_id, skilllab_chapter__skilllab=skilllab_course)
             ctx['activity'] = activity
             ctx['downloaded'] = SkillLabWorksheetProgress.objects.filter(user=request.user, activity=activity).exists()
-            # Extract download URL from content when downloadable_file is empty (S3 URLs stored in content by upload script)
-            download_url = None
-            if activity.downloadable_file:
-                download_url = activity.downloadable_file.url
-            elif activity.content:
-                href_match = re.search(r'href=["\']([^"\']+)["\']', activity.content)
-                if href_match:
-                    download_url = href_match.group(1)
+            # Use proxy URL for downloads - avoids S3 Access Denied (generates presigned URL server-side)
+            has_file = bool(activity.downloadable_file) or bool(
+                activity.content and re.search(r'href=["\']([^"\']+)["\']', activity.content)
+            )
+            download_url = reverse('skilllabcourse:download_worksheet', kwargs={'activity_id': activity.id}) if has_file else None
             ctx['worksheet_download_url'] = download_url
             return render(request, 'template20/skilllab/partials/section_worksheet.html', ctx)
         elif section_type == 'mcq':
@@ -586,6 +595,82 @@ class SkillLabSectionContentView(View):
             ctx['last_attempt'] = last_attempt
             return render(request, 'template20/skilllab/partials/section_mcq.html', ctx)
         return HttpResponse('', status=400)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabWorksheetDownloadView(View):
+    """Serve worksheet download via presigned S3 URL to avoid Access Denied on private buckets."""
+
+    def get(self, request, activity_id):
+        activity = get_object_or_404(SkillLabCourseActivity, id=activity_id)
+        if not activity.skilllab_chapter.skilllab.is_user_vissible(request):
+            raise Http404("Access denied")
+        s3_service = get_s3_upload_service()
+        s3_key = None
+        if activity.downloadable_file:
+            # FileField - name is the storage key (path in S3 or local)
+            storage = activity.downloadable_file.storage
+            if hasattr(storage, 'bucket_name'):
+                s3_key = activity.downloadable_file.name
+        if not s3_key and activity.content:
+            href_match = re.search(r'href=["\']([^"\']+)["\']', activity.content)
+            if href_match:
+                raw_url = href_match.group(1)
+                s3_key = s3_service.s3_key_from_url(raw_url)
+        if s3_key and s3_service.s3_client:
+            # Verify object exists before redirecting (avoids NoSuchKey error)
+            if s3_service.object_exists(s3_key):
+                presigned_url = s3_service.generate_presigned_url(s3_key, expires_in=3600)
+                if presigned_url:
+                    return redirect(presigned_url)
+            # S3 object missing - try local fallback
+            local_path = self._get_local_worksheet_path(activity)
+            if local_path:
+                from django.http import FileResponse
+                import os
+                try:
+                    return FileResponse(open(local_path, 'rb'), as_attachment=True,
+                        filename=os.path.basename(local_path),
+                        content_type='application/pdf')
+                except (OSError, IOError):
+                    pass
+        if activity.downloadable_file:
+            return redirect(activity.downloadable_file.url)
+        return render(request, 'template20/skilllab/worksheet_not_found.html', {
+            'activity': activity,
+            'skilllab_course': activity.skilllab_chapter.skilllab,
+        }, status=404)
+
+    def _get_local_worksheet_path(self, activity):
+        """Try to find worksheet PDF in skilllabcourses_html as fallback when S3 file is missing."""
+        from pathlib import Path
+        from django.conf import settings
+        from django.utils.text import slugify
+        chapter = activity.skilllab_chapter
+        course = chapter.skilllab
+        base = Path(settings.BASE_DIR) / 'skilllabcourses_html'
+        if not base.exists():
+            return None
+        chapters_ordered = list(course.skilllabcoursechapter.order_by('created'))
+        chapter_num = chapters_ordered.index(chapter) + 1
+        course_name_lower = (course.name or '').lower()
+        course_slug = slugify(course.name or '')
+        # Try exact match, slugified, and iterate subdirs for case-insensitive match
+        candidates = [course.name, course_slug, course_slug.replace('-', ' ')]
+        for subdir in base.iterdir():
+            if subdir.is_dir() and subdir.name.lower() == course_name_lower:
+                candidates.insert(0, subdir.name)
+                break
+        for folder_name in candidates:
+            if not folder_name:
+                continue
+            chapter_dir = base / folder_name / f'chapter_{chapter_num}'
+            if chapter_dir.exists():
+                for pattern in [f'worksheet{chapter_num}.pdf', f'worksheet{chapter_num}_*.pdf']:
+                    matches = list(chapter_dir.glob(pattern))
+                    if matches:
+                        return str(matches[0])
+        return None
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')

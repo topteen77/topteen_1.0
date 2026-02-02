@@ -17,5 +17,7 @@
   </div>
   {% if downloaded %}
   <p class="text-success mt-3"><i class='bx bx-check-circle'></i> Worksheet downloaded.</p>
+  {% elif worksheet_download_url %}
+  <p class="text-muted small mt-3"><i class='bx bx-info-circle'></i> The Next button will appear below once you download the worksheet.</p>
   {% endif %}
 </div>

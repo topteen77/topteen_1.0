@@ -10,6 +10,7 @@ urlpatterns = [
     path("mark-chapter-complete/",views.SkillLabMarkChapterCompleteView.as_view(),name="mark_chapter_complete"),
     path("section-content/",views.SkillLabSectionContentView.as_view(),name="section_content"),
     path("mark-worksheet-downloaded/",views.SkillLabMarkWorksheetDownloadedView.as_view(),name="mark_worksheet_downloaded"),
+    path("download-worksheet/<int:activity_id>/",views.SkillLabWorksheetDownloadView.as_view(),name="download_worksheet"),
     path("submit-mcq/",views.SkillLabSubmitMCQView.as_view(),name="submit_mcq"),
     path("certificate/<slug:course_slug>/",views.SkillLabCourseCertificateView.as_view(),name="skilllab_certificate"),
     path("skilllabcoursechapterdetail/<slug:chapter_slug>/",views.SkillLabCourseChapterDetail.as_view(),name="skilllabcoursechapterdetail"),

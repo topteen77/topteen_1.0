@@ -398,6 +398,61 @@ class S3UploadService:
                 'error': f'Create folder failed: {str(e)}'
             }
     
+    def object_exists(self, s3_key):
+        """Check if an S3 object exists. Returns True if exists, False if NoSuchKey or error."""
+        if not self.s3_client:
+            return False
+        try:
+            self.s3_client.head_object(Bucket=self.bucket_name, Key=s3_key)
+            return True
+        except ClientError as e:
+            if e.response.get('Error', {}).get('Code') == '404':
+                return False
+            raise
+        except Exception:
+            return False
+
+    def generate_presigned_url(self, s3_key, expires_in=3600):
+        """
+        Generate a presigned URL for temporary access to a private S3 object.
+        
+        Args:
+            s3_key: S3 object key (path in bucket)
+            expires_in: URL expiry in seconds (default 1 hour)
+        
+        Returns:
+            str: Presigned URL or None on error
+        """
+        if not self.s3_client:
+            return None
+        try:
+            url = self.s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': self.bucket_name, 'Key': s3_key},
+                ExpiresIn=expires_in
+            )
+            return url
+        except Exception as e:
+            print(f"Error generating presigned URL for {s3_key}: {e}")
+            return None
+
+    def s3_key_from_url(self, url):
+        """
+        Extract S3 object key from a full S3 URL.
+        E.g. https://bucket.s3.region.amazonaws.com/path/to/file.pdf -> path/to/file.pdf
+        """
+        if not url:
+            return None
+        from urllib.parse import urlparse, unquote
+        base = getattr(settings, 'S3_BUCKET_BASE_URL', '').rstrip('/') + '/'
+        if url.startswith(base):
+            key = url[len(base):].lstrip('/')
+            return unquote(key) if key else None
+        # Try parsing generic S3 URL format (path is the key)
+        parsed = urlparse(url)
+        path = parsed.path.lstrip('/')
+        return unquote(path) if path else None
+
     def delete_folder(self, folder_path):
         """
         Delete a folder from S3 (deletes all objects with the prefix)
