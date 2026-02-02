@@ -3,7 +3,9 @@
 <!--begin::Post-->
 <div class="post d-flex flex-column-fluid" id="kt_post">
 	<!--begin::Container-->
-	<div id="kt_content_container" class="container-xxl">
+	<div id="kt_content_container" class="container-xxl d-flex flex-wrap flex-lg-nowrap gap-5">
+		<!--begin::Main content-->
+		<div class="flex-grow-1 flex-lg-grow-1" style="min-width: 0;">
 		<!--begin::Card-->
 		<div class="card">
 			<!--begin::Card header-->
@@ -32,24 +34,6 @@
 				<div class="card-toolbar">
 					<!--begin::Toolbar-->
 					<div class="d-flex justify-content-end" data-kt-subscription-table-toolbar="base">
-						<!--begin::Filter-->
-						<button type="button" class="btn btn-light-primary me-3" data-kt-menu-trigger="click"
-							data-kt-menu-placement="bottom-end">
-							<!--begin::Svg Icon | path: icons/duotune/general/gen031.svg-->
-							<span class="svg-icon svg-icon-2">
-								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-									fill="none">
-									<path
-										d="M19.0759 3H4.72777C3.95892 3 3.47768 3.83148 3.86067 4.49814L8.56967 12.6949C9.17923 13.7559 9.5 14.9582 9.5 16.1819V19.5072C9.5 20.2189 10.2223 20.7028 10.8805 20.432L13.8805 19.1977C14.2553 19.0435 14.5 18.6783 14.5 18.273V13.8372C14.5 12.8089 14.8171 11.8056 15.408 10.964L19.8943 4.57465C20.3596 3.912 19.8856 3 19.0759 3Z"
-										fill="currentColor" />
-								</svg>
-							</span>
-							<!--end::Svg Icon-->Filter
-						</button>
-						<!--filter classs Includes gjdhhsdhkfjhkjhhhhhhhhhkjcjbkjsdkjhfkjdhkhf filter class addd-->
-						{% set reset_url = url('topteenadminmanaged:careerlist') %}
-						{% include 'topteenadmin/includes/filter-form.html' %}
-						<!--filter class Include  hskjfhkfjhkhkhkjhkjhjkjhkjhkjhkjhkjjhjhjkjvsbkjnomvodkkj-->
 						<!--begin::Add subscription-->
 						<a href="{{url('topteenadminmanaged:careercreate')}}" class="btn btn-primary">
 							<!--begin::Svg Icon | path: icons/duotune/arrows/arr075.svg-->
@@ -82,8 +66,10 @@
 			<!--end::Card header-->
 			<!--begin::Card body-->
 			<div class="card-body pt-0">
+				<!--begin::Table wrapper (horizontal scroll)-->
+				<div class="table-responsive">
 				<!--begin::Table-->
-				<table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_ecommerce_products_table">
+				<table class="table align-middle table-row-dashed fs-6 gy-5 w-100" id="kt_ecommerce_products_table" style="table-layout: auto;">
 					<!--begin::Table head-->
 					<thead>
 						<!--begin::Table row-->
@@ -96,7 +82,12 @@
 							</th>
 							<th class="min-w-125px">S.No</th>
 							<th class="min-w-125px">Name</th>
+							<th class="min-w-150px">Career Cluster</th>
 							<th class="min-w-125px">Publish</th>
+							<th class="min-w-80px">Preview</th>
+							<th class="min-w-100px">Created</th>
+							<th class="min-w-100px">Modified</th>
+							<th class="min-w-150px">Image URL</th>
 							<th class="text-end min-w-70px">Actions</th>
 						</tr>
 						<!--end::Table row-->
@@ -115,13 +106,38 @@
 							<!--end::Checkbox-->
 							<!--begin::Customer=-->
 							<td>
-								<a href="{{career.detail_url}}" class="text-gray-800 text-hover-primary mb-1">{{((page_obj.number-1)*paginator.per_page)+ loop.index}}</a>
+								<a href="{{career.detail_url}}" class="text-gray-800 text-hover-primary mb-1">{% if is_paginated %}{{ (page_obj.number - 1) * paginator.per_page + loop.index }}{% else %}{{ loop.index }}{% endif %}</a>
 							</td>
 							<!--end::Customer=-->
 							<td>
 								<a href="{{career.detail_url}}" class="text-gray-800 text-hover-primary mb-1">{{career.name}}</a>
 							</td>
+														<td class="fs-7">
+								{% set clusters = career.career_cluster.all() %}
+								{% if clusters %}
+									{% for c in clusters %}{{ c.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+								{% else %}
+									-
+								{% endif %}
+							</td>
 							<td>{{career.get_publish_status_display()}}</td>
+							<td>
+								{% set errs = career.get_validation_errors() %}
+								{% if errs|length == 0 %}
+								<a href="{{ url('careers:careerdetail', slug=career.slug, career_id=career.id) }}" target="_blank" class="btn btn-sm btn-light-success">View</a>
+								{% else %}
+								<span class="badge badge-light-danger" title="{{ errs|join('; ') }}">Invalid</span>
+								{% endif %}
+							</td>
+							<td class="fs-7">{{career.created.strftime('%Y-%m-%d %H:%M') if career.created else '-'}}</td>
+							<td class="fs-7">{{career.modified.strftime('%Y-%m-%d %H:%M') if career.modified else '-'}}</td>
+							<td class="fs-7">
+								{% if career.image and career.image.name %}
+								<a href="{{career.image.url}}" target="_blank" class="text-primary text-hover-primary" title="{{career.image.url}}">{{career.image.url|truncate(50, True)}}</a>
+								{% else %}
+								-
+								{% endif %}
+							</td>
 							<!--begin::Action=-->
 							<td class="text-end">
 								<a href="#" class="btn btn-light btn-active-light-primary btn-sm"
@@ -141,10 +157,9 @@
 								<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-125px py-4"
 									data-kt-menu="true">
                                     <!--begin::Menu item-->
-                                    {% set errs = career.get_validation_errors() %}
                                     <div class="menu-item px-3">
                                         {% if errs|length == 0 %}
-                                            <a href="/careers/career/{{career.slug}}-{{career.id}}-detail" target="_blank" class="menu-link px-3" title="Open frontend preview">View</a>
+                                            <a href="{{ url('careers:careerdetail', slug=career.slug, career_id=career.id) }}" target="_blank" class="menu-link px-3" title="Open frontend preview">View</a>
                                         {% else %}
                                             <span class="menu-link px-3 text-danger" title="{{ errs|join('; ') }}">Invalid</span>
                                         {% endif %}
@@ -171,11 +186,19 @@
 					<!--end::Table body-->
 				</table>
 				<!--end::Table-->
+				</div>
+				<!--end::Table wrapper-->
 				{% include 'topteenadmin/includes/pagination.html' %}
 			</div>
 			<!--end::Card body-->
 		</div>
 		<!--end::Card-->
+		</div>
+		<!--end::Main content-->
+		<!--begin::Filter sidebar-->
+		{% set reset_url = url('topteenadminmanaged:careerlist') %}
+		{% include 'topteenadmin/includes/filter-sidebar.html' %}
+		<!--end::Filter sidebar-->
 	</div>
 	<!--end::Container-->
 </div>

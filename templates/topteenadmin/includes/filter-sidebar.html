@@ -1,0 +1,21 @@
+<!--begin::Filter Sidebar-->
+<div class="card card-flush w-300px w-md-350px flex-shrink-0 position-sticky align-self-start" style="top: 1rem;">
+	<div class="card-header">
+		<h3 class="card-title">Filters</h3>
+	</div>
+	<div class="card-body pt-0">
+		<form method="GET" data-kt-subscription-table-filter="form">
+			{% for field in filter_form %}
+			<div class="mb-8">
+				<label class="form-label fs-7 fw-bold text-gray-700">{{ field.label }}</label>
+				{{ field }}
+			</div>
+			{% endfor %}
+			<div class="d-flex flex-wrap gap-2 mt-6">
+				<button type="submit" class="btn btn-primary btn-sm" data-kt-subscription-table-filter="filter">Apply</button>
+				<a href="{{ reset_url }}" class="btn btn-light btn-sm" data-kt-subscription-table-filter="reset">Reset</a>
+			</div>
+		</form>
+	</div>
+</div>
+<!--end::Filter Sidebar-->

@@ -1,8 +1,10 @@
 from dataclasses import field, fields
 import django_filters
+from django.db.models import Count, Q
 from blog.models import Blog,BlogCategory,BlogTag
 from colleges.models import College,CollegeImages,CollegeFlatText,CollegeFacts,CollegeFacility, CollegeText,Facility,CollegeMoneyValue, RecruitingCompanies,CollegeRecruitingCompanies
 from core.models import CommonFAQ, Country, Review,State,City,Hobbies,Subject,UserFigureOut,Stories,APILog
+from core import choices
 from careers.models import Career, CareerFAQ, CareerMedia, CareerPath, Profession,Skill,ProspectiveRecruiter,ProspectiveEmploymentArea,CareerCluster,CareerTags,CareerPathStep,VideoCategory,Videos
 from .base_filters import NamedBaseFilter,BaseFilter       
 from courses.models import Stream,Course,CourseFacts,CourseIntake,CourseMoneyValue,CourseText,CourseEnglighRequirements
@@ -14,9 +16,62 @@ from users.models import User
 from app_post_matric.models import Test
 
 class CareerFilter(NamedBaseFilter):
+    career_cluster = django_filters.ModelChoiceFilter(
+        queryset=CareerCluster.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('name'),
+        label='Career Cluster',
+        empty_label='-- Any --'
+    )
+    career_cluster_empty = django_filters.ChoiceFilter(
+        choices=[('empty', 'Blank or null (not linked)'), ('has', 'Has cluster(s)')],
+        label='Career Cluster Status',
+        method='filter_career_cluster_empty',
+        empty_label='-- Any --'
+    )
+    image_empty = django_filters.ChoiceFilter(
+        choices=[('empty', 'Blank or null (no image)'), ('has', 'Has image')],
+        label='Image',
+        method='filter_image_empty',
+        empty_label='-- Any --'
+    )
+    image_duplicate = django_filters.ChoiceFilter(
+        choices=[('duplicate', 'Same image name (duplicate)'), ('unique', 'Unique image name')],
+        label='Image Duplicate',
+        method='filter_image_duplicate',
+        empty_label='-- Any --'
+    )
+
     class Meta:
         model = Career
-        fields = ['name','skills','publish_status']
+        fields = ['name', 'skills', 'publish_status']
+
+    def filter_career_cluster_empty(self, queryset, name, value):
+        active_cluster_filter = Q(career_cluster__object_status=choices.ObjectStatus.ACTIVE)
+        if value == 'empty':
+            return queryset.annotate(
+                cc_count=Count('career_cluster', filter=active_cluster_filter)
+            ).filter(cc_count=0)
+        elif value == 'has':
+            return queryset.annotate(
+                cc_count=Count('career_cluster', filter=active_cluster_filter)
+            ).filter(cc_count__gt=0)
+        return queryset
+
+    def filter_image_empty(self, queryset, name, value):
+        if value == 'empty':
+            return queryset.filter(Q(image='') | Q(image__isnull=True))
+        elif value == 'has':
+            return queryset.exclude(Q(image='') | Q(image__isnull=True))
+        return queryset
+
+    def filter_image_duplicate(self, queryset, name, value):
+        dupes = Career.objects.exclude(
+            Q(image='') | Q(image__isnull=True)
+        ).values('image').annotate(c=Count('id')).filter(c__gt=1).values_list('image', flat=True)
+        if value == 'duplicate':
+            return queryset.filter(image__in=dupes)
+        elif value == 'unique':
+            return queryset.exclude(Q(image='') | Q(image__isnull=True)).exclude(image__in=dupes)
+        return queryset
         
 class CareerTagsFilter(NamedBaseFilter):
     class Meta:

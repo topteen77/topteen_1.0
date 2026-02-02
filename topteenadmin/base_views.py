@@ -13,10 +13,30 @@ from django.contrib.auth.decorators import user_passes_test,login_required
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect
 
+PER_PAGE_CHOICES = [
+    ('all', 'All'),
+    (25, '25'),
+    (100, '100'),
+    (500, '500'),
+]
+
 @method_decorator(login_required,name='dispatch')
 class BaseListView(ListView):
     paginate_by = 25
     paginate_orphans = 2
+
+    def get_paginate_by(self, queryset):
+        per_page = self.request.GET.get('per_page', '25')
+        if per_page == 'all':
+            return None
+        try:
+            val = int(per_page)
+            if val in (25, 100, 500):
+                return val
+        except (ValueError, TypeError):
+            pass
+        return 25
+
     def _get_filters(self,qs):
         if hasattr(self,'filterset_class'):
             return self.filterset_class(self.request.GET, queryset=qs)
@@ -40,7 +60,34 @@ class BaseListView(ListView):
         ctx['html_head']={'title':title,'description':''}
         ctx['breadcrumb']=self._breadcrumb()
         ctx['filter_form']=self._get_filter_form()
+        # Pagination: per_page dropdown and page numbers
+        ctx['per_page_choices'] = PER_PAGE_CHOICES
+        ctx['current_per_page'] = self.request.GET.get('per_page', '25')
+        if ctx.get('paginator'):
+            ctx['total_count'] = ctx['paginator'].count
+            ctx['page_numbers'] = self._get_page_numbers(ctx['paginator'], ctx['page_obj'])
+        else:
+            ctx['total_count'] = len(ctx.get('object_list', []))
+            ctx['page_numbers'] = []
         return ctx
+
+    def _get_page_numbers(self, paginator, page_obj):
+        """Return list of page numbers to display, with '...' for gaps."""
+        num_pages = paginator.num_pages
+        current = page_obj.number
+        if num_pages <= 9:
+            return list(range(1, num_pages + 1))
+        result = [1]
+        if current > 3:
+            result.append('...')
+        for p in range(max(2, current - 2), min(num_pages, current + 2) + 1):
+            if p not in result:
+                result.append(p)
+        if current < num_pages - 2:
+            result.append('...')
+        if num_pages > 1 and num_pages not in result:
+            result.append(num_pages)
+        return result
 
     def get_queryset(self):
         qs = super().get_queryset()

@@ -77,6 +77,9 @@ class CareerListView(BaseListView):
     active_tab="career"
     model = Career
     filterset_class = CareerFilter
+
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related('career_cluster')
     
 class CreateCareer(BaseCreateView):
     template_name = "topteenadmin/career_form.html"

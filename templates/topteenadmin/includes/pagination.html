@@ -1,26 +1,50 @@
-{% if is_paginated %}
-<div class="row">
-    <div class="col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start">
-
-    </div>
-    <div class="col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end">
-        <div class="dataTables_paginate paging_simple_numbers" id="kt_subscriptions_table_paginate">
-            <ul class="pagination">
-                {% if page_obj.has_previous() %}
-                <li class="paginate_button page-item previous" id="kt_subscriptions_table_previous">
-                <a href="?page={{page_obj.previous_page_number()}}{% for key,value in request.GET.items() %}{% if key != 'page' %}&{{key}}={{value}}{% endif %}{% endfor %}" aria-controls="kt_subscriptions_table" data-dt-idx="0" tabindex="0" class="page-link">
-                    <i class="previous"></i></a>
-                </li>
-                {% endif %}
-                <li class="paginate_button page-item active"><a href="?page={{ page_obj.number }}" aria-controls="kt_subscriptions_table" data-dt-idx="1" tabindex="0" class="page-link">{{page_obj.number }}</a></li>
-                {% if page_obj.has_next() %}
-                <li class="paginate_button page-item next" id="kt_subscriptions_table_next">
-                    <a href="?page={{page_obj.next_page_number()}}{% for key,value in request.GET.items() %}{% if key != 'page' %}&{{key}}={{value}}{% endif %}{% endfor %}" aria-controls="kt_subscriptions_table" data-dt-idx="3" tabindex="0" class="page-link"><i class="next"></i>
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4">
+	<!--begin::Per page dropdown & record count-->
+	<div class="d-flex align-items-center gap-3">
+		<select class="form-select form-select-sm w-80px" onchange="window.location.href=buildPaginateUrl({page: 1, per_page: this.value})">
+			{% for value, label in per_page_choices %}
+			<option value="{{ value }}" {{ 'selected' if current_per_page == value|string else '' }}>{{ label }}</option>
+			{% endfor %}
+		</select>
+		<span class="text-gray-600 fs-7">Showing {{ object_list|length }} of {{ total_count }} records</span>
+	</div>
+	<!--end::Per page dropdown & record count-->
+	<!--begin::Page numbers (when paginated)-->
+	{% if is_paginated %}
+	<div class="d-flex align-items-center">
+		<ul class="pagination mb-0">
+			{% if page_obj.has_previous() %}
+			<li class="page-item">
+				<a class="page-link" href="{{ paginate_url(request, page=page_obj.previous_page_number()) }}"><i class="previous"></i></a>
+			</li>
+			{% endif %}
+			{% for p in page_numbers %}
+				{% if p == '...' %}
+				<li class="page-item disabled"><span class="page-link">...</span></li>
+				{% else %}
+				<li class="page-item {{ 'active' if p == page_obj.number else '' }}">
+					<a class="page-link" href="{{ paginate_url(request, page=p) }}">{{ p }}</a>
+				</li>
+				{% endif %}
+			{% endfor %}
+			{% if page_obj.has_next() %}
+			<li class="page-item">
+				<a class="page-link" href="{{ paginate_url(request, page=page_obj.next_page_number()) }}"><i class="next"></i></a>
+			</li>
+			{% endif %}
+		</ul>
+	</div>
+	{% endif %}
+	<!--end::Page numbers-->
 </div>
-{% endif %}
+<script>
+function buildPaginateUrl(overrides) {
+	var params = new URLSearchParams(window.location.search);
+	for (var k in overrides) {
+		if (overrides[k] !== undefined && overrides[k] !== null) {
+			params.set(k, overrides[k]);
+		}
+	}
+	return window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+}
+</script>

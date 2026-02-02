@@ -1,6 +1,7 @@
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import reverse
 from jinja2 import Environment, pass_context
+from urllib.parse import urlencode
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.templatetags.static import static
@@ -259,6 +260,18 @@ def get_url(obj):
             return url_attr
     return '#'
 
+
+def paginate_url(request, page=None, per_page=None):
+    """Build URL with GET params, applying page/per_page overrides. Used for pagination links."""
+    params = request.GET.copy()
+    if page is not None:
+        params['page'] = str(page)
+    if per_page is not None:
+        params['per_page'] = str(per_page)
+    qs = urlencode(params)
+    return request.path + ('?' + qs if qs else '')
+
+
 def environment(**options):
     # Import custom loader that skips admin templates
     from topteens.jinja2_loader import get_jinja2_loader
@@ -297,5 +310,6 @@ def environment(**options):
         'csrf_input': csrf_input,
         'csrf_token': csrf_token_value,
         'get_url': get_url,
+        'paginate_url': paginate_url,
     })
     return env
