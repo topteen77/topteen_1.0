@@ -10,6 +10,7 @@ from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.urls import path, reverse
 from django.contrib.admin import SimpleListFilter
+from django.db.models import Count, Q
 from core import choices
 from .models import Career, CareerFAQ,CareerPath,CareerMedia, Skill,ProspectiveEmploymentArea,ProspectiveRecruiter,Profession,CareerPathStep,CareerCluster,RIASECCareer,CareerRating
 from nested_inline.admin import NestedStackedInline, NestedModelAdmin
@@ -58,6 +59,73 @@ class MindmapValidationFilter(SimpleListFilter):
                 if not is_valid:
                     error_ids.append(career.id)
             return queryset.filter(id__in=error_ids)
+        return queryset
+
+
+class CareerClusterEmptyFilter(SimpleListFilter):
+    """Filter for careers not linked with any cluster (no active cluster links)"""
+    title = 'Career Cluster'
+    parameter_name = 'career_cluster_empty'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('empty', 'Blank or null (not linked)'),
+            ('has', 'Has cluster(s)'),
+        )
+
+    def queryset(self, request, queryset):
+        # Count only ACTIVE clusters (CareerCluster uses SoftDeletionManager)
+        active_cluster_filter = Q(career_cluster__object_status=choices.ObjectStatus.ACTIVE)
+        if self.value() == 'empty':
+            # Careers with no active cluster links (career_cluster.count() == 0)
+            return queryset.annotate(
+                cc_count=Count('career_cluster', filter=active_cluster_filter)
+            ).filter(cc_count=0)
+        elif self.value() == 'has':
+            return queryset.annotate(
+                cc_count=Count('career_cluster', filter=active_cluster_filter)
+            ).filter(cc_count__gt=0)
+        return queryset
+
+
+class ImageEmptyFilter(SimpleListFilter):
+    """Filter for careers with no image (null or blank)"""
+    title = 'Image'
+    parameter_name = 'image_empty'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('empty', 'Blank or null (no image)'),
+            ('has', 'Has image'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'empty':
+            return queryset.filter(Q(image='') | Q(image__isnull=True))
+        elif self.value() == 'has':
+            return queryset.exclude(Q(image='') | Q(image__isnull=True))
+        return queryset
+
+
+class ImageDuplicateFilter(SimpleListFilter):
+    """Filter for careers with duplicate image names (same image used by multiple careers)"""
+    title = 'Image duplicate'
+    parameter_name = 'image_duplicate'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('duplicate', 'Same image name (duplicate)'),
+            ('unique', 'Unique image name'),
+        )
+
+    def queryset(self, request, queryset):
+        dupes = Career.objects.exclude(
+            Q(image='') | Q(image__isnull=True)
+        ).values('image').annotate(c=Count('id')).filter(c__gt=1).values_list('image', flat=True)
+        if self.value() == 'duplicate':
+            return queryset.filter(image__in=dupes)
+        elif self.value() == 'unique':
+            return queryset.exclude(Q(image='') | Q(image__isnull=True)).exclude(image__in=dupes)
         return queryset
 
 
@@ -177,8 +245,8 @@ class CareerAdminForm(forms.ModelForm):
 
 class CareerAdmin(admin.ModelAdmin):
     form = CareerAdminForm
-    list_display = ['id', 'name', 'career_clusters_display', 'publish_status_display', 'preview_link', 'mindmap_validation', 'skills_count', 'created_date']
-    list_filter = ['publish_status', 'created', 'career_cluster', MindmapValidationFilter]
+    list_display = ['id', 'name', 'career_clusters_display', 'publish_status_display', 'image_url_display', 'preview_link', 'mindmap_validation', 'skills_count', 'created_date', 'modified_date']
+    list_filter = ['publish_status', 'created', 'modified', 'career_cluster', CareerClusterEmptyFilter, ImageEmptyFilter, ImageDuplicateFilter, MindmapValidationFilter]
     search_fields = ['name', 'summary', 'description']
     list_per_page = 25
     ordering = ['-created']
@@ -329,6 +397,18 @@ class CareerAdmin(admin.ModelAdmin):
     def created_date(self, obj):
         return obj.created.strftime('%Y-%m-%d %H:%M') if obj.created else '-'
     created_date.short_description = 'Created'
+
+    def modified_date(self, obj):
+        return obj.modified.strftime('%Y-%m-%d %H:%M') if obj.modified else '-'
+    modified_date.short_description = 'Modified'
+    modified_date.admin_order_field = 'modified'
+
+    def image_url_display(self, obj):
+        if obj.image and obj.image.name:
+            url = obj.image.url
+            return format_html('<a href="{}" target="_blank" title="{}">{}</a>', url, url, url[:50] + '...' if len(url) > 50 else url)
+        return '-'
+    image_url_display.short_description = 'Image URL'
     
     def mindmap_validation(self, obj):
         """Display mindmap validation status with error icon and hover tooltip"""
