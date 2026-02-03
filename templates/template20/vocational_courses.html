@@ -248,6 +248,262 @@ Explore vocational courses and career tracks across technology, healthcare, busi
   .vocationcourse-hero h1 {
   line-height: 51px;
 }
+
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .sub-tabs {
+    border-bottom: none;
+    display: flex;
+    gap: 10px;
+    padding: 8px;
+    background: rgb(242, 242, 255);
+    border-radius: 999px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(10px);
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(80, 70, 229, 0.3) transparent;
+    cursor: grab;
+    margin-bottom: 40px !important;
+  }
+
+  #after-10-sub-tabs-container .nav-tabs.sub-tabs {
+	width: 750px;
+	margin: 0px auto;
+}
+
+  #after-12-sub-tabs-container .nav-tabs.sub-tabs {
+	width: 847px;
+	margin: 0px auto;
+}
+  .sub-tabs:active {
+    cursor: grabbing;
+  }
+  .sub-tabs::-webkit-scrollbar {
+    height: 8px;
+  }
+  .sub-tabs::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    margin: 0 10px;
+  }
+  .sub-tabs::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, rgba(80, 70, 229, 0.4), rgba(111, 94, 248, 0.5));
+    border-radius: 10px;
+    transition: background 0.3s;
+  }
+  .sub-tabs::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(90deg, rgba(80, 70, 229, 0.6), rgba(111, 94, 248, 0.7));
+  }
+  .sub-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s cubic-bezier(.2,.9,.2,1);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 6px rgba(16, 24, 40, 0.06);
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+    flex: 0 0 auto;
+    min-width: fit-content;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    text-transform: capitalize
+  }
+  .sub-tabs .nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+  }
+  .sub-tabs .nav-link:hover::before {
+    left: 100%;
+  }
+  .sub-tabs .nav-link:hover {
+    background: rgba(255, 255, 255, 1);
+    color: #5046e5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(80, 70, 229, 0.15);
+  }
+  .sub-tabs .nav-link.active {
+    color: #fff;
+    background: linear-gradient(135deg, #6f5ef8 0%, #3f37c9 100%);
+    box-shadow: 0 6px 20px rgba(79, 55, 201, 0.25);
+    transform: translateY(-2px);
+  }
+  .sub-tabs .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+  }
+  .tabs-heading-c {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: inline-block;
+  }
+  .tabs-heading-c:hover {
+    background: rgba(80, 70, 229, 0.1);
+    color: #5046e5;
+  }
+  .tabs-heading-c.active {
+    background: linear-gradient(90deg,#6f5ef8,#3f37c9);
+    color: #fff;
+  }
+  .tab-data-show-after-10,
+  .tab-data-show-after-12 {
+    display: none;
+  }
+  .tab-data-show-after-10.active,
+  .tab-data-show-after-12.active {
+    display: block;
+  }
+  /* Tablet and below */
+  @media (max-width: 992px) {
+    .sub-tabs-container {
+      padding: 20px 20px;
+      margin-top: 25px;
+      margin-bottom: 35px;
+      border-radius: 14px;
+    }
+    .sub-tabs {
+      gap: 8px;
+      padding: 6px;
+    }
+    .sub-tabs .nav-link {
+      padding: 9px 18px;
+      font-size: 13.5px;
+    }
+  }
+
+  /* Mobile devices */
+  @media (max-width: 767px) {
+    .sub-tabs-container {
+      padding: 18px 12px;
+      margin-top: 20px;
+      margin-bottom: 30px;
+      border-radius: 12px;
+    }
+    .sub-tabs {
+      width: 100%;
+      justify-content: flex-start;
+      overflow-x: auto;
+      padding: 6px 8px;
+      gap: 8px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(80, 70, 229, 0.4) rgba(255, 255, 255, 0.2);
+    }
+    .sub-tabs::-webkit-scrollbar {
+      height: 6px;
+    }
+    .sub-tabs::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      margin: 0 8px;
+    }
+    .sub-tabs::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg, rgba(80, 70, 229, 0.5), rgba(111, 94, 248, 0.6));
+      border-radius: 10px;
+    }
+    .sub-tabs::-webkit-scrollbar-thumb:active {
+      background: linear-gradient(90deg, rgba(80, 70, 229, 0.7), rgba(111, 94, 248, 0.8));
+    }
+    .sub-tabs .nav-link { 
+      flex: 0 0 auto;
+      padding: 8px 16px;
+      font-size: 13px;
+      min-width: auto;
+    }
+  }
+
+  /* Small mobile devices */
+  @media (max-width: 480px) {
+    .sub-tabs-container {
+      padding: 15px 10px;
+      margin-top: 15px;
+      margin-bottom: 25px;
+      border-radius: 10px;
+    }
+    .sub-tabs {
+      padding: 5px 6px;
+      gap: 6px;
+    }
+    .sub-tabs .nav-link {
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .sub-tabs::-webkit-scrollbar {
+      height: 5px;
+    }
+  }
+
+  /* Extra small devices */
+  @media (max-width: 360px) {
+    .sub-tabs-container {
+      padding: 12px 8px;
+    }
+    .sub-tabs {
+      padding: 4px 5px;
+      gap: 5px;
+    }
+    .sub-tabs .nav-link {
+      padding: 6px 12px;
+      font-size: 11.5px;
+    }
+  }
+
+  /* Large screens - center align when tabs fit */
+  @media (min-width: 1200px) {
+    .sub-tabs {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+
+  /* Prevent text selection during scroll on mobile */
+  @media (max-width: 767px) {
+    .sub-tabs {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    .sub-tabs .nav-link {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -327,16 +583,18 @@ Explore vocational courses and career tracks across technology, healthcare, busi
           <div class="category-section course-category">
             <h2 class="category-header">{{ level.name|title }}</h2>
 
+            <!-- Dynamic Sub-tabs Container for After 10 -->
+            <div class="sub-tabs-container" id="after-10-sub-tabs-container"></div>
+
             {% for sub in level.children.all() %}
-            <div class="mb-4">
-              <h4 class="mb-3">{{ sub.name }}</h4>
+            <div class="mb-4 tab-data-show-after-10" data-subcategory-id="after-10-sub-{{ sub.id }}" style="display: none;">
               <div class="row">
                 {% for course in sub.courses.all() %}
-                <div class="col-md-4 mb-4 course-item" data-tab="after-10">
+                <div class="col-md-4 mb-4 course-item" data-tab="after-10" data-subcategory="{{ sub.id }}">
                   <div class="blog-card h-100">
                     <div class="blog-image">
                       <div class="cat-header">
-                        <a href="#" class="blog-category category-parent">{{ sub.name }}</a>
+                        <a href="#" class="blog-category category-parent text-capitalize">{{ sub.name }}</a>
                       </div>
                       {% if course.image %}
                         <img src="{{ course.image.url }}" alt="{{ course.name }}">
@@ -345,7 +603,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
                       {% endif %}
                     </div>
                     <div class="blog-content">
-                      <h3 class="blog-title mt-0">{{ course.name }}</h3>
+                      <h3 class="blog-title mt-0 text-capitalize">{{ course.name }}</h3>
                       <p class="blog-excerpt text-gray">Click to view full course details.</p>
                       <a href="/vocational-courses/course/{{ course.id }}/" class="read-more">
                         View Details <i class="bx bx-right-arrow-alt"></i>
@@ -355,6 +613,11 @@ Explore vocational courses and career tracks across technology, healthcare, busi
                 </div>
                 {% endfor %}
               </div>
+              {% if not sub.courses.all() %}
+              <div class="no-results" style="display: block;">
+                <p class="text-gray mb-0">No courses available in this category.</p>
+              </div>
+              {% endif %}
             </div>
             {% endfor %}
           </div>
@@ -373,16 +636,18 @@ Explore vocational courses and career tracks across technology, healthcare, busi
           <div class="category-section course-category">
             <h2 class="category-header">{{ level.name|title }}</h2>
 
+            <!-- Dynamic Sub-tabs Container for After 12 -->
+            <div class="sub-tabs-container" id="after-12-sub-tabs-container"></div>
+
             {% for sub in level.children.all() %}
-            <div class="mb-4">
-              <h4 class="mb-3">{{ sub.name }}</h4>
+            <div class="mb-4 tab-data-show-after-12" data-subcategory-id="after-12-sub-{{ sub.id }}" style="display: none;">
               <div class="row">
                 {% for course in sub.courses.all() %}
-                <div class="col-md-4 mb-4 course-item" data-tab="after-12">
+                <div class="col-md-4 mb-4 course-item" data-tab="after-12" data-subcategory="{{ sub.id }}">
                   <div class="blog-card h-100">
                     <div class="blog-image">
                       <div class="cat-header">
-                        <a href="#" class="blog-category category-parent">{{ sub.name }}</a>
+                        <a href="#" class="blog-category category-parent text-capitalize">{{ sub.name }}</a>
                       </div>
                       {% if course.image %}
                         <img src="{{ course.image.url }}" alt="{{ course.name }}">
@@ -391,7 +656,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
                       {% endif %}
                     </div>
                     <div class="blog-content">
-                      <h3 class="blog-title mt-0">{{ course.name }}</h3>
+                      <h3 class="blog-title mt-0 text-capitalize">{{ course.name }}</h3>
                       <p class="blog-excerpt text-gray">Click to view full course details.</p>
                       <a href="/vocational-courses/course/{{ course.id }}/" class="read-more">
                         View Details <i class="bx bx-right-arrow-alt"></i>
@@ -401,6 +666,11 @@ Explore vocational courses and career tracks across technology, healthcare, busi
                 </div>
                 {% endfor %}
               </div>
+              {% if not sub.courses.all() %}
+              <div class="no-results" style="display: block;">
+                <p class="text-gray mb-0">No courses available in this category.</p>
+              </div>
+              {% endif %}
             </div>
             {% endfor %}
           </div>
@@ -440,8 +710,273 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     });
   });
 
-  // Enhanced search with suggestions across both tabs
+  // Dynamic Tabs Creation and Management
   document.addEventListener('DOMContentLoaded', function() {
+    // Hide all sections from both tab types
+    function hideAllTabSections() {
+      // Hide all sections from both after-10 and after-12
+      document.querySelectorAll('.tab-data-show-after-10, .tab-data-show-after-12').forEach(section => {
+        section.style.display = 'none';
+        section.classList.remove('active');
+      });
+    }
+
+    // Initialize dynamic tabs for both After 10 and After 12
+    function initializeDynamicTabs(tabType) {
+      const container = document.getElementById(`${tabType}-sub-tabs-container`);
+      if (!container) return;
+
+      // Check if tabs are already initialized
+      if (container.querySelector('.sub-tabs')) {
+        return; // Already initialized
+      }
+
+      // First, hide all sections from both tabs to prevent cross-contamination
+      hideAllTabSections();
+
+      // Get all data sections for this tab type only
+      const mainTab = document.getElementById(tabType);
+      if (!mainTab) return;
+      
+      const dataSections = mainTab.querySelectorAll(`.tab-data-show-${tabType}`);
+      if (dataSections.length === 0) return;
+
+      // Create tabs navigation
+      const tabsNav = document.createElement('ul');
+      tabsNav.className = 'nav nav-tabs sub-tabs';
+      tabsNav.setAttribute('role', 'tablist');
+      tabsNav.id = `${tabType}-sub-tabs`;
+
+      // Create tabs from data sections
+      dataSections.forEach((section, index) => {
+        const subcategoryId = section.getAttribute('data-subcategory-id');
+        if (!subcategoryId) return;
+
+        // Get category name from the first course item or use a default
+        const firstCourse = section.querySelector('.course-item');
+        const categoryName = firstCourse 
+          ? firstCourse.querySelector('.blog-category')?.textContent?.trim() || `Category ${index + 1}`
+          : `Category ${index + 1}`;
+
+        // Create tab button
+        const tabItem = document.createElement('li');
+        tabItem.className = 'nav-item';
+        tabItem.setAttribute('role', 'presentation');
+
+        const tabButton = document.createElement('button');
+        tabButton.className = 'nav-link' + (index === 0 ? ' active' : '');
+        tabButton.id = `${subcategoryId}-tab`;
+        tabButton.setAttribute('data-bs-toggle', 'tab');
+        tabButton.setAttribute('data-bs-target', `#${subcategoryId}`);
+        tabButton.setAttribute('type', 'button');
+        tabButton.setAttribute('role', 'tab');
+        tabButton.setAttribute('aria-controls', subcategoryId);
+        tabButton.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
+        tabButton.setAttribute('data-tab-type', tabType);
+        tabButton.setAttribute('data-section-id', subcategoryId);
+        tabButton.textContent = categoryName;
+
+        tabItem.appendChild(tabButton);
+        tabsNav.appendChild(tabItem);
+      });
+
+      container.appendChild(tabsNav);
+
+      // Ensure all sections for this tab type are hidden first
+      dataSections.forEach(section => {
+        section.style.display = 'none';
+        section.classList.remove('active');
+      });
+
+      // Show first section by default
+      if (dataSections.length > 0) {
+        const firstSection = dataSections[0];
+        // Double check it belongs to the correct tab
+        if (firstSection.closest(`#${tabType}`)) {
+          firstSection.style.display = 'block';
+          firstSection.classList.add('active');
+        }
+      }
+
+      // Add click handlers to tab buttons
+      tabsNav.querySelectorAll('.nav-link').forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          const sectionId = this.getAttribute('data-section-id');
+          const tabType = this.getAttribute('data-tab-type');
+          
+          // Get the main tab container to ensure we only affect sections within it
+          const mainTab = document.getElementById(tabType);
+          if (!mainTab) return;
+          
+          // Hide all sections for this tab type (only within the main tab)
+          mainTab.querySelectorAll(`.tab-data-show-${tabType}`).forEach(section => {
+            section.style.display = 'none';
+            section.classList.remove('active');
+          });
+
+          // Show selected section (ensure it's within the correct main tab)
+          const targetSection = mainTab.querySelector(`[data-subcategory-id="${sectionId}"]`);
+          if (targetSection && targetSection.closest(`#${tabType}`)) {
+            targetSection.style.display = 'block';
+            targetSection.classList.add('active');
+          }
+
+          // Update active state of tab buttons
+          tabsNav.querySelectorAll('.nav-link').forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-selected', 'false');
+          });
+          this.classList.add('active');
+          this.setAttribute('aria-selected', 'true');
+
+          // Smooth scroll to active tab if it's not fully visible (for mobile/tablet)
+          setTimeout(() => {
+            const buttonRect = this.getBoundingClientRect();
+            const tabsNavRect = tabsNav.getBoundingClientRect();
+            const isButtonVisible = 
+              buttonRect.left >= tabsNavRect.left && 
+              buttonRect.right <= tabsNavRect.right;
+            
+            if (!isButtonVisible) {
+              // Calculate scroll position to center the button
+              const scrollLeft = tabsNav.scrollLeft;
+              const buttonOffsetLeft = this.offsetLeft;
+              const buttonWidth = this.offsetWidth;
+              const tabsNavWidth = tabsNav.offsetWidth;
+              const targetScroll = buttonOffsetLeft - (tabsNavWidth / 2) + (buttonWidth / 2);
+              
+              tabsNav.scrollTo({
+                left: targetScroll,
+                behavior: 'smooth'
+              });
+            }
+          }, 100);
+        });
+      });
+    }
+
+    // Initialize tabs when main tab is shown
+    function initializeTabsForActiveMainTab() {
+      // First hide all sections
+      hideAllTabSections();
+      
+      const activeMainTab = document.querySelector('#vocationalTabsContent .tab-pane.active');
+      if (!activeMainTab) return;
+
+      const tabId = activeMainTab.id;
+      if (tabId === 'after-10' || tabId === 'after-12') {
+        // Ensure only sections from the active tab are shown
+        const inactiveTabId = tabId === 'after-10' ? 'after-12' : 'after-10';
+        const inactiveTab = document.getElementById(inactiveTabId);
+        if (inactiveTab) {
+          inactiveTab.querySelectorAll('.tab-data-show-after-10, .tab-data-show-after-12').forEach(section => {
+            section.style.display = 'none';
+            section.classList.remove('active');
+          });
+        }
+        
+        initializeDynamicTabs(tabId);
+      }
+    }
+
+    // Enhanced touch scrolling for mobile devices
+    function enhanceTouchScrolling() {
+      const subTabsContainers = document.querySelectorAll('.sub-tabs');
+      subTabsContainers.forEach(tabsNav => {
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        // Mouse events for desktop drag scrolling
+        tabsNav.addEventListener('mousedown', (e) => {
+          isDown = true;
+          tabsNav.style.cursor = 'grabbing';
+          startX = e.pageX - tabsNav.offsetLeft;
+          scrollLeft = tabsNav.scrollLeft;
+        });
+
+        tabsNav.addEventListener('mouseleave', () => {
+          isDown = false;
+          tabsNav.style.cursor = 'grab';
+        });
+
+        tabsNav.addEventListener('mouseup', () => {
+          isDown = false;
+          tabsNav.style.cursor = 'grab';
+        });
+
+        tabsNav.addEventListener('mousemove', (e) => {
+          if (!isDown) return;
+          e.preventDefault();
+          const x = e.pageX - tabsNav.offsetLeft;
+          const walk = (x - startX) * 2; // Scroll speed multiplier
+          tabsNav.scrollLeft = scrollLeft - walk;
+        });
+
+        // Touch events for mobile
+        let touchStartX = 0;
+        let touchScrollLeft = 0;
+
+        tabsNav.addEventListener('touchstart', (e) => {
+          touchStartX = e.touches[0].pageX - tabsNav.offsetLeft;
+          touchScrollLeft = tabsNav.scrollLeft;
+        }, { passive: true });
+
+        tabsNav.addEventListener('touchmove', (e) => {
+          if (!touchStartX) return;
+          const x = e.touches[0].pageX - tabsNav.offsetLeft;
+          const walk = (x - touchStartX) * 1.5;
+          tabsNav.scrollLeft = touchScrollLeft - walk;
+        }, { passive: true });
+
+        tabsNav.addEventListener('touchend', () => {
+          touchStartX = 0;
+        });
+      });
+    }
+
+    // Initialize on page load
+    initializeTabsForActiveMainTab();
+    
+    // Enhance scrolling after tabs are initialized
+    setTimeout(() => {
+      enhanceTouchScrolling();
+    }, 300);
+
+    // Re-initialize when main tab changes
+    const mainTabButtons = document.querySelectorAll('#vocationalTabs button[data-bs-toggle="tab"]');
+    mainTabButtons.forEach(button => {
+      button.addEventListener('show.bs.tab', function(e) {
+        // Before showing the new tab, hide all sections from both tabs
+        hideAllTabSections();
+      });
+      
+      button.addEventListener('shown.bs.tab', function() {
+        const targetId = this.getAttribute('data-bs-target').replace('#', '');
+        if (targetId === 'after-10' || targetId === 'after-12') {
+          // Hide all sections first to prevent showing wrong data
+          hideAllTabSections();
+          
+          // Clear existing tabs if any
+          const container = document.getElementById(`${targetId}-sub-tabs-container`);
+          if (container) {
+            container.innerHTML = '';
+          }
+          
+          // Small delay to ensure DOM is ready
+          setTimeout(() => {
+            initializeDynamicTabs(targetId);
+            // Re-enhance scrolling after re-initialization
+            setTimeout(() => {
+              enhanceTouchScrolling();
+            }, 50);
+          }, 50);
+        }
+      });
+    });
+
+    // Enhanced search with suggestions across both tabs
     const searchInput = document.getElementById('courseSearch');
     const suggestionsDiv = document.getElementById('searchSuggestions');
     if (!searchInput || !suggestionsDiv) return;
@@ -449,7 +984,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     let allCourses = [];
     let selectedIndex = -1;
     
-    // Collect all courses from both tabs
+    // Collect all courses from both tabs and sub-tabs
     function collectAllCourses() {
       allCourses = [];
       const tabs = ['after-10', 'after-12'];
@@ -458,32 +993,75 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         const tab = document.getElementById(tabId);
         if (!tab) return;
         
-        const items = Array.from(tab.querySelectorAll('.course-item'));
-        items.forEach(item => {
-          const title = item.querySelector('.blog-title')?.textContent?.trim() || '';
-          const category = item.querySelector('.blog-category')?.textContent?.trim() || '';
-          const link = item.querySelector('.read-more')?.getAttribute('href') || '#';
-          
-          if (title) {
-            allCourses.push({
-              title: title,
-              category: category,
-              link: link,
-              tab: tabId,
-              element: item
-            });
-          }
+        // Get all data sections (including hidden ones)
+        const dataSections = tab.querySelectorAll(`.tab-data-show-${tabId}`);
+        dataSections.forEach(section => {
+          const items = Array.from(section.querySelectorAll('.course-item'));
+          items.forEach(item => {
+            const title = item.querySelector('.blog-title')?.textContent?.trim() || '';
+            const category = item.querySelector('.blog-category')?.textContent?.trim() || '';
+            const link = item.querySelector('.read-more')?.getAttribute('href') || '#';
+            const subcategoryId = section.getAttribute('data-subcategory-id') || '';
+            
+            if (title) {
+              allCourses.push({
+                title: title,
+                category: category,
+                link: link,
+                tab: tabId,
+                subcategoryId: subcategoryId,
+                element: item,
+                section: section
+              });
+            }
+          });
         });
       });
     }
     
-    // Filter courses across both tabs
+    // Filter courses across both tabs and sub-tabs
     function filterCourses(query) {
+      // Get the currently active main tab
+      const activeMainTab = document.querySelector('#vocationalTabsContent .tab-pane.active');
+      const activeTabId = activeMainTab ? activeMainTab.id : null;
+      
       if (!query || query.trim() === '') {
-        // Show all courses when search is empty
+        // When search is empty, restore normal tab behavior
+        // Hide all sections first
+        hideAllTabSections();
+        
+        // Show courses in the active tab only
+        if (activeTabId && (activeTabId === 'after-10' || activeTabId === 'after-12')) {
+          const activeTab = document.getElementById(activeTabId);
+          if (activeTab) {
+            // Show only the active sub-tab's section
+            const activeSubTab = activeTab.querySelector('.sub-tabs .nav-link.active');
+            if (activeSubTab) {
+              const sectionId = activeSubTab.getAttribute('data-section-id');
+              const targetSection = activeTab.querySelector(`[data-subcategory-id="${sectionId}"]`);
+              if (targetSection) {
+                targetSection.style.display = 'block';
+                targetSection.classList.add('active');
+              }
+            } else {
+              // If no active sub-tab, show first section
+              const firstSection = activeTab.querySelector(`.tab-data-show-${activeTabId}`);
+              if (firstSection) {
+                firstSection.style.display = 'block';
+                firstSection.classList.add('active');
+              }
+            }
+          }
+        }
+        
+        // Show all courses in visible sections
         allCourses.forEach(course => {
-          course.element.style.display = 'block';
+          const section = course.section;
+          if (section && section.style.display !== 'none') {
+            course.element.style.display = 'block';
+          }
         });
+        
         suggestionsDiv.style.display = 'none';
         return;
       }
@@ -496,7 +1074,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         const categoryMatch = course.category.toLowerCase().includes(q);
         const isMatch = titleMatch || categoryMatch;
         
-        // Show/hide course in its tab
+        // Show/hide course in its section
         course.element.style.display = isMatch ? 'block' : 'none';
         
         // Collect matches for suggestions
@@ -504,6 +1082,37 @@ Explore vocational courses and career tracks across technology, healthcare, busi
           matchedCourses.push(course);
         }
       });
+      
+      // Show/hide sections based on whether they have visible courses
+      // Only show sections from the active main tab
+      if (activeTabId && (activeTabId === 'after-10' || activeTabId === 'after-12')) {
+        const activeTab = document.getElementById(activeTabId);
+        if (activeTab) {
+          const sections = activeTab.querySelectorAll(`.tab-data-show-${activeTabId}`);
+          sections.forEach(section => {
+            const hasVisibleCourses = Array.from(section.querySelectorAll('.course-item')).some(
+              item => item.style.display !== 'none'
+            );
+            // If section has matches, show it
+            if (hasVisibleCourses) {
+              section.style.display = 'block';
+            } else {
+              section.style.display = 'none';
+            }
+          });
+        }
+      }
+      
+      // Hide sections from inactive tab
+      const inactiveTabId = activeTabId === 'after-10' ? 'after-12' : (activeTabId === 'after-12' ? 'after-10' : null);
+      if (inactiveTabId) {
+        const inactiveTab = document.getElementById(inactiveTabId);
+        if (inactiveTab) {
+          inactiveTab.querySelectorAll(`.tab-data-show-${inactiveTabId}`).forEach(section => {
+            section.style.display = 'none';
+          });
+        }
+      }
       
       // Show suggestions
       showSuggestions(matchedCourses.slice(0, 10), q);
@@ -533,17 +1142,71 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         `;
         
         item.addEventListener('click', function() {
-          // Switch to the appropriate tab
+          // Switch to the appropriate main tab
           const tabButton = document.querySelector(`#${course.tab}-tab`);
           if (tabButton) {
+            // Hide all sections first
+            hideAllTabSections();
+            
             const tab = new bootstrap.Tab(tabButton);
             tab.show();
           }
           
-          // Navigate to course detail after a short delay to allow tab switch
+          // Switch to the appropriate sub-tab if subcategoryId exists
+          if (course.subcategoryId) {
+            setTimeout(() => {
+              // Get the main tab container to ensure we only work with correct sections
+              const mainTab = document.getElementById(course.tab);
+              if (!mainTab) return;
+              
+              // Show the section (ensure it's within the correct main tab)
+              const section = mainTab.querySelector(`[data-subcategory-id="${course.subcategoryId}"]`);
+              if (section && section.closest(`#${course.tab}`)) {
+                const tabType = course.tab;
+                
+                // Hide all sections for this tab type (only within the main tab)
+                mainTab.querySelectorAll(`.tab-data-show-${tabType}`).forEach(sec => {
+                  sec.style.display = 'none';
+                  sec.classList.remove('active');
+                });
+                
+                // Show target section
+                section.style.display = 'block';
+                section.classList.add('active');
+                
+                // Update tab button active state
+                const subTabButton = mainTab.querySelector(`[data-section-id="${course.subcategoryId}"]`);
+                if (subTabButton) {
+                  const tabsNav = subTabButton.closest('.sub-tabs');
+                  if (tabsNav) {
+                    tabsNav.querySelectorAll('.nav-link').forEach(btn => {
+                      btn.classList.remove('active');
+                      btn.setAttribute('aria-selected', 'false');
+                    });
+                    subTabButton.classList.add('active');
+                    subTabButton.setAttribute('aria-selected', 'true');
+                    
+                    // Scroll to active tab if needed
+                    const buttonRect = subTabButton.getBoundingClientRect();
+                    const tabsNavRect = tabsNav.getBoundingClientRect();
+                    if (buttonRect.left < tabsNavRect.left || buttonRect.right > tabsNavRect.right) {
+                      const scrollLeft = tabsNav.scrollLeft;
+                      const buttonOffsetLeft = subTabButton.offsetLeft;
+                      const buttonWidth = subTabButton.offsetWidth;
+                      const tabsNavWidth = tabsNav.offsetWidth;
+                      const targetScroll = buttonOffsetLeft - (tabsNavWidth / 2) + (buttonWidth / 2);
+                      tabsNav.scrollTo({ left: targetScroll, behavior: 'smooth' });
+                    }
+                  }
+                }
+              }
+            }, 150);
+          }
+          
+          // Navigate to course detail after a short delay to allow tab switches
           setTimeout(() => {
             window.location.href = course.link;
-          }, 300);
+          }, 500);
         });
         
         item.addEventListener('mouseenter', function() {
@@ -615,7 +1278,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
       }
     });
     
-    // Re-collect courses when tab changes (in case content is dynamically loaded)
+    // Re-collect courses when main tab changes
     const tabButtons = document.querySelectorAll('#vocationalTabs button[data-bs-toggle="tab"]');
     tabButtons.forEach(button => {
       button.addEventListener('shown.bs.tab', function() {
