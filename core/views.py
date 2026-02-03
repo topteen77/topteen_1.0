@@ -643,3 +643,70 @@ def page404(request,exception):
     ctx={}
     ctx["html_head"] = build_html_head(title="404 | Error")
     return render(request,"template20/404.html",ctx)
+
+
+def s3_media_proxy(request, path):
+    """
+    Serve S3 media through Django so only your website can show the file.
+    Used when S3_MEDIA_ACCESS_MODE is 'proxy'. Bucket stays private.
+    """
+    from urllib.parse import unquote
+    from django.http import HttpResponse, HttpResponseNotFound
+    import boto3
+    from botocore.exceptions import ClientError
+
+    if not path or '..' in path:
+        return HttpResponseNotFound('Not found')
+
+    path = unquote(path).lstrip('/')
+    location = getattr(settings, 'S3_MEDIA_LOCATION', 'media')
+    bucket_name = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '')
+    if not bucket_name:
+        return HttpResponseNotFound('Not configured')
+
+    # Try keys: with location prefix (current storage), then without (legacy uploads)
+    if location:
+        s3_keys_to_try = [f'{location.rstrip("/")}/{path}', path]
+    else:
+        s3_keys_to_try = [path]
+
+    try:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', ''),
+            aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', ''),
+            region_name=getattr(settings, 'AWS_REGION', 'ap-northeast-1'),
+        )
+    except Exception as e:
+        if settings.DEBUG:
+            raise
+        return HttpResponseNotFound('Not configured')
+
+    response = None
+    for s3_key in s3_keys_to_try:
+        try:
+            response = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
+            break
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'NoSuchKey':
+                continue
+            if settings.DEBUG:
+                raise
+            return HttpResponseNotFound('Not found')
+        except Exception:
+            if settings.DEBUG:
+                raise
+            return HttpResponseNotFound('Not found')
+
+    if response is None:
+        return HttpResponseNotFound('Not found')
+
+    body = response['Body']
+    content_type = response.get('ContentType') or 'application/octet-stream'
+    content_length = response.get('ContentLength')
+
+    out = HttpResponse(body.read(), content_type=content_type)
+    if content_length is not None:
+        out['Content-Length'] = content_length
+    out['Cache-Control'] = 'private, max-age=3600'
+    return out

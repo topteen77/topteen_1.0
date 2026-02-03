@@ -14,12 +14,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import path, include, re_path
 from django.conf.urls.static import static
 from django.conf import settings
 from django.conf.urls import handler404
 from users import views as users_views
+from core import views as core_views
+
 urlpatterns = [
+    # S3 media proxy: serve S3 files through Django when S3_MEDIA_ACCESS_MODE=proxy (only your site can show media)
+    path('media/s3/<path:path>', core_views.s3_media_proxy, name='s3_media_proxy'),
     path('admin/', admin.site.urls),
     path("topteenadmin/",include("topteenadmin.urls",namespace="topteenadmin")),
     path("topteenadmin/managed/",include("topteenadmin.managed_urls",namespace="topteenadminmanaged")),
@@ -74,7 +78,9 @@ urlpatterns = [
 ]
 # if settings.DEBUG:
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Only serve MEDIA_ROOT when not using S3 proxy (otherwise /media/s3/... is handled by s3_media_proxy)
+if not getattr(settings, 'S3_MEDIA_ACCESS_MODE', None) == 'proxy':
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Debug toolbar is commented out in settings, so commenting out here too
 # if settings.DEBUG:

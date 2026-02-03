@@ -385,24 +385,40 @@ S3_MEDIA_LIBRARY_BASE_FOLDER = config('S3_MEDIA_LIBRARY_BASE_FOLDER', default='m
 USE_S3_FOR_MEDIA = config('USE_S3_FOR_MEDIA', default=True, cast=bool)
 _USE_S3 = USE_S3_FOR_MEDIA and bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)
 
+# S3 media access: how your website serves S3 media (applies to all media on the bucket).
+# - presigned: .url returns signed URLs (private bucket; only your app generates valid links; URLs expire in 1h).
+# - public: .url returns plain S3 URLs (bucket/objects must allow public GetObject).
+# - proxy: .url returns /media/s3/...; Django streams from S3 (bucket fully private; only your site can show files).
+S3_MEDIA_ACCESS_MODE = config('S3_MEDIA_ACCESS_MODE', default='presigned')
+# For proxy mode, S3 key prefix (must match storage "location"); used by s3_media_proxy view.
+S3_MEDIA_LOCATION = config('S3_MEDIA_LOCATION', default='media')
+
+# Legacy: when S3_MEDIA_ACCESS_MODE is presigned/public, this controls querystring_auth.
+AWS_QUERYSTRING_AUTH = config('AWS_QUERYSTRING_AUTH', default=True, cast=bool)
+
 if _USE_S3:
-    # Media files (images, PDFs) stored on S3 - admin uploads go to S3 bucket
+    _use_proxy = (S3_MEDIA_ACCESS_MODE == 'proxy')
+    _querystring_auth = False if _use_proxy else AWS_QUERYSTRING_AUTH
     STORAGES = {
         "default": {
-            "BACKEND": "storages.backends.s3.S3Storage",
+            "BACKEND": "core.storage_backends.S3MediaStorage" if _use_proxy else "storages.backends.s3.S3Storage",
             "OPTIONS": {
                 "bucket_name": AWS_STORAGE_BUCKET_NAME,
                 "region_name": AWS_REGION,
-                "location": "media",
+                "location": S3_MEDIA_LOCATION,
                 "default_acl": "public-read",
-                "querystring_auth": False,
+                "querystring_auth": _querystring_auth,
+                "querystring_expire": 3600,
             },
         },
         "staticfiles": {
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
-    MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/media/"
+    if _use_proxy:
+        MEDIA_URL = "/media/"
+    else:
+        MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{S3_MEDIA_LOCATION}/"
 else:
     STORAGES = {
         "default": {

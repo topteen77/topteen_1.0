@@ -327,3 +327,4 @@ skilllabcourses_html-old/
 #hide github docker workflow files
 */deploy-docker.yml
 scripts/extracurricular_json_output/*.json
+media/users_pdfs/*
