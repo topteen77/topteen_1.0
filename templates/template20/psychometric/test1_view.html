@@ -24,6 +24,20 @@
   .question.active {
     display: block;
   }
+  .test-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 1rem;
+  }
+  .test-actions-left {
+    order: 1;
+  }
+  .test-actions-right {
+    order: 2;
+    margin-left: auto;
+  }
   .question-box {
     background: #f7f7fa;
     border-radius: 10px;
@@ -319,17 +333,21 @@
               </div>
             </div>
 
-            <div class="d-flex justify-content-center gap-3 my-4">
-              {% if not loop.first %}
-              <button type="button" class="btn custom-button blue-button prev-button">Back</button>
-              {% endif %}
-              {% if not loop.last %}
-              <button type="button" class="btn custom-button purple-button next-button">Continue</button>
-              {% else %}
-              <button type="submit" onclick="return validateForm()" class="btn btn-success submit-button">
-                <i class='bx bx-check me-2'></i> Submit Test
-              </button>
-              {% endif %}
+            <div class="d-flex justify-content-between align-items-center my-4 test-actions">
+              <div class="test-actions-left">
+                {% if not loop.first %}
+                <button type="button" class="btn custom-button blue-button prev-button">Previous</button>
+                {% endif %}
+              </div>
+              <div class="test-actions-right">
+                {% if not loop.last %}
+                <button type="button" class="btn custom-button purple-button next-button">Continue</button>
+                {% else %}
+                <button type="submit" onclick="return validateForm()" class="btn btn-success submit-button">
+                  <i class='bx bx-check me-2'></i> Submit Test
+                </button>
+                {% endif %}
+              </div>
             </div>
           </div>
           {% endfor %}
@@ -417,9 +435,18 @@
       $('#questionProgress').text(progressText);
       $('#questionProgressMobile').text(progressText);
       
-      $('.next-button').toggle(number < totalQuestions);
-      $('.prev-button').toggle(number > 1);
-      $('.submit-button').toggle(number === totalQuestions);
+      // Only show Next/Submit/Back for the *active* question so correct button shows when auto-advance is off
+      $('.next-button').hide();
+      $('.prev-button').hide();
+      $('.submit-button').hide();
+      if (number < totalQuestions) {
+        $('#question' + number).find('.next-button').show();
+      } else {
+        $('#question' + number).find('.submit-button').show();
+      }
+      if (number > 1) {
+        $('#question' + number).find('.prev-button').show();
+      }
       
       // Track time for answer quality widget
       if (!questionStartTimes[number]) {
@@ -618,6 +645,9 @@
     
     // Initialize timing for first question
     questionStartTimes[1] = Date.now();
+    
+    // Set correct button visibility on first question (Next visible, Submit hidden) — fixes auto-advance-off case
+    showQuestion(1);
     
     // Initialize answer quality widget
     updateAnswerQualityWidget();
