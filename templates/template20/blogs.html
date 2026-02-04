@@ -1,11 +1,11 @@
 {% extends 'template20/base.html' %}
 
 {% block title_content %}
-{% if search_blogs %}{{ search_blogs }} - Search Blogs{% elif category %}{{ category.name }} - Blogs{% elif blogtag %}{{ blogtag.name }} - Blogs{% else %}TopTeen Blogs | Insights for Better Career Decisions{% endif %} | Top Teen
+{% if search_blogs %}{{ search_blogs }} - Search Blogs{% elif category %}{{ category.name|blog_category_display }} - Blogs{% elif blogtag %}{{ blogtag.name }} - Blogs{% else %}TopTeen Blogs | Insights for Better Career Decisions{% endif %} | Top Teen
 {% endblock %}
 
 {% block description_content %}
-{% if search_blogs %}Search results for {{ search_blogs }} in TopTeen blogs.{% elif category %}Explore blogs in {{ category.name }} category.{% elif blogtag %}Explore blogs tagged with {{ blogtag.name }}.{% else %}Explore our collection of expert articles, guides, and resources designed to help students and parents navigate the complex world of education and career planning.{% endif %}
+{% if search_blogs %}Search results for {{ search_blogs }} in TopTeen blogs.{% elif category %}Explore blogs {{ category.name|blog_category_short }} category.{% elif blogtag %}Explore blogs tagged with {{ blogtag.name }}.{% else %}Explore our collection of expert articles, guides, and resources designed to help students and parents navigate the complex world of education and career planning.{% endif %}
 {% endblock %}
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
@@ -57,7 +57,7 @@
       <div class="col-12 text-center">
         <a href="{{ url('blog:blogs') }}" class="blog-filter-btn {% if not category and not blogtag %}active{% endif %}">All</a>
         {% for cat in categories %}
-        <a href="{{ url('blog:category', args=[cat.slug]) }}" class="blog-filter-btn {% if category and category.slug == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+        <a href="{{ url('blog:category', args=[cat.slug]) }}" class="blog-filter-btn {% if category and category.slug == cat.slug %}active{% endif %}">{{ cat.name|blog_category_display }}</a>
         {% endfor %}
       </div>
     </div>
@@ -81,7 +81,7 @@
           <div class="blog-image">
             {% if blog.category %}
             <a href="{{ url('blog:category', args=[blog.category.slug]) }}" class="blog-category category-parent">
-              {{ blog.category.name }}
+              {{ blog.category.name|blog_category_display }}
             </a>
             {% endif %}
             <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
@@ -128,7 +128,7 @@
             {% if heading %}{{ heading }}{% else %}All Articles{% endif %}
           </h2>
           {% if category %}
-          <p class="section-description">Explore blogs in {{ category.name }} category</p>
+          <p class="section-description">Explore blogs {{ category.name|blog_category_short }} category</p>
           {% elif blogtag %}
           <p class="section-description">Explore blogs tagged with {{ blogtag.name }}</p>
           {% endif %}
@@ -144,7 +144,7 @@
                   <div class="blog-image">
                     {% if blog.category %}
                     <a href="{{ url('blog:category', args=[blog.category.slug]) }}" class="blog-category category-parent">
-                      {{ blog.category.name }}
+                      {{ blog.category.name|blog_category_display }}
                     </a>
                     {% endif %}
                     {% if blog.image %}
@@ -295,7 +295,7 @@
               </li>
               {% for cat in categories %}
               <li class="category-item">
-                <a href="{{ url('blog:category', args=[cat.slug]) }}" class="text-decoration-none {% if category and category.slug == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+                <a href="{{ url('blog:category', args=[cat.slug]) }}" class="text-decoration-none {% if category and category.slug == cat.slug %}active{% endif %}">{{ cat.name|blog_category_display }}</a>
               </li>
               {% endfor %}
             </ul>

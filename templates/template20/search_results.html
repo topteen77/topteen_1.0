@@ -290,7 +290,7 @@
             {% endif %}
             {% if blog.category %}
             <div class="mt-2">
-              <span class="badge" style="background-color: #{{ blog.category.color }}; color: white;">{{ blog.category.name }}</span>
+              <span class="badge" style="background-color: #{{ blog.category.color }}; color: white;">{{ blog.category.name|blog_category_display }}</span>
             </div>
             {% endif %}
           </div>
@@ -374,7 +374,7 @@
             {% endif %}
             {% if blog.category %}
             <div class="mt-2">
-              <span class="badge" style="background-color: #{{ blog.category.color }}; color: white;">{{ blog.category.name }}</span>
+              <span class="badge" style="background-color: #{{ blog.category.color }}; color: white;">{{ blog.category.name|blog_category_display }}</span>
             </div>
             {% endif %}
           </div>

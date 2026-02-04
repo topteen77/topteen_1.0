@@ -26,7 +26,7 @@
       <div class="col-lg-8">
         <div class="blog-header">
           {% if blog.category %}
-          <a href="{{ url('blog:category', args=[blog.category.slug]) }}" class="blog-category-badge">{{ blog.category.name }}</a>
+          <a href="{{ url('blog:category', args=[blog.category.slug]) }}" class="blog-category-badge">{{ blog.category.name|blog_category_display }}</a>
           {% endif %}
           <h1 class="blog-title">{{ blog.title }}</h1>
           
@@ -168,7 +168,7 @@
               </li>
               {% for cat in categories %}
               <li class="category-item">
-                <a href="{{ url('blog:category', args=[cat.slug]) }}" class="text-decoration-none {% if blog.category and blog.category.slug == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+                <a href="{{ url('blog:category', args=[cat.slug]) }}" class="text-decoration-none {% if blog.category and blog.category.slug == cat.slug %}active{% endif %}">{{ cat.name|blog_category_display }}</a>
               </li>
               {% endfor %}
             </ul>
@@ -188,7 +188,7 @@
     <div class="row">
       <div class="col-12">
         <h2 class="section-heading">You May Also Like</h2>
-        <p class="mb-4">Explore more articles related to {{ blog.category.name if blog.category else 'this topic' }}</p>
+        <p class="mb-4">Explore more articles related to {{ blog.category.name|blog_category_display if blog.category else 'this topic' }}</p>
       </div>
     </div>
     <div class="row">
@@ -198,7 +198,7 @@
           <div class="blog-image">
             {% if related_blog.category %}
             <a href="{{ url('blog:category', args=[related_blog.category.slug]) }}" class="blog-category category-parent">
-              {{ related_blog.category.name }}
+              {{ related_blog.category.name|blog_category_display }}
             </a>
             {% endif %}
             <a href="{{ url('blog:blogdetail', args=[related_blog.slug]) }}">

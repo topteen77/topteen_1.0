@@ -325,7 +325,7 @@
                 </div>
                 <div class="blog-info">
                   {% if blog.category %}
-                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">{{ blog.category.name }}</span>
+                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">{{ blog.category.name|blog_category_display }}</span>
                   {% else %}
                   <span class="blog-tags text-gray fw-400 fs-14 mb-3">Blog</span>
                   {% endif %}

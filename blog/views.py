@@ -13,6 +13,32 @@ from django.http import HttpResponse,JsonResponse
 from django.template.loader import render_to_string
 from rest_framework.views import APIView
 from core import choices
+
+
+def _blog_category_display(name):
+    """Display label for blog category: 'Blogs for Parents' / 'Blogs for Students'."""
+    if not name:
+        return name
+    s = (name or '').strip()
+    if s in ('Blogs in For Parents', 'For Parents'):
+        return 'Blogs for Parents'
+    if s in ('Blogs in For Students', 'For Students'):
+        return 'Blogs for Students'
+    return name
+
+
+def _blog_category_short(name):
+    """Short form for 'Explore blogs X category': 'For Parents' / 'For Students'."""
+    if not name:
+        return name
+    s = (name or '').strip()
+    if s in ('Blogs in For Parents', 'For Parents'):
+        return 'For Parents'
+    if s in ('Blogs in For Students', 'For Students'):
+        return 'For Students'
+    return name
+
+
 # Create your views here.
 class Blogs(TemplateView):
     template_name = "template20/blogs.html"
@@ -234,7 +260,9 @@ def category_filter(request,category_slug, *args, **kwargs):
     remaining_count = remaining_count if remaining_count > 0 else None
     
     from django.urls import reverse
-    ctx={'blogs':blog,'categories':categories,'page_obj':page_objs,'latest_blogs':latest_blogs,'site_url':"https://topteen.in","category": category,'remaining_count':remaining_count,"html_head":build_html_head(title=f"Blogs - {category.name}",description=f"Explore blogs in {category.name} category"),'breadcrumb': {'text': category.name, 'url': reverse('blog:category', args=[category.slug])},'heading': f"Blogs in {category.name}"}
+    cat_display = _blog_category_display(category.name)
+    cat_short = _blog_category_short(category.name)
+    ctx={'blogs':blog,'categories':categories,'page_obj':page_objs,'latest_blogs':latest_blogs,'site_url':"https://topteen.in","category": category,'remaining_count':remaining_count,"html_head":build_html_head(title=f"Blogs - {cat_display}",description=f"Explore blogs {cat_short} category."),'breadcrumb': {'text': cat_display, 'url': reverse('blog:category', args=[category.slug])},'heading': cat_display}
 
     if request.GET.get("pagination_ajax",None) and request.GET.get("pagination_ajax") == "Yes":
             data={}
