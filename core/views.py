@@ -423,9 +423,12 @@ class EbookListView(TemplateView):
         return build_html_head(title=name, description="Explore our collection of career guidance e-books")
 
     def get_context(self, request, *args, **kwargs):
+        from django.core.files.storage import default_storage
         ctx = {}
         ctx["html_head"] = self.html_head()
         ctx["breadcrumb"] = {"text": "E-Books", "url": reverse("core:ebook_list")}
+        # Ebook hero banner: use storage so URL is correct on production (S3 proxy/direct) and demo (local media)
+        ctx["ebook_hero_banner_url"] = default_storage.url("ebooks/ebook-hero-img.png")
         # Get published ebooks from database
         ebooks = Ebook.get_published_ebooks()
         ctx["ebooks"] = []
