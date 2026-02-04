@@ -1,14 +1,110 @@
 from django.contrib import admin
 from .models import User,UserProfile,UserCalender, UserNote, UserResume, UserFolder, UserSearchHistory
-from django.urls import reverse
+from django.urls import reverse, path
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html, format_html_join
 from django.contrib import messages
 from django.conf import settings
+from django.db.models import Q, Max
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+from django.shortcuts import render
 import os
 import glob
+import json
 # Register your models here.
-    
+
+
+# Psychometric test keys (TestCompletion flags + Results test_paper)
+PSYCHOMETRIC_TEST_KEYS = [
+    ('test1', 'test1_complete'), ('test2', 'test2_complete'), ('test3', 'test3_complete'),
+    ('numerical', 'numerical_complete'), ('verbal', 'verbal_complete'), ('logical', 'logical_complete'),
+    ('emotional', 'emotional_complete'), ('machanical', 'machanical_complete'),
+    ('language', 'language_complete'), ('spatial', 'spatial_complete'),
+]
+
+
+def _get_students_with_recent_tests_queryset(email_filter=None):
+    """Return User queryset of students only who have given tests, ordered by most recent activity."""
+    from core.choices import UserType
+    qs = User.objects.filter(user_type=UserType.STUDENT).filter(
+        Q(test_sessions__isnull=False) | Q(results__isnull=False)
+    ).annotate(
+        latest_session=Max('test_sessions__created_at'),
+        latest_result=Max('results__modified'),
+    ).distinct()
+    if email_filter:
+        qs = qs.filter(email__icontains=email_filter.strip())
+    return qs.order_by('-latest_session', '-latest_result')
+
+
+def _get_user_test_count(user):
+    """Return total test count for a user (psychometric results + post-matric sessions)."""
+    from app.models import Results
+    from app_post_matric.models import TestSession
+    psychometric_count = Results.objects.filter(user=user).count()
+    post_matric_count = user.test_sessions.count()
+    return psychometric_count + post_matric_count
+
+
+def _get_tests_for_users(user_ids):
+    """Return list of tests that the given users have. Each item: { id, name, type }."""
+    from app.models import Results
+    from app_post_matric.models import TestSession, Test
+    if not user_ids:
+        return []
+    users = list(User.objects.filter(pk__in=user_ids))
+    test_ids_seen = set()
+    out = []
+    # Psychometric: distinct test_paper from Results
+    result_papers = Results.objects.filter(user_id__in=user_ids).values_list('test_paper', flat=True).distinct()
+    for paper in result_papers:
+        key = 'psychometric_' + paper
+        if key not in test_ids_seen:
+            test_ids_seen.add(key)
+            out.append({'id': key, 'name': 'Psychometric: ' + paper, 'type': 'psychometric'})
+    # Post-matric: distinct Test from TestSession
+    sessions = TestSession.objects.filter(user_id__in=user_ids).select_related('test')
+    for s in sessions:
+        if s.test_id and ('post_matric_' + str(s.test_id)) not in test_ids_seen:
+            test_ids_seen.add('post_matric_' + str(s.test_id))
+            out.append({'id': 'post_matric_' + str(s.test_id), 'name': 'Post-matric: ' + (s.test.title if s.test else str(s.test_id)), 'type': 'post_matric'})
+    return out
+
+
+def _reset_student_tests(user, test_ids=None):
+    """Reset test flags for one user. If test_ids is None or ['all'], reset all; else reset only given test ids."""
+    from app.models import TestCompletion, Results
+    from app_post_matric.models import TestSession
+    if test_ids is None or (isinstance(test_ids, list) and ('all' in test_ids or not test_ids)):
+        # Reset all
+        TestCompletion.objects.filter(user=user).update(
+            test1_complete=False, test2_complete=False, test3_complete=False,
+            numerical_complete=False, verbal_complete=False, logical_complete=False,
+            emotional_complete=False, machanical_complete=False,
+            language_complete=False, spatial_complete=False,
+        )
+        Results.objects.filter(user=user).delete()
+        TestSession.objects.filter(user=user).delete()
+        return
+    # Partial reset
+    tc_update = {}
+    for paper, flag_name in PSYCHOMETRIC_TEST_KEYS:
+        key = 'psychometric_' + paper
+        if key in test_ids:
+            tc_update[flag_name] = False
+    if tc_update:
+        TestCompletion.objects.filter(user=user).update(**tc_update)
+    for tid in test_ids:
+        if tid.startswith('psychometric_'):
+            paper = tid.replace('psychometric_', '')
+            Results.objects.filter(user=user, test_paper=paper).delete()
+        elif tid.startswith('post_matric_'):
+            try:
+                pk = int(tid.replace('post_matric_', ''))
+                TestSession.objects.filter(user=user, test_id=pk).delete()
+            except ValueError:
+                pass
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -22,7 +118,89 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = ('is_active','last_login','user_type','object_status')
     search_fields=['id','name','email','mobile']
     actions = ['hard_delete_selected']
-    
+    change_list_template = 'admin/users/user/change_list.html'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path('student-test-reset/', self.admin_site.admin_view(self.student_test_reset_view), name='users_user_student_test_reset'),
+            path('student-test-reset/list/', self.admin_site.admin_view(self.student_test_reset_list_view), name='users_user_student_test_reset_list'),
+            path('student-test-reset/tests/', self.admin_site.admin_view(self.student_test_reset_tests_view), name='users_user_student_test_reset_tests'),
+            path('student-test-reset/action/', self.admin_site.admin_view(self.student_test_reset_action_view), name='users_user_student_test_reset_action'),
+        ]
+        return custom + urls
+
+    def student_test_reset_view(self, request):
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Student Test Reset',
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/users/user/student_test_reset.html', context)
+
+    def student_test_reset_list_view(self, request):
+        email = request.GET.get('email', '').strip()
+        page = request.GET.get('page', '1')
+        per_page = min(int(request.GET.get('per_page', 20)), 100)
+        qs = _get_students_with_recent_tests_queryset(email_filter=email or None)
+        paginator = Paginator(qs, per_page)
+        try:
+            p = paginator.page(int(page))
+        except (ValueError, TypeError):
+            p = paginator.page(1)
+        students = []
+        for u in p.object_list:
+            students.append({
+                'id': u.id,
+                'name': u.name or '',
+                'email': u.email or '',
+                'test_count': _get_user_test_count(u),
+                'last_session': u.latest_session.isoformat() if getattr(u, 'latest_session', None) else None,
+                'last_result': u.latest_result.isoformat() if getattr(u, 'latest_result', None) else None,
+            })
+        return JsonResponse({
+            'students': students,
+            'total': paginator.count,
+            'page': p.number,
+            'num_pages': paginator.num_pages,
+            'per_page': per_page,
+        })
+
+    def student_test_reset_tests_view(self, request):
+        """GET ?user_ids=1,2,3 - return list of tests for those users."""
+        user_ids = request.GET.get('user_ids', '')
+        if not user_ids:
+            return JsonResponse({'tests': []})
+        ids = [int(x.strip()) for x in user_ids.split(',') if x.strip()]
+        tests = _get_tests_for_users(ids)
+        return JsonResponse({'tests': tests})
+
+    def student_test_reset_action_view(self, request):
+        if request.method != 'POST':
+            return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+        try:
+            body = json.loads(request.body) if request.body else {}
+        except Exception:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON'}, status=400)
+        user_ids = body.get('user_ids') or []
+        test_ids = body.get('test_ids')  # None or ['all'] or ['psychometric_test1', 'post_matric_5', ...]
+        reset_all = body.get('reset_all', False)
+        email_filter = (body.get('email') or '').strip()
+        if reset_all:
+            qs = _get_students_with_recent_tests_queryset(email_filter=email_filter or None)
+            user_ids = list(qs.values_list('id', flat=True))
+        if not user_ids:
+            return JsonResponse({'success': False, 'message': 'No students selected'}, status=400)
+        count = 0
+        for uid in user_ids:
+            try:
+                user = User.objects.get(pk=uid)
+                _reset_student_tests(user, test_ids=test_ids)
+                count += 1
+            except User.DoesNotExist:
+                continue
+        return JsonResponse({'success': True, 'message': f'Test flags reset for {count} student(s).', 'count': count})
+
     def get_queryset(self, request):
         # Show all users including soft-deleted ones
         qs = User.objects.complete()

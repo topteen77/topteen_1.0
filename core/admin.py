@@ -40,6 +40,11 @@ class PsychometricSettingsForm(forms.Form):
         label='Auto-advance on answer selection',
         help_text='Automatically move to the next question when user selects an answer.',
     )
+    SHOW_MISSING_ANSWERS_VALIDATION = forms.BooleanField(
+        required=False,
+        label='Show validation message (missing answers)',
+        help_text='When enabled, shows "Unanswered Questions" confirmation on submit and the missing-answers palette when user clicks "Review Answers". When disabled, submit is allowed without this validation.',
+    )
 
 
 class ConfigurationAdmin(admin.ModelAdmin):
@@ -85,7 +90,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
         if request.method == 'POST':
             form = PsychometricSettingsForm(request.POST)
             if form.is_valid():
-                for key in ['ENABLE_ANSWERING_CAREFULLY_WIDGET', 'ENABLE_AUTO_FORWARD']:
+                for key in ['ENABLE_ANSWERING_CAREFULLY_WIDGET', 'ENABLE_AUTO_FORWARD', 'SHOW_MISSING_ANSWERS_VALIDATION']:
                     val = 'true' if form.cleaned_data.get(key, False) else 'false'
                     config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
                     config.value = val
@@ -96,6 +101,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
             form = PsychometricSettingsForm(initial={
                 'ENABLE_ANSWERING_CAREFULLY_WIDGET': _config_bool('ENABLE_ANSWERING_CAREFULLY_WIDGET'),
                 'ENABLE_AUTO_FORWARD': _config_bool('ENABLE_AUTO_FORWARD'),
+                'SHOW_MISSING_ANSWERS_VALIDATION': _config_bool('SHOW_MISSING_ANSWERS_VALIDATION'),
             })
 
         context = {

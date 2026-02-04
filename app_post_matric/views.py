@@ -918,121 +918,120 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                 # Combine above average and average categories
                 selected_areas = set(above_categories + average_categories)
 
-                # CRITICAL CHECK: If both lists are empty, return empty result immediately
+                # CRITICAL CHECK: If both lists are empty, skip career_guidance logic but still return result (do not return None)
                 if not selected_areas:
                     career_guidance_selected = []
                     result['career_guidance_selected'].extend(career_guidance_selected)
-                    return  # or continue with other logic
+                else:
+                    # Create a mapping from your area names to JSON area names
+                    area_mapping = {
+                        'Spatial Reasoning': 'Spatial Reasoning',
+                        'Clerical speed & Accuracy': 'Clerical speed & Accuracy',  # Keep original JSON name
+                        'Language & Verbal Reasoning': 'Language & Verbal Reasoning',  # Keep original JSON name
+                        'Numerical Reasoning': 'Numerical Reasoning',
+                        'Abstract Reasoning': 'Abstract Reasoning',
+                        'Logical Reasoning': 'Logical Reasoning',
+                        'Mechanical Reasoning': 'Mechanical Reasoning'
+                    }
 
-                # Create a mapping from your area names to JSON area names
-                area_mapping = {
-                    'Spatial Reasoning': 'Spatial Reasoning',
-                    'Clerical speed & Accuracy': 'Clerical speed & Accuracy',  # Keep original JSON name
-                    'Language & Verbal Reasoning': 'Language & Verbal Reasoning',  # Keep original JSON name
-                    'Numerical Reasoning': 'Numerical Reasoning',
-                    'Abstract Reasoning': 'Abstract Reasoning',
-                    'Logical Reasoning': 'Logical Reasoning',
-                    'Mechanical Reasoning': 'Mechanical Reasoning'
-                }
-
-                # Normalize selected areas to match JSON format
-                normalized_selected = set()
-                for area in selected_areas:
-                    mapped_area = area_mapping.get(area, area)  # Use mapping or original if not found
-                    # Normalize the mapped area to lowercase for comparison
-                    normalized_selected.add(normalize_area(mapped_area))
+                    # Normalize selected areas to match JSON format
+                    normalized_selected = set()
+                    for area in selected_areas:
+                        mapped_area = area_mapping.get(area, area)  # Use mapping or original if not found
+                        # Normalize the mapped area to lowercase for comparison
+                        normalized_selected.add(normalize_area(mapped_area))
 
 
-                # Find the combined report entries with exactly these areas
-                career_guidance_selected = []
-                
-                for entry in (CombinedReport_data or []):
-                    # Handle both single area and comma-separated areas
-                    entry_areas = entry['Areas']
-                    if isinstance(entry_areas, str):
-                        # Split by comma and normalize each area
-                        entry_area_list = [normalize_area(area.strip()) for area in entry_areas.split(',')]
-                    else:
-                        # If it's already a list, normalize each area
-                        entry_area_list = [normalize_area(area.strip()) for area in entry_areas]
+                    # Find the combined report entries with exactly these areas
+                    career_guidance_selected = []
                     
-                    # Check if this entry matches our selected areas
-                    if set(entry_area_list) == normalized_selected:
-                        career_guidance_selected.append({
-                            'Areas': entry['Areas'],
-                            'Career_Clusters': entry['Career Clusters'],
-                            'Career_Roles': entry['Career Roles'],
-                            'Educational_Pathways': entry['Educational Pathways']
-                        })
-
-                # If no exact match found, try to find entries that contain all our areas
-                if not career_guidance_selected:
-                    # print("No exact match found, looking for entries that contain all selected areas...")
                     for entry in (CombinedReport_data or []):
+                        # Handle both single area and comma-separated areas
                         entry_areas = entry['Areas']
                         if isinstance(entry_areas, str):
+                            # Split by comma and normalize each area
                             entry_area_list = [normalize_area(area.strip()) for area in entry_areas.split(',')]
                         else:
+                            # If it's already a list, normalize each area
                             entry_area_list = [normalize_area(area.strip()) for area in entry_areas]
                         
-                        # Check if this entry contains all our selected areas
-                        if normalized_selected.issubset(set(entry_area_list)):
+                        # Check if this entry matches our selected areas
+                        if set(entry_area_list) == normalized_selected:
                             career_guidance_selected.append({
                                 'Areas': entry['Areas'],
                                 'Career_Clusters': entry['Career Clusters'],
                                 'Career_Roles': entry['Career Roles'],
                                 'Educational_Pathways': entry['Educational Pathways']
                             })
-                            # print(f"Found superset match: {entry['Areas']}")
 
-                # print("career_guidance_selected", career_guidance_selected)
+                    # If no exact match found, try to find entries that contain all our areas
+                    if not career_guidance_selected:
+                        # print("No exact match found, looking for entries that contain all selected areas...")
+                        for entry in (CombinedReport_data or []):
+                            entry_areas = entry['Areas']
+                            if isinstance(entry_areas, str):
+                                entry_area_list = [normalize_area(area.strip()) for area in entry_areas.split(',')]
+                            else:
+                                entry_area_list = [normalize_area(area.strip()) for area in entry_areas]
+                            
+                            # Check if this entry contains all our selected areas
+                            if normalized_selected.issubset(set(entry_area_list)):
+                                career_guidance_selected.append({
+                                    'Areas': entry['Areas'],
+                                    'Career_Clusters': entry['Career Clusters'],
+                                    'Career_Roles': entry['Career Roles'],
+                                    'Educational_Pathways': entry['Educational Pathways']
+                                })
+                                # print(f"Found superset match: {entry['Areas']}")
 
-                # Ensure unique values in each field
-                if career_guidance_selected:
-                    # Collect all unique values for each field
-                    unique_areas = set()
-                    unique_clusters = set()
-                    unique_roles = set()
-                    unique_pathways = set()
-                    
-                    for entry in career_guidance_selected:
-                        # Handle areas (can be string or list)
-                        areas = entry['Areas']
-                        if isinstance(areas, str):
-                            areas = [area.strip() for area in areas.split(',')]
-                        unique_areas.update(areas)
-                        
-                        # Handle clusters (should be list)
-                        clusters = entry['Career_Clusters']
-                        if isinstance(clusters, list):
-                            unique_clusters.update([cluster.strip() for cluster in clusters])
-                        else:
-                            unique_clusters.update([clusters.strip()])
-                        
-                        # Handle roles (should be list)
-                        roles = entry['Career_Roles']
-                        if isinstance(roles, list):
-                            unique_roles.update([role.strip() for role in roles])
-                        else:
-                            unique_roles.update([roles.strip()])
-                        
-                        # Handle pathways (should be list)
-                        pathways = entry['Educational_Pathways']
-                        if isinstance(pathways, list):
-                            unique_pathways.update([pathway.strip() for pathway in pathways])
-                        else:
-                            unique_pathways.update([pathways.strip()])
-                    
-                    # Create a single entry with unique values as lists (not comma-separated strings)
-                    career_guidance_selected = [{
-                        'Areas': ', '.join(sorted(unique_areas)),
-                        'Career_Clusters': sorted(unique_clusters),  # Keep as list for template iteration
-                        'Career_Roles': sorted(unique_roles),  # Keep as list for template iteration
-                        'Educational_Pathways': sorted(unique_pathways)  # Keep as list for template iteration
-                    }]
+                    # print("career_guidance_selected", career_guidance_selected)
 
-                # Append to result for Django template looping
-                result['career_guidance_selected'].extend(career_guidance_selected)
+                    # Ensure unique values in each field
+                    if career_guidance_selected:
+                        # Collect all unique values for each field
+                        unique_areas = set()
+                        unique_clusters = set()
+                        unique_roles = set()
+                        unique_pathways = set()
+                        
+                        for entry in career_guidance_selected:
+                            # Handle areas (can be string or list)
+                            areas = entry['Areas']
+                            if isinstance(areas, str):
+                                areas = [area.strip() for area in areas.split(',')]
+                            unique_areas.update(areas)
+                            
+                            # Handle clusters (should be list)
+                            clusters = entry['Career_Clusters']
+                            if isinstance(clusters, list):
+                                unique_clusters.update([cluster.strip() for cluster in clusters])
+                            else:
+                                unique_clusters.update([clusters.strip()])
+                            
+                            # Handle roles (should be list)
+                            roles = entry['Career_Roles']
+                            if isinstance(roles, list):
+                                unique_roles.update([role.strip() for role in roles])
+                            else:
+                                unique_roles.update([roles.strip()])
+                            
+                            # Handle pathways (should be list)
+                            pathways = entry['Educational_Pathways']
+                            if isinstance(pathways, list):
+                                unique_pathways.update([pathway.strip() for pathway in pathways])
+                            else:
+                                unique_pathways.update([pathways.strip()])
+                        
+                        # Create a single entry with unique values as lists (not comma-separated strings)
+                        career_guidance_selected = [{
+                            'Areas': ', '.join(sorted(unique_areas)),
+                            'Career_Clusters': sorted(unique_clusters),  # Keep as list for template iteration
+                            'Career_Roles': sorted(unique_roles),  # Keep as list for template iteration
+                            'Educational_Pathways': sorted(unique_pathways)  # Keep as list for template iteration
+                        }]
+
+                    # Append to result for Django template looping
+                    result['career_guidance_selected'].extend(career_guidance_selected)
 
             except Exception as e:
                 print(f"Error processing Aptitude Assessment data: {e}")
@@ -1045,6 +1044,21 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
     return result
 
 
+# #region agent log
+def _debug_log(location, message, data, hypothesis_id="H1"):
+    import json as _json
+    import time
+    import os
+    try:
+        log_dir = os.path.join(settings.BASE_DIR, ".cursor")
+        os.makedirs(log_dir, exist_ok=True)
+        log_path = os.path.join(log_dir, "debug.log")
+        with open(log_path, "a") as f:
+            f.write(_json.dumps({"sessionId": "debug-session", "runId": "run1", "hypothesisId": hypothesis_id, "location": location, "message": message, "data": data, "timestamp": int(time.time() * 1000)}) + "\n")
+    except Exception:
+        pass
+# #endregion
+
 @login_required
 def Results_list(request):
     """Display list of all test results"""
@@ -1053,6 +1067,9 @@ def Results_list(request):
 @login_required
 def Results(request):
     try:
+        # #region agent log
+        _debug_log("app_post_matric/views.py:Results:entry", "Results view entry", {"test_id_get": request.GET.get("test_id"), "user_id_get": request.GET.get("user_id")}, "H1")
+        # #endregion
         from institute.models import StudentManagement
         from django.shortcuts import get_object_or_404
         
@@ -1120,6 +1137,9 @@ def Results(request):
             ).order_by('-end_time').first()
         
         if not latest_session:
+            # #region agent log
+            _debug_log("app_post_matric/views.py:Results:no_session", "Early return no_results", {"test_id": test_id}, "H1")
+            # #endregion
             return render(request, "results.html", {
                 'error': 'No completed test found',
                 'no_results': True
@@ -1141,12 +1161,16 @@ def Results(request):
             if latest_session.test.title == 'Personality Assessment':
                 high_categories = [cat.strip() for cat in ast.literal_eval(categories_record.high_category)]
             elif latest_session.test.title == 'Aptitude Assessment':
-                high_categories = categories_record.high_category
-                
-                high_categories = json.loads(high_categories)
+                raw = categories_record.high_category
+                try:
+                    high_categories = json.loads(raw) if raw else {}
+                    if not isinstance(high_categories, dict):
+                        high_categories = {}
+                except (TypeError, ValueError):
+                    high_categories = {}
             else:
                 high_categories = categories_record.high_category
-                high_categories = high_categories.strip("[]").strip()
+                high_categories = high_categories.strip("[]").strip() if high_categories else []
 
             low_category = categories_record.low_category
 
@@ -1183,18 +1207,15 @@ def Results(request):
         if test1_completed and test2_completed and test3_completed and test4_completed:
             all_tests_completed = True
 
-        user = request.user
+        # Use target_user (report subject) for header data so viewing another user's report shows their details
+        report_user = target_user
+        created_date = latest_session.created_at
+        student_name = getattr(report_user, 'name', None) or report_user.email or str(report_user)
+        schoolname = None
+        grade = None
+        gender_display = None
         try:
-            # Retrieve the UserProfile for the logged-in user (create if not exists)
-            user_profile, created = UserProfile.objects.get_or_create(user=user)
-        except UserProfile.DoesNotExist:
-            user_profile = None
-
-        try:
-            # Retrieve the UserProfile for the logged-in user
-            user_profile = user.user_profile
-            # Access attributes from the User object
-            created_date = latest_session.created_at
+            user_profile = report_user.user_profile
             gender_value = user_profile.gender
             if gender_value == 10:  # GenderChoices.UNKNOWN
                 gender_display = "Unknown"
@@ -1205,11 +1226,9 @@ def Results(request):
             else:
                 gender_display = "Unknown"  # Default fallback
             schoolname = user_profile.schoolname
-            student_name = user.email  # Assuming email is used as student name
             grade = user_profile.grade
-
         except UserProfile.DoesNotExist:
-            print("UserProfile does not exist.")
+            pass
 
     
         
@@ -1235,9 +1254,17 @@ def Results(request):
         
 
         if test_id == 4:
-            context['above_list'] = high_categories.get("Above Average", [])
-            context['average_list'] = high_categories.get("Average", [])
-            context['below_list'] = high_categories.get("Below Average", [])
+            if isinstance(high_categories, dict):
+                context['above_list'] = high_categories.get("Above Average", [])
+                context['average_list'] = high_categories.get("Average", [])
+                context['below_list'] = high_categories.get("Below Average", [])
+            else:
+                context['above_list'] = []
+                context['average_list'] = []
+                context['below_list'] = []
+            # #region agent log
+            _debug_log("app_post_matric/views.py:Results:test4_context", "test_id=4 context set", {"test_id": test_id, "high_categories_type": type(high_categories).__name__, "above_len": len(context.get("above_list", [])), "has_student_name": "student_name" in context and context.get("student_name") is not None}, "H2")
+            # #endregion
         else:
             pass
         
@@ -1447,9 +1474,15 @@ def Results(request):
         import json as _json
         context['test_results_json'] = _json.dumps(test_results_data)
         
+        # #region agent log
+        _debug_log("app_post_matric/views.py:Results:before_render", "Full render path", {"test_id": test_id, "context_keys": list(context.keys())[:25], "no_results": context.get("no_results"), "has_above_list": "above_list" in context}, "H2,H3")
+        # #endregion
         return render(request, "results.html", context)    
         
     except Exception as e:
+        # #region agent log
+        _debug_log("app_post_matric/views.py:Results:exception", "Exception in Results", {"error": str(e)}, "H3")
+        # #endregion
         return render(request, "results.html", {
             'error': f'An error occurred: {str(e)}',
             'no_results': True

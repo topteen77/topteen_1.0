@@ -118,6 +118,15 @@
     color: #828282;
     margin-top: 5px;
   }
+  #missingAnswersPalette { display: none; background: white; border-radius: 12px; padding: 16px 20px; margin: 16px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.1); border: 2px solid #ffc107; }
+  #missingAnswersPalette.show { display: block !important; }
+  #missingAnswersPalette .palette-title { font-size: 1rem; font-weight: 700; color: #856404; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+  #missingAnswersPalette .palette-close { background: none; border: none; color: #666; cursor: pointer; padding: 4px 8px; font-size: 1.25rem; }
+  #missingAnswersPalette .palette-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  #missingAnswersPalette .palette-q-btn { display: inline-block; min-width: 44px; padding: 8px 12px; background: #fff3cd; color: #856404; border: 1px solid #ffc107; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; }
+  #missingAnswersPalette .palette-q-btn:hover { background: #ffc107; color: #333; }
+  #missingAnswersPalette .palette-q-btn.current { background: #3f37c9; color: white; border-color: #3f37c9; }
+  #missingAnswersPalette .palette-submit-wrap { padding-top: 8px; border-top: 1px solid #eee; }
   .loader {
     position: relative;
     width: 100px;
@@ -352,6 +361,16 @@
           </div>
           {% endfor %}
         </form>
+        <div id="missingAnswersPalette" class="missing-answers-palette" style="display: none;" aria-label="Unanswered questions">
+          <div class="palette-title">
+            <span><i class='bx bx-error-circle'></i> <span id="paletteTitleText">Unanswered questions</span></span>
+            <button type="button" class="palette-close" id="paletteCloseBtn" aria-label="Close">&times;</button>
+          </div>
+          <div class="palette-list" id="paletteList"></div>
+          <div class="palette-submit-wrap">
+            <button type="button" id="paletteSubmitBtn" class="btn btn-success"><i class='bx bx-check me-2'></i>Submit Test</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -396,6 +415,7 @@
   $(document).ready(function () {
     let currentQuestion = 1;
     const totalQuestions = $('.question').length;
+    const SHOW_MISSING_ANSWERS_VALIDATION = {{ 'true' if show_missing_answers_validation else 'false' }};
     let startTime, timerInterval;
     let totalSeconds = 20 * 60; // 20 minutes in seconds
     let questionStartTimes = {};
@@ -452,6 +472,7 @@
       if (!questionStartTimes[number]) {
         questionStartTimes[number] = Date.now();
       }
+      if (typeof updatePaletteCurrent === 'function') updatePaletteCurrent();
     }
     
     // Update answer quality widget
@@ -582,62 +603,110 @@
       return true;
     }
 
+    function doAjaxSubmit() {
+      $('#loader').show();
+      const formData = $('#multiStepForm').serialize();
+      $.ajax({
+        type: 'POST',
+        url: $('#multiStepForm').attr('action'),
+        data: formData,
+        success: function (response) {
+          $('#loader').show();
+          window.location.href = '/psychometric/submit/';
+        },
+        error: function (error) {
+          $('#loader').hide();
+          console.error("Error:", error);
+          Swal.fire({
+            title: 'Error',
+            text: 'An error occurred while processing your request. Please try again.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3f37c9'
+          });
+        }
+      });
+    }
+
+    function getUnansweredQuestions() {
+      const list = [];
+      $('.question').each(function () {
+        const questionNum = $(this).attr('id').replace('question', '');
+        const checked = $(this).find('input[name="question_' + questionNum + '"]:checked').length > 0;
+        if (!checked) list.push(parseInt(questionNum, 10));
+      });
+      return list.sort(function(a,b) { return a - b; });
+    }
+
+    function showMissingAnswersPalette(unansweredNums) {
+      const list = unansweredNums || getUnansweredQuestions();
+      if (list.length === 0) {
+        $('#missingAnswersPalette').removeClass('show').hide();
+        return;
+      }
+      $('#paletteTitleText').text('Unanswered questions (' + list.length + ')');
+      $('#paletteList').empty();
+      list.forEach(function(num) {
+        $('#paletteList').append($('<button type="button" class="palette-q-btn">Q' + num + '</button>').data('question-num', num));
+      });
+      $('#missingAnswersPalette').addClass('show').show();
+      setTimeout(updatePaletteCurrent, 0);
+    }
+
+    function updatePaletteCurrent() {
+      $('#missingAnswersPalette .palette-q-btn').removeClass('current').each(function() {
+        if (parseInt($(this).data('question-num'), 10) === currentQuestion) $(this).addClass('current');
+      });
+    }
+
+    $('#paletteCloseBtn').on('click', function() { $('#missingAnswersPalette').removeClass('show').hide(); });
+    $(document).on('click', '#missingAnswersPalette .palette-q-btn', function() {
+      const num = parseInt($(this).data('question-num'), 10);
+      if (!isNaN(num) && num >= 1 && num <= totalQuestions) { currentQuestion = num; showQuestion(num); }
+    });
+    $('#paletteSubmitBtn').on('click', function() {
+      if (validateForm()) doAjaxSubmit();
+    });
+
     // Form submit handler
     $('#multiStepForm').on('submit', function(e) {
       e.preventDefault();
-      const testPaper = $('input[name="test_paper"]').val();
-      const formData = $(this).serialize();
-      
-      // Validate all questions are answered
       let allAnswered = true;
       $('.question').each(function () {
         const questionNum = $(this).attr('id').replace('question', '');
         const checked = $(this).find('input[name="question_' + questionNum + '"]:checked').length > 0;
-        if (!checked) {
-          allAnswered = false;
-        }
+        if (!checked) allAnswered = false;
       });
 
       if (allAnswered) {
-        $('#loader').show();
-        
-        // AJAX call to submit the form
-        $.ajax({
-          type: 'POST',
-          url: $(this).attr('action'),
-          data: formData,
-          success: function (response) {
-            $('#loader').show();
-            // Redirect after successful submission
-            window.location.href = '/psychometric/submit/';
-          },
-          error: function (error) {
-            $('#loader').hide();
-            console.error("Error:", error);
-            Swal.fire({
-              title: 'Error',
-              text: 'An error occurred while processing your request. Please try again.',
-              icon: 'error',
-              confirmButtonText: 'OK',
-              confirmButtonColor: '#3f37c9'
-            });
-          }
-        });
-      } else {
-        $('#error-message').show();
-        setTimeout(function () {
-          $('#error-message').hide();
-        }, 3000);
-        // Scroll to first unanswered question
-        $('.question').each(function () {
-          const questionNum = $(this).attr('id').replace('question', '');
-          const checked = $(this).find('input[name="question_' + questionNum + '"]:checked').length > 0;
-          if (!checked) {
-            showQuestion(parseInt(questionNum));
-            return false;
-          }
-        });
+        doAjaxSubmit();
+        return;
       }
+      if (SHOW_MISSING_ANSWERS_VALIDATION) {
+        Swal.fire({
+          title: 'Unanswered Questions',
+          html: 'You have <strong>' + getUnansweredQuestions().length + '</strong> unanswered question(s). Are you sure you want to submit?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, Submit Anyway',
+          cancelButtonText: 'Review Answers',
+          confirmButtonColor: '#3f37c9',
+          cancelButtonColor: '#6c757d'
+        }).then(function(result) {
+          if (result.isConfirmed) {
+            doAjaxSubmit();
+          } else {
+            const list = getUnansweredQuestions();
+            if (list.length > 0) {
+              showQuestion(list[0]);
+              showMissingAnswersPalette(list);
+              $('#missingAnswersPalette')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+          }
+        });
+        return;
+      }
+      doAjaxSubmit();
     });
 
     // Start timer when page loads

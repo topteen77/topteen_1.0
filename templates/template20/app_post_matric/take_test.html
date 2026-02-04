@@ -241,6 +241,75 @@
     opacity: 0.6;
     cursor: not-allowed;
   }
+  /* Missing answers palette - jump to unanswered questions */
+  #missingAnswersPalette {
+    display: none;
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    border: 2px solid #ffc107;
+  }
+  #missingAnswersPalette.show {
+    display: block !important;
+  }
+  #missingAnswersPalette .palette-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #856404;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #missingAnswersPalette .palette-title i {
+    margin-right: 8px;
+  }
+  #missingAnswersPalette .palette-close {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+  #missingAnswersPalette .palette-close:hover {
+    color: #333;
+  }
+  #missingAnswersPalette .palette-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  #missingAnswersPalette .palette-q-btn {
+    display: inline-block;
+    min-width: 44px;
+    padding: 8px 12px;
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #missingAnswersPalette .palette-q-btn:hover {
+    background: #ffc107;
+    color: #333;
+  }
+  #missingAnswersPalette .palette-q-btn.current {
+    background: #3f37c9;
+    color: white;
+    border-color: #3f37c9;
+  }
+  #missingAnswersPalette .palette-submit-wrap {
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+  }
   /* SweetAlert2 submit confirmation - beautiful styling */
   .submit-confirm-popup {
     border-radius: 16px !important;
@@ -660,6 +729,20 @@
           </button>
         </div>
       </div>
+
+      <!-- Missing answers palette: shown when user clicks Review Answers -->
+      <div id="missingAnswersPalette" class="missing-answers-palette" aria-label="Unanswered questions">
+        <div class="palette-title">
+          <span><i class="fas fa-exclamation-triangle"></i> <span id="paletteTitleText">Unanswered questions</span></span>
+          <button type="button" class="palette-close" id="paletteCloseBtn" aria-label="Close">&times;</button>
+        </div>
+        <div class="palette-list" id="paletteList"></div>
+        <div class="palette-submit-wrap">
+          <button type="button" id="paletteSubmitBtn" class="btn-submit">
+            <i class="fas fa-check me-2"></i>Submit Test
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -683,6 +766,7 @@
 $(document).ready(function() {
   const testId = {{ test_id }};
   const ENABLE_AUTO_FORWARD = {{ 'true' if enable_auto_forward else 'false' }};
+  const SHOW_MISSING_ANSWERS_VALIDATION = {{ 'true' if show_missing_answers_validation else 'false' }};
   let currentSession = null;
   let questions = [];
   let currentQuestionIndex = 0;
@@ -739,9 +823,69 @@ $(document).ready(function() {
         renderQuestion(currentQuestionIndex - 1);
       }
     });
+    // Missing answers palette: close button
+    $('#paletteCloseBtn').on('click', function() {
+      $('#missingAnswersPalette').removeClass('show');
+    });
+    // Missing answers palette: Submit Test (same as main submit)
+    $('#paletteSubmitBtn').on('click', function() {
+      submitTest();
+    });
+    // Missing answers palette: click question number to jump
+    $(document).on('click', '#missingAnswersPalette .palette-q-btn', function() {
+      const idx = parseInt($(this).data('question-index'), 10);
+      if (!isNaN(idx) && idx >= 0 && idx < questions.length) {
+        renderQuestion(idx);
+      }
+    });
+  }
+  
+  function getUnansweredQuestions() {
+    return questions.filter(q => !answers[q.id] || (Array.isArray(answers[q.id]) && answers[q.id].length === 0));
+  }
+  
+  function showMissingAnswersPalette(unansweredList) {
+    const list = unansweredList || getUnansweredQuestions();
+    if (list.length === 0) {
+      $('#missingAnswersPalette').removeClass('show');
+      return;
+    }
+    $('#paletteTitleText').text('Unanswered questions (' + list.length + ')');
+    const $container = $('#paletteList').empty();
+    list.forEach(q => {
+      const idx = questions.findIndex(x => x.id === q.id);
+      if (idx >= 0) {
+        const num = idx + 1;
+        const $btn = $('<button type="button" class="palette-q-btn">Q' + num + '</button>').data('question-index', idx);
+        $container.append($btn);
+      }
+    });
+    $('#missingAnswersPalette').addClass('show').show();
+    setTimeout(updatePaletteCurrent, 0);
+  }
+  
+  function updatePaletteCurrent() {
+    $('#missingAnswersPalette .palette-q-btn').removeClass('current').each(function() {
+      if (parseInt($(this).data('question-index'), 10) === currentQuestionIndex) {
+        $(this).addClass('current');
+      }
+    });
+  }
+  
+  function updateMissingAnswersPaletteIfVisible() {
+    if (!$('#missingAnswersPalette').hasClass('show')) return;
+    const list = getUnansweredQuestions();
+    if (list.length === 0) {
+      $('#missingAnswersPalette').removeClass('show');
+      return;
+    }
+    showMissingAnswersPalette(list);
   }
   
   async function startTest() {
+    if (window.InternetSpeedMeter && typeof window.InternetSpeedMeter.stop === 'function') {
+      window.InternetSpeedMeter.stop();
+    }
     $('#instructionsSection').hide();
     $('#loadingState').show();
     
@@ -906,6 +1050,7 @@ $(document).ready(function() {
         } else if (currentQuestionIndex === questions.length - 1) {
           $('#submitTestBtn').prop('disabled', false);
         }
+        updateMissingAnswersPaletteIfVisible();
       });
       
       // Enable submit if all questions answered
@@ -926,6 +1071,7 @@ $(document).ready(function() {
       $nextBtn.toggle(!isLastQuestion).prop('disabled', false);
       $submitBtn.toggle(isLastQuestion);
       if (isLastQuestion) $submitBtn.prop('disabled', false).html('<i class="fas fa-check me-2"></i>Submit Test');
+      updatePaletteCurrent();
     });
   }
   
@@ -982,9 +1128,9 @@ $(document).ready(function() {
       return;
     }
     
-    // Validate all questions answered - beautiful SweetAlert2 confirmation
+    // Validate all questions answered - show confirmation and palette when SHOW_MISSING_ANSWERS_VALIDATION is on
     const unanswered = questions.filter(q => !answers[q.id] || (Array.isArray(answers[q.id]) && answers[q.id].length === 0));
-    if (unanswered.length > 0) {
+    if (unanswered.length > 0 && SHOW_MISSING_ANSWERS_VALIDATION) {
       const result = await Swal.fire({
         title: 'Unanswered Questions',
         html: `You have <strong>${unanswered.length}</strong> unanswered question(s). Are you sure you want to submit?`,
@@ -998,6 +1144,18 @@ $(document).ready(function() {
       });
       if (!result.isConfirmed) {
         $('#submitTestBtn').prop('disabled', false).html('<i class="fas fa-check me-2"></i>Submit Test');
+        // Move to first unanswered question and show missing-answers palette
+        const firstUnanswered = unanswered[0];
+        const firstUnansweredIndex = questions.findIndex(q => q.id === firstUnanswered.id);
+        if (firstUnansweredIndex >= 0) {
+          renderQuestion(firstUnansweredIndex);
+        }
+        showMissingAnswersPalette(unanswered);
+        var $palette = $('#missingAnswersPalette');
+        $palette.addClass('show').show();
+        setTimeout(function() {
+          if ($palette.length && $palette[0].scrollIntoView) $palette[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 350);
         return;
       }
     }

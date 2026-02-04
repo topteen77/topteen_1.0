@@ -1,0 +1,242 @@
+{% extends 'topteenadmin/base.html' %}
+{% block main %}
+<!--begin::Post-->
+<div class="post d-flex flex-column-fluid" id="kt_post">
+	<!--begin::Container-->
+	<div id="kt_content_container" class="container-xxl">
+		<!--begin::Card-->
+		<div class="card">
+			<!--begin::Card header-->
+			<div class="card-header border-0 pt-6">
+				<div class="card-title">
+					<h2 class="fw-bolder">Student Test Reset</h2>
+				</div>
+				{% include 'topteenadmin/includes/messages.html' %}
+				<!--begin::Card toolbar-->
+				<div class="card-toolbar">
+					<div class="d-flex justify-content-end flex-wrap gap-2">
+						<a href="{{ url('topteenadminmanaged:studentlist') }}" class="btn btn-light">
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M9.60002 11L7.60002 13L9.60002 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+									<path d="M7.60002 13L15.6 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							</span>
+							Back to Students
+						</a>
+					</div>
+				</div>
+			</div>
+			<!--end::Card header-->
+
+			<!--begin::Card body-->
+			<div class="card-body pt-0">
+				<!--begin::Search and actions-->
+				<div class="d-flex flex-wrap align-items-center gap-4 mb-6">
+					<div class="d-flex align-items-center position-relative flex-grow-1 flex-lg-grow-0">
+						<span class="svg-icon svg-icon-2 position-absolute ms-4">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<path d="M21.7 18.9L18.6 15.8C18.3 15.5 17.9 15.4 17.5 15.4H16.8C17.8 14.1 18.4 12.5 18.4 10.7C18.4 6.2 14.7 2.5 10.2 2.5C5.69999 2.5 2 6.2 2 10.7C2 15.2 5.69999 18.9 10.2 18.9C12 18.9 13.6 18.3 14.9 17.3V18C14.9 18.4 15 18.8 15.3 19.1L18.4 22.2C18.8 22.6 19.4 22.6 19.8 22.2L21.7 20.3C22.1 19.9 22.1 19.3 21.7 18.9Z" fill="currentColor"/>
+							</svg>
+						</span>
+						<input type="text" id="search_email" class="form-control form-control-solid w-250px ps-12" placeholder="Search by student email..." value="">
+					</div>
+					<button type="button" id="btn_search" class="btn btn-primary">Search</button>
+					<button type="button" id="btn_reset_selected" class="btn btn-warning" disabled>Reset Selected</button>
+					<button type="button" id="btn_reset_all" class="btn btn-danger">Reset All (filtered)</button>
+				</div>
+				<!--end::Search and actions-->
+
+				<!--begin::Table-->
+				<div class="table-responsive">
+					<table class="table align-middle table-row-dashed fs-6 gy-5">
+						<thead>
+							<tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0">
+								<th class="w-25px">
+									<input type="checkbox" id="select_all" class="form-check-input" title="Select all on page">
+								</th>
+								<th class="min-w-150px">Name</th>
+								<th class="min-w-200px">Email</th>
+								<th class="min-w-120px">Last test (session)</th>
+								<th class="min-w-120px">Last test (result)</th>
+								<th class="min-w-100px text-end">Action</th>
+							</tr>
+						</thead>
+						<tbody id="students_tbody">
+							<tr>
+								<td colspan="6" class="text-center py-10 text-gray-500">
+									<span class="spinner-border spinner-border-sm" role="status"></span> Loading students...
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<!--end::Table-->
+
+				<!--begin::Pagination-->
+				<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 py-4">
+					<div class="text-gray-600 fs-7" id="pagination_info">—</div>
+					<ul class="pagination mb-0" id="pagination_ul"></ul>
+				</div>
+				<!--end::Pagination-->
+			</div>
+			<!--end::Card body-->
+		</div>
+		<!--end::Card-->
+	</div>
+	<!--end::Container-->
+</div>
+<!--end::Post-->
+
+<script>
+(function() {
+	function getCookie(name) {
+		var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+		return match ? match[2] : null;
+	}
+
+	var listUrl = "{{ url('topteenadminmanaged:studenttestreset_list_api') }}";
+	var actionUrl = "{{ url('topteenadminmanaged:studenttestreset_action_api') }}";
+	var csrfToken = getCookie('csrftoken');
+	var currentPage = 1;
+	var currentEmail = '';
+
+	function loadList(page) {
+		page = page || 1;
+		currentPage = page;
+		var url = listUrl + '?page=' + page + '&per_page=20';
+		if (currentEmail) url += '&email=' + encodeURIComponent(currentEmail);
+
+		document.getElementById('students_tbody').innerHTML =
+			'<tr><td colspan="6" class="text-center py-10"><span class="spinner-border spinner-border-sm"></span> Loading...</td></tr>';
+
+		fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+			.then(function(r) { return r.json(); })
+			.then(function(data) {
+				var tbody = document.getElementById('students_tbody');
+				if (!data.students || data.students.length === 0) {
+					tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-gray-500">No students found. Try a different search.</td></tr>';
+				} else {
+					tbody.innerHTML = data.students.map(function(s) {
+						var lastSession = s.last_session ? new Date(s.last_session).toLocaleString() : '—';
+						var lastResult = s.last_result ? new Date(s.last_result).toLocaleString() : '—';
+						return '<tr data-user-id="' + s.id + '">' +
+							'<td><input type="checkbox" class="form-check-input row-check" value="' + s.id + '"></td>' +
+							'<td class="text-gray-800 fw-bold">' + (s.name || '—') + '</td>' +
+							'<td class="text-gray-700">' + (s.email || '—') + '</td>' +
+							'<td class="text-gray-600">' + lastSession + '</td>' +
+							'<td class="text-gray-600">' + lastResult + '</td>' +
+							'<td class="text-end">' +
+							'<button type="button" class="btn btn-sm btn-light-warning btn-reset-one" data-id="' + s.id + '">Reset</button>' +
+							'</td></tr>';
+					}).join('');
+				}
+
+				document.getElementById('pagination_info').textContent =
+					'Showing page ' + data.page + ' of ' + data.num_pages + ' (total ' + data.total + ' students)';
+
+				var ul = document.getElementById('pagination_ul');
+				ul.innerHTML = '';
+				for (var p = 1; p <= data.num_pages; p++) {
+					var li = document.createElement('li');
+					li.className = 'page-item' + (p === data.page ? ' active' : '');
+					var a = document.createElement('a');
+					a.className = 'page-link';
+					a.href = '#';
+					a.textContent = p;
+					a.addEventListener('click', function(ev) { ev.preventDefault(); loadList(parseInt(this.textContent, 10)); });
+					li.appendChild(a);
+					ul.appendChild(li);
+				}
+
+				document.getElementById('select_all').checked = false;
+				document.getElementById('btn_reset_selected').disabled = true;
+			})
+			.catch(function(err) {
+				document.getElementById('students_tbody').innerHTML =
+					'<tr><td colspan="6" class="text-center py-10 text-danger">Error loading list.</td></tr>';
+			});
+	}
+
+	function getSelectedIds() {
+		var ids = [];
+		document.querySelectorAll('.row-check:checked').forEach(function(cb) { ids.push(parseInt(cb.value, 10)); });
+		return ids;
+	}
+
+	function doReset(payload, btn) {
+		var origText = btn ? btn.textContent : '';
+		if (btn) { btn.disabled = true; btn.textContent = 'Resetting...'; }
+
+		fetch(actionUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+				'X-Requested-With': 'XMLHttpRequest'
+			},
+			body: JSON.stringify(payload)
+		})
+			.then(function(r) { return r.json(); })
+			.then(function(data) {
+				if (data.success) {
+					alert(data.message);
+					loadList(currentPage);
+				} else {
+					alert(data.message || 'Action failed.');
+				}
+			})
+			.catch(function() { alert('Request failed.'); })
+			.finally(function() {
+				if (btn) { btn.disabled = false; btn.textContent = origText; }
+			});
+	}
+
+	document.getElementById('btn_search').addEventListener('click', function() {
+		currentEmail = document.getElementById('search_email').value.trim();
+		loadList(1);
+	});
+
+	document.getElementById('search_email').addEventListener('keydown', function(e) {
+		if (e.key === 'Enter') {
+			currentEmail = this.value.trim();
+			loadList(1);
+		}
+	});
+
+	document.getElementById('btn_reset_selected').addEventListener('click', function() {
+		var ids = getSelectedIds();
+		if (ids.length === 0) { alert('Select at least one student.'); return; }
+		if (!confirm('Reset test flags for ' + ids.length + ' selected student(s)?')) return;
+		doReset({ user_ids: ids }, this);
+	});
+
+	document.getElementById('btn_reset_all').addEventListener('click', function() {
+		var msg = currentEmail
+			? 'Reset test flags for ALL students matching email search "' + currentEmail + '"?'
+			: 'Reset test flags for ALL students who have given tests?';
+		if (!confirm(msg)) return;
+		doReset({ reset_all: true, email: currentEmail || '' }, this);
+	});
+
+	document.getElementById('select_all').addEventListener('change', function() {
+		document.querySelectorAll('.row-check').forEach(function(cb) { cb.checked = this.checked; }.bind(this));
+		document.getElementById('btn_reset_selected').disabled = !this.checked && getSelectedIds().length === 0;
+	});
+
+	document.getElementById('students_tbody').addEventListener('change', function() {
+		document.getElementById('btn_reset_selected').disabled = getSelectedIds().length === 0;
+	});
+
+	document.getElementById('students_tbody').addEventListener('click', function(e) {
+		if (e.target.classList.contains('btn-reset-one')) {
+			var id = parseInt(e.target.getAttribute('data-id'), 10);
+			if (!confirm('Reset test flags for this student?')) return;
+			doReset({ user_ids: [id] }, e.target);
+		}
+	});
+
+	loadList(1);
+})();
+</script>
+{% endblock %}

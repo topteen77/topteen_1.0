@@ -23,6 +23,7 @@ from django.shortcuts import get_object_or_404
 from .models import TestCompletion,Answer,Results
 
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from app.models import Category, Course, Stream
 
@@ -57,6 +58,14 @@ User = get_user_model()
 # Define a custom exception for handling the case where the user hasn't attempted the test
 class UserHasNotAttemptedTestException(Exception):
     pass
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def speed_test(request):
+    """Dummy endpoint for instruction-page internet speed meter upload test. Returns 200."""
+    return HttpResponse(status=200)
+
 
 def custom_logout(request):
     print('Logging out {}'.format(request.user))  # Logging the user who is logging out
@@ -1028,6 +1037,7 @@ def test2_view(request):
         'test_paper': 'test2',
         'csrf_token':csrf_token,
     }
+    # return render(request, 'topteenfrontend/user/app/interest-assessment-test2.html', context)
     return render(request, 'template20/psychometric/test2_view.html', context)
 
 

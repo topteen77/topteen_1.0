@@ -56,115 +56,10 @@
 					<!--begin::Aside menu-->
 					<div class="aside-menu flex-column-fluid">
 						<!--begin::Aside Menu-->
-						<div class="hover-scroll-overlay-y my-5 my-lg-5" id="kt_aside_menu_wrapper" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_footer" data-kt-scroll-wrappers="#kt_aside_menu" data-kt-scroll-offset="0">
+						<div class="hover-scroll-overlay-y my-5 my-lg-5" id="kt_aside_menu_wrapper" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_footer" data-kt-scroll-wrappers="#kt_aside_menu" data-kt-scroll-offset="0" style="overflow-y: auto; max-height: calc(100vh - 120px);">
 														<!--begin::Menu-->
 														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
-																<span class="menu-link">
-																	<span class="menu-icon">
-																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
-																		<span class="svg-icon svg-icon-2">
-																			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																				<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																				<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																				<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																				<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																			</svg>
-																		</span>
-																		<!--end::Svg Icon-->
-																	</span>
-																	<span class="menu-title">Core</span>
-																	<span class="menu-arrow"></span>
-																</span>
-																<div class="menu-sub menu-sub-accordion menu-active-bg">
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="country" %} active {% endif %}" href="{{url("topteenadminmanaged:countrylist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Country</span>
-																		</a>
-																	</div>
-																	<div class="menu-item">
-																		<a class="menu-link{% if active_tab =="state" %} active {% endif %}" href="{{url("topteenadminmanaged:statelist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">State</span>
-																		</a>
-																	</div>
-																	<div class="menu-item">
-																		<a class="menu-link{% if active_tab =="city" %} active {% endif %}" href="{{url("topteenadminmanaged:citylist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">City</span>
-																		</a>
-																	</div>										
-																	<div class="menu-item">
-																		<a class="menu-link{% if active_tab =="review" %} active {% endif %}" href="{{url("topteenadminmanaged:reviewlist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Review</span>
-																		</a>
-																	</div>										
-																	<div class="menu-item">
-																		<a class="menu-link{% if active_tab =="commonfaq" %} active {% endif %}" href="{{url("topteenadminmanaged:commonfaqlist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">CommonFAQ</span>
-																		</a>
-																	</div>
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="hobbies" %} active {% endif %}" href="{{url("topteenadminmanaged:hobbieslist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Hobbies</span>
-																		</a>
-																	</div>
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="subject" %} active {% endif %}" href="{{url("topteenadminmanaged:subjectlist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Subject</span>
-																		</a>
-																	</div>		
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="userfigureout" %} active {% endif %}" href="{{url("topteenadminmanaged:userfigureoutlist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">UserFigureOut</span>
-																		</a>
-																	</div>		
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="stories" %} active {% endif %}" href="{{url("topteenadminmanaged:storieslist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Stories</span>
-																		</a>
-																	</div>		
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="apilog" %} active {% endif %}" href="{{url("topteenadminmanaged:apiloglist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Api Log</span>
-																		</a>
-																	</div>						
-																</div>
-															</div>
-															
-														</div>
-														<!--end::Menu-->
-														<!--begin::Menu-->
-														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -212,85 +107,9 @@
 															
 														</div>
 														<!--end::Menu-->
-																												<!--begin::Menu-->
-																												<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-																													<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
-																														<span class="menu-link">
-																															<span class="menu-icon">
-																																<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
-																																<span class="svg-icon svg-icon-2">
-																																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																																		<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																		<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																		<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																		<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																	</svg>
-																																</span>
-																																<!--end::Svg Icon-->
-																															</span>
-																															<span class="menu-title">CRM</span>
-																															<span class="menu-arrow"></span>
-																														</span>
-																														<div class="menu-sub menu-sub-accordion menu-active-bg">
-																															<div class="menu-item">
-																																<a class="menu-link{% if active_tab =="lead" %} active {% endif %}" href="{{url("topteenadminmanaged:leadlist")}}">
-																																	<span class="menu-bullet">
-																																		<span class="bullet bullet-dot"></span>
-																																	</span>
-																																	<span class="menu-title">Lead</span>
-																																</a>
-																															</div>
-																																									
-																														</div>
-																													</div>
-																													
-																												</div>
-																												<!--end::Menu-->
-																													<!--begin::Menu-->
-																													<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-																														<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
-																															<span class="menu-link">
-																																<span class="menu-icon">
-																																	<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
-																																	<span class="svg-icon svg-icon-2">
-																																		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																																			<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																			<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																			<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																			<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																		</svg>
-																																	</span>
-																																	<!--end::Svg Icon-->
-																																</span>
-																																<span class="menu-title">Psychometric Test</span>
-																																<span class="menu-arrow"></span>
-																															</span>
-																															<div class="menu-sub menu-sub-accordion menu-active-bg">
-																																<div class="menu-item">
-																																	<a class="menu-link{% if active_tab =="psychometric" %} active {% endif %}" href="{{url("topteenadminmanaged:psychometricfaqlist")}}">
-																																		<span class="menu-bullet">
-																																			<span class="bullet bullet-dot"></span>
-																																		</span>
-																																		<span class="menu-title">Psychometric Faq</span>
-																																	</a>
-																																</div>
-																																<div class="menu-item">
-																																	<a class="menu-link{% if active_tab =="students" %} active {% endif %}" href="{{url("topteenadminmanaged:studentlist")}}">
-																																		<span class="menu-bullet">
-																																			<span class="bullet bullet-dot"></span>
-																																		</span>
-																																		<span class="menu-title">Students</span>
-																																	</a>
-																																</div>
-																																										
-																															</div>
-																														</div>
-																														
-																													</div>
-																													<!--end::Menu-->
-							<!--begin::Menu-->
+										<!--begin::Menu-->
 							<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-								<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+								<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
 									<span class="menu-link">
 										<span class="menu-icon">
 											<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -419,10 +238,9 @@
 								
 							</div>
 							<!--end::Menu-->
-
-														<!--begin::Menu-->
+										<!--begin::Menu-->
 														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -528,9 +346,114 @@
 															
 														</div>
 														<!--end::Menu-->
-														<!--begin::Menu-->
+										<!--begin::Menu-->
 														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+																<span class="menu-link">
+																	<span class="menu-icon">
+																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+																		<span class="svg-icon svg-icon-2">
+																			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																				<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																				<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																				<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																				<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																			</svg>
+																		</span>
+																		<!--end::Svg Icon-->
+																	</span>
+																	<span class="menu-title">Core</span>
+																	<span class="menu-arrow"></span>
+																</span>
+																<div class="menu-sub menu-sub-accordion menu-active-bg">
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="country" %} active {% endif %}" href="{{url("topteenadminmanaged:countrylist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Country</span>
+																		</a>
+																	</div>
+																	<div class="menu-item">
+																		<a class="menu-link{% if active_tab =="state" %} active {% endif %}" href="{{url("topteenadminmanaged:statelist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">State</span>
+																		</a>
+																	</div>
+																	<div class="menu-item">
+																		<a class="menu-link{% if active_tab =="city" %} active {% endif %}" href="{{url("topteenadminmanaged:citylist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">City</span>
+																		</a>
+																	</div>										
+																	<div class="menu-item">
+																		<a class="menu-link{% if active_tab =="review" %} active {% endif %}" href="{{url("topteenadminmanaged:reviewlist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Review</span>
+																		</a>
+																	</div>										
+																	<div class="menu-item">
+																		<a class="menu-link{% if active_tab =="commonfaq" %} active {% endif %}" href="{{url("topteenadminmanaged:commonfaqlist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">CommonFAQ</span>
+																		</a>
+																	</div>
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="hobbies" %} active {% endif %}" href="{{url("topteenadminmanaged:hobbieslist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Hobbies</span>
+																		</a>
+																	</div>
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="subject" %} active {% endif %}" href="{{url("topteenadminmanaged:subjectlist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Subject</span>
+																		</a>
+																	</div>		
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="userfigureout" %} active {% endif %}" href="{{url("topteenadminmanaged:userfigureoutlist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">UserFigureOut</span>
+																		</a>
+																	</div>		
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="stories" %} active {% endif %}" href="{{url("topteenadminmanaged:storieslist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Stories</span>
+																		</a>
+																	</div>		
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="apilog" %} active {% endif %}" href="{{url("topteenadminmanaged:apiloglist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Api Log</span>
+																		</a>
+																	</div>						
+																</div>
+															</div>
+															
+														</div>
+														<!--end::Menu-->
+										<!--begin::Menu-->
+														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -614,10 +537,43 @@
 															
 														</div>
 														<!--end::Menu-->
-
-														<!--begin::Menu-->
+										<!--begin::Menu-->
+																												<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
+																													<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+																														<span class="menu-link">
+																															<span class="menu-icon">
+																																<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+																																<span class="svg-icon svg-icon-2">
+																																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																																		<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																																		<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																																		<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																																		<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																																	</svg>
+																																</span>
+																																<!--end::Svg Icon-->
+																															</span>
+																															<span class="menu-title">CRM</span>
+																															<span class="menu-arrow"></span>
+																														</span>
+																														<div class="menu-sub menu-sub-accordion menu-active-bg">
+																															<div class="menu-item">
+																																<a class="menu-link{% if active_tab =="lead" %} active {% endif %}" href="{{url("topteenadminmanaged:leadlist")}}">
+																																	<span class="menu-bullet">
+																																		<span class="bullet bullet-dot"></span>
+																																	</span>
+																																	<span class="menu-title">Lead</span>
+																																</a>
+																															</div>
+																																									
+																														</div>
+																													</div>
+																													
+																												</div>
+																												<!--end::Menu-->
+										<!--begin::Menu-->
 														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -656,9 +612,51 @@
 															
 														</div>
 														<!--end::Menu-->
-														<!--begin::Menu-->
+										<!--begin::Menu-->
+																													<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
+																														<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+																															<span class="menu-link">
+																																<span class="menu-icon">
+																																	<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+																																	<span class="svg-icon svg-icon-2">
+																																		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																																			<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																																			<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																																			<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																																			<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																																		</svg>
+																																	</span>
+																																	<!--end::Svg Icon-->
+																																</span>
+																																<span class="menu-title">Psychometric Test</span>
+																																<span class="menu-arrow"></span>
+																															</span>
+																															<div class="menu-sub menu-sub-accordion menu-active-bg">
+																																<div class="menu-item">
+																																	<a class="menu-link{% if active_tab =="psychometric" %} active {% endif %}" href="{{url("topteenadminmanaged:psychometricfaqlist")}}">
+																																		<span class="menu-bullet">
+																																			<span class="bullet bullet-dot"></span>
+																																		</span>
+																																		<span class="menu-title">Psychometric Faq</span>
+																																	</a>
+																																</div>
+																																<div class="menu-item">
+																																	<a class="menu-link{% if active_tab =="students" %} active {% endif %}" href="{{url("topteenadminmanaged:studentlist")}}">
+																																		<span class="menu-bullet">
+																																			<span class="bullet bullet-dot"></span>
+																																		</span>
+																																		<span class="menu-title">Students</span>
+																																	</a>
+																																</div>
+																																										
+																															</div>
+																														</div>
+																														
+																													</div>
+																													<!--end::Menu-->
+										<!--begin::Menu-->
 														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -705,13 +703,7 @@
 															</div>
 															
 														</div>
-														<!--end::Menu-->
-														
-
-
-
-						</div>
-						<!--end::Aside Menu-->
+														<!--end::Menu--><!--end::Aside Menu-->
 					</div>
 
 
@@ -1003,6 +995,50 @@
 					window.opener.populateFromWindow('{{request.GET.get('foreign_key')}}','{{request.GET.get('id')}}','{{request.GET.get('name')}}');
 					window.close();
 				{% endif %}
+			</script>
+			<script>
+			// Auto-scroll sidebar so the active menu item for the current page is in view
+			(function() {
+				function scrollSidebarToActive() {
+					var aside = document.getElementById('kt_aside');
+					if (!aside) return;
+					var activeLink = aside.querySelector('.menu-link.active');
+					// Collapse all accordions, then expand only the one containing the active link
+					var allAccordions = aside.querySelectorAll('.menu-item.menu-accordion');
+					allAccordions.forEach(function(acc) {
+						acc.classList.remove('show');
+						var sub = acc.querySelector('.menu-sub');
+						if (sub) sub.classList.remove('show');
+					});
+					if (activeLink) {
+						var parentSub = activeLink.closest('.menu-sub');
+						if (parentSub) {
+							var parentAccordion = parentSub.closest('.menu-item.menu-accordion');
+							if (parentAccordion) {
+								parentAccordion.classList.add('show');
+								parentSub.classList.add('show');
+							}
+						}
+					}
+					var wrapper = document.getElementById('kt_aside_menu_wrapper');
+					if (!wrapper || !activeLink) return;
+					function doScroll() {
+						var linkRect = activeLink.getBoundingClientRect();
+						var wrapperRect = wrapper.getBoundingClientRect();
+						// Position of active link within the sidebar scroll content
+						var scrollTarget = wrapper.scrollTop + (linkRect.top - wrapperRect.top) - 80;
+						wrapper.scrollTop = Math.max(0, Math.min(scrollTarget, wrapper.scrollHeight - wrapper.clientHeight));
+					}
+					// Run after layout updates (accordion expand)
+					setTimeout(doScroll, 150);
+					setTimeout(doScroll, 400);
+				}
+				if (document.readyState === 'loading') {
+					document.addEventListener('DOMContentLoaded', scrollSidebarToActive);
+				} else {
+					scrollSidebarToActive();
+				}
+			})();
 			</script>
         {% block endscript %}
         {% endblock %}
