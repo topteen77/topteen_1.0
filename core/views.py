@@ -6,7 +6,9 @@ import os
 logger = logging.getLogger(__name__)
 from multiprocessing import get_context
 from .utils import build_breadcrumb,build_html_head
+from django.db import connection
 from django.db.models import Q
+from django.db.utils import ProgrammingError
 from xml.etree.ElementInclude import include
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
@@ -96,7 +98,57 @@ class Home(TemplateView):
         ).first()
         
         ctx['exams']=EntranceExam.objects.all().order_by('?')[:3]
-        ctx['clusters']=CareerCluster.objects.filter(parent__isnull=True)
+        clusters = CareerCluster.objects.filter(parent__isnull=True, object_status=choices.ObjectStatus.ACTIVE)
+        ctx['clusters'] = clusters
+        # Build career track cards with links to related career tracks (career library filtered by cluster)
+        default_career_url = reverse('careers:defaultcareerlibrary')
+        name_to_url = {}
+        for c in clusters:
+            if c.slug and c.name:
+                name_to_url[c.name.strip()] = reverse('careers:careerlibrary', args=[c.slug, c.id])
+        def url_for_track(display_name):
+            if not display_name:
+                return default_career_url
+            norm = display_name.strip().replace(" & ", " and ").replace("\n", " ").lower()
+            u = name_to_url.get(display_name.strip())
+            if u:
+                return u
+            for name, u in name_to_url.items():
+                if (name or "").strip().replace(" & ", " and ").lower() == norm:
+                    return u
+            return default_career_url
+        # Fixed list of career tracks as on the home page (label, icon filename)
+        career_track_specs = [
+            ("Agriculture &\nEnvironmental Sciences", "agriculture-icon.svg"),
+            ("Architecture &\nConstructions", "architecture-icon.svg"),
+            ("Arts, Media & Mass Communication", "avtechnology.svg"),
+            ("Business,\nManagement\n& Administration", "businessmanage-icon.svg"),
+            ("Finance, Economics and Statistics", "finance-icon.svg"),
+            ("Education And\nTraining ", "educationtraining.svg"),
+            ("Government Sector, Pub Adm. & Int. Relations", "government-services.svg"),
+            ("Engineering &\nTechnology", "eit-icon.svg"),
+            ("Information\nTechnology (IT)", "it-icon.svg"),
+            ("STEM ", "stem-icon.svg"),
+            ("Health Science & Medical Services", "health-services.svg"),
+            ("Hospitality and\nTourism", "tourism-icon.svg"),
+            ("Humanities, Social Work & Psychology", "humanities-icon.svg"),
+            ("Law and Public Safety", "law-icon.svg"),
+            ("Distribution, Transportation & Logistics", "transport.svg"),
+            ("Marketing & Sales", "marketing-icon.svg"),
+            ("Scientific Research, R & D", "scientific-research.svg"),
+            ("Sports, Fitness & Wellness ", "sports-icon.svg"),
+            ("Fashion, Design & Creativity", "faishion-icon.svg"),
+        ]
+        ctx['career_track_cards'] = [
+            {
+                'label': spec[0].replace('\n', ' ').strip(),
+                'label_raw': spec[0],
+                'icon': 'images_new/careers/career-tracks/' + spec[1],
+                'url': url_for_track(spec[0].replace('\n', ' ').strip()),
+            }
+            for spec in career_track_specs
+        ]
+        ctx['default_career_library_url'] = default_career_url
         return ctx
         
     def get(self, request,*args, **kwargs):
