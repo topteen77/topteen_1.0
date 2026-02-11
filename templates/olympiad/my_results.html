@@ -1,0 +1,36 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}My Olympiad Results | Top Teen{% endblock %}
+{% block description_content %}Your NSEO Olympiad exam results.{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h1 class="mb-4">My Olympiad Results</h1>
+  <a href="{{ url('olympiad:exam_list') }}" class="btn btn-outline-primary mb-4">Back to Exams</a>
+
+  {% if sessions %}
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Exam</th>
+          <th>Completed</th>
+          <th>Marks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr>
+          <td>{{ s.exam.name }}</td>
+          <td>{{ s.ended_at.strftime('%d %b %Y %H:%M') if s.ended_at else '—' }}</td>
+          <td>{{ s.total_marks_awarded|default('—') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted">You have not completed any Olympiad exam yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

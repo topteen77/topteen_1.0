@@ -1,0 +1,218 @@
+{
+  "title": "Understanding Your Natural Abilities",
+  "intro": "Your natural abilities assessment reveals your innate strengths and talents—how you naturally think, feel, and behave. These represent your greatest potential for success and satisfaction. Below are the primary profiles and combinations.",
+  "primary_profiles": [
+    {
+      "label": "A) Analytical Thinker (Logical/Systematic Intelligence)",
+      "sections": [
+        {
+          "heading": "Core Natural Abilities",
+          "bullets": [
+            "Pattern Recognition: Instinctively see logical connections and underlying structures",
+            "Critical Analysis: Naturally question, examine, and evaluate information objectively",
+            "Problem Decomposition: Break complex issues into manageable, logical components",
+            "Systems Thinking: Understand how parts relate to wholes and cause-effect relationships"
+          ]
+        },
+        {
+          "heading": "Inherent Strengths",
+          "bullets": [
+            "Exceptional ability to think logically and reason systematically",
+            "Natural talent for research, investigation, and data analysis",
+            "Instinctive understanding of complex systems and processes",
+            "Strong capacity for objective decision-making",
+            "Natural inclination toward accuracy and precision"
+          ]
+        },
+        {
+          "heading": "Optimal Environments",
+          "bullets": [
+            "Research and development roles",
+            "Strategic planning and analysis positions",
+            "Technical and scientific fields",
+            "Consulting and advisory roles",
+            "Any environment requiring logical problem-solving"
+          ]
+        },
+        {
+          "heading": "Natural Career Alignments",
+          "bullets": [
+            "Scientist, Researcher, Data Analyst",
+            "Engineer, Architect, Systems Designer",
+            "Financial Analyst, Strategic Planner",
+            "Consultant, Auditor, Quality Assurance",
+            "Academic, Philosopher, Theorist"
+          ]
+        },
+        {
+          "heading": "Potential Blind Spots",
+          "bullets": [
+            "May undervalue emotional and interpersonal factors",
+            "Could become paralyzed by over-analysis",
+            "Might struggle with ambiguous or people-centered problems",
+            "May need to develop patience with less logical thinkers"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "B) Practical Executor (Operational/Results Intelligence)",
+      "sections": [
+        {
+          "heading": "Core Natural Abilities",
+          "bullets": [
+            "Efficiency Optimization: Instinctively find the most effective ways to accomplish tasks",
+            "Results Focus: Naturally oriented toward concrete outcomes and measurable success",
+            "Resource Management: Intuitively understand how to allocate time, energy, and materials",
+            "Implementation Skills: Excel at turning ideas into actionable plans and results"
+          ]
+        },
+        {
+          "heading": "Inherent Strengths",
+          "bullets": [
+            "Exceptional ability to get things done efficiently and effectively",
+            "Natural talent for organization, planning, and execution",
+            "Instinctive understanding of practical constraints and limitations",
+            "Strong capacity for meeting deadlines and managing resources",
+            "Natural inclination toward productivity and achievement"
+          ]
+        },
+        {
+          "heading": "Optimal Environments",
+          "bullets": [
+            "Operations and project management roles",
+            "Business and entrepreneurial settings",
+            "Manufacturing and production environments",
+            "Service delivery and customer-facing positions",
+            "Any environment requiring efficient execution"
+          ]
+        },
+        {
+          "heading": "Natural Career Alignments",
+          "bullets": [
+            "Project Manager, Operations Director",
+            "Entrepreneur, Business Owner",
+            "Production Manager, Logistics Coordinator",
+            "Sales Professional, Account Manager",
+            "Administrator, Executive Assistant"
+          ]
+        },
+        {
+          "heading": "Potential Blind Spots",
+          "bullets": [
+            "May undervalue long-term strategic thinking",
+            "Could become impatient with theoretical discussions",
+            "Might struggle with highly creative or ambiguous tasks",
+            "May need to develop appreciation for process over just results"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "C) People Connector (Interpersonal/Emotional Intelligence)",
+      "sections": [
+        {
+          "heading": "Core Natural Abilities",
+          "bullets": [
+            "Emotional Awareness: Instinctively understand and respond to others' emotions",
+            "Relationship Building: Naturally create trust, rapport, and meaningful connections",
+            "Communication Skills: Excel at listening, empathizing, and facilitating understanding",
+            "Team Dynamics: Intuitively understand group dynamics and interpersonal relationships"
+          ]
+        },
+        {
+          "heading": "Inherent Strengths",
+          "bullets": [
+            "Exceptional ability to understand and work with people",
+            "Natural talent for communication, collaboration, and conflict resolution",
+            "Instinctive understanding of human motivation and behavior",
+            "Strong capacity for building and maintaining relationships",
+            "Natural inclination toward helping and supporting others"
+          ]
+        },
+        {
+          "heading": "Optimal Environments",
+          "bullets": [
+            "Human resources and people development roles",
+            "Healthcare and helping professions",
+            "Education and training positions",
+            "Customer service and client relations",
+            "Any environment requiring strong interpersonal skills"
+          ]
+        },
+        {
+          "heading": "Natural Career Alignments",
+          "bullets": [
+            "HR Professional, Counsellor, Therapist",
+            "Teacher, Trainer, Coach",
+            "Social Worker, Healthcare Provider",
+            "Customer Service Manager, Account Relationship Manager",
+            "Team Leader, Organizational Development Specialist"
+          ]
+        },
+        {
+          "heading": "Potential Blind Spots",
+          "bullets": [
+            "May avoid necessary but difficult conversations",
+            "Could become overwhelmed by others' emotions",
+            "Might struggle with purely technical or analytical tasks",
+            "May need to develop skills in objective decision-making"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "D) Creative Visionary (Innovative/Conceptual Intelligence)",
+      "sections": [
+        {
+          "heading": "Core Natural Abilities",
+          "bullets": [
+            "Possibility Thinking: Instinctively see potential and imagine what could be",
+            "Creative Problem-Solving: Naturally generate novel and innovative solutions",
+            "Big Picture Vision: Intuitively understand broad concepts and future implications",
+            "Adaptability: Excel at thinking flexibly and adjusting to new situations"
+          ]
+        },
+        {
+          "heading": "Inherent Strengths",
+          "bullets": [
+            "Exceptional ability to generate new ideas and innovative solutions",
+            "Natural talent for seeing connections others miss",
+            "Instinctive understanding of trends, possibilities, and potential",
+            "Strong capacity for inspiring and motivating others with vision",
+            "Natural inclination toward creativity and innovation"
+          ]
+        },
+        {
+          "heading": "Optimal Environments",
+          "bullets": [
+            "Creative and design roles",
+            "Innovation and product development positions",
+            "Marketing and communications roles",
+            "Entrepreneurial and startup environments",
+            "Any environment requiring creative thinking and vision"
+          ]
+        },
+        {
+          "heading": "Natural Career Alignments",
+          "bullets": [
+            "Designer, Artist, Creative Director",
+            "Innovation Manager, Product Developer",
+            "Marketing Professional, Brand Strategist",
+            "Entrepreneur, Startup Founder",
+            "Consultant, Change Management Specialist"
+          ]
+        },
+        {
+          "heading": "Potential Blind Spots",
+          "bullets": [
+            "May struggle with routine, detail-oriented tasks",
+            "Could become bored with implementation and follow-through",
+            "Might undervalue practical constraints and limitations",
+            "May need to develop skills in systematic execution"
+          ]
+        }
+      ]
+    }
+  ]
+}

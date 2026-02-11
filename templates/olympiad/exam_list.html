@@ -1,0 +1,86 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Olympiad Exams | Top Teen{% endblock %}
+{% block description_content %}National School English Olympiad (NSEO) – Published exams.{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h1 class="mb-4">Olympiad Exams</h1>
+  <p class="text-muted mb-4">Register and take NSEO (National School English Olympiad) exams.</p>
+
+  {% if exams %}
+  <div class="row g-4">
+    {% for exam in exams %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ exam.name }}</h5>
+          <p class="card-text text-muted small">
+            Level {{ exam.level }}
+            {% if exam.class_level %} | Class {{ exam.class_level }}{% endif %}
+            <br>Duration: {{ exam.duration_minutes }} min | Marks: {{ exam.total_marks }}
+            {% if exam.exam_date %}<br>Date: {{ exam.exam_date }}{% endif %}
+          </p>
+          {% if exam.id in completed_exam_ids %}
+          <span class="badge bg-success">Attempted</span>
+          <a href="{{ url('olympiad:result_detail', args=[completed_session_by_exam[exam.id]]) }}" class="btn btn-outline-primary btn-sm mt-2 me-1">View result</a>
+          <a href="{{ url('olympiad:certificate', args=[completed_session_by_exam[exam.id]]) }}" class="btn btn-outline-secondary btn-sm mt-2">Certificate</a>
+          {% elif exam.id in registered_ids %}
+          <span class="badge bg-success">Registered</span>
+          <button type="button" class="btn btn-outline-primary btn-sm mt-2 olympiad-start-exam" data-exam-id="{{ exam.id }}">Start exam</button>
+          {% else %}
+          <button type="button" class="btn btn-primary btn-sm olympiad-register" data-exam-id="{{ exam.id }}">Register</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted">No published exams at the moment. Check back later.</p>
+  {% endif %}
+
+  <div class="mt-4">
+    <a href="{{ url('olympiad:my_results') }}" class="btn btn-outline-secondary">My Results</a>
+  </div>
+</div>
+
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+<script>
+function getCookie(name) {
+  var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+  return v ? v[2] : null;
+}
+document.querySelectorAll('.olympiad-register').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var examId = this.getAttribute('data-exam-id');
+    var csrf = (document.querySelector('[name=csrfmiddlewaretoken]') && document.querySelector('[name=csrfmiddlewaretoken]').value) || getCookie('csrftoken');
+    fetch('{{ url("olympiad:api_register", args=[0]) }}'.replace('/0/', '/' + examId + '/'), {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf || '', 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+      credentials: 'same-origin'
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.success) { window.location.reload(); }
+      else { alert(data.error || 'Registration failed'); }
+    }).catch(function() { alert('Request failed'); });
+  });
+});
+document.querySelectorAll('.olympiad-start-exam').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var examId = this.getAttribute('data-exam-id');
+    var csrf = (document.querySelector('[name=csrfmiddlewaretoken]') && document.querySelector('[name=csrfmiddlewaretoken]').value) || getCookie('csrftoken');
+    fetch('{{ url("olympiad:api_start", args=[0]) }}'.replace('/0/', '/' + examId + '/'), {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+      credentials: 'same-origin'
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.success && data.session_id) window.location.href = '{{ url("olympiad:take_exam", args=[0]) }}'.replace('/0/', '/' + data.session_id + '/');
+      else alert(data.error || 'Could not start exam');
+    }).catch(function() { alert('Request failed'); });
+  });
+});
+</script>
+{% endblock %}

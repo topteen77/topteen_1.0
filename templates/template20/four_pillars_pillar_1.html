@@ -1,0 +1,55 @@
+{% extends 'template20/base.html' %}
+{% block title_content %}{{ pillar_title }} | Four Pillars | Top Teen{% endblock %}
+{% block description_content %}{{ pillar_description }}{% endblock %}
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+{% block additionalhead %}
+{% include 'template20/includes/four_pillars_pillar_page_styles.html' %}
+{% endblock %}
+
+{% block content %}
+<main class="py-test-page">
+  <section class="hero-section-inner four-pillars-hero-section pt-md-18 pt-14 pb-8 position-relative">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
+        <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2 mt-md-0 mt-5">
+          <span class="highlighter">
+            <img src="{{ pillar_icon_url }}" alt="Pillar {{ pillar_number }}" class="img-fluid" /> Pillar {{ pillar_number }}
+          </span>
+          <h1 class="heading-title mb-md-5 mb-3 mt-5">The {{ pillar_title }}</h1>
+          <p class="text-gray fs-25 fs-sm-18 fw-700">{{ pillar_subtitle_before }}<span class="text-yellow">{{ pillar_subtitle_highlight }}</span>{{ pillar_subtitle_after }}</p>
+          <p class="text-gray fs-16">{{ pillar_description }}</p>
+          <div class="hero-button d-flex flex-row mt-md-8 mt-5">
+            <a href="{{ url('core:four_pillars_assessment', pillar_slug=assessment_slug) }}" class="btn custom-button blue-button me-3">Take Assessment Test</a>
+          </div>
+        </div>
+        <div class="col-lg-6 col-md-12 order-md-2 order-1">
+          <div class="right-banner d-md-flex justify-content-center align-items-center">
+            <div class="four-pillars-hero-image-wrapper">
+              <img class="img-fluid" src="{{ pillar_hero_url }}" alt="{{ pillar_title }}" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="learning-prefernces-section py-md-8 py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12 mx-auto custom-faq">
+          <ul class="nav nav-pills mb-6 d-flex justify-content-center my-5 gap-2" id="pills-tab" role="tablist">
+            <li class="nav-item"><button class="nav-link active" id="pills-foundation-a-tab" data-bs-toggle="pill" data-bs-target="#pills-foundation-a" type="button" role="tab" aria-controls="pills-foundation-a" aria-selected="true">Foundation A</button></li>
+            <li class="nav-item"><button class="nav-link" id="pills-foundation-b-tab" data-bs-toggle="pill" data-bs-target="#pills-foundation-b" type="button" role="tab" aria-controls="pills-foundation-b" aria-selected="false">Foundation B</button></li>
+            <li class="nav-item"><button class="nav-link" id="pills-foundation-c-tab" data-bs-toggle="pill" data-bs-target="#pills-foundation-c" type="button" role="tab" aria-controls="pills-foundation-c" aria-selected="false">Foundation C</button></li>
+            <li class="nav-item"><button class="nav-link" id="pills-foundation-d-tab" data-bs-toggle="pill" data-bs-target="#pills-foundation-d" type="button" role="tab" aria-controls="pills-foundation-d" aria-selected="false">Foundation D</button></li>
+          </ul>
+          <div class="tab-content" id="pills-tabContent">
+            {% include 'template20/includes/four_pillars_pillar_1_tab_content.html' %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

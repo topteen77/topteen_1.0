@@ -1,0 +1,23 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}{{ assessment_title }} | Top Teen{% endblock %}
+
+{% block description_content %}{{ assessment_subtitle }}{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block additionalhead %}
+<link rel="stylesheet" href="{{ static('css_new/four_pillars_assessment.css') }}" type="text/css" media="all" />
+{% endblock %}
+
+{% block content %}
+{% include 'template20/includes/four_pillars_assessment_markup.html' %}
+<script>
+  var questions = {{ questions_json|safe }};
+  var profiles = {{ profiles_json|safe }};
+  window.lpAssessmentSubmitUrl = "{{ assessment_submit_url }}";
+  window.lpCsrfToken = "{{ csrf_token }}";
+  window.lpSavedResult = {{ saved_result_json|safe }};
+</script>
+<script src="{{ static('js_new/four_pillars_assessment.js') }}"></script>
+{% endblock %}

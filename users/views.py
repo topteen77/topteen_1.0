@@ -387,10 +387,19 @@ class LoginView(TemplateView):
             ctx['enc_referral_user']=False
         # Demo credentials for development
         ctx['show_demo_credentials'] = (
-            getattr(settings, 'SHOW_DEMO_CREDENTIALS', False) and
-            getattr(settings, 'ENVIRONMENT', 'production') == 'development'
+            getattr(settings, 'SHOW_DEMO_CREDENTIALS', False) or
+            getattr(settings, 'ENVIRONMENT', 'production') == 'development' or
+            getattr(settings, 'DEBUG', False)
         )
         ctx['demo_credentials'] = []
+        # Show Olympiad demo user (demo_olympiad) when demo credentials are shown
+        if ctx.get('show_demo_credentials'):
+            ctx['demo_credentials'].append({
+                'role': 'demo_olympiad',
+                'email': 'olympiad_demo@topteen.demo',
+                'password': 'demo1234',
+                'description': 'Try NSEO Olympiad – list exams, register, take exam, view results',
+            })
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -418,6 +427,13 @@ class StudentLoginView(LoginView):
                 {'role': 'Student', 'email': e.strip(), 'password': pwd, 'description': 'Access student dashboard and career resources'}
                 for e in emails if e.strip()
             ]
+            # Add Olympiad demo so it appears on student login too
+            ctx['demo_credentials'].append({
+                'role': 'demo_olympiad',
+                'email': 'olympiad_demo@topteen.demo',
+                'password': 'demo1234',
+                'description': 'Try NSEO Olympiad – list exams, register, take exam, view results',
+            })
         return render(request, self.template_name, ctx)
 
 

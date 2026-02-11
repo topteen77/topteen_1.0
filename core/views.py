@@ -1,6 +1,9 @@
 import json
+import logging
 import re
 import os
+
+logger = logging.getLogger(__name__)
 from multiprocessing import get_context
 from .utils import build_breadcrumb,build_html_head
 from django.db.models import Q
@@ -12,7 +15,7 @@ from blog.models import Blog
 from careers.models import Career, CareerTags,Videos,CareerCluster
 from core import choices
 from django.views.generic import TemplateView
-from core.models import CommonFAQ, Country, Review,Contact,Lead, Ebook
+from core.models import CommonFAQ, Country, Review, Contact, Lead, Ebook, FourPillarsAssessmentResult, FourPillarsAssessment
 from courses.models import Course
 from colleges.models import College
 from django.conf import settings
@@ -32,6 +35,8 @@ from users.models import UserSearchHistory
 from django.shortcuts import HttpResponse,HttpResponseRedirect
 from skilllab.models import SkillLabCourse
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.decorators.http import require_http_methods
 from rest_framework.views import APIView
 from django.http import JsonResponse
 
@@ -442,6 +447,276 @@ class FourPillarsOfLearningView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+# Pillar detail pages (static content from pillar-1.html ... pillar-4.html)
+FOUR_PILLARS_PILLAR_CONFIG = {
+    1: {
+        "title": "Learning Preferences",
+        "subtitle_before": "Your ",
+        "subtitle_highlight": "Information",
+        "subtitle_after": " Processing Blueprint",
+        "description": "Your Learning Preferences Pillar reveals how your brain naturally receives, processes, and retains information. Understanding this pillar helps you choose study methods that work WITH your brain, not against it.",
+        "assessment_slug": "learning-preferences",
+    },
+    2: {
+        "title": "Natural Abilities",
+        "subtitle_before": "Your ",
+        "subtitle_highlight": "Talent",
+        "subtitle_after": " Foundation",
+        "description": "Your Natural Abilities Pillar identifies the subjects and skills where you demonstrate inherent strengths and rapid learning capacity. These are areas where you naturally excel and could potentially build a career.",
+        "assessment_slug": "natural-abilities",
+    },
+    3: {
+        "title": "Engagement Patterns",
+        "subtitle_before": "Your ",
+        "subtitle_highlight": "Motivation and Energy",
+        "subtitle_after": " Foundation",
+        "description": "Your Engagement Patterns Pillar examines how you naturally combine theoretical learning with practical application. This pillar reveals your optimal approach to skill development and sustained motivation.",
+        "assessment_slug": "engagement-patterns",
+    },
+    4: {
+        "title": "Interest Drivers",
+        "subtitle_before": "Your ",
+        "subtitle_highlight": "Passion and Curiosity",
+        "subtitle_after": " Foundation",
+        "description": "Your Interest Drivers Pillar identifies the specific areas that naturally energize you and sustain your long-term engagement. These are the topics and activities that make you lose track of time because you're so absorbed in them.",
+        "assessment_slug": "interest-drivers",
+    },
+}
+
+
+class FourPillarsPillarDetailView(TemplateView):
+    """Static pillar detail page (content from pillar-1.html ... pillar-4.html)."""
+
+    def get_template_names(self):
+        pillar_number = self.kwargs.get("pillar_number")
+        if pillar_number not in FOUR_PILLARS_PILLAR_CONFIG:
+            return ["template20/404.html"]
+        return [f"template20/four_pillars_pillar_{pillar_number}.html"]
+
+    def get_context_data(self, **kwargs):
+        from django.core.files.storage import default_storage
+        pillar_number = kwargs.get("pillar_number") or self.kwargs.get("pillar_number")
+        if pillar_number not in FOUR_PILLARS_PILLAR_CONFIG:
+            return {}
+        config = FOUR_PILLARS_PILLAR_CONFIG[pillar_number]
+        folder = getattr(settings, 'S3_FOUR_PILLARS_FOLDER', 'four_pillars')
+        ctx = super().get_context_data(**kwargs)
+        ctx["pillar_number"] = pillar_number
+        ctx["pillar_title"] = config["title"]
+        ctx["pillar_subtitle_before"] = config.get("subtitle_before", "")
+        ctx["pillar_subtitle_highlight"] = config.get("subtitle_highlight", "")
+        ctx["pillar_subtitle_after"] = config.get("subtitle_after", "")
+        ctx["pillar_description"] = config["description"]
+        ctx["assessment_slug"] = config["assessment_slug"]
+        ctx["html_head"] = build_html_head(title=config["title"], description=config["description"])
+        ctx["breadcrumb"] = build_breadcrumb([
+            {"text": "Four Pillars of Learning", "url": reverse("core:four_pillars")},
+            {"text": f"Pillar {pillar_number}", "url": ""},
+        ])
+        # ctx["pillar_icon_url"] = default_storage.url(f"{folder}/four-pillar-icon-{pillar_number}.png")
+        ctx["pillar_icon_url"] = default_storage.url(f"{folder}/pillar-one-icon.png")
+
+        hero_name = f"pillar-{pillar_number}-herobanner.png"
+        try:
+            ctx["pillar_hero_url"] = default_storage.url(f"{folder}/{hero_name}")
+        except Exception:
+            ctx["pillar_hero_url"] = default_storage.url(f"{folder}/four-pillar-hero-banner.png")
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        if self.kwargs.get("pillar_number") not in FOUR_PILLARS_PILLAR_CONFIG:
+            from django.http import Http404
+            raise Http404("Pillar not found")
+        return super().get(request, *args, **kwargs)
+
+
+FOUR_PILLARS_ASSESSMENT_SLUGS = {
+    "learning-preferences": ("Learning Preferences Assessment", "Answer 20 short questions to discover how you learn best. Then view your personalised learning style profile."),
+    "natural-abilities": ("Natural Abilities Assessment", "Answer 20 short questions to discover your inherent talents and strengths. Then view your personalised natural abilities profile."),
+    "engagement-patterns": ("Engagement Patterns Assessment", "Answer 20 short questions to discover your motivation and energy styles. Then view your personalised engagement profile."),
+    "interest-drivers": ("Interest Drivers Assessment", "Answer 20 short questions to discover what captivates your curiosity. Then view your personalised interest profile."),
+}
+
+# Per-pillar copy for placeholder, tab label, scoring intro, mixed note, and style card tags (aligned with reference HTML in topteenhtml/html/a/)
+FOUR_PILLARS_ASSESSMENT_COPY = {
+    "learning-preferences": {
+        "lp_placeholder_text": "learning style summary here.",
+        "lp_profile_tab_label": "Your Learning Profile Guide",
+        "lp_scoring_intro": "Count your responses for each letter:",
+        "lp_mixed_note": "Mixed Results: Many learners have a combination of preferences. Look at your top two categories to understand your primary and secondary learning styles.",
+        "lp_style_card_tags": {"A": "Deep reading & research", "B": "Hands-on & practical", "C": "Discussion & collaboration", "D": "Organised & visual"},
+    },
+    "natural-abilities": {
+        "lp_placeholder_text": "natural abilities summary here.",
+        "lp_profile_tab_label": "Your Natural Abilities Profile Guide",
+        "lp_scoring_intro": "Step 1: Count your responses for each letter (A, B, C, D). Step 2: Use the ranges below to determine your profile.",
+        "lp_mixed_note": "Dual Profile: 8–12 in two categories = combination (e.g. A+B Strategic Implementer, C+D Inspirational Leader). Balanced: 6–10 across three or more = Adaptive Multi-Talent. See combination profiles below.",
+        "lp_style_card_tags": {"A": "Logical & systematic", "B": "Efficient & results-focused", "C": "Interpersonal & emotional intelligence", "D": "Innovative & conceptual"},
+    },
+    "engagement-patterns": {
+        "lp_placeholder_text": "engagement pattern summary and complete results here.",
+        "lp_profile_tab_label": "Complete Results Report",
+        "lp_scoring_intro": "Step 1: Count your responses for each letter: A (Achievement-Driven), B (Mastery-Oriented), C (Purpose-Driven), D (Variety-Seeking). Step 2: Determine your engagement pattern from the ranges below.",
+        "lp_mixed_note": "Dual Engagement Pattern: 8–12 in two categories (e.g. A+B Expert Achiever, C+D Flexible Contributor). Balanced: 6–10 across three or more = combination pattern. Multi-Modal: 5–8 in each = balanced across all four. See combination profiles below.",
+        "lp_style_card_tags": {"A": "Results & goal orientation", "B": "Learning & expertise development", "C": "Meaning & impact orientation", "D": "Stimulation & change orientation"},
+    },
+    "interest-drivers": {
+        "lp_placeholder_text": "interest drivers summary and complete results here.",
+        "lp_profile_tab_label": "Complete Results Report",
+        "lp_scoring_intro": "Step 1: Count your responses for each letter: A (Analytical Interest), B (Technical Interest), C (People Interest), D (Creative Interest). Step 2: Determine your interest driver pattern from the ranges below.",
+        "lp_mixed_note": "Dual Interest Driver: 8–12 in two categories (e.g. A+B Research Engineer, C+D Social Innovator). Balanced: 6–10 across three or more = combination pattern. Multi-Domain Curiosity: 5–8 in each = balanced across all four. See combination profiles below.",
+        "lp_style_card_tags": {"A": "Data & research curiosity", "B": "Systems & process curiosity", "C": "Human & social curiosity", "D": "Innovation & possibility curiosity"},
+    },
+}
+
+
+class FourPillarsAssessmentView(LoginRequiredMixin, TemplateView):
+    """Serve one of the four pillar assessments (login required). Option A: one template per pillar."""
+    login_url = reverse_lazy("users:login")
+
+    def get_template_names(self):
+        slug = self.kwargs.get("pillar_slug", "")
+        if slug not in FOUR_PILLARS_ASSESSMENT_SLUGS:
+            return ["template20/404.html"]
+        return [f"template20/four_pillars_assessment_{slug.replace('-', '_')}.html"]
+
+    def get_context_data(self, **kwargs):
+        import os
+        slug = kwargs.get("pillar_slug") or getattr(self, "kwargs", {}).get("pillar_slug")
+        if slug not in FOUR_PILLARS_ASSESSMENT_SLUGS:
+            return {}
+        json_slug = slug.replace("-", "_")
+        json_path = os.path.join(os.path.dirname(__file__), "four_pillars_assessments", f"{json_slug}.json")
+        # Prefer admin-defined assessment from DB when active
+        db_assessment = FourPillarsAssessment.objects.filter(slug=slug, is_active=True).prefetch_related(
+            "questions__options", "profiles"
+        ).first()
+        if db_assessment:
+            title = db_assessment.title
+            subtitle = db_assessment.subtitle or ""
+            questions = []
+            for q in db_assessment.questions.order_by("order"):
+                options = {o.option_key: o.text for o in q.options.all()}
+                questions.append({"title": q.title, "text": q.text, "options": options})
+            profiles = {}
+            for p in db_assessment.profiles.all():
+                profiles[p.option_key] = {
+                    "name": p.name,
+                    "summary": p.summary or "",
+                    "scoring_heading": p.scoring_heading or "",
+                    "scoring_bullets": list(p.scoring_bullets) if p.scoring_bullets else [],
+                }
+            data = {
+                "questions": questions,
+                "profiles": profiles,
+                "scoring_intro": db_assessment.scoring_intro or "",
+                "mixed_results": db_assessment.mixed_results or "",
+            }
+        else:
+            title, subtitle = FOUR_PILLARS_ASSESSMENT_SLUGS[slug]
+            data = {}
+            if os.path.exists(json_path):
+                with open(json_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            questions = data.get("questions", [])
+            profiles = data.get("profiles", {})
+        ctx = super().get_context_data(**kwargs)
+        ctx["assessment_title"] = title
+        ctx["assessment_subtitle"] = subtitle
+        ctx["questions"] = questions
+        ctx["profiles"] = profiles
+        ctx["questions_json"] = json.dumps(questions)
+        ctx["profiles_json"] = json.dumps(profiles)
+        ctx["html_head"] = build_html_head(title=title, description=subtitle)
+        ctx["assessment_submit_url"] = reverse("core:four_pillars_assessment_submit", kwargs={"pillar_slug": slug})
+        ctx["pillar_slug"] = slug
+        # Full "Understanding" accordion (Primary + Combination + Maximizing): use static include when generated
+        understanding_include_path = os.path.join(settings.BASE_DIR, "templates", "template20", "includes", f"{json_slug}_understanding_guide.html")
+        ctx["understanding_guide_include"] = f"template20/includes/{json_slug}_understanding_guide.html" if os.path.exists(understanding_include_path) else None
+        # Fallback: understanding_data JSON (primary_profiles only) when no static include
+        understanding_path = os.path.join(os.path.dirname(__file__), "four_pillars_assessments", f"{json_slug}_understanding_data.json")
+        ctx["understanding_data"] = None
+        if os.path.exists(understanding_path):
+            try:
+                with open(understanding_path, "r", encoding="utf-8") as f:
+                    ctx["understanding_data"] = json.load(f)
+            except (json.JSONDecodeError, OSError):
+                pass
+        copy = FOUR_PILLARS_ASSESSMENT_COPY.get(slug, {})
+        ctx["lp_placeholder_text"] = copy.get("lp_placeholder_text", "summary here.")
+        ctx["lp_profile_tab_label"] = copy.get("lp_profile_tab_label", "Your Learning Profile Guide")
+        ctx["lp_scoring_intro"] = data.get("scoring_intro") or copy.get("lp_scoring_intro", "Count your responses for each letter:")
+        ctx["lp_mixed_note"] = data.get("mixed_results") or copy.get("lp_mixed_note", "Mixed Results: Many learners have a combination of preferences. Look at your top two categories to understand your primary and secondary styles.")
+        ctx["lp_style_card_tags"] = copy.get("lp_style_card_tags") or {"A": "Style A", "B": "Style B", "C": "Style C", "D": "Style D"}
+        saved_result = None
+        if getattr(self.request, "user", None) and self.request.user.is_authenticated:
+            r = FourPillarsAssessmentResult.objects.filter(
+                user=self.request.user, pillar_slug=slug
+            ).order_by("-updated_at").first()
+            if r:
+                saved_result = {
+                    "answers": r.answers,
+                    "counts": r.counts,
+                    "primary_style": r.primary_style,
+                    "profile_name": r.profile_name,
+                    "profile_summary": r.profile_summary or "",
+                }
+        ctx["saved_result"] = saved_result
+        ctx["saved_result_json"] = json.dumps(saved_result) if saved_result else "null"
+        # Debug: log to server console when each assessment page is served
+        profile_keys = list(profiles.keys()) if profiles else []
+        scoring_bullets = {k: len(profiles.get(k, {}).get("scoring_bullets", [])) for k in ("A", "B", "C", "D")} if profiles else {}
+        source = "db" if db_assessment else "json"
+        msg = (
+            f"[Four Pillars] slug={slug!r} title={title!r} questions={len(questions)} "
+            f"profiles={profile_keys} source={source} scoring_bullets={scoring_bullets}"
+        )
+        logger.info(msg)
+        print(msg, flush=True)
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        if self.kwargs.get("pillar_slug") not in FOUR_PILLARS_ASSESSMENT_SLUGS:
+            from django.http import Http404
+            raise Http404("Assessment not found")
+        return super().get(request, *args, **kwargs)
+
+
+@require_http_methods(["POST"])
+def four_pillars_assessment_submit(request, pillar_slug):
+    """Save or update the latest assessment result for the current user. Requires login. Returns 200 or 401."""
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Login required"}, status=401)
+    if pillar_slug not in FOUR_PILLARS_ASSESSMENT_SLUGS:
+        return JsonResponse({"error": "Invalid assessment"}, status=400)
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, TypeError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    answers = body.get("answers")
+    counts = body.get("counts")
+    primary = body.get("primary")
+    profile_name = body.get("profile_name", "")
+    profile_summary = body.get("profile_summary", "")
+    if not isinstance(answers, dict) or not isinstance(counts, dict) or primary not in ("A", "B", "C", "D"):
+        return JsonResponse({"error": "Missing or invalid answers/counts/primary"}, status=400)
+    # Normalize answers: keys as string indices
+    answers = {str(k): str(v) for k, v in answers.items() if str(v) in ("A", "B", "C", "D")}
+    counts = {k: int(v) for k, v in counts.items() if k in ("A", "B", "C", "D")}
+    FourPillarsAssessmentResult.objects.update_or_create(
+        user=request.user,
+        pillar_slug=pillar_slug,
+        defaults={
+            "answers": answers,
+            "primary_style": primary,
+            "counts": counts,
+            "profile_name": profile_name,
+            "profile_summary": profile_summary,
+        },
+    )
+    return JsonResponse({"status": "ok"})
 
 
 class EbookListView(TemplateView):

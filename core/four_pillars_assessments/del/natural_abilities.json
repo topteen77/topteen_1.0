@@ -1,0 +1,222 @@
+{
+  "questions": [
+    {
+      "title": "Question 1: Pattern Recognition",
+      "text": "When looking at complex information or situations, you:",
+      "options": {
+        "A": "Quickly identify underlying patterns and connections that others might miss",
+        "B": "Focus on the practical implications and what actions need to be taken",
+        "C": "Notice how different people are affected and their emotional responses",
+        "D": "See the big picture and envision future possibilities and outcomes"
+      }
+    },
+    {
+      "title": "Question 2: Problem-Solving Instinct",
+      "text": "When faced with a challenging problem, your first instinct is to:",
+      "options": {
+        "A": "Break it down into logical components and analyze each systematically",
+        "B": "Look for the most efficient and practical solution that works immediately",
+        "C": "Consider how the solution will impact all people involved",
+        "D": "Think of creative, unconventional approaches that haven't been tried"
+      }
+    },
+    {
+      "title": "Question 3: Natural Communication Style",
+      "text": "In conversations, you naturally tend to:",
+      "options": {
+        "A": "Ask probing questions and seek to understand the deeper logic",
+        "B": "Focus on concrete details and actionable next steps",
+        "C": "Pay attention to emotions and help others feel heard and understood",
+        "D": "Share big ideas and inspire others with possibilities"
+      }
+    },
+    {
+      "title": "Question 4: Energy and Motivation",
+      "text": "You feel most energized and motivated when:",
+      "options": {
+        "A": "Solving complex puzzles or figuring out how things work",
+        "B": "Completing tasks efficiently and seeing tangible results",
+        "C": "Helping others succeed and building meaningful relationships",
+        "D": "Exploring new ideas and imagining what could be possible"
+      }
+    },
+    {
+      "title": "Question 5: Learning New Skills",
+      "text": "When learning something new, you naturally:",
+      "options": {
+        "A": "Want to understand the underlying principles and theory first",
+        "B": "Jump in and learn through hands-on practice and repetition",
+        "C": "Learn best when you can relate it to people and real-life situations",
+        "D": "See connections to other areas and think of innovative applications"
+      }
+    },
+    {
+      "title": "Question 6: Decision-Making Approach",
+      "text": "Your natural decision-making process involves:",
+      "options": {
+        "A": "Gathering data, analyzing options, and choosing the most logical solution",
+        "B": "Considering practical constraints and choosing what will work best",
+        "C": "Thinking about how decisions will affect people and relationships",
+        "D": "Imagining multiple scenarios and choosing the most innovative path"
+      }
+    },
+    {
+      "title": "Question 7: Work Environment Preferences",
+      "text": "You perform best in environments that:",
+      "options": {
+        "A": "Allow for deep thinking, analysis, and intellectual challenges",
+        "B": "Have clear goals, efficient processes, and measurable outcomes",
+        "C": "Emphasize collaboration, teamwork, and positive relationships",
+        "D": "Encourage creativity, flexibility, and exploration of new ideas"
+      }
+    },
+    {
+      "title": "Question 8: Natural Talents Recognition",
+      "text": "Others often come to you for:",
+      "options": {
+        "A": "Your ability to analyze situations and provide logical insights",
+        "B": "Your practical skills and ability to get things done efficiently",
+        "C": "Your emotional intelligence and ability to understand people",
+        "D": "Your creativity and ability to see new possibilities"
+      }
+    },
+    {
+      "title": "Question 9: Stress Response",
+      "text": "Under pressure, you naturally:",
+      "options": {
+        "A": "Become more focused and systematic in your approach",
+        "B": "Prioritize tasks and work more efficiently to meet deadlines",
+        "C": "Seek support from others and try to maintain team harmony",
+        "D": "Think outside the box and come up with innovative solutions"
+      }
+    },
+    {
+      "title": "Question 10: Information Processing",
+      "text": "You naturally process information by:",
+      "options": {
+        "A": "Organizing it logically and looking for cause-and-effect relationships",
+        "B": "Focusing on what's most relevant and immediately useful",
+        "C": "Considering the human element and interpersonal implications",
+        "D": "Making connections to broader concepts and future possibilities"
+      }
+    },
+    {
+      "title": "Question 11: Leadership Style",
+      "text": "When in leadership roles, you naturally:",
+      "options": {
+        "A": "Lead through expertise and logical decision-making",
+        "B": "Lead by example and focus on achieving concrete results",
+        "C": "Lead by building consensus and supporting team members",
+        "D": "Lead by inspiring others with vision and innovative thinking"
+      }
+    },
+    {
+      "title": "Question 12: Attention to Detail",
+      "text": "Your relationship with details is:",
+      "options": {
+        "A": "You naturally notice inconsistencies and analytical details",
+        "B": "You focus on details that are practically important for success",
+        "C": "You pay attention to details that affect people's feelings and needs",
+        "D": "You see details as part of larger patterns and possibilities"
+      }
+    },
+    {
+      "title": "Question 13: Time Management",
+      "text": "Your natural approach to time is:",
+      "options": {
+        "A": "You like to think things through thoroughly before acting",
+        "B": "You prefer to work efficiently and complete tasks quickly",
+        "C": "You balance task completion with maintaining relationships",
+        "D": "You often lose track of time when exploring interesting ideas"
+      }
+    },
+    {
+      "title": "Question 14: Conflict Resolution",
+      "text": "When conflicts arise, you instinctively:",
+      "options": {
+        "A": "Try to understand the logical basis of each person's position",
+        "B": "Focus on finding practical solutions that resolve the issue",
+        "C": "Work to understand everyone's feelings and find common ground",
+        "D": "Look for creative win-win solutions that address underlying issues"
+      }
+    },
+    {
+      "title": "Question 15: Innovation and Change",
+      "text": "Your natural response to new ideas or changes is:",
+      "options": {
+        "A": "To analyze them carefully and understand their implications",
+        "B": "To evaluate their practical value and implementation challenges",
+        "C": "To consider how they will affect people and relationships",
+        "D": "To get excited about possibilities and think of improvements"
+      }
+    },
+    {
+      "title": "Question 16: Memory and Recall",
+      "text": "You most easily remember:",
+      "options": {
+        "A": "Logical systems, theories, and analytical frameworks",
+        "B": "Practical procedures, facts, and step-by-step processes",
+        "C": "Personal stories, emotional experiences, and people's names",
+        "D": "Big ideas, creative concepts, and future possibilities"
+      }
+    },
+    {
+      "title": "Question 17: Natural Strengths",
+      "text": "In group projects, others typically rely on you for:",
+      "options": {
+        "A": "Research, analysis, and logical problem-solving",
+        "B": "Organization, execution, and getting things done",
+        "C": "Team building, communication, and interpersonal support",
+        "D": "Creative ideas, brainstorming, and innovative solutions"
+      }
+    },
+    {
+      "title": "Question 18: Feedback Preference",
+      "text": "You naturally give and prefer to receive feedback that is:",
+      "options": {
+        "A": "Objective, specific, and based on logical criteria",
+        "B": "Direct, actionable, and focused on practical improvements",
+        "C": "Supportive, encouraging, and considerate of feelings",
+        "D": "Inspiring, future-focused, and emphasizes potential"
+      }
+    },
+    {
+      "title": "Question 19: Goal Setting",
+      "text": "Your natural approach to setting goals involves:",
+      "options": {
+        "A": "Creating logical, well-researched objectives with clear metrics",
+        "B": "Setting practical, achievable targets with specific deadlines",
+        "C": "Considering how goals align with personal values and relationships",
+        "D": "Envisioning inspiring possibilities and breakthrough outcomes"
+      }
+    },
+    {
+      "title": "Question 20: Problem Identification",
+      "text": "You naturally tend to notice:",
+      "options": {
+        "A": "Logical inconsistencies and analytical problems that need solving",
+        "B": "Inefficiencies and practical issues that hinder productivity",
+        "C": "Interpersonal tensions and people who need support",
+        "D": "Missed opportunities and untapped potential for innovation"
+      }
+    }
+  ],
+  "profiles": {
+    "A": {
+      "name": "Analytical & Technical",
+      "summary": "You excel at pattern recognition, logical analysis, and systematic problem-solving. You naturally break down complexity and find structure."
+    },
+    "B": {
+      "name": "Practical & Applied",
+      "summary": "You thrive when completing concrete tasks and seeing tangible results. You are motivated by getting things done and real-world impact."
+    },
+    "C": {
+      "name": "Communication & Interpersonal",
+      "summary": "You naturally connect with others, ask probing questions, and communicate ideas clearly. You learn and contribute through dialogue."
+    },
+    "D": {
+      "name": "Creative & Innovative",
+      "summary": "You are drawn to new ideas, creative solutions, and exploring possibilities. You think in terms of what could be rather than only what is."
+    }
+  }
+}

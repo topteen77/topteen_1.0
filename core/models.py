@@ -10,6 +10,7 @@ from ckeditor.fields import RichTextField
 from django.utils.text import slugify
 from django.core.validators import MaxLengthValidator
 from django.urls import reverse
+from django.conf import settings
 import datetime
 # Create your models here.
 
@@ -549,3 +550,126 @@ class S3FileUpload(BaseModel):
                 return f"{size:.2f} {unit}"
             size /= 1024.0
         return f"{size:.2f} TB"
+
+
+class FourPillarsAssessmentResult(models.Model):
+    """Stores the latest assessment result per user per pillar (one row per user per pillar_slug)."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="four_pillars_assessment_results",
+    )
+    pillar_slug = models.CharField(max_length=64, db_index=True)
+    answers = models.JSONField(help_text="Question index -> choice, e.g. {\"0\": \"A\", \"1\": \"B\"}")
+    primary_style = models.CharField(max_length=1)
+    counts = models.JSONField(help_text="{\"A\": n, \"B\": n, \"C\": n, \"D\": n}")
+    profile_name = models.CharField(max_length=255)
+    profile_summary = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "pillar_slug"], name="unique_user_pillar_four_pillars"),
+        ]
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return f"{self.user_id} – {self.pillar_slug} ({self.primary_style})"
+
+
+class FourPillarsAssessment(models.Model):
+    """Definition of a Four Pillars assessment (questions, scoring, profiles). Editable from admin."""
+    slug = models.SlugField(max_length=64, unique=True, help_text="URL slug, e.g. engagement-patterns")
+    title = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=512, blank=True)
+    scoring_intro = RichTextField(
+        blank=True,
+        help_text="Intro text for the Scoring Guide (e.g. How to Calculate Your Score). Use the editor for formatting.",
+    )
+    mixed_results = RichTextField(
+        blank=True,
+        help_text="Text for dual/balanced/multi-modal patterns (mixed results note). Use the editor for formatting.",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="If True, assessment content is loaded from DB. If False, falls back to JSON file.",
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["slug"]
+
+    def __str__(self):
+        return f"{self.title} ({self.slug})"
+
+
+class FourPillarsAssessmentScoringGuide(FourPillarsAssessment):
+    """Proxy model: edit only the Scoring Guide section (intro + mixed results) separately in admin."""
+    class Meta:
+        proxy = True
+        verbose_name = "Four Pillars Scoring Guide"
+        verbose_name_plural = "Four Pillars Scoring Guides"
+
+
+class FourPillarsAssessmentQuestion(models.Model):
+    """A single question in a Four Pillars assessment."""
+    assessment = models.ForeignKey(
+        FourPillarsAssessment,
+        on_delete=models.CASCADE,
+        related_name="questions",
+    )
+    order = models.PositiveIntegerField(default=0, help_text="Display order (0-based).")
+    title = models.CharField(max_length=255, help_text="e.g. Question 1: Energy Source")
+    text = models.TextField(help_text="Question text shown to the user.")
+
+    class Meta:
+        ordering = ["assessment", "order"]
+        unique_together = [["assessment", "order"]]
+
+    def __str__(self):
+        return f"{self.assessment.slug} – {self.title}"
+
+
+class FourPillarsAssessmentQuestionOption(models.Model):
+    """One option (A/B/C/D) for a question."""
+    question = models.ForeignKey(
+        FourPillarsAssessmentQuestion,
+        on_delete=models.CASCADE,
+        related_name="options",
+    )
+    option_key = models.CharField(max_length=1, choices=[("A", "A"), ("B", "B"), ("C", "C"), ("D", "D")])
+    text = models.TextField()
+
+    class Meta:
+        ordering = ["question", "option_key"]
+        unique_together = [["question", "option_key"]]
+
+    def __str__(self):
+        return f"{self.question.title} – {self.option_key}"
+
+
+class FourPillarsAssessmentProfile(models.Model):
+    """Scoring profile (A/B/C/D) for an assessment – name, summary, scoring heading and bullets."""
+    assessment = models.ForeignKey(
+        FourPillarsAssessment,
+        on_delete=models.CASCADE,
+        related_name="profiles",
+    )
+    option_key = models.CharField(max_length=1, choices=[("A", "A"), ("B", "B"), ("C", "C"), ("D", "D")])
+    name = models.CharField(max_length=255, help_text="Short profile name, e.g. Goal-Oriented Achiever")
+    summary = RichTextField(blank=True, help_text="Profile summary. Use the editor for formatting.")
+    scoring_heading = RichTextField(blank=True, help_text="Heading for the Scoring Guide card. Use the editor for formatting.")
+    scoring_bullets = models.JSONField(
+        default=list,
+        help_text="List of bullet strings for the Scoring Guide card.",
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["assessment", "option_key"]
+        unique_together = [["assessment", "option_key"]]
+
+    def __str__(self):
+        return f"{self.assessment.slug} – {self.option_key} ({self.name})"
