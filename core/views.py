@@ -98,57 +98,63 @@ class Home(TemplateView):
         ).first()
         
         ctx['exams']=EntranceExam.objects.all().order_by('?')[:3]
-        clusters = CareerCluster.objects.filter(parent__isnull=True, object_status=choices.ObjectStatus.ACTIVE)
+        # Find Your Perfect Fit!: active top-level clusters only (no parent), no repetition; each card links to careers/?mode=traditional&cluster=ID
+        clusters = CareerCluster.objects.filter(parent__isnull=True, object_status=choices.ObjectStatus.ACTIVE).order_by('name')
         ctx['clusters'] = clusters
-        # Build career track cards with links to related career tracks (career library filtered by cluster)
-        default_career_url = reverse('careers:defaultcareerlibrary')
-        name_to_url = {}
-        for c in clusters:
-            if c.slug and c.name:
-                name_to_url[c.name.strip()] = reverse('careers:careerlibrary', args=[c.slug, c.id])
-        def url_for_track(display_name):
-            if not display_name:
-                return default_career_url
-            norm = display_name.strip().replace(" & ", " and ").replace("\n", " ").lower()
-            u = name_to_url.get(display_name.strip())
-            if u:
-                return u
-            for name, u in name_to_url.items():
-                if (name or "").strip().replace(" & ", " and ").lower() == norm:
-                    return u
-            return default_career_url
-        # Fixed list of career tracks as on the home page (label, icon filename)
-        career_track_specs = [
-            ("Agriculture &\nEnvironmental Sciences", "agriculture-icon.svg"),
-            ("Architecture &\nConstructions", "architecture-icon.svg"),
-            ("Arts, Media & Mass Communication", "avtechnology.svg"),
-            ("Business,\nManagement\n& Administration", "businessmanage-icon.svg"),
-            ("Finance, Economics and Statistics", "finance-icon.svg"),
-            ("Education And\nTraining ", "educationtraining.svg"),
-            ("Government Sector, Pub Adm. & Int. Relations", "government-services.svg"),
-            ("Engineering &\nTechnology", "eit-icon.svg"),
-            ("Information\nTechnology (IT)", "it-icon.svg"),
-            ("STEM ", "stem-icon.svg"),
-            ("Health Science & Medical Services", "health-services.svg"),
-            ("Hospitality and\nTourism", "tourism-icon.svg"),
-            ("Humanities, Social Work & Psychology", "humanities-icon.svg"),
-            ("Law and Public Safety", "law-icon.svg"),
-            ("Distribution, Transportation & Logistics", "transport.svg"),
-            ("Marketing & Sales", "marketing-icon.svg"),
-            ("Scientific Research, R & D", "scientific-research.svg"),
-            ("Sports, Fitness & Wellness ", "sports-icon.svg"),
-            ("Fashion, Design & Creativity", "faishion-icon.svg"),
-        ]
-        ctx['career_track_cards'] = [
-            {
-                'label': spec[0].replace('\n', ' ').strip(),
-                'label_raw': spec[0],
-                'icon': 'images_new/careers/career-tracks/' + spec[1],
-                'url': url_for_track(spec[0].replace('\n', ' ').strip()),
-            }
-            for spec in career_track_specs
-        ]
-        ctx['default_career_library_url'] = default_career_url
+        from django.templatetags.static import static
+        careers_base_url = reverse('careers:career')
+        default_career_library_url = reverse('careers:defaultcareerlibrary')
+        default_svg_icon_url = static('images_new/careers/career-tracks/stem-icon.svg') or '/static/images_new/careers/career-tracks/stem-icon.svg'
+        career_track_cards = []
+        if clusters:
+            for c in clusters:
+                if not c.name:
+                    continue
+                label = (c.name or '').strip()
+                # Each cluster card links to its own cluster page (all careers for that cluster)
+                url = f"{careers_base_url}?mode=traditional&cluster={c.id}"
+                # Use Career track icon: S3 URL if set, else uploaded file URL, else default SVG (keeps icon with category)
+                icon_url = (
+                    getattr(c, 'career_track_icon_s3_url', None) or
+                    (c.career_track_icon.url if (c.career_track_icon and c.career_track_icon.name) else None)
+                ) or default_svg_icon_url
+                career_track_cards.append({
+                    'label': label,
+                    'icon_url': icon_url,
+                    'url': url,
+                })
+        if not career_track_cards:
+            # Original static list: distinct labels and icons, all link to career library (no cluster filter when no clusters)
+            career_track_specs = [
+                ("Agriculture & Environmental Sciences", "agriculture-icon.svg"),
+                ("Architecture & Constructions", "architecture-icon.svg"),
+                ("Arts, Media & Mass Communication", "avtechnology.svg"),
+                ("Business, Management & Administration", "businessmanage-icon.svg"),
+                ("Finance, Economics and Statistics", "finance-icon.svg"),
+                ("Education And Training", "educationtraining.svg"),
+                ("Government Sector, Pub Adm. & Int. Relations", "government-services.svg"),
+                ("Engineering & Technology", "eit-icon.svg"),
+                ("Information Technology (IT)", "it-icon.svg"),
+                ("STEM", "stem-icon.svg"),
+                ("Health Science & Medical Services", "health-services.svg"),
+                ("Hospitality and Tourism", "tourism-icon.svg"),
+                ("Humanities, Social Work & Psychology", "humanities-icon.svg"),
+                ("Law and Public Safety", "law-icon.svg"),
+                ("Distribution, Transportation & Logistics", "transport.svg"),
+                ("Marketing & Sales", "marketing-icon.svg"),
+                ("Scientific Research, R & D", "scientific-research.svg"),
+                ("Sports, Fitness & Wellness", "sports-icon.svg"),
+                ("Fashion, Design & Creativity", "faishion-icon.svg"),
+            ]
+            for label, icon_name in career_track_specs:
+                icon_url = static(f"images_new/careers/career-tracks/{icon_name}") or f"/static/images_new/careers/career-tracks/{icon_name}"
+                career_track_cards.append({
+                    'label': label,
+                    'icon_url': icon_url,
+                    'url': f"{careers_base_url}?mode=traditional",
+                })
+        ctx['career_track_cards'] = career_track_cards
+        ctx['default_career_library_url'] = default_career_library_url
         return ctx
         
     def get(self, request,*args, **kwargs):

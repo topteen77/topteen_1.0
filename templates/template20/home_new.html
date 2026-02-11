@@ -295,23 +295,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
         <li>
           <a class="career-t-box" href="{{ card.url }}" title="{{ card.label }}">
             <div class="c-m-image">
-              <img src="{{ static(card.icon) }}" alt="{{ card.label }}" />
-            </div>
-            <div class="c-m-title">
-              <p class="text-gray">{{ card.label }}</p>
-            </div>
-          </a>
-        </li>
-        {% endfor %}
-      </ul>
-    </div>
-    <div class="scroller" data-direction="right" data-speed="slow">
-      <ul class="tag-list scroller__inner">
-        {% for card in career_track_cards %}
-        <li>
-          <a class="career-t-box" href="{{ card.url }}" title="{{ card.label }}">
-            <div class="c-m-image">
-              <img src="{{ static(card.icon) }}" alt="{{ card.label }}" />
+              <img src="{{ card.icon_url }}" alt="{{ card.label }}" />
             </div>
             <div class="c-m-title">
               <p class="text-gray">{{ card.label }}</p>
@@ -323,7 +307,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
     </div>
 
     <div class="text-center pt-5">
-      <a class="text-purple text-decoration-underline fs-17" href="{{ url('careers:defaultcareerlibrary') }}">Explore All <i
+      <a class="text-purple text-decoration-underline fs-17" href="{{ url('careers:career') }}?mode=traditional">Explore All <i
           class="bx bx-chevrons-right"></i></a>
     </div>
   </section>

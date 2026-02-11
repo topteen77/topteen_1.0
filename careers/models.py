@@ -5,14 +5,14 @@ from django.db import models
 from core.models import BaseModel,SlugModel,SeoModel,PublishableModel
 from ckeditor.fields import RichTextField
 from courses.models import Course
-from .utils import  career_media_directory, get_formated_currency,career_cluster_image_directory
+from .utils import  career_media_directory, get_formated_currency, career_cluster_image_directory, career_track_icon_directory
 from core import choices
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 import random
 from users.models import User
 from django.db.models import Q,Avg,Count,F,ExpressionWrapper,IntegerField
-from django.core.validators import MaxValueValidator,MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, FileExtensionValidator
 # Create your models here.
     
 Active_Status = 1
@@ -23,9 +23,24 @@ STATUS_CHOICES = (
     )
     
 class CareerCluster(BaseModel,SlugModel):
+    """Managers: objects = active only (default). all_objects = all statuses (for admin)."""
     name=models.CharField(max_length=500,null=True)
     parent = models.ForeignKey('self',blank=True,null=True,on_delete=models.SET_NULL,related_name="children")
     image = models.ImageField(upload_to=career_cluster_image_directory,null=True,blank=True)
+    all_objects = models.Manager()  # unfiltered: shows active, inactive, deleted in admin
+    career_track_icon = models.FileField(
+        upload_to=career_track_icon_directory,
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=['svg', 'svgz'])],
+        help_text="SVG icon shown in the home page 'Find Your Perfect Fit!' scroller. Allowed: .svg, .svgz. If empty, a default icon is used.",
+    )
+    career_track_icon_s3_url = models.URLField(
+        max_length=500,
+        null=True,
+        blank=True,
+        help_text="S3 URL for career track icon (auto-set when uploaded via admin). Used on home page when set.",
+    )
     
     class Meta(BaseModel.Meta):
         indexes = [
