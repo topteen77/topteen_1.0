@@ -98,8 +98,8 @@ class Home(TemplateView):
         ).first()
         
         ctx['exams']=EntranceExam.objects.all().order_by('?')[:3]
-        # Find Your Perfect Fit!: active top-level clusters only (no parent), no repetition; each card links to careers/?mode=traditional&cluster=ID
-        clusters = CareerCluster.objects.filter(parent__isnull=True, object_status=choices.ObjectStatus.ACTIVE).order_by('name')
+        # Find Your Perfect Fit!: show all active career clusters from admin (same list as /admin/careers/careercluster/); each card links to careers/?mode=traditional&cluster=ID
+        clusters = CareerCluster.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('name')
         ctx['clusters'] = clusters
         from django.templatetags.static import static
         careers_base_url = reverse('careers:career')
