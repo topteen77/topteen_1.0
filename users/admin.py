@@ -109,13 +109,14 @@ def _reset_student_tests(user, test_ids=None):
 
 class UserAdmin(admin.ModelAdmin):
     # form = UserForm
-    fields = ['name','email','mobile','is_active','is_staff','image','password','groups', 'user_permissions','user_type','user_status','is_demo_account']
+    fields = ['name','email','mobile','is_active','is_staff','image','password','groups', 'user_permissions','user_type','user_status','is_demo_account','is_system_demo']
+    readonly_fields = ['is_system_demo']
     # date_hierarchy = 'created'
-    list_display = ['id', 'name','email','mobile','is_active','is_demo_account','object_status','created','last_login']
+    list_display = ['id', 'name','email','mobile','is_active','is_demo_account','is_system_demo','object_status','created','last_login']
     sortable_by=['id', 'name','email','mobile']
     ordering = ['-id']
     list_editable = ['is_demo_account']
-    list_filter = ('is_active','is_demo_account','last_login','user_type','object_status')
+    list_filter = ('is_active','is_demo_account','is_system_demo','last_login','user_type','object_status')
     search_fields=['id','name','email','mobile']
     actions = ['hard_delete_selected']
     change_list_template = 'admin/users/user/change_list.html'

@@ -219,6 +219,11 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
         default=False,
         help_text=_('If checked, this account is shown on the login page as a demo account (name and role only; credentials are not displayed).'),
     )
+    is_system_demo = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text=_('Set only by the system when creating demo dataset. Only such data can be reset. Do not edit.'),
+    )
     objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name']

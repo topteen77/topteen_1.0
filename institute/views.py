@@ -1471,13 +1471,15 @@ class InstituteDashboardView(TemplateView):
                 except (ValueError, IndexError):
                     pass
                 
-                # Determine system based on class
+                # Determine system based on class (and demo: demo Class 12 uses psychometric data)
                 if class_number and class_number >= 11:
-                    # Class 11-12: Use post-matric system
+                    # Class 11-12: use psychometric for demo institute (demo data has no post-matric)
+                    institute = getattr(student_management, "institute", None)
+                    if institute and getattr(institute, "is_system_demo", False):
+                        return self._get_psychometric_test_result(user)
+                    # Class 11-12: Use post-matric system for non-demo
                     from app_post_matric.models import TestSession, TestResult
                     post_matric_sessions = TestSession.objects.filter(user=user)
-                    
-                    
                     return self._get_post_matric_test_result(user, post_matric_sessions)
                 else:
                     # Class 10 and below: Use psychometric system
@@ -1821,8 +1823,11 @@ class InstituteDashboardView(TemplateView):
                 except (ValueError, IndexError):
                     pass
                 
-                # Determine system based on class
+                # Determine system based on class (demo Class 12 uses psychometric data)
                 if class_number and class_number >= 11:
+                    institute = getattr(student_management, "institute", None)
+                    if institute and getattr(institute, "is_system_demo", False):
+                        return self._get_psychometric_test_result_optimized(user, test_completion, results_list)
                     # Class 11-12: Use post-matric system
                     return self._get_post_matric_test_result_optimized(user, post_matric_sessions)
                 else:
@@ -2472,6 +2477,10 @@ class InstituteDashboardView(TemplateView):
     def post(self, request, *args, **kwargs):
         slug=kwargs.get("slug")
         institute=get_object_or_404(Institute,slug=slug)
+        if getattr(institute, "is_system_demo", False):
+            messages.error(request, "Demo institute: cannot add new students.")
+            ctx = self.get_context(request, *args, **kwargs)
+            return render(request, self.template_name, ctx)
         import re
         evalid = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         class_section=request.POST.get("class_section")
@@ -2548,6 +2557,9 @@ class InstituteStudentCreateView(TemplateView):
         stu_mobile=request.POST.get("mobile")
         stu_profile=request.FILES.get("profile_pic")
         institute=get_object_or_404(Institute,id=institute_id)
+        if getattr(institute, "is_system_demo", False):
+            messages.error(request, "Demo institute: cannot add new students.")
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
         if stu_name and stu_email and stu_mobile and stu_profile:
             stu_exist=User.objects.filter(email=stu_email).exists()
             stu_em=re.match(evalid,stu_email)
@@ -2594,6 +2606,9 @@ class InstituteCsvStudentCreateView(TemplateView):
         mvalid = r'^(\+91|0)?[6789]\d{9}$'
         institute_id=request.POST.get("institute")
         institute=get_object_or_404(Institute,id=institute_id)
+        if getattr(institute, "is_system_demo", False):
+            messages.error(request, "Demo institute: cannot add new students.")
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
         csv_file=request.FILES.get('stu_file')
         
         # Validate file exists

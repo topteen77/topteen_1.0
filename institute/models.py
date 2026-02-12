@@ -130,7 +130,13 @@ class Institute(BaseModel, SlugModel):
         verbose_name="Demo institute",
         help_text=_("Mark as demo institute (e.g. for display on institute demo login or filtering)."),
     )
-    
+    is_system_demo = models.BooleanField(
+        default=False,
+        editable=False,
+        verbose_name="System demo",
+        help_text=_("Set only by the system for the fixed demo dataset. Only such data can be reset. Do not edit."),
+    )
+
     # Seat Capacity fields for streams
     pcm = models.PositiveIntegerField(
         default=100,

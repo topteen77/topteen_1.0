@@ -425,22 +425,47 @@ def Assessment_pdf_inst_user(request, user_id=None):
     
     
     user_name = user
-    user_ID = user_id
+    user_ID = user.id if user_id is None else user_id
+    # Ensure graph images exist for the report (personality, interest, intelligence)
+    graph_dir = os.path.join(settings.BASE_DIR, 'media', 'graph_images')
+    if not os.path.isdir(graph_dir):
+        try:
+            os.makedirs(graph_dir, exist_ok=True)
+        except OSError:
+            pass
+    graph_basename = f"{user_name}-{user_ID}"
+    graph_files = [
+        f"{graph_basename}_personality_Assessment.png",
+        f"{graph_basename}_interest_Assessment.png",
+        f"{graph_basename}_intelligence_Assessment.png",
+    ]
+    need_graphs = any(not os.path.exists(os.path.join(graph_dir, f)) for f in graph_files)
+    if need_graphs:
+        original_user = request.user
+        try:
+            request.user = user
+            gernate_graph(request)
+        except Exception as e:
+            import traceback
+            print(f"Assessment_pdf_inst_user: could not generate graphs for user {user.id}: {e}")
+            print(traceback.format_exc())
+        finally:
+            request.user = original_user
     # Prepare context dictionary
     context = {
-        'user_name':user_name,
-        'user_ID':user_ID,
-        'top_category':top_category,
+        'user_name': user_name,
+        'user_ID': user_ID,
+        'top_category': top_category,
         'streamsubject': streamsubject,
-        'courseName':courseName,
-        'max_length':max_length,
-        'min_length':min_length,
-        'below':below,
-        'avg':avg,
-        'above_avg':above_avg,
-        'top_categories':top_categories,
+        'courseName': courseName,
+        'max_length': max_length,
+        'min_length': min_length,
+        'below': below,
+        'avg': avg,
+        'above_avg': above_avg,
+        'top_categories': top_categories,
     }
-    return render(request, 'Asessment_report.html',context)
+    return render(request, 'Asessment_report.html', context)
 
 
 @login_required(login_url=reverse_lazy('users:login'))
