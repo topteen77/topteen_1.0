@@ -185,6 +185,7 @@
 </main>
 
 <script type="application/json" id="saved-eq-responses">{{ saved_eq_responses|safe }}</script>
+<script type="application/json" id="saved-eq-result">{{ saved_eq_result|safe }}</script>
 <span id="eq-config" data-save-url="{{ save_eq_url }}" data-report-pdf-url="{{ eq_report_pdf_url }}" style="display:none;"></span>
 <script>
 (function() {
@@ -456,7 +457,7 @@
     return { subscaleScores: subscaleScores, weighted: weighted, EI_total: EI_total, PBI: PBI, intrapersonalEQ: intrapersonalEQ, interpersonalEQ: interpersonalEQ, adaptiveEQ: adaptiveEQ, bandLabel: bandLabel };
   }
 
-  function renderResults(scores) {
+  function renderResults(scores, skipSave) {
     resultsSummary.innerHTML = "";
     var s = scores.subscaleScores;
     var compositeEl = document.createElement("p");
@@ -479,7 +480,7 @@
     resultsSummary.appendChild(clusterEl);
     resultsSection.style.display = "block";
     resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
-    if (eqConfig.saveUrl && eqConfig.csrfToken) {
+    if (!skipSave && eqConfig.saveUrl && eqConfig.csrfToken) {
       fetch(eqConfig.saveUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": eqConfig.csrfToken },
@@ -526,6 +527,31 @@
       "Adaptive EQ = SC + SM = " + scores.adaptiveEQ
     ];
     return lines.join("\r\n");
+  }
+
+  var savedEqResultEl = document.getElementById("saved-eq-result");
+  if (savedEqResultEl && savedEqResultEl.textContent && savedEqResultEl.textContent !== "null") {
+    try {
+      var savedEq = JSON.parse(savedEqResultEl.textContent);
+      if (savedEq && savedEq.ei_total != null && savedEq.subscale_scores && Object.keys(responses).length === 36) {
+        introCard.style.display = "none";
+        assessmentCard.style.display = "block";
+        currentLevelIndex = 0;
+        renderCurrentLevel();
+        var savedScores = {
+          subscaleScores: savedEq.subscale_scores,
+          EI_total: savedEq.ei_total,
+          PBI: savedEq.pbi != null ? savedEq.pbi : 0,
+          bandLabel: savedEq.band_label || "",
+          intrapersonalEQ: savedEq.intrapersonal_eq != null ? savedEq.intrapersonal_eq : 0,
+          interpersonalEQ: savedEq.interpersonal_eq != null ? savedEq.interpersonal_eq : 0,
+          adaptiveEQ: savedEq.adaptive_eq != null ? savedEq.adaptive_eq : 0,
+          weighted: savedEq.weighted || {}
+        };
+        scoresCache = savedScores;
+        renderResults(savedScores, true);
+      }
+    } catch (e) {}
   }
 
   if (startBtn) {

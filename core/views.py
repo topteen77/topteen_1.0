@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import os
+from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 from multiprocessing import get_context
@@ -495,6 +496,7 @@ class EmotionalIntelligencesView(TemplateView):
         ctx = {}
         ctx["html_head"] = self.html_head()
         ctx["breadcrumb"] = {"text": "Emotional Intelligences", "url": reverse("core:emotional_intelligences")}
+        ctx["login_to_take_url"] = reverse("users:login") + "?next=" + quote(reverse("core:emotional_intelligences_assessment"))
         base = getattr(settings, "S3_EQ_IMAGES_BASE_URL", None)
         if base:
             ctx["eq_images_base"] = base.rstrip("/") + "/"
@@ -506,9 +508,10 @@ class EmotionalIntelligencesView(TemplateView):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
-class EmotionalIntelligencesAssessmentView(TemplateView):
-    """Emotional Intelligences (EQ) assessment – 6 levels, 36 statements."""
+class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
+    """Emotional Intelligences (EQ) assessment – 6 levels, 36 statements. Requires login."""
     template_name = "template20/emotional_intelligences_assessment.html"
+    login_url = reverse_lazy("users:login")
 
     def html_head(self):
         return build_html_head(
@@ -563,6 +566,8 @@ class MultipleIntelligencesView(TemplateView):
         ctx = {}
         ctx["html_head"] = self.html_head()
         ctx["breadcrumb"] = {"text": "Multiple Intelligences", "url": reverse("core:multiple_intelligences")}
+        # Login required before starting test: send unauthenticated users to login with next=assessment URL
+        ctx["login_to_take_url"] = reverse("users:login") + "?next=" + quote(reverse("core:multiple_intelligences_assessment"))
         # S3 base URL for MI images (upload MI images to this folder in S3). Fallback: static/images_new/mi/
         base = getattr(settings, "S3_MI_IMAGES_BASE_URL", None)
         if base:
@@ -575,9 +580,10 @@ class MultipleIntelligencesView(TemplateView):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
-class MultipleIntelligencesAssessmentView(TemplateView):
-    """Multiple Intelligences / Learning Style Discovery Test (assessment)."""
+class MultipleIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
+    """Multiple Intelligences / Learning Style Discovery Test (assessment). Requires login."""
     template_name = "template20/multiple_intelligences_assessment.html"
+    login_url = reverse_lazy("users:login")
 
     def html_head(self):
         return build_html_head(

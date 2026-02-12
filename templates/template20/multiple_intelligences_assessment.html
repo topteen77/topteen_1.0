@@ -231,6 +231,7 @@
 </main>
 
 <script type="application/json" id="saved-mi-answers">{{ saved_mi_answers|safe }}</script>
+<script type="application/json" id="saved-mi-result">{{ saved_mi_result|safe }}</script>
 <span id="mi-config" data-save-url="{{ save_mi_url }}" data-report-pdf-url="{{ mi_report_pdf_url }}" style="display:none;"></span>
 <script>
 (function() {
@@ -623,6 +624,49 @@
       if (miConfig.reportPdfUrl) window.location.href = miConfig.reportPdfUrl;
       else if (lastResultData) downloadResultPdf();
     });
+  }
+
+  function showSavedResult(saved) {
+    if (!saved || !saved.style_name || !saved.counts) return;
+    var counts = saved.counts;
+    resultSummary.innerHTML = "";
+    var badge = document.createElement("div");
+    badge.className = "lsd-results-badge";
+    badge.innerHTML = "<i class='bx bx-star'></i><span>Your primary learning style</span>";
+    var typeEl = document.createElement("div");
+    typeEl.className = "lsd-results-type";
+    typeEl.textContent = saved.style_name;
+    var summaryEl = document.createElement("p");
+    summaryEl.className = "lsd-results-summary";
+    summaryEl.textContent = saved.style_summary || "";
+    var countsEl = document.createElement("p");
+    countsEl.className = "lsd-results-counts";
+    countsEl.textContent = "Your answers: A = " + (counts.A || 0) + ", B = " + (counts.B || 0) + ", C = " + (counts.C || 0) + ", D = " + (counts.D || 0) + ". Use your highest and second-highest letters to understand your main and backup learning styles.";
+    resultSummary.appendChild(badge);
+    resultSummary.appendChild(typeEl);
+    resultSummary.appendChild(summaryEl);
+    resultSummary.appendChild(countsEl);
+    resultsSection.style.display = "block";
+    testCompleted = true;
+    lastResultData = { styleName: saved.style_name, styleSummary: saved.style_summary || "", counts: counts };
+    reportDownload.classList.add("lsd-primary-download");
+    reportDownload.removeAttribute("aria-disabled");
+    scoringDownload.removeAttribute("aria-disabled");
+  }
+
+  var savedResultEl = document.getElementById("saved-mi-result");
+  if (savedResultEl && savedResultEl.textContent && savedResultEl.textContent !== "null") {
+    try {
+      var savedResult = JSON.parse(savedResultEl.textContent);
+      if (savedResult && savedResult.style_name && savedResult.counts && Object.keys(answers).length === 60) {
+        introCard.style.display = "none";
+        wizardCard.style.display = "block";
+        renderQuestionNav();
+        renderQuestion();
+        updateProgress();
+        showSavedResult(savedResult);
+      }
+    } catch (e) {}
   }
 
   if (startBtn) {
