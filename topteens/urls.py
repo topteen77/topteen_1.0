@@ -66,7 +66,6 @@ urlpatterns = [
     path('analytics/', include('analytics_dashboard.urls')),
     path('user-analytics/', include('user_analytics.urls', namespace='user_analytics')),
     path('forum/', include('forum.urls', namespace='forum')),
-    path('olympiad/', include('olympiad.urls', namespace='olympiad')),
 
     # old code not in use - start
     # New isolated routes for marketing authentication frontend
@@ -98,7 +97,7 @@ from django.views.generic import TemplateView
 # Catch-all pattern for unmatched URLs - uses template20/404.html
 # Exclude all known URL prefixes to avoid intercepting valid routes
 urlpatterns += [
-    re_path(r'^(?!admin/|topteenadmin/|careers/|colleges/|testprep/|skilllabcourse/|psychometrictest/|payments/|blogs/|user/|student/|parents/|oauth/|api/|institute/|psychometric/|counselor/|analytics/|user-analytics/|forum/|olympiad/|marketing-auth/|api-auth/|static/|media/).*$', 
+    re_path(r'^(?!admin/|topteenadmin/|careers/|colleges/|testprep/|skilllabcourse/|psychometrictest/|payments/|blogs/|user/|student/|parents/|oauth/|api/|institute/|psychometric/|counselor/|analytics/|user-analytics/|forum/|marketing-auth/|api-auth/|static/|media/).*$', 
             TemplateView.as_view(template_name='template20/404.html'), name='404'),
 ]
 

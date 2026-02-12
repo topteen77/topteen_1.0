@@ -71,7 +71,6 @@ INSTALLED_APPS = [
     'app_post_matric',
     'user_analytics',
     'forum',
-    'olympiad',
     'demo_data',
 ]
 
