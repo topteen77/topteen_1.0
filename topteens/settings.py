@@ -369,6 +369,15 @@ S3_BUCKET_PREFIX = config('S3_BUCKET_PREFIX', default='s3://topteenc/')
 S3_BUCKET_BASE_URL = config('S3_BUCKET_BASE_URL', default='https://topteenc.s3.ap-northeast-1.amazonaws.com/')
 S3_EBOOK_FOLDER = 'ebook'  # Folder path for ebooks in S3
 S3_FOUR_PILLARS_FOLDER = config('S3_FOUR_PILLARS_FOLDER', default='four_pillars')  # Folder for Four Pillars of Learning images in S3
+# Multiple Intelligences (MI) page: full base URL for MI images in S3 (e.g. https://bucket.s3.region.amazonaws.com/mi/). If unset, uses static/images_new/mi/
+S3_MI_IMAGES_BASE_URL = config('S3_MI_IMAGES_BASE_URL', default='')
+S3_EQ_IMAGES_BASE_URL = config('S3_EQ_IMAGES_BASE_URL', default='')
+
+# Path to assessment reference docx (MI reports, scoring method, EQ report). Default: sibling topteens html/b.
+# 7nov/topteenhtml/html/b (go up from topteen_1.0: parent=new_template-demo-topteens, parent=git, parent=7nov)
+_assessment_ref = BASE_DIR.parent.parent.parent / 'topteenhtml' / 'html' / 'b'
+_ASSESSMENT_REF_DEFAULT = str(_assessment_ref) if _assessment_ref.exists() else ''
+ASSESSMENT_REFERENCE_BASE = config('ASSESSMENT_REFERENCE_BASE', default=_ASSESSMENT_REF_DEFAULT)
 
 # AWS S3 Upload Configuration
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')

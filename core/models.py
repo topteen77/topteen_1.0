@@ -577,6 +577,58 @@ class FourPillarsAssessmentResult(models.Model):
         return f"{self.user_id} – {self.pillar_slug} ({self.primary_style})"
 
 
+class MIAssessmentResult(models.Model):
+    """Stores Multiple Intelligences (Learning Style) assessment result per user. One row per attempt."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="mi_assessment_results",
+    )
+    answers = models.JSONField(help_text="Question index (0–59) -> choice: A/B/C/D")
+    counts = models.JSONField(help_text="{\"A\": n, \"B\": n, \"C\": n, \"D\": n}")
+    primary_style = models.CharField(max_length=1)
+    style_name = models.CharField(max_length=255)
+    style_summary = models.TextField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        verbose_name = "MI Assessment Result"
+        verbose_name_plural = "MI Assessment Results"
+
+    def __str__(self):
+        return f"{self.user_id} – MI ({self.primary_style}) @ {self.updated_at}"
+
+
+class EQAssessmentResult(models.Model):
+    """Stores Emotional Intelligence assessment result per user. One row per attempt."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="eq_assessment_results",
+    )
+    responses = models.JSONField(help_text="Q1–Q36 -> 1–5")
+    subscale_scores = models.JSONField(help_text="SA, SC, EM, CR, SM, AC")
+    weighted = models.JSONField(blank=True, null=True)
+    ei_total = models.FloatField()
+    pbi = models.FloatField()
+    intrapersonal_eq = models.FloatField()
+    interpersonal_eq = models.FloatField()
+    adaptive_eq = models.FloatField()
+    band_label = models.CharField(max_length=128)
+    created = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        verbose_name = "EQ Assessment Result"
+        verbose_name_plural = "EQ Assessment Results"
+
+    def __str__(self):
+        return f"{self.user_id} – EQ ({self.ei_total:.1f}) @ {self.updated_at}"
+
+
 class FourPillarsAssessment(models.Model):
     """Definition of a Four Pillars assessment (questions, scoring, profiles). Editable from admin."""
     slug = models.SlugField(max_length=64, unique=True, help_text="URL slug, e.g. engagement-patterns")

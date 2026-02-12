@@ -17,7 +17,7 @@ from blog.models import Blog
 from careers.models import Career, CareerTags,Videos,CareerCluster
 from core import choices
 from django.views.generic import TemplateView
-from core.models import CommonFAQ, Country, Review, Contact, Lead, Ebook, FourPillarsAssessmentResult, FourPillarsAssessment
+from core.models import CommonFAQ, Country, Review, Contact, Lead, Ebook, FourPillarsAssessmentResult, FourPillarsAssessment, MIAssessmentResult, EQAssessmentResult
 from courses.models import Course
 from colleges.models import College
 from django.conf import settings
@@ -38,9 +38,11 @@ from django.shortcuts import HttpResponse,HttpResponseRedirect
 from skilllab.models import SkillLabCourse
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_GET, require_POST
 from rest_framework.views import APIView
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from pathlib import Path
 
 class Home(TemplateView):
     template_name ="template20/home_new.html"
@@ -472,6 +474,140 @@ class CareerPlanningView(TemplateView):
         ctx = {}
         ctx["html_head"] = self.html_head()
         ctx["breadcrumb"] = {"text": "Career Planning Hub", "url": reverse("core:career_planning")}
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class EmotionalIntelligencesView(TemplateView):
+    """Emotional Intelligences (EQ) landing page. Images from S3 via S3_EQ_IMAGES_BASE_URL or static fallback."""
+    template_name = "template20/emotional_intelligences.html"
+
+    def html_head(self):
+        return build_html_head(
+            title="Emotional Intelligences",
+            description="Discover your Emotional Intelligences. EQ shapes relationships, choices, and real-life success—often more than IQ."
+        )
+
+    def get_context(self, request, *args, **kwargs):
+        from django.templatetags.static import static
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = {"text": "Emotional Intelligences", "url": reverse("core:emotional_intelligences")}
+        base = getattr(settings, "S3_EQ_IMAGES_BASE_URL", None)
+        if base:
+            ctx["eq_images_base"] = base.rstrip("/") + "/"
+        else:
+            ctx["eq_images_base"] = static("images_new/eq/")  # Add eq assets to static/images_new/eq/ or set S3_EQ_IMAGES_BASE_URL
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class EmotionalIntelligencesAssessmentView(TemplateView):
+    """Emotional Intelligences (EQ) assessment – 6 levels, 36 statements."""
+    template_name = "template20/emotional_intelligences_assessment.html"
+
+    def html_head(self):
+        return build_html_head(
+            title="Emotional Intelligence Assessment",
+            description="Take the Emotional Intelligence assessment to understand and strengthen key emotional intelligence skills."
+        )
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = [
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Emotional Intelligences", "url": reverse("core:emotional_intelligences")},
+            {"text": "Assessment", "url": reverse("core:emotional_intelligences_assessment")},
+        ]
+        ctx["save_eq_url"] = reverse("core:save_eq_assessment")
+        ctx["eq_report_pdf_url"] = reverse("core:eq_report_pdf")
+        if getattr(request, "user", None) and request.user.is_authenticated:
+            latest = EQAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+            if latest:
+                ctx["saved_eq_responses"] = json.dumps(latest.responses)
+                ctx["saved_eq_result"] = json.dumps({
+                    "subscale_scores": latest.subscale_scores,
+                    "ei_total": latest.ei_total,
+                    "pbi": latest.pbi,
+                    "band_label": latest.band_label,
+                    "intrapersonal_eq": latest.intrapersonal_eq,
+                    "interpersonal_eq": latest.interpersonal_eq,
+                    "adaptive_eq": latest.adaptive_eq,
+                })
+        if not ctx.get("saved_eq_responses"):
+            ctx["saved_eq_responses"] = "null"
+            ctx["saved_eq_result"] = "null"
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class MultipleIntelligencesView(TemplateView):
+    """Multiple Intelligences (MI) landing page. Images from S3 via S3_MI_IMAGES_BASE_URL or static fallback."""
+    template_name = "template20/multiple_intelligences.html"
+
+    def html_head(self):
+        return build_html_head(
+            title="Multiple Intelligences",
+            description="Discover your Multiple Intelligences. Your learning success comes from understanding the distinct intelligences that shape how your mind thinks and excels."
+        )
+
+    def get_context(self, request, *args, **kwargs):
+        from django.templatetags.static import static
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = {"text": "Multiple Intelligences", "url": reverse("core:multiple_intelligences")}
+        # S3 base URL for MI images (upload MI images to this folder in S3). Fallback: static/images_new/mi/
+        base = getattr(settings, "S3_MI_IMAGES_BASE_URL", None)
+        if base:
+            ctx["mi_images_base"] = base.rstrip("/") + "/"
+        else:
+            ctx["mi_images_base"] = static("images_new/mi/")
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class MultipleIntelligencesAssessmentView(TemplateView):
+    """Multiple Intelligences / Learning Style Discovery Test (assessment)."""
+    template_name = "template20/multiple_intelligences_assessment.html"
+
+    def html_head(self):
+        return build_html_head(
+            title="Multiple Intelligences Assessment",
+            description="Take the Multiple Intelligences (Learning Style Discovery) assessment to discover how you learn best."
+        )
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = [
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Multiple Intelligences", "url": reverse("core:multiple_intelligences")},
+            {"text": "Assessment", "url": reverse("core:multiple_intelligences_assessment")},
+        ]
+        ctx["save_mi_url"] = reverse("core:save_mi_assessment")
+        ctx["mi_report_pdf_url"] = reverse("core:mi_report_pdf")
+        if getattr(request, "user", None) and request.user.is_authenticated:
+            latest = MIAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+            if latest:
+                ctx["saved_mi_answers"] = json.dumps(latest.answers)
+                ctx["saved_mi_result"] = json.dumps({
+                    "counts": latest.counts,
+                    "primary_style": latest.primary_style,
+                    "style_name": latest.style_name,
+                    "style_summary": latest.style_summary,
+                })
+        if not ctx.get("saved_mi_answers"):
+            ctx["saved_mi_answers"] = "null"
+            ctx["saved_mi_result"] = "null"
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -1075,3 +1211,190 @@ def s3_media_proxy(request, path):
         out['Content-Length'] = content_length
     out['Cache-Control'] = 'private, max-age=3600'
     return out
+
+
+# ----- MI / EQ assessment save and PDF report -----
+
+@require_POST
+def save_mi_assessment(request):
+    """Save MI assessment result for the current user. Requires login."""
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return JsonResponse({"ok": False, "error": "Login required to save."}, status=401)
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({"ok": False, "error": "Invalid JSON."}, status=400)
+    answers = data.get("answers")
+    counts = data.get("counts")
+    primary_style = data.get("primary_style")
+    style_name = data.get("style_name")
+    style_summary = data.get("style_summary", "")
+    if not isinstance(answers, dict) or not isinstance(counts, dict) or not primary_style or not style_name:
+        return JsonResponse({"ok": False, "error": "Missing or invalid fields."}, status=400)
+    # Normalize answers keys to string (0..59)
+    answers = {str(k): v for k, v in answers.items() if str(v) in ("A", "B", "C", "D")}
+    if len(answers) != 60:
+        return JsonResponse({"ok": False, "error": "All 60 questions must be answered."}, status=400)
+    MIAssessmentResult.objects.create(
+        user=request.user,
+        answers=answers,
+        counts={"A": int(counts.get("A", 0)), "B": int(counts.get("B", 0)), "C": int(counts.get("C", 0)), "D": int(counts.get("D", 0))},
+        primary_style=str(primary_style),
+        style_name=str(style_name),
+        style_summary=str(style_summary),
+    )
+    return JsonResponse({"ok": True})
+
+
+@require_POST
+def save_eq_assessment(request):
+    """Save EQ assessment result for the current user. Requires login."""
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return JsonResponse({"ok": False, "error": "Login required to save."}, status=401)
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({"ok": False, "error": "Invalid JSON."}, status=400)
+    responses = data.get("responses")
+    subscale_scores = data.get("subscale_scores")
+    ei_total = data.get("EI_total")
+    pbi = data.get("PBI")
+    intrapersonal_eq = data.get("intrapersonalEQ")
+    interpersonal_eq = data.get("interpersonalEQ")
+    adaptive_eq = data.get("adaptiveEQ")
+    band_label = data.get("bandLabel", "")
+    if not isinstance(responses, dict) or not isinstance(subscale_scores, dict) or ei_total is None:
+        return JsonResponse({"ok": False, "error": "Missing or invalid fields."}, status=400)
+    if len(responses) != 36:
+        return JsonResponse({"ok": False, "error": "All 36 statements must be answered."}, status=400)
+    EQAssessmentResult.objects.create(
+        user=request.user,
+        responses=responses,
+        subscale_scores=subscale_scores,
+        weighted=data.get("weighted"),
+        ei_total=float(ei_total),
+        pbi=float(pbi or 0),
+        intrapersonal_eq=float(intrapersonal_eq or 0),
+        interpersonal_eq=float(interpersonal_eq or 0),
+        adaptive_eq=float(adaptive_eq or 0),
+        band_label=str(band_label),
+    )
+    return JsonResponse({"ok": True})
+
+
+def _docx_path_to_html(docx_path):
+    """Convert a .docx file path to HTML. Uses careers.docx_utils if available."""
+    path = Path(docx_path)
+    if not path.exists():
+        return None
+    try:
+        from careers.docx_utils import convert_docx_to_html
+        with open(path, "rb") as f:
+            return convert_docx_to_html(f)
+    except Exception:
+        try:
+            from docx import Document
+            doc = Document(str(path))
+            parts = []
+            for p in doc.paragraphs:
+                if p.text.strip():
+                    parts.append("<p>%s</p>" % p.text.strip().replace("<", "&lt;").replace(">", "&gt;"))
+            return "\n".join(parts) if parts else ""
+        except Exception:
+            return None
+
+
+@login_required(login_url=None)
+def mi_report_pdf(request):
+    """Generate and download MI report PDF from docx content + user's latest result."""
+    latest = MIAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+    if not latest:
+        return HttpResponse("No MI assessment result found. Complete the assessment first.", status=404)
+    base = getattr(settings, "ASSESSMENT_REFERENCE_BASE", None) or ""
+    reports_path = Path(base) / "mi" / "reports.docx"
+    scoring_path = Path(base) / "mi" / "scoring method.docx"
+    html_parts = []
+    if reports_path.exists():
+        reports_html = _docx_path_to_html(reports_path)
+        if reports_html:
+            html_parts.append(reports_html)
+    if scoring_path.exists():
+        scoring_html = _docx_path_to_html(scoring_path)
+        if scoring_html:
+            html_parts.append("<h2>Scoring Method</h2>")
+            html_parts.append(scoring_html)
+    result_block = """
+    <div style="margin-top:2em; padding:1em; border:1px solid #ddd;">
+    <h2>Your Result</h2>
+    <p><strong>Primary learning style:</strong> %s</p>
+    <p>%s</p>
+    <p><strong>Your answers:</strong> A = %s, B = %s, C = %s, D = %s</p>
+    </div>
+    """ % (
+        latest.style_name,
+        latest.style_summary.replace("\n", "<br>"),
+        latest.counts.get("A", 0), latest.counts.get("B", 0), latest.counts.get("C", 0), latest.counts.get("D", 0),
+    )
+    html_parts.append(result_block)
+    full_html = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Learning Style Report</title></head><body style="font-family: sans-serif; padding: 20px;">%s</body></html>""" % "\n".join(html_parts)
+    try:
+        import weasyprint
+        import ssl
+        _ssl = ssl._create_default_https_context
+        ssl._create_default_https_context = ssl._create_unverified_context
+        try:
+            pdf_bytes = weasyprint.HTML(string=full_html, base_url=request.build_absolute_uri("/")).write_pdf()
+        finally:
+            ssl._create_default_https_context = _ssl
+    except Exception as e:
+        logger.exception("MI PDF generation failed")
+        return HttpResponse("PDF generation failed: %s" % str(e), status=500)
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="Learning-Style-Report.pdf"'
+    return response
+
+
+@login_required(login_url=None)
+def eq_report_pdf(request):
+    """Generate and download EQ report PDF from docx content + user's latest result."""
+    latest = EQAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+    if not latest:
+        return HttpResponse("No EQ assessment result found. Complete the assessment first.", status=404)
+    base = getattr(settings, "ASSESSMENT_REFERENCE_BASE", None) or ""
+    docx_path = Path(base) / "eq" / "EQ_Assessment_and_Scoring.docx"
+    html_parts = []
+    if docx_path.exists():
+        docx_html = _docx_path_to_html(docx_path)
+        if docx_html:
+            html_parts.append(docx_html)
+    result_block = """
+    <div style="margin-top:2em; padding:1em; border:1px solid #ddd;">
+    <h2>Your EQ Result</h2>
+    <p><strong>Composite EQ Score:</strong> %.1f (%s)</p>
+    <p><strong>Profile Balance Index (PBI):</strong> %.1f</p>
+    <p><strong>Subscale scores:</strong> SA = %s, SC = %s, EM = %s, CR = %s, SM = %s, AC = %s</p>
+    <p><strong>Intrapersonal EQ:</strong> %s | <strong>Interpersonal EQ:</strong> %s | <strong>Adaptive EQ:</strong> %s</p>
+    </div>
+    """ % (
+        latest.ei_total, latest.band_label, latest.pbi,
+        latest.subscale_scores.get("SA"), latest.subscale_scores.get("SC"), latest.subscale_scores.get("EM"),
+        latest.subscale_scores.get("CR"), latest.subscale_scores.get("SM"), latest.subscale_scores.get("AC"),
+        latest.intrapersonal_eq, latest.interpersonal_eq, latest.adaptive_eq,
+    )
+    html_parts.append(result_block)
+    full_html = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Emotional Intelligence Report</title></head><body style="font-family: sans-serif; padding: 20px;">%s</body></html>""" % "\n".join(html_parts)
+    try:
+        import weasyprint
+        import ssl
+        _ssl = ssl._create_default_https_context
+        ssl._create_default_https_context = ssl._create_unverified_context
+        try:
+            pdf_bytes = weasyprint.HTML(string=full_html, base_url=request.build_absolute_uri("/")).write_pdf()
+        finally:
+            ssl._create_default_https_context = _ssl
+    except Exception as e:
+        logger.exception("EQ PDF generation failed")
+        return HttpResponse("PDF generation failed: %s" % str(e), status=500)
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="Emotional-Intelligence-Report.pdf"'
+    return response

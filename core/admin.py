@@ -28,6 +28,8 @@ from .models import (
     FourPillarsAssessmentQuestion,
     FourPillarsAssessmentQuestionOption,
     FourPillarsAssessmentProfile,
+    MIAssessmentResult,
+    EQAssessmentResult,
 )
 # Register your models here.
 
@@ -189,6 +191,24 @@ admin.site.register(CommonFAQ)
 admin.site.register(APILog)
 admin.site.register(Stories)
 admin.site.register(Contact,ContactAdmin)
+
+
+@admin.register(MIAssessmentResult)
+class MIAssessmentResultAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "primary_style", "style_name", "updated_at")
+    list_filter = ("primary_style", "updated_at")
+    search_fields = ("user__email", "style_name")
+    readonly_fields = ("user", "answers", "counts", "primary_style", "style_name", "style_summary", "created", "updated_at")
+    ordering = ("-updated_at",)
+
+
+@admin.register(EQAssessmentResult)
+class EQAssessmentResultAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "ei_total", "band_label", "updated_at")
+    list_filter = ("updated_at",)
+    search_fields = ("user__email",)
+    readonly_fields = ("user", "responses", "subscale_scores", "weighted", "ei_total", "pbi", "intrapersonal_eq", "interpersonal_eq", "adaptive_eq", "band_label", "created", "updated_at")
+    ordering = ("-updated_at",)
 
 
 class ExtracurricularActivityInline(admin.TabularInline):

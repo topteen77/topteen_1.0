@@ -1,0 +1,590 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}Emotional Intelligence Assessment | Top Teen{% endblock %}
+{% block description_content %}A 36-statement self-assessment to help you understand and strengthen key emotional intelligence skills.{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block additionalhead %}
+<style>
+  body { font-family: "Space Grotesk", system-ui, sans-serif; background: #f5f5ff; }
+  .lsd-assessment-section { min-height: 60vh; padding-top: 40px; padding-bottom: 40px; }
+  .lsd-back-btn { border: none; background: transparent; color: #4b5563; display: inline-flex; align-items: center; gap: 8px; font-weight: 500; margin-bottom: 16px; cursor: pointer; text-decoration: none; font-size: 15px; }
+  .lsd-back-btn:hover { color: #1f2937; }
+  .lsd-header-card { background: #fff; border-radius: 20px; padding: 20px 24px; box-shadow: 0 10px 35px rgba(15,23,42,0.08); margin-bottom: 24px; }
+  .lsd-title { font-size: 26px; font-weight: 700; margin-bottom: 4px; color: #1f2937; }
+  .lsd-subtitle { font-size: 15px; color: #6b7280; margin-bottom: 0; line-height: 1.5; }
+  .lsd-card { background: #fff; border-radius: 20px; padding: 20px 22px; box-shadow: 0 10px 35px rgba(15,23,42,0.08); margin-bottom: 20px; }
+  .lsd-intro-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: rgba(79,70,229,0.06); color: #4338ca; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .lsd-intro-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #111827; }
+  .lsd-intro-text { font-size: 14px; color: #4b5563; margin-bottom: 10px; line-height: 1.6; }
+  .lsd-intro-list { margin: 0 0 8px 0; padding-left: 20px; }
+  .lsd-intro-list li { font-size: 14px; color: #4b5563; margin-bottom: 6px; line-height: 1.5; }
+  .lsd-intro-note { font-size: 13px; color: #6b7280; margin-top: 4px; margin-bottom: 16px; }
+  .lsd-btn { border-radius: 999px; padding: 9px 18px; font-size: 14px; font-weight: 600; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; }
+  .lsd-btn-primary { background: linear-gradient(135deg, #7755EE 0%, #3F37C9 100%); color: #fff; }
+  .lsd-btn-primary:hover { filter: brightness(1.05); color: #fff; }
+  .lsd-btn-outline { border-color: #d1d5db; background: #fff; color: #374151; }
+  .lsd-btn-outline:hover { border-color: #4b5563; background: #f9fafb; }
+  .lsd-btn-outline:disabled { opacity: 0.6; cursor: not-allowed; }
+  .lsd-wizard-card { background: #fff; border-radius: 20px; padding: 20px 20px 24px; box-shadow: 0 10px 35px rgba(15,23,42,0.08); margin-bottom: 20px; }
+  .lsd-progress-label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+  .progress.lsd-progress { height: 8px; border-radius: 999px; background: #e5e7eb; margin-bottom: 12px; overflow: hidden; }
+  .lsd-progress .progress-bar { background: linear-gradient(90deg, #4F46E5 0%, #38BDF8 100%); }
+  .lsd-question-title { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+  .lsd-question-text { font-size: 15px; color: #4b5563; margin-bottom: 16px; }
+  .lsd-option-btn { width: 100%; text-align: left; border-radius: 14px; border: 2px solid #e5e7eb; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; background: #fff; cursor: pointer; transition: all 0.25s ease; font-size: 15px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .lsd-option-btn:hover { border-color: #a5b4fc; box-shadow: 0 4px 16px rgba(79,70,229,0.15); background: #faf5ff; }
+  .lsd-option-btn.lsd-selected { border-color: #7755EE; background: linear-gradient(135deg, rgba(119,85,238,0.12) 0%, rgba(63,55,201,0.08) 100%); box-shadow: 0 4px 20px rgba(119,85,238,0.2); }
+  .lsd-option-btn.lsd-selected::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #7755EE 0%, #3F37C9 100%); border-radius: 14px 0 0 14px; }
+  .lsd-option-letter { width: 32px; height: 32px; min-width: 32px; border-radius: 10px; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #6b7280; flex-shrink: 0; background: #f9fafb; transition: all 0.25s ease; }
+  .lsd-option-btn.lsd-selected .lsd-option-letter { background: linear-gradient(135deg, #7755EE 0%, #3F37C9 100%); border-color: #7755EE; color: #fff; box-shadow: 0 2px 8px rgba(119,85,238,0.35); }
+  .lsd-option-text { color: #4b5563; font-size: 15px; line-height: 1.45; flex: 1; }
+  .lsd-option-btn.lsd-selected .lsd-option-text { color: #1f2937; font-weight: 500; }
+  .lsd-wizard-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .lsd-wizard-buttons { display: flex; gap: 8px; }
+  .lsd-complete-badge { font-size: 13px; color: #059669; font-weight: 600; display: none; align-items: center; gap: 6px; }
+  .lsd-complete-badge.lsd-visible { display: inline-flex; }
+  .lsd-results-section { margin-top: 4px; }
+  .lsd-results-card { background: #fff; border-radius: 20px; padding: 20px 20px 24px; box-shadow: 0 10px 35px rgba(15,23,42,0.08); margin-bottom: 20px; }
+  .lsd-results-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: rgba(79,70,229,0.06); color: #4338ca; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .lsd-results-type { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: #111827; }
+  .lsd-results-summary { font-size: 14px; color: #4b5563; margin-bottom: 10px; }
+  .lsd-results-counts { font-size: 15px; color: #008269; background: #dcffdc; padding: 9px 19px; border-radius: 10px; margin-bottom: 16px; border: 1px solid #57ea6e; }
+  .lsd-guide-title { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #111827; display: flex; align-items: center; gap: 8px; }
+  .lsd-guide-title i { color: #7755EE; font-size: 20px; }
+  .lsd-guide-text { font-size: 14px; color: #4b5563; margin-bottom: 8px; line-height: 1.6; }
+  .lsd-download-card { background: #fff; border-radius: 20px; padding: 18px 20px 20px; box-shadow: 0 10px 35px rgba(15,23,42,0.08); }
+  .lsd-download-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .lsd-download-icon { width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%); color: #fff; font-size: 20px; }
+  .lsd-download-title { font-size: 17px; font-weight: 700; color: #111827; }
+  .lsd-download-text { font-size: 14px; color: #4b5563; margin-bottom: 10px; }
+  .lsd-download-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+  .lsd-download-btn { text-decoration: none; border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #d1d5db; color: #111827; background: #fff; cursor: pointer; transition: all 0.2s ease; }
+  .lsd-download-btn:hover { border-color: #16A34A; background: #ecfdf5; }
+  .lsd-download-btn.lsd-primary-download { border-color: #16A34A; background: #16A34A; color: #fff; }
+  .lsd-download-note { font-size: 12px; color: #6b7280; margin-top: 6px; }
+  .lsd-validation-message { display: none; margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: rgba(239, 68, 68, 0.1); color: #b91c1c; font-size: 14px; font-weight: 500; }
+  .lsd-validation-message.lsd-validation-visible { display: block; }
+  .lsd-card.ei-statement-invalid { border: 2px solid #dc2626; background: rgba(239, 68, 68, 0.08); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="lsd-assessment-section">
+  <div class="container">
+    <a href="{{ url('core:emotional_intelligences') }}" class="lsd-back-btn">
+      <i class='bx bx-arrow-back'></i>
+      <span>Back</span>
+    </a>
+
+    <div class="lsd-header-card">
+      <h1 class="lsd-title">Emotional Intelligence Assessment</h1>
+      <p class="lsd-subtitle">A 36-statement self-assessment to help you understand and strengthen key emotional intelligence skills.</p>
+    </div>
+
+    <div class="lsd-card" id="eiIntroCard">
+      <div class="lsd-intro-badge">
+        <i class='bx bx-info-circle'></i>
+        <span>Test Instructions</span>
+      </div>
+      <div class="lsd-intro-title">How to Take This Emotional Intelligence Test</div>
+      <p class="lsd-intro-text">
+        This assessment is divided into six levels, each focusing on a different part of emotional intelligence. Answer honestly for the most accurate picture of your current strengths and growth areas.
+      </p>
+      <ul class="lsd-intro-list">
+        <li><strong>1. Read each statement carefully:</strong> Think about how true it feels for you in real life (at school, home, and with friends).</li>
+        <li><strong>2. Use the 1–5 rating scale:</strong> For every statement, choose one option: <strong>1 = Strongly Disagree</strong>, <strong>2 = Disagree</strong>, <strong>3 = Neutral</strong>, <strong>4 = Agree</strong>, <strong>5 = Strongly Agree</strong>.</li>
+        <li><strong>3. One answer per statement:</strong> Select exactly one option for each statement before moving to the next level.</li>
+        <li><strong>4. Six levels of EQ:</strong> You will complete six levels covering Self-Awareness, Self-Control, Empathy, Conflict Resolution, Self-Motivation, and Assertiveness.</li>
+        <li><strong>5. No right or wrong answers:</strong> Answer honestly rather than how you think you "should" respond.</li>
+      </ul>
+      <p class="lsd-intro-text">
+        Some items are <strong>reverse scored</strong>, which simply means that higher agreement lowers the score for that area. The system handles this automatically when calculating your results.
+      </p>
+      <p class="lsd-intro-note">
+        When you are ready, click <strong>Start Test</strong>. You will move through the six levels one screen at a time, and at the end you'll see a full scoring breakdown and can download your scoring report.
+      </p>
+      <button type="button" class="lsd-btn lsd-btn-primary" id="eiStartBtn">
+        Start Test
+        <i class='bx bx-chevron-right'></i>
+      </button>
+    </div>
+
+    <div class="lsd-wizard-card" id="eiAssessmentCard" style="display:none;">
+      <div class="lsd-progress-label">
+        <span id="eiProgressLabel">Level 1 of 6 • Self-Awareness &amp; Self-Esteem (SA)</span>
+      </div>
+      <div class="progress lsd-progress">
+        <div class="progress-bar" id="eiProgressBar" role="progressbar" style="width: 16%;" aria-valuenow="1" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+      <div id="eiLevelContainer"></div>
+      <div id="eiValidationMessage" class="lsd-validation-message" role="alert" aria-live="polite" hidden></div>
+      <div class="lsd-wizard-footer">
+        <div class="lsd-complete-badge" id="eiCompleteBadge">
+          <i class='bx bx-check-circle'></i>
+          <span>All levels completed! You can view your full EQ scoring.</span>
+        </div>
+        <div class="lsd-wizard-buttons">
+          <button type="button" class="lsd-btn lsd-btn-outline" id="eiPrevBtn">
+            <i class='bx bx-chevron-left'></i>
+            Previous Level
+          </button>
+          <button type="button" class="lsd-btn lsd-btn-primary" id="eiNextBtn">
+            <span>Next Level</span>
+            <i class='bx bx-chevron-right'></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="lsd-results-section" id="eiResultsSection" style="display:none;">
+      <div class="lsd-results-card">
+        <div class="lsd-results-badge">
+          <i class='bx bx-bar-chart-alt-2'></i>
+          <span>Your Emotional Intelligence Scoring Summary</span>
+        </div>
+        <div class="lsd-results-type">Your EQ Profile</div>
+        <div id="eiResultsSummary"></div>
+      </div>
+      <div class="lsd-results-card">
+        <div class="lsd-guide-title">
+          <i class='bx bx-help-circle'></i>
+          <span>How the Scoring System Works</span>
+        </div>
+        <p class="lsd-guide-text">
+          Your emotional intelligence score is built from six subscales. Each subscale contains six statements rated from 1–5. Some items are reverse scored (higher agreement reduces the score). The system converts your answers to subscale scores between 6 and 30.
+        </p>
+        <p class="lsd-guide-text">
+          After calculating subscale scores, weights are applied to create a composite EQ score: SA × 1.0, SC × 1.3, EM × 1.2, CR × 1.1, SM × 1.2, AC × 1.0. From there we also compute a <strong>Profile Balance Index (PBI)</strong>, <strong>Intrapersonal EQ</strong>, <strong>Interpersonal EQ</strong>, and <strong>Adaptive EQ</strong>.
+        </p>
+        <p class="lsd-guide-text" style="margin-top: 12px;">
+          Interpretation bands for the composite EQ score: ≥ 160 = Exceptional (Top 10%), 140–159 = High (65–89th %ile), 115–139 = Average (35–64th %ile), 95–114 = Low (15–34th %ile), ≤ 94 = Very Low (Bottom 14%).
+        </p>
+      </div>
+      <div class="lsd-download-card">
+        <div class="lsd-download-header">
+          <div class="lsd-download-icon"><i class='bx bx-download'></i></div>
+          <div>
+            <div class="lsd-download-title">Download Your Scoring System &amp; Results</div>
+            <div class="lsd-download-text">
+              Download a personalised scoring report showing all subscale scores, weighted scores, composite EQ, balance index, and cluster indices. You can share or print this for coaching, counseling, or personal reflection.
+            </div>
+          </div>
+        </div>
+        <div class="lsd-download-buttons">
+          <button type="button" class="lsd-download-btn lsd-primary-download" id="eiDownloadReportBtn">
+            <i class='bx bx-file-blank'></i>
+            <span>Download Scoring Report (PDF)</span>
+          </button>
+        </div>
+        <div class="lsd-download-note">Note: The download button becomes active after you finish all six levels of the test.</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="application/json" id="saved-eq-responses">{{ saved_eq_responses|safe }}</script>
+<span id="eq-config" data-save-url="{{ save_eq_url }}" data-report-pdf-url="{{ eq_report_pdf_url }}" style="display:none;"></span>
+<script>
+(function() {
+  var savedRespEl = document.getElementById("saved-eq-responses");
+  var eqConfigEl = document.getElementById("eq-config");
+  var savedResponses = {};
+  try {
+    if (savedRespEl && savedRespEl.textContent && savedRespEl.textContent !== "null") {
+      var s = JSON.parse(savedRespEl.textContent);
+      if (s && typeof s === "object") {
+        for (var k in s) {
+          var v = parseInt(s[k], 10);
+          if (v >= 1 && v <= 5) savedResponses[k] = v;
+        }
+      }
+    }
+  } catch (e) {}
+  var getCookie = function(name) {
+    var v = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([.*+?^${}()|[\]\\])/g, "\\$1") + "=([^;]*)"));
+    return v ? v[1] : null;
+  };
+  var eqConfig = {
+    saveUrl: eqConfigEl ? eqConfigEl.getAttribute("data-save-url") || "" : "",
+    reportPdfUrl: eqConfigEl ? eqConfigEl.getAttribute("data-report-pdf-url") || "" : "",
+    csrfToken: getCookie("csrftoken") || ""
+  };
+
+  var levels = [
+    { code: "SA", title: "Level 1 • Self-Awareness & Self-Esteem (SA)", description: "How well you notice, understand, and accept your own emotions, strengths, and limits.", items: [
+      { id: "Q1", text: "I recognize my emotions as soon as I feel them.", reverse: false },
+      { id: "Q2", text: "I understand how my emotions influence my thoughts and actions.", reverse: false },
+      { id: "Q3", text: "I accept my strengths and weaknesses without feeling insecure.", reverse: false },
+      { id: "Q4", text: "I rarely feel overwhelmed by negative emotions.", reverse: false },
+      { id: "Q5", text: "I trust my ability to handle challenging situations.", reverse: false },
+      { id: "Q6", text: "I often struggle to identify how I am feeling in the moment.", reverse: true }
+    ]},
+    { code: "SC", title: "Level 2 • Self-Control & Emotional Regulation (SC)", description: "How effectively you manage strong feelings and stay balanced under pressure.", items: [
+      { id: "Q7", text: "I stay calm and composed even in high-pressure situations.", reverse: false },
+      { id: "Q8", text: "I can control my anger or frustration in difficult moments.", reverse: false },
+      { id: "Q9", text: "I rarely say or do things I later regret due to strong emotions.", reverse: false },
+      { id: "Q10", text: "I am able to delay immediate gratification for long-term benefits.", reverse: false },
+      { id: "Q11", text: "When I feel upset, I use healthy ways to cope rather than acting impulsively.", reverse: false },
+      { id: "Q12", text: "I often lose control of my emotions under stress.", reverse: true }
+    ]},
+    { code: "EM", title: "Level 3 • Empathy & Understanding Others (EM)", description: "How well you notice, understand, and care about other people's feelings.", items: [
+      { id: "Q13", text: "I can easily sense how someone else is feeling, even if they don't say it.", reverse: false },
+      { id: "Q14", text: "I make an effort to understand other people's perspectives.", reverse: false },
+      { id: "Q15", text: "I can tell when someone is upset, even if they are hiding it.", reverse: false },
+      { id: "Q16", text: "I adjust my communication style based on others' emotions.", reverse: false },
+      { id: "Q17", text: "I feel genuinely happy when others succeed.", reverse: false },
+      { id: "Q18", text: "I often overlook other people's emotions unless they express them directly.", reverse: true }
+    ]},
+    { code: "CR", title: "Level 4 • Conflict Resolution & Interpersonal Skills (CR)", description: "How you handle disagreements and maintain healthy relationships.", items: [
+      { id: "Q19", text: "I handle disagreements without becoming aggressive or passive.", reverse: false },
+      { id: "Q20", text: "I can find solutions to conflicts that satisfy both sides.", reverse: false },
+      { id: "Q21", text: "I stay calm when dealing with difficult people.", reverse: false },
+      { id: "Q22", text: "I can apologize sincerely when I realize I was wrong.", reverse: false },
+      { id: "Q23", text: "I am good at calming down tense situations between others.", reverse: false },
+      { id: "Q24", text: "I find it difficult to resolve conflicts without blaming others.", reverse: true }
+    ]},
+    { code: "SM", title: "Level 5 • Self-Motivation & Resilience (SM)", description: "How consistently you stay motivated, bounce back, and pursue long-term goals.", items: [
+      { id: "Q25", text: "I push myself to achieve goals even when I face setbacks.", reverse: false },
+      { id: "Q26", text: "I find ways to stay positive even in difficult times.", reverse: false },
+      { id: "Q27", text: "I am able to recover quickly from failures or disappointments.", reverse: false },
+      { id: "Q28", text: "I stay focused on long-term goals without getting distracted.", reverse: false },
+      { id: "Q29", text: "I believe hard work and effort lead to success rather than luck.", reverse: false },
+      { id: "Q30", text: "I give up easily when things don't go as planned.", reverse: true }
+    ]},
+    { code: "AC", title: "Level 6 • Assertiveness & Communication (AC)", description: "How confidently and respectfully you express yourself with others.", items: [
+      { id: "Q31", text: "I express my thoughts and needs confidently without being aggressive.", reverse: false },
+      { id: "Q32", text: "I find it easy to say 'no' without feeling guilty.", reverse: false },
+      { id: "Q33", text: "I give honest feedback without fear of offending others.", reverse: false },
+      { id: "Q34", text: "I can stand up for myself even when faced with opposition.", reverse: false },
+      { id: "Q35", text: "I maintain eye contact and body language that shows confidence.", reverse: false },
+      { id: "Q36", text: "I often stay silent even when I want to express my views.", reverse: true }
+    ]}
+  ];
+
+  var introCard = document.getElementById("eiIntroCard");
+  var startBtn = document.getElementById("eiStartBtn");
+  var assessmentCard = document.getElementById("eiAssessmentCard");
+  var progressLabel = document.getElementById("eiProgressLabel");
+  var progressBar = document.getElementById("eiProgressBar");
+  var levelContainer = document.getElementById("eiLevelContainer");
+  var prevBtn = document.getElementById("eiPrevBtn");
+  var nextBtn = document.getElementById("eiNextBtn");
+  var completeBadge = document.getElementById("eiCompleteBadge");
+  var resultsSection = document.getElementById("eiResultsSection");
+  var resultsSummary = document.getElementById("eiResultsSummary");
+  var downloadBtn = document.getElementById("eiDownloadReportBtn");
+  var validationEl = document.getElementById("eiValidationMessage");
+
+  function showValidation(message) {
+    if (!validationEl) return;
+    validationEl.textContent = message;
+    validationEl.removeAttribute("hidden");
+    validationEl.classList.add("lsd-validation-visible");
+    validationEl.setAttribute("tabindex", "-1");
+    validationEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    var levelTitle = levelContainer && levelContainer.querySelector(".lsd-question-title");
+    if (levelTitle) {
+      levelTitle.setAttribute("tabindex", "-1");
+      levelTitle.focus();
+    } else {
+      validationEl.focus();
+    }
+  }
+  function clearValidation() {
+    if (!validationEl) return;
+    validationEl.textContent = "";
+    validationEl.setAttribute("hidden", "");
+    validationEl.classList.remove("lsd-validation-visible");
+    if (levelContainer) {
+      var cards = levelContainer.querySelectorAll(".lsd-card.ei-statement-invalid");
+      for (var c = 0; c < cards.length; c++) cards[c].classList.remove("ei-statement-invalid");
+    }
+  }
+
+  function highlightMissingLevel() {
+    if (!levelContainer) return;
+    var level = levels[currentLevelIndex];
+    for (var j = 0; j < level.items.length; j++) {
+      var itemId = level.items[j].id;
+      if (!responses[itemId]) {
+        var card = levelContainer.querySelector(".lsd-card[data-item-id='" + itemId + "']");
+        if (card) card.classList.add("ei-statement-invalid");
+      }
+    }
+  }
+
+  var currentLevelIndex = 0;
+  var responses = {};
+  for (var _kr in savedResponses) responses[_kr] = savedResponses[_kr];
+  var scoresCache = null;
+
+  function updateProgress() {
+    var totalLevels = levels.length;
+    var level = levels[currentLevelIndex];
+    var percent = Math.round(((currentLevelIndex + 1) / totalLevels) * 100);
+    progressLabel.textContent = "Level " + (currentLevelIndex + 1) + " of " + totalLevels + " • " + level.title.replace("Level " + (currentLevelIndex + 1) + " • ", "");
+    progressBar.style.width = Math.max(percent, 8) + "%";
+    progressBar.setAttribute("aria-valuenow", String(percent));
+    prevBtn.disabled = currentLevelIndex === 0;
+    nextBtn.querySelector("span").textContent = currentLevelIndex === totalLevels - 1 ? "Finish & View Results" : "Next Level";
+  }
+
+  function createLikertOption(questionId, value, label) {
+    var wrapper = document.createElement("label");
+    wrapper.className = "lsd-option-btn";
+    wrapper.style.marginBottom = "0";
+    var input = document.createElement("input");
+    input.type = "radio";
+    input.name = questionId;
+    input.value = String(value);
+    input.style.display = "none";
+    var badge = document.createElement("span");
+    badge.className = "lsd-option-letter";
+    badge.textContent = String(value);
+    var textSpan = document.createElement("span");
+    textSpan.className = "lsd-option-text";
+    textSpan.textContent = label;
+    wrapper.appendChild(input);
+    wrapper.appendChild(badge);
+    wrapper.appendChild(textSpan);
+    wrapper.addEventListener("click", function() {
+      var groupInputs = document.querySelectorAll("input[name='" + questionId + "']");
+      for (var i = 0; i < groupInputs.length; i++) {
+        var p = groupInputs[i].parentElement;
+        if (p && p.classList.contains("lsd-option-btn")) p.classList.remove("lsd-selected");
+      }
+      input.checked = true;
+      wrapper.classList.add("lsd-selected");
+      responses[questionId] = value;
+      clearValidation();
+    });
+    return wrapper;
+  }
+
+  function renderCurrentLevel() {
+    var level = levels[currentLevelIndex];
+    levelContainer.innerHTML = "";
+    var titleEl = document.createElement("h2");
+    titleEl.className = "lsd-question-title";
+    titleEl.setAttribute("tabindex", "-1");
+    titleEl.textContent = level.title;
+    var descEl = document.createElement("p");
+    descEl.className = "lsd-question-text";
+    descEl.textContent = level.description;
+    levelContainer.appendChild(titleEl);
+    levelContainer.appendChild(descEl);
+    var labels = ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"];
+    for (var i = 0; i < level.items.length; i++) {
+      var item = level.items[i];
+      var card = document.createElement("div");
+      card.className = "lsd-card";
+      card.setAttribute("data-item-id", item.id);
+      var qText = document.createElement("p");
+      qText.className = "lsd-question-text";
+      qText.style.marginBottom = "10px";
+      qText.textContent = (i + 1) + ". " + item.text;
+      var scaleRow = document.createElement("div");
+      scaleRow.style.display = "grid";
+      scaleRow.style.gridTemplateColumns = "repeat(5, minmax(0, 1fr))";
+      scaleRow.style.gap = "8px";
+      for (var v = 1; v <= 5; v++) {
+        var opt = createLikertOption(item.id, v, labels[v - 1]);
+        opt.style.padding = "10px 8px";
+        opt.style.justifyContent = "center";
+        if (responses[item.id] === v) {
+          opt.classList.add("lsd-selected");
+          opt.querySelector("input[type='radio']").checked = true;
+        }
+        scaleRow.appendChild(opt);
+      }
+      card.appendChild(qText);
+      card.appendChild(scaleRow);
+      levelContainer.appendChild(card);
+    }
+    if (validationEl) levelContainer.appendChild(validationEl);
+    updateProgress();
+    if (levelContainer && levelContainer.firstChild) {
+      levelContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function validateLevelCompleted(idx) {
+    var level = levels[idx];
+    for (var j = 0; j < level.items.length; j++) {
+      if (!responses[level.items[j].id]) return false;
+    }
+    return true;
+  }
+
+  function validateAllCompleted() {
+    for (var L = 0; L < levels.length; L++) {
+      for (var k = 0; k < levels[L].items.length; k++) {
+        if (!responses[levels[L].items[k].id]) return false;
+      }
+    }
+    return true;
+  }
+
+  function calculateScores() {
+    var subscaleScores = { SA: 0, SC: 0, EM: 0, CR: 0, SM: 0, AC: 0 };
+    for (var L = 0; L < levels.length; L++) {
+      var level = levels[L];
+      var sum = 0;
+      for (var i = 0; i < level.items.length; i++) {
+        var item = level.items[i];
+        var raw = responses[item.id];
+        sum += item.reverse ? (6 - raw) : raw;
+      }
+      subscaleScores[level.code] = sum;
+    }
+    var weights = { SA: 1.0, SC: 1.3, EM: 1.2, CR: 1.1, SM: 1.2, AC: 1.0 };
+    var weighted = {};
+    var EI_total = 0;
+    for (var code in subscaleScores) {
+      weighted[code] = subscaleScores[code] * weights[code];
+      EI_total += weighted[code];
+    }
+    var vals = [subscaleScores.SA, subscaleScores.SC, subscaleScores.EM, subscaleScores.CR, subscaleScores.SM, subscaleScores.AC];
+    var PBI = Math.max.apply(null, vals) - Math.min.apply(null, vals);
+    var SA = subscaleScores.SA, SC = subscaleScores.SC, EM = subscaleScores.EM, CR = subscaleScores.CR, SM = subscaleScores.SM, AC = subscaleScores.AC;
+    var intrapersonalEQ = SA + SC + SM;
+    var interpersonalEQ = EM + CR + AC;
+    var adaptiveEQ = SC + SM;
+    var bandLabel = EI_total >= 160 ? "Exceptional (Top 10%)" : EI_total >= 140 ? "High (65–89th %ile)" : EI_total >= 115 ? "Average (35–64th %ile)" : EI_total >= 95 ? "Low (15–34th %ile)" : "Very Low (Bottom 14%)";
+    return { subscaleScores: subscaleScores, weighted: weighted, EI_total: EI_total, PBI: PBI, intrapersonalEQ: intrapersonalEQ, interpersonalEQ: interpersonalEQ, adaptiveEQ: adaptiveEQ, bandLabel: bandLabel };
+  }
+
+  function renderResults(scores) {
+    resultsSummary.innerHTML = "";
+    var s = scores.subscaleScores;
+    var compositeEl = document.createElement("p");
+    compositeEl.className = "lsd-results-summary";
+    compositeEl.innerHTML = "<strong>Composite EQ Score: </strong>" + scores.EI_total.toFixed(1) + " <span style='color:#059669;font-weight:600;'>(" + scores.bandLabel + ")</span>";
+    var pbiEl = document.createElement("p");
+    pbiEl.className = "lsd-results-summary";
+    pbiEl.innerHTML = "<strong>Profile Balance Index (PBI): </strong>" + scores.PBI.toFixed(1) + " – lower values indicate a more balanced EQ profile across subscales.";
+    var subscaleTable = document.createElement("div");
+    subscaleTable.className = "lsd-results-counts";
+    subscaleTable.style.background = "#eef2ff";
+    subscaleTable.style.borderColor = "#a5b4fc";
+    subscaleTable.innerHTML = "<strong>Subscale Scores (6–30 each):</strong><br>SA: " + s.SA + ", SC: " + s.SC + ", EM: " + s.EM + ", CR: " + s.CR + ", SM: " + s.SM + ", AC: " + s.AC;
+    var clusterEl = document.createElement("p");
+    clusterEl.className = "lsd-results-summary";
+    clusterEl.innerHTML = "<strong>Cluster Indices:</strong> Intrapersonal EQ (SA + SC + SM) = " + scores.intrapersonalEQ + ", Interpersonal EQ (EM + CR + AC) = " + scores.interpersonalEQ + ", Adaptive EQ (SC + SM) = " + scores.adaptiveEQ + ".";
+    resultsSummary.appendChild(compositeEl);
+    resultsSummary.appendChild(pbiEl);
+    resultsSummary.appendChild(subscaleTable);
+    resultsSummary.appendChild(clusterEl);
+    resultsSection.style.display = "block";
+    resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (eqConfig.saveUrl && eqConfig.csrfToken) {
+      fetch(eqConfig.saveUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": eqConfig.csrfToken },
+        body: JSON.stringify({
+          responses: responses,
+          subscale_scores: scores.subscaleScores,
+          weighted: scores.weighted,
+          EI_total: scores.EI_total,
+          PBI: scores.PBI,
+          intrapersonalEQ: scores.intrapersonalEQ,
+          interpersonalEQ: scores.interpersonalEQ,
+          adaptiveEQ: scores.adaptiveEQ,
+          bandLabel: scores.bandLabel
+        }),
+        credentials: "same-origin"
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data && data.ok) { /* saved */ }
+      }).catch(function() {});
+    }
+  }
+
+  function buildDownloadFile(scores) {
+    var s = scores.subscaleScores, w = scores.weighted;
+    var lines = [
+      "Emotional Intelligence Assessment – Scoring Report",
+      "===============================================", "",
+      "Subscale Scores (each range: 6–30):",
+      "SA (Self-Awareness & Self-Esteem): " + s.SA,
+      "SC (Self-Control & Emotional Regulation): " + s.SC,
+      "EM (Empathy & Understanding Others): " + s.EM,
+      "CR (Conflict Resolution & Interpersonal Skills): " + s.CR,
+      "SM (Self-Motivation & Resilience): " + s.SM,
+      "AC (Assertiveness & Communication): " + s.AC, "",
+      "Weighted Scores:",
+      "SA × 1.0 = " + w.SA.toFixed(1), "SC × 1.3 = " + w.SC.toFixed(1), "EM × 1.2 = " + w.EM.toFixed(1),
+      "CR × 1.1 = " + w.CR.toFixed(1), "SM × 1.2 = " + w.SM.toFixed(1), "AC × 1.0 = " + w.AC.toFixed(1), "",
+      "Composite EQ Score (EI_total): " + scores.EI_total.toFixed(1),
+      "Band: " + scores.bandLabel, "",
+      "Profile Balance Index (PBI): " + scores.PBI.toFixed(1),
+      "PBI = Highest Subscale Score – Lowest Subscale Score", "",
+      "Cluster Indices:",
+      "Intrapersonal EQ = SA + SC + SM = " + scores.intrapersonalEQ,
+      "Interpersonal EQ = EM + CR + AC = " + scores.interpersonalEQ,
+      "Adaptive EQ = SC + SM = " + scores.adaptiveEQ
+    ];
+    return lines.join("\r\n");
+  }
+
+  if (startBtn) {
+    startBtn.addEventListener("click", function() {
+      introCard.style.display = "none";
+      assessmentCard.style.display = "block";
+      currentLevelIndex = 0;
+      renderCurrentLevel();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+  prevBtn.addEventListener("click", function() {
+    if (currentLevelIndex > 0) {
+      currentLevelIndex--;
+      clearValidation();
+      renderCurrentLevel();
+    }
+  });
+  nextBtn.addEventListener("click", function() {
+    if (!validateLevelCompleted(currentLevelIndex)) {
+      showValidation("Please answer all statements on this level before continuing.");
+      highlightMissingLevel();
+      return;
+    }
+    clearValidation();
+    if (currentLevelIndex < levels.length - 1) {
+      currentLevelIndex++;
+      renderCurrentLevel();
+    } else {
+      if (!validateAllCompleted()) {
+        showValidation("Please make sure all 36 statements have been answered.");
+        return;
+      }
+      scoresCache = calculateScores();
+      renderResults(scoresCache);
+    }
+  });
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", function() {
+      if (!scoresCache) {
+        alert("Please finish all six levels to generate your scoring report.");
+        return;
+      }
+      if (eqConfig.reportPdfUrl) {
+        window.location.href = eqConfig.reportPdfUrl;
+        return;
+      }
+      var content = buildDownloadFile(scoresCache);
+      var blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "emotional-intelligence-scoring-report.txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+})();
+</script>
+{% endblock %}
