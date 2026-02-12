@@ -215,6 +215,10 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
     referral=models.CharField(max_length=255,null=True,blank=True)
     user_type = models.SmallIntegerField(choices=choices.UserType.CHOICES, default=choices.UserType.STUDENT)
     user_status=models.SmallIntegerField(choices=choices.UserStatus.CHOICES,default=choices.UserStatus.UNBLOCK)
+    is_demo_account = models.BooleanField(
+        default=False,
+        help_text=_('If checked, this account is shown on the login page as a demo account (name and role only; credentials are not displayed).'),
+    )
     objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name']

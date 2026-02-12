@@ -385,21 +385,11 @@ class LoginView(TemplateView):
             ctx['enc_referral_user']=enc_id
         else:
             ctx['enc_referral_user']=False
-        # Demo credentials for development
-        ctx['show_demo_credentials'] = (
-            getattr(settings, 'SHOW_DEMO_CREDENTIALS', False) or
-            getattr(settings, 'ENVIRONMENT', 'production') == 'development' or
-            getattr(settings, 'DEBUG', False)
-        )
+        # Demo accounts for all roles; pass URL and CSRF so template works with Jinja2 and Django
+        from .demo_accounts import get_demo_login_context
+        ctx.update(get_demo_login_context(request))
+        ctx['show_demo_credentials'] = False
         ctx['demo_credentials'] = []
-        # Show Olympiad demo user (demo_olympiad) when demo credentials are shown
-        if ctx.get('show_demo_credentials'):
-            ctx['demo_credentials'].append({
-                'role': 'demo_olympiad',
-                'email': 'olympiad_demo@topteen.demo',
-                'password': 'demo1234',
-                'description': 'Try NSEO Olympiad – list exams, register, take exam, view results',
-            })
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -408,32 +398,102 @@ class LoginView(TemplateView):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
+class DemoLoginView(View):
+    """
+    POST-only view: log in as a demo user by token (signed user id).
+    Only users with is_demo_account=True and is_active=True can be used.
+    Credentials are never sent to the client.
+    """
+    def _login_fallback_url(self, request):
+        """Redirect to institute/counselor login if request came from there."""
+        referer = (request.META.get('HTTP_REFERER') or '').strip()
+        if '/institute/auth/login' in referer:
+            return redirect('institute:login')
+        if '/counselor/auth/login' in referer:
+            return redirect('counselor:login')
+        return redirect('users:login')
+
+    def post(self, request):
+        token = (request.POST.get('token') or '').strip()
+        if not token:
+            messages.error(request, 'Invalid demo login request.')
+            return self._login_fallback_url(request)
+        try:
+            sign = Signer()
+            obj = sign.unsign_object(token)
+            user_id = obj.get('demo_user_id')
+        except Exception:
+            messages.error(request, 'Invalid demo login link.')
+            return self._login_fallback_url(request)
+        user = User.objects.filter(pk=user_id).first()
+        if not user or not user.is_active:
+            messages.error(request, 'This demo account is not available.')
+            return self._login_fallback_url(request)
+        # Allow: is_demo_account (user demo) OR created_by of a demo institute
+        from institute.models import Institute
+        is_demo_user = user.is_demo_account
+        is_demo_institute_user = Institute.objects.filter(
+            created_by=user, is_demo_institute=True
+        ).exists()
+        if not (is_demo_user or is_demo_institute_user):
+            messages.error(request, 'This demo account is not available.')
+            return self._login_fallback_url(request)
+        if not user.get_user_status():
+            messages.error(request, 'Account is blocked or inactive.')
+            return self._login_fallback_url(request)
+        request.session.set_expiry(0)
+        login(request, user, backend='users.backends.CustomUserBackend')
+        redirect_url = self._redirect_url(request, user)
+        return redirect(redirect_url)
+
+    def _redirect_url(self, request, user):
+        try:
+            if user.is_staff or user.is_superuser:
+                return reverse('user_analytics:business_dashboard')
+            if user.user_type == choices.UserType.INSTITUTE:
+                institute = Institute.objects.filter(created_by=user).last()
+                if institute:
+                    return reverse('institute:institutedashboard', args=[institute.slug])
+            if user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
+                if InstituteGroup.objects.filter(institute_group_admin=user).exists():
+                    return reverse('institute:institutegroupdashboard')
+            if user.user_type == choices.UserType.MARKETINGGROUPADMIN:
+                if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
+                    return reverse('institute:marketinggroupdashboard')
+            if user.user_type == choices.UserType.COUNSELOR:
+                try:
+                    coun = Counselor.objects.get(coun_user=user)
+                    return reverse('counselor:CounselorDashboardView', args=[coun.id])
+                except Counselor.DoesNotExist:
+                    pass
+            if user.user_type == choices.UserType.PARENT:
+                return reverse('parents_dashboard')
+            redirect_url = _compute_student_destination(user)
+            return _apply_institute_student_mobile_gate(request, user, redirect_url)
+        except Exception:
+            pass
+        return reverse('users:userdashboard')
+
+
 class StudentLoginView(LoginView):
     """
     Student login landing page (/student/login/).
     OTP-first by default via template context.
+    Demo accounts: only Student role.
     """
     template_name = "template20/student_login.html"
+
+    def get_context(self, request, enc_id=None, *args, **kwargs):
+        ctx = super().get_context(request, enc_id, *args, **kwargs)
+        from .demo_accounts import get_demo_login_context
+        ctx.update(get_demo_login_context(request, user_types=[choices.UserType.STUDENT]))
+        return ctx
 
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             return redirect('users:userdashboard')
         ctx = self.get_context(request, *args, **kwargs)
         ctx['login_mode'] = 'student'
-        if ctx.get('show_demo_credentials'):
-            emails = getattr(settings, 'DEMO_STUDENT_EMAILS', []) or []
-            pwd = getattr(settings, 'DEMO_STUDENT_PASSWORD', '')
-            ctx['demo_credentials'] = [
-                {'role': 'Student', 'email': e.strip(), 'password': pwd, 'description': 'Access student dashboard and career resources'}
-                for e in emails if e.strip()
-            ]
-            # Add Olympiad demo so it appears on student login too
-            ctx['demo_credentials'].append({
-                'role': 'demo_olympiad',
-                'email': 'olympiad_demo@topteen.demo',
-                'password': 'demo1234',
-                'description': 'Try NSEO Olympiad – list exams, register, take exam, view results',
-            })
         return render(request, self.template_name, ctx)
 
 
@@ -456,7 +516,14 @@ class ParentsLoginView(LoginView):
     """
     Parents login landing page (/parents/login/).
     Mobile + OTP only.
+    Demo accounts: only Parent role.
     """
+
+    def get_context(self, request, enc_id=None, *args, **kwargs):
+        ctx = super().get_context(request, enc_id, *args, **kwargs)
+        from .demo_accounts import get_demo_login_context
+        ctx.update(get_demo_login_context(request, user_types=[choices.UserType.PARENT]))
+        return ctx
 
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -465,13 +532,6 @@ class ParentsLoginView(LoginView):
             return redirect('users:userdashboard')
         ctx = self.get_context(request, *args, **kwargs)
         ctx['login_mode'] = 'parent'
-        if ctx.get('show_demo_credentials'):
-            emails = getattr(settings, 'DEMO_PARENTS_EMAILS', []) or []
-            pwd = getattr(settings, 'DEMO_PARENTS_PASSWORD', '')
-            ctx['demo_credentials'] = [
-                {'role': 'Parent', 'email': e.strip(), 'password': pwd, 'description': 'View linked students and their progress'}
-                for e in emails if e.strip()
-            ]
         return render(request, self.template_name, ctx)
 
 

@@ -647,24 +647,9 @@ PSYCHOMETRIC_COURSE_FREE_ID=3
 DEMO_EMAIL=[]
 CREDIT_LIMIT=5000
 
-# Demo credentials for development - shown on login pages when SHOW_DEMO_CREDENTIALS=True and ENVIRONMENT=development
-SHOW_DEMO_CREDENTIALS = config('SHOW_DEMO_CREDENTIALS', default=False, cast=bool)
 ENVIRONMENT = config('ENVIRONMENT', default='production')
 
-def _parse_demo_emails(value):
-    """Parse comma-separated emails from env."""
-    if not value:
-        return []
-    return [e.strip() for e in str(value).split(',') if e.strip()]
-
-DEMO_STUDENT_EMAILS = _parse_demo_emails(config('DEMO_STUDENT_EMAILS', default=''))
-DEMO_STUDENT_PASSWORD = config('DEMO_STUDENT_PASSWORD', default='')
-DEMO_PARENTS_EMAILS = _parse_demo_emails(config('DEMO_PARENTS_EMAILS', default=''))
-DEMO_PARENTS_PASSWORD = config('DEMO_PARENTS_PASSWORD', default='')
-DEMO_INSTITUTE_EMAIL = config('DEMO_INSTITUTE_EMAIL', default='')
-DEMO_INSTITUTE_PASSWORD = config('DEMO_INSTITUTE_PASSWORD', default='')
-DEMO_COUNSELOR_EMAILS = _parse_demo_emails(config('DEMO_COUNSELOR_EMAILS', default=''))
-DEMO_COUNSELOR_PASSWORD = config('DEMO_COUNSELOR_PASSWORD', default='')
+# Demo accounts: use DB only (User.is_demo_account, Institute.is_demo_institute). No .env demo credentials.
 
 # Chatbot visibility: home-only | students-parents | institutes | counselors
 CHATBOT_VISIBILITY = config('CHATBOT_VISIBILITY', default='home-only')

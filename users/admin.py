@@ -109,13 +109,13 @@ def _reset_student_tests(user, test_ids=None):
 
 class UserAdmin(admin.ModelAdmin):
     # form = UserForm
-    fields = ['name','email','mobile','is_active','is_staff','image','password','groups', 'user_permissions','user_type','user_status']
+    fields = ['name','email','mobile','is_active','is_staff','image','password','groups', 'user_permissions','user_type','user_status','is_demo_account']
     # date_hierarchy = 'created'
-    list_display = ['id', 'name','email','mobile','is_active','object_status','created','last_login']
+    list_display = ['id', 'name','email','mobile','is_active','is_demo_account','object_status','created','last_login']
     sortable_by=['id', 'name','email','mobile']
     ordering = ['-id']
-    # list_editable=['name','email']
-    list_filter = ('is_active','last_login','user_type','object_status')
+    list_editable = ['is_demo_account']
+    list_filter = ('is_active','is_demo_account','last_login','user_type','object_status')
     search_fields=['id','name','email','mobile']
     actions = ['hard_delete_selected']
     change_list_template = 'admin/users/user/change_list.html'

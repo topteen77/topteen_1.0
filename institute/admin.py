@@ -85,9 +85,11 @@ class InstituteMarketingGroupAdmin(admin.ModelAdmin):
 admin.site.register(InstituteMarketingGroup,InstituteMarketingGroupAdmin)
 
 class InstituteAdmin(admin.ModelAdmin):
-    list_display=["name","created_by_name","created_by_email","logo_preview","modified"]
-    readonly_fields=["created","modified","slug","logo_preview"]
-    search_fields=["name","created_by__name","created_by__email"]
+    list_display = ["name", "created_by_name", "created_by_email", "is_demo_institute", "logo_preview", "modified"]
+    list_editable = ["is_demo_institute"]
+    list_filter = ["is_demo_institute", "institute_status"]
+    readonly_fields = ["created", "modified", "slug", "logo_preview"]
+    search_fields = ["name", "created_by__name", "created_by__email"]
     list_select_related = ("created_by",)
 
     @admin.display(description="Institute User Name", ordering="created_by__name")

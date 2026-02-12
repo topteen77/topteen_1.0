@@ -10,6 +10,7 @@ app_name = 'users'
 urlpatterns = [
    path('login/', views.LoginView.as_view(),name='login'),
    path('login/<str:enc_id>/', views.LoginView.as_view(),name='referallogin'),
+   path('demo-login/', views.DemoLoginView.as_view(), name='demo_login'),
    path('profiledetails/', views.ProfileBasicDetails.as_view(), name="profiledetails"),
    path('viewprofile/', views.ViewProfile.as_view(), name="viewprofile"),
    path('loginsingup/',views.LoginSignUp.as_view(),name='loginsingup'),

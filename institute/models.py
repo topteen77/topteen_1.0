@@ -124,6 +124,12 @@ class Institute(BaseModel, SlugModel):
         verbose_name="institute Status",
         help_text="Current status of the institute"
     )
+
+    is_demo_institute = models.BooleanField(
+        default=False,
+        verbose_name="Demo institute",
+        help_text=_("Mark as demo institute (e.g. for display on institute demo login or filtering)."),
+    )
     
     # Seat Capacity fields for streams
     pcm = models.PositiveIntegerField(

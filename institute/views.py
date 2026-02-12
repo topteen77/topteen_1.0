@@ -3232,20 +3232,8 @@ class InstituteLoginView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['html_head'] = self.html_head()
-        from django.conf import settings
-        context['show_demo_credentials'] = (
-            getattr(settings, 'SHOW_DEMO_CREDENTIALS', False) and
-            getattr(settings, 'ENVIRONMENT', 'production') == 'development'
-        )
-        if context.get('show_demo_credentials'):
-            email = getattr(settings, 'DEMO_INSTITUTE_EMAIL', '')
-            pwd = getattr(settings, 'DEMO_INSTITUTE_PASSWORD', '')
-            context['demo_credentials'] = [{
-                'role': 'Institute', 'email': email, 'password': pwd,
-                'description': 'Access institute dashboard and manage students'
-            }] if email else []
-        else:
-            context['demo_credentials'] = []
+        from users.demo_accounts import get_demo_institute_login_context
+        context.update(get_demo_institute_login_context(self.request))
         return context
 
 
@@ -3282,6 +3270,12 @@ class MarketingLoginView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['html_head'] = self.html_head()
+        from users.demo_accounts import get_demo_login_context
+        from core import choices
+        context.update(get_demo_login_context(
+            self.request,
+            user_types=[choices.UserType.MARKETINGGROUPADMIN],
+        ))
         return context
 
 
