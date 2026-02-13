@@ -367,6 +367,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240  # Increase if needed
 S3_BUCKET_PREFIX = config('S3_BUCKET_PREFIX', default='s3://topteenc/')
 S3_BUCKET_BASE_URL = config('S3_BUCKET_BASE_URL', default='https://topteenc.s3.ap-northeast-1.amazonaws.com/')
 S3_EBOOK_FOLDER = 'ebook'  # Folder path for ebooks in S3
+S3_FOUR_PILLARS_FOLDER = config('S3_FOUR_PILLARS_FOLDER', default='four_pillars')  # Folder for Four Pillars of Learning images in S3
 
 # AWS S3 Upload Configuration
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')

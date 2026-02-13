@@ -98,6 +98,7 @@ def globals(request):
         "show_chatbot": _should_show_chatbot(request),
         "enable_answering_carefully_widget": _config_bool('ENABLE_ANSWERING_CAREFULLY_WIDGET', getattr(settings, 'ENABLE_ANSWERING_CAREFULLY_WIDGET', True)),
         "enable_auto_forward": _config_bool('ENABLE_AUTO_FORWARD', getattr(settings, 'ENABLE_AUTO_FORWARD', True)),
+        "show_missing_answers_validation": _config_bool('SHOW_MISSING_ANSWERS_VALIDATION', getattr(settings, 'SHOW_MISSING_ANSWERS_VALIDATION', True)),
         "popular_categories":BlogCategory.objects.filter(id__in=popular_categories),
         "popular_tags":CareerTags.objects.filter(id__in=popular_tags),
         "blogs":Blog.get_published_objects().all(),

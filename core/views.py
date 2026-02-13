@@ -415,6 +415,35 @@ class CareerPlanningView(TemplateView):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
+class FourPillarsOfLearningView(TemplateView):
+    template_name = "template20/four_pillars_of_learning.html"
+
+    def html_head(self):
+        return build_html_head(
+            title="Four Pillars of Learning",
+            description="Discover your learning profile with the Four Pillars framework: Learning Preferences, Natural Abilities, Engagement Patterns, and Interest Drivers."
+        )
+
+    def get_context(self, request, *args, **kwargs):
+        from django.core.files.storage import default_storage
+        folder = getattr(settings, 'S3_FOUR_PILLARS_FOLDER', 'four_pillars')
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = build_breadcrumb([{"text": "Four Pillars of Learning", "url": ""}])
+        # Four Pillars images from S3 bucket (folder in bucket / storage)
+        ctx["four_pillar_hero_banner_url"] = default_storage.url(f"{folder}/four-pillar-hero-banner.png")
+        ctx["four_pillar_visual_url"] = default_storage.url(f"{folder}/fou-pillar-image.png")
+        ctx["four_pillar_icon_1_url"] = default_storage.url(f"{folder}/four-pillar-icon-1.png")
+        ctx["four_pillar_icon_2_url"] = default_storage.url(f"{folder}/four-pillar-icon-2.png")
+        ctx["four_pillar_icon_3_url"] = default_storage.url(f"{folder}/four-pillar-icon-3.png")
+        ctx["four_pillar_icon_4_url"] = default_storage.url(f"{folder}/four-pillar-icon-4.png")
+        ctx["four_pillar_success_url"] = default_storage.url(f"{folder}/four-pillar-success.png")
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
 class EbookListView(TemplateView):
     template_name = "template20/ebook.html"
 
@@ -423,9 +452,12 @@ class EbookListView(TemplateView):
         return build_html_head(title=name, description="Explore our collection of career guidance e-books")
 
     def get_context(self, request, *args, **kwargs):
+        from django.core.files.storage import default_storage
         ctx = {}
         ctx["html_head"] = self.html_head()
         ctx["breadcrumb"] = {"text": "E-Books", "url": reverse("core:ebook_list")}
+        # Ebook hero banner: use storage so URL is correct on production (S3 proxy/direct) and demo (local media)
+        ctx["ebook_hero_banner_url"] = default_storage.url("ebooks/ebook-hero-img.png")
         # Get published ebooks from database
         ebooks = Ebook.get_published_ebooks()
         ctx["ebooks"] = []

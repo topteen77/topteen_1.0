@@ -272,6 +272,30 @@ def paginate_url(request, page=None, per_page=None):
     return request.path + ('?' + qs if qs else '')
 
 
+def blog_category_display(name):
+    """Display label for blog category: 'Blogs for Parents' / 'Blogs for Students'."""
+    if not name:
+        return name
+    s = (name or '').strip()
+    if s in ('Blogs in For Parents', 'For Parents'):
+        return 'Blogs for Parents'
+    if s in ('Blogs in For Students', 'For Students'):
+        return 'Blogs for Students'
+    return name
+
+
+def blog_category_short(name):
+    """Short form for 'Explore blogs X category': 'For Parents' / 'For Students'."""
+    if not name:
+        return name
+    s = (name or '').strip()
+    if s in ('Blogs in For Parents', 'For Parents'):
+        return 'For Parents'
+    if s in ('Blogs in For Students', 'For Students'):
+        return 'For Students'
+    return name
+
+
 def environment(**options):
     # Import custom loader that skips admin templates
     from topteens.jinja2_loader import get_jinja2_loader
@@ -285,6 +309,8 @@ def environment(**options):
     # Add filters
     env.filters['tojson'] = tojson_filter
     env.filters['urlencode'] = urlencode_filter
+    env.filters['blog_category_display'] = blog_category_display
+    env.filters['blog_category_short'] = blog_category_short
     from core.templatetags.activity_tags import inject_activity_ids, get_all_sections
     env.filters['inject_activity_ids'] = inject_activity_ids
     env.filters['get_all_sections'] = get_all_sections

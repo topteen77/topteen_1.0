@@ -16,9 +16,31 @@
 {% set _enable_auto_advance = _enable_auto_forward and (enable_auto_advance|default(false)) %}
 {% set load_internet_script = (page_type == 'instruction') %}
 {% set load_answer_quality = (page_type == 'test' and _enable_widget) %}
+{% set load_toast = (page_type == 'test') %}
 
 {% if load_internet_script %}
 <script src="{{ static('topteenfrontend/assets/js/internet-speed-meter.js') }}"></script>
+{% endif %}
+
+{# Always define showQuestionChangedToast on test pages so toast appears when question changes #}
+{% if load_toast %}
+<script>
+(function() {
+  'use strict';
+  if (typeof window.showQuestionChangedToast === 'undefined') {
+    window.showQuestionChangedToast = function() {
+      var $existing = $('.test-answer-toast');
+      if ($existing.length) $existing.remove();
+      var $toast = $('<div class="test-answer-toast">Question changed</div>');
+      $('body').append($toast);
+      setTimeout(function() {
+        $toast.addClass('toast-out');
+        setTimeout(function() { $toast.remove(); }, 300);
+      }, 1200);
+    };
+  }
+})();
+</script>
 {% endif %}
 
 {% if load_answer_quality or _enable_auto_advance %}
@@ -26,17 +48,18 @@
 (function() {
   'use strict';
   if (typeof MIN_TIME_PER_QUESTION === 'undefined') { window.MIN_TIME_PER_QUESTION = 3; }
-
-  window.showQuestionChangedToast = function() {
-    var $existing = $('.test-answer-toast');
-    if ($existing.length) $existing.remove();
-    var $toast = $('<div class="test-answer-toast">Question changed</div>');
-    $('body').append($toast);
-    setTimeout(function() {
-      $toast.addClass('toast-out');
-      setTimeout(function() { $toast.remove(); }, 300);
-    }, 1200);
-  };
+  if (typeof window.showQuestionChangedToast === 'undefined') {
+    window.showQuestionChangedToast = function() {
+      var $existing = $('.test-answer-toast');
+      if ($existing.length) $existing.remove();
+      var $toast = $('<div class="test-answer-toast">Question changed</div>');
+      $('body').append($toast);
+      setTimeout(function() {
+        $toast.addClass('toast-out');
+        setTimeout(function() { $toast.remove(); }, 300);
+      }, 1200);
+    };
+  }
 
   {% if load_answer_quality %}
   window.updateAnswerQualityWidget = function() {

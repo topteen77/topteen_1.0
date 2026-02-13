@@ -9,6 +9,7 @@ app_name = 'app'
 
 
 urlpatterns = [
+    path('speed-test/', views.speed_test, name='speed_test'),
     path('upload/', views.upload_file, name='upload_file'),
     path('home/', views.test_buttons, name='test_buttons'),
 

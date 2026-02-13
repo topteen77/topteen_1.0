@@ -1,0 +1,291 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:users_user_changelist' %}">Users</a>
+&rsaquo; Student Test Reset
+</div>
+{% endblock %}
+
+{% block content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+<h1>Student Test Reset</h1>
+<p style="margin-bottom: 1em; color: #666;">Students only. Search by email, then open Reset to choose which tests to reset (one, several, or all).</p>
+
+<div class="module" style="margin-bottom: 1em;">
+  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em;">
+    <input type="text" id="search_email" placeholder="Search by student email..." style="padding: 6px 10px; width: 260px;" value="">
+    <button type="button" id="btn_search" class="button">Search</button>
+    <button type="button" id="btn_reset_selected" class="button" disabled>Reset Selected</button>
+    <button type="button" id="btn_reset_all" class="button" style="background: #ba2121; color: white; border-color: #ba2121;">Reset All (filtered)</button>
+  </div>
+</div>
+
+<div class="module">
+  <table style="width: 100%;">
+    <thead>
+      <tr>
+        <th style="width: 30px;"><input type="checkbox" id="select_all" title="Select all on page"></th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Test count</th>
+        <th>Last test (session)</th>
+        <th>Last test (result)</th>
+        <th style="text-align: right;">Action</th>
+      </tr>
+    </thead>
+    <tbody id="students_tbody">
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 2em; color: #666;">Loading students...</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="margin-top: 1em; display: flex; justify-content: space-between; align-items: center;">
+  <span id="pagination_info" class="quiet">—</span>
+  <ul id="pagination_ul" class="pagination" style="list-style: none; display: flex; gap: 4px; margin: 0;"></ul>
+</div>
+
+<!-- Modal: choose tests to reset -->
+<div id="reset_modal" style="display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4);">
+  <div style="background: white; margin: 5% auto; padding: 20px; max-width: 500px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <h2 style="margin-top: 0;">Select tests to reset</h2>
+    <p id="reset_modal_subtitle" class="quiet">For selected student(s).</p>
+    <div style="margin: 12px 0;">
+      <label style="display: block; margin-bottom: 8px;"><input type="checkbox" id="modal_select_all_tests"> Reset all tests</label>
+    </div>
+    <div id="reset_modal_tests" style="max-height: 280px; overflow-y: auto; margin: 12px 0;"></div>
+    <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;">
+      <button type="button" id="modal_cancel" class="button">Cancel</button>
+      <button type="button" id="modal_confirm" class="button default">Reset selected tests</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var listUrl = "{% url 'admin:users_user_student_test_reset_list' %}";
+  var testsUrl = "{% url 'admin:users_user_student_test_reset_tests' %}";
+  var actionUrl = "{% url 'admin:users_user_student_test_reset_action' %}";
+  var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : (function() {
+    var name = 'csrftoken';
+    var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : '';
+  })();
+  var currentPage = 1;
+  var currentEmail = '';
+  var pendingUserIds = [];
+  var pendingButton = null;
+
+  function loadList(page) {
+    page = page || 1;
+    currentPage = page;
+    var url = listUrl + '?page=' + page + '&per_page=20';
+    if (currentEmail) url += '&email=' + encodeURIComponent(currentEmail);
+
+    document.getElementById('students_tbody').innerHTML =
+      '<tr><td colspan="7" style="text-align: center; padding: 2em;">Loading...</td></tr>';
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var tbody = document.getElementById('students_tbody');
+        if (!data.students || data.students.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2em; color: #666;">No students found. Try a different search.</td></tr>';
+        } else {
+          tbody.innerHTML = data.students.map(function(s) {
+            var lastSession = s.last_session ? new Date(s.last_session).toLocaleString() : '—';
+            var lastResult = s.last_result ? new Date(s.last_result).toLocaleString() : '—';
+            var tc = s.test_count != null ? s.test_count : '—';
+            return '<tr data-user-id="' + s.id + '">' +
+              '<td><input type="checkbox" class="row-check" value="' + s.id + '"></td>' +
+              '<td>' + (s.name || '—') + '</td>' +
+              '<td>' + (s.email || '—') + '</td>' +
+              '<td>' + tc + '</td>' +
+              '<td>' + lastSession + '</td>' +
+              '<td>' + lastResult + '</td>' +
+              '<td style="text-align: right;"><button type="button" class="button btn-reset-one" data-id="' + s.id + '">Reset</button></td></tr>';
+          }).join('');
+        }
+
+        document.getElementById('pagination_info').textContent =
+          'Page ' + data.page + ' of ' + data.num_pages + ' (total ' + data.total + ' students)';
+
+        var ul = document.getElementById('pagination_ul');
+        ul.innerHTML = '';
+        for (var p = 1; p <= data.num_pages; p++) {
+          var li = document.createElement('li');
+          var a = document.createElement('a');
+          a.href = '#';
+          a.textContent = p;
+          if (p === data.page) a.style.fontWeight = 'bold';
+          a.addEventListener('click', function(ev) { ev.preventDefault(); loadList(parseInt(this.textContent, 10)); });
+          li.appendChild(a);
+          ul.appendChild(li);
+        }
+
+        document.getElementById('select_all').checked = false;
+        document.getElementById('btn_reset_selected').disabled = true;
+      })
+      .catch(function() {
+        document.getElementById('students_tbody').innerHTML =
+          '<tr><td colspan="7" style="text-align: center; padding: 2em; color: #ba2121;">Error loading list.</td></tr>';
+      });
+  }
+
+  function getSelectedIds() {
+    var ids = [];
+    document.querySelectorAll('.row-check:checked').forEach(function(cb) { ids.push(parseInt(cb.value, 10)); });
+    return ids;
+  }
+
+  function openResetModal(userIds, btn) {
+    pendingUserIds = userIds;
+    pendingButton = btn;
+    var subtitle = document.getElementById('reset_modal_subtitle');
+    subtitle.textContent = userIds.length === 1
+      ? 'Select which tests to reset for this student.'
+      : 'Select which tests to reset for ' + userIds.length + ' students.';
+    document.getElementById('modal_select_all_tests').checked = false;
+    document.getElementById('reset_modal_tests').innerHTML = '<p class="quiet">Loading tests...</p>';
+    document.getElementById('reset_modal').style.display = 'block';
+
+    var url = testsUrl + '?user_ids=' + userIds.join(',');
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var container = document.getElementById('reset_modal_tests');
+        if (!data.tests || data.tests.length === 0) {
+          container.innerHTML = '<p class="quiet">No tests found for selected student(s).</p>';
+          return;
+        }
+        container.innerHTML = data.tests.map(function(t) {
+          return '<label style="display: block; margin-bottom: 4px;"><input type="checkbox" class="modal-test-check" value="' + t.id + '"> ' + (t.name || t.id) + '</label>';
+        }).join('');
+      })
+      .catch(function() {
+        document.getElementById('reset_modal_tests').innerHTML = '<p style="color: #ba2121;">Error loading tests.</p>';
+      });
+  }
+
+  function closeResetModal() {
+    document.getElementById('reset_modal').style.display = 'none';
+    pendingUserIds = [];
+    pendingButton = null;
+  }
+
+  function getSelectedTestIds() {
+    var allEl = document.getElementById('modal_select_all_tests');
+    if (allEl && allEl.checked) return ['all'];
+    var ids = [];
+    document.querySelectorAll('.modal-test-check:checked').forEach(function(cb) { ids.push(cb.value); });
+    return ids;
+  }
+
+  function doReset(payload, btn) {
+    var origText = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Resetting...'; }
+
+    fetch(actionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify(payload)
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          alert(data.message);
+          loadList(currentPage);
+        } else {
+          alert(data.message || 'Action failed.');
+        }
+      })
+      .catch(function() { alert('Request failed.'); })
+      .finally(function() {
+        if (btn) { btn.disabled = false; btn.textContent = origText; }
+      });
+  }
+
+  document.getElementById('btn_search').addEventListener('click', function() {
+    currentEmail = document.getElementById('search_email').value.trim();
+    loadList(1);
+  });
+
+  document.getElementById('search_email').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      currentEmail = this.value.trim();
+      loadList(1);
+    }
+  });
+
+  document.getElementById('btn_reset_selected').addEventListener('click', function() {
+    var ids = getSelectedIds();
+    if (ids.length === 0) { alert('Select at least one student.'); return; }
+    openResetModal(ids, this);
+  });
+
+  document.getElementById('btn_reset_all').addEventListener('click', function() {
+    var msg = currentEmail
+      ? 'Load all students matching email search and open test selection?'
+      : 'Load all students who have given tests and open test selection?';
+    if (!confirm(msg)) return;
+    var url = listUrl + '?per_page=10000';
+    if (currentEmail) url += '&email=' + encodeURIComponent(currentEmail);
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.students || data.students.length === 0) {
+          alert('No students found.');
+          return;
+        }
+        var ids = data.students.map(function(s) { return s.id; });
+        openResetModal(ids, this);
+      }.bind(this))
+      .catch(function() { alert('Failed to load list.'); });
+  });
+
+  document.getElementById('modal_cancel').addEventListener('click', closeResetModal);
+  document.getElementById('modal_select_all_tests').addEventListener('change', function() {
+    document.querySelectorAll('.modal-test-check').forEach(function(cb) { cb.checked = this.checked; }.bind(this));
+  });
+
+  document.getElementById('modal_confirm').addEventListener('click', function() {
+    var testIds = getSelectedTestIds();
+    if (!testIds || testIds.length === 0) {
+      alert('Select at least one test to reset, or check "Reset all tests".');
+      return;
+    }
+    var payload = { user_ids: pendingUserIds, test_ids: testIds };
+    closeResetModal();
+    doReset(payload, pendingButton);
+  });
+
+  document.getElementById('select_all').addEventListener('change', function() {
+    document.querySelectorAll('.row-check').forEach(function(cb) { cb.checked = this.checked; }.bind(this));
+    document.getElementById('btn_reset_selected').disabled = !this.checked && getSelectedIds().length === 0;
+  });
+
+  document.getElementById('students_tbody').addEventListener('change', function() {
+    document.getElementById('btn_reset_selected').disabled = getSelectedIds().length === 0;
+  });
+
+  document.getElementById('students_tbody').addEventListener('click', function(e) {
+    if (e.target.classList.contains('btn-reset-one')) {
+      var id = parseInt(e.target.getAttribute('data-id'), 10);
+      openResetModal([id], e.target);
+    }
+  });
+
+  loadList(1);
+})();
+</script>
+{% endblock %}

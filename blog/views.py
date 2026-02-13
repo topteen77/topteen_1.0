@@ -13,6 +13,32 @@ from django.http import HttpResponse,JsonResponse
 from django.template.loader import render_to_string
 from rest_framework.views import APIView
 from core import choices
+
+
+def _blog_category_display(name):
+    """Display label for blog category: 'Blogs for Parents' / 'Blogs for Students'."""
+    if not name:
+        return name
+    s = (name or '').strip()
+    if s in ('Blogs in For Parents', 'For Parents'):
+        return 'Blogs for Parents'
+    if s in ('Blogs in For Students', 'For Students'):
+        return 'Blogs for Students'
+    return name
+
+
+def _blog_category_short(name):
+    """Short form for 'Explore blogs X category': 'For Parents' / 'For Students'."""
+    if not name:
+        return name
+    s = (name or '').strip()
+    if s in ('Blogs in For Parents', 'For Parents'):
+        return 'For Parents'
+    if s in ('Blogs in For Students', 'For Students'):
+        return 'For Students'
+    return name
+
+
 # Create your views here.
 class Blogs(TemplateView):
     template_name = "template20/blogs.html"
@@ -40,6 +66,11 @@ class Blogs(TemplateView):
         ctx['latest_blogs']=Blog.get_published_objects().order_by('-created')[:3]
         ctx['categories']=BlogCategory.objects.all()
         ctx['breadcrumb']='Blog'
+        # For search dropdown: title, slug, url for all published blogs
+        ctx['blog_search_list'] = [
+            {'title': b.title, 'slug': b.slug, 'url': reverse('blog:blogdetail', args=[b.slug])}
+            for b in Blog.get_published_objects().only('title', 'slug')
+        ]
         ctx['html_head'] = self.html_head()
         ctx["popular_blogs"] = popular_blogs
         ctx['site_url']= "https://topteen.in"
@@ -234,7 +265,10 @@ def category_filter(request,category_slug, *args, **kwargs):
     remaining_count = remaining_count if remaining_count > 0 else None
     
     from django.urls import reverse
-    ctx={'blogs':blog,'categories':categories,'page_obj':page_objs,'latest_blogs':latest_blogs,'site_url':"https://topteen.in","category": category,'remaining_count':remaining_count,"html_head":build_html_head(title=f"Blogs - {category.name}",description=f"Explore blogs in {category.name} category"),'breadcrumb': {'text': category.name, 'url': reverse('blog:category', args=[category.slug])},'heading': f"Blogs in {category.name}"}
+    cat_display = _blog_category_display(category.name)
+    cat_short = _blog_category_short(category.name)
+    blog_search_list = [{'title': b.title, 'slug': b.slug, 'url': reverse('blog:blogdetail', args=[b.slug])} for b in Blog.get_published_objects().only('title', 'slug')]
+    ctx={'blogs':blog,'categories':categories,'page_obj':page_objs,'latest_blogs':latest_blogs,'site_url':"https://topteen.in","category": category,'remaining_count':remaining_count,"html_head":build_html_head(title=f"Blogs - {cat_display}",description=f"Explore blogs {cat_short} category."),'breadcrumb': {'text': cat_display, 'url': reverse('blog:category', args=[category.slug])},'heading': cat_display,'blog_search_list': blog_search_list}
 
     if request.GET.get("pagination_ajax",None) and request.GET.get("pagination_ajax") == "Yes":
             data={}
@@ -257,7 +291,8 @@ def blogtag_filter(request,tagslug, *args, **kwargs):
     remaining_count = blogs.count()-page_size
     remaining_count = remaining_count if remaining_count > 0 else None
     from django.urls import reverse
-    ctx={'blogs':blogs, 'page_obj':page_objs,'latest_blogs':latest_blogs,'categories':categories,'site_url':"https://topteen.in",'blogtag':blogtag ,'remaining_count':remaining_count,'html_head':build_html_head(title=f"Blogs - {blogtag.name}",description=f"Explore blogs tagged with {blogtag.name}"),'breadcrumb': {'text': blogtag.name, 'url': reverse('blog:blogtag', args=[blogtag.slug])},'heading': f"Blogs tagged with {blogtag.name}"}
+    blog_search_list = [{'title': b.title, 'slug': b.slug, 'url': reverse('blog:blogdetail', args=[b.slug])} for b in Blog.get_published_objects().only('title', 'slug')]
+    ctx={'blogs':blogs, 'page_obj':page_objs,'latest_blogs':latest_blogs,'categories':categories,'site_url':"https://topteen.in",'blogtag':blogtag ,'remaining_count':remaining_count,'html_head':build_html_head(title=f"Blogs - {blogtag.name}",description=f"Explore blogs tagged with {blogtag.name}"),'breadcrumb': {'text': blogtag.name, 'url': reverse('blog:blogtag', args=[blogtag.slug])},'heading': f"Blogs tagged with {blogtag.name}",'blog_search_list': blog_search_list}
 
     if request.GET.get("pagination_ajax",None) and request.GET.get("pagination_ajax") == "Yes":
             data={}
