@@ -2,15 +2,30 @@
 Accounts section: Invoice list with date filters, download PDF, Excel export, resend, callback health alert.
 """
 import io
+import json
+import traceback
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import path, reverse
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.utils import timezone
+from django.db import connection
 from .models import Invoice, InvoiceConfiguration, InvoiceEmailLog, PaymentGatewayHealth
 from .services import resend_invoice_email
 from core import choices
+
+# #region agent log
+def _debug_log(message, hypothesis_id, data=None):
+    try:
+        payload = {"id": "inv_admin", "timestamp": timezone.now().timestamp() * 1000, "location": "invoices.admin", "message": message, "hypothesisId": hypothesis_id, "runId": "changelist"}
+        if data is not None:
+            payload["data"] = data
+        with open("/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug.log", "a") as f:
+            f.write(json.dumps(payload) + "\n")
+    except Exception:
+        pass
+# #endregion
 
 try:
     import openpyxl
@@ -122,12 +137,35 @@ class InvoiceAdmin(admin.ModelAdmin):
         return response
 
     def changelist_view(self, request, extra_context=None):
+        # #region agent log
+        _debug_log("changelist_view entry", "H2")
+        try:
+            with connection.cursor() as cur:
+                cur.execute("SELECT @@session.time_zone")
+                tz_row = cur.fetchone()
+            _debug_log("session time_zone", "H1", {"time_zone": str(tz_row[0]) if tz_row else None})
+        except Exception as e:
+            _debug_log("session time_zone failed", "H1", {"error": str(e)})
+        try:
+            sample = list(Invoice.objects.values_list("id", "created").order_by("-id")[:5])
+            _debug_log("sample Invoice created", "H3", {"sample": [[i, str(c)] for i, c in sample]})
+        except Exception as e:
+            _debug_log("sample Invoice failed", "H3", {"error": str(e)})
+        # #endregion
         extra_context = extra_context or {}
         broken = list(PaymentGatewayHealth.objects.filter(
             object_status=choices.ObjectStatus.ACTIVE
         ).exclude(last_callback_success=True))
         extra_context['callback_health_broken'] = [h for h in broken if not h.is_working]
-        return super().changelist_view(request, extra_context)
+        # #region agent log
+        try:
+            out = super().changelist_view(request, extra_context)
+            _debug_log("changelist_view success", "H2")
+            return out
+        except ValueError as e:
+            _debug_log("changelist_view ValueError", "H2,H4,H5", {"message": str(e), "traceback": traceback.format_exc()})
+            raise
+        # #endregion
 
     actions = ['resend_to_admin', 'resend_to_customer', 'export_selected_excel']
 
