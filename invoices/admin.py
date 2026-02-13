@@ -57,7 +57,8 @@ class InvoiceAdmin(admin.ModelAdmin):
         'download_pdf_link',
     ]
     list_filter = ('service_obj_type', 'created')
-    date_hierarchy = 'created'
+    # date_hierarchy disabled: triggers "invalid datetime" on MySQL when tz tables not loaded (production).
+    # Use list_filter "Created" for date filtering.
     search_fields = ('invoice_number', 'transaction_id', 'customer_name', 'customer_email')
     readonly_fields = (
         'payment', 'invoice_number', 'transaction_id', 'service', 'service_obj_type',
