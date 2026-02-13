@@ -252,9 +252,11 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if not self.name:
-            self.name = "Student"
-            self.save()
+        name_val = (self.name or "").strip()
+        if not name_val or name_val == "Student":
+            self.name = (self.email or self.mobile or "").strip()
+            if self.name:
+                self.save(update_fields=["name"])
         if not self.image:
             self._grab_avatar()
 

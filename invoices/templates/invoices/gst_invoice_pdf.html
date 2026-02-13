@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Invoice {{ invoice.invoice_number }}</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; color: #333; }
+  .header { margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+  .company-name { font-size: 18px; font-weight: bold; }
+  .invoice-title { text-align: center; font-size: 22px; font-weight: bold; margin: 15px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+  th { background: #f0f0f0; }
+  .text-right { text-align: right; }
+  .row-two { display: table; width: 100%; margin: 15px 0; }
+  .col { display: table-cell; width: 50%; vertical-align: top; padding-right: 15px; }
+  .meta { margin: 10px 0; }
+  .meta span { margin-right: 20px; }
+  .total-row { font-weight: bold; }
+  .footer { margin-top: 30px; font-size: 10px; color: #666; }
+  .alert { color: #c00; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="company-name">{{ config.company_name|default:"Company Name" }}</div>
+  <div>{{ config.company_address|default:""|linebreaksbr }}</div>
+  {% if config.gstin %}<div>GSTIN: {{ config.gstin }}</div>{% endif %}
+</div>
+
+<h1 class="invoice-title">{% if config.gstin %}GST Invoice{% else %}Sale Invoice{% endif %}</h1>
+<p class="invoice-subtitle" style="text-align: center; font-size: 12px; margin: -8px 0 15px 0; color: #555;">
+  {% if config.gstin %}With GST calculated invoice{% else %}This invoice is without GST calculation{% endif %}
+</p>
+
+<div class="meta">
+  <span><strong>Invoice No:</strong> {{ invoice.invoice_number }}</span>
+  <span><strong>Date:</strong> {{ invoice.created|date:"d-m-Y" }}</span>
+  <span><strong>Transaction ID:</strong> {{ invoice.transaction_id }}</span>
+</div>
+
+<div class="row-two">
+  <div class="col">
+    <strong>Bill To</strong><br>
+    <strong>Name:</strong> {{ invoice.customer_name|default:"-" }}<br>
+    <strong>Email:</strong> {{ invoice.customer_email|default:"-" }}<br>
+    <strong>Address:</strong> {{ invoice.customer_address|default:"-"|linebreaksbr }}
+  </div>
+</div>
+
+{% if config.gstin %}
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Description</th>
+      <th>HSN/SAC</th>
+      <th class="text-right">Qty</th>
+      <th class="text-right">Rate (₹)</th>
+      <th class="text-right">Taxable Value (₹)</th>
+      <th class="text-right">CGST {{ invoice.gst_rate|floatformat:0 }}% (₹)</th>
+      <th class="text-right">SGST {{ invoice.gst_rate|floatformat:0 }}% (₹)</th>
+      <th class="text-right">Amount (₹)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>{{ invoice.service }}</td>
+      <td>9983</td>
+      <td class="text-right">1</td>
+      <td class="text-right">{{ invoice.taxable_value }}</td>
+      <td class="text-right">{{ invoice.taxable_value }}</td>
+      <td class="text-right">{{ invoice.cgst }}</td>
+      <td class="text-right">{{ invoice.sgst }}</td>
+      <td class="text-right">{{ invoice.amount }}</td>
+    </tr>
+    <tr class="total-row">
+      <td colspan="5" class="text-right">Total</td>
+      <td class="text-right">{{ invoice.taxable_value }}</td>
+      <td class="text-right">{{ invoice.cgst }}</td>
+      <td class="text-right">{{ invoice.sgst }}</td>
+      <td class="text-right">₹ {{ invoice.amount }}</td>
+    </tr>
+  </tbody>
+</table>
+{% else %}
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Description</th>
+      <th>HSN/SAC</th>
+      <th class="text-right">Qty</th>
+      <th class="text-right">Rate (₹)</th>
+      <th class="text-right">Amount (₹)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>{{ invoice.service }}</td>
+      <td>9983</td>
+      <td class="text-right">1</td>
+      <td class="text-right">{{ invoice.taxable_value }}</td>
+      <td class="text-right">₹ {{ invoice.amount }}</td>
+    </tr>
+    <tr class="total-row">
+      <td colspan="4" class="text-right">Total</td>
+      <td class="text-right">₹ {{ invoice.amount }}</td>
+    </tr>
+  </tbody>
+</table>
+{% endif %}
+
+<div class="meta">
+  <strong>Amount in words:</strong> {{ invoice.amount }} Rupees only.
+</div>
+</body>
+</html>

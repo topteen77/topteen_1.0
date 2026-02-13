@@ -85,8 +85,9 @@
         <div class="d-flex justify-content-between align-items-start mb-3">
           <div>
             <h5 class="fs-18 fw-semibold text-dark mb-1">
-              {% if payment.obj_type == 1 %}Psychometric Test
-              {% elif payment.obj_type == 2 %}SkillLab Course
+              {% if payment.obj_type == 10 %}Psychometric Test
+              {% elif payment.obj_type == 20 %}SkillLab Course
+              {% elif payment.obj_type == 30 %}Career Counsellor
               {% else %}Payment{% endif %}
             </h5>
             <p class="fs-14 text-gray mb-0">
@@ -128,6 +129,17 @@
           <div class="col-md-6">
             <p class="fs-14 text-gray mb-1">Payment Mode</p>
             <p class="fs-14 text-dark mb-0">{{ payment.payment_mode }}</p>
+          </div>
+          {% endif %}
+          {% set inv_id = payment_id_to_invoice_id.get(payment.id) if payment_id_to_invoice_id else none %}
+          {% if inv_id %}
+          <div class="col-12 mt-2 d-flex gap-2">
+            <a href="{{ url('users:invoice_download', args=[inv_id]) }}?view=1" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">
+              <i class='bx bx-show me-1'></i>View Invoice
+            </a>
+            <a href="{{ url('users:invoice_download', args=[inv_id]) }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
+              <i class='bx bx-download me-1'></i>Download Invoice
+            </a>
           </div>
           {% endif %}
         </div>

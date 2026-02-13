@@ -1,8 +1,27 @@
 from django.contrib import admin
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
 from .models import Payment
+
+
+class PaymentStatusListFilter(admin.SimpleListFilter):
+    title = _('Payment status')
+    parameter_name = 'status'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('success', _('Success')),
+            ('failed', _('Failed')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'success':
+            return queryset.filter(is_success=1)
+        if self.value() == 'failed':
+            return queryset.filter(is_success=0)
+        return queryset
 
 
 @admin.register(Payment)
@@ -19,7 +38,7 @@ class PaymentAdmin(admin.ModelAdmin):
         'gateway_order_id',
         'created',
     ]
-    list_filter = ('is_test_payment', 'is_success', 'gateway', 'obj_type', 'created')
+    list_filter = ('is_test_payment', PaymentStatusListFilter, 'gateway', 'obj_type', 'created')
     list_editable = ('is_test_payment',)
     search_fields = (
         'user__email',

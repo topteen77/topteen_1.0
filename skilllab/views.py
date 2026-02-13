@@ -1040,7 +1040,16 @@ class UpdateSkilllabCoursePaymentWithEazyPay(APIView):
                 # Update payment with Razorpay details
                 # update_payment signature: (gateway_payment_id, gateway_order_id, gateway_signature)
                 payment_status = payment.update_payment(gateway_payment_id, gateway_order_id, gateway_signature)
-                
+                try:
+                    from invoices.utils import record_gateway_callback
+                    from invoices.models import PaymentGatewayHealth
+                    record_gateway_callback(
+                        PaymentGatewayHealth.RAZORPAY,
+                        success=bool(payment_status),
+                        callback_url=request.build_absolute_uri(request.path) if request else None,
+                    )
+                except Exception:
+                    pass
                 if payment_status:
                     redirect_url = sp.get_payment_success_fail_url().get("success_url")
                     sp.is_success = choices.YesNoChoices.YES
@@ -1085,7 +1094,17 @@ class UpdateSkilllabCoursePaymentWithEazyPay(APIView):
         sp=get_object_or_404(SkilllabCoursePayment,id=payment.obj_id,user__id=submerchantid)
             
         payment_status=payment.update_eazypay_payment(response_code,unique_reference_no,service_tax_amount,processing_fee_amount,total_amount,transaction_amount,transaction_date,interchange_value,tdr,payment_mode,rs=rs,tps=tps,rsv=rsv)
-        
+        try:
+            from invoices.utils import record_gateway_callback
+            from invoices.models import PaymentGatewayHealth
+            record_gateway_callback(
+                PaymentGatewayHealth.ICICI_EAZYPAY,
+                success=bool(payment_status),
+                error_message=None if payment_status else 'Response code: {}'.format(response_code),
+                callback_url=request.build_absolute_uri(request.path) if request else None,
+            )
+        except Exception:
+            pass
         if payment_status==choices.YesNoChoices.YES:
             redirect_url=sp.get_payment_success_fail_url().get("success_url")
             sp.is_success=choices.YesNoChoices.YES

@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     'user_analytics',
     'forum',
     'demo_data',
+    'invoices',
 ]
 
 # Add django_elasticsearch_dsl conditionally based on environment

@@ -51,6 +51,7 @@ urlpatterns = [
    path("event-delete/<int:id>/",views.UserEventDeleteView,name="eventdelete"),
    path("user-colleges/",views.UserColleges.as_view(),name="mycolleges"),
    path("user-history/",views.UserHistoryView.as_view(),name="userhistory"),
+   path("invoice/<int:invoice_id>/download/",views.invoice_download,name="invoice_download"),
    path('bookmark/',views.Bookmark.as_view(),name="bookmark"),
    path('bookmarkvideo/',views.BookmarkVideo.as_view(),name="bookmarkvideo"),
    path('bookmarkexam/',views.BookmarkExam.as_view(),name="bookmarkexam"),

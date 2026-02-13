@@ -532,7 +532,16 @@ class UpdatePsychometricTestPayment(APIView):
                     print(f"[Payment Update] Gateway Order ID: {gateway_order_id}")
                     
                     payment_status=payment.update_payment(gateway_payment_id,gateway_order_id,gateway_signature)
-                    
+                    try:
+                        from invoices.utils import record_gateway_callback
+                        from invoices.models import PaymentGatewayHealth
+                        record_gateway_callback(
+                            PaymentGatewayHealth.RAZORPAY,
+                            success=bool(payment_status),
+                            callback_url=request.build_absolute_uri(request.path) if request else None,
+                        )
+                    except Exception:
+                        pass
                     print(f"[Payment Update] Payment verification status: {payment_status}")
                     print(f"[Payment Update] Payment is_success after update: {payment.is_success}")
                     

@@ -34,7 +34,17 @@ class UpdateEazyPayPayment(APIView):
         print("#"*30)
         payment=get_object_or_404(Payment,id=referenceno,user__id=submerchantid)
         payment_status=payment.update_eazypay_payment(response_code,unique_reference_no,service_tax_amount,processing_fee_amount,total_amount,transaction_amount,transaction_date,interchange_value,tdr,payment_mode,rs=rs,tps=tps,rsv=rsv)
-        
+        try:
+            from invoices.utils import record_gateway_callback
+            from invoices.models import PaymentGatewayHealth
+            record_gateway_callback(
+                PaymentGatewayHealth.ICICI_EAZYPAY,
+                success=bool(payment_status),
+                error_message=None if payment_status else 'Callback response code: {}'.format(response_code),
+                callback_url=request.build_absolute_uri(request.path) if request else None,
+            )
+        except Exception:
+            pass
         if payment.obj_type == choices.PaymentObjectType.PYSCHOMETRICTESTDETAIL:
             test=get_object_or_404(PsychometricTestPayment,id=payment.obj_id,user__id=submerchantid)
             if payment_status==choices.YesNoChoices.YES:

@@ -2356,11 +2356,24 @@ class ProfileBasicDetails(TemplateView):
 
     def get_context(self,request, profile_user=None, is_parent_view: bool = False, *args, **kwargs):
         ctx={}
-        ctx['profile_user'] = profile_user or request.user
+        # Ensure profile_user is the actual user (get() passes request, args, kwargs so profile_user was receiving args tuple)
+        if profile_user is None or not isinstance(profile_user, User):
+            profile_user = request.user
+        ctx['profile_user'] = profile_user
         ctx['is_parent_view'] = is_parent_view
         ctx['hobbies']=Hobbies.objects.all()
         ctx['subjects']=Subject.objects.all()
         ctx['figureouts']=UserFigureOut.objects.all()
+        # Ensure UserProfile exists so template can safely use profile_user.user_profile (avoids RelatedObjectDoesNotExist)
+        up, _ = UserProfile.objects.get_or_create(user=profile_user)
+        # Mobile: always show 10 digits only in form (strip +91 etc.)
+        raw_mobile = getattr(profile_user, 'mobile', None) or ''
+        ctx['mobile_display'] = _normalize_mobile_digits(str(raw_mobile))[:10]
+        # Formatted birthdate for HTML input type="date" (YYYY-MM-DD); pre-populate edit form
+        try:
+            ctx['birthdate_value'] = up.birthdate.strftime('%Y-%m-%d') if up and getattr(up, 'birthdate', None) else ''
+        except Exception:
+            ctx['birthdate_value'] = ''
         # Linked parent accounts (for adding/viewing parent mobile(s) in profile)
         try:
             from users.models import ParentStudentLink
@@ -2368,13 +2381,41 @@ class ProfileBasicDetails(TemplateView):
             ctx['linked_parents'] = [x.parent for x in links if x.parent]
         except Exception:
             ctx['linked_parents'] = []
+        # School name suggestions for dropdown/autocomplete (existing + common names)
+        try:
+            existing = list(
+                UserProfile.objects.exclude(schoolname__isnull=True)
+                .exclude(schoolname="")
+                .values_list("schoolname", flat=True)
+                .distinct()[:200]
+            )
+            common = [
+                "Delhi Public School", "Kendriya Vidyalaya", "DAV Public School",
+                "Birla Vidya Niketan", "Springdale School", "Modern School",
+                "Vasant Valley School", "The Heritage School", "Sanskriti School",
+                "Ryan International School", "Amity International School",
+                "Mount Litera Zee School", "Euro School", "Podar International School",
+                "Vibgyor High", "Billabong High International", "The Shri Ram School",
+                "Step by Step School", "Tagore International School", "Lotus Valley International",
+                "GD Goenka Public School", "Manav Sthali School", "Bal Bharati Public School",
+                "Apeejay School", "Salwan Public School", "Loreto Convent", "St. Xavier's School",
+                "Don Bosco School", "Carmel Convent", "Convent of Jesus and Mary",
+                "Bharatiya Vidya Bhavan", "Jawahar Navodaya Vidyalaya", "Sainik School",
+            ]
+            seen = {s.strip().lower() for s in existing if s and str(s).strip()}
+            for s in common:
+                if s.strip().lower() not in seen:
+                    existing.append(s)
+                    seen.add(s.strip().lower())
+            ctx["school_suggestions"] = sorted(set(existing))[:250]
+        except Exception:
+            ctx["school_suggestions"] = []
         ctx["html_head"] = self.html_head()
         return ctx
 
-    def get(self, request,*args, **kwargs):      
-        return render(request, self.template_name, self.get_context(request,args, kwargs))
-    
-    
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, profile_user=request.user, is_parent_view=False))
+
     def post(self,request,*args,**kwargs):
         name=request.POST.get("username",False)
         mobile=request.POST.get("userphone",False)
@@ -2386,40 +2427,60 @@ class ProfileBasicDetails(TemplateView):
         figure_outs=request.POST.getlist("userfigureout",False)
         subjects=request.POST.getlist("usersubject",False)
         hobbies=request.POST.getlist("hobbies",False)
-        # Check all required fields are present (figure_outs was duplicated in original condition)
-        if name and mobile and birthdate and gender and grade and school and figure_outs and subjects and hobbies:
+        # Load existing profile for fallback when editing (multi-step form may not submit all steps' data)
+        user = User.objects.get(id=request.user.id)
+        user_profile, _ = UserProfile.objects.get_or_create(user=user)
+        # Normalize mobile to digits only; enforce exactly 10 digits, first digit 6–9
+        mobile_digits = _normalize_mobile_digits(mobile) if mobile else ''
+        if name and mobile:
+            if len(mobile_digits) != 10 or not re.match(r'^[6-9]', mobile_digits):
+                messages.error(request, 'Mobile number must be exactly 10 digits and start with 6, 7, 8, or 9.')
+                return render(request, self.template_name, self.get_context(request, profile_user=request.user, is_parent_view=False))
+            mobile = mobile_digits
+        # Require at least name and mobile; use existing profile values for missing fields when editing
+        if name and mobile:
             # Student mobile must be unique
             if request.user.user_type == choices.UserType.STUDENT and _student_mobile_exists(mobile, exclude_user_id=request.user.id):
                 messages.error(request, "This mobile number is already used by another student.")
-                return render(request,self.template_name, self.get_context(request,args, kwargs))
+                return render(request, self.template_name, self.get_context(request, profile_user=request.user, is_parent_view=False))
             # Student vs Parent mobile conflict
             if request.user.user_type == choices.UserType.STUDENT and _mobile_conflicts_student_parent(mobile, current_user=request.user, intended_user_type=choices.UserType.STUDENT):
                 messages.error(request, "This mobile number is already used by a parent account.")
-                return render(request,self.template_name, self.get_context(request,args, kwargs))
-            hobbies=Hobbies.objects.filter(id__in=hobbies)
-            subjects=Subject.objects.filter(id__in=subjects)
-            figure_outs=UserFigureOut.objects.filter(id__in=figure_outs)
-            user = User.objects.get(id=request.user.id)
-            user.mobile=mobile
-            user.name=name
+                return render(request, self.template_name, self.get_context(request, profile_user=request.user, is_parent_view=False))
+            # Use POST values when provided; otherwise keep existing profile values
+            user.name = name
+            user.mobile = mobile
             if image:
-                user.image=image
+                user.image = image
             user.save()
-            user_profile,_=UserProfile.objects.get_or_create(user=user)
-            user_profile.birthdate=birthdate
-            user_profile.gender=gender
-            user_profile.schoolname=school
-            user_profile.grade=grade
+            if birthdate:
+                from django.utils.dateparse import parse_date
+                parsed = parse_date(birthdate)
+                if parsed:
+                    user_profile.birthdate = parsed
+            if gender:
+                try:
+                    user_profile.gender = int(gender)
+                except (ValueError, TypeError):
+                    pass
+            user_profile.schoolname = school if school else user_profile.schoolname
+            user_profile.grade = grade if grade else user_profile.grade
             user_profile.save()
-            # Use .set() instead of .add() to replace existing relationships, not append
-            user_profile.hobbies.set(hobbies)
-            user_profile.subject.set(subjects)
-            user_profile.figure_out.set(figure_outs)
+            if figure_outs:
+                figure_outs_qs = UserFigureOut.objects.filter(id__in=figure_outs)
+                user_profile.figure_out.set(figure_outs_qs)
+            if subjects:
+                subjects_qs = Subject.objects.filter(id__in=subjects)
+                user_profile.subject.set(subjects_qs)
+            if hobbies:
+                hobbies_qs = Hobbies.objects.filter(id__in=hobbies)
+                user_profile.hobbies.set(hobbies_qs)
             user_profile.save()
-            user.is_completed=True
+            user.is_completed = True
             user.save()
+            messages.success(request, 'Profile updated successfully.')
             return redirect(reverse('users:userdashboard'))
-        return render(request,self.template_name, self.get_context(request,args, kwargs))
+        return render(request, self.template_name, self.get_context(request, profile_user=request.user, is_parent_view=False))
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -2570,6 +2631,13 @@ class UserDashboard(TemplateView):
         ctx['test_buy_url_class10'] = reverse('psychometrictests:psychometrictest')
         # Class 12 students should redirect to post_matric tests dashboard
         ctx['test_buy_url_class12'] = reverse('post_matric:tests')
+        
+        # User's invoices (for dashboard download)
+        try:
+            from invoices.models import Invoice
+            ctx['user_invoices'] = Invoice.objects.filter(payment__user=profile_user).order_by('-created')[:15]
+        except Exception:
+            ctx['user_invoices'] = []
         
         # ctc=CentralTestCandidate.objects.filter(user=request.user).last()
         ctc=CentralTestCandidate.objects.filter(user=profile_user).last()
@@ -3111,6 +3179,24 @@ def UserEventDeleteView(request,id):
     event.delete()
     return redirect("/user/calender")
 
+@login_required(login_url=reverse_lazy('users:login'))
+def invoice_download(request, invoice_id):
+    """Serve invoice PDF to the paying user only. ?view=1 opens in browser (inline), else download."""
+    from invoices.models import Invoice
+    from invoices.services import ensure_invoice_pdf
+    invoice = get_object_or_404(Invoice, pk=invoice_id, payment__user=request.user)
+    content, err = ensure_invoice_pdf(invoice)
+    if content is None:
+        raise Http404(err or 'Invoice PDF not available.')
+    response = HttpResponse(content, content_type='application/pdf')
+    filename = 'invoice-{}.pdf'.format(invoice.invoice_number or invoice_id)
+    if request.GET.get('view'):
+        response['Content-Disposition'] = 'inline; filename="{}"'.format(filename)
+    else:
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+    return response
+
+
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class UserHistoryView(TemplateView):
     template_name="template20/user/user_history.html"
@@ -3125,9 +3211,13 @@ class UserHistoryView(TemplateView):
 
     def get_context(self,request,*args,**kwargs):
         from payments.models import Payment
+        from invoices.models import Invoice
         ctx={}
         ctx["html_head"] = self.html_head()
         ctx['payments'] = Payment.objects.filter(user=request.user).order_by('-created')
+        ctx['payment_id_to_invoice_id'] = dict(
+            Invoice.objects.filter(payment__user=request.user).values_list('payment_id', 'id')
+        )
         ctx['breadcrumb']=self.__breadcrumb()
         return ctx
 
