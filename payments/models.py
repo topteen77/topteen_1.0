@@ -13,7 +13,12 @@ def get_default_gateway():
     return get_preferred_payment_gateway()
 
 class Payment(BaseModel,BaseMoneyModel):
+    """Gateway payment record. Use is_test_payment=True for demo/test payments; only testing payments can be deleted in admin."""
     user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="payments")
+    is_test_payment = models.BooleanField(
+        default=False,
+        help_text="If True, this is a testing/demo payment and can be hard-deleted by admin. Actual payments cannot be deleted.",
+    )
     gateway_receipt=models.CharField(max_length=120,blank=True,null=True)
     gateway = models.SmallIntegerField(choices=choices.GatewayChoices.CHOICES,default=get_default_gateway)
     gateway_order_id = models.CharField(max_length=120,blank=True,null=True)

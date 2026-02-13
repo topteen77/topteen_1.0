@@ -305,6 +305,7 @@
   var usersforgotpasswordotp = "{{ url('users:forgotpasswordotp') }}";
   var usersresendotp = "{{ url('users:resendotp') }}";
   var userssetpassword = "{{ url('users:setpassword') }}";
+  var loginNextUrl = "{{ next_url|default('') }}";
 </script>
 
 <script type="text/javascript" src="{{ static('topteenfrontend/assets/js/loginsignup.js') }}"></script>
@@ -431,6 +432,9 @@
           var pwdForm = new FormData();
           pwdForm.append('enc_user_name', data.enc_user_name);
           pwdForm.append('password', password);
+          if (typeof loginNextUrl !== 'undefined' && loginNextUrl) {
+            pwdForm.append('next', loginNextUrl);
+          }
           $.ajax({
             type: 'POST',
             url: usersloginpwd,

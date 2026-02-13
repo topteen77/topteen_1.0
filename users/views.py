@@ -385,6 +385,17 @@ class LoginView(TemplateView):
             ctx['enc_referral_user']=enc_id
         else:
             ctx['enc_referral_user']=False
+        # Preserve ?next= for redirect after login (e.g. back to psychometric payment page)
+        next_url = (request.GET.get('next') or '').strip()
+        if next_url:
+            from django.utils.http import url_has_allowed_host_and_scheme
+            full_url = request.build_absolute_uri(next_url)
+            if not url_has_allowed_host_and_scheme(full_url, request.get_host()):
+                next_url = ''
+            else:
+                # Store in session as fallback if client doesn't send next in login POST
+                request.session['login_next_url'] = next_url
+        ctx['next_url'] = next_url
         # Demo accounts for all roles; pass URL and CSRF so template works with Jinja2 and Django
         from .demo_accounts import get_demo_login_context
         ctx.update(get_demo_login_context(request))
@@ -1346,11 +1357,23 @@ class SignUpVerifyOTP(APIView):
                 if user:
                     # User exists - log them in directly
                     from django.contrib.auth import login
+                    from django.utils.http import url_has_allowed_host_and_scheme
                     # Use CustomUserBackend for login
                     login(request, user, backend='users.backends.CustomUserBackend')
                     data["otp_verify"]=True
                     data["user_exists"]=True
                     data["success"]=True
+                    # If ?next= was provided (e.g. from Proceed to Buy), redirect there
+                    next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
+                    if not next_path:
+                        next_path = request.session.pop('login_next_url', '')
+                    if next_path:
+                        full_url = request.build_absolute_uri(next_path)
+                        if url_has_allowed_host_and_scheme(full_url, request.get_host()):
+                            if '/psychometrictest/' in full_url:
+                                full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
+                            data['redirect_url'] = full_url
+                            return Response(data, status=status.HTTP_200_OK)
                     if user.is_staff or user.is_superuser:
                         redirect_url = reverse('user_analytics:business_dashboard')
                     elif user.user_type == choices.UserType.PARENT:
@@ -1503,6 +1526,19 @@ class SignUpPassword(APIView):
                     # User is created successfully, so return success even if profile/login had minor issues
                     data['success'] = True
                     data['message'] = "Account created successfully"
+
+                    # If ?next= was provided (e.g. from Proceed to Buy), redirect there after signup
+                    from django.utils.http import url_has_allowed_host_and_scheme
+                    next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
+                    if not next_path:
+                        next_path = request.session.pop('login_next_url', '')
+                    if next_path:
+                        full_url = request.build_absolute_uri(next_path)
+                        if url_has_allowed_host_and_scheme(full_url, request.get_host()):
+                            if '/psychometrictest/' in full_url:
+                                full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
+                            data['redirect_url'] = full_url
+                            return Response(data, status=status.HTTP_200_OK)
                     
                     # Redirect based on user type
                     if user.user_type == choices.UserType.COUNSELOR:
@@ -1578,11 +1614,24 @@ class LoginOTP(APIView):
                 if user and user.get_user_status():
                     # User exists and is active - log them in
                     from django.contrib.auth import login
+                    from django.utils.http import url_has_allowed_host_and_scheme
                     # Use CustomUserBackend for login
                     login(request, user, backend='users.backends.CustomUserBackend')
                     data["otp_verify"]=True
                     data["success"]=True
-                    
+
+                    # If ?next= was provided (e.g. from Proceed to Buy), redirect there after login
+                    next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
+                    if not next_path:
+                        next_path = request.session.pop('login_next_url', '')
+                    if next_path:
+                        full_url = request.build_absolute_uri(next_path)
+                        if url_has_allowed_host_and_scheme(full_url, request.get_host()):
+                            if '/psychometrictest/' in full_url:
+                                full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
+                            data['redirect_url'] = full_url
+                            return Response(data, status=status.HTTP_200_OK)
+
                     # Check if user is staff or superuser - redirect to business analytics
                     if user.is_staff or user.is_superuser:
                         redirect_url = reverse('user_analytics:business_dashboard')
@@ -1694,7 +1743,20 @@ class LoginPassword(APIView):
                     login(request, user, backend='users.backends.CustomUserBackend')
                     data['success'] = True
                 # If master password was used, data['success'] is already set above
-                
+
+                # If ?next= was provided (e.g. from Proceed to Buy), redirect there after login
+                from django.utils.http import url_has_allowed_host_and_scheme
+                next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
+                if not next_path:
+                    next_path = request.session.pop('login_next_url', '')
+                if next_path:
+                    full_url = request.build_absolute_uri(next_path)
+                    if url_has_allowed_host_and_scheme(full_url, request.get_host()):
+                        if '/psychometrictest/' in full_url:
+                            full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
+                        data['redirect_url'] = full_url
+                        return Response(data, status=status.HTTP_200_OK)
+
                 # Check if user is staff or superuser - redirect to business analytics first
                 if user.is_staff or user.is_superuser:
                     data['redirect_url'] = request.build_absolute_uri(reverse('user_analytics:business_dashboard'))

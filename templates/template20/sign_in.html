@@ -407,6 +407,7 @@
   var usersforgotpasswordotp = "{{ url('users:forgotpasswordotp') }}";
   var usersresendotp = "{{ url('users:resendotp') }}";
   var userssetpassword = "{{ url('users:setpassword') }}";
+  var loginNextUrl = "{{ next_url|default('') }}";
 </script>
 
 <!-- Load external JavaScript for login/signup functionality -->
@@ -642,6 +643,9 @@
     
     // Clear error message
     document.getElementById('errorMsgLoginOtp').style.display = 'none';
+    if (typeof loginNextUrl !== 'undefined' && loginNextUrl) {
+      formData.append('next', loginNextUrl);
+    }
     
     $.ajax({
       type: 'POST',
@@ -895,6 +899,9 @@
       var formData = new FormData(document.getElementById("loginpwd"));
       if (typeof validateloginpwd === 'function' && validateloginpwd(formData) == false) {
         return false;
+      }
+      if (typeof loginNextUrl !== 'undefined' && loginNextUrl) {
+        formData.append('next', loginNextUrl);
       }
       $.ajax({
         type: "POST",

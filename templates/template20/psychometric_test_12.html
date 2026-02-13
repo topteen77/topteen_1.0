@@ -1083,6 +1083,59 @@ Test. Make informed decisions and choose the right career path.
       alert('Error: ' + (err.message || 'Unable to process payment. Please try again.'));
     });
   };
+
+  function runPaymentFlowAutomatic() {
+    var form = document.getElementById('paymentForm') || document.getElementById('paymentFormPricing');
+    if (!form) return;
+    var testTypeInput = form.querySelector('input[name="test_type"]');
+    if (!testTypeInput || !testTypeInput.value) return;
+    var button = form.querySelector('button[type="submit"]');
+    var originalText = button ? button.textContent : '';
+    if (button) { button.disabled = true; button.textContent = 'Processing...'; }
+    var payload = { test_type: testTypeInput.value };
+    fetch('{{ psychometric_test_payment_url }}', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      credentials: 'same-origin'
+    })
+    .then(function(response) {
+      if (!response.ok) return response.json().then(function(d) { throw new Error(d.error || 'Payment request failed'); });
+      return response.json();
+    })
+    .then(function(data) {
+      if (data && data.free_access && data.redirect_url) { window.location.href = data.redirect_url; return; }
+      if (data && data.already_paid && data.redirect_url) { window.location.href = data.redirect_url; return; }
+      if (data.error) throw new Error(data.error);
+      if (data.gateway === 1 || data.payment_info) {
+        if (typeof Razorpay === 'undefined') {
+          var s = document.createElement('script'); s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          s.onload = function() { openRazorpay(data); }; document.head.appendChild(s);
+        } else { openRazorpay(data); }
+      } else if (data.gateway === 2 || data.payment_url) {
+        window.location.href = data.payment_url;
+      } else { throw new Error('Unable to process payment.'); }
+    })
+    .catch(function(err) {
+      if (button) { button.disabled = false; button.textContent = originalText; }
+      alert('Error: ' + (err.message || 'Unable to process payment. Please try again.'));
+    });
+  }
+
+  {% if is_authenticated and not is_student %}
+  document.addEventListener('DOMContentLoaded', function() {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('auto_buy') === '1') {
+      if (window.history && window.history.replaceState) {
+        params.delete('auto_buy');
+        var newSearch = params.toString();
+        var newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
+        window.history.replaceState({}, '', newUrl);
+      }
+      runPaymentFlowAutomatic();
+    }
+  });
+  {% endif %}
   
   function openRazorpay(data) {
     if (typeof Razorpay === 'undefined') { alert('Razorpay is loading. Please try again.'); return; }
