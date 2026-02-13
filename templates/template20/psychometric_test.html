@@ -1,11 +1,11 @@
 {% extends 'template20/base.html' %}
 
 {% block title_content %}
-Stream Sorter Psychometric Test | Top Teen
+Stream Sorter Test - Class 9-10th Career Assessment | Top Teen
 {% endblock %}
 
 {% block description_content %}
-Discover your strengths and unlock your true potential with our scientifically designed Stream Sorter Psychometric Test. Make informed decisions and choose the right career path.
+Discover what you're made for with the Stream Sorter Test for Class 9-10th. RIASEC personality, career interest, and aptitude assessments to align with the best career path.
 {% endblock %}
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
@@ -13,401 +13,531 @@ Discover your strengths and unlock your true potential with our scientifically d
 {% block additionalhead %}
 {{ super() }}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+  .content-box-stream-sorter-content { color: #5a5a6e; }
+  .career-feature-subtitle { font-size: 14px; margin-top: 4px; margin-bottom: 0; opacity: 0.9; }
+  .subtitle-blue { color: #3b82f6; }
+  .subtitle-green { color: #10b981; }
+  .subtitle-purple { color: #8b5cf6; }
+  .subtitle-grey { color: #6b7280; }
+  .subtitle-orange { color: #f59e0b; }
+  .subtitle-pink { color: #ec4899; }
+  .career-feature-icon.icon-grey { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; }
+  .career-feature-icon.icon-orange { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+  .c-i-img img { max-width: 100%; height: auto; }
+
+  /* Expanded description: same div, header bar + scrollable body */
+  .box-description .description-expanded-header {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0 10px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
+    
+  }
+  .box-description.expanded .description-expanded-header {
+    display: flex;
+    padding: 5px 9px;
+  }
+  .box-description.expanded .description-expanded-header span {
+    font-size: 16px;
+    font-weight: 700;
+    color: #4f46e5;
+    display: inline-block;
+  }
+  .box-description .description-expanded-body {
+    display: block;
+  }
+  .box-description.expanded .description-expanded-body {
+    max-height: 140px;
+    overflow-y: auto;
+    padding: 10px;
+  }
+  .box-description.expanded .description-expanded-body::-webkit-scrollbar {
+    width: 6px;
+  }
+  .box-description.expanded .description-expanded-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  .box-description.expanded .description-expanded-body::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+  }
+  .box-description.expanded .description-expanded-body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  .box-description.expanded {
+    display: flex;
+  flex-direction: column;
+  max-height: 183px;
+  background: #f6f6f6;
+  border-radius: 10px;
+  }
+  .description-close-btn {
+    flex-shrink: 0;
+  }
+
+</style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Hero Section -->
-<section class="hero-section-inner pt-md-18 pt-14 pb-5">
-  <div class="container">
-    <div class="row">
-      <!--breadcrumb-->
-      <div class="col-md-12">
-        {% include 'template20/includes/breadcrumb.html' %}
-      </div>
-      <!--breadcrumb-->
-      
-      <div class="col-lg-6 col-md-12">
-        <span class="highlighter">
-          <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Assess. Analyze. Achieve
-        </span>
-        <h1 class="heading-title mt-md-9 mb-md-8 mt-8 mb-3">
-          Discover your Strengths
-          <p> <span class="text-yellow">Unlock</span> your True Potentials! </p>
-        </h1>
-        <p class="text-gray fs-16">Take Our Scientifically Designed Psychometric Test to gain deep insights into your personality, skills and career fit. Make informed decisions, choose the right path and build a future that aligns with your strengths.</p>
-        <div class="hero-button d-flex flex-row mt-md-8 mt-5">
-          <button onclick="document.getElementById('pricing-section').scrollIntoView({behavior: 'smooth'})" type="button" class="btn custom-button purple-button me-3">Take The Test</button>
-        </div>
-      </div>
-      <div class="col-lg-6 col-md-12">
-        <div class="right-banner d-md-flex d-none justify-content-end">
-          <img class="img-fluid" src="{{ static('images_new/general/psychometric-test-banner.svg') }}" alt="Psychometric Test" />
-        </div>
-      </div>
+<main class="py-test-page">
+  <!-- Hero Section -->
+  <section class="hero-section-inner pt-md-18 pt-14 pb-5 position-relative">
+    <div class="rounded-blur-circle">
+      <div class="blur-cricle-1"></div>
+      <div class="blur-cricle-two"></div>
     </div>
-  </div>
-</section>
-<!-- Hero Section -->
-
-<!-- Career Tracks Scrolling Section -->
-<section class="c-tracks">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="scroller" data-direction="left" data-speed="slow">
-          <ul class="tag-list scroller__inner">
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Agriculture & Environmental Sciences">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/agriculture-icon.svg') }}" alt="Agriculture & Natural Resources" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Agriculture & Environmental Sciences</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Architecture & Constructions">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/architecture-icon.svg') }}" alt="Architecture & Constructions" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Architecture & Constructions</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Arts, Media & Mass Communication">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/avtechnology.svg') }}" alt="Art, AV Technology & Design" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Arts, Media & Mass Communication</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Business, Management & Administration">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/businessmanage-icon.svg') }}" alt="Business Management & Administration" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Business, Management & Administration</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Finance, Economics and Statistics">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/finance-icon.svg') }}" alt="Finance" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Finance, Economics and Statistics</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Education And Training">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/educationtraining.svg') }}" alt="Education And Training" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Education And Training</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Government Sector, Pub Adm. & Int. Relations">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/government-services.svg') }}" alt="Engineering & Technology" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Government Sector, Pub Adm. & Int. Relations</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Engineering & Technology">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/eit-icon.svg') }}" alt="Engineering & Technology" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Engineering & Technology</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Information Technology (IT)">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/it-icon.svg') }}" alt="Information Technology (IT)" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Information Technology (IT)</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="STEM">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/stem-icon.svg') }}" alt="STEM" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">STEM</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Health Science & Medical Services">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/health-services.svg') }}" alt="Health Science & Medical Services" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Health Science & Medical Services</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Hospitality and Tourism">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/tourism-icon.svg') }}" alt="Hospitality and Tourism" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Hospitality and Tourism</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Humanities, Social Work & Psychology">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/humanities-icon.svg') }}" alt="Humanities" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Humanities, Social Work & Psychology</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Law and Public Safety">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/law-icon.svg') }}" alt="Law and Public Safety" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Law and Public Safety</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Distribution, Transportation & Logistics">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/transport.svg') }}" alt="Distribution, Transportation & Logistics" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Distribution, Transportation & Logistics</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Marketing & Sales">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/marketing-icon.svg') }}" alt="Marketing & Sales" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Marketing & Sales</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Scientific Research, R&D">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/scientific-research.svg') }}" alt="Scientific Research, R&D" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Scientific Research, R & D</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Sports, Fitness & Wellness">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/sports-icon.svg') }}" alt="Sports, Fitness & Wellness" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Sports, Fitness & Wellness</p>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="career-t-box" href="{{ url('careers:defaultcareerlibrary') }}" title="Fashion, Design & Creativity">
-                <div class="c-m-image">
-                  <img src="{{ static('images_new/careers/career-tracks/faishion-icon.svg') }}" alt="Fashion, Design & Creativity" />
-                </div>
-                <div class="c-m-title">
-                  <p class="text-gray">Fashion, Design & Creativity</p>
-                </div>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- Career Tracks Scrolling Section -->
-
-<!-- Find Direction Section -->
-<section class="find-direction py-10">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-5">
-        <div class="find-c-img">
-          <img class="img-fluid" src="{{ static('images_new/general/psychometric-test-info.svg') }}" alt="What is a Psychometric Test" />
-        </div>
-      </div>
-      <div class="offset-md-1 col-md-6 d-flex flex-column justify-content-center align-items-start mt-md-0 mt-5">
-        <span class="highlighter text-gray fw-400">
-          <img class="position-relative top--10" src="{{ static('images_new/icons/find-direction.svg') }}" alt="icon" /> Assess Your Potential
-        </span>
-        <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Confused about What is a Psychometric Test?</h3>
-        <p class="text-gray fs-16">A Psychometric test is a scientific assessment designed to measure an individual's mental capabilities, personality traits, and interests. These tests are commonly used to evaluate how a person thinks, behaves, and interacts with the world around them. By using a combination of questions and tasks, psychometric tests provide objective, reliable insights into a person's cognitive abilities and personal preferences.</p>
-        <button type="button" onclick="document.getElementById('pricing-section').scrollIntoView({behavior: 'smooth'})" class="btn custom-button purple-button mt-md-3 me-3">Take The Test Now!</button>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- Find Direction Section -->
-
-<!-- Gateway Higher Education Section -->
-<section class="gateway">
-  <div class="container">
-    <div class="cta-purple px-5 py-md-10 py-5">
+    <div class="container">
       <div class="row">
-        <div class="col-md-7 d-flex justify-content-center align-items-start flex-column order-md-1 order-2 mt-md-0 mt-5">
+        <div class="col-md-12">
+          {% include 'template20/includes/breadcrumb.html' %}
+        </div>
+        <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2">
+          <h1 class="heading-title  mb-3  mt-4">
+            <span class="text-purple">Stream Sorter Test</span> - Class 9-10th Career Assessment
+          </h1>
+          <p class="text-gray fs-25 fs-sm-18 fw-700">Discover What You're Made for, Like Never Before</p>
+          <p class="text-gray fs-16">Take the next step with our RIASEC personality, career interest, and aptitude assessments. Discover your strengths and passions to align with rewarding career paths—your journey to success starts here.</p>
+          <div class="hero-button d-flex flex-row mt-md-6 mt-5">
+            <button onclick="scrollToPayment()" type="button" class="btn custom-button purple-button me-3">Start Your Assessment</button>
+          </div>
+        </div>
+        <div class="col-lg-6 col-md-12 order-md-2 order-1">
+          <div class="right-banner d-md-flex justify-content-end">
+            <img class="img-fluid" src="{{ static('images_new/general/stream-sorter-hero-banner.png') }}" alt="Stream Sorter Test" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Hero Section -->
+
+  <!-- Features Section -->
+  <section class="career-direction-test-features py-md-8 py-5">
+    <div class="container">
+      <div class="row mb-4">
+        <div class="col-md-8 mx-auto d-flex align-items-center flex-column text-center">
           <span class="highlighter text-gray fw-400">
-            <img class="position-relative top--10" src="{{ static('images_new/icons/entrance-exam.svg') }}" alt="icon" /> Entrance Exam
+            <img class="position-relative top--10" src="{{ static('images_new/general/find-direction.svg') }}" alt="icon"> Find Your Strength. Shape Your Future
           </span>
-          <h3 class="title-two mt-3 fs-38 fs-sm-28 fw-700 my-4 text-white">Your Gateway to Higher Education and Career Success!</h3>
-          <p class="text-white fs-16">Get expert guidance on entrance exams, Olympiads, and government exams after 10th, 12th, and graduation. Stay updated with eligibility, resources, and career insights for a successful future!</p>
-          <div class="com-btn mt-3">
-            <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After 10th</a>
-            <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After 12th</a>
-            <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After Graduation</a>
+          <h3 class="title-two mt-3 fs-38 fw-700 fs-sm-28">Our Comprehensive Assessment</h3>
+          <p class="text-gray fs-16">Discover your unique strengths and potential with our scientifically validated assessment tools.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4 mb-md-0 mb-3">
+          <div class="ds-box box-1">
+            <div class="box-icon">
+              <img src="{{ static('images_new/general/gradHat2.png') }}" alt="Personality Assessment">
+            </div>
+            <div class="box-content">
+              <h4 class="title-two fs-20 fw-700">Personality Assessment</h4>
+              <div class="box-description">
+                <div class="description-expanded-header">
+                  <span>Full Description</span>
+                  <button class="description-close-btn" aria-label="Close"><i class='bx bx-x'></i></button>
+                </div>
+                <div class="description-expanded-body">
+                  <p class="text-gray fs-16">Personality assessment is the systematic evaluation of individual differences in characteristic patterns of thinking, feeling, and behaving. The HEXACO model identifies six major dimensions: Honesty-Humility (H), Emotionality (E), Extraversion (X), Agreeableness (A), Conscientiousness (C), and Openness to Experience (O).</p>
+                </div>
+              </div>
+              <button class="read-more-btn">Read more</button>
+            </div>
           </div>
         </div>
-        <div class="col-md-5 d-flex justify-content-center align-items-center order-md-2 order-1">
-          <div class="cta-image">
-            <img class="img-fluid" src="{{ static('images_new/general/gateway.svg') }}" alt="gateway" />
+        <div class="col-md-4 mb-md-0 mb-3">
+          <div class="ds-box box-1">
+            <div class="box-icon">
+              <img src="{{ static('images_new/general/detailedCareer.svg') }}" alt="Career Interest assessment">
+            </div>
+            <div class="box-content">
+              <h4 class="title-two fs-20 fw-700">Career Interest assessment</h4>
+              <div class="box-description">
+                <div class="description-expanded-header">
+                  <span>Full Description</span>
+                  <button class="description-close-btn" aria-label="Close"><i class='bx bx-x'></i></button>
+                </div>
+                <div class="description-expanded-body">
+                  <p class="text-gray fs-16">Career Interest Inventory is an assessment tool that evaluates an individual's preferences, attractions, and inclinations toward various occupational activities, work environments, and career fields. Holland's RIASEC model (Realistic, Investigative, Artistic, Social, Enterprising, Conventional) helps identify patterns of interest that align with specific career paths and work settings.</p>
+                </div>
+              </div>
+              <button class="read-more-btn">Read more</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-md-0 mb-3">
+          <div class="ds-box box-1">
+            <div class="box-icon">
+              <img src="{{ static('images_new/general/interest-test-icon.png') }}" alt="Comprehensive Aptitude assessment">
+            </div>
+            <div class="box-content">
+              <h4 class="title-two fs-20 fw-700">Comprehensive Aptitude assessment</h4>
+              <div class="box-description">
+                <div class="description-expanded-header">
+                  <span>Full Description</span>
+                  <button class="description-close-btn" aria-label="Close"><i class='bx bx-x'></i></button>
+                </div>
+                <div class="description-expanded-body">
+                  <p class="text-gray fs-16">Abstract Reasoning (pattern recognition), Clerical Reasoning (attention to detail), and Language/Verbal Reasoning (communication skills). This multifaceted test helps Class 10 students identify their cognitive strengths and make informed decisions about higher education streams and career paths that align with their natural aptitudes and abilities.</p>
+                </div>
+              </div>
+              <button class="read-more-btn">Read more</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
-<!-- Gateway Higher Education Section -->
+  </section>
+  <!-- Features Section -->
 
-<!-- Why Take the Test Section -->
-<section class="explore-video py-10">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        <span class="highlighter text-gray fw-400">
-          <img class="position-relative top--10" src="{{ static('images_new/icons/uncover-icon.svg') }}" alt="icon"> Uncover True Potential
-        </span>
+  <!-- Career Interest Inventory - RIASEC Model Section -->
+  <section class="py-md-8 py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 mx-auto d-flex align-items-center flex-column text-center">
+          <span class="highlighter text-gray fw-400">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/activity-icon.svg') }}" alt="icon"> Career Interest Analysis
+          </span>
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Career Interest Inventory - RIASEC Model</h3>
+          <p class="text-gray fs-16">Our assessment is based on John Holland's renowned RIASEC model, which categorizes personalities into six distinct types:</p>
+        </div>
       </div>
-      <div class="w-100 d-flex justify-content-between align-items-center">
+      <div class="row mt-md-6 mt-4">
+        <div class="col-md-4 col-sm-6 mb-4">
+          <div class="ds-box box-1 h-100">
+            <div class="box-icon" style="background: #c9edf8;">  <img src="{{ static('images/r.png') }}" alt="Realistic Icon"> </div>
+            <div class="box-content">
+              <h4 class="title-two fs-22 fw-700">Realistic (Doers)</h4>
+              <div class="box-description">
+                <p class="text-gray fs-16">Practical, hands-on individuals who enjoy working with tools, machines, and physical tasks. Suited for engineering, agriculture, construction, and technical fields.</p>
+                <p class="text-gray fs-16 mt-2 mb-0"><strong>Examples:</strong> Engineering, Construction, Mechanics</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6 mb-4">
+          <div class="ds-box box-1 h-100">
+            <div class="box-icon" style="background: #ead9eb;"><img src="{{ static('images/i.png') }}" alt="Realistic Icon"> </div>
+            <div class="box-content">
+              <h4 class="title-two fs-22 fw-700">Investigative (Thinkers)</h4>
+              <div class="box-description">
+                <p class="text-gray fs-16">Analytical, research-oriented people who enjoy solving complex problems and exploring ideas. Ideal for science, research, medicine, and technology careers.</p>
+                <p class="text-gray fs-16 mt-2 mb-0"><strong>Examples:</strong> Research, Science, Technology</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6 mb-4">
+          <div class="ds-box box-1 h-100">
+            <div class="box-icon" style="background: #c8f7b6;"><img src="{{ static('images/a.png') }}" alt="Realistic Icon"> </div>
+            <div class="box-content">
+              <h4 class="title-two fs-22 fw-700">Artistic (Creators)</h4>
+              <div class="box-description">
+                <p class="text-gray fs-16">Creative, expressive individuals who value aesthetics and self-expression. Perfect for arts, design, writing, music, and media careers.</p>
+                <p class="text-gray fs-16 mt-2 mb-0"><strong>Examples:</strong> Design, Media, Fine Arts</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6 mb-4">
+          <div class="ds-box box-1 h-100">
+            <div class="box-icon" style="background: #fff2b6;"><img src="{{ static('images/s.png') }}" alt="Social (Helpers)"> </div>
+            <div class="box-content">
+              <h4 class="title-two fs-22 fw-700">Social (Helpers)</h4>
+              <div class="box-description">
+                <p class="text-gray fs-16">People-oriented individuals who enjoy helping, teaching, and working with others. Suited for education, healthcare, counseling, and social services.</p>
+                <p class="text-gray fs-16 mt-2 mb-0"><strong>Examples:</strong> Teaching, Healthcare, Counseling</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6 mb-4">
+          <div class="ds-box box-1 h-100">
+            <div class="box-icon" style="background: #fee2e2;"><img src="{{ static('images/e.png') }}" alt="Enterprising (Persuaders)"> </div>
+            <div class="box-content">
+              <h4 class="title-two fs-22 fw-700">Enterprising (Persuaders)</h4>
+              <div class="box-description">
+                <p class="text-gray fs-16">Leadership-oriented people who enjoy persuading, managing, and taking risks. Ideal for business, sales, politics, and entrepreneurship.</p>
+                <p class="text-gray fs-16 mt-2 mb-0"><strong>Examples:</strong> Business, Sales, Leadership</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6 mb-4">
+          <div class="ds-box box-1 h-100">
+            <div class="box-icon" style="background: #d4eafd;"><img src="{{ static('images/c.png') }}" alt="Conventional (Organizers)"></div>
+            <div class="box-content">
+              <h4 class="title-two fs-22 fw-700">Conventional (Organizers)</h4>
+              <div class="box-description">
+                <p class="text-gray fs-16">Detail-oriented individuals who prefer structured, organized work environments. Perfect for accounting, administration, banking, and data management.</p>
+                <p class="text-gray fs-16 mt-2 mb-0"><strong>Examples:</strong> Finance, Administration</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- RIASEC Section -->
+
+  <!-- Career Interest Assessment Section -->
+  <section class="py-md-8 py-5 bg-light-blue">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 mx-auto d-flex align-items-center flex-column text-center">
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Career Interest Assessment</h3>
+        </div>
+      </div>
+      <div class="row mt-md-6 mt-4">
+        <div class="col-md-6 mb-md-0 mb-4">
+          <div class="c-i-img d-flex justify-content-center">
+            <img class="img-fluid" src="{{ static('images_new/general/riasec-modal.png') }}" alt="Career Interest Assessment">
+          </div>
+        </div>
+        <div class="col-md-6 mb-md-0 mb-4">
+          <div class="content-box-stream-sorter">
+            <div class="content-box-stream-sorter-content">
+              <p class="text-gray fs-16">In addition to personality analysis, the test includes a comprehensive Interest Model. Students are presented with a curated list of 200+ professions across diverse industries and sectors. From this list, they are asked to select the professions they:</p>
+              <ul class="text-gray fs-16 mt-3 list-unstyled ps-0">
+                <li><i class='bx bx-chevron-right-circle me-1' style='color:#3f37c9'></i> Feel most interested in</li>
+                <li><i class='bx bx-chevron-right-circle me-1' style='color:#3f37c9'></i> Are inspired or influenced by</li>
+                <li><i class='bx bx-chevron-right-circle me-1' style='color:#3f37c9'></i> Or aspire to pursue in the future</li>
+              </ul>
+              <p class="text-gray fs-16">This exercise helps uncover not only immediate preferences but also deeper motivations, passions, and potential career directions. The selections are then mapped against career clusters and future opportunities to give meaningful insights into long-term career alignment.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Career Interest Assessment Section -->
+
+  <!-- Aptitude Assessment Section -->
+  <section class="aptitude-section py-md-8 py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 mx-auto d-flex align-items-center flex-column text-center mb-md-6">
+          <span class="highlighter text-gray fw-400">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/entrance-exam.svg') }}" alt="icon"> Cognitive Assessment
+          </span>
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Aptitude Assessment</h3>
+          <p class="text-gray fs-16">Our comprehensive aptitude evaluation covers multiple cognitive areas:</p>
+        </div>
+      </div>
+      <div class="row align-items-center">
+        <div class="col-lg-3 col-md-12 mb-md-4 mb-lg-0">
+          <div class="aptitude-image-column">
+            <div class="aptitude-image-item">
+              <img src="{{ static('images_new/general/apptitute-car.png') }}" alt="Aptitude Assessment">
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-9 col-md-12">
+          <div class="aptitude-carousel-wrapper">
+            <div class="owl-carousel aptitude-carousel owl-theme">
+              <div class="aptitude-carousel-item">
+                <div class="aptitude-icon-wrapper" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"><i class='bx bx-calculator'></i></div>
+                <h4 class="aptitude-carousel-title">Numerical Reasoning</h4>
+                <p class="aptitude-carousel-description">Mathematical problem-solving and numerical reasoning</p>
+              </div>
+              <div class="aptitude-carousel-item">
+                <div class="aptitude-icon-wrapper" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"><i class='bx bx-message-square-dots'></i></div>
+                <h4 class="aptitude-carousel-title">Language Reasoning</h4>
+                <p class="aptitude-carousel-description">Understanding and analysing written material, grammar, and sentence structures</p>
+              </div>
+              <div class="aptitude-carousel-item">
+                <div class="aptitude-icon-wrapper" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"><i class='bx bx-podcast'></i></div>
+                <h4 class="aptitude-carousel-title">Verbal Reasoning</h4>
+                <p class="aptitude-carousel-description">Comprehension, vocabulary, and effective communication skills</p>
+              </div>
+              <div class="aptitude-carousel-item">
+                <div class="aptitude-icon-wrapper" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"><i class='bx bx-brain'></i></div>
+                <h4 class="aptitude-carousel-title">Logical Reasoning</h4>
+                <p class="aptitude-carousel-description">Pattern recognition, logical deduction, and analytical thinking</p>
+              </div>
+              <div class="aptitude-carousel-item">
+                <div class="aptitude-icon-wrapper" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"><i class='bx bx-cog'></i></div>
+                <h4 class="aptitude-carousel-title">Mechanical Reasoning</h4>
+                <p class="aptitude-carousel-description">Understanding of physical principles, mechanical concepts, and how machines and systems work.</p>
+              </div>
+              <div class="aptitude-carousel-item">
+                <div class="aptitude-icon-wrapper" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);"><i class='bx bx-file-blank'></i></div>
+                <h4 class="aptitude-carousel-title">Critical Reasoning</h4>
+                <p class="aptitude-carousel-description">Ability to analyse, evaluate, and make reasoned judgments</p>
+              </div>
+              <div class="aptitude-carousel-item">
+                <div class="aptitude-icon-wrapper" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);"><i class='bx bx-cube'></i></div>
+                <h4 class="aptitude-carousel-title">Spatial Reasoning</h4>
+                <p class="aptitude-carousel-description">Visualization and manipulation of objects in space.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Aptitude Section -->
+
+  <!-- Career Reports Section -->
+  <section class="career-reports-section py-md-10 py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 mx-auto d-flex align-items-center flex-column text-center mb-md-6">
+          <span class="highlighter text-gray fw-400">
+            <img class="position-relative top--10" src="{{ static('images_new/icons/gudiance-icona.svg') }}" alt="icon"> Career Reports
+          </span>
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Your Complete Career Report Includes</h3>
+          <p class="text-gray fs-16">Comprehensive insights and expert guidance tailored to unlock your career potential and guide your academic and professional journey.</p>
+        </div>
+      </div>
+      <div class="row">
         <div class="col-md-6">
-          <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Why Take the Stream Sorter Psychometric Test?</h3>
-          <p class="text-gray fs-16">Choosing the right academic stream shapes your future. The Stream Sorter Psychometric Test helps students make informed decisions by aligning their strengths and interests with the best career path.</p>
+          <div class="career-report-banner">
+            <img class="img-fluid" src="{{ static('images_new/general/fullreport.png') }}" alt="Career Report Banner">
+          </div>
         </div>
-        <div class="col-md-2 offset-md-4">
-          <div class="btn-wrap">
-            <button class="prev-btn"><i class='bx bx-chevron-left' style='color:#808080'></i></button>
-            <button class="next-btn"><i class='bx bx-chevron-right' style='color:#808080'></i></button>
+        <div class="col-md-6">
+          <div class="career-report-content">
+            <ul class="career-feature-list">
+              <li class="career-feature-item">
+                <div class="career-feature-icon icon-blue"><i class='bx bx-user'></i></div>
+                <div class="career-feature-content">
+                  <h4 class="career-feature-title">Comprehensive Personality Profile</h4>
+                  <p class="career-feature-subtitle subtitle-blue">RIASEC Based Analysis</p>
+                </div>
+              </li>
+              <li class="career-feature-item">
+                <div class="career-feature-icon icon-green"><i class='bx bx-star'></i></div>
+                <div class="career-feature-content">
+                  <h4 class="career-feature-title">Detailed Career Interest Analysis</h4>
+                  <p class="career-feature-subtitle subtitle-green">Vocational Preferences</p>
+                </div>
+              </li>
+              <li class="career-feature-item">
+                <div class="career-feature-icon icon-purple"><i class='bx bx-bulb'></i></div>
+                <div class="career-feature-content">
+                  <h4 class="career-feature-title">Multi-Dimensional Aptitude Assessment</h4>
+                  <p class="career-feature-subtitle subtitle-purple">7-Domain Cognitive Evaluation</p>
+                </div>
+              </li>
+              <li class="career-feature-item">
+                <div class="career-feature-icon icon-grey"><i class='bx bx-bar-chart-alt-2'></i></div>
+                <div class="career-feature-content">
+                  <h4 class="career-feature-title">Strategic Career Development Plan</h4>
+                  <p class="career-feature-subtitle subtitle-grey">Professional Journey Roadmap</p>
+                </div>
+              </li>
+              <li class="career-feature-item">
+                <div class="career-feature-icon icon-blue"><i class='bx bx-book-open'></i></div>
+                <div class="career-feature-content">
+                  <h4 class="career-feature-title">Educational & Training Recommendations</h4>
+                  <p class="career-feature-subtitle subtitle-blue">Academic Development Guidance</p>
+                </div>
+              </li>
+              <li class="career-feature-item">
+                <div class="career-feature-icon icon-orange"><i class='bx bx-group'></i></div>
+                <div class="career-feature-content">
+                  <h4 class="career-feature-title">Expert Career Counselling Session</h4>
+                  <p class="career-feature-subtitle subtitle-orange">45-Minute One-on-One Consultation</p>
+                </div>
+              </li>
+              <li class="career-feature-item">
+                <div class="career-feature-icon icon-pink"><i class='bx bx-briefcase'></i></div>
+                <div class="career-feature-content">
+                  <h4 class="career-feature-title">Comprehensive Career Resource Library</h4>
+                  <p class="career-feature-subtitle subtitle-pink">1000+ Career Profiles Database</p>
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-12 pys-test-carousel mt-3">
-        <div class="owl-carousel owl-theme psy-carousel">
-          <div class="item">
-            <div class="phy-item-box">
-              <h5>Identifies Strengths and Weaknesses</h5>
-              <p>Helps uncover a child's natural abilities and areas for improvement.</p>
-            </div>
-          </div>
-          <div class="item">
-            <div class="phy-item-box">
-              <h5>Guides Career and Academic Choices</h5>
-              <p>Provides insights that help align academic paths and career goals with a child's interests and skills.</p>
-            </div>
-          </div>
-          <div class="item">
-            <div class="phy-item-box">
-              <h5>Streamlines Education and Career Pathway</h5>
-              <p>Ensures a structured and well-informed approach to academic and career planning, reducing trial and error.</p>
-            </div>
-          </div>
-          <div class="item">
-            <div class="phy-item-box">
-              <h5>Enhances Motivation and Engagement</h5>
-              <p>Helps students stay motivated by aligning their studies and activities with their strengths and interests</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- Why Take the Test Section -->
+  </section>
+  <!-- Career Reports Section -->
 
-<!-- Pricing Section -->
-<section id="pricing-section" class="py-10">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12 text-center mb-5">
-        <h2 class="mb-3 fw-semibold fs-20 fs-md-24 text-dark">Choose the best option for you</h2>
+  <!-- How It Works Section -->
+  <section class="how-it-works-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 mx-auto d-flex align-items-center flex-column text-center mb-md-6">
+          <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">How it Works</h3>
+          <p class="text-gray fs-16">It analyzes your skills, interests, and personality to suggest the best career options tailored just for you.</p>
+        </div>
       </div>
-    </div>
-    <div class="row justify-content-center">
-      <div class="col-lg-5 col-md-6 col-12">
-        {% if not is_student %}
-        <div class="d-flex bg-light p-3 rounded mb-3">
-          <img src="{{ static('topteenfrontend/assets/images/advancedCube.svg') }}" class="align-self-center me-3" style="width: 55px; height: 55px; object-fit: cover;" alt="">
-          <div class="align-self-center">
-            <p class="fs-16 fw-semibold text-dark mb-1">Advanced</p>
-            <p class="fs-24 fw-semibold text-dark mb-1">₹ {{ currency_format(pyschometric_test_amount) }} <del class="text-muted">{{ currency_format(psychometric_cross_test_amount) }}</del></p>
-            <p class="fs-12 text-muted mb-0">Career guidance • 1 year validity</p>
+      <div class="row">
+        <div class="col-12">
+          <div class="how-it-works-steps">
+            <div class="how-it-works-step">
+              <div class="step-number-badge">01</div>
+              <div class="step-icon"><i class='bx bx-clipboard'></i></div>
+              <h3 class="step-title">Choose Your Plan</h3>
+              <p class="step-description">Select the assessment package that best fits your needs and career goals.</p>
+            </div>
+            <div class="how-it-works-step">
+              <div class="step-number-badge">02</div>
+              <div class="step-icon"><i class='bx bx-file-blank'></i></div>
+              <h3 class="step-title">Take the Assessment</h3>
+              <p class="step-description">Complete our comprehensive psychometric test at your own pace (approximately 2 hours).</p>
+            </div>
+            <div class="how-it-works-step">
+              <div class="step-number-badge">03</div>
+              <div class="step-icon"><i class='bx bx-bar-chart-alt-2'></i></div>
+              <h3 class="step-title">Get Your Results</h3>
+              <p class="step-description">Receive a detailed report with personalized career recommendations and insights.</p>
+            </div>
+            <div class="how-it-works-step">
+              <div class="step-number-badge">04</div>
+              <div class="step-icon"><i class='bx bx-user-check'></i></div>
+              <h3 class="step-title">Career Guidance</h3>
+              <p class="step-description">Connect with our career counselors for personalized guidance and next steps.</p>
+            </div>
           </div>
         </div>
-        {% endif %}
-        <div class="p-4 p-md-5 mt-3 bg-light rounded">
-          <div class="mb-4">
-            <div class="d-flex align-items-center mb-3">
-              <img src="{{ static('topteenfrontend/assets/images/greenCheck.png') }}" class="me-3" style="width: 20px; height: 20px; object-fit: cover; flex-shrink: 0;" alt="">
-              <p class="fs-14 text-secondary mb-0">Detailed Career</p>
+      </div>
+    </div>
+  </section>
+  <!-- How It Works Section -->
+
+  <!-- CTA / Payment Section -->
+  <section id="payment-section" class="cta-box-section">
+    <div class="container">
+      <div class="cta-box-card">
+        <div class="cta-box-image-wrapper">
+          <img src="{{ static('images_new/general/studentwith-tab.png') }}" alt="Stream Sorter Test" class="img-fluid">
+        </div>
+        <div class="cta-box-content">
+          <div>
+            <h2 class="cta-box-title">Stream Sorter Test (Class 9th-10th)</h2>
+            <div class="cta-plan-badge">
+              <div class="cta-plan-icon"><i class='bx bx-cube'></i></div>
+              <span>Advanced</span>
             </div>
-            <div class="d-flex align-items-center mb-3">
-              <img src="{{ static('topteenfrontend/assets/images/greenCheck.png') }}" class="me-3" style="width: 20px; height: 20px; object-fit: cover; flex-shrink: 0;" alt="">
-              <p class="fs-14 text-secondary mb-0">Interest Analysis</p>
+            <p class="cta-plan-details">Career guidance • 1 year validity</p>
+            <div class="cta-pricing-section">
+              <div>
+                <div class="cta-current-price"> {{ currency_format(pyschometric_test_amount) }}<span style="font-size: 24px;">/-</span></div>
+                <div class="cta-price-label">One-time payment</div>
+              </div>
+              <div class="cta-original-price"> {{ currency_format(psychometric_cross_test_amount) }}/-</div>
+              <div class="cta-discount-badge">80% OFF</div>
             </div>
-            <div class="d-flex align-items-center mb-3">
-              <img src="{{ static('topteenfrontend/assets/images/greenCheck.png') }}" class="me-3" style="width: 20px; height: 20px; object-fit: cover; flex-shrink: 0;" alt="">
-              <p class="fs-14 text-secondary mb-0">Access to Career</p>
-            </div>
-            <div class="d-flex align-items-center mb-3">
-              <img src="{{ static('topteenfrontend/assets/images/greenCheck.png') }}" class="me-3" style="width: 20px; height: 20px; object-fit: cover; flex-shrink: 0;" alt="">
-              <p class="fs-14 text-secondary mb-0">Library & Colleges</p>
-            </div>
-            <div class="d-flex align-items-start">
-              <img src="{{ static('topteenfrontend/assets/images/greenCheck.png') }}" class="me-3 mt-1" style="width: 20px; height: 20px; object-fit: cover; flex-shrink: 0;" alt="">
-              <p class="fs-14 text-secondary mb-0">Personalised Career Counselling Session</p>
-            </div>
+            <ul class="cta-features-list">
+              <li class="cta-feature-item"><i class='bx bx-check-circle cta-feature-icon'></i><span>Comprehensive psychometric assessment</span></li>
+              <li class="cta-feature-item"><i class='bx bx-check-circle cta-feature-icon'></i><span>Stream selection guidance based on strengths</span></li>
+              <li class="cta-feature-item"><i class='bx bx-check-circle cta-feature-icon'></i><span>Personalized report with subject-wise recommendations</span></li>
+              <li class="cta-feature-item"><i class='bx bx-check-circle cta-feature-icon'></i><span>Access to career exploration resources</span></li>
+            </ul>
           </div>
           <form id="paymentForm" onsubmit="handlePaymentSubmit(event); return false;">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <input type="hidden" name="test_type" value="{{ test_type_id }}">
-            <button type="submit" id="proceedToBuyBtn" class="btn btn-primary w-100 mt-3">Proceed{% if not is_student %} to Buy{% endif %}</button>
+            <button type="submit" id="proceedToBuyBtn" class="cta-button">Proceed to Buy</button>
           </form>
           {% if delete_demo_payment_url %}
           <button onclick="delete_demo_payment()" class="btn btn-secondary w-100 mt-2">Clear Demo Test</button>
@@ -415,268 +545,252 @@ Discover your strengths and unlock your true potential with our scientifically d
         </div>
       </div>
     </div>
-  </div>
-</section>
-<!-- Pricing Section -->
+  </section>
+  <!-- CTA / Payment Section -->
 
-<!-- FAQ Section -->
-<section class="blog-section pb-10">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
-        <span class="highlighter text-gray fw-400">
-          <img class="position-relative top--10" src="{{ static('images_new/icons/gudiance-icona.svg') }}" alt="icon"> Mastering the Psychometric Test: Your Comprehensive Guide to Success
-        </span>
-        <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Got Questions? We've Got Answers!</h3>
-        <p class="text-gray">Frequently Asked Questions Answered to Help You Prepare, Perform, and Excel in Your Next Psychometric Assessment</p>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-10 mx-auto custom-faq">
-        <div class="accordion" id="accordionPsychometric">
-          {% for faq_item in faq %}
-          <div class="accordion-item">
-            <h2 class="accordion-header">
-              <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="{% if loop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ loop.index }}">
-                {{ faq_item.question }}
-              </button>
-            </h2>
-            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#accordionPsychometric">
-              <div class="accordion-body">
-                {{ faq_item.answer|safe }}
+    <!-- FAQ Section -->
+
+    <section class="blog-section py-10">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
+            <span class="highlighter text-gray fw-400 ">
+              <img class="position-relative top--10" src="{{ static('images_new/icons/gudiance-icona.svg') }}" alt="iocn"> Frequently Asked
+              Questions
+            </span>
+            <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Frequently Asked Questions</h3>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-10 mx-auto custom-faq">
+            <div class="accordion" id="faqAccordion">
+              <!-- FAQ 1 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqOne"
+                    aria-expanded="true" aria-controls="faqOne">
+                    Why Career Assessment Matters
+                  </button>
+                </h2>
+                <div id="faqOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    Career assessments help you understand how your personal characteristics affect your potential for
+                    success and satisfaction in various career options:
+                    <ul class="mt-3 mb-0 ps-4">
+                      <li>Strategic career decision-making</li>
+                      <li>Increased job satisfaction and motivation</li>
+                      <li>Better understanding of strengths and development areas</li>
+                      <li>Alignment between interests and career choices</li>
+                      <li>Enhanced self-awareness and personal identity</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
+
+              <!-- FAQ 2 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#faqTwo" aria-expanded="false" aria-controls="faqTwo">
+                    What is the importance of Career Assessment tests in career counseling?
+                  </button>
+                </h2>
+                <div id="faqTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    Scientific career assessment tests help you understand your strengths, weaknesses, aptitude,
+                    interests, and guide you towards the right career path.
+                  </div>
+                </div>
+              </div>
+
+              <!-- FAQ 3 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#faqThree" aria-expanded="false" aria-controls="faqThree">
+                    What is the duration of the career assessment? Do I have to take it in a single sitting?
+                  </button>
+                </h2>
+                <div id="faqThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    The assessment takes about 2 hours but supports auto-save so you can continue later.
+                  </div>
+                </div>
+              </div>
+
+              <!-- FAQ 4 -->
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#faqFour" aria-expanded="false" aria-controls="faqFour">
+                    How does the Top Teen Career assessment test help?
+                  </button>
+                </h2>
+                <div id="faqFour" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    The Top Teen Career Assessment helps you discover top career options based on personality, aptitude,
+                    and interests with detailed guidance.
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
-          {% endfor %}
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- FAQ Section -->
+    </section>
+    <!-- FAQ Section -->
+
+</main>
 
 {% endblock %}
 
 {% block additionaljs %}
 <script>
-// Store class selection for signup when coming from stream-sorter
-document.addEventListener('DOMContentLoaded', function() {
-  // Set class 10 for stream-sorter page
+document.addEventListener('DOMContentLoaded', function () {
   sessionStorage.setItem('signup_class', '10');
-  
-  // Intercept signup/login button clicks to preserve class selection
-  document.addEventListener('click', function(e) {
-    const target = e.target.closest('a[href*="login"], a[href*="welcome"], button[onclick*="login"], button[onclick*="welcome"]');
-    if (target) {
-      // Ensure class is set before navigation
-      sessionStorage.setItem('signup_class', '10');
-    }
+
+  document.querySelectorAll('.read-more-btn').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var boxDescription = this.previousElementSibling;
+      if (boxDescription && boxDescription.classList.contains('box-description')) {
+        boxDescription.classList.add('expanded');
+        this.classList.add('hidden');
+      }
+    });
   });
-  
-  // Owl Carousel initialization for psychometric test benefits
-  if (jQuery('.psy-carousel').length) {
-    jQuery('.psy-carousel').owlCarousel({
+  document.querySelectorAll('.description-close-btn').forEach(function (button) {
+    button.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var boxDescription = this.closest('.box-description');
+      if (boxDescription) {
+        boxDescription.classList.remove('expanded');
+        var boxContent = boxDescription.parentElement;
+        var readMoreBtn = boxContent ? boxContent.querySelector('.read-more-btn') : null;
+        if (readMoreBtn) readMoreBtn.classList.remove('hidden');
+      }
+    });
+  });
+
+  if (typeof jQuery !== 'undefined' && jQuery('.aptitude-carousel').length) {
+    var $carousel = jQuery('.aptitude-carousel');
+    if ($carousel.hasClass('owl-loaded')) {
+      $carousel.trigger('destroy.owl.carousel');
+      $carousel.removeClass('owl-carousel owl-loaded');
+      $carousel.find('.owl-stage-outer').children().unwrap();
+      $carousel.find('.owl-stage').children().unwrap();
+    }
+    $carousel.addClass('owl-carousel').owlCarousel({
       loop: true,
-      margin: 20,
+      margin: 30,
       nav: true,
       dots: false,
-      navText: ['<i class="bx bx-chevron-left"></i>', '<i class="bx bx-chevron-right"></i>'],
-      responsive: {
-        0: {
-          items: 1
-        },
-        768: {
-          items: 2
-        },
-        1024: {
-          items: 3
-        }
-      }
+      autoplay: false,
+      smartSpeed: 600,
+      responsive: { 0: { items: 1, margin: 5, stagePadding: 10 }, 576: { items: 1, margin: 0, stagePadding: 15 }, 768: { items: 1, margin: 0, stagePadding: 20 }, 992: { items: 3, margin: 0, stagePadding: 0 }, 1200: { items: 3, margin: 0, stagePadding: 0 } },
+      navText: ['<i class="bx bx-chevron-left"></i>', '<i class="bx bx-chevron-right"></i>']
     });
   }
+});
 
-  // Payment form submission handler
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
+function scrollToPayment() {
+  var el = document.getElementById('payment-section');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function getCookie(name) {
+  var cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+      var cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
       }
     }
-    return cookieValue;
   }
+  return cookieValue;
+}
 
-  window.handlePaymentSubmit = function(event) {
-    event.preventDefault();
-    // Institute student: free access, skip payment
-    {% if is_student %}
-      window.location.href = "{{ url('app:test_buttons') }}";
-      return;
-    {% endif %}
-    const form = document.getElementById('paymentForm');
-    const button = document.getElementById('proceedToBuyBtn');
-    const originalText = button.textContent;
-    
-    // Disable button and show loading state
-    button.disabled = true;
-    button.textContent = 'Processing...';
-    
-    const formData = new FormData(form);
-    const csrftoken = getCookie('csrftoken');
-    
-    // Convert FormData to JSON
-    const data = {
-      test_type: formData.get('test_type')
-    };
-    
-    fetch('{{ psychometric_test_payment_url }}', {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': csrftoken,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data),
-      credentials: 'same-origin'
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(errorData => {
-          throw new Error(errorData.error || 'Payment request failed');
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      // Institute-student free access response
-      if (data && data.free_access && data.redirect_url) {
-        window.location.href = data.redirect_url;
-        return;
-      }
-      // Already paid - redirect to dashboard
-      if (data && data.already_paid && data.redirect_url) {
-        window.location.href = data.redirect_url;
-        return;
-      }
-      // Check for error in response
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      // Check which gateway was used
-      // GatewayChoices: RAZORPAY=1, ICICIEAZYPAY=2
-      if (data.gateway === 1 || data.payment_info) {
-        // Razorpay gateway - open Razorpay checkout
-        if (typeof Razorpay === 'undefined') {
-          // Load Razorpay script if not already loaded
-          const script = document.createElement('script');
-          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-          script.onload = function() {
-            openRazorpay(data);
-          };
-          document.head.appendChild(script);
-        } else {
-          openRazorpay(data);
-        }
-      } else if (data.gateway === 2 || data.payment_url) {
-        // ICICI Eazypay gateway - redirect to payment URL
-        window.location.href = data.payment_url;
-      } else {
-        throw new Error('Unable to process payment. Invalid response format.');
-      }
-    })
-    .catch(error => {
-      console.error('Payment error:', error);
-      button.disabled = false;
-      button.textContent = originalText;
-      alert('Error: ' + (error.message || 'Unable to process payment. Please try again.'));
-    });
+window.handlePaymentSubmit = function(event) {
+  event.preventDefault();
+  {% if is_student %}
+  window.location.href = "{{ url('app:test_buttons') }}";
+  return;
+  {% endif %}
+  var form = document.getElementById('paymentForm');
+  var button = document.getElementById('proceedToBuyBtn');
+  var originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = 'Processing...';
+  var data = { test_type: form.querySelector('input[name="test_type"]').value };
+  fetch('{{ psychometric_test_payment_url }}', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+    credentials: 'same-origin'
+  })
+  .then(function(response) {
+    if (!response.ok) return response.json().then(function(d) { throw new Error(d.error || 'Payment request failed'); });
+    return response.json();
+  })
+  .then(function(data) {
+    if (data && data.free_access && data.redirect_url) { window.location.href = data.redirect_url; return; }
+    if (data && data.already_paid && data.redirect_url) { window.location.href = data.redirect_url; return; }
+    if (data.error) throw new Error(data.error);
+    if (data.gateway === 1 || data.payment_info) {
+      if (typeof Razorpay === 'undefined') {
+        var s = document.createElement('script'); s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        s.onload = function() { openRazorpay(data); }; document.head.appendChild(s);
+      } else { openRazorpay(data); }
+    } else if (data.gateway === 2 || data.payment_url) {
+      window.location.href = data.payment_url;
+    } else { throw new Error('Unable to process payment.'); }
+  })
+  .catch(function(err) {
+    button.disabled = false;
+    button.textContent = originalText;
+    alert('Error: ' + (err.message || 'Unable to process payment. Please try again.'));
+  });
+};
+
+function openRazorpay(data) {
+  if (typeof Razorpay === 'undefined') { alert('Razorpay is loading. Please try again.'); return; }
+  data.payment_info.handler = function(response) {
+    updatePayment(data.test_id, data.pay_id, data.test_type, response, data.success_url, data.fail_url);
   };
+  data.payment_info.modal = { ondismiss: function() { window.location.href = data.fail_url; } };
+  var rzp1 = new Razorpay(data.payment_info);
+  rzp1.open();
+  rzp1.on('payment.failed', function(response) {
+    alert('Payment failed: ' + (response.error.description || response.error.code));
+    window.location.href = data.fail_url;
+  });
+}
 
-  function openRazorpay(data) {
-    if (typeof Razorpay === 'undefined') {
-      alert('Razorpay is loading. Please wait a moment and try again.');
-      return;
-    }
-
-    data.payment_info['handler'] = function (response) {
-      updatePayment(data.test_id, data.pay_id, data.test_type, response, data.success_url, data.fail_url);
-    };
-    data.payment_info['modal'] = {
-      'ondismiss': function() {
-        window.location.href = data.fail_url;
-      }
-    };
-    var rzp1 = new Razorpay(data.payment_info);
-    rzp1.open();
-    rzp1.on('payment.failed', function (response) {
-      alert('Payment failed: ' + (response.error.description || response.error.code));
-      window.location.href = data.fail_url;
-    });
-  }
-
-  function updatePayment(test_id, pay_id, test_type, response, success_url, fail_url) {
-    const data = {
+function updatePayment(test_id, pay_id, test_type, response, success_url, fail_url) {
+  fetch('{{ payment_update_url }}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+    body: JSON.stringify({
       gateway_order_id: response.razorpay_order_id,
       gateway_payment_id: response.razorpay_payment_id,
       gateway_signature: response.razorpay_signature,
-      test_id: test_id,
-      payment_id: pay_id,
-      test_type: test_type
-    };
+      test_id: test_id, payment_id: pay_id, test_type: test_type
+    }),
+    credentials: 'same-origin'
+  }).then(function(r) { return r.json(); }).then(function() { window.location.href = success_url; }).catch(function() { window.location.href = fail_url; });
+}
 
-    fetch('{{ payment_update_url }}', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
-      },
-      body: JSON.stringify(data),
-      credentials: 'same-origin'
-    })
-    .then(response => response.json())
-    .then(data => {
-      window.location.href = success_url;
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      window.location.href = fail_url;
-    });
-  }
-
-  // Delete demo payment function
-  {% if delete_demo_payment_url %}
-  window.delete_demo_payment = function() {
-    if (confirm('Are you sure you want to clear the demo test?')) {
-      const csrftoken = getCookie('csrftoken');
-      fetch('{{ delete_demo_payment_url }}', {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': csrftoken,
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert('Demo test cleared successfully!');
-          location.reload();
-        } else {
-          alert('Error clearing demo test.');
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Error clearing demo test.');
-      });
-    }
-  };
-  {% endif %}
-});
+{% if delete_demo_payment_url %}
+window.delete_demo_payment = function() {
+  if (!confirm('Are you sure you want to clear the demo test?')) return;
+  fetch('{{ delete_demo_payment_url }}', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' }
+  }).then(function(r) { return r.json(); }).then(function(d) { if (d.success) { alert('Demo test cleared.'); location.reload(); } else alert('Error.'); }).catch(function() { alert('Error.'); });
+};
+{% endif %}
 </script>
 {% endblock %}
-

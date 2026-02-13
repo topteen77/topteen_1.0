@@ -67,6 +67,7 @@ Unlock your potential through diverse extracurricular activities that enhance yo
     font-weight: 500;
     transition: all 0.3s ease;
     font-size: 14px;
+    text-transform: capitalize;
   }
 
   .activity-list li:hover {
@@ -221,17 +222,17 @@ Unlock your potential through diverse extracurricular activities that enhance yo
                 {% for act in cat.activities.all() %}
                 <li>
                   {% if act.url %}
-                    <a href="{{ act.url }}" target="_blank" rel="noopener">
+                    <a href="{{ act.url }}" target="_blank" rel="noopener" class="text-capitalize">
                       <span>{{ act.name }}</span>
                       <i class="bx bx-chevron-right"></i>
                     </a>
                   {% elif act.content_html %}
-                    <a href="{{ url('core:extracurricular_activity_detail', args=[act.id]) }}">
+                    <a  class="text-capitalize" href="{{ url('core:extracurricular_activity_detail', args=[act.id]) }}">
                       <span>{{ act.name }}</span>
                       <i class="bx bx-chevron-right"></i>
                     </a>
                   {% else %}
-                    <a href="#">
+                    <a  class="text-capitalize" href="#">
                       <span>{{ act.name }}</span>
                       <i class="bx bx-chevron-right"></i>
                     </a>
