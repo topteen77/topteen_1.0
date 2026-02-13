@@ -1,750 +1,2808 @@
-{% extends 'template20/logged-in-base.html' %}
-
-{% block title_content %}Career Interest Assessment Test | Top Teen{% endblock %}
-{% block description_content %}Take the Career Interest Assessment test to discover your career interests.{% endblock %}
-
-{% block chatbot %}{% endblock %}
-{% block chatbot_css %}{% endblock %}
-{% block chatbot_js %}{% endblock %}
-{% block footer_cta %}{% endblock %}
-{% block header %}{% endblock %}
-{% block footer %}{% endblock %}
-
-{% block bodyclass %}{{ super() }} test-view-page{% endblock %}
-
-{% block additionalhead %}
-{{ super() }}
+{% extends 'topteenfrontend/user/user_base.html' %}
+{% block main %}
 <style>
-  .test-view-page {
-    padding-top: 80px;
+  /*** Interest Inventory ***/
+
+  p{margin-bottom: 0px;}
+
+  .tab-new-question .control {
+    display: block;
+    position: relative;
+    padding-left: 0;
+    margin-bottom: 15px;
+    cursor: pointer;
+    font-size: 18px;
   }
-  .question {
+
+  .tab-new-question .control input {
+    position: absolute;
+    z-index: -1;
+    opacity: 0;
+  }
+
+  .tab-new-question .control__indicator {
+    position: absolute;
+    top: 15px;
+    left: 8px;
+    height: 15px;
+    width: 15px;
+    background: #e6e6e6;
+  }
+
+  .tab-new-question .control--radio .control__indicator {
+    border-radius: 50%;
+  }
+
+  .tab-new-question .control:hover input~.control__indicator,
+  .tab-new-question .control input:focus~.control__indicator {
+    background: #ccc;
+  }
+
+  .tab-new-question .control input:checked~.control__indicator {
+    background: #2aa1c0;
+  }
+
+  .tab-new-question .control:hover input:not([disabled]):checked~.control__indicator,
+  .tab-new-question .control input:checked:focus~.control__indicator {
+    background: #0e647d;
+  }
+
+  .tab-new-question .control input:disabled~.control__indicator {
+    background: #e6e6e6;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .tab-new-question .control__indicator:after {
+    content: '';
+    position: absolute;
     display: none;
   }
-  .question.active {
+
+  .tab-new-question .control input:checked~.control__indicator:after {
     display: block;
   }
-  .question-box {
-    background: #f7f7fa;
-    border-radius: 10px;
-    padding: 30px;
-    margin-bottom: 30px;
+
+  .tab-new-question .control--checkbox .control__indicator:after {
+    left: 8px;
+    top: 2px;
+    width: 6px;
+    height: 12px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
   }
-  .career-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-    margin-top: 20px;
+
+  .tab-new-question .control--checkbox input:disabled~.control__indicator:after {
+    border-color: #7b7b7b;
   }
-  .career-checkbox {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    border: 2px solid #efefee;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-    background: #fff;
+
+  .tab-new-question .control--checkbox .control__indicator::after {
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
   }
-  .career-checkbox:hover {
-    border-color: #3f37c9;
-    background: rgba(63, 55, 201, 0.05);
+
+  .tab-new-question .control--radio input:disabled~.control__indicator:after {
+    background: #7b7b7b;
   }
-  .career-checkbox input[type="checkbox"] {
-    margin-right: 12px;
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-  .career-checkbox input[type="checkbox"]:checked + label {
-    color: #3f37c9;
-    font-weight: 600;
-  }
-  .career-checkbox:has(input[type="checkbox"]:checked) {
-    border-color: #3f37c9;
-    background: rgba(63, 55, 201, 0.1);
-  }
-  .career-checkbox label {
-    cursor: pointer;
-    margin: 0;
-    flex: 1;
-  }
-  .test-stats-box {
-    background: #f7f7fa;
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-  }
-  .test-stats-box .stat-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #3f37c9;
-  }
-  .test-stats-box .stat-label {
-    font-size: 12px;
-    color: #828282;
-    margin-top: 5px;
-  }
-  .loader {
+
+  .tab-new-question .select {
     position: relative;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    margin: 20px auto;
-  }
-  .loader-inner {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    border-radius: 50%;
-  }
-  .loader-inner.box1 {
-    left: 0%;
-    top: 0%;
-    animation: cssload-rotate-one 1.15s linear infinite;
-    border-bottom: 3px solid #5C5EDC;
-  }
-  .loader-inner.box2 {
-    right: 0%;
-    top: 0%;
-    animation: cssload-rotate-two 1.15s linear infinite;
-    border-right: 3px solid rgba(76, 70, 101, 0.99);
-  }
-  .loader-inner.box3 {
-    right: 0%;
-    bottom: 0%;
-    animation: cssload-rotate-three 1.15s linear infinite;
-    border-top: 3px solid #e9908a;
-  }
-  @keyframes cssload-rotate-one {
-    0% { transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg); }
-    100% { transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg); }
-  }
-  @keyframes cssload-rotate-two {
-    0% { transform: rotateX(50deg) rotateY(10deg) rotateZ(0deg); }
-    100% { transform: rotateX(50deg) rotateY(10deg) rotateZ(360deg); }
-  }
-  @keyframes cssload-rotate-three {
-    0% { transform: rotateX(35deg) rotateY(55deg) rotateZ(0deg); }
-    100% { transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg); }
-  }
-  .load-effect {
-    background: rgba(255, 255, 255, 0.95);
-    width: 100%;
-    height: 100%;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    z-index: 9999;
-    right: 0;
-    left: 0;
-    backdrop-filter: blur(3px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-  }
-  @media (max-width: 768px) {
-    .career-grid {
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 8px;
-    }
-  }
-  /* Answer Quality Widget Styles */
-  .answer-quality-widget {
-    background: #fff3cd !important;
-    border: 2px solid #ffc107 !important;
-    border-radius: 8px;
-    padding: 10px 12px;
-    display: flex !important;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    margin-top: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    min-height: 40px;
-    width: 100%;
-    z-index: 1000;
-  }
-  .answer-quality-widget.warning {
-    background: #fff3cd;
-    border-color: #ffc107;
-  }
-  .answer-quality-widget.careful {
-    background: #d4edda;
-    border-color: #28a745;
-  }
-  .quality-status-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .quality-status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
     display: inline-block;
+    margin-bottom: 15px;
+    width: 100%;
   }
-  .quality-status-indicator.status-warning {
-    background-color: #ffc107;
-    box-shadow: 0 0 4px rgba(255, 193, 7, 0.5);
-    animation: pulse-warning 2s infinite;
+
+  .tab-new-question .select select {
+    display: inline-block;
+    width: 100%;
+    cursor: pointer;
+    padding: 10px 15px;
+    outline: 0;
+    border: 0;
+    border-radius: 0;
+    background: #e6e6e6;
+    color: #7b7b7b;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
   }
-  .quality-status-indicator.status-careful {
-    background-color: #28a745;
-    box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
-  }
-  @keyframes pulse-warning {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-  .quality-status-text {
-    font-weight: 600;
-    font-size: 11px;
-  }
-  .quality-status-text.status-warning {
-    color: #856404;
-  }
-  .quality-status-text.status-careful {
-    color: #155724;
-  }
-  .quality-value {
-    font-size: 11px;
-    color: #666;
-    font-weight: 600;
-  }
-  /* Desktop widget container - hidden on mobile, visible on desktop */
-  .answer-quality-widget-desktop-container {
+
+  .tab-new-question .select select::-ms-expand {
     display: none;
   }
-  @media (min-width: 992px) {
-    .answer-quality-widget-desktop-container {
-      display: block;
+
+  .tab-new-question .select select:hover,
+  .tab-new-question .select select:focus {
+    color: #000;
+    background: #ccc;
+  }
+
+  .tab-new-question .select select:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .tab-new-question .select__arrow {
+    position: absolute;
+    top: 16px;
+    right: 15px;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    border-style: solid;
+    border-width: 8px 5px 0 5px;
+    border-color: #7b7b7b transparent transparent transparent;
+  }
+
+  .tab-new-question .select select:hover~.select__arrow,
+  .tab-new-question .tab-new-question .select select:focus~.select__arrow {
+    border-top-color: #000;
+  }
+
+  .tab-new-question .select select:disabled~.select__arrow {
+    border-top-color: #ccc;
+  }
+
+  .tab-new-question .check-box.question-box {
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
+    border-radius: 0px;
+    height: auto;
+    width:auto;
+  }
+
+  .grid-box {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-gap: .5rem;
+  }
+
+  .check-box.question-box {
+    padding: 4px 10px 4px 36px;
+  }
+
+  .grid-box .question-box .radio-btn {
+    padding: 5px 10px 6px 25px;
+    width: 100%;
+    font-size: 10px;
+    line-height: 12px;
+    text-align: left;
+    height: 51px;
+    display: flex;
+    align-items: center;
+  }
+
+  .check-box.question-box {
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
+    border-radius: 0px;
+  }
+
+  .check-box.question-box .custom-radio {
+    font-size: 12px;
+    width: 100%;
+  }
+
+  .tab-new-question {
+    padding: 19px;
+    border: 1px solid #DEDEDE;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 1280px) {
+
+    .tab-new-question {
+      overflow: auto;
+    }
+
+  }
+
+
+  @media (max-width: 576px) {
+    .famebox-row {
+      display: grid;
+      grid-gap: 1rem;
+      grid-auto-flow: column;
+      overflow: auto;
+      margin: 0 -1rem;
+      padding-left: 1rem;
+      grid-template-rows: repeat(2, 1fr);
+    }
+
+    .tab-new-question {
+      overflow-y: scroll;
+    }
+
+    .grid-box .question-box .radio-btn {
+      width: 100%;
     }
   }
+
+  @media screen and (max-width: 768px) {
+ol, ul {
+  padding-left: 0px !important;
+}
+
+.list-none {
+	padding-bottom: 0px;
+}
+
+.title-test-info {
+	font-size: 20px;
+}
+.mobile-footer{display: none;}
+
+
+  }
+
+  /*** Interest Inventory ***/
+  .error-message {
+    display: none;
+    /* Initially hidden */
+    padding: 15px;
+    /* Space around the text */
+    margin: 10px 0;
+    /* Space above and below the error message */
+    border: 1px solid #f8d7da;
+    /* Border color similar to the background */
+    background-color: #f8d7da;
+    /* Light red background */
+    color: #721c24;
+    /* Dark red text */
+    border-radius: 5px;
+    /* Rounded corners */
+    font-size: 16px;
+    /* Font size */
+    font-weight: 600;
+    /* Slightly bold */
+    text-align: center;
+    /* Center the text */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow for depth */
+    transition: opacity 0.5s ease-in-out;
+    /* Smooth transition for fade in/out */
+  }
 </style>
-{% endblock %}
 
-{% block content %}
-<section class="test-view-page pb-5">
-  <div class="container">
-    <div class="row">
-      <!-- Left Sidebar (Desktop) -->
-      <div class="col-lg-4 d-none d-lg-block">
-        <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
-          <div class="profile-header text-center">
-            {% if request.user.image %}
-            <img src="{{ request.user.image.url }}" alt="User Profile" class="profile-img rounded-circle mb-3" style="width: 104px; height: 104px; object-fit: cover;">
-            {% else %}
-            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 104px; height: 104px;">
-              <i class='bx bx-user fs-48 text-gray'></i>
-            </div>
-            {% endif %}
-            <h5 class="profile-name">{{ request.user.name|default(request.user.username) }}</h5>
-            <div class="profile-meta text-gray fs-14">
-              <p class="mb-1">
-                <i class='bx bx-calendar me-1'></i>
-                Joined {{ date_format(request.user.created) }}
-              </p>
-              {% if request.user.user_profile %}
-              <p class="mb-0">
-                <i class='bx bx-book me-1'></i>
-                {% if request.user.student_management.last().class_and_section %}{{ request.user.student_management.last().class_and_section }}{% endif %}
-                {% if request.user.user_profile.schoolname %} • {{ request.user.user_profile.schoolname }}{% endif %}
-              </p>
-              {% endif %}
-            </div>
-          </div>
 
-          <!-- Test Stats -->
-          <div class="test-stats-box mt-4">
-            <div class="row g-3">
-              <div class="col-6">
-                <div class="st-m-icon mb-2">
-                  <i class='bx bx-time fs-32 text-purple'></i>
-                </div>
-                <p class="stat-value" id="totalTime">00:00</p>
-                <p class="stat-label">Total Time</p>
-              </div>
-              <div class="col-6">
-                <div class="st-m-icon mb-2">
-                  <i class='bx bx-list-check fs-32 text-purple'></i>
-                </div>
-                <p class="stat-value" id="questionProgress">1/{{ questions|length }}</p>
-                <p class="stat-label">Question</p>
-              </div>
-            </div>
-          </div>
+<style>
+  /* //new loder css */
+ .loader {
+     position: relative;
+     width: 100px;
+     height: 100px;
+     border-radius: 50%;
+     margin: 20px auto;
+     -o-border-radius: 50%;
+     -ms-border-radius: 50%;
+     -webkit-border-radius: 50%;
+     -moz-border-radius: 50%;
+     -webkit-perspective: 780px;
+     perspective: 780px;
+ }
+ .loader-inner {
+     position: absolute;
+     width: 100%;
+     height: 100%;
+     box-sizing: border-box;
+     -o-box-sizing: border-box;
+     -ms-box-sizing: border-box;
+     -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+     border-radius: 50%;
+     -o-border-radius: 50%;
+     -ms-border-radius: 50%;
+     -webkit-border-radius: 50%;
+     -moz-border-radius: 50%;
+ }
+ .loader-inner.box1{
+     left: 0%;
+     top: 0%;
+     animation: cssload-rotate-one 1.15s linear infinite;
+     -o-animation: cssload-rotate-one 1.15s linear infinite;
+     -ms-animation: cssload-rotate-one 1.15s linear infinite;
+     -webkit-animation: cssload-rotate-one 1.15s linear infinite;
+     -moz-animation: cssload-rotate-one 1.15s linear infinite;
+     border-bottom: 3px solid #5C5EDC;
+ }
+ .loader-inner.box2{
+     right: 0%;
+     top: 0%;
+     animation: cssload-rotate-two 1.15s linear infinite;
+     -o-animation: cssload-rotate-two 1.15s linear infinite;
+     -ms-animation: cssload-rotate-two 1.15s linear infinite;
+     -webkit-animation: cssload-rotate-two 1.15s linear infinite;
+     -moz-animation: cssload-rotate-two 1.15s linear infinite;
+     border-right: 3px solid rgba(76, 70, 101, 0.99);
+ }
+ .loader-inner.box3{
+     right: 0%;
+     bottom: 0%;
+     animation: cssload-rotate-three 1.15s linear infinite;
+     -o-animation: cssload-rotate-three 1.15s linear infinite;
+     -ms-animation: cssload-rotate-three 1.15s linear infinite;
+     -webkit-animation: cssload-rotate-three 1.15s linear infinite;
+     -moz-animation: cssload-rotate-three 1.15s linear infinite;
+     border-top: 3px solid #e9908a;
+ }
+ @keyframes cssload-rotate-one {
+     0% {
+         -webkit-transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg);
+         transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg);
+         transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg);
+     }
+ }
+ @-webkit-keyframes cssload-rotate-one {
+     0% {
+         -webkit-transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg);
+     }
+ }
+ @keyframes cssload-rotate-two {
+     0% {
+         -webkit-transform: rotateX(50deg) rotateY(10deg) rotateZ(0deg);
+         transform: rotateX(50deg) rotateY(10deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(50deg) rotateY(10deg) rotateZ(360deg);
+         transform: rotateX(50deg) rotateY(10deg) rotateZ(360deg);
+     }
+ }
+ @-webkit-keyframes cssload-rotate-two {
+     0% {
+         -webkit-transform: rotateX(50deg) rotateY(10deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(50deg) rotateY(10deg) rotateZ(360deg);
+     }
+ }
+ @keyframes cssload-rotate-three {
+     0% {
+         -webkit-transform: rotateX(35deg) rotateY(55deg) rotateZ(0deg);
+         transform: rotateX(35deg) rotateY(55deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg);
+         transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg);
+     }
+ }
+ @-webkit-keyframes cssload-rotate-three {
+     0% {
+         -webkit-transform: rotateX(35deg) rotateY(55deg) rotateZ(0deg);
+     }
+     100% {
+         -webkit-transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg);
+     }
+ }
+ 
+ /* end new loder css */
+ 
+ 
+ 
+ 
+ .load-effect {
+     background: #ffffffd9;
+     width: 100%;
+     height: 100%;
+     position: fixed;
+     top: 0px;
+     bottom: 0px;
+     z-index: 9999999;
+     right: 0;
+     left: 0;
+     backdrop-filter: blur(3px);
+     justify-content: center;
+     align-items: center;
+     flex-direction: column;
+ }
+ </style>
 
-          <!-- Answer Quality Widget (Desktop) - controlled by ENABLE_ANSWERING_CAREFULLY_WIDGET -->
-          {% if enable_answering_carefully_widget %}
-          <div class="mt-3 answer-quality-widget-desktop-container">
-            <div class="answer-quality-widget careful mb-3" id="answerQualityWidgetDesktop" style="display: flex !important;">
-              <div class="quality-status-badge">
-                <span class="quality-status-indicator status-careful"></span>
-                <span class="quality-status-text status-careful">Answering Carefully</span>
-              </div>
-              <div class="quality-value">
-                <span id="avgTimeDesktop">-- sec/q</span>
-              </div>
-            </div>
+
+<div data-direction="translate-y-full"
+  class=" h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto translate-y-full transition-all duration-500">
+
+  <div class="inline-block bg-[#ffffff] w-full rounded-t-[10px] absolute bottom-0 drawerContent">
+
+    <div class="pl-[24px] pr-[30px] w-full py-[32px] flex flex-col gap-[20px]">
+
+      <a href="{{url('users:logout')}}" class="inline-block w-full">
+        <div class="flex justify-between w-full">
+          <div>
+            <p class="text-[16px] leading-[21.6px] semibold text-[#f20a18]">Sign Out</p>
+            <p class="text-[12px] leading-[16px] regularFont text-opacity-60 text-[#f20a18]">You
+              answered - Indoors</p>
           </div>
-          {% endif %}
+          <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
         </div>
-      </div>
+      </a>
 
-      <!-- Main Content Area -->
-      <div class="col-lg-8">
-        <!-- Mobile Header -->
-        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
-          <div class="d-flex align-items-center">
-            {% if request.user.image %}
-            <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
-            {% else %}
-            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px;">
-              <i class='bx bx-user fs-24 text-gray'></i>
-            </div>
-            {% endif %}
-            <div>
-              <h5 class="mb-0">{{ request.user.name|default(request.user.username) }}</h5>
-              <p class="text-gray fs-12 mb-0">Joined {{ date_format(request.user.created) }}</p>
-            </div>
-          </div>
-          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
-            <i class='bx bx-cog'></i>
+    </div>
+
+  </div>
+
+</div>
+<!--End of Edit Profile PopUp -->
+
+<!-- Refer friends PopUp -->
+<div
+  class="hidden top-0 inset-x-0 z-50 fixed mx-auto bg-black bg-opacity-50 h-screen flex flex-row justify-center items-center referFriendsPopup ">
+  <div class="lg:max-w-[1280px] h-full mx-auto relative flex flex-row justify-center items-center">
+    <div
+      class="bg-[#ffffff] rounded-[10px] relative referDivs w-full md:max-w-[395px] lg:w-[395px] pb-[24px] pt-[48px] modalContent">
+      <button class="absolute top-[16px] right-[22px] lg:top-[30px] lg:right-[24px] referPopupClose">
+        <i class="fa fa-xmark"></i>
+      </button>
+
+      <p class="text-[24px] leading-[32.4px] -tracking-[2%] text-center semibold ">
+        Refer/Invite friends
+      </p>
+      <form onsubmit="return false" id="referform">
+        <div class="w-full flex justify-center mt-[22px] ">
+          <input type="text" id="remail" name="email" placeholder="Enter email"
+            class="mx-auto w-[80%] h-[53px] rounded-[10px]">
+        </div>
+        <div class="mx-auto w-[80%] h-[53px] rounded-[10px] bg-[#2e289d] mt-[12px]">
+          <button type="submit" onclick="refersubmit()"
+            class="w-full h-[48px] rounded-[10px] bg-[#3f37c9] boldFont text-[14px] leading-[18.9px] text-[#ffffff] tracking-[1%]">
+            Submit
           </button>
         </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- End of Refer Friends Popup -->
 
-        <!-- Answer Quality Widget (Mobile) - controlled by ENABLE_ANSWERING_CAREFULLY_WIDGET -->
-        {% if enable_answering_carefully_widget %}
-        <div class="answer-quality-widget careful d-lg-none mb-3" id="answerQualityWidgetMobile" style="display: flex !important;">
-          <div class="quality-status-badge">
-            <span class="quality-status-indicator status-careful"></span>
-            <span class="quality-status-text status-careful">Answering Carefully</span>
-          </div>
-          <div class="quality-value">
-            <span id="avgTimeMobile">-- sec/q</span>
-          </div>
-        </div>
-        {% endif %}
+<!-- Main Content -->
+<main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
 
-        <!-- Mobile Test Stats -->
-        <div class="d-lg-none mb-4">
-          <div class="test-stats-box">
-            <div class="row g-3">
-              <div class="col-6">
-                <div class="st-m-icon mb-2">
-                  <i class='bx bx-time fs-32 text-purple'></i>
-                </div>
-                <p class="stat-value" id="totalTimeMobile">00:00</p>
-                <p class="stat-label">Total Time</p>
+  <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
+    <!-- Left Part Mobile -->
+    <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
+      <!-- User -->
+      <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
+        <div class="flex gap-[17px]">
+          <div>
+            <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" />
+          </div>
+          <div class="flex flex-col gap-y-[5px]">
+            <div class="pt-[12px]">
+              <p class="text-[15px] leading-[20.25px] font-semibold">
+                {{request.user.name}}
+              </p>
+            </div>
+            <div class="flex flex-col gap-y-[3px]">
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
+                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  Joined {{request.user.created.strftime("%B, %Y")}}
+                </p>
               </div>
-              <div class="col-6">
-                <div class="st-m-icon mb-2">
-                  <i class='bx bx-list-check fs-32 text-purple'></i>
-                </div>
-                <p class="stat-value" id="questionProgressMobile">1/{{ questions|length }}</p>
-                <p class="stat-label">Question</p>
+              <div class="flex gap-[4px]">
+                <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
+                  class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
+                <p class="text-[10px] leading-[13.5px] text-[#828282]">
+                  {% if request.user.user_profile %}
+                  {% if request.user.student_management.last().class_and_section %}
+                  {{request.user.student_management.last().class_and_section}}
+                  {% endif %} • {% if request.user.user_profile.schoolname %}
+                  {{request.user.user_profile.schoolname}}{% endif %}
+                  {% else %} - • - {% endif %}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        <h2 class="fs-24 fw-semibold mb-3">Career Interest Assessment</h2>
+        <button type="button" data-direction="translate-y-full"
+          class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
+          <i class="fa fa-gear text-white text-[12.5px]"></i>
+        </button>
+      </div>
+      <!-- End of User -->
+
+      <!-- Complete Profile -->
+      <div id="comppro"
+        class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-20 pt-[18px] relative hidden">
+        <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
+          <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
+        </div>
+        <div>
+          <div class="flex relative">
+            <div class="absolute -left-[24px]">
+              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png')}}" class="w-[81px] h-[81px]"
+                alt="" />
+            </div>
+            <div class="text-left max-w-[217.5px] ml-[74px]">
+              <div>
+                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
+                  Complete your profile
+                </p>
+                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
+                  A complete profile helps us cater the best content to you
+                </p>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
+                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
+              </div>
+              <!-- End of Progress Bar -->
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+      <!-- End of Complete Profile -->
+    </div>
+
+    <!-- End of left Part Mobile -->
+
+	  	  <div class="relative">
+    <!-- Left part Desktop -->
+    <div class=" hidden lg:block w-[338px] h-[450px] border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto">
+      <!-- User -->
+      <div class="flex justify-center border-b-[1px] border-solid border-[#dedede]">
+        <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px]">
+
+          <div class=" flex flex-col justify-center items-center">
+
+            <div class="flex justify-center items-center w-full">
+              <div class="flex gap-[8px]">
+                <div class="relative">
+                  <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" />
+                  <!-- <img src="{{static('topteenfrontend/assets/images/test_Img.png')}}"
+                    class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" /> -->
+
+                  <!-- XP  -->
+                  <!-- <div
+                          class="w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px] absolute bottom-1 left-20"
+                        >
+                          <div
+                            class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
+                          >
+                            <img
+                              src="{{static("topteenfrontend/assets/images/xp.svg")}}"
+                              class="w-[20px] h-[20px]"
+                              alt=""
+                            />
+                            <p
+                              class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
+                            >
+                              1280 XP
+                            </p>
+                          </div>
+                        </div> -->
+                  <!-- End of XP -->
+                </div>
+              </div>
+            </div>
+
+            <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
+
+          </div>
+
+
+          <div class="flex flex-col gap-y-[8px]">
+
+            <div class="flex gap-[14px] align-items-center">
+              <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                Joined {{request.user.created.strftime("%B, %Y")}}
+              </p>
+            </div>
+            <div class="flex gap-[14px] align-items-center">
+              <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}" class="w-[18px] h-[14px]" alt="" />
+              <p class="text-[16px] leading-[21.6px] text-[#828282]">
+                {% if request.user.user_profile %} {% if request.user.student_management.last().class_and_section
+                %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if
+                request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{% else %} - •
+                - {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- End of User -->
+
+
+    </div>
+    <!-- End of Left part Desktop -->
+	  
+	  
+	  	  <div class="timer-text mb-md-0 mb-5">
+	        <!-- Complete Profile -->
+      <div class="flex justify-md-center pt-[18px] px-3  mt-md-0 mt-10">
+        <div class="test-item-info">
+          <div class="item-st-box">
+            <div class="st-m-icon"> <img src="{{ static ('images/blue-clock.png')}}" alt="Clock" /> </div>
+            <div class="ttex-bkue">
+              <p class="bt-l-title" id="totalTime">00:00</p><br>
+              <p class="bt-smp-t">Total Time</p>
+            </div>
+          </div>
+          <div class="item-st-box">
+            <div class="st-m-icon"> <img src="{{ static ('images/blue-eye.png')}}" alt="Clock" /> </div>
+            <div class="ttex-bkue">
+              <p class="bt-l-title" id="questionProgress">1/4</p><br>
+              <p class="bt-smp-t">Question Displayed</p>
+            </div>
+          </div>
+        </div>
         
-        <div class="alert alert-info d-flex align-items-center mb-4">
-          <i class='bx bx-info-circle me-2 fs-20'></i>
-          <div class="fs-14">Select all the careers that interest you. You can select multiple options for each question.</div>
+      </div>
+      <!-- End of Complete Profile -->
+	  </div>
+	  
+	  </div>
+
+    <!-- Right Part -->
+    <!-- <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20"> -->
+      <!-- Statistics -->
+      
+        <div class="col-lg-8 col-md-12 mt-md-0 mt-5 order-md-2 order-1">
+          <h2 class="title-test-info mb-3"> Career Interest Assessment </h2>
+          <form id="multiStepForm" class="md-t-q">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <div class="tsp-title w-100 error-message" id="error-message" style="display: none;">
+              Please select an option for all questions before submitting.
+            </div>
+            <input type="hidden" name="test_paper" value="{{ test_paper }}">
+            <!-- Step  1 -->
+            <div class="question active" id="question1">
+              <div class="tab-new-question">
+                <div class="grid-box">
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MechanicalEngineer">
+                        <input type="checkbox" id="MechanicalEngineer" value="MechanicalEngineer">
+                        <span class="radio-btn">Mechanical Engineer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CivilEngineer">
+                        <input type="checkbox" id="CivilEngineer" value="CivilEngineer">
+                        <span class="radio-btn">Civil Engineer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ElectricalEngineer">
+                        <input type="checkbox" id="ElectricalEngineer" value="ElectricalEngineer">
+                        <span class="radio-btn">Electrical Engineer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="AircraftPilot">
+                        <input type="checkbox" id="AircraftPilot" value="AircraftPilot">
+                        <span class="radio-btn">Aircraft Pilot</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="AutomotiveTechnician">
+                        <input type="checkbox" id="AutomotiveTechnician" value="AutomotiveTechnician">
+                        <span class="radio-btn">Automotive Technician</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ConstructionManager">
+                        <input type="checkbox" id="ConstructionManager" value="ConstructionManager">
+                        <span class="radio-btn">Construction Manager</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <!-- Continue adding other checkboxes similarly -->
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Optician">
+                        <input type="checkbox" id="Optician" value="Optician">
+                        <span class="radio-btn">Optician</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Physiologist">
+                        <input type="checkbox" id="Physiologist" value="Physiologist">
+                        <span class="radio-btn">Physiologist</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <!-- Add more as per the list provided -->
+
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Chef">
+                        <input type="checkbox" id="Chef" value="Chef">
+                        <span class="radio-btn">Chef</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="AgriculturalManager">
+                        <input type="checkbox" id="AgriculturalManager" value="AgriculturalManager">
+                        <span class="radio-btn">Agricultural Manager</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+
+
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="HomeHealthcareAid">
+                        <input type="checkbox" id="HomeHealthcareAid" value="HomeHealthcareAid">
+                        <span class="radio-btn">Home Healthcare Aid</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MassageTherapist">
+                        <input type="checkbox" id="MassageTherapist" value="MassageTherapist">
+                        <span class="radio-btn">Massage Therapist</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div class="grid-box">
+                  <!-- Continue adding groups as needed -->
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MedicalAssistant">
+                        <input type="checkbox" id="MedicalAssistant" value="MedicalAssistant">
+                        <span class="radio-btn">Medical Assistant</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="IndustrialManager">
+                        <input type="checkbox" id="IndustrialManager" value="IndustrialManager">
+                        <span class="radio-btn">Industrial Manager</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ITSupport">
+                        <input type="checkbox" id="ITSupport" value="ITSupport">
+                        <span class="radio-btn">IT Support</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CommercialDiver">
+                        <input type="checkbox" id="CommercialDiver" value="CommercialDiver">
+                        <span class="radio-btn">Commercial Diver</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="AthleticTrainer">
+                        <input type="checkbox" id="AthleticTrainer" value="AthleticTrainer">
+                        <span class="radio-btn">Athletic Trainer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Machinist">
+                        <input type="checkbox" id="Machinist" value="Machinist">
+                        <span class="radio-btn">Machine Operator</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <!-- Continue with more job roles as listed -->
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="AppDeveloper">
+                        <input type="checkbox" id="AppDeveloper" value="AppDeveloper">
+                        <span class="radio-btn">App Developer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Acupuncturist">
+                        <input type="checkbox" id="Acupuncturist" value="Acupuncturist">
+                        <span class="radio-btn">Acupuncturist</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MarineEngineer">
+                        <input type="checkbox" id="MarineEngineer" value="MarineEngineer">
+                        <span class="radio-btn">Marine Engineer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Surveyor">
+                        <input type="checkbox" id="Surveyor" value="Surveyor">
+                        <span class="radio-btn">Surveyor</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <!-- More entries here -->
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Chiropractor">
+                        <input type="checkbox" id="Chiropractor" value="Chiropractor">
+                        <span class="radio-btn">Spine Specialist</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Physician">
+                        <input type="checkbox" id="Physician" value="Physician">
+                        <span class="radio-btn">Physician</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="AudioTechnician">
+                        <input type="checkbox" id="AudioTechnician" value="AudioTechnician">
+                        <span class="radio-btn">Audio Technician</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Podiatrist">
+                        <input type="checkbox" id="Podiatrist" value="Podiatrist">
+                        <span class="radio-btn">Foot Doctor</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="RespiratoryTherapist">
+                        <input type="checkbox" id="RespiratoryTherapist" value="RespiratoryTherapist">
+                        <span class="radio-btn">Respiratory Therapist</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Baker">
+                        <input type="checkbox" id="Baker" value="Baker">
+                        <span class="radio-btn">Baker</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="NuclearPowerReactorOperator">
+                        <input type="checkbox" id="NuclearPowerReactorOperator" value="NuclearPowerReactorOperator">
+                        <span class="radio-btn">Nuclear Power Reactor Operator</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Opthalmologist">
+                        <input type="checkbox" id="Opthalmologist" value="Opthalmologist">
+                        <span class="radio-btn">Eye Specialist</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="LocoPilot">
+                        <input type="checkbox" id="LocoPilot" value="LocoPilot">
+                        <span class="radio-btn">Train Driver</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="PoliceOfficer">
+                        <input type="checkbox" id="PoliceOfficer" value="PoliceOfficer">
+                        <span class="radio-btn">Police Officer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Dentist">
+                        <input type="checkbox" id="Dentist" value="Dentist">
+                        <span class="radio-btn">Dentist</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Firefighter">
+                        <input type="checkbox" id="Firefighter" value="Firefighter">
+                        <span class="radio-btn">Firefighter</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Landscaper">
+                        <input type="checkbox" id="Landscaper" value="Landscaper">
+                        <span class="radio-btn">Landscaper</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CyberSecurityEngineer">
+                        <input type="checkbox" id="CyberSecurityEngineer" value="CyberSecurityEngineer">
+                        <span class="radio-btn">Cyber Security Engineer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="assestment-button d-flex justify-content-center my-5">
+                <button type="button" id="Realistic"
+                  class="btn purple-button me-3 next-button px-md-6 fw-600">Continue</button>
+              </div>
+            </div>
+
+            <!-- Step  1 -->
+
+
+
+            <!-- Step 2 -->
+
+            <div class="question" id="question2">
+              <div class="tab-new-question">
+                <div class="grid-box">
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Biochemist">
+                        <input type="checkbox" id="Biochemist" value="Biochemist">
+                        <span class="radio-btn"> Biochemist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MedicalScientist">
+                        <input type="checkbox" id="MedicalScientist" value="MedicalScientist">
+                        <span class="radio-btn"> Medical Scientist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="SoftwareDeveloper">
+                        <input type="checkbox" id="SoftwareDeveloper" value="SoftwareDeveloper">
+                        <span class="radio-btn"> Software Developer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Psychologist">
+                        <input type="checkbox" id="Psychologist" value="Psychologist">
+                        <span class="radio-btn"> Psychologist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Statistician">
+                        <input type="checkbox" id="Statistician" value="Statistician">
+                        <span class="radio-btn"> Statistician </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Pharmacist">
+                        <input type="checkbox" id="Pharmacist" value="Pharmacist">
+                        <span class="radio-btn"> Pharmacist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="EnvironmentalScientist">
+                        <input type="checkbox" id="EnvironmentalScientist" value="EnvironmentalScientist">
+                        <span class="radio-btn"> Environmental Scientist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="LaboratoryTechnician">
+                        <input type="checkbox" id="LaboratoryTechnician" value="LaboratoryTechnician">
+                        <span class="radio-btn"> Laboratory Technician </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Geologist">
+                        <input type="checkbox" id="Geologist" value="Geologist">
+                        <span class="radio-btn"> Geologist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Microbiologist">
+                        <input type="checkbox" id="Microbiologist" value="Microbiologist">
+                        <span class="radio-btn"> Microbiologist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ForensicScientist">
+                        <input type="checkbox" id="ForensicScientist" value="ForensicScientist">
+                        <span class="radio-btn"> Forensic Scientist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Epidemiologist">
+                        <input type="checkbox" id="Epidemiologist" value="Epidemiologist">
+                        <span class="radio-btn"> Infectious Disease Expert</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid-box">
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Mathematician">
+                        <input type="checkbox" id="Mathematician" value="Mathematician">
+                        <span class="radio-btn"> Mathematician </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Geneticist">
+                        <input type="checkbox" id="Geneticist" value="Geneticist">
+                        <span class="radio-btn"> Geneticist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="OperationsResearchAnalyst">
+                        <input type="checkbox" id="OperationsResearchAnalyst" value="OperationsResearchAnalyst">
+                        <span class="radio-btn"> Operations Research Analyst </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Physicist">
+                        <input type="checkbox" id="Physicist" value="Physicist">
+                        <span class="radio-btn"> Physicist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ClinicalResearchCoordinator">
+                        <input type="checkbox" id="ClinicalResearchCoordinator" value="ClinicalResearchCoordinator">
+                        <span class="radio-btn"> Clinical Research Coordinator </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Toxicologist">
+                        <input type="checkbox" id="Toxicologist" value="Toxicologist">
+                        <span class="radio-btn"> Toxicologist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Zoologist">
+                        <input type="checkbox" id="Zoologist" value="Zoologist">
+                        <span class="radio-btn"> Zoologist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Hydrologist">
+                        <input type="checkbox" id="Hydrologist" value="Hydrologist">
+                        <span class="radio-btn"> Hydrologist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Seismologist">
+                        <input type="checkbox" id="Seismologist" value="Seismologist">
+                        <span class="radio-btn"> Earthquake Scientist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Agronomist">
+                        <input type="checkbox" id="Agronomist" value="Agronomist">
+                        <span class="radio-btn"> Agronomist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="FoodScientist">
+                        <input type="checkbox" id="FoodScientist" value="FoodScientist">
+                        <span class="radio-btn"> Food Scientist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="UrbanPlanner">
+                        <input type="checkbox" id="UrbanPlanner" value="UrbanPlanner">
+                        <span class="radio-btn"> Urban Planner </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid-box">
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="DataScientist">
+                        <input type="checkbox" id="DataScientist" value="DataScientist">
+                        <span class="radio-btn"> Data Scientist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MarineBiologist">
+                        <input type="checkbox" id="MarineBiologist" value="MarineBiologist">
+                        <span class="radio-btn"> Marine Biologist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="NuclearEngineer">
+                        <input type="checkbox" id="NuclearEngineer" value="NuclearEngineer">
+                        <span class="radio-btn"> Nuclear Engineer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="PetroleumEngineer">
+                        <input type="checkbox" id="PetroleumEngineer" value="PetroleumEngineer">
+                        <span class="radio-btn"> Petroleum Engineer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Meteorologist">
+                        <input type="checkbox" id="Meteorologist" value="Meteorologist">
+                        <span class="radio-btn"> Weather Expert</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="RoboticsEngineer">
+                        <input type="checkbox" id="RoboticsEngineer" value="RoboticsEngineer">
+                        <span class="radio-btn"> Robotics Engineer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="HealthInformationTechnician">
+                        <input type="checkbox" id="HealthInformationTechnician" value="HealthInformationTechnician">
+                        <span class="radio-btn"> Health Information Technician </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="BioinformaticsSpecialist">
+                        <input type="checkbox" id="BioinformaticsSpecialist" value="BioinformaticsSpecialist">
+                        <span class="radio-btn"> Bioinformatics Specialist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="BiomedicalEngineer">
+                        <input type="checkbox" id="BiomedicalEngineer" value="BiomedicalEngineer">
+                        <span class="radio-btn"> Biomedical Engineer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Economist">
+                        <input type="checkbox" id="Economist" value="Economist">
+                        <span class="radio-btn"> Economist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Astronomer">
+                        <input type="checkbox" id="Astronomer" value="Astronomer">
+                        <span class="radio-btn"> Astronomer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Chemist">
+                        <input type="checkbox" id="Chemist" value="Chemist">
+                        <span class="radio-btn"> Chemist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="assestment-button d-flex justify-content-center my-5">
+                <button type="button" class="btn blue-button ms-3 prev-button px-md-6 fw-600 me-1">Back</button>
+                <button type="button" class="btn purple-button next-button px-md-6 fw-600 ms-1">Continue</button>
+              </div>
+            </div>
+
+
+
+
+            <!-- Step 2 -->
+
+
+            <!-- Step 3 -->
+
+            <div class="question" id="question3">
+              <div class="tab-new-question">
+                <div class="grid-box">
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="GraphicDesigner">
+                        <input type="checkbox" id="GraphicDesigner" value="GraphicDesigner">
+                        <span class="radio-btn"> Graphic Designer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="WriterAuthor">
+                        <input type="checkbox" id="WriterAuthor" value="WriterAuthor">
+                        <span class="radio-btn"> Writer/Author </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Actor">
+                        <input type="checkbox" id="Actor" value="Actor">
+                        <span class="radio-btn"> Actor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Musician">
+                        <input type="checkbox" id="Musician" value="Musician">
+                        <span class="radio-btn"> Musician </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ArtDirector">
+                        <input type="checkbox" id="ArtDirector" value="ArtDirector">
+                        <span class="radio-btn"> Art Director </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="InteriorDesigner">
+                        <input type="checkbox" id="InteriorDesigner" value="InteriorDesigner">
+                        <span class="radio-btn"> Interior Designer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Photographer">
+                        <input type="checkbox" id="Photographer" value="Photographer">
+                        <span class="radio-btn"> Photographer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="FilmDirector">
+                        <input type="checkbox" id="FilmDirector" value="FilmDirector">
+                        <span class="radio-btn"> Film Director </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="FashionDesigner">
+                        <input type="checkbox" id="FashionDesigner" value="FashionDesigner">
+                        <span class="radio-btn"> Fashion Designer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Animator">
+                        <input type="checkbox" id="Animator" value="Animator">
+                        <span class="radio-btn"> Animator </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MultimediaArtist">
+                        <input type="checkbox" id="MultimediaArtist" value="MultimediaArtist">
+                        <span class="radio-btn"> Multimedia Artist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="DancerChoreographer">
+                        <input type="checkbox" id="DancerChoreographer" value="DancerChoreographer">
+                        <span class="radio-btn"> Dancer/Choreographer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid-box">
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Illustrator">
+                        <input type="checkbox" id="Illustrator" value="Illustrator">
+                        <span class="radio-btn"> Drawing Expert </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CreativeWriter">
+                        <input type="checkbox" id="CreativeWriter" value="CreativeWriter">
+                        <span class="radio-btn">Creative Writer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="SetDesigner">
+                        <input type="checkbox" id="SetDesigner" value="SetDesigner">
+                        <span class="radio-btn"> Set Designer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Architect">
+                        <input type="checkbox" id="Architect" value="Architect">
+                        <span class="radio-btn"> Architect </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ChildPsychologist">
+                        <input type="checkbox" id="ChildPsychologist" value="ChildPsychologist">
+                        <span class="radio-btn"> Child Psychologist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MakeupArtist">
+                        <input type="checkbox" id="MakeupArtist" value="MakeupArtist">
+                        <span class="radio-btn"> Makeup Artist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MusicComposer">
+                        <input type="checkbox" id="MusicComposer" value="MusicComposer">
+                        <span class="radio-btn"> Music Composer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Editor">
+                        <input type="checkbox" id="Editor" value="Editor">
+                        <span class="radio-btn"> Editor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ResearchAssistant">
+                        <input type="checkbox" id="ResearchAssistant" value="ResearchAssistant">
+                        <span class="radio-btn"> Research Assistant </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="FineArtist">
+                        <input type="checkbox" id="FineArtist" value="FineArtist">
+                        <span class="radio-btn"> Fine Artist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CraftArtist">
+                        <input type="checkbox" id="CraftArtist" value="CraftArtist">
+                        <span class="radio-btn"> Craft Artist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ExhibitDesigner">
+                        <input type="checkbox" id="ExhibitDesigner" value="ExhibitDesigner">
+                        <span class="radio-btn"> Display Planner </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid-box">
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ArtTeacher">
+                        <input type="checkbox" id="ArtTeacher" value="ArtTeacher">
+                        <span class="radio-btn"> Art Teacher </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Cinematographer">
+                        <input type="checkbox" id="Cinematographer" value="Cinematographer">
+                        <span class="radio-btn"> Cinematographer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MusicProducer">
+                        <input type="checkbox" id="MusicProducer" value="MusicProducer">
+                        <span class="radio-btn"> Music Producer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Sculptor">
+                        <input type="checkbox" id="Sculptor" value="Sculptor">
+                        <span class="radio-btn"> Sculptor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="VoiceActor">
+                        <input type="checkbox" id="VoiceActor" value="VoiceActor">
+                        <span class="radio-btn"> Voice Actor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="TheatricalPerformer">
+                        <input type="checkbox" id="TheatricalPerformer" value="TheatricalPerformer">
+                        <span class="radio-btn"> Theatrical Performer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="SignLanguageSpecialist">
+                        <input type="checkbox" id="SignLanguageSpecialist" value="SignLanguageSpecialist">
+                        <span class="radio-btn"> Sign Language Specialist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ArtTherapist">
+                        <input type="checkbox" id="ArtTherapist" value="ArtTherapist">
+                        <span class="radio-btn"> Art Therapist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CostumeDesigner">
+                        <input type="checkbox" id="CostumeDesigner" value="CostumeDesigner">
+                        <span class="radio-btn"> Costume Designer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="WebDesigner">
+                        <input type="checkbox" id="WebDesigner" value="WebDesigner">
+                        <span class="radio-btn"> Web Designer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Advocate">
+                        <input type="checkbox" id="Advocate" value="Advocate">
+                        <span class="radio-btn"> Advocate </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="BroadcastNewsAnalyst">
+                        <input type="checkbox" id="BroadcastNewsAnalyst" value="BroadcastNewsAnalyst">
+                        <span class="radio-btn"> Broadcast News Analyst </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="assestment-button d-flex justify-content-center my-5">
+                <button type="button" class="btn blue-button ms-3 prev-button px-md-6 fw-600 me-1">Back</button>
+                <button type="button" class="btn purple-button next-button px-md-6 fw-600 ms-1">Continue</button>
+              </div>
+            </div>
+
+
+            <!-- Step 3 -->
+
+
+            <!-- Step 4-->
+
+            <div class="question" id="question4">
+              <div class="tab-new-question">
+                <div class="grid-box">
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Teacher">
+                        <input type="checkbox" id="Teacher" value="Teacher">
+                        <span class="radio-btn"> Teacher </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="SocialWorker">
+                        <input type="checkbox" id="SocialWorker" value="SocialWorker">
+                        <span class="radio-btn"> Social Worker </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Counselor">
+                        <input type="checkbox" id="Counselor" value="Counselor">
+                        <span class="radio-btn"> Counselor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Nurse">
+                        <input type="checkbox" id="Nurse" value="Nurse">
+                        <span class="radio-btn"> Nurse </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="OccupationalTherapist">
+                        <input type="checkbox" id="OccupationalTherapist" value="OccupationalTherapist">
+                        <span class="radio-btn"> Occupational Therapist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="SpeechLanguagePathologist">
+                        <input type="checkbox" id="SpeechLanguagePathologist" value="SpeechLanguagePathologist">
+                        <span class="radio-btn"> Speech-Language Pathologist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="HumanResourcesSpecialist">
+                        <input type="checkbox" id="HumanResourcesSpecialist" value="HumanResourcesSpecialist">
+                        <span class="radio-btn"> Human Resources Specialist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CommunityServiceManager">
+                        <input type="checkbox" id="CommunityServiceManager" value="CommunityServiceManager">
+                        <span class="radio-btn"> Community Service Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="PhysicalTherapist">
+                        <input type="checkbox" id="PhysicalTherapist" value="PhysicalTherapist">
+                        <span class="radio-btn"> Physical Therapist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="SpecialEducationTeacher">
+                        <input type="checkbox" id="SpecialEducationTeacher" value="SpecialEducationTeacher">
+                        <span class="radio-btn"> Special Education Teacher </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="SchoolCounselor">
+                        <input type="checkbox" id="SchoolCounselor" value="SchoolCounselor">
+                        <span class="radio-btn"> School Counselor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="HealthEducator">
+                        <input type="checkbox" id="HealthEducator" value="HealthEducator">
+                        <span class="radio-btn"> Health Educator </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MarriageAndFamilyTherapist">
+                        <input type="checkbox" id="MarriageAndFamilyTherapist" value="MarriageAndFamilyTherapist">
+                        <span class="radio-btn"> Marriage and Family Therapist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MentalHealthCounselor">
+                        <input type="checkbox" id="MentalHealthCounselor" value="MentalHealthCounselor">
+                        <span class="radio-btn"> Mental Health Counselor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="SubstanceAbuseCounselor">
+                        <input type="checkbox" id="SubstanceAbuseCounselor" value="SubstanceAbuseCounselor">
+                        <span class="radio-btn"> Substance Abuse Counselor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ChildcareWorker">
+                        <input type="checkbox" id="ChildcareWorker" value="ChildcareWorker">
+                        <span class="radio-btn"> Childcare Worker </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="RehabilitationCounselor">
+                        <input type="checkbox" id="RehabilitationCounselor" value="RehabilitationCounselor">
+                        <span class="radio-btn"> Rehabilitation Counselor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MedicalAndHealthServicesManager">
+                        <input type="checkbox" id="MedicalAndHealthServicesManager"
+                          value="MedicalAndHealthServicesManager">
+                        <span class="radio-btn"> Medical and Health Services Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Dietitian">
+                        <input type="checkbox" id="Dietitian" value="Dietitian">
+                        <span class="radio-btn"> Dietitian </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="AthleticTrainer">
+                        <input type="checkbox" id="AthleticTrainer" value="AthleticTrainer">
+                        <span class="radio-btn"> Athletic Trainer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Librarian">
+                        <input type="checkbox" id="Librarian" value="Librarian">
+                        <span class="radio-btn"> Librarian </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="SpeechTherapist">
+                        <input type="checkbox" id="SpeechTherapist" value="SpeechTherapist">
+                        <span class="radio-btn"> Speech Therapist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="YouthWorker">
+                        <input type="checkbox" id="YouthWorker" value="YouthWorker">
+                        <span class="radio-btn"> Youth Worker </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="HomeHealthAide">
+                        <input type="checkbox" id="HomeHealthAide" value="HomeHealthAide">
+                        <span class="radio-btn"> Home Health Aide </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="VocationalTrainer">
+                        <input type="checkbox" id="VocationalTrainer" value="VocationalTrainer">
+                        <span class="radio-btn"> Vocational Trainer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CareerCounselor">
+                        <input type="checkbox" id="CareerCounselor" value="CareerCounselor">
+                        <span class="radio-btn"> Career Counselor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CustomerServiceRepresentative">
+                        <input type="checkbox" id="CustomerServiceRepresentative" value="CustomerServiceRepresentative">
+                        <span class="radio-btn"> Customer Service Representative </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="PersonalCareAide">
+                        <input type="checkbox" id="PersonalCareAide" value="PersonalCareAide">
+                        <span class="radio-btn"> Personal Care Aide </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="RecreationWorker">
+                        <input type="checkbox" id="RecreationWorker" value="RecreationWorker">
+                        <span class="radio-btn"> Recreation Worker </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="SocialAndCommunityServiceAssistant">
+                        <input type="checkbox" id="SocialAndCommunityServiceAssistant"
+                          value="SocialAndCommunityServiceAssistant">
+                        <span class="radio-btn"> Social and Community Service Assistant </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="AcademicAdvisor">
+                        <input type="checkbox" id="AcademicAdvisor" value="AcademicAdvisor">
+                        <span class="radio-btn"> Academic Advisor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="EmergencyManagementDirector">
+                        <input type="checkbox" id="EmergencyManagementDirector" value="EmergencyManagementDirector">
+                        <span class="radio-btn"> Emergency Management Director </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="HospiceWorker">
+                        <input type="checkbox" id="HospiceWorker" value="HospiceWorker">
+                        <span class="radio-btn"> Comfort Care Worker </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="PeerSupportSpecialist">
+                        <input type="checkbox" id="PeerSupportSpecialist" value="PeerSupportSpecialist">
+                        <span class="radio-btn"> Peer Support Specialist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ProbationOfficer">
+                        <input type="checkbox" id="ProbationOfficer" value="ProbationOfficer">
+                        <span class="radio-btn">Rehabilitation Officer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Gerontologist">
+                        <input type="checkbox" id="Gerontologist" value="Gerontologist">
+                        <span class="radio-btn"> Aging Specialist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+              <div class="assestment-button d-flex justify-content-center my-5">
+                <button type="button" class="btn blue-button ms-3 prev-button px-md-6 fw-600 me-1">Back</button>
+                <button type="button" class="btn purple-button next-button px-md-6 fw-600 ms-1">Continue</button>
+              </div>
+            </div>
+
+            <!-- Step 4-->
+
+
+
+            <!-- Step 5-->
+
+            <div class="question" id="question5">
+              <div class="tab-new-question">
+                <div class="grid-box">
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="SalesManager">
+                        <input type="checkbox" id="SalesManager" value="SalesManager">
+                        <span class="radio-btn"> Sales Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="MarketingManager">
+                        <input type="checkbox" id="MarketingManager" value="MarketingManager">
+                        <span class="radio-btn"> Marketing Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="RealEstateAgent">
+                        <input type="checkbox" id="RealEstateAgent" value="RealEstateAgent">
+                        <span class="radio-btn"> Real Estate Agent </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="Entrepreneur">
+                        <input type="checkbox" id="Entrepreneur" value="Entrepreneur">
+                        <span class="radio-btn"> Entrepreneur </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="Lawyer">
+                        <input type="checkbox" id="Lawyer" value="Lawyer">
+                        <span class="radio-btn"> Lawyer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="FinancialAdvisor">
+                        <input type="checkbox" id="FinancialAdvisor" value="FinancialAdvisor">
+                        <span class="radio-btn"> Financial Advisor </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="PublicRelationsSpecialist">
+                        <input type="checkbox" id="PublicRelationsSpecialist" value="PublicRelationsSpecialist">
+                        <span class="radio-btn"> Public Relations Specialist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="BusinessExecutive">
+                        <input type="checkbox" id="BusinessExecutive" value="BusinessExecutive">
+                        <span class="radio-btn"> Businessman </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="ManagementConsultant">
+                        <input type="checkbox" id="ManagementConsultant" value="ManagementConsultant">
+                        <span class="radio-btn"> Management Consultant </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="InsuranceAgent">
+                        <input type="checkbox" id="InsuranceAgent" value="InsuranceAgent">
+                        <span class="radio-btn"> Insurance Agent </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="Fundraiser">
+                        <input type="checkbox" id="Fundraiser" value="Fundraiser">
+                        <span class="radio-btn"> Fundraiser </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="Recruiter">
+                        <input type="checkbox" id="Recruiter" value="Recruiter">
+                        <span class="radio-btn"> Recruiter </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid-box">
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="AdvertisingManager">
+                        <input type="checkbox" id="AdvertisingManager" value="AdvertisingManager">
+                        <span class="radio-btn"> Advertising Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="LoanOfficer">
+                        <input type="checkbox" id="LoanOfficer" value="LoanOfficer">
+                        <span class="radio-btn"> Loan Officer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="HotelManager">
+                        <input type="checkbox" id="HotelManager" value="HotelManager">
+                        <span class="radio-btn"> Hotel Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="EventPlanner">
+                        <input type="checkbox" id="EventPlanner" value="EventPlanner">
+                        <span class="radio-btn"> Event Planner </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="RetailManager">
+                        <input type="checkbox" id="RetailManager" value="RetailManager">
+                        <span class="radio-btn"> Retail Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="SalesRepresentative">
+                        <input type="checkbox" id="SalesRepresentative" value="SalesRepresentative">
+                        <span class="radio-btn"> Sales Representative </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="MarketResearchAnalyst">
+                        <input type="checkbox" id="MarketResearchAnalyst" value="MarketResearchAnalyst">
+                        <span class="radio-btn"> Market Research Analyst </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="HumanResourcesManager">
+                        <input type="checkbox" id="HumanResourcesManager" value="HumanResourcesManager">
+                        <span class="radio-btn"> Human Resources Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="PropertyManager">
+                        <input type="checkbox" id="PropertyManager" value="PropertyManager">
+                        <span class="radio-btn"> Property Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="FranchiseOwner">
+                        <input type="checkbox" id="FranchiseOwner" value="FranchiseOwner">
+                        <span class="radio-btn"> Franchise Owner </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="Stockbroker">
+                        <input type="checkbox" id="Stockbroker" value="Stockbroker">
+                        <span class="radio-btn"> Stockbroker </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="OrganizationalPsychologist">
+                        <input type="checkbox" id="OrganizationalPsychologist" value="OrganizationalPsychologist">
+                        <span class="radio-btn"> Organizational Psychologist </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid-box">
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="TravelAgent">
+                        <input type="checkbox" id="TravelAgent" value="TravelAgent">
+                        <span class="radio-btn"> Travel Agent </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="InvestmentBanker">
+                        <input type="checkbox" id="InvestmentBanker" value="InvestmentBanker">
+                        <span class="radio-btn"> Investment Banker </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="BusinessDevelopmentManager">
+                        <input type="checkbox" id="BusinessDevelopmentManager" value="BusinessDevelopmentManager">
+                        <span class="radio-btn"> Business Development Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="LegalSecretary">
+                        <input type="checkbox" id="LegalSecretary" value="LegalSecretary">
+                        <span class="radio-btn"> Legal Secretary </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="SportsAgent">
+                        <input type="checkbox" id="SportsAgent" value="SportsAgent">
+                        <span class="radio-btn"> Sports Agent </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="AirTrafficController">
+                        <input type="checkbox" id="AirTrafficController" value="AirTrafficController">
+                        <span class="radio-btn"> Air Traffic Controller </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="TrainingAndDevelopmentManager">
+                        <input type="checkbox" id="TrainingAndDevelopmentManager" value="TrainingAndDevelopmentManager">
+                        <span class="radio-btn"> Training and Development Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="OperationsManager">
+                        <input type="checkbox" id="OperationsManager" value="OperationsManager">
+                        <span class="radio-btn"> Operations Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="SalesEngineer">
+                        <input type="checkbox" id="SalesEngineer" value="SalesEngineer">
+                        <span class="radio-btn"> Sales Engineer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="ProductManager">
+                        <input type="checkbox" id="ProductManager" value="ProductManager">
+                        <span class="radio-btn"> Product Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box ">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="EcommerceManager">
+                        <input type="checkbox" id="EcommerceManager" value="EcommerceManager">
+                        <span class="radio-btn"> E-commerce Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio " for="BrandManager">
+                        <input type="checkbox" id="BrandManager" value="BrandManager">
+                        <span class="radio-btn"> Brand Manager </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+              <div class="assestment-button d-flex justify-content-center my-5">
+                <button type="button" class="btn blue-button ms-3 prev-button px-md-6 fw-600 me-1">Back</button>
+                <button type="button" class="btn purple-button next-button px-md-6 fw-600 ms-1">Continue</button>
+              </div>
+            </div>
+
+            <!-- Step 5-->
+
+
+
+            <!-- Step 6-->
+
+            <div class="question" id="question6">
+              <div class="tab-new-question">
+                <div class="grid-box">
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Accountant">
+                        <input type="checkbox" id="Accountant" value="Accountant">
+                        <span class="radio-btn">Accountant</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="AdministrativeAssistant">
+                        <input type="checkbox" id="AdministrativeAssistant" value="AdministrativeAssistant">
+                        <span class="radio-btn">Administrative Assistant</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="DataAnalyst">
+                        <input type="checkbox" id="DataAnalyst" value="DataAnalyst">
+                        <span class="radio-btn">Data Analyst</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="FinancialAnalyst">
+                        <input type="checkbox" id="FinancialAnalyst" value="FinancialAnalyst">
+                        <span class="radio-btn">Financial Analyst</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ComplianceOfficer">
+                        <input type="checkbox" id="ComplianceOfficer" value="ComplianceOfficer">
+                        <span class="radio-btn">Policy Enforcer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="LogisticsManager">
+                        <input type="checkbox" id="LogisticsManager" value="LogisticsManager">
+                        <span class="radio-btn">Logistics Manager</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Paralegal">
+                        <input type="checkbox" id="Paralegal" value="Paralegal">
+                        <span class="radio-btn">Paralegal</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Actuary">
+                        <input type="checkbox" id="Actuary" value="Actuary">
+                        <span class="radio-btn">Risk calculator</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CorrectionalOfficer">
+                        <input type="checkbox" id="CorrectionalOfficer" value="CorrectionalOfficer">
+                        <span class="radio-btn">Correctional Officer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="IndustrialPsychologist">
+                        <input type="checkbox" id="IndustrialPsychologist" value="IndustrialPsychologist">
+                        <span class="radio-btn">Industrial Psychologist</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MedicalRecordsTechnician">
+                        <input type="checkbox" id="MedicalRecordsTechnician" value="MedicalRecordsTechnician">
+                        <span class="radio-btn">Medical Records Technician</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="OfficeManager">
+                        <input type="checkbox" id="OfficeManager" value="OfficeManager">
+                        <span class="radio-btn">Office Manager</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid-box">
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CourtReporter">
+                        <input type="checkbox" id="CourtReporter" value="CourtReporter">
+                        <span class="radio-btn">Court Reporter</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="BudgetAnalyst">
+                        <input type="checkbox" id="BudgetAnalyst" value="BudgetAnalyst">
+                        <span class="radio-btn">Budget Analyst</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CreditAnalyst">
+                        <input type="checkbox" id="CreditAnalyst" value="CreditAnalyst">
+                        <span class="radio-btn">Credit Analyst</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="TaxPreparer">
+                        <input type="checkbox" id="TaxPreparer" value="TaxPreparer">
+                        <span class="radio-btn">Tax Preparer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="QualityControlInspector">
+                        <input type="checkbox" id="QualityControlInspector" value="QualityControlInspector">
+                        <span class="radio-btn">Quality Control Inspector</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="DatabaseAdministrator">
+                        <input type="checkbox" id="DatabaseAdministrator" value="DatabaseAdministrator">
+                        <span class="radio-btn">Database Administrator</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Archivist">
+                        <input type="checkbox" id="Archivist" value="Archivist">
+                        <span class="radio-btn">Historical Document Organizer </span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="InsuranceUnderwriter">
+                        <input type="checkbox" id="InsuranceUnderwriter" value="InsuranceUnderwriter">
+                        <span class="radio-btn">Insurance Underwriter</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="PurchasingAgent">
+                        <input type="checkbox" id="PurchasingAgent" value="PurchasingAgent">
+                        <span class="radio-btn">Purchasing Agent</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Auditor">
+                        <input type="checkbox" id="Auditor" value="Auditor">
+                        <span class="radio-btn">Auditor</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="LoanProcessor">
+                        <input type="checkbox" id="LoanProcessor" value="LoanProcessor">
+                        <span class="radio-btn">Loan Processor</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ComputerProgrammer">
+                        <input type="checkbox" id="ComputerProgrammer" value="ComputerProgrammer">
+                        <span class="radio-btn">Computer Programmer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="grid-box">
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="CostEstimator">
+                        <input type="checkbox" id="CostEstimator" value="CostEstimator">
+                        <span class="radio-btn">Cost Estimator</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ClaimsAdjuster">
+                        <input type="checkbox" id="ClaimsAdjuster" value="ClaimsAdjuster">
+                        <span class="radio-btn">Claims Adjuster</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="RealEstateAppraiser">
+                        <input type="checkbox" id="RealEstateAppraiser" value="RealEstateAppraiser">
+                        <span class="radio-btn">Real Estate Appraiser</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="Professor">
+                        <input type="checkbox" id="Professor" value="Professor">
+                        <span class="radio-btn">Professor</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MarketResearchSpecialist">
+                        <input type="checkbox" id="MarketResearchSpecialist" value="MarketResearchSpecialist">
+                        <span class="radio-btn">Market Research Specialist</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="ExecutiveAssistant">
+                        <input type="checkbox" id="ExecutiveAssistant" value="ExecutiveAssistant">
+                        <span class="radio-btn">Executive Assistant</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="MortgageLoanOfficer">
+                        <input type="checkbox" id="MortgageLoanOfficer" value="MortgageLoanOfficer">
+                        <span class="radio-btn">Mortgage Loan Officer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="PropertyClerk">
+                        <input type="checkbox" id="PropertyClerk" value="PropertyClerk">
+                        <span class="radio-btn">Property Clerk</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="FoodTechnitian">
+                        <input type="checkbox" id="FoodTechnitian" value="FoodTechnitian">
+                        <span class="radio-btn">Food Technitian</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="DigitalMarketer">
+                        <input type="checkbox" id="DigitalMarketer" value="DigitalMarketer">
+                        <span class="radio-btn">Digital Marketer</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="check-box question-box">
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="GovernmentServiceExecutive">
+                        <input type="checkbox" id="GovernmentServiceExecutive" value="GovernmentServiceExecutive">
+                        <span class="radio-btn">Government Service Executive</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                    <div class="form-group control control--checkbox">
+                      <label class="custom-radio" for="StatisticalAssistant">
+                        <input type="checkbox" id="StatisticalAssistant" value="StatisticalAssistant">
+                        <span class="radio-btn">Statistical Assistant</span>
+                        <div class="control__indicator"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+
+              </div>
+
+              <div class="assestment-button d-flex justify-content-center my-5">
+                <button type="button" class="btn  blue-button ms-3 prev-button px-md-6 fw-600 me-1">Back</button>
+                <button type="submit" class="btn btn-success submit-button btn-sumb px-md-6 fw-600">Submit</button>
+              </div>
+            </div>
         </div>
 
-        <form id="multiStepForm">
-          <div class="alert alert-danger" id="error-message" style="display: none;">
-            <i class='bx bx-error-circle me-2'></i> Please select at least one option for all questions before submitting.
-          </div>
-          
-          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-          
-          {% for question in questions %}
-          <div class="question {% if loop.first %}active{% endif %}" id="question{{ loop.index }}">
-            <div class="question-box">
-              {% if question.question_text %}
-              <div class="question-label fs-18 fw-semibold mb-4">
-                <span class="text-purple me-2">Q{{ loop.index }}:</span>
-                {{ question.question_text }}
-              </div>
-              {% else %}
-              <div class="question-label fs-18 fw-semibold mb-4">
-                <span class="text-purple me-2">Q{{ loop.index }}:</span>
-                Select the careers that interest you:
-              </div>
-              {% endif %}
-              
-              <!-- Career Options Grid -->
-              <div class="career-grid">
-                {% if question.answer_set.all() %}
-                  {% for answer in question.answer_set.all() %}
-                  <div class="career-checkbox">
-                    <input type="checkbox" 
-                           name="question{{ loop.parent.loop.index }}" 
-                           id="career-{{ loop.parent.loop.index }}-{{ loop.index }}" 
-                           value="{{ answer.answer_text if answer.answer_text else answer.text }}">
-                    <label for="career-{{ loop.parent.loop.index }}-{{ loop.index }}">
-                      {{ answer.answer_text if answer.answer_text else answer.text }}
-                    </label>
-                  </div>
-                  {% endfor %}
-                {% else %}
-                  <!-- Fallback: If no answers in database, show placeholder careers -->
-                  <!-- This can be customized based on actual data structure -->
-                  <div class="career-checkbox">
-                    <input type="checkbox" name="question_{{ loop.index }}_careers" id="career-{{ loop.index }}-1" value="Career Option 1">
-                    <label for="career-{{ loop.index }}-1">Career Option 1</label>
-                  </div>
-                {% endif %}
-              </div>
-            </div>
+        <!-- Step 6-->
 
-            <div class="d-flex justify-content-center gap-3 my-4">
-              {% if not loop.first %}
-              <button type="button" class="btn custom-button blue-button prev-button">Back</button>
-              {% endif %}
-              {% if not loop.last %}
-              <button type="button" class="btn custom-button purple-button next-button">Continue</button>
-              {% else %}
-              <button type="submit" onclick="return validateForm()" class="btn btn-success submit-button">
-                <i class='bx bx-check me-2'></i> Submit Test
-              </button>
-              {% endif %}
-            </div>
-          </div>
-          {% endfor %}
+
         </form>
+      </div>
+      <!-- Step 6-->
+    <!-- </div> -->
+  </div>
+
+  <div id="loader" class="load-effect" style="display: none;">
+    <div class="loader">
+        <div class="loader-inner box1"></div>
+        <div class="loader-inner box2"></div>
+        <div class="loader-inner box3"></div>
+    </div>
+    <p><img src="/static/topteenfrontend/assets/images/logo/topteen.png" class="h-[45px] inline-block"></p>
+</div>
+</main>
+
+
+
+<!-- <div class="modal fade" id="submitModal" tabindex="-1" role="dialog" aria-labelledby="submitModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-body s-test-modal">
+        <h5>You have successfully completed this assessment.</h5>
+        <p>if you wish to change your last answer,
+          please go back, else Submit.</p>
+      </div>
+      <div class="assestment-button d-flex justify-content-center mt-0 mb-3">
+        <button type="button" class="btn  blue-button ms-3  px-md-6 fw-600 me-1 close" data-dismiss="modal"
+          aria-label="Close">Back</button>
+        <button type="button" class="btn purple-button px-md-6 fw-600 ms-1">Continue</button>
       </div>
     </div>
   </div>
-</section>
+</div> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+  integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{{ static ('js/bootstrap.min.js')}}"></script>
+<script src="{{ static ('js/main.js')}}"></script>
+<script src="{{ static ('js/jquery.sticky.js')}}"></script>
 
-<!-- Loading Overlay -->
-<div id="loader" class="load-effect" style="display: none;">
-  <div class="loader">
-    <div class="loader-inner box1"></div>
-    <div class="loader-inner box2"></div>
-    <div class="loader-inner box3"></div>
-  </div>
-  <p class="mt-3">
-    <img src="{{ static('images_new/logos/topteen-logo.svg') }}" style="height: 45px;" alt="TopTeen">
-  </p>
-</div>
+<body>
 
-<!-- Mobile Drawer -->
-<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-lg-none" data-direction="translate-y-full">
-  <div class="drawerContent bg-white w-100 rounded-t-lg absolute bottom-0">
-    <div class="p-4 d-flex flex-column gap-3">
-      <a href="{{ url('users:logout') }}" class="d-flex justify-content-between align-items-center text-decoration-none text-danger">
-        <div>
-          <h6 class="mb-0">Sign Out</h6>
-          <p class="text-danger fs-12 mb-0">Log out from your account</p>
-        </div>
-        <i class='bx bx-chevron-right'></i>
-      </a>
-    </div>
-  </div>
-</div>
-{% endblock %}
+  <script>
+    $(document).ready(function () {
+      let currentQuestion = 1;
+      const totalQuestions = $('.question').length;
 
-{% block additionaljs %}
-{{ super() }}
-<!-- jQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-  $(document).ready(function () {
-    let currentQuestion = 1;
-    const totalQuestions = $('.question').length;
-    let startTime, timerInterval;
-    let totalSeconds = 10 * 60; // 10 minutes in seconds (as per intro instructions)
-    const clicks = {}; // Collect clicks data
-    let questionStartTimes = {};
-    let answerTimes = [];
-    const MIN_TIME_PER_QUESTION = 3; // Minimum 3 seconds per question to be considered careful
-
-    // Timer functionality
-    function startTimer() {
-      startTime = Date.now();
-      timerInterval = setInterval(updateTimer, 1000);
-    }
-
-    function updateTimer() {
-      const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-      const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
-      
-      const minutes = Math.floor(remainingSeconds / 60);
-      const seconds = remainingSeconds % 60;
-      const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-      $('#totalTime').text(timeString);
-      $('#totalTimeMobile').text(timeString);
-
-      // Auto-submit when time is up (optional - currently commented)
-      // if (remainingSeconds <= 0) {
-      //   clearInterval(timerInterval);
-      //   $('#multiStepForm').submit();
-      // }
-    }
-
-    // Question navigation
-    function showQuestion(number) {
-      $('.question').removeClass('active');
-      $('#question' + number).addClass('active');
-      
-      const progressText = number + ' / ' + totalQuestions;
-      $('#questionProgress').text(progressText);
-      $('#questionProgressMobile').text(progressText);
-      
-      $('.next-button').toggle(number < totalQuestions);
-      $('.prev-button').toggle(number > 1);
-      $('.submit-button').toggle(number === totalQuestions);
-      
-      // Track time for answer quality widget
-      if (!questionStartTimes[number]) {
-        questionStartTimes[number] = Date.now();
+      function getSelectedRadioValues() {
+        const selectedValues = [];
+        $('.question').each(function () {
+          const activeQuestion = $(this);
+          const selectedRadio = activeQuestion.find('input[type="radio"]:checked');
+          selectedValues.push(selectedRadio.val());
+        });
+        
+        return selectedValues;
       }
-    }
-    
-    // Update answer quality widget
-    function updateAnswerQualityWidget() {
-      const mobileWidget = $('#answerQualityWidgetMobile');
-      const desktopWidget = $('#answerQualityWidgetDesktop');
-      
-      if (answerTimes.length === 0) {
-        // Show default state when no answers yet
-        mobileWidget.show();
-        desktopWidget.show();
-        $('#avgTimeMobile').text('-- sec/q');
-        $('#avgTimeDesktop').text('-- sec/q');
-        return;
-      }
-      
-      const avgTime = answerTimes.reduce((a, b) => a + b, 0) / answerTimes.length;
-      const isRushing = avgTime < MIN_TIME_PER_QUESTION;
-      
-      if (isRushing) {
-        mobileWidget.removeClass('careful').addClass('warning').show();
-        desktopWidget.removeClass('careful').addClass('warning').show();
-        mobileWidget.find('.quality-status-indicator').removeClass('status-careful').addClass('status-warning');
-        desktopWidget.find('.quality-status-indicator').removeClass('status-careful').addClass('status-warning');
-        mobileWidget.find('.quality-status-text').removeClass('status-careful').addClass('status-warning').text('Rushing Through');
-        desktopWidget.find('.quality-status-text').removeClass('status-careful').addClass('status-warning').text('Rushing Through');
-      } else {
-        mobileWidget.removeClass('warning').addClass('careful').show();
-        desktopWidget.removeClass('warning').addClass('careful').show();
-        mobileWidget.find('.quality-status-indicator').removeClass('status-warning').addClass('status-careful');
-        desktopWidget.find('.quality-status-indicator').removeClass('status-warning').addClass('status-careful');
-        mobileWidget.find('.quality-status-text').removeClass('status-warning').addClass('status-careful').text('Answering Carefully');
-        desktopWidget.find('.quality-status-text').removeClass('status-warning').addClass('status-careful').text('Answering Carefully');
-      }
-      
-      $('#avgTimeMobile').text(avgTime.toFixed(1) + ' sec/q');
-      $('#avgTimeDesktop').text(avgTime.toFixed(1) + ' sec/q');
-    }
 
-    // Next button - updated to collect data
-    $('.next-button').off('click').on('click', function () {
-      const currentQuestionBox = $('#question' + currentQuestion);
-      const checkedBoxes = currentQuestionBox.find('input[type="checkbox"]:checked');
-      
-      // Collect data for current question
-      clicks['question' + currentQuestion] = Array.from(checkedBoxes).map(checkbox => checkbox.value);
-      console.log('Collected data for question' + currentQuestion + ':', clicks['question' + currentQuestion]);
-      
-      // Record time spent on current question when manually clicking next
-      if (questionStartTimes[currentQuestion] && answerTimes.length < currentQuestion) {
-        const timeSpent = (Date.now() - questionStartTimes[currentQuestion]) / 1000; // in seconds
-        answerTimes.push(timeSpent);
-        updateAnswerQualityWidget();
+
+      // lets start the timer 
+      let startTime, timerInterval;
+      const TIME_LIMIT = 10 * 60 * 1000; // 15 minutes in milliseconds
+
+      function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
       }
-      
-      // For test2, at least one checkbox should be selected (optional validation)
-      // You can remove this if multiple selections are not required
-      if (checkedBoxes.length > 0 || true) { // Allow proceeding even if none selected
+
+      function updateTimer() {
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = TIME_LIMIT - elapsedTime;
+
+        if (remainingTime <= 0) {
+          clearInterval(timerInterval);
+          // Redirect or submit the form when time is up
+          window.location.href = "{{ url ('app:app_submit' )}}"; // Replace with actual URL or action
+        } else {
+          const minutes = Math.floor(remainingTime / (1000 * 60));
+          const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+          const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          $('#totalTime').text(timeString);
+        }
+      }
+      // lets end the timer 
+
+      function showQuestion(number) {
+        $('.question').removeClass('active');
+        $('#question' + number).addClass('active');
+        $('#questionProgress').text(' ' + number + ' / ' + totalQuestions);
+        $('.next-button').toggle(number < totalQuestions);
+        $('.prev-button').toggle(number > 1);
+        $('.submit-button').toggle(number === totalQuestions);
+      }
+
+      $('.next-button').on('click', function () {
         if (currentQuestion < totalQuestions) {
           currentQuestion++;
           showQuestion(currentQuestion);
-          $('#error-message').hide();
         }
-      } else {
-        $('#error-message').show();
-        setTimeout(function () {
-          $('#error-message').hide();
-        }, 3000);
-      }
-    });
-
-    // Previous button
-    $('.prev-button').on('click', function () {
-      if (currentQuestion > 1) {
-        currentQuestion--;
-        showQuestion(currentQuestion);
-      }
-    });
-
-    // Auto-advance to next question when at least one checkbox is selected
-    $(document).on('change', 'input[type="checkbox"]', function () {
-      const currentQuestionBox = $('#question' + currentQuestion);
-      const checkedBoxes = currentQuestionBox.find('input[type="checkbox"]:checked');
-      
-      // Record time spent on current question when answer is selected
-      if (questionStartTimes[currentQuestion] && checkedBoxes.length > 0) {
-        const timeSpent = (Date.now() - questionStartTimes[currentQuestion]) / 1000; // in seconds
-        answerTimes.push(timeSpent);
-        updateAnswerQualityWidget();
-      }
-      
-      if (checkedBoxes.length > 0 && currentQuestion < totalQuestions) {
-        // Small delay to show the selection before advancing
-        setTimeout(function () {
-          currentQuestion++;
-          showQuestion(currentQuestion);
-          $('#error-message').hide();
-        }, 300); // 300ms delay for better UX
-      }
-    });
-
-    // Form validation
-    function validateForm() {
-      let allAnswered = true;
-      $('.question').each(function () {
-        const checkedBoxes = $(this).find('input[type="checkbox"]:checked').length;
-        // At least one selection per question (optional - can be removed)
-        // if (checkedBoxes === 0) {
-        //   allAnswered = false;
-        // }
       });
 
-      if (!allAnswered) {
-        $('#error-message').show();
-        setTimeout(function () {
-          $('#error-message').hide();
-        }, 3000);
-        // Scroll to first unanswered question
-        $('.question').each(function () {
-          const questionNum = $(this).attr('id').replace('question', '');
-          const checkedBoxes = $(this).find('input[type="checkbox"]:checked').length;
-          if (checkedBoxes === 0) {
-            showQuestion(parseInt(questionNum));
-            return false;
+      $('.prev-button').on('click', function () {
+        if (currentQuestion > 1) {
+          currentQuestion--;
+          showQuestion(currentQuestion);
+        }
+      });
+
+      $('#multiStepForm').on('submit', function (e) {
+          e.preventDefault(); // Prevent the default form submission
+
+          // Collect all the form data
+          const formData = $(this).serialize();
+
+          // Show the loader
+          document.getElementById('loader').style.display = 'flex'; 
+
+          // Validate the form before submitting
+          const allQuestionsAnswered = true; // Implement your validation logic here
+
+          if (allQuestionsAnswered) {
+              // AJAX call to submit the form and download PDF
+              $.ajax({
+                  type: 'POST',
+                  url: $(this).attr('action'), // Use the form action URL
+                  data: formData,
+                  success: function (response) {
+                      if (response) {
+                        document.getElementById('loader').style.display = 'flex';
+                          // Redirect to the PDF download link
+                          window.location.href = `/psychometric/download_pdf/test2?`;
+                      } else {
+                          console.error("PDF URL is undefined");
+                          alert('Error: PDF URL is undefined.');
+                      }
+                  },
+                  error: function (error) {
+                      // Hide the loader
+                      document.getElementById('loader').style.display = 'none';
+                      console.error("Error:", error);
+                      alert('An error occurred while processing your request.');
+                  }
+              });
+          } else {
+              // Hide the loader
+              document.getElementById('loader').style.display = 'none';
+              document.getElementById('error-message').style.display = 'block';
+              setTimeout(function () {
+                  document.getElementById('error-message').style.display = 'none';
+              }, 4000);
+          }
+      });
+
+      showQuestion(currentQuestion);
+      startTimer();
+
+    });
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', function () {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][value="' + this.value + '"]');
+        checkboxes.forEach(box => {
+          box.checked = this.checked;
+        });
+      });
+    });
+
+  </script>
+  <script>
+    function validateForm() {
+      var questionGroups = document.querySelectorAll('.question-container');
+      var unanswered = false;
+
+      questionGroups.forEach(function (group) {
+        var isChecked = false;
+        group.querySelectorAll('input[type="radio"]').forEach(function (radio) {
+          if (radio.checked) {
+            isChecked = true;
           }
         });
+
+        
+
+        if (!isChecked) {
+          unanswered = true;
+          group.classList.add('unchecked');
+        } else {
+          group.classList.remove('unchecked');
+        }
+      });
+
+      if (unanswered) {
+        alert("Please select an option for all questions before submitting.");
         return false;
       }
 
-      // Show loader on submit
-      $('#loader').show();
       return true;
+
     }
+  </script>
 
-    // Collect clicks data - moved before next button handler
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const continueButtons = document.querySelectorAll('.next-button');
+      const submitButton = document.querySelector('#multiStepForm button[type="submit"]');
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      const form = document.querySelector('#multiStepForm');
 
-    // Form submit handler
-    $('#multiStepForm').on('submit', function(e) {
-      e.preventDefault();
-      
-      // Collect data from last question
-      const lastQuestionBox = $('#question' + totalQuestions);
-      const checkedBoxes = lastQuestionBox.find('input[type="checkbox"]:checked');
-      clicks['question' + totalQuestions] = Array.from(checkedBoxes).map(checkbox => checkbox.value);
-      
-      console.log('Data being sent:', { clicks });
+      const clicks = {};
 
-      // Validate all questions have at least one selection (optional)
-      let allAnswered = true;
-      $('.question').each(function () {
-        const questionNum = $(this).attr('id').replace('question', '');
-        const questionClicks = clicks['question' + questionNum];
-        if (!questionClicks || questionClicks.length === 0) {
-          allAnswered = false;
-        }
+      continueButtons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+          const questionPage = document.querySelector(`#question${index + 1}`);
+          if (!questionPage) {
+            console.error(`No element found with id #question${index + 1}`);
+            return;
+          }
+
+          const checkedCheckboxes = questionPage.querySelectorAll('input[type="checkbox"]:checked');
+          clicks[`question${index + 1}`] = Array.from(checkedCheckboxes).map(checkbox => checkbox.value);
+
+          
+        });
       });
 
-      if (allAnswered) {
-        $('#loader').show();
+      submitButton.addEventListener('click', (event) => {
+        event.preventDefault();
+
+        const lastQuestionPage = document.querySelector(`#question6`);
+        if (lastQuestionPage) {
+          const checkedCheckboxes = lastQuestionPage.querySelectorAll('input[type="checkbox"]:checked');
+          clicks[`question6`] = Array.from(checkedCheckboxes).map(checkbox => checkbox.value);
+        }
+
         
-        // Get CSRF token
-        const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
-        
-        // AJAX call to submit_clicks endpoint
-        $.ajax({
-          type: 'POST',
-          url: '{{ url("app:submit_clicks") }}',
+
+        fetch("{{ url ('app:submit_clicks' )}}", {
+          method: 'POST',
           headers: {
-            'X-CSRFToken': csrfToken,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
           },
-          data: JSON.stringify({ clicks: clicks }),
-          success: function (response) {
-            $('#loader').show();
-            // Redirect after successful submission
-            window.location.href = '/psychometric/submit/';
-          },
-          error: function (error) {
-            $('#loader').hide();
-            console.error("Error:", error);
-            Swal.fire({
-              title: 'Error',
-              text: 'An error occurred while processing your request. Please try again.',
-              icon: 'error',
-              confirmButtonText: 'OK',
-              confirmButtonColor: '#3f37c9'
-            });
-          }
-        });
-      } else {
-        $('#error-message').show();
-        setTimeout(function () {
-          $('#error-message').hide();
-        }, 3000);
-        // Scroll to first unanswered question
-        $('.question').each(function () {
-          const questionNum = $(this).attr('id').replace('question', '');
-          const questionClicks = clicks['question' + questionNum];
-          if (!questionClicks || questionClicks.length === 0) {
-            showQuestion(parseInt(questionNum));
-            return false;
-          }
-        });
-      }
+          body: JSON.stringify({ clicks: clicks })
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.message === 'Success') {
+              // window.location.href = "{{ url ('app:app_submit' )}}";
+
+              document.getElementById('loader').style.display = 'flex';
+              window.location.href = `/psychometric/download_pdf/test2?`;
+            } else {
+              document.getElementById('loader').style.display = 'none';
+              alert('There was an error: ' + data.message);
+            }
+          })
+          .catch(error => console.error('Error:', error));
+      });
     });
 
-    // Start timer when page loads
-    startTimer();
-    
-    // Initialize timing for first question
-    questionStartTimes[1] = Date.now();
-    
-    // Initialize answer quality widget
-    updateAnswerQualityWidget();
+  </script>
 
-    // Drawer functionality for mobile
-    const drawerTrigger = document.querySelector('.drawerTrigger');
-    const drawerModal = document.querySelector('.drawerModal');
-    
-    if (drawerTrigger && drawerModal) {
-      drawerTrigger.addEventListener('click', function() {
-        drawerModal.classList.toggle('translate-y-full');
-        drawerModal.classList.toggle('translate-y-0');
-      });
-
-      drawerModal.addEventListener('click', function(event) {
-        if (event.target === drawerModal) {
-          drawerModal.classList.add('translate-y-full');
-          drawerModal.classList.remove('translate-y-0');
-        }
-      });
-    }
-  });
-</script>
-{% endblock %}
-
+  {% endblock %}

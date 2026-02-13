@@ -1,14 +1,40 @@
 {% extends 'template20/base.html' %}
 
 {% block title_content %}
-{% if search_blogs %}{{ search_blogs }} - Search Blogs{% elif category %}{{ category.name }} - Blogs{% elif blogtag %}{{ blogtag.name }} - Blogs{% else %}TopTeen Blogs | Insights for Better Career Decisions{% endif %} | Top Teen
+{% if search_blogs %}{{ search_blogs }} - Search Blogs{% elif category %}{{ category.name|blog_category_display }} - Blogs{% elif blogtag %}{{ blogtag.name }} - Blogs{% else %}TopTeen Blogs | Insights for Better Career Decisions{% endif %} | Top Teen
 {% endblock %}
 
 {% block description_content %}
-{% if search_blogs %}Search results for {{ search_blogs }} in TopTeen blogs.{% elif category %}Explore blogs in {{ category.name }} category.{% elif blogtag %}Explore blogs tagged with {{ blogtag.name }}.{% else %}Explore our collection of expert articles, guides, and resources designed to help students and parents navigate the complex world of education and career planning.{% endif %}
+{% if search_blogs %}Search results for {{ search_blogs }} in TopTeen blogs.{% elif category %}Explore blogs {{ category.name|blog_category_short }} category.{% elif blogtag %}Explore blogs tagged with {{ blogtag.name }}.{% else %}Explore our collection of expert articles, guides, and resources designed to help students and parents navigate the complex world of education and career planning.{% endif %}
 {% endblock %}
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block additionalhead %}
+<style>
+.blog-search-wrapper { position: relative; max-width: 100%; }
+.blog-search-suggestions {
+  position: absolute; left: 0; right: 0; top: 100%; margin-top: 0.25rem;
+  background: #fff; border: 1px solid rgba(224, 224, 224, 0.8); border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); max-height: 280px; overflow-y: auto;
+  z-index: 1000; display: none;
+}
+.blog-search-suggestions.show { display: block; }
+.blog-search-suggestions-item {
+  display: block; padding: 0.75rem 1.25rem; cursor: pointer; font-size: 0.95rem; color: #333;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06); transition: background 0.15s ease;
+  text-decoration: none;
+}
+.blog-search-suggestions-item:last-child { border-bottom: none; }
+.blog-search-suggestions-item:hover,
+.blog-search-suggestions-item.active {
+  background: rgba(107, 61, 240, 0.08); color: #6b3df0;
+}
+.blog-search-suggestions-empty {
+  padding: 1rem 1.25rem; font-size: 0.9rem; color: #888; text-align: center;
+}
+</style>
+{% endblock %}
 
 {% block content %}
 
@@ -47,17 +73,20 @@
   <div class="container">
     <div class="row">
       <div class="col-md-8 mx-auto">
-        <form method="GET" action="{{ url('blog:blogs') }}" class="blog-search">
-          <input type="text" name="search" placeholder="Search for blogs..." value="{{ search_blogs if search_blogs else '' }}" />
-          <button type="submit"><i class='bx bx-search'></i></button>
-        </form>
+        <div class="blog-search-wrapper">
+          <form method="GET" action="{{ url('blog:blogs') }}" class="blog-search">
+            <input type="text" name="search" id="blogSearchInput" placeholder="Search for blogs..." value="{{ search_blogs if search_blogs else '' }}" autocomplete="off" />
+            <button type="submit" aria-label="Search"><i class='bx bx-search'></i></button>
+          </form>
+          <div class="blog-search-suggestions" id="blogSearchSuggestions" role="listbox"></div>
+        </div>
       </div>
     </div>
     <div class="row">
       <div class="col-12 text-center">
         <a href="{{ url('blog:blogs') }}" class="blog-filter-btn {% if not category and not blogtag %}active{% endif %}">All</a>
         {% for cat in categories %}
-        <a href="{{ url('blog:category', args=[cat.slug]) }}" class="blog-filter-btn {% if category and category.slug == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+        <a href="{{ url('blog:category', args=[cat.slug]) }}" class="blog-filter-btn {% if category and category.slug == cat.slug %}active{% endif %}">{{ cat.name|blog_category_display }}</a>
         {% endfor %}
       </div>
     </div>
@@ -81,7 +110,7 @@
           <div class="blog-image">
             {% if blog.category %}
             <a href="{{ url('blog:category', args=[blog.category.slug]) }}" class="blog-category category-parent">
-              {{ blog.category.name }}
+              {{ blog.category.name|blog_category_display }}
             </a>
             {% endif %}
             <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
@@ -128,7 +157,7 @@
             {% if heading %}{{ heading }}{% else %}All Articles{% endif %}
           </h2>
           {% if category %}
-          <p class="section-description">Explore blogs in {{ category.name }} category</p>
+          <p class="section-description">Explore blogs {{ category.name|blog_category_short }} category</p>
           {% elif blogtag %}
           <p class="section-description">Explore blogs tagged with {{ blogtag.name }}</p>
           {% endif %}
@@ -144,7 +173,7 @@
                   <div class="blog-image">
                     {% if blog.category %}
                     <a href="{{ url('blog:category', args=[blog.category.slug]) }}" class="blog-category category-parent">
-                      {{ blog.category.name }}
+                      {{ blog.category.name|blog_category_display }}
                     </a>
                     {% endif %}
                     {% if blog.image %}
@@ -295,7 +324,7 @@
               </li>
               {% for cat in categories %}
               <li class="category-item">
-                <a href="{{ url('blog:category', args=[cat.slug]) }}" class="text-decoration-none {% if category and category.slug == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+                <a href="{{ url('blog:category', args=[cat.slug]) }}" class="text-decoration-none {% if category and category.slug == cat.slug %}active{% endif %}">{{ cat.name|blog_category_display }}</a>
               </li>
               {% endfor %}
             </ul>
@@ -352,6 +381,74 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+  // Blog search dropdown suggestions
+  (function() {
+    const blogSearchData = {{ (blog_search_list or [])|tojson }};
+    const maxBlogSuggestions = 8;
+    let blogSelectedSuggestionIndex = -1;
+
+    function getBlogSuggestions(query) {
+      const q = (query || '').toLowerCase().trim();
+      if (q === '') return blogSearchData.slice(0, maxBlogSuggestions);
+      return blogSearchData.filter(function(b) { return b.title.toLowerCase().includes(q); }).slice(0, maxBlogSuggestions);
+    }
+
+    function renderBlogSuggestions(query) {
+      const list = document.getElementById('blogSearchSuggestions');
+      if (!list) return;
+      const suggestions = getBlogSuggestions(query);
+      blogSelectedSuggestionIndex = -1;
+      if (suggestions.length === 0) {
+        list.innerHTML = '<div class="blog-search-suggestions-empty">No blogs match your search</div>';
+        list.classList.add('show');
+        return;
+      }
+      list.innerHTML = suggestions.map(function(b) {
+        return '<a href="' + b.url + '" class="blog-search-suggestions-item" data-title="' + b.title.replace(/"/g, '&quot;') + '">' + b.title + '</a>';
+      }).join('');
+      list.classList.add('show');
+    }
+
+    function hideBlogSuggestions() {
+      const list = document.getElementById('blogSearchSuggestions');
+      if (list) list.classList.remove('show');
+      blogSelectedSuggestionIndex = -1;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('blogSearchInput');
+      const suggestionsList = document.getElementById('blogSearchSuggestions');
+
+      if (searchInput) {
+        searchInput.addEventListener('input', function() { renderBlogSuggestions(searchInput.value); });
+        searchInput.addEventListener('focus', function() { renderBlogSuggestions(searchInput.value); });
+        searchInput.addEventListener('keydown', function(e) {
+          if (!suggestionsList || !suggestionsList.classList.contains('show')) return;
+          const items = suggestionsList.querySelectorAll('.blog-search-suggestions-item');
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            blogSelectedSuggestionIndex = Math.min(blogSelectedSuggestionIndex + 1, items.length - 1);
+            items.forEach(function(el, i) { el.classList.toggle('active', i === blogSelectedSuggestionIndex); });
+            if (items[blogSelectedSuggestionIndex]) items[blogSelectedSuggestionIndex].scrollIntoView({ block: 'nearest' });
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            blogSelectedSuggestionIndex = Math.max(blogSelectedSuggestionIndex - 1, -1);
+            items.forEach(function(el, i) { el.classList.toggle('active', i === blogSelectedSuggestionIndex); });
+          } else if (e.key === 'Enter' && blogSelectedSuggestionIndex >= 0 && items[blogSelectedSuggestionIndex]) {
+            e.preventDefault();
+            window.location.href = items[blogSelectedSuggestionIndex].href;
+          } else if (e.key === 'Escape') { hideBlogSuggestions(); }
+        });
+      }
+
+      document.addEventListener('click', function(e) {
+        if (searchInput && suggestionsList && !searchInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+          hideBlogSuggestions();
+        }
+      });
+    });
+  })();
+
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {

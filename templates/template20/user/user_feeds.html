@@ -369,7 +369,7 @@
                   </a>
                   {% if blog.category %}
                   <a href="{{ blog.category.url() }}" class="badge rounded-pill px-3 py-2" style="background-color: #{{ blog.category.color }}; color: white;">
-                    {{ blog.category.name }}
+                    {{ blog.category.name|blog_category_display }}
                   </a>
                   {% endif %}
                 </div>

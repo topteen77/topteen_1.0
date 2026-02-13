@@ -104,6 +104,10 @@
     color: #828282;
     margin-top: 5px;
   }
+  .test-answer-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #28a745; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10050; animation: test-toast-in 0.3s ease; }
+  .test-answer-toast.toast-out { animation: test-toast-out 0.3s ease forwards; }
+  @keyframes test-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+  @keyframes test-toast-out { from { opacity: 1; } to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
   .question-image {
     max-width: 100%;
     height: auto;
@@ -598,8 +602,7 @@
 {{ super() }}
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<!-- Internet Speed Meter -->
-
+{% with page_type='test' %}{% include 'template20/includes/test_features_js.html' %}{% endwith %}
 <script>
   $(document).ready(function () {
     let currentQuestion = 1;
@@ -705,6 +708,7 @@
         
         if (currentQuestion < totalQuestions) {
           currentQuestion++;
+          if (typeof window.showQuestionChangedToast === 'function') window.showQuestionChangedToast();
           showQuestion(currentQuestion);
           $('#error-message').hide();
         }
@@ -720,6 +724,7 @@
     $('.prev-button').on('click', function () {
       if (currentQuestion > 1) {
         currentQuestion--;
+        if (typeof window.showQuestionChangedToast === 'function') window.showQuestionChangedToast();
         showQuestion(currentQuestion);
       }
     });
@@ -741,6 +746,7 @@
         // Small delay to show the selection before advancing
         setTimeout(function () {
           currentQuestion++;
+          if (typeof window.showQuestionChangedToast === 'function') window.showQuestionChangedToast();
           showQuestion(currentQuestion);
           $('#error-message').hide();
         }, 300); // 300ms delay for better UX

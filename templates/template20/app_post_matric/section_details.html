@@ -269,6 +269,27 @@
 {# Test Features CSS - instruction (internet) + test (answer quality) #}
 {% with mode='css', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
 {% with mode='css', page_type='test' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
+{# Question changed toast - same as main test (personality, motivation, take_test) so it appears above loader and matches outer test #}
+<style>
+  .test-answer-toast {
+    position: fixed !important;
+    bottom: 24px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: #28a745 !important;
+    color: white !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+    z-index: 10050 !important;
+    animation: test-toast-in 0.3s ease;
+  }
+  .test-answer-toast.toast-out { animation: test-toast-out 0.3s ease forwards; }
+  @keyframes test-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+  @keyframes test-toast-out { from { opacity: 1; } to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -941,6 +962,9 @@ $(document).ready(function() {
   $(document).on('click', '#startBtn', function(e) {
     e.preventDefault();
     e.stopPropagation();
+    if (window.InternetSpeedMeter && typeof window.InternetSpeedMeter.stop === 'function') {
+      window.InternetSpeedMeter.stop();
+    }
     console.log('Begin button clicked - hiding introduction, showing questions');
     
     // Hide introduction section

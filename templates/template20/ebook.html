@@ -91,6 +91,52 @@
   color: #5046e5;
 }
 
+.ebooks-search-suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 0.25rem;
+  background: #fff;
+  border: 1px solid rgba(224, 224, 224, 0.8);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+}
+
+.ebooks-search-suggestions.show {
+  display: block;
+}
+
+.ebooks-search-suggestions-item {
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  transition: background 0.15s ease;
+}
+
+.ebooks-search-suggestions-item:last-child {
+  border-bottom: none;
+}
+
+.ebooks-search-suggestions-item:hover,
+.ebooks-search-suggestions-item.active {
+  background: rgba(107, 61, 240, 0.08);
+  color: #6b3df0;
+}
+
+.ebooks-search-suggestions-empty {
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
+  color: #888;
+  text-align: center;
+}
+
 .ebooks-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
@@ -307,7 +353,7 @@
 
         <div class="col-lg-5 col-md-12 order-md-2 order-1 mb-6 mb-lg-0 offset-lg-1">
           <div class="right-banner d-md-flex justify-md-content-end justify-content-center">
-            <img class="img-fluid" src="{{ static('images_new/ebook-hero-img.png') }}" alt="E-Books Banner">
+            <img class="img-fluid" src="{{ ebook_hero_banner_url }}" alt="E-Books Banner" onerror="this.onerror=null; this.src='{{ static('images_new/ebook-hero-img.png') }}';">
           </div>
         </div>
       </div>
@@ -324,10 +370,11 @@
           <!-- Search Bar -->
           <div class="ebooks-search-wrapper">
             <div class="ebooks-search-container">
-              <input type="text" class="ebooks-search-input" id="ebooksSearchInput" placeholder="Search" />
-              <button class="ebooks-search-btn" id="ebooksSearchBtn">
+              <input type="text" class="ebooks-search-input" id="ebooksSearchInput" placeholder="Search e-books..." autocomplete="off" />
+              <button type="button" class="ebooks-search-btn" id="ebooksSearchBtn" aria-label="Search">
                 <i class='bx bx-search'></i>
               </button>
+              <div class="ebooks-search-suggestions" id="ebooksSearchSuggestions" role="listbox"></div>
             </div>
           </div>
 
@@ -397,7 +444,7 @@
 
   // Filter Ebooks by Search
   function filterEbooks(query) {
-    searchQuery = query.toLowerCase().trim();
+    searchQuery = (query || '').toLowerCase().trim();
     if (searchQuery === '') {
       filteredEbooks = ebooksData;
     } else {
@@ -409,6 +456,49 @@
     totalPages = Math.ceil(filteredEbooks.length / itemsPerPage);
     renderEbooks();
     renderPagination();
+  }
+
+  // Dropdown suggestions (max items shown)
+  const maxSuggestions = 8;
+  let selectedSuggestionIndex = -1;
+
+  function getSuggestions(query) {
+    const q = (query || '').toLowerCase().trim();
+    if (q === '') return ebooksData.slice(0, maxSuggestions);
+    return ebooksData.filter(ebook =>
+      ebook.title.toLowerCase().includes(q)
+    ).slice(0, maxSuggestions);
+  }
+
+  function renderSuggestions(query) {
+    const list = document.getElementById('ebooksSearchSuggestions');
+    if (!list) return;
+    const suggestions = getSuggestions(query);
+    selectedSuggestionIndex = -1;
+    if (suggestions.length === 0) {
+      list.innerHTML = '<div class="ebooks-search-suggestions-empty">No e-books match your search</div>';
+      list.classList.add('show');
+      return;
+    }
+    list.innerHTML = suggestions.map((ebook, i) =>
+      `<div class="ebooks-search-suggestions-item" data-index="${i}" data-title="${ebook.title.replace(/"/g, '&quot;')}">${ebook.title}</div>`
+    ).join('');
+    list.classList.add('show');
+  }
+
+  function hideSuggestions() {
+    const list = document.getElementById('ebooksSearchSuggestions');
+    if (list) list.classList.remove('show');
+    selectedSuggestionIndex = -1;
+  }
+
+  function selectSuggestion(title) {
+    const searchInput = document.getElementById('ebooksSearchInput');
+    if (searchInput) {
+      searchInput.value = title;
+      filterEbooks(title);
+    }
+    hideSuggestions();
   }
 
   // Render Ebooks Grid
@@ -510,27 +600,69 @@
     renderEbooks();
     renderPagination();
 
-    // Search functionality
+    // Search with dropdown suggestions
     const searchInput = document.getElementById('ebooksSearchInput');
     const searchBtn = document.getElementById('ebooksSearchBtn');
+    const suggestionsList = document.getElementById('ebooksSearchSuggestions');
 
     if (searchInput) {
       searchInput.addEventListener('input', function (e) {
-        filterEbooks(e.target.value);
+        const q = e.target.value;
+        filterEbooks(q);
+        renderSuggestions(q);
+      });
+
+      searchInput.addEventListener('focus', function () {
+        renderSuggestions(searchInput.value);
+      });
+
+      searchInput.addEventListener('keydown', function (e) {
+        if (!suggestionsList || !suggestionsList.classList.contains('show')) return;
+        const items = suggestionsList.querySelectorAll('.ebooks-search-suggestions-item');
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, items.length - 1);
+          items.forEach((el, i) => el.classList.toggle('active', i === selectedSuggestionIndex));
+          items[selectedSuggestionIndex] && items[selectedSuggestionIndex].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
+          items.forEach((el, i) => el.classList.toggle('active', i === selectedSuggestionIndex));
+        } else if (e.key === 'Enter' && selectedSuggestionIndex >= 0 && items[selectedSuggestionIndex]) {
+          e.preventDefault();
+          selectSuggestion(items[selectedSuggestionIndex].textContent);
+        } else if (e.key === 'Escape') {
+          hideSuggestions();
+        }
       });
 
       searchInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
           e.preventDefault();
-          filterEbooks(e.target.value);
+          filterEbooks(searchInput.value);
+          hideSuggestions();
         }
       });
     }
+
+    if (suggestionsList) {
+      suggestionsList.addEventListener('click', function (e) {
+        const item = e.target.closest('.ebooks-search-suggestions-item');
+        if (item) selectSuggestion(item.textContent);
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      if (searchInput && suggestionsList && !searchInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+        hideSuggestions();
+      }
+    });
 
     if (searchBtn) {
       searchBtn.addEventListener('click', function () {
         const query = searchInput ? searchInput.value : '';
         filterEbooks(query);
+        hideSuggestions();
       });
     }
   });

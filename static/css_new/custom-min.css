@@ -99,6 +99,10 @@ a:hover {
 
 }
 
+.modal-backdrop.fade.show {
+  z-index: 8888;
+}
+
 .border-bottom-t {
   border-bottom: 1px solid #80808063;
 }
@@ -7499,9 +7503,14 @@ a:hover {
   border-radius: 0 0 6px 6px;
 }
 
+.login-content .hero-button .btn {
+  font-size: 14px;
+  padding: 13px 17px;
+}
+
 
 .dropdown-content.tabs-auto-fit {
-  width: 165px;
+  width: 250px;
   /* left: 40.1%; */
   padding: 10px 9px;
   top: 62px !important;
@@ -7757,7 +7766,7 @@ div#videoModal {
 }
 
 .modal-backdrop.fade.show {
-  z-index: 8888;
+  z-index: 8888 !important;
 }
 
 .backthrough {
@@ -8091,7 +8100,7 @@ div#videoModal {
 .blog-tags {
   background: rgb(255, 233, 193);
   float: left;
-  width: 128px;
+  width: 157px;
   text-align: center;
   border-radius: 26px;
 }
@@ -10159,7 +10168,7 @@ div#videoModal {
 }
 
 .blog-tags {
-  margin-top: 3rem;
+  margin-top: 0rem;
   margin-bottom: 2rem;
 }
 
