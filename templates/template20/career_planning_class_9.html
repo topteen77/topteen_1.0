@@ -1,0 +1,125 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Year 1 – Class 9: Foundation Building & Early Exploration | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Class 9 career planning: establish core academic skills, life skills, self-discovery and career awareness. Part of the Four-Year Success Plan.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+<style>
+.gradient-bg { background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%); }
+.fs-60{font-size: 60px;}
+.four-year-section { padding: 48px 0; }
+.focus-point { background: #f6f6ff; border-radius: 7px; padding: 13px; }
+.focus-point p { margin-bottom: 0; }
+.implementation-tips .tip-card { border-radius: 12px; padding: 18px; background: linear-gradient(180deg,#ffffff,#fbfbff); box-shadow: 0 10px 30px rgba(15,23,42,0.06); height: 100%; }
+.tip-icon { min-width:46px; min-height:46px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; margin-right:12px; background:linear-gradient(90deg,#22c55e,#16a34a); color:#fff; font-size:20px; }
+.custom-bullet-list { list-style-type: none; padding-left: 0; }
+.custom-bullet-list li { position: relative; padding-left: 25px; margin-bottom: 15px; }
+.custom-bullet-list li::before { content: ""; position: absolute; left: 0; top: 5px; width: 18px; height: 18px; background: linear-gradient(135deg, #7755EE, #3F37C9); border-radius: 50%; }
+.moritoring-img { position: sticky; top: 65px; }
+</style>
+
+<main class="py-test-page">
+  <section class="hero-section-inner pt-md-18 pt-14 pb-5 gradient-bg">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
+        <div class="col-lg-6 col-md-12">
+          <span class="highlighter"><img src="{{ static('images_new/icons/d-future-icon.svg') }}" alt="icon" /> Year 1</span>
+          <h1 class="heading-title fs-60">Class 9 <p class="lh-sm fs-sm-20">Foundation <span class="text-yellow">Building & Early</span> Exploration</p></h1>
+          <p class="text-gray fs-16"><strong class="text-purple">Focus:</strong> Establish core academic skills, introduce essential life skills, spark curiosity through interdisciplinary and experiential learning, initiate self-discovery and career awareness, bridge middle-school basics with deeper thinking and self-management required for senior school, and lay the groundwork for leadership, sustainability, and global citizenship.</p>
+        </div>
+        <div class="col-lg-6 col-md-12">
+          <div class="right-banner d-md-flex d-none justify-content-end">
+            <img class="img-fluid" src="{{ static('images_new/careers/career-planning-banner.svg') }}" alt="Class 9" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="four-year-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-9 mx-auto custom-faq">
+          <h2 class="fs-28 fw-700 text-center mb-4">Foundation <span class="text-purple">Class 9</span></h2>
+          {% include 'template20/career_planning/class_9_table.html' %}
+          <h3 class="fs-26 fw-700 mt-5">Data &amp; Assessment — <span class="text-purple">Class 9</span></h3>
+          <p class="text-gray">Purpose: Create a clear, actionable evidence base to track expected outcomes, guide instruction, and inform parents/stakeholders.</p>
+          <ul class="custom-bullet-list">
+            <li><strong>Academic Mastery:</strong> Strong conceptual understanding across all subjects with readiness for advanced topics in senior school, evidenced by consistent performance in assessments.</li>
+            <li><strong>Digital Proficiency:</strong> Confident use of office tools, internet research strategies, beginner coding (Scratch/Python), and awareness of digital safety and ethics.</li>
+            <li><strong>Communication Confidence:</strong> High comfort level in debates, presentations, storytelling, and creative writing with improved vocabulary and expressive skills.</li>
+            <li><strong>Career Curiosity:</strong> Broad awareness of traditional and emerging professions (e.g., AI, sustainability), coupled with a preliminary profile of personal strengths, interests, and potential career paths.</li>
+            <li><strong>Personal Portfolio:</strong> A well-documented collection of journals, project artifacts, goal-tracking sheets, digital creations, and certificates showcasing multi-dimensional growth.</li>
+            <li><strong>Balanced Growth:</strong> Active participation in at least one club, one sport, one cultural activity, and one service initiative, fostering holistic well-being, teamwork, and social responsibility.</li>
+            <li><strong>Global Perspective:</strong> Foundational understanding of global issues (e.g., climate change, cultural diversity) through virtual exchanges, discussions, and international exposure activities.</li>
+            <li><strong>Emotional Well-Being:</strong> Enhanced self-awareness, empathy, resilience, and stress management skills through structured personal growth activities, mindfulness practices, and counselor support.</li>
+            <li><strong>Environmental Awareness:</strong> Commitment to sustainability through practical projects and campaigns, with a mindset geared toward eco-friendly habits and innovation.</li>
+            <li><strong>Leadership &amp; Initiative:</strong> Early signs of leadership through class roles, group projects, and peer mentorship, preparing students for future responsibilities.</li>
+            <li><strong>Community Connection:</strong> Strengthened bonds with family and local community through collaborative events, service projects, and shared learning experiences.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="implementation-tips bg-light py-md-8 py-5">
+    <div class="container">
+      <div class="row"><div class="col-md-8 mx-auto text-center mb-4"><h3 class="fs-26 fw-700">Implementation Tips for <span class="text-purple">Class 9</span> (Year 1)</h3><p class="text-gray">Practical, high-impact recommendations to bring the four-year plan to life.</p></div></div>
+      <div class="row g-4">
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon"><i class='bx bx-timer'></i></div><div><h5 class="fs-16 mb-1">Integrated Timetable</h5><p class="text-gray fs-14 mb-0">Allocate dedicated weekly slots for skill-building, counseling, extracurriculars, and well-being activities alongside academics.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#ef4444,#f97316)"><i class='bx bx-user-check'></i></div><div><h5 class="fs-16 mb-1">Mentor-Mentee Program</h5><p class="text-gray fs-14 mb-0">Assign mentors from Class 9 for personalized academic, career, and emotional guidance, with regular progress reviews.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i class='bx bx-calendar-check'></i></div><div><h5 class="fs-16 mb-1">Parent Engagement</h5><p class="text-gray fs-14 mb-0">Conduct quarterly webinars and workshops on board preparation, stream choices, college admissions, and parenting for student success.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#059669,#22c55e)"><i class='bx bx-data'></i></div><div><h5 class="fs-16 mb-1">360° E-Profiles</h5><p class="text-gray fs-14 mb-0">Develop a digital dashboard to track students' academics, skills, extracurriculars, mental health indicators, and achievements for holistic monitoring.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#f59e0b,#f97316)"><i class='bx bx-briefcase'></i></div><div><h5 class="fs-16 mb-1">Industry &amp; Alumni Links</h5><p class="text-gray fs-14 mb-0">Facilitate guest talks by professionals, internships, job-shadowing days, and alumni mentorship programs.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#06b6d4,#0ea5e9)"><i class='bx bx-heart'></i></div><div><h5 class="fs-16 mb-1">Well-Being First</h5><p class="text-gray fs-14 mb-0">Implement term-wise mental health check-ins, peer-support groups, access to professional counselors, and stress-relief zones on campus.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#7c3aed,#6d28d9)"><i class='bx bx-devices'></i></div><div><h5 class="fs-16 mb-1">Technology Integration</h5><p class="text-gray fs-14 mb-0">Equip classrooms with smart tools, provide access to learning management systems, and train teachers in ed-tech.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#059669,#10b981)"><i class='bx bx-universal-access'></i></div><div><h5 class="fs-16 mb-1">Inclusivity Framework</h5><p class="text-gray fs-14 mb-0">Ensure curriculum and activities are accessible to students with diverse needs through adaptive resources and support staff.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#06b6d4,#0891b2)"><i class='bx bx-globe'></i></div><div><h5 class="fs-16 mb-1">Global Partnerships</h5><p class="text-gray fs-14 mb-0">Collaborate with international schools for student exchange programs, virtual learning, and global certifications.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#16a34a,#65a30d)"><i class='bx bx-leaf'></i></div><div><h5 class="fs-16 mb-1">Sustainability Focus</h5><p class="text-gray fs-14 mb-0">Embed environmental education with projects like school gardens, waste management drives, and renewable energy awareness.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#06b6d4,#0891b2)"><i class='bx bx-bar-chart-alt-2'></i></div><div><h5 class="fs-16 mb-1">Progress Monitoring</h5><p class="text-gray fs-14 mb-0">Use LMS dashboards to track academics, skill growth, extracurricular participation, and well-being for early intervention.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#f59e0b,#f97316)"><i class='bx bx-chalkboard'></i></div><div><h5 class="fs-16 mb-1">Teacher Training</h5><p class="text-gray fs-14 mb-0">Term-wise workshops on student-centred pedagogy, mental health, inclusive practices, and ed-tech integration.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#7c3aed,#6d28d9)"><i class='bx bx-group'></i></div><div><h5 class="fs-16 mb-1">Community Partnerships</h5><p class="text-gray fs-14 mb-0">Partner with local businesses, NGOs, and cultural organisations for guest talks, internships, and service projects.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i class='bx bx-message-square-dots'></i></div><div><h5 class="fs-16 mb-1">Student Voice</h5><p class="text-gray fs-14 mb-0">Form a Class 9 Student Council to collect feedback, prioritise student-led initiatives, and co-design activities.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#10b981,#06b6d4)"><i class='bx bx-trophy'></i></div><div><h5 class="fs-16 mb-1">Reward &amp; Recognition</h5><p class="text-gray fs-14 mb-0">Celebrate academic, extracurricular, and personal growth through monthly awards, displays, and digital shout-outs.</p></div></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="monitoring-section py-md-8 py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6"><div class="moritoring-img"><img src="{{ static('images_new/careers/career-planning-banner-2.svg') }}" alt="Monitoring" class="img-fluid" /></div></div>
+        <div class="col-md-6 d-flex flex-column justify-content-center">
+          <h3 class="fs-26 fw-700 mb-5">Monitoring &amp; Evaluation for <span class="text-purple">Class 9</span></h3>
+          <ul class="custom-bullet-list">
+            <li><strong>Student Feedback:</strong> Conduct mid-term and end-term surveys to assess satisfaction with academic content, skill-building, extracurriculars, and support systems, using insights to refine the program.</li>
+            <li><strong>Progress Reports:</strong> Share detailed quarterly reports with parents, highlighting academic growth, skill acquisition, behavioral development, and areas for improvement with actionable suggestions.</li>
+            <li><strong>Outcome Tracking:</strong> Measure success through metrics like assessment scores, participation rates in activities, completion of projects, and qualitative feedback on emotional well-being and confidence levels.</li>
+            <li><strong>Continuous Improvement:</strong> Host bi-annual review meetings with teachers, counselors, and parents to evaluate the plan's impact, address challenges, and incorporate emerging educational trends or student needs.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-3">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <a href="{{ url('core:career_planning') }}" class="btn custom-button purple-button me-2">Career Planning Hub</a>
+          <a href="{{ url('core:career_planning_4_year') }}" class="btn custom-button blue-button me-2">4 Year Course Plan</a>
+          <a href="{{ url('core:career_planning_class_10') }}" class="btn btn-outline-secondary">Class 10 →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

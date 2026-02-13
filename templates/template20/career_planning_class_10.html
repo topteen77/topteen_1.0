@@ -1,0 +1,128 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Year 2 – Class 10: Board Preparation & Stream Awareness | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Class 10 career planning: board exam preparation, stream selection, psychometric testing, and resilience. Part of the Four-Year Success Plan.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+<style>
+.gradient-bg { background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%); }
+.fs-60{font-size: 60px;}
+.four-year-section { padding: 48px 0; }
+.focus-point { background: #f6f6ff; border-radius: 7px; padding: 13px; }
+.focus-point p { margin-bottom: 0; }
+.implementation-tips .tip-card { border-radius: 12px; padding: 18px; background: linear-gradient(180deg,#ffffff,#fbfbff); box-shadow: 0 10px 30px rgba(15,23,42,0.06); height: 100%; }
+.tip-icon { min-width:46px; min-height:46px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; margin-right:12px; background:linear-gradient(90deg,#22c55e,#16a34a); color:#fff; font-size:20px; }
+.custom-bullet-list { list-style-type: none; padding-left: 0; }
+.custom-bullet-list li { position: relative; padding-left: 25px; margin-bottom: 15px; }
+.custom-bullet-list li::before { content: ""; position: absolute; left: 0; top: 5px; width: 18px; height: 18px; background: linear-gradient(135deg, #7755EE, #3F37C9); border-radius: 50%; }
+.moritoring-img { position: sticky; top: 65px; }
+</style>
+
+<main class="py-test-page">
+  <section class="hero-section-inner pt-md-18 pt-14 pb-5 gradient-bg">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
+        <div class="col-lg-6 col-md-12">
+          <span class="highlighter"><img src="{{ static('images_new/icons/d-future-icon.svg') }}" alt="icon" /> Year 2</span>
+          <h1 class="heading-title fs-60">Class 10 <p class="lh-sm fs-sm-20">Board <span class="text-yellow">Preparation &amp; Stream</span> Awareness</p></h1>
+          <p class="text-gray fs-16"><strong class="text-purple">Focus:</strong> High-stakes board exam preparation combined with critical decisions about academic streams, fostering academic depth, emotional resilience, career clarity, and the development of future-ready skills through structured support, exploration, and real-world application.</p>
+        </div>
+        <div class="col-lg-6 col-md-12">
+          <div class="right-banner d-md-flex d-none justify-content-end">
+            <img class="img-fluid" src="{{ static('images_new/careers/career-planning-banner.svg') }}" alt="Class 10" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="four-year-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-9 mx-auto custom-faq">
+          <h2 class="fs-28 fw-700 text-center mb-4">Board Preparation <span class="text-purple">Class 10</span></h2>
+          {% include 'template20/career_planning/class_10_table.html' %}
+          <h3 class="fs-26 fw-700 mt-5">Expected Outcomes by Year-End <span class="text-purple">Class 10</span></h3>
+          <p class="text-gray">Purpose: Create a clear, actionable evidence base to track expected outcomes, guide instruction, and inform parents/stakeholders.</p>
+          <ul class="custom-bullet-list">
+            <li><strong>Board Exam Readiness:</strong> Thorough preparation for the first public examination through systematic practice, conceptual depth, exam strategy, and stress-control tools, evidenced by confidence and high performance in pre-boards and final exams.</li>
+            <li><strong>Stream Clarity:</strong> Clearly chosen academic stream (Science, Commerce, Humanities) backed by psychometric insights, personalized counseling, parental alignment, subject-strength mapping, and alignment with long-term goals.</li>
+            <li><strong>21st-Century Skill Set:</strong> Solid foundation in advanced digital research, effective collaboration, foundational financial management, ethical technology use, and project management, preparing students for future academic and professional challenges.</li>
+            <li><strong>Personal Career-Reflection Portfolio:</strong> A comprehensive collection of aptitude data, career research summaries, guest-talk notes, mini-projects, self-assessments, and action plans to document growth, aspirations, and career identity development.</li>
+            <li><strong>Growth Mindset:</strong> Demonstrated resilience, improved time-planning, balanced engagement in academics and co-curriculars, adaptability to high-pressure situations like board exams, and a proactive approach to learning from setbacks.</li>
+            <li><strong>Emotional &amp; Physical Well-Being:</strong> Enhanced emotional intelligence, stress management, and physical health through mindfulness, fitness activities, counselor support, and peer circles, ensuring a balanced and healthy lifestyle during a demanding year.</li>
+            <li><strong>Environmental Commitment:</strong> Deepened awareness and active participation in sustainability initiatives, fostering eco-friendly habits, innovative green solutions, and a sense of responsibility toward environmental challenges.</li>
+            <li><strong>Global Perspective:</strong> Strong foundational understanding of global issues (e.g., climate change, cultural diversity, globalisation) through discussions, virtual exchanges, and Model UN activities, preparing students for global citizenship.</li>
+            <li><strong>Leadership &amp; Civic Engagement:</strong> Early leadership skills through club roles, sports organization, and community service projects, coupled with a sense of civic responsibility and social impact through outreach initiatives.</li>
+            <li><strong>Community Connection:</strong> Strengthened bonds with family and local community through collaborative events, service projects, mentorship opportunities, and shared learning experiences, fostering a support network for personal growth.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="implementation-tips bg-light py-md-8 py-5">
+    <div class="container">
+      <div class="row"><div class="col-md-8 mx-auto text-center mb-4"><h3 class="fs-26 fw-700">Implementation Tips for <span class="text-purple">Class 10</span> (Year 2)</h3><p class="text-gray">Practical, high-impact recommendations to bring the four-year plan to life.</p></div></div>
+      <div class="row g-4">
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#3b82f6,#2563eb)"><i class='bx bx-calendar'></i></div><div><h5 class="fs-16 mb-1">Balanced Timetable</h5><p class="text-gray fs-14 mb-0">Design a structured schedule allocating time for academics (70%), exam preparation (15%), skill-building (10%), and well-being (5%) to prioritize board readiness while maintaining holistic growth. Include buffer time for unexpected challenges.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#ef4444,#dc2626)"><i class='bx bx-user-voice'></i></div><div><h5 class="fs-16 mb-1">Mentor Support</h5><p class="text-gray fs-14 mb-0">Assign subject-specific mentors and career counselors to guide students through board preparation and stream selection, with bi-monthly check-ins for personalized academic and emotional support. Include senior student mentors for peer guidance.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#8b5cf6,#7c3aed)"><i class='bx bx-group'></i></div><div><h5 class="fs-16 mb-1">Parent Engagement</h5><p class="text-gray fs-14 mb-0">Conduct quarterly parent-student-counselor meetings to discuss progress, stream choices, exam strategies, and adolescent well-being, alongside workshops on supporting teens during high-stakes periods and understanding new-age career paths.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#06b6d4,#0891b2)"><i class='bx bx-laptop'></i></div><div><h5 class="fs-16 mb-1">Technology Integration</h5><p class="text-gray fs-14 mb-0">Use digital platforms for simulations (e.g., PhET Labs for Science), online quizzes (Kahoot/Google Forms), career exploration tools (Mindler, CBSE Portal), and hybrid revision sessions to enhance learning, accessibility, and planning.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#f59e0b,#d97706)"><i class='bx bx-file-blank'></i></div><div><h5 class="fs-16 mb-1">Exam Simulation</h5><p class="text-gray fs-14 mb-0">Organize regular pre-board exams (at least 2-3 rounds) and mock timetables to familiarize students with exam-day routines (including mock travel if exams are off-site), reducing anxiety and building endurance for long study hours.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#ec4899,#db2777)"><i class='bx bx-spa'></i></div><div><h5 class="fs-16 mb-1">Well-Being Focus</h5><p class="text-gray fs-14 mb-0">Create a supportive environment with stress-relief zones (quiet rooms with calming activities), mindfulness sessions, art/music therapy, and access to counselors to address exam pressure and emotional challenges proactively.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#10b981,#059669)"><i class='bx bx-accessibility'></i></div><div><h5 class="fs-16 mb-1">Inclusivity Measures</h5><p class="text-gray fs-14 mb-0">Provide adaptive resources (e.g., audio notes for visually impaired students, extra time for differently-abled learners) and tailored remediation for diverse learners (e.g., multilingual support) to ensure equitable exam preparation and participation.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i class='bx bx-fork'></i></div><div><h5 class="fs-16 mb-1">Stream Selection Framework</h5><p class="text-gray fs-14 mb-0">Integrate psychometric testing results with academic performance data, one-on-one counseling, and parental input to finalize stream choices by mid-year, avoiding last-minute confusion and ensuring alignment with aspirations.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#14b8a6,#0d9488)"><i class='bx bx-bulb'></i></div><div><h5 class="fs-16 mb-1">Skill Application</h5><p class="text-gray fs-14 mb-0">Encourage real-world application of skills through projects (e.g., budgeting exercises linked to Economics, sustainability models in Science) and digital tools (e.g., Canva for presentations, Excel for data analysis) to make learning relevant and engaging.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#0ea5e9,#0284c7)"><i class='bx bx-line-chart'></i></div><div><h5 class="fs-16 mb-1">Progress Monitoring</h5><p class="text-gray fs-14 mb-0">Use digital dashboards (e.g., school LMS) to track academic performance, exam scores, skill development, well-being indicators, and extracurricular participation, providing timely feedback and early intervention where needed.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#f97316,#ea580c)"><i class='bx bx-chalkboard'></i></div><div><h5 class="fs-16 mb-1">Teacher Training</h5><p class="text-gray fs-14 mb-0">Equip educators with strategies for board exam coaching, stress management techniques, career counseling basics, inclusive teaching practices, and technology integration to support students holistically and adapt to diverse needs.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#84cc16,#65a30d)"><i class='bx bx-medal'></i></div><div><h5 class="fs-16 mb-1">Recognition &amp; Motivation</h5><p class="text-gray fs-14 mb-0">Celebrate milestones (e.g., high pre-board scores, project completions, community service contributions) through monthly awards, bulletin board displays, digital shout-outs, and school assembly recognitions to boost morale and motivation.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#22c55e,#16a34a)"><i class='bx bx-recycle'></i></div><div><h5 class="fs-16 mb-1">Sustainability Integration</h5><p class="text-gray fs-14 mb-0">Embed environmental education across subjects (e.g., Science experiments on renewable energy, Geography projects on resource conservation) and school-wide green initiatives (e.g., zero-waste weeks) to foster eco-consciousness.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#a855f7,#9333ea)"><i class='bx bx-buildings'></i></div><div><h5 class="fs-16 mb-1">Community Partnerships</h5><p class="text-gray fs-14 mb-0">Collaborate with local businesses, NGOs, environmental groups, and cultural organizations for guest talks, service projects, internships, and real-world learning opportunities (e.g., shadowing at local hospitals or media houses).</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#f43f5e,#e11d48)"><i class='bx bx-comment-detail'></i></div><div><h5 class="fs-16 mb-1">Student Voice</h5><p class="text-gray fs-14 mb-0">Establish a Class 10 Student Council to gather feedback on exam preparation, activities, stream selection processes, and school environment, empowering students to co-create their learning journey and address concerns.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#06b6d4,#0284c7)"><i class='bx bx-rocket'></i></div><div><h5 class="fs-16 mb-1">Post-Exam Transition Plan</h5><p class="text-gray fs-14 mb-0">Prepare a post-board exam roadmap with summer activities (e.g., skill courses, internships, reading lists) to bridge the gap to Class 11, ensuring continuity in learning and stream preparation.</p></div></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="monitoring-section py-md-8 py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6"><div class="moritoring-img"><img src="{{ static('images_new/careers/career-planning-banner-2.svg') }}" alt="Monitoring" class="img-fluid" /></div></div>
+        <div class="col-md-6 d-flex flex-column justify-content-center">
+          <h3 class="fs-26 fw-700 mb-5">Monitoring &amp; Evaluation for <span class="text-purple">Class 10</span></h3>
+          <ul class="custom-bullet-list">
+            <li><strong>Student Feedback:</strong> Conduct mid-term and end-term surveys (anonymous options for sensitive topics) to assess satisfaction with academic support, exam preparation, career guidance, skill-building, and well-being initiatives, using insights to refine the program.</li>
+            <li><strong>Progress Reports:</strong> Share detailed quarterly reports with parents, highlighting academic growth, exam readiness, skill acquisition, behavioral development, emotional health, and areas for improvement with actionable, personalized suggestions.</li>
+            <li><strong>Outcome Tracking:</strong> Measure success through metrics like pre-board and board exam scores, participation rates in activities, completion of projects/portfolios, psychometric test-stream alignment, and qualitative feedback on resilience, confidence, and well-being levels.</li>
+            <li><strong>Continuous Improvement:</strong> Host bi-annual review meetings with teachers, counselors, parents, and student representatives to evaluate the plan's impact, address challenges (e.g., stress peaks during pre-boards), and incorporate emerging educational trends (e.g., NEP 2020 updates) or student needs.</li>
+            <li><strong>Well-Being Indicators:</strong> Monitor stress and emotional health through counselor check-ins, journaling reflections, and peer circle feedback to ensure early intervention for burnout or anxiety, especially during peak exam preparation phases.</li>
+            <li><strong>Skill Application Assessment:</strong> Evaluate skill development through project outcomes, digital portfolio reviews, financial literacy simulations, and peer/teacher feedback on collaboration and leadership roles to gauge practical readiness for higher classes.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-3">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <a href="{{ url('core:career_planning_class_9') }}" class="btn btn-outline-secondary me-2">← Class 9</a>
+          <a href="{{ url('core:career_planning') }}" class="btn custom-button purple-button me-2">Career Planning Hub</a>
+          <a href="{{ url('core:career_planning_4_year') }}" class="btn custom-button blue-button me-2">4 Year Course Plan</a>
+          <a href="{{ url('core:career_planning_class_11') }}" class="btn btn-outline-secondary">Class 11 →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

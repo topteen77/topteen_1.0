@@ -241,7 +241,12 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
         'PORT': config('DB_PORT'),
-        'OPTIONS': {'charset': 'utf8mb4'},
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            # Use UTC for every connection so datetime values are valid (fixes admin date_hierarchy
+            # "invalid datetime / time zone definitions" on MySQL when tz tables are not loaded).
+            'init_command': "SET time_zone = '+00:00'",
+        },
     }
 }
 

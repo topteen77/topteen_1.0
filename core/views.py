@@ -474,11 +474,88 @@ class CareerPlanningView(TemplateView):
     def get_context(self, request, *args, **kwargs):
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = {"text": "Career Planning Hub", "url": reverse("core:career_planning")}
+        ctx["breadcrumb"] = [
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Career Planning", "url": None},
+        ]
         return ctx
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class CareerPlanning4YearView(TemplateView):
+    template_name = "template20/career_planning_4_year.html"
+
+    def html_head(self):
+        return build_html_head(title="4 Year Course Plan", description="Four-Year Success Plan for Classes 9–12")
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = [
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Career Planning", "url": reverse("core:career_planning")},
+            {"text": "4 Year Course Plan", "url": None},
+        ]
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class _CareerPlanningClassYearView(TemplateView):
+    """Base for class-year career planning pages."""
+    year_number = 1
+    class_label = "Class 9"
+    page_title = "Year 1 - Class 9"
+    template_name = "template20/career_planning_class_9.html"
+
+    def html_head(self):
+        return build_html_head(title=self.page_title, description="Career planning for " + self.class_label)
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = [
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Career Planning", "url": reverse("core:career_planning")},
+            {"text": self.page_title, "url": None},
+        ]
+        ctx["class_label"] = self.class_label
+        ctx["year_number"] = self.year_number
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class CareerPlanningClass9View(_CareerPlanningClassYearView):
+    year_number = 1
+    class_label = "Class 9"
+    page_title = "Year 1 - Class 9"
+    template_name = "template20/career_planning_class_9.html"
+
+
+class CareerPlanningClass10View(_CareerPlanningClassYearView):
+    year_number = 2
+    class_label = "Class 10"
+    page_title = "Year 2 - Class 10"
+    template_name = "template20/career_planning_class_10.html"
+
+
+class CareerPlanningClass11View(_CareerPlanningClassYearView):
+    year_number = 3
+    class_label = "Class 11"
+    page_title = "Year 3 - Class 11"
+    template_name = "template20/career_planning_class_11.html"
+
+
+class CareerPlanningClass12View(_CareerPlanningClassYearView):
+    year_number = 4
+    class_label = "Class 12"
+    page_title = "Year 4 - Class 12"
+    template_name = "template20/career_planning_class_12.html"
 
 
 class EmotionalIntelligencesView(TemplateView):

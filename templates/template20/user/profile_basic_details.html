@@ -772,14 +772,29 @@
     return phoneRegex.test(phone);
   }
 
-  // Enforce 10 digits only on profile phone and parent mobile inputs
+  // Enforce max 10 digits on profile phone and parent mobile: block further key input when at 10 digits
+  function installMaxDigitsMobile(inputEl, maxLen) {
+    if (!inputEl || maxLen == null) return;
+    maxLen = maxLen || 10;
+    inputEl.addEventListener('keypress', function(e) {
+      const digits = (this.value || '').replace(/\D/g, '');
+      if (digits.length >= maxLen && !e.ctrlKey && !e.metaKey && e.key.length === 1 && /\d/.test(e.key)) {
+        e.preventDefault();
+      }
+      if (e.key.length === 1 && !/\d/.test(e.key) && !e.ctrlKey && !e.metaKey && e.key !== 'Backspace' && e.key !== 'Delete') {
+        e.preventDefault();
+      }
+    });
+    inputEl.addEventListener('input', function() {
+      const digits = (this.value || '').replace(/\D/g, '').slice(0, maxLen);
+      this.value = digits;
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     const userPhone = document.getElementById('userphone');
     if (userPhone) {
-      userPhone.addEventListener('input', function() {
-        const digits = (this.value || '').replace(/\D/g, '').slice(0, 10);
-        this.value = digits;
-      });
+      installMaxDigitsMobile(userPhone, 10);
     }
 
     const parentInput = document.getElementById('parent_mobile_profile');
@@ -787,10 +802,7 @@
     const err = document.getElementById('parent_mobile_err');
 
     if (parentInput) {
-      parentInput.addEventListener('input', function() {
-        const digits = (parentInput.value || '').replace(/\D/g, '').slice(0, 10);
-        parentInput.value = digits;
-      });
+      installMaxDigitsMobile(parentInput, 10);
     }
 
     if (addBtn) {

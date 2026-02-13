@@ -1,0 +1,254 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+4 Year Course Plan | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Four-Year Success Plan (Classes 9–12): build a strong academic foundation, foster 21st-century skills, and guide informed stream and career choices.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+<style>
+.gradient-bg { background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%); }
+.fs-60{font-size: 60px;}
+.four-year-section { padding: 48px 0; }
+.four-year-accordion .accordion-button .year-icon {
+  width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 10px; margin-right: 12px; color: #fff;
+  background: linear-gradient(90deg,#7755EE,#3F37C9); font-size: 18px;
+}
+.focus-point { background: #f6f6ff; border-radius: 7px; padding: 13px; }
+.focus-point p { margin-bottom: 0; }
+.implementation-tips .tip-card {
+  border-radius: 12px; padding: 18px; background: linear-gradient(180deg,#ffffff,#fbfbff);
+  box-shadow: 0 10px 30px rgba(15,23,42,0.06); height: 100%;
+}
+.tip-icon { min-width:46px; min-height:46px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; margin-right:12px; background:linear-gradient(90deg,#22c55e,#16a34a); color:#fff; font-size:20px; }
+.custom-bullet-list { list-style-type: none; padding-left: 0; }
+.custom-bullet-list li { position: relative; padding-left: 25px; margin-bottom: 15px; }
+.custom-bullet-list li::before { content: ""; position: absolute; left: 0; top: 5px; width: 18px; height: 18px; background: linear-gradient(135deg, #7755EE, #3F37C9); border-radius: 50%; }
+.moritoring-img { position: sticky; top: 65px; }
+</style>
+
+<main class="py-test-page">
+  <section class="hero-section-inner pt-md-18 pt-14 pb-5 gradient-bg">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
+        <div class="col-lg-6 col-md-12">
+          <h1 class="heading-title mt-md-9 fs-60 mt-8">Four-Year <p class="lh-sm fs-sm-20"><span class="text-yellow">Success Plan</span> (Classes 9–12)</p></h1>
+          <p class="text-gray fs-16"><strong class="text-purple">Purpose:</strong> To build a robust academic foundation, cultivate 21st-century skills, facilitate informed stream and career decisions, foster global awareness, and prepare students for future-ready careers and higher education while prioritizing well-being and inclusivity.</p>
+        </div>
+        <div class="col-lg-6 col-md-12">
+          <div class="right-banner d-md-flex d-none justify-content-end">
+            <img class="img-fluid" src="{{ static('images_new/careers/career-planning-banner.svg') }}" alt="Four-Year Plan" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="four-year-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-9 mx-auto custom-faq">
+          <h2 class="fs-28 fw-700 text-center mb-4">Four-Year Plan Overview</h2>
+          <div class="accordion four-year-accordion" id="fourYearAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true"><span class="year-icon me-2"><i class='bx bx-calendar'></i></span>Year 1 – Class 9: Foundation Building &amp; Early Exploration</button>
+              </h2>
+              <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#fourYearAccordion">
+                <div class="accordion-body">
+                  <div class="focus-point mb-4">
+                    <h5 class="fw-700 text-purple">Focus</h5>
+                    <p>Establish core academic skills, introduce essential life skills, spark curiosity through interdisciplinary learning, and initiate self-discovery and career awareness.</p>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                      <thead><tr><th style="width:30%;">Area</th><th>What to Do</th></tr></thead>
+                      <tbody>
+                        <tr><td><strong>Core Academics</strong></td><td><ul class="mb-0"><li>English Language &amp; Literature — reading comprehension, creative writing</li><li>Second Language (Hindi/Sanskrit/French/Regional) — conversational fluency</li><li>Mathematics — basics of Algebra, Geometry, Number Systems, Statistics with real-world applications</li><li>Integrated Science — Physics/Chemistry/Biology with hands-on experiments</li><li>Social Science — History, Civics, Geography, Economics with project-based learning</li></ul></td></tr>
+                        <tr><td><strong>Skill Boosters</strong></td><td><ul class="mb-0"><li>Digital Literacy: MS Office, Google Suite, Basic Typing, Cybersecurity Basics</li><li>Introduction to Coding: Scratch/Python Basics with mini-projects (e.g., simple games)</li><li>Communication: Vocabulary, debates, presentations, storytelling workshops</li><li>Creative Thinking: Story Writing, Poster Making, Science Models, Art Integration, Design Thinking Basics</li><li>Critical Thinking: Problem-Solving Puzzles, Logic Games, Group Discussions on Global Issues</li></ul></td></tr>
+                        <tr><td><strong>Career &amp; Self-Discovery</strong></td><td><ul class="mb-0"><li>Career Talks &amp; Documentaries (featuring diverse professions like AI, sustainability, arts)</li><li>Role-Plays for Career Exploration (e.g., simulating roles like engineer, lawyer, artist)</li><li>Snapshot Aptitude &amp; Personality Tests (online tools for self-awareness)</li><li>SMART Goal-Setting Techniques with Peer Review</li><li>Reflective Journaling (guided prompts on strengths, interests, and aspirations)</li><li>Introduction to Growth Mindset Workshops</li></ul></td></tr>
+                        <tr><td><strong>Enrichment Activities</strong></td><td><ul class="mb-0"><li>Clubs: Science, Literary, MUN, Eco, Drama, Robotics, Photography</li><li>Sports: Team (e.g., football, basketball) &amp; Individual (e.g., chess, yoga)</li><li>Music &amp; Performing Arts: Instrumental, Vocal, Theatre, Dance</li><li>Inter-School Competitions, Hackathons, and Science Fairs</li><li>Community Service: Local Clean-Up Drives, Peer Tutoring Initiatives</li></ul></td></tr>
+                        <tr><td><strong>Global Awareness</strong></td><td><ul class="mb-0"><li>Introduction to Global Issues: Climate Change, Human Rights, Cultural Diversity (via documentaries and discussions)</li><li>Virtual Exchange Programs: Connect with students from other countries for cultural learning</li></ul></td></tr>
+                        <tr><td><strong>Well-Being &amp; Inclusivity</strong></td><td><ul class="mb-0"><li>Workshops on Empathy, Respect for Diversity, and Anti-Bullying</li><li>Monthly Mental Health Check-Ins with Counselors</li><li>Mindfulness and Relaxation Sessions (e.g., guided meditation)</li></ul></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <a href="{{ url('core:career_planning_class_9') }}" class="btn custom-button blue-button mt-3">Read Class 9 Details</a>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo"><span class="year-icon me-2" style="background:linear-gradient(90deg,#0ea5e9,#22c55e)"><i class='bx bx-book-open'></i></span>Year 2 – Class 10: Board Readiness &amp; Stream Discovery</button>
+              </h2>
+              <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#fourYearAccordion">
+                <div class="accordion-body">
+                  <div class="focus-point mb-4">
+                    <h5 class="fw-700 text-purple">Focus</h5>
+                    <p>Strengthen academic preparation for board exams, enhance analytical and interpersonal skills, and provide structured guidance for stream selection while fostering resilience.</p>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                      <thead><tr><th style="width:30%;">Area</th><th>What to Do</th></tr></thead>
+                      <tbody>
+                        <tr><td><strong>Academic Excellence</strong></td><td><ul class="mb-0"><li>Deep Dive into Full Syllabus (CBSE/ICSE/State Board) with Focus on Conceptual Clarity</li><li>Board-Pattern Question Practice (timed writing and MCQs)</li><li>Emphasis on Writing Skills, Practical Understanding, Analytical Questions, and Interdisciplinary Connections (e.g., applying Maths to Economics)</li></ul></td></tr>
+                        <tr><td><strong>Exam Support</strong></td><td><ul class="mb-0"><li>Regular Mock Tests &amp; Past-Year Paper Analysis</li><li>Remedial Classes &amp; Doubt-Clearing Sessions (peer and teacher-led)</li><li>Stress-Buster Workshops (e.g., art therapy, breathing exercises)</li><li>Time-Management Training with Personalized Study Plans</li><li>Tech Tools for Learning: Use of apps like Quizlet, Khan Academy for revision</li></ul></td></tr>
+                        <tr><td><strong>Stream Selection</strong></td><td><ul class="mb-0"><li>Comprehensive Psychometric Tests (Aptitude, Interest, Personality) with Detailed Reports</li><li>1-on-1 Counseling Sessions (including goal alignment)</li><li>Parent-Student Career Meetings for Collaborative Decision-Making</li><li>Career-Cluster Explorations: In-Depth Workshops on Engineering, Medical, Law, Commerce, Humanities, Vocational Fields, and Emerging Careers (e.g., AI, Green Energy)</li></ul></td></tr>
+                        <tr><td><strong>Skill Enrichment</strong></td><td><ul class="mb-0"><li>Digital Research &amp; Citation Ethics (avoiding plagiarism, using credible sources)</li><li>Group Projects &amp; Presentations (focus on teamwork and leadership)</li><li>Personal Finance Basics: Earning, Budgeting, Saving, Introduction to Taxes</li><li>Cyber-Safety Essentials: Social Media Etiquette, Data Privacy</li><li>Introduction to AI Tools: Using ChatGPT, Canva for projects (with ethical guidelines)</li></ul></td></tr>
+                        <tr><td><strong>Global Awareness</strong></td><td><ul class="mb-0"><li>Case Studies on Global Economies, Conflicts, and Innovations</li><li>Virtual Internships or Global Challenges (e.g., Model UN online events)</li></ul></td></tr>
+                        <tr><td><strong>Well-Being &amp; Inclusivity</strong></td><td><ul class="mb-0"><li>Peer Support Groups for Exam Stress Management</li><li>Sessions on Gender Sensitivity and Inclusive Language</li><li>Access to School Counselor for Confidential Support</li></ul></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <a href="{{ url('core:career_planning_class_10') }}" class="btn custom-button blue-button mt-3">Read Class 10 Details</a>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree"><span class="year-icon me-2" style="background:linear-gradient(90deg,#ec4899,#f97316)"><i class='bx bx-briefcase'></i></span>Year 3 – Class 11: Stream Specialisation &amp; Career Mapping</button>
+              </h2>
+              <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#fourYearAccordion">
+                <div class="accordion-body">
+                  <div class="focus-point mb-4">
+                    <h5 class="fw-700 text-purple">Focus</h5>
+                    <p>Deepen stream-specific knowledge, initiate competitive-exam preparation, build professional skills, and align career aspirations with actionable plans.</p>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                      <thead><tr><th>Stream</th><th>Core Subjects</th><th>Optional Subjects</th><th>Skill Focus</th><th>Career Mapping</th></tr></thead>
+                      <tbody>
+                        <tr><td><strong>Science</strong></td><td>Physics, Chemistry, Maths/Biology, English</td><td>Computer Science, Psychology, Physical Education, Economics, Engineering Graphics</td><td>Analytical reasoning, lab research, coding (Python/C++), data visualization</td><td>Engineering, Medicine, Biotech, Data Science, AI, Robotics, Sustainability Research</td></tr>
+                        <tr><td><strong>Commerce</strong></td><td>Accountancy, Business Studies, Economics, English</td><td>Mathematics/Applied Maths, Informatics Practices, Entrepreneurship, Marketing</td><td>Financial analysis, entrepreneurship, data handling (Excel), market research</td><td>CA, BBA, Economics Hons., Actuarial Science, Marketing, Finance, Startups</td></tr>
+                        <tr><td><strong>Humanities/Arts</strong></td><td>History, Political Science, Sociology/Psychology, English</td><td>Geography, Legal Studies, Fine Arts, Economics, Media Studies</td><td>Critical writing, public speaking, survey research, policy analysis</td><td>Law, Civil Services, Journalism, Design, Social Work, International Relations</td></tr>
+                        <tr><td><strong>Vocational</strong></td><td>Retail, IT, Healthcare, Agriculture, Travel &amp; Tourism (NSQF)</td><td>School-specific choices</td><td>Hands-on tech &amp; service skills, industry certifications, workplace communication</td><td>IT Support, Retail Management, Healthcare Aide, Tourism Management, Agri-Tech</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <h6 class="mt-3 fs-20 fw-800">Additional Highlights</h6>
+                  <ul>
+                    <li><strong>Academic Focus:</strong> Mastery of NCERT/Board Syllabus, Interdisciplinary Projects, Subject-Focused Seminars/Webinars.</li>
+                    <li><strong>Competitive Exam Prep:</strong> Early Start for JEE, NEET, CUET, CLAT, NID, etc., with Diagnostic Tests and Study Groups.</li>
+                    <li><strong>Portfolio &amp; Résumé Building:</strong> Create LinkedIn Profiles, GitHub for Coders, Digital Artfolios for Designers, Blogging for Humanities Students.</li>
+                    <li><strong>MOOC Certifications:</strong> Enroll in Coursera, edX, or Udemy for Advanced Topics.</li>
+                    <li><strong>Global Exposure:</strong> International Olympiads, Virtual Study Abroad Fairs, Cross-Cultural Collaboration Projects.</li>
+                    <li><strong>Industry Readiness:</strong> Guest Lectures by Industry Experts, Virtual Job-Shadowing, Freelancing Platforms (e.g., Upwork).</li>
+                    <li><strong>Well-Being &amp; Inclusivity:</strong> Workshops on Stress Management for Competitive Exams, Neurodiversity Awareness, Safe Spaces for Identity and Inclusion.</li>
+                  </ul>
+                  <a href="{{ url('core:career_planning_class_11') }}" class="btn custom-button blue-button mt-3">Read Class 11 Details</a>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour"><span class="year-icon me-2" style="background:linear-gradient(90deg,#facc15,#fb923c)"><i class='bx bx-award'></i></span>Year 4 – Class 12: Board Success &amp; Higher Education Launch</button>
+              </h2>
+              <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#fourYearAccordion">
+                <div class="accordion-body">
+                  <div class="focus-point mb-4">
+                    <h5 class="fw-700 text-purple">Focus</h5>
+                    <p>Excel in board exams, ace entrance exams, finalize higher education and career pathways, develop life skills for independence, and prepare for global opportunities.</p>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                      <thead><tr><th>Stream</th><th>Sample Careers</th><th>Key Entrance Exams</th></tr></thead>
+                      <tbody>
+                        <tr><td><strong>Science (PCM)</strong></td><td>Engineering, Architecture, Data Science, AI Developer</td><td>JEE Main/Advanced, NDA, CUET-Engg, SAT, BITSAT</td></tr>
+                        <tr><td><strong>Science (PCB)</strong></td><td>Medicine, Biotechnology, Psychology, Forensics</td><td>NEET, CUET-Med, SAT, AIIMS</td></tr>
+                        <tr><td><strong>Science (PCMB)</strong></td><td>Engineering &amp; Medicine options, Research Scientist</td><td>JEE, NEET, CUET-Sci, IISER Aptitude Test</td></tr>
+                        <tr><td><strong>Commerce (with Maths)</strong></td><td>CA, Actuarial Science, BBA, Economics Hons, Investment Banking</td><td>CUET-Com, IPMAT, CA-Foundation, CSEET</td></tr>
+                        <tr><td><strong>Commerce (without Maths)</strong></td><td>B.Com, Hotel Management, Marketing, Fashion Business</td><td>CUET-Com, SAT, NCHMCT-JEE</td></tr>
+                        <tr><td><strong>Humanities/Arts</strong></td><td>Law, Civil Services, Journalism, Design, International Relations</td><td>CUET-Arts, CLAT, NID/NIFT/UCEED, SAT, AILET</td></tr>
+                        <tr><td><strong>Vocational</strong></td><td>IT Support, Retail Management, Healthcare Aide, Event Management</td><td>NSQF Level 3–4 tests, Industry Certifications</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="table-responsive mt-4">
+                    <table class="table table-striped table-bordered">
+                      <thead><tr><th style="width:30%">Area</th><th>What to Do</th></tr></thead>
+                      <tbody>
+                        <tr><td><strong>Board Mastery</strong></td><td><ul class="mb-0"><li>Chapter-wise intensive revision with mind maps</li><li>Lab &amp; practical assessments with peer feedback</li><li>Expert lectures by board examiners</li><li>Sample-paper marathons with performance analytics</li><li>Tech integration: VR/AR for practical subjects</li></ul></td></tr>
+                        <tr><td><strong>Entrance Coaching</strong></td><td><ul class="mb-0"><li>Stream-specific preparation with mock tests</li><li>Study abroad prep: SAT/ACT, IELTS/TOEFL, AP exams (if applicable)</li><li>Personalized coaching plans based on diagnostic assessments</li></ul></td></tr>
+                        <tr><td><strong>College Applications</strong></td><td><ul class="mb-0"><li>Finalize course, college &amp; country (India/Abroad)</li><li>Draft SOPs, resumes, secure LORs from teachers/mentors</li><li>Build portfolios (digital &amp; physical for Design/Arts)</li><li>Scholarship &amp; loan guidance (government + international funding)</li><li>Virtual campus tours and alumni interactions</li></ul></td></tr>
+                        <tr><td><strong>Life-Ready Skills</strong></td><td><ul class="mb-0"><li>Advanced time &amp; stress management (exam + life balance)</li><li>Emotional intelligence &amp; mental health literacy</li><li>Financial literacy: budgeting, investments, credit/debit basics</li><li>Personal safety: self-defense basics, online safety in professional spaces</li><li>Networking skills: building professional connections via LinkedIn</li></ul></td></tr>
+                        <tr><td><strong>Exit Guidance</strong></td><td><ul class="mb-0"><li>Mock interviews for college/entrance with feedback</li><li>Internships &amp; volunteer work (sector-specific e.g., hospital shadowing)</li><li>Gap-year planning: structured programs for skill development or travel</li><li>Alumni &amp; mentor check-ins for post-school transition support</li><li>Entrepreneurship bootcamp for aspiring business owners</li></ul></td></tr>
+                        <tr><td><strong>Global Awareness</strong></td><td><ul class="mb-0"><li>Workshops on global job markets and skills (remote work trends)</li><li>Guidance on international scholarships and exchange programs</li><li>Participation in global hackathons or competitions</li></ul></td></tr>
+                        <tr><td><strong>Well-Being &amp; Inclusivity</strong></td><td><ul class="mb-0"><li>Pre-exam mental health bootcamps (focus on resilience)</li><li>Sessions on transition anxiety (moving to college or work)</li><li>Inclusive career guidance for students with special needs or diverse backgrounds</li></ul></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <a href="{{ url('core:career_planning_class_12') }}" class="btn custom-button blue-button mt-3">Read Class 12 Details</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Implementation Tips Section -->
+  <section class="implementation-tips bg-light py-md-8 py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 mx-auto text-center mb-4">
+          <h3 class="fs-26 fw-700">Implementation Tips for Schools</h3>
+          <p class="text-gray">Practical, high-impact recommendations to bring the four-year plan to life.</p>
+        </div>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon"><i class='bx bx-timer'></i></div><div><h5 class="fs-16 mb-1">Integrated Timetable</h5><p class="text-gray fs-14 mb-0">Allocate dedicated weekly slots for skill-building, counseling, extracurriculars, and well-being activities alongside academics.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#ef4444,#f97316)"><i class='bx bx-user-check'></i></div><div><h5 class="fs-16 mb-1">Mentor-Mentee Program</h5><p class="text-gray fs-14 mb-0">Assign mentors from Class 9 for personalized academic, career, and emotional guidance, with regular progress reviews.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i class='bx bx-calendar-check'></i></div><div><h5 class="fs-16 mb-1">Parent Engagement</h5><p class="text-gray fs-14 mb-0">Conduct quarterly webinars and workshops on board preparation, stream choices, college admissions, and parenting for student success.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#059669,#22c55e)"><i class='bx bx-data'></i></div><div><h5 class="fs-16 mb-1">360° E-Profiles</h5><p class="text-gray fs-14 mb-0">Develop a digital dashboard to track students' academics, skills, extracurriculars, mental health indicators, and achievements for holistic monitoring.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#f59e0b,#f97316)"><i class='bx bx-briefcase'></i></div><div><h5 class="fs-16 mb-1">Industry &amp; Alumni Links</h5><p class="text-gray fs-14 mb-0">Facilitate guest talks by professionals, internships, job-shadowing days, and alumni mentorship programs to bridge the gap between education and industry.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#06b6d4,#0ea5e9)"><i class='bx bx-heart'></i></div><div><h5 class="fs-16 mb-1">Well-Being First</h5><p class="text-gray fs-14 mb-0">Implement term-wise mental health check-ins, peer-support groups, access to professional counselors, and stress-relief zones on campus.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#7c3aed,#6d28d9)"><i class='bx bx-devices'></i></div><div><h5 class="fs-16 mb-1">Technology Integration</h5><p class="text-gray fs-14 mb-0">Equip classrooms with smart tools (e.g., interactive boards, VR for learning), provide access to learning management systems, and train teachers in ed-tech.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#059669,#10b981)"><i class='bx bx-universal-access'></i></div><div><h5 class="fs-16 mb-1">Inclusivity Framework</h5><p class="text-gray fs-14 mb-0">Ensure curriculum and activities are accessible to students with diverse needs (e.g., differently-abled, linguistic minorities) through adaptive resources and support staff.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#06b6d4,#0891b2)"><i class='bx bx-globe'></i></div><div><h5 class="fs-16 mb-1">Global Partnerships</h5><p class="text-gray fs-14 mb-0">Collaborate with international schools or organizations for student exchange programs, virtual learning opportunities, and global certifications.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#16a34a,#65a30d)"><i class='bx bx-leaf'></i></div><div><h5 class="fs-16 mb-1">Sustainability Focus</h5><p class="text-gray fs-14 mb-0">Embed environmental education across years with projects like school gardens, waste management drives, and renewable energy awareness campaigns.</p></div></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Monitoring & Evaluation -->
+  <section class="monitoring-section py-md-8 py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="moritoring-img">
+            <img src="{{ static('images_new/careers/career-planning-banner-2.svg') }}" alt="Monitoring &amp; Evaluation" class="img-fluid" />
+          </div>
+        </div>
+        <div class="col-md-6 d-flex flex-column justify-content-center">
+          <h3 class="fs-26 fw-700 mb-5">Monitoring &amp; Evaluation</h3>
+          <ul class="custom-bullet-list">
+            <li><strong>Student Feedback:</strong> Conduct bi-annual surveys to assess student satisfaction with academic, skill, and career guidance programs.</li>
+            <li><strong>Progress Reports:</strong> Share detailed quarterly reports with parents, highlighting academic growth, skill acquisition, and areas for improvement.</li>
+            <li><strong>Outcome Tracking:</strong> Monitor board exam results, entrance exam success rates, college placements, and student well-being metrics to evaluate the plan's effectiveness.</li>
+            <li><strong>Continuous Improvement:</strong> Host annual teacher training on emerging educational trends, mental health support, and technology integration to keep the program dynamic.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 mx-auto text-center">
+          <p class="text-gray">Explore each class in detail for area-wise plans, skills, and implementation tips.</p>
+          <a href="{{ url('core:career_planning') }}" class="btn custom-button purple-button">Back to Career Planning Hub</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
