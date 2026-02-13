@@ -719,12 +719,25 @@ window.handlePaymentSubmit = function(event) {
   window.location.href = "{{ url('app:test_buttons') }}";
   return;
   {% endif %}
-  var form = document.getElementById('paymentForm');
-  var button = document.getElementById('proceedToBuyBtn');
+  {% if not is_authenticated %}
+  window.location.href = "{{ login_url }}?next=" + encodeURIComponent(window.location.pathname + window.location.search);
+  return;
+  {% endif %}
+  var form = event.target && event.target.form ? event.target.form : document.getElementById('paymentForm');
+  var button = event.target && event.target.tagName === 'BUTTON' ? event.target : (form ? form.querySelector('button[type="submit"]') : document.getElementById('proceedToBuyBtn'));
+  if (!form || !button) {
+    alert('Error: Could not find payment form. Please refresh the page and try again.');
+    return;
+  }
+  var testTypeInput = form.querySelector('input[name="test_type"]');
+  if (!testTypeInput || !testTypeInput.value) {
+    alert('Error: Invalid form. Please refresh the page and try again.');
+    return;
+  }
   var originalText = button.textContent;
   button.disabled = true;
   button.textContent = 'Processing...';
-  var data = { test_type: form.querySelector('input[name="test_type"]').value };
+  var data = { test_type: testTypeInput.value };
   fetch('{{ psychometric_test_payment_url }}', {
     method: 'POST',
     headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' },

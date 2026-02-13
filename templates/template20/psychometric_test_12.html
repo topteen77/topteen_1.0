@@ -781,7 +781,7 @@ Test. Make informed decisions and choose the right career path.
           <form id="paymentForm" onsubmit="handlePaymentSubmit(event); return false;">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <input type="hidden" name="test_type" value="{{ test_type_id }}">
-            <button type="submit" id="proceedToBuyBtn" class="cta-button">Proceed to Buy</button>
+            <button type="submit" class="cta-button">Proceed to Buy</button>
           </form>
           {% if delete_demo_payment_url %}
           <button onclick="delete_demo_payment()" class="btn btn-secondary w-100 mt-2">Clear Demo Test</button>
@@ -845,10 +845,10 @@ Test. Make informed decisions and choose the right career path.
               <p class="fs-14 text-secondary mb-0">Personalised Career Counselling Session</p>
             </div>
           </div>
-          <form id="paymentForm" onsubmit="handlePaymentSubmit(event); return false;">
+          <form id="paymentFormPricing" onsubmit="handlePaymentSubmit(event); return false;">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <input type="hidden" name="test_type" value="{{ test_type_id }}">
-            <button type="submit" id="proceedToBuyBtn" class="btn btn-primary w-100 mt-3">Proceed{% if not is_student %}
+            <button type="submit" class="btn btn-primary w-100 mt-3">Proceed{% if not is_student %}
               to Buy{% endif %}</button>
           </form>
           {% if delete_demo_payment_url %}
@@ -1035,12 +1035,25 @@ Test. Make informed decisions and choose the right career path.
     window.location.href = "{{ url('app:test_buttons') }}";
     return;
     {% endif %}
-    var form = document.getElementById('paymentForm');
-    var button = document.getElementById('proceedToBuyBtn');
+    {% if not is_authenticated %}
+    window.location.href = "{{ login_url }}?next=" + encodeURIComponent(window.location.pathname + window.location.search);
+    return;
+    {% endif %}
+    var form = event.target && event.target.form ? event.target.form : document.getElementById('paymentForm');
+    var button = event.target && event.target.tagName === 'BUTTON' ? event.target : (form ? form.querySelector('button[type="submit"]') : document.getElementById('proceedToBuyBtn'));
+    if (!form || !button) {
+      alert('Error: Could not find payment form. Please refresh the page and try again.');
+      return;
+    }
+    var testTypeInput = form.querySelector('input[name="test_type"]');
+    if (!testTypeInput || !testTypeInput.value) {
+      alert('Error: Invalid form. Please refresh the page and try again.');
+      return;
+    }
     var originalText = button.textContent;
     button.disabled = true;
     button.textContent = 'Processing...';
-    var data = { test_type: form.querySelector('input[name="test_type"]').value };
+    var data = { test_type: testTypeInput.value };
     fetch('{{ psychometric_test_payment_url }}', {
       method: 'POST',
       headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' },

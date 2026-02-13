@@ -75,6 +75,8 @@ class PsychometricTest(TemplateView):
             # Use API endpoint for payment creation
             ctx["psychometric_test_payment_url"]=reverse('psychometrictests:createpsychomerticttestpayment')
             ctx['delete_demo_payment_url']=False
+        ctx['is_authenticated'] = request.user.is_authenticated
+        ctx['login_url'] = reverse('users:login')
         return ctx
 
     def get(self, request,*args, **kwargs):
@@ -133,6 +135,8 @@ class PsychometricTest12(TemplateView):
             # Use API endpoint for payment creation
             ctx["psychometric_test_payment_url"]=reverse('psychometrictests:createpsychomerticttestpayment')
             ctx['delete_demo_payment_url']=False
+        ctx['is_authenticated'] = request.user.is_authenticated
+        ctx['login_url'] = reverse('users:login')
         return ctx
 
     def get(self, request,*args, **kwargs):
