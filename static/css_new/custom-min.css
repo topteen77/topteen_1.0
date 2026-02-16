@@ -8118,6 +8118,10 @@ div#videoModal {
   transition: all 0.5s;
 }
 
+#staticDemo {
+  z-index: 9999 !important;
+}
+
 
 
 .custom-faq .nav-link {
@@ -8182,6 +8186,14 @@ div#videoModal {
   margin-bottom: 14px;
   color: #494949;
 }
+
+.footer-disclaimer{
+	background: #ffffffd1;
+	border-radius: 10px;
+	padding: 3px 19px;
+	margin-top: 18px;
+}
+
 
 .tp-footer-text li a {
   font-weight: normal;

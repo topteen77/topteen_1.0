@@ -5857,6 +5857,7 @@ a, a:hover {
   top: 0;
   z-index: 00;
 }
+
 .inner-sections {
   z-index: 222;
   position: relative;
@@ -6441,6 +6442,9 @@ a, a:hover {
   font-weight: 600;
   color: #fff;
 }
+
+
+
 .ft-list ul {
   padding-left: 0px;
 }
