@@ -758,3 +758,83 @@ class FourPillarsAssessmentProfile(models.Model):
 
     def __str__(self):
         return f"{self.assessment.slug} – {self.option_key} ({self.name})"
+
+
+class CareerBattleFight(models.Model):
+    """Stored Career Battle comparison: streams, parameters, result. Per-user history."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='career_battle_fights',
+    )
+    title = models.CharField(max_length=255, help_text='e.g. "Stream A vs Stream B"')
+    cluster_name = models.CharField(max_length=255, blank=True, default='')
+    streams = models.JSONField(default=list)  # [stream1_name, stream2_name]
+    parameters = models.JSONField(default=list)  # [param_id, ...]
+    result = models.JSONField(default=dict)  # { winner, reasoning, details, ... }
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created']
+        verbose_name = 'Career Battle Fight'
+        verbose_name_plural = 'Career Battle Fights'
+
+    def __str__(self):
+        return self.title or f"Fight #{self.pk}"
+
+
+class CounsellingSession(models.Model):
+    """Metadata for AI counselling sessions (analytics / One Student One Mentor). No message content stored."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='counselling_sessions',
+    )
+    session_id = models.CharField(max_length=64, db_index=True)
+    first_message_at = models.DateTimeField(auto_now_add=True)
+    last_message_at = models.DateTimeField(auto_now=True)
+    crisis_flagged = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-last_message_at']
+        verbose_name = 'Counselling Session'
+        verbose_name_plural = 'Counselling Sessions'
+
+    def __str__(self):
+        return f"Session {self.session_id[:16]}... ({self.user_id})"
+
+
+def _normalize_grade(value):
+    """Return '8','9','10','11','12' or None from UserProfile.grade or class string."""
+    if value is None:
+        return None
+    s = str(value).strip()
+    if not s:
+        return None
+    # "10", "10th", "Class 10" -> 10
+    import re
+    m = re.search(r'\b(8|9|10|11|12)\b', s)
+    if m:
+        return m.group(1)
+    return None
+
+
+class CareerBattleEligibilityProfile(models.Model):
+    """Stored course eligibility choices for Career Battle (education, stream, area, location)."""
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='career_battle_eligibility_profile',
+    )
+    education_background = models.CharField(max_length=64, blank=True, default='')
+    stream = models.CharField(max_length=64, blank=True, default='')
+    specific_area = models.CharField(max_length=128, blank=True, default='')
+    study_location = models.CharField(max_length=64, blank=True, default='')
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Career Battle Eligibility Profile'
+        verbose_name_plural = 'Career Battle Eligibility Profiles'
+
+    def __str__(self):
+        return f"Eligibility for {self.user_id}"

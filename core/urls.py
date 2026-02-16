@@ -41,7 +41,15 @@ urlpatterns = [
     path("ebooks/flip-book/<slug:slug>/", views.EbookDetailView.as_view(), name="ebook_detail"),
     path("delete-history/",views.deletehistory,name="deletehistory"), 
     path("lead-submit/",views.LeadData.as_view(),name="lead_submit"),
-    # React game SPA (Career Battle / stream comparison) – serve index.html; assets at /static/game/
-    path("career-battle/", views.serve_game_spa, name="language_game"),
-    path("career-battle/<path:path>/", views.serve_game_spa, name="language_game_subpath"),
+    # Career Battle: wrapper with site header/footer and shared session; game SPA at /career-battle/app/
+    path("career-battle/", views.career_battle_wrapper, name="language_game"),
+    path("career-battle/app/", views.serve_game_spa, name="language_game_app"),
+    path("career-battle/app/<path:path>/", views.serve_game_spa, name="language_game_app_path"),
+    path("career-battle/api/clusters/", views.career_battle_clusters_api, name="career_battle_clusters_api"),
+    path("career-battle/api/fights/", views.career_battle_fights_api, name="career_battle_fights_api"),
+    path("career-battle/api/eligibility-profile/", views.career_battle_eligibility_profile_api, name="career_battle_eligibility_profile_api"),
+    path("career-battle/api/stream-sources/", views.career_battle_stream_sources_api, name="career_battle_stream_sources_api"),
+    # AI Counselling: page + proxy API to FastAPI engine
+    path("career-counselling/", views.career_counselling_page, name="career_counselling"),
+    path("career-counselling/api/", views.counsel_chat_api, name="counsel_chat_api"),
 ]

@@ -323,10 +323,10 @@ const ResultDisplay = ({ result, streams, onInterested, onFightAgain }) => {
         <button
           className="action-button fight-again-button"
           onClick={onFightAgain}
-          aria-label="Fight again with different streams"
+          aria-label="Fight again with other streams"
         >
           <span className="button-icon" aria-hidden="true">⚔️</span>
-          Fight Again
+          Fight again with other
         </button>
       </div>
     </div>

@@ -1,4 +1,4 @@
-/* FightAnimation Component Styles */
+/* FightAnimation Component Styles - Gaming UI */
 
 .fight-animation-container {
   width: 100%;
@@ -10,12 +10,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(180deg, #2d1b4e 0%, #1a0a2e 50%, #0d0518 100%);
   position: relative;
   overflow: hidden;
 }
 
-/* Animated background particles */
+/* Arena floor effect */
 .fight-animation-container::before {
   content: '';
   position: absolute;
@@ -23,50 +23,60 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  animation: backgroundPulse 3s ease-in-out infinite;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% 100%, rgba(102, 126, 234, 0.25) 0%, transparent 60%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 40%);
+  pointer-events: none;
 }
 
-@keyframes backgroundPulse {
-  0%, 100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 0.8;
-  }
+.fight-arena-ring {
+  position: absolute;
+  inset: 50% 50%;
+  width: min(90vw, 700px);
+  height: min(50vw, 320px);
+  transform: translate(-50%, -50%);
+  border: 3px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(102, 126, 234, 0.15);
+  pointer-events: none;
 }
 
 /* Header */
 .fight-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   z-index: 1;
 }
 
 .fight-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  animation: titlePulse 2s ease-in-out infinite;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.4), 2px 2px 4px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-@keyframes titlePulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+.fight-title-icon {
+  font-size: 1.4em;
+  filter: drop-shadow(0 0 8px rgba(255, 200, 100, 0.6));
+  animation: iconPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.9; }
 }
 
 .fight-subtitle {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
+  font-weight: 500;
 }
 
 /* Fight Arena */
@@ -74,175 +84,188 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3rem;
+  gap: 2rem;
   width: 100%;
   max-width: 900px;
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
   z-index: 1;
   position: relative;
 }
 
-/* Fighter */
 .fighter {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
   flex: 1;
+  max-width: 280px;
+}
+
+.fighter-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fighter-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
 .fighter-name {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 25px;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  text-align: center;
+  line-height: 1.3;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  padding: 0.5rem 0.75rem;
 }
 
 .fighter-avatar {
   position: relative;
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .fighter-body {
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   position: relative;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  animation: fighterFloat 2s ease-in-out infinite;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 -4px 10px rgba(0, 0, 0, 0.2);
+  animation: fighterFloat 2.2s ease-in-out infinite;
 }
 
-.fighter-right .fighter-body {
-  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+.fighter-red {
+  background: linear-gradient(145deg, #ff6b6b 0%, #c0392b 100%);
+  border: 3px solid rgba(255, 255, 255, 0.35);
+}
+
+.fighter-blue {
+  background: linear-gradient(145deg, #4ecdc4 0%, #2980b9 100%);
+  border: 3px solid rgba(255, 255, 255, 0.35);
 }
 
 @keyframes fighterFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
-/* Punch Animation */
 .fighter-punch {
   position: absolute;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.9);
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  animation: punchAnimation 1s ease-in-out infinite;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: punchAnimation 1.1s ease-in-out infinite;
 }
 
 .punch-left {
-  right: -20px;
+  right: -8px;
   top: 50%;
   transform: translateY(-50%);
-  animation-delay: 0s;
 }
 
 .punch-right {
-  left: -20px;
+  left: -8px;
   top: 50%;
   transform: translateY(-50%);
-  animation-delay: 0.5s;
+  animation-delay: 0.55s;
 }
 
 @keyframes punchAnimation {
-  0%, 100% {
-    transform: translateY(-50%) scale(1);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translateY(-50%) scale(1.3) translateX(10px);
-    opacity: 1;
-  }
+  0%, 100% { transform: translateY(-50%) scale(1); opacity: 0.8; }
+  50% { transform: translateY(-50%) scale(1.25); opacity: 1; }
 }
 
-/* VS Badge */
+/* VS Badge - pulse, no spin */
 .vs-badge {
-  font-size: 3rem;
-  font-weight: 900;
-  color: white;
-  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
-  padding: 1rem 2rem;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  width: 100px;
-  height: 100px;
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-  border: 3px solid rgba(255, 255, 255, 0.5);
-  animation: vsSpin 3s linear infinite;
+  background: linear-gradient(145deg, rgba(255, 215, 0, 0.35) 0%, rgba(255, 180, 0, 0.2) 100%);
+  border-radius: 50%;
+  border: 3px solid rgba(255, 215, 0, 0.6);
+  box-shadow: 0 0 24px rgba(255, 215, 0, 0.35), inset 0 0 20px rgba(255, 255, 255, 0.1);
+  animation: vsPulse 1.5s ease-in-out infinite;
 }
 
-@keyframes vsSpin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.vs-text {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.05em;
 }
 
-/* Progress Container */
+@keyframes vsPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 24px rgba(255, 215, 0, 0.35), inset 0 0 20px rgba(255, 255, 255, 0.1); }
+  50% { transform: scale(1.08); box-shadow: 0 0 32px rgba(255, 215, 0, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.15); }
+}
+
+/* Progress - arcade power bar */
 .progress-container {
   width: 100%;
-  max-width: 600px;
+  max-width: 480px;
   z-index: 1;
+}
+
+.progress-label {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .progress-bar {
   width: 100%;
-  height: 12px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 999px;
   overflow: hidden;
-  margin-bottom: 1rem;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 0.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ffd700 0%, #ffed4e 100%);
-  border-radius: 10px;
-  transition: width 0.3s ease;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-  animation: progressShine 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+  background-size: 200% 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
+  animation: progressShine 1.2s ease-in-out infinite;
 }
 
 @keyframes progressShine {
-  0% {
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-  }
-  100% {
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-  }
+  0%, 100% { box-shadow: 0 0 16px rgba(255, 215, 0, 0.6); }
+  50% { box-shadow: 0 0 24px rgba(255, 215, 0, 0.9); }
 }
 
 .progress-text {
   text-align: center;
-  color: white;
+  color: rgba(255, 255, 255, 0.95);
   font-size: 1rem;
-  font-weight: 500;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  font-weight: 700;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .error-text {
@@ -254,19 +277,19 @@
   font-weight: 600;
 }
 
-/* Loading Spinner */
+/* Loading Spinner - subtle */
 .loading-spinner {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   z-index: 1;
 }
 
 .spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid white;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top: 3px solid rgba(255, 215, 0, 0.9);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -383,44 +406,56 @@
 /* Tablet styles */
 @media (min-width: 768px) {
   .fight-title {
-    font-size: 3rem;
+    font-size: 2.5rem;
   }
 
   .fighter-avatar {
-    width: 180px;
-    height: 180px;
+    width: 140px;
+    height: 140px;
   }
 
   .fighter-body {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
   }
 
   .vs-badge {
-    width: 120px;
-    height: 120px;
-    font-size: 3.5rem;
+    width: 88px;
+    height: 88px;
+  }
+
+  .vs-text {
+    font-size: 2rem;
   }
 }
 
 /* Desktop styles */
 @media (min-width: 1024px) {
   .fight-arena {
-    gap: 4rem;
+    gap: 3rem;
   }
 
   .fighter-name {
-    font-size: 1.75rem;
+    font-size: 1.2rem;
   }
 
   .fighter-avatar {
-    width: 200px;
-    height: 200px;
+    width: 160px;
+    height: 160px;
   }
 
   .fighter-body {
-    width: 140px;
-    height: 140px;
+    width: 110px;
+    height: 110px;
+  }
+
+  .vs-badge {
+    width: 96px;
+    height: 96px;
+  }
+
+  .vs-text {
+    font-size: 2.25rem;
   }
 }
 
@@ -431,14 +466,20 @@
     min-height: 100vh;
   }
 
+  .fight-arena-ring {
+    width: 95vw;
+    height: 55vw;
+  }
+
   .fight-header {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
   }
 
   .fight-title {
     font-size: 1.5rem;
+    letter-spacing: 0.1em;
     line-height: 1.2;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
   }
 
   .fight-subtitle {
@@ -447,14 +488,15 @@
 
   .fight-arena {
     gap: 1rem;
-    flex-wrap: wrap;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
   }
 
-  .fighter {
-    flex: 0 0 auto;
-    width: calc(50% - 0.5rem);
-    min-width: 0;
+  .fighter-card {
+    padding: 1rem;
+  }
+
+  .fighter-name {
+    font-size: 0.95rem;
   }
 
   .fighter-avatar {
@@ -467,10 +509,21 @@
     height: 70px;
   }
 
+  .vs-badge {
+    width: 56px;
+    height: 56px;
+  }
+
+  .vs-text {
+    font-size: 1.35rem;
+  }
+
+  .fighter {
+    max-width: none;
+  }
+
   .fighter-name {
-    font-size: 0.95rem;
-    padding: 0.5rem 0.75rem;
-    text-align: center;
+    padding: 0.5rem 0.5rem;
     word-wrap: break-word;
     overflow-wrap: break-word;
     max-width: 100%;

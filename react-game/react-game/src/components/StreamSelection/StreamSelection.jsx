@@ -2,29 +2,25 @@ import { useState } from 'react';
 import { CAREER_CLUSTERS, MAX_STREAM_SELECTION } from '../../utils/constants';
 import './StreamSelection.css';
 
-const StreamSelection = ({ selectedCluster, onContinue, disqualifiedStreams = [], onReset }) => {
+const StreamSelection = ({ careerClusters, selectedCluster, streamPool = null, onContinue, onBack, disqualifiedStreams = [], onReset }) => {
   const [selectedStreams, setSelectedStreams] = useState([]);
+  const clusters = careerClusters && Object.keys(careerClusters).length > 0 ? careerClusters : CAREER_CLUSTERS;
 
-  // Get streams from selected cluster
-  const clusterStreams = selectedCluster && CAREER_CLUSTERS[selectedCluster] 
-    ? CAREER_CLUSTERS[selectedCluster] 
-    : [];
+  // Streams either from pool (source selection) or from selected cluster
+  const clusterStreams = streamPool && Array.isArray(streamPool)
+    ? streamPool
+    : (selectedCluster && clusters[selectedCluster] ? clusters[selectedCluster] : []);
 
-  // Filter out disqualified streams
   const availableStreams = clusterStreams.filter(
     stream => !disqualifiedStreams.includes(stream)
   );
 
-  // Check if all streams are disqualified
   const allDisqualified = availableStreams.length === 0;
 
   const handleStreamClick = (stream) => {
-    // Prevent selecting the same stream twice (edge case handling)
     if (selectedStreams.includes(stream)) {
-      // Deselect if already selected
       setSelectedStreams(selectedStreams.filter(s => s !== stream));
     } else if (selectedStreams.length < MAX_STREAM_SELECTION) {
-      // Prevent duplicate selection (additional safety check)
       if (!selectedStreams.includes(stream)) {
         setSelectedStreams([...selectedStreams, stream]);
       }
@@ -38,7 +34,7 @@ const StreamSelection = ({ selectedCluster, onContinue, disqualifiedStreams = []
   };
 
   const isStreamSelected = (stream) => selectedStreams.includes(stream);
-  const isStreamDisabled = (stream) => 
+  const isStreamDisabled = (stream) =>
     !isStreamSelected(stream) && selectedStreams.length >= MAX_STREAM_SELECTION;
   const canContinue = selectedStreams.length === MAX_STREAM_SELECTION;
 
@@ -46,7 +42,7 @@ const StreamSelection = ({ selectedCluster, onContinue, disqualifiedStreams = []
     <div className="stream-selection-container" role="region" aria-labelledby="stream-selection-title">
       <div className="stream-selection-header">
         <h1 id="stream-selection-title" className="stream-selection-title">
-          {selectedCluster ? `Select Two Streams from ${selectedCluster}` : 'Select Two Streams'}
+          {streamPool && streamPool.length ? 'Select Two Streams to Battle' : selectedCluster ? `Select Two Streams from ${selectedCluster}` : 'Select Two Streams'}
         </h1>
         <p className="stream-selection-subtitle" id="stream-selection-description">
           Choose the streams you want to compare
@@ -62,7 +58,7 @@ const StreamSelection = ({ selectedCluster, onContinue, disqualifiedStreams = []
         {availableStreams.map((stream) => {
           const isSelected = isStreamSelected(stream);
           const isDisabled = isStreamDisabled(stream);
-          
+
           return (
             <button
               key={stream}
@@ -91,7 +87,7 @@ const StreamSelection = ({ selectedCluster, onContinue, disqualifiedStreams = []
           <div className="no-streams-icon">🏆</div>
           <h3 className="no-streams-title">All Streams Explored!</h3>
           <p className="no-streams-text">
-            You've compared all available streams. Start a fresh game to explore them again.
+            You&apos;ve compared all available streams. Start a fresh game to explore them again.
           </p>
           {onReset && (
             <button
@@ -106,6 +102,11 @@ const StreamSelection = ({ selectedCluster, onContinue, disqualifiedStreams = []
 
       {!allDisqualified && (
         <div className="stream-selection-footer">
+          {onBack && (
+            <button type="button" className="back-button" onClick={onBack}>
+              ← Back
+            </button>
+          )}
           <button
             className={`continue-button ${canContinue ? 'continue-button-active' : 'continue-button-disabled'}`}
             onClick={handleContinue}

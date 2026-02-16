@@ -38,6 +38,8 @@ def _should_show_chatbot(request):
         '/institute/auth/login', '/counselor/auth/login',
         '/contact-us', '/psychometric', '/psychometrictest',
         '/topteenadmin', '/admin', '/api', '/oauth',
+        '/career-battle',  # game page with iframe; keep UI clean
+        '/career-counselling',  # AI counselling chat page
     )
     for prefix in excluded_prefixes:
         if path == prefix or path.startswith(prefix + '/'):

@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { CAREER_CLUSTERS } from '../../utils/constants';
 import './CareerClusterSelection.css';
 
-const CareerClusterSelection = ({ onContinue }) => {
+const CareerClusterSelection = ({ careerClusters, fightHistory = [], onContinue, onBack }) => {
   const [selectedCluster, setSelectedCluster] = useState(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const rawClusters = careerClusters && Object.keys(careerClusters).length > 0 ? careerClusters : CAREER_CLUSTERS;
+  const clusters = typeof rawClusters === 'object' && rawClusters !== null ? rawClusters : CAREER_CLUSTERS;
 
   const handleClusterClick = (clusterName) => {
     setSelectedCluster(clusterName);
@@ -15,7 +18,12 @@ const CareerClusterSelection = ({ onContinue }) => {
     }
   };
 
-  const clusterNames = Object.keys(CAREER_CLUSTERS);
+  const clusterNames = Object.keys(clusters || {});
+  const getStreams = (name) => {
+    const s = clusters[name];
+    return Array.isArray(s) ? s : [];
+  };
+  const safeHistory = Array.isArray(fightHistory) ? fightHistory : [];
 
   return (
     <div className="career-cluster-selection-container" role="region" aria-labelledby="cluster-selection-title">
@@ -31,17 +39,49 @@ const CareerClusterSelection = ({ onContinue }) => {
             <span className="selected-cluster-label">Selected:</span>
             <span className="selected-cluster-name">{selectedCluster}</span>
             <span className="streams-count">
-              ({CAREER_CLUSTERS[selectedCluster].length} streams available)
+              ({getStreams(selectedCluster).length} streams available)
             </span>
           </div>
         )}
       </div>
 
+      {safeHistory.length > 0 && (
+        <div className="fight-history-section">
+          <button
+            type="button"
+            className="fight-history-toggle"
+            onClick={() => setHistoryOpen(!historyOpen)}
+            aria-expanded={historyOpen}
+            aria-controls="fight-history-list"
+          >
+            <span className="fight-history-toggle-icon" aria-hidden="true">{historyOpen ? '▼' : '▶'}</span>
+            Your fight history ({safeHistory.length})
+          </button>
+          {historyOpen && (
+            <ul id="fight-history-list" className="fight-history-list" role="list">
+              {safeHistory.map((f) => (
+                <li key={f.id} className="fight-history-item">
+                  <span className="fight-history-title">{f.title}</span>
+                  {f.winner && (
+                    <span className="fight-history-winner">Winner: {f.winner}</span>
+                  )}
+                  {f.created && (
+                    <span className="fight-history-date">
+                      {new Date(f.created).toLocaleDateString(undefined, { dateStyle: 'short' })}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       <div className="cluster-grid" role="group" aria-labelledby="cluster-selection-title" aria-describedby="cluster-selection-description">
         {clusterNames.map((clusterName) => {
           const isSelected = selectedCluster === clusterName;
-          const streams = CAREER_CLUSTERS[clusterName];
-          
+          const streams = getStreams(clusterName);
+          if (streams.length === 0) return null;
           return (
             <button
               key={clusterName}
@@ -75,6 +115,11 @@ const CareerClusterSelection = ({ onContinue }) => {
       </div>
 
       <div className="career-cluster-selection-footer">
+        {onBack && (
+          <button type="button" className="back-button" onClick={onBack}>
+            ← Back
+          </button>
+        )}
         <button
           className={`continue-button ${selectedCluster ? 'continue-button-active' : 'continue-button-disabled'}`}
           onClick={handleContinue}

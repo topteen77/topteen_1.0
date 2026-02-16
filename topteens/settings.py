@@ -109,6 +109,10 @@ ENABLE_ANSWERING_CAREFULLY_WIDGET = config('ENABLE_ANSWERING_CAREFULLY_WIDGET', 
 # ENABLE_AUTO_FORWARD: Auto-advance to next question when user selects an answer (default: True)
 ENABLE_AUTO_FORWARD = config('ENABLE_AUTO_FORWARD', default=True, cast=bool)
 
+# Allow same-origin iframes (e.g. Career Battle wrapper embedding /career-battle/app/).
+# Still blocks embedding from other sites (clickjacking protection).
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -659,6 +663,10 @@ ENVIRONMENT = config('ENVIRONMENT', default='production')
 
 # Chatbot visibility: home-only | students-parents | institutes | counselors
 CHATBOT_VISIBILITY = config('CHATBOT_VISIBILITY', default='home-only')
+
+# AI Counselling Engine (FastAPI microservice)
+COUNSELLING_ENGINE_URL = config('COUNSELLING_ENGINE_URL', default='http://localhost:8000')
+TOPTEEN_COUNSELLING_API_KEY = config('TOPTEEN_COUNSELLING_API_KEY', default='dev-key')
 
 # @manish
 # Master password settings

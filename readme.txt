@@ -69,6 +69,12 @@ kill port:
 
 pkill -f "manage.py runserver.*8002"
 
+--- AI Counselling (Deep-Counselling Engine) ---
+# Separate FastAPI microservice; Django proxies to it for logged-in users.
+# URL (Django): /career-counselling/  (login required). API: POST /career-counselling/api/
+# Engine: counselling_engine/ (see counselling_engine/README.md).
+# Django .env: COUNSELLING_ENGINE_URL (e.g. http://localhost:8000), TOPTEEN_COUNSELLING_API_KEY (same as engine TOPTEEN_API_KEY).
+# Run engine: cd counselling_engine && uvicorn main:app --host 0.0.0.0 --port 8000 (requires Redis; use COUNSELLING_REDIS_DB=0 to avoid clash with Django cache).
 
 ** testing script start ***
 python scripts/run_test_students_manager.py create --limit 1
@@ -87,7 +93,10 @@ python scripts/verify_class12_st
 
 
 === Career Battle (React game) ===
-# The game is served at /career-battle/ on the Django site (e.g. http://localhost:8002/career-battle). Build outputs to static/game/.
+# Career Battle is integrated with the main site: same header/footer and same login session.
+# - /career-battle/  -> Django page with site header and footer; game loads in iframe from /career-battle/app/
+# - /career-battle/app/  -> SPA (React) so the game shares the same session cookie for auth.
+# Build outputs to static/game/.
 # Local: build once, then run Django on port 8002 (or your main port).
 cd react-game/react-game
 npm install
@@ -95,6 +104,7 @@ npm run build
 cd ../..
 python manage.py runserver 8002
 # Open http://localhost:8002/career-battle
+# If "localhost refused to connect": (1) Ensure the server is running in a terminal; (2) Try http://127.0.0.1:8002/career-battle/ (include port and trailing path).
 
 # Production: after building, run collectstatic so staticfiles/game/ is deployed.
 cd react-game/react-game && npm run build && cd ../..
