@@ -45,6 +45,27 @@ def _should_show_chatbot(request):
         if path == prefix or path.startswith(prefix + '/'):
             return False
 
+
+def _should_show_ai_counsellor_bot(request):
+    """
+    Show floating AI Career Counsellor bot for logged-in students/parents on dashboard-like pages.
+    Excluded: career-counselling (full page), institute, counselor, admin.
+    """
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return False
+    path = (request.path or '/').rstrip('/') or '/'
+    excluded = (
+        '/career-counselling',
+        '/institute',
+        '/counselor',
+        '/topteenadmin',
+        '/admin',
+    )
+    for prefix in excluded:
+        if path == prefix or path.startswith(prefix + '/'):
+            return False
+    return True
+
     if visibility == 'home-only':
         return path == '/'
 
@@ -98,6 +119,7 @@ def globals(request):
         # popular_tag_count=Career.objects.filter(career_tags=p).count()
     kwargs = {
         "show_chatbot": _should_show_chatbot(request),
+        "show_ai_counsellor_bot": _should_show_ai_counsellor_bot(request),
         "enable_answering_carefully_widget": _config_bool('ENABLE_ANSWERING_CAREFULLY_WIDGET', getattr(settings, 'ENABLE_ANSWERING_CAREFULLY_WIDGET', True)),
         "enable_auto_forward": _config_bool('ENABLE_AUTO_FORWARD', getattr(settings, 'ENABLE_AUTO_FORWARD', True)),
         "show_missing_answers_validation": _config_bool('SHOW_MISSING_ANSWERS_VALIDATION', getattr(settings, 'SHOW_MISSING_ANSWERS_VALIDATION', True)),

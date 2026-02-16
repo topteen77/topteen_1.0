@@ -67,6 +67,7 @@ function App() {
   const [careerClusters, setCareerClusters] = useState(null);
   const [userAuth, setUserAuth] = useState({ is_authenticated: false });
   const [fightHistory, setFightHistory] = useState([]);
+  const [shortlistMessage, setShortlistMessage] = useState(null);
 
   const fetchClustersAndAuth = () => {
     fetch('/career-battle/api/clusters/', { credentials: 'include' })
@@ -219,16 +220,31 @@ function App() {
   };
 
   const handleInterested = () => {
-    // Login/logout follow main site: use header. If not logged in, prompt to log in on main site.
     if (!userAuth.is_authenticated) {
-      alert('Please log in using the main site (top right) to save your progress and access course eligibility.');
+      alert('Please log in using the main site (top right) to add careers to your shortlist.');
       return;
     }
-    if (fightResult && fightResult.winner) {
-      setGameState(GAME_STATES.COURSE_ELIGIBILITY);
-    } else {
+    const winner = fightResult && fightResult.winner;
+    if (!winner) {
       resetGame();
+      return;
     }
+    setShortlistMessage(null);
+    fetch('/career-battle/api/shortlist-career/', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+      body: JSON.stringify({ career_name: winner }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok) {
+          setShortlistMessage('Added to shortlist!');
+        } else {
+          setShortlistMessage(data.error || 'Could not add to shortlist.');
+        }
+      })
+      .catch(() => setShortlistMessage('Could not add to shortlist. Try again.'));
   };
 
   const handleCourseEligibilityBack = () => {
@@ -247,8 +263,7 @@ function App() {
   };
 
   const handleFightAgain = () => {
-    // Disqualify the winner and go back to stream selection
-    console.log('Fight again - disqualifying winner');
+    setShortlistMessage(null);
     if (fightResult && fightResult.winner) {
       const newDisqualified = [...disqualifiedStreams, fightResult.winner];
       setDisqualifiedStreams(newDisqualified);
@@ -378,6 +393,7 @@ function App() {
                 streams={selectedStreams}
                 onInterested={handleInterested}
                 onFightAgain={handleFightAgain}
+                shortlistMessage={shortlistMessage}
               />
             </motion.div>
           )}

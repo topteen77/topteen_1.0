@@ -1447,6 +1447,37 @@ def career_battle_stream_sources_api(request):
     return JsonResponse({'by_source': by_source, 'streams': streams})
 
 
+def career_battle_shortlist_career_api(request):
+    """
+    POST: Add the given career (by name) to the logged-in user's shortlist.
+    Body: JSON { "career_name": "Architectural Engineer" }.
+    Returns: { "ok": true, "message": "Added to shortlist" } or 400/401.
+    """
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return JsonResponse({'ok': False, 'error': 'Login required'}, status=401)
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'error': 'Method not allowed'}, status=405)
+    try:
+        body = json.loads(request.body) if request.body else {}
+    except json.JSONDecodeError:
+        return JsonResponse({'ok': False, 'error': 'Invalid JSON'}, status=400)
+    career_name = (body.get('career_name') or '').strip()
+    if not career_name:
+        return JsonResponse({'ok': False, 'error': 'career_name required'}, status=400)
+    from careers.models import CareerShortlist
+    published = choices.PublishStatus.PUBLISHED
+    career = Career.objects.filter(
+        name__iexact=career_name,
+        publish_status=published,
+    ).first()
+    if not career:
+        career = Career.objects.filter(name=career_name, publish_status=published).first()
+    if not career:
+        return JsonResponse({'ok': False, 'error': 'Career not found'}, status=404)
+    CareerShortlist.objects.get_or_create(user=request.user, career=career)
+    return JsonResponse({'ok': True, 'message': 'Added to shortlist'})
+
+
 def career_battle_clusters_api(request):
     """
     JSON API for Career Battle game: career clusters and their careers (streams) from DB.

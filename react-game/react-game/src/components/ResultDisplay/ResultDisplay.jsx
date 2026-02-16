@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { PARAMETERS } from '../../utils/constants';
 import './ResultDisplay.css';
 
-const ResultDisplay = ({ result, streams, onInterested, onFightAgain }) => {
+const ResultDisplay = ({ result, streams, onInterested, onFightAgain, shortlistMessage }) => {
   const [showCelebration, setShowCelebration] = useState(true);
   const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(false);
   const [stream1StrengthsExpanded, setStream1StrengthsExpanded] = useState(false);
@@ -310,12 +310,19 @@ const ResultDisplay = ({ result, streams, onInterested, onFightAgain }) => {
         </div>
       )}
 
+      {/* Shortlist feedback */}
+      {shortlistMessage && (
+        <div className={`shortlist-message ${shortlistMessage.includes('Added') ? 'shortlist-message-success' : 'shortlist-message-info'}`} role="status">
+          {shortlistMessage}
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="action-buttons-section" role="group" aria-label="Result actions">
         <button
           className="action-button interested-button"
           onClick={onInterested}
-          aria-label="I'm interested in this winner, start a new game"
+          aria-label="Add winner to shortlist"
         >
           <span className="button-icon" aria-hidden="true">✓</span>
           Interested

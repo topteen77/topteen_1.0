@@ -1,0 +1,256 @@
+{# AI Career Counsellor – floating professional bot for logged-in dashboard #}
+<style>
+  .ai-counsel-bot-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9990; font-family: inherit; }
+  .ai-counsel-bot-btn { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: #fff; border: none; box-shadow: 0 4px 14px rgba(13, 110, 253, 0.45); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s; }
+  .ai-counsel-bot-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(13, 110, 253, 0.5); }
+  .ai-counsel-bot-btn svg { width: 28px; height: 28px; }
+  .ai-counsel-bot-panel { display: none; position: absolute; bottom: 72px; right: 0; width: 380px; min-width: 320px; max-width: calc(100vw - 32px); height: 520px; min-height: 360px; max-height: calc(100vh - 120px); background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); flex-direction: column; overflow: hidden; border: 1px solid #e9ecef; }
+  .ai-counsel-bot-wrap.open .ai-counsel-bot-panel { display: flex; }
+  .ai-counsel-bot-resize { position: absolute; right: 0; bottom: 0; width: 20px; height: 20px; cursor: nwse-resize; z-index: 2; }
+  .ai-counsel-bot-resize::after { content: ''; position: absolute; right: 4px; bottom: 4px; width: 10px; height: 10px; border-right: 2px solid #adb5bd; border-bottom: 2px solid #adb5bd; border-radius: 0 0 4px 0; }
+  .ai-counsel-bot-resize:hover::after { border-color: #0d6efd; }
+  .ai-counsel-bot-header { padding: 14px 16px; background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: #fff; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .ai-counsel-bot-header h3 { margin: 0; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .ai-counsel-bot-close { background: none; border: none; color: #fff; cursor: pointer; padding: 4px; line-height: 1; opacity: 0.9; }
+  .ai-counsel-bot-close:hover { opacity: 1; }
+  .ai-counsel-bot-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: #f8f9fa; }
+  .ai-counsel-bot-msg { max-width: 88%; padding: 8px 12px; border-radius: 12px; line-height: 1.45; font-size: 0.9rem; }
+  .ai-counsel-bot-msg.user { align-self: flex-end; background: #0d6efd; color: #fff; }
+  .ai-counsel-bot-msg.bot { align-self: flex-start; background: #fff; border: 1px solid #dee2e6; display: flex; align-items: flex-start; gap: 10px; }
+  .ai-counsel-bot-msg.bot .ai-counsel-bot-avatar { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; background: #e7f1ff; border: 1px solid #b6d4fe; }
+  .ai-counsel-bot-msg.bot .ai-counsel-bot-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .ai-counsel-bot-msg.bot .ai-counsel-bot-msg-body { flex: 1; min-width: 0; }
+  .ai-counsel-bot-msg.crisis { background: #fff3cd; border-color: #ffc107; }
+  .ai-counsel-bot-header .ai-counsel-bot-header-avatar { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background: rgba(255,255,255,0.2); flex-shrink: 0; }
+  .ai-counsel-bot-header .ai-counsel-bot-header-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .ai-counsel-bot-suggested { padding: 8px 12px; background: #fff; border-top: 1px solid #eee; flex-shrink: 0; }
+  .ai-counsel-bot-suggested-title { font-size: 0.75rem; color: #6c757d; margin-bottom: 6px; }
+  .ai-counsel-bot-suggested-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ai-counsel-bot-suggested-btn { padding: 5px 10px; background: #e7f1ff; border: 1px solid #b6d4fe; border-radius: 16px; font-size: 0.8rem; cursor: pointer; color: #0d6efd; }
+  .ai-counsel-bot-suggested-btn:hover { background: #cfe2ff; }
+  .ai-counsel-bot-input-row { display: flex; gap: 8px; padding: 10px 12px; background: #fff; border-top: 1px solid #dee2e6; flex-shrink: 0; }
+  .ai-counsel-bot-input-row input { flex: 1; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 8px; font-size: 0.9rem; }
+  .ai-counsel-bot-input-row button { padding: 8px 14px; background: #0d6efd; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+  .ai-counsel-bot-input-row button:disabled { opacity: 0.6; cursor: not-allowed; }
+  .ai-counsel-bot-loading { color: #6c757d; font-style: italic; font-size: 0.85rem; }
+  .ai-counsel-bot-full-link { padding: 6px 12px; text-align: center; background: #f1f5f9; border-top: 1px solid #eee; }
+  .ai-counsel-bot-full-link a { font-size: 0.8rem; color: #0d6efd; text-decoration: none; }
+  .ai-counsel-bot-full-link a:hover { text-decoration: underline; }
+  @media (max-width: 480px) { .ai-counsel-bot-panel { width: 100%; right: 0; bottom: 72px; } }
+</style>
+<div class="ai-counsel-bot-wrap" id="aiCounselBotWrap">
+  <button type="button" class="ai-counsel-bot-btn" id="aiCounselBotBtn" aria-label="Open AI Career Counsellor">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+  </button>
+  <div class="ai-counsel-bot-panel" id="aiCounselBotPanel" data-avatar-url="{{ static('images_new/icons/expert-counsellor-icon.svg') }}">
+    <div class="ai-counsel-bot-header">
+      <h3>
+        <span class="ai-counsel-bot-header-avatar"><img src="{{ static('images_new/icons/expert-counsellor-icon.svg') }}" alt="" /></span>
+        AI Career Counsellor
+      </h3>
+      <button type="button" class="ai-counsel-bot-close" id="aiCounselBotClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="ai-counsel-bot-messages" id="aiCounselBotMessages" role="log">
+      <div class="ai-counsel-bot-msg bot" id="aiCounselBotWelcome">
+        <span class="ai-counsel-bot-avatar"><img src="{{ static('images_new/icons/expert-counsellor-icon.svg') }}" alt="Counsellor" /></span>
+        <div class="ai-counsel-bot-msg-body">Hi! I'm here to help with career and stream choices. Ask me anything or pick a question below.</div>
+      </div>
+    </div>
+    <div class="ai-counsel-bot-suggested" id="aiCounselBotSuggested">
+      <div class="ai-counsel-bot-suggested-title">Suggested questions</div>
+      <div class="ai-counsel-bot-suggested-list" id="aiCounselBotSuggestedList"></div>
+    </div>
+    <div class="ai-counsel-bot-input-row">
+      <input type="text" id="aiCounselBotInput" placeholder="Type your message..." maxlength="2000" autocomplete="off" aria-label="Your message" />
+      <button type="button" id="aiCounselBotSend" aria-label="Send">Send</button>
+    </div>
+    <div class="ai-counsel-bot-full-link"><a href="{{ url('core:career_counselling') }}">Open full counselling page &rarr;</a></div>
+    <div class="ai-counsel-bot-resize" id="aiCounselBotResize" aria-label="Resize chat window"></div>
+  </div>
+</div>
+<script>
+(function() {
+  var apiUrl = '{{ url("core:counsel_chat_api") }}';
+  var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') && document.querySelector('[name=csrfmiddlewaretoken]').value;
+  if (!csrfToken) { var m = document.cookie.match(/csrftoken=([^;]+)/); csrfToken = m ? m[1] : ''; }
+  var sessionId = sessionStorage.getItem('counsel_session_id') || '';
+  var wrap = document.getElementById('aiCounselBotWrap');
+  var panel = document.getElementById('aiCounselBotPanel');
+  var messagesEl = document.getElementById('aiCounselBotMessages');
+  var inputEl = document.getElementById('aiCounselBotInput');
+  var sendBtn = document.getElementById('aiCounselBotSend');
+  var welcomeEl = document.getElementById('aiCounselBotWelcome');
+  var suggestedList = document.getElementById('aiCounselBotSuggestedList');
+  var crisisActive = false;
+  var suggestedQuestions = ['What are the best streams for me?', 'Walk me through steps for Grade 11', 'I like science and maths – what careers suit me?', 'How do I choose between Engineering and Medicine?', 'What subjects for data science?'];
+
+  var MIN_W = 320, MIN_H = 360;
+  var DEFAULT_W = 380, DEFAULT_H = 520;
+  try {
+    var saved = sessionStorage.getItem('ai_counsel_bot_size');
+    if (saved) { var p = JSON.parse(saved); if (p.w >= MIN_W && p.h >= MIN_H) { panel.style.width = p.w + 'px'; panel.style.height = p.h + 'px'; } }
+  } catch (e) {}
+  document.getElementById('aiCounselBotBtn').addEventListener('click', function() { wrap.classList.add('open'); });
+  document.getElementById('aiCounselBotClose').addEventListener('click', function() { wrap.classList.remove('open'); });
+  (function() {
+    var resizeEl = document.getElementById('aiCounselBotResize');
+    if (!resizeEl || !panel) return;
+    resizeEl.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      var startX = e.clientX, startY = e.clientY;
+      var startW = panel.offsetWidth, startH = panel.offsetHeight;
+      function move(e) {
+        var dw = e.clientX - startX, dh = e.clientY - startY;
+        var w = Math.max(MIN_W, Math.min(window.innerWidth - 32, startW + dw));
+        var h = Math.max(MIN_H, Math.min(window.innerHeight - 120, startH + dh));
+        panel.style.width = w + 'px';
+        panel.style.height = h + 'px';
+      }
+      function stop() {
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', stop);
+        try { sessionStorage.setItem('ai_counsel_bot_size', JSON.stringify({ w: panel.offsetWidth, h: panel.offsetHeight })); } catch (e) {}
+      }
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', stop);
+    });
+  })();
+
+  suggestedQuestions.forEach(function(q) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ai-counsel-bot-suggested-btn';
+    btn.textContent = q;
+    btn.addEventListener('click', function() { sendMsg(q); });
+    suggestedList.appendChild(btn);
+  });
+
+  var avatarUrl = (panel && panel.getAttribute('data-avatar-url')) || '';
+
+  function addMsg(text, isUser, isCrisis, careerSuggestions, roadmap) {
+    var wrapEl = document.createElement('div');
+    wrapEl.className = 'ai-counsel-bot-msg ' + (isUser ? 'user' : 'bot') + (isCrisis ? ' crisis' : '');
+    if (!isUser) {
+      var avatar = document.createElement('span');
+      avatar.className = 'ai-counsel-bot-avatar';
+      var img = document.createElement('img');
+      img.src = avatarUrl;
+      img.alt = 'Counsellor';
+      avatar.appendChild(img);
+      wrapEl.appendChild(avatar);
+      var body = document.createElement('div');
+      body.className = 'ai-counsel-bot-msg-body';
+      var p = document.createElement('div');
+      p.textContent = text;
+      p.style.whiteSpace = 'pre-wrap';
+      body.appendChild(p);
+      if (careerSuggestions && careerSuggestions.length) {
+        var cards = document.createElement('div');
+        cards.style.marginTop = '6px';
+        careerSuggestions.forEach(function(c) {
+          var card = document.createElement('span');
+          card.style.cssText = 'display:inline-block;margin:2px 4px 2px 0;padding:2px 8px;background:#e7f1ff;border-radius:6px;font-size:0.8rem;';
+          card.textContent = (c.name || c.career_id) + (c.compatibility_score != null ? ' ' + Math.round(c.compatibility_score * 100) + '%' : '');
+          cards.appendChild(card);
+        });
+        body.appendChild(cards);
+      }
+      if (roadmap && roadmap.phases && roadmap.phases.length) {
+        var r = document.createElement('div');
+        r.style.cssText = 'margin-top:6px;font-size:0.8rem;color:#495057;';
+        r.textContent = 'Roadmap: ' + roadmap.phases.map(function(ph) { return ph.phase_name; }).join(' → ');
+        body.appendChild(r);
+      }
+      wrapEl.appendChild(body);
+    } else {
+      var p = document.createElement('div');
+      p.textContent = text;
+      p.style.whiteSpace = 'pre-wrap';
+      wrapEl.appendChild(p);
+      if (careerSuggestions && careerSuggestions.length) {
+        var cards = document.createElement('div');
+        cards.style.marginTop = '6px';
+        careerSuggestions.forEach(function(c) {
+          var card = document.createElement('span');
+          card.style.cssText = 'display:inline-block;margin:2px 4px 2px 0;padding:2px 8px;background:#e7f1ff;border-radius:6px;font-size:0.8rem;';
+          card.textContent = (c.name || c.career_id) + (c.compatibility_score != null ? ' ' + Math.round(c.compatibility_score * 100) + '%' : '');
+          cards.appendChild(card);
+        });
+        wrapEl.appendChild(cards);
+      }
+      if (roadmap && roadmap.phases && roadmap.phases.length) {
+        var r = document.createElement('div');
+        r.style.cssText = 'margin-top:6px;font-size:0.8rem;color:#495057;';
+        r.textContent = 'Roadmap: ' + roadmap.phases.map(function(ph) { return ph.phase_name; }).join(' → ');
+        wrapEl.appendChild(r);
+      }
+    }
+    messagesEl.appendChild(wrapEl);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function setLoading(on) {
+    sendBtn.disabled = on;
+    var load = document.getElementById('aiCounselBotLoading');
+    if (on) {
+      if (!load) {
+        load = document.createElement('div');
+        load.id = 'aiCounselBotLoading';
+        load.className = 'ai-counsel-bot-msg bot ai-counsel-bot-loading';
+        var av = document.createElement('span');
+        av.className = 'ai-counsel-bot-avatar';
+        var im = document.createElement('img');
+        im.src = avatarUrl;
+        im.alt = 'Counsellor';
+        av.appendChild(im);
+        load.appendChild(av);
+        var body = document.createElement('div');
+        body.className = 'ai-counsel-bot-msg-body';
+        body.textContent = 'Thinking...';
+        load.appendChild(body);
+        messagesEl.appendChild(load);
+      }
+      load.style.display = 'flex';
+    } else if (load) load.style.display = 'none';
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function sendMsg(msg) {
+    msg = (msg || (inputEl && inputEl.value) || '').trim();
+    if (msg.length < 3) return;
+    if (crisisActive) return;
+    if (inputEl) inputEl.value = '';
+    addMsg(msg, true);
+    setLoading(true);
+    var payload = { message: msg };
+    if (sessionId) payload.session_id = sessionId;
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', apiUrl);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+    xhr.withCredentials = true;
+    xhr.onload = function() {
+      setLoading(false);
+      var data;
+      try { data = JSON.parse(xhr.responseText); } catch (e) { addMsg('Sorry, something went wrong.', false); return; }
+      if (xhr.status !== 200) {
+        addMsg(data.error || 'Something went wrong. Please try again.', false);
+        return;
+      }
+      if (data.session_id) {
+        sessionId = data.session_id;
+        sessionStorage.setItem('counsel_session_id', sessionId);
+      }
+      if (data.crisis_flag) crisisActive = true;
+      addMsg(data.response_text || '', false, !!data.crisis_flag, data.career_suggestions, data.tactical_roadmap);
+    };
+    xhr.onerror = function() { setLoading(false); addMsg('Connection error. Please try again.', false); };
+    xhr.send(JSON.stringify(payload));
+  }
+
+  sendBtn.addEventListener('click', function() { sendMsg(); });
+  inputEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+  });
+})();
+</script>

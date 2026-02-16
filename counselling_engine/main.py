@@ -254,33 +254,28 @@ class EmpathyEngine:
     def generate_empathetic_response(
         self, base_response: str, emotional_state: Dict, student_name: Optional[str] = None
     ) -> str:
+        # Professional tone: no repeated "Hi [name]," every turn.
         tone = emotional_state["tone_recommendation"]
-        name_prefix = f"Hi {student_name}, " if student_name else "Hi there, "
         empathy_prefixes = {
             "highly_supportive_gentle": [
-                f"{name_prefix}I can sense this feels overwhelming, and that's completely okay. ",
-                f"{name_prefix}It's natural to feel uncertain at this stage. ",
-                f"{name_prefix}Take a deep breath. We're figuring this out together. ",
+                "Your feelings are valid. ",
+                "Many students feel uncertain at this stage. ",
             ],
             "reassuring_validating": [
-                f"{name_prefix}Your concerns are valid, and many students feel the same way. ",
-                f"{name_prefix}It's brave of you to share this. ",
-                f"{name_prefix}Let's look at this step by step - no pressure. ",
+                "Based on your profile and our discussion, ",
+                "Here's what aligns with your situation. ",
             ],
             "enthusiastic_channeling": [
-                f"{name_prefix}I love your energy! Let's channel that passion strategically. ",
-                f"{name_prefix}Your excitement is contagious! ",
-                f"{name_prefix}That enthusiasm will take you far. ",
+                "Your interests point clearly in this direction. ",
+                "Based on your profile, ",
             ],
             "encouraging_building": [
-                f"{name_prefix}You're on a great track! ",
-                f"{name_prefix}I can see you're thinking positively about this. ",
-                f"{name_prefix}That's a wonderful perspective. ",
+                "Your profile indicates strong fit in this area. ",
+                "Based on our conversation, ",
             ],
             "neutral_informative_balanced": [
-                f"{name_prefix}Let's explore this together. ",
-                f"{name_prefix}Here's what I found based on your interests. ",
-                f"{name_prefix}I've analyzed your profile, and here are some insights. ",
+                "Based on your profile and interests, ",
+                "Here's what I recommend. ",
             ],
         }
         prefix = random.choice(
@@ -288,9 +283,8 @@ class EmpathyEngine:
         )
         if emotional_state["requires_reassurance"]:
             reassurance_suffixes = [
-                "\n\nRemember: There's no 'perfect' choice, only informed ones. You're doing great by seeking guidance.",
-                "\n\nYour career path isn't a single decision but a journey. You have time to explore and adjust.",
-                "\n\nMany successful professionals changed directions multiple times. Flexibility is strength.",
+                "\n\nRemember: there is no single perfect choice—only informed ones. You have time to explore and adjust.",
+                "\n\nCareer paths often change over time. Flexibility is a strength.",
             ]
             suffix = random.choice(reassurance_suffixes)
         else:
@@ -796,7 +790,12 @@ class DeepCounsellingEngine:
                 top_career_id, profile.grade, riasec_scores
             )
         base_response = self._generate_counseling_response(
-            boosted_careers, emotional_state, profile.grade, dominant_riasec
+            boosted_careers,
+            emotional_state,
+            profile.grade,
+            dominant_riasec,
+            current_user_message=request.message,
+            roadmap=roadmap,
         )
         final_response = self.empathy.generate_empathetic_response(
             base_response, emotional_state, request.context.get("student_name")
@@ -830,15 +829,28 @@ class DeepCounsellingEngine:
             timestamp=datetime.now(),
         )
 
+    def _user_wants_roadmap_steps(self, message: str) -> bool:
+        """True if the user is agreeing to or asking for roadmap steps (avoid repeating the question)."""
+        if not message or len(message.strip()) < 2:
+            return False
+        lower = message.lower().strip()
+        agree = any(w in lower for w in ("yes", "sure", "please", "yeah", "yep", "ok", "okay"))
+        walk = "walk" in lower and ("through" in lower or "step" in lower)
+        steps = "step" in lower or "specific" in lower
+        grade_ref = "grade" in lower and any(d in lower for d in ("9", "10", "11", "12"))
+        return (agree or walk or steps) and (walk or steps or grade_ref or len(lower) < 50)
+
     def _generate_counseling_response(
         self,
         careers: List[Tuple[str, float, Dict]],
         emotional_state: Dict,
         grade: int,
         dominant_riasec: List[RIASECType],
+        current_user_message: Optional[str] = None,
+        roadmap: Optional[Dict] = None,
     ) -> str:
         if not careers:
-            return "I'm still learning about your interests. Could you tell me more about what subjects you enjoy or what activities make you lose track of time?"
+            return "I'm still learning about your interests. Please share what subjects you enjoy or what kind of work you see yourself doing."
         top_career = careers[0]
         career_name = top_career[2]["name"]
         score_pct = int(top_career[1] * 100)
@@ -848,13 +860,36 @@ class DeepCounsellingEngine:
             stage_msg = "This is a crucial year for building your foundation."
         else:
             stage_msg = "With college applications approaching, strategic focus is key."
-        response = f"""Based on our conversation, I see strong potential for you in **{career_name}** (match: {score_pct}%).
+
+        user_wants_steps = self._user_wants_roadmap_steps(current_user_message or "")
+        if user_wants_steps and roadmap and roadmap.get("phases"):
+            # User already said yes / walk me through: return actual steps instead of asking again.
+            lines = [
+                f"Here are the specific steps for your path toward **{career_name}** (match: {score_pct}%).",
+                "",
+                stage_msg,
+                "",
+                "Your roadmap:",
+            ]
+            for phase in roadmap["phases"]:
+                name = phase.get("phase_name", "")
+                focus = phase.get("focus", "")
+                actions = phase.get("actions", [])
+                lines.append(f"\n**{name}**")
+                if focus:
+                    lines.append(focus)
+                for a in actions[:5]:
+                    lines.append(f"• {a}")
+            response = "\n".join(lines)
+        else:
+            response = f"""Based on our conversation, I see strong potential for you in **{career_name}** (match: {score_pct}%).
 
 {stage_msg}
 
-Your profile shows strengths in {', '.join([r.value for r in dominant_riasec])} areas - {self._describe_riasec(dominant_riasec)}.
+Your profile shows strengths in {', '.join([r.value for r in dominant_riasec])} areas—{self._describe_riasec(dominant_riasec)}.
 
-I've prepared a personalized 3-year roadmap showing exactly which subjects to focus on, which entrance exams to prepare for, and skills to develop. Would you like me to walk you through the specific steps for Grade {grade + 1}?"""
+I've prepared a personalized 3-year roadmap (subjects, entrance exams, and skills). Would you like me to walk you through the specific steps for Grade {grade + 1}?"""
+
         if len(careers) > 1:
             response += f"\n\nI also see possibilities in {careers[1][2]['name']} and {careers[2][2]['name']} if you want to explore alternatives."
         return response

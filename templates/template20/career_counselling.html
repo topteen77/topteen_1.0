@@ -23,6 +23,11 @@
   .counsel-input-row button:disabled { opacity: 0.6; cursor: not-allowed; }
   .counsel-disclaimer { font-size: 0.8rem; color: #6c757d; padding: 0.5rem 1rem; background: #f1f5f9; }
   .counsel-loading { color: #6c757d; font-style: italic; }
+  .counsel-suggested { padding: 0.5rem 1rem; background: #fff; border-top: 1px solid #eee; }
+  .counsel-suggested-title { font-size: 0.8rem; color: #6c757d; margin-bottom: 0.4rem; }
+  .counsel-suggested-questions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .counsel-suggested-btn { padding: 0.4rem 0.75rem; background: #e7f1ff; border: 1px solid #b6d4fe; border-radius: 20px; font-size: 0.85rem; cursor: pointer; color: #0d6efd; }
+  .counsel-suggested-btn:hover { background: #cfe2ff; }
 </style>
 {% endblock %}
 
@@ -36,6 +41,10 @@
         <div class="counsel-msg bot" id="counselWelcome">
           Hi! I’m here to help with career and stream choices. Tell me what subjects you enjoy, what you’re curious about, or what kind of work you’d like to do.
         </div>
+      </div>
+      <div class="counsel-suggested" id="counselSuggested">
+        <div class="counsel-suggested-title">Suggested questions:</div>
+        <div class="counsel-suggested-questions" id="counselSuggestedList"></div>
       </div>
       <div class="counsel-disclaimer">This is for career and education guidance only. If you’re in crisis, please contact iCall: +91-9152987821 or emergency: 112.</div>
       <div class="counsel-input-row">
@@ -59,6 +68,29 @@
   var inputEl = document.getElementById('counselInput');
   var sendBtn = document.getElementById('counselSend');
   var crisisActive = false;
+
+  var suggestedQuestions = [
+    'What are the best streams for me?',
+    'Walk me through steps for Grade 11',
+    'I like science and maths – what careers suit me?',
+    'How do I choose between Engineering and Medicine?',
+    'What subjects should I take for a career in data science?'
+  ];
+
+  function renderSuggested() {
+    var list = document.getElementById('counselSuggestedList');
+    if (!list) return;
+    list.innerHTML = '';
+    suggestedQuestions.forEach(function(q) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'counsel-suggested-btn';
+      btn.textContent = q;
+      btn.addEventListener('click', function() { sendMessage(q); });
+      list.appendChild(btn);
+    });
+  }
+  renderSuggested();
 
   function addMessage(text, isUser, isCrisis, careerSuggestions, roadmap) {
     var wrap = document.createElement('div');
@@ -103,12 +135,12 @@
     }
   }
 
-  sendBtn.addEventListener('click', function() {
-    var msg = (inputEl.value || '').trim();
+  function sendMessage(msg) {
+    msg = (msg || (inputEl && inputEl.value) || '').trim();
     if (msg.length < 3) return;
     if (crisisActive) return;
+    if (inputEl) inputEl.value = '';
     addMessage(msg, true);
-    inputEl.value = '';
     setLoading(true);
     var payload = { message: msg };
     if (sessionId) payload.session_id = sessionId;
@@ -140,10 +172,12 @@
     };
     xhr.onerror = function() { setLoading(false); addMessage('Connection error. Please try again.', false); };
     xhr.send(JSON.stringify(payload));
-  });
+  }
+
+  sendBtn.addEventListener('click', function() { sendMessage(); });
 
   inputEl.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendBtn.click(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
 })();
 </script>
