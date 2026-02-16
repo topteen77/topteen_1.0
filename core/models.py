@@ -196,17 +196,40 @@ def review_image_directory(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     return 'upload/core/review/image/{0}'.format(filename)
 
-class Review(BaseModel,PublishableModel):
+class Review(BaseModel, PublishableModel):
+    """Student testimonial / success story shown on the home page."""
     name = models.CharField(max_length=100)
-    image = models.ImageField(upload_to=review_image_directory)
+    image = models.ImageField(upload_to=review_image_directory, null=True, blank=True)
+    image_s3_url = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="S3 URL for testimonial photo (auto-set when uploading image in admin)."
+    )
     description = models.TextField()
-    profession= models.CharField(max_length=100)
+    profession = models.CharField(max_length=100)
+    priority = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Display order on home page (1 = first). Lower number = higher position."
+    )
+
+    class Meta:
+        verbose_name = "Student testimonial"
+        verbose_name_plural = "Student testimonials"
+        ordering = ["priority", "created"]
 
     def get_image_url(self):
-        """Get image URL with default fallback"""
+        """Get image URL: S3 URL if set, else local image, else default placeholder."""
+        if self.image_s3_url:
+            return self.image_s3_url
         if self.image and self.image.name:
             return self.image.url
-        return '/static/images/review-default.png'  # Default review image
+        return "/static/images/review-default.png"
+
+    @property
+    def display_image_url(self):
+        """For templates: single URL to use for the testimonial photo."""
+        return self.get_image_url()
 
     @classmethod
     def get_all_reviews(cls):
@@ -217,7 +240,9 @@ class Review(BaseModel,PublishableModel):
 
     @classmethod
     def get_published_objects(cls):
-        return Review.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)
+        return Review.objects.filter(
+            publish_status=choices.PublishStatus.PUBLISHED
+        ).order_by("priority", "created")
 
 class CommonFAQ(BaseModel):
     question = models.CharField(max_length=300,null=True)

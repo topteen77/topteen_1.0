@@ -186,7 +186,87 @@ admin.site.register(City,CityAdmin)
 admin.site.register(State,StateAdmin)
 admin.site.register(Country,CountryAdmin)
 admin.site.register(Lead,LeadAdmin)
-admin.site.register(Review)
+
+
+class ReviewAdmin(admin.ModelAdmin):
+    """Admin CRUD for student testimonials (home page success stories). Images upload to S3 media bucket."""
+    list_display = ("id", "name", "profession", "priority", "publish_status", "image_thumbnail", "object_status", "created")
+    list_filter = ("publish_status", "object_status", "created")
+    search_fields = ("name", "profession", "description")
+    list_editable = ("priority", "publish_status")
+    ordering = ("priority", "created")
+    list_display_links = ("id", "name")
+    S3_MEDIA_FOLDER = "media/student-testimonials"
+    fieldsets = (
+        (None, {
+            "fields": ("name", "profession", "description", "image", "image_s3_url", "priority", "publish_status", "object_status"),
+            "description": "Student testimonial shown in the “Your Success Is Our Story” section. Upload an image to store it in the S3 media bucket (folder: media/student-testimonials).",
+        }),
+        ("Timestamps", {
+            "fields": ("created", "modified"),
+            "classes": ("collapse",),
+        }),
+    )
+    readonly_fields = ("created", "modified", "image_s3_url")
+
+    def get_queryset(self, request):
+        """Show all testimonials in admin (including inactive/soft-deleted)."""
+        return self.model.objects.complete()
+
+    def image_thumbnail(self, obj):
+        url = obj.get_image_url()
+        if url and url != "/static/images/review-default.png":
+            return format_html(
+                '<img src="{}" style="max-width: 50px; max-height: 50px; object-fit: cover; border-radius: 4px;" />',
+                url,
+            )
+        return "—"
+    image_thumbnail.short_description = "Photo"
+
+    def save_model(self, request, obj, form, change):
+        """Upload testimonial image to S3 media bucket; store URL in image_s3_url."""
+        from django.core.files.uploadedfile import UploadedFile
+        from urllib.parse import urlparse
+
+        cover_image = form.cleaned_data.get("image")
+        is_new_upload = cover_image and isinstance(cover_image, UploadedFile) and getattr(cover_image, "name", None)
+
+        if change and obj.pk and is_new_upload and obj.image_s3_url:
+            # Replace: delete old file from S3
+            from core.s3_utils import get_s3_upload_service
+            s3_service = get_s3_upload_service()
+            parsed = urlparse(obj.image_s3_url)
+            s3_key = parsed.path.lstrip("/")
+            if s3_key:
+                s3_file = S3FileUpload.objects.filter(s3_url=obj.image_s3_url).first()
+                if s3_file:
+                    s3_service.delete_file(s3_file.s3_key)
+                else:
+                    s3_service.delete_file(s3_key)
+            obj.image_s3_url = None
+        elif change and obj.pk and is_new_upload and not obj.image_s3_url:
+            # Had local image only; will replace with S3
+            obj.image_s3_url = None
+
+        if is_new_upload:
+            from core.s3_utils import get_s3_upload_service
+            s3_service = get_s3_upload_service()
+            result = s3_service.upload_file(
+                file_obj=cover_image,
+                folder_path=self.S3_MEDIA_FOLDER,
+                description=f"Student testimonial: {obj.name}",
+                uploaded_by=getattr(request.user, "username", "") or "",
+            )
+            if result.get("success"):
+                obj.image_s3_url = result["s3_url"]
+                obj.image = None
+            else:
+                messages.error(request, f"Image upload to S3 failed: {result.get('error', 'Unknown error')}")
+                return
+        super().save_model(request, obj, form, change)
+
+
+admin.site.register(Review, ReviewAdmin)
 admin.site.register(CommonFAQ)
 admin.site.register(APILog)
 admin.site.register(Stories)

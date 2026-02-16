@@ -867,7 +867,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
                 <div class="slider {% if loop.first %}active{% endif %}">
                   <div class="test-text">
                     <div class="test-img">
-                      <img src="{% if reviewer.image %}{{ reviewer.image.url }}{% else %}{{ static('images/review-default.png') }}{% endif %}" alt="{{ reviewer.name }}" onerror="this.src='{{ static('images/review-default.png') }}'; this.onerror=null;" />
+                      <img src="{{ reviewer.display_image_url }}" alt="{{ reviewer.name }}" onerror="this.src='{{ static('images/review-default.png') }}'; this.onerror=null;" />
                     </div>
                     <div class="test-test-info">
                       <p class="test-name text-purple fs-16 fw-600">{{ reviewer.name }}</p>
