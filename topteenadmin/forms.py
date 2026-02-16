@@ -506,7 +506,7 @@ class BlogCategoryModelForm(TranslationModelForm):
 class ReviewModelForm(TranslationModelForm):
     class Meta:
         model = Review
-        fields = ['name', 'image', 'description', 'profession', 'priority', 'publish_status', 'object_status']
+        fields = ['name', 'image', 'quote', 'description', 'profession', 'priority', 'publish_status', 'object_status']
 
 class CommonFAQModelForm(TranslationModelForm):
     class Meta:

@@ -11,6 +11,28 @@
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
 
 {% block content %}
+<style>
+/* Blog sidebar search suggest dropdown */
+.blog-search-input-wrap .blog-search-suggestions {
+  position: absolute; left: 0; right: 0; top: 100%; margin-top: 2px;
+  background: #fff; border: 1px solid rgba(224, 224, 224, 0.8); border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); max-height: 280px; overflow-y: auto;
+  z-index: 1020; display: none; padding: 0.25rem 0;
+}
+.blog-search-input-wrap .blog-search-suggestions.show { display: block; }
+.blog-search-input-wrap .blog-search-suggestions li {
+  display: block; padding: 0.75rem 1.25rem; cursor: pointer; font-size: 0.95rem; color: #333;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06); transition: background 0.15s ease;
+}
+.blog-search-input-wrap .blog-search-suggestions li:last-child { border-bottom: none; }
+.blog-search-input-wrap .blog-search-suggestions li:hover,
+.blog-search-input-wrap .blog-search-suggestions li.active {
+  background: rgba(107, 61, 240, 0.08); color: #6b3df0;
+}
+.blog-search-input-wrap .blog-search-suggestions-empty {
+  padding: 1rem 1.25rem; font-size: 0.9rem; color: #888; text-align: center;
+}
+</style>
 
 <!-- Blog Content Section -->
 <section class="single-blog-sectin pt-md-18 pt-14">
@@ -115,12 +137,15 @@
       <!-- Right Column - Sidebar -->
       <div class="col-lg-4">
         <div class="blog-sidebar">
-          <!-- Search Bar -->
+          <!-- Search Bar with suggest dropdown -->
           <div class="sidebar-widget mb-4">
             <h3 class="sidebar-title mb-3">Search</h3>
-            <form action="{{ url('blog:blogs') }}" method="GET">
+            <form action="{{ url('blog:blogs') }}" method="GET" class="blog-sidebar-search-form">
               <div class="blog-search">
-                <input type="text" name="search" placeholder="Search for blogs..." value="{{ search_blogs if search_blogs else '' }}" />
+                <div class="blog-search-input-wrap position-relative w-100">
+                  <input type="text" name="search" class="js-blog-sidebar-search-input" placeholder="Search for blogs..." value="{{ search_blogs if search_blogs else '' }}" autocomplete="off" data-autocomplete-url="{{ url('blog:autocomplete_blogs') }}" />
+                  <ul class="blog-search-suggestions js-blog-sidebar-suggest list-unstyled mb-0" role="listbox" aria-label="Blog suggestions" style="display: none;"></ul>
+                </div>
                 <button type="submit"><i class='bx bx-search'></i></button>
               </div>
             </form>
@@ -283,6 +308,141 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+(function() {
+  var DEBOUNCE_MS = 280;
+  var suggestTimer = null;
+  var blurTimer = null;
+
+  function getSuggestUrl(input) {
+    return input.getAttribute('data-autocomplete-url') || '';
+  }
+  function getSuggestList(input) {
+    var wrap = input.closest('.blog-search-input-wrap');
+    return wrap ? wrap.querySelector('.js-blog-sidebar-suggest') : null;
+  }
+  function getForm(input) {
+    return input.closest('form.blog-sidebar-search-form');
+  }
+  function hideSuggest(list) {
+    if (list) { list.style.display = 'none'; list.innerHTML = ''; list.classList.remove('show'); }
+  }
+  function showSuggest(list, items, selectedIndex, emptyMsg) {
+    if (!list) return;
+    if (!items || items.length === 0) {
+      list.innerHTML = '<li class="blog-search-suggestions-empty">' + (emptyMsg || 'No blogs found') + '</li>';
+      list.style.display = 'block';
+      list.classList.add('show');
+      return;
+    }
+    list.innerHTML = items.map(function(r, i) {
+      var text = (r.text || r.value || '').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      var url = (r.url || '').replace(/"/g, '&quot;');
+      var active = i === selectedIndex ? ' active' : '';
+      return '<li class="blog-sidebar-suggest-item' + active + '" data-value="' + text + '" data-url="' + url + '" role="option">' + text + '</li>';
+    }).join('');
+    list.style.display = 'block';
+    list.classList.add('show');
+  }
+  function fetchSuggestions(input, callback) {
+    var q = (input.value || '').trim();
+    var url = getSuggestUrl(input);
+    if (!url || !q) { callback([]); return; }
+    fetch(url + '?q=' + encodeURIComponent(q) + '&limit=15', { headers: { 'Accept': 'application/json' } })
+      .then(function(res) { return res.ok ? res.json() : { results: [] }; })
+      .then(function(data) { callback((data && data.results) ? data.results : []); })
+      .catch(function() { callback([]); });
+  }
+
+  function bindInput(input) {
+    var list = getSuggestList(input);
+    if (!list) return;
+    var selectedIndex = -1;
+
+    function renderAndShow(results) {
+      selectedIndex = results.length > 0 ? 0 : -1;
+      showSuggest(list, results, selectedIndex, 'No blogs found');
+    }
+    function onSelect(value, itemUrl) {
+      if (itemUrl) {
+        window.location.href = itemUrl;
+        return;
+      }
+      input.value = value || '';
+      hideSuggest(list);
+      selectedIndex = -1;
+      var form = getForm(input);
+      if (form) form.submit();
+    }
+
+    input.addEventListener('input', function() {
+      if (suggestTimer) clearTimeout(suggestTimer);
+      var q = (input.value || '').trim();
+      if (!q) { hideSuggest(list); return; }
+      suggestTimer = setTimeout(function() {
+        suggestTimer = null;
+        fetchSuggestions(input, renderAndShow);
+      }, DEBOUNCE_MS);
+    });
+    input.addEventListener('focus', function() {
+      if (blurTimer) clearTimeout(blurTimer);
+      blurTimer = null;
+      if ((input.value || '').trim().length > 0 && list.innerHTML) list.style.display = 'block';
+    });
+    input.addEventListener('blur', function() {
+      blurTimer = setTimeout(function() {
+        blurTimer = null;
+        hideSuggest(list);
+        selectedIndex = -1;
+      }, 200);
+    });
+    input.addEventListener('keydown', function(e) {
+      var items = list.querySelectorAll('.blog-sidebar-suggest-item');
+      if (e.key === 'Escape') {
+        hideSuggest(list);
+        selectedIndex = -1;
+        input.blur();
+        e.preventDefault();
+        return;
+      }
+      if (e.key === 'Enter') {
+        if (list.classList.contains('show') && items.length > 0 && selectedIndex >= 0 && items[selectedIndex]) {
+          e.preventDefault();
+          var li = items[selectedIndex];
+          onSelect(li.getAttribute('data-value'), li.getAttribute('data-url'));
+        }
+        return;
+      }
+      if (e.key === 'ArrowDown' && items.length > 0) {
+        e.preventDefault();
+        selectedIndex = (selectedIndex + 1) % items.length;
+        for (var i = 0; i < items.length; i++) items[i].classList.toggle('active', i === selectedIndex);
+        items[selectedIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp' && items.length > 0) {
+        e.preventDefault();
+        selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
+        for (var i = 0; i < items.length; i++) items[i].classList.toggle('active', i === selectedIndex);
+        items[selectedIndex].scrollIntoView({ block: 'nearest' });
+      }
+    });
+
+    list.addEventListener('mousedown', function() {
+      if (blurTimer) clearTimeout(blurTimer);
+      blurTimer = null;
+    });
+    list.addEventListener('click', function(e) {
+      var li = e.target.closest('.blog-sidebar-suggest-item');
+      if (li) {
+        e.preventDefault();
+        onSelect(li.getAttribute('data-value'), li.getAttribute('data-url'));
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.js-blog-sidebar-search-input').forEach(bindInput);
+  });
+})();
+
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {

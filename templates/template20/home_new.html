@@ -874,8 +874,12 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
                       <p class="test-cas text-gray">{{ reviewer.profession }}</p>
                       <div class="quote-text">
                         <div class="text-gray">
-                          <p class="text-purple fw-500 mb-2 ts-st">"{{ reviewer.description|truncate(100) }}</p>
+                          {% if reviewer.quote %}
+                          <p class="text-purple fw-500 mb-2 ts-st">"{{ reviewer.quote }}"</p>
                           <p class="mt-2">{{ reviewer.description }}</p>
+                          {% else %}
+                          <p class="mt-0">{{ reviewer.description }}</p>
+                          {% endif %}
                         </div>
                       </div>
                     </div>

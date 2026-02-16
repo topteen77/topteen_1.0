@@ -27,6 +27,7 @@ urlpatterns = [
     path("api/autocomplete/skills/", api_views.autocomplete_skills, name="autocomplete_skills"),
     path("api/autocomplete/clusters/", api_views.autocomplete_clusters, name="autocomplete_clusters"),
     path("api/autocomplete/careers/", api_views.autocomplete_careers, name="autocomplete_careers"),
+    path("api/autocomplete/videos/", api_views.autocomplete_videos, name="autocomplete_videos"),
     path("api/ai-query/", api_views.ai_query_api, name="ai_query_api"),
     path("api/sample-career-questions/", api_views.get_sample_career_questions, name="get_sample_career_questions"),
 ]

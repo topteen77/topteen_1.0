@@ -199,8 +199,8 @@ class ReviewAdmin(admin.ModelAdmin):
     S3_MEDIA_FOLDER = "media/student-testimonials"
     fieldsets = (
         (None, {
-            "fields": ("name", "profession", "description", "image", "image_s3_url", "priority", "publish_status", "object_status"),
-            "description": "Student testimonial shown in the “Your Success Is Our Story” section. Upload an image to store it in the S3 media bucket (folder: media/student-testimonials).",
+            "fields": ("name", "profession", "quote", "description", "image", "image_s3_url", "priority", "publish_status", "object_status"),
+            "description": "Student testimonial shown in the “Your Success Is Our Story” section. Quote = short headline (no repetition with description). Upload an image to store it in the S3 media bucket (folder: media/student-testimonials).",
         }),
         ("Timestamps", {
             "fields": ("created", "modified"),

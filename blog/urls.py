@@ -4,6 +4,7 @@ from . import views
 app_name="blog"
 urlpatterns = [
     path("",views.Blogs.as_view(),name="blogs"),
+    path("api/autocomplete/", views.autocomplete_blogs, name="autocomplete_blogs"),
     path("category/<slug:category_slug>/",views.category_filter,name="category"),
     path("tag/<slug:tagslug>/",views.blogtag_filter,name="blogtag"),
     path("subscribemail/",views.SubscribeView.as_view(),name="subscribemail"),

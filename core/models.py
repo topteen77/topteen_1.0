@@ -206,7 +206,15 @@ class Review(BaseModel, PublishableModel):
         null=True,
         help_text="S3 URL for testimonial photo (auto-set when uploading image in admin)."
     )
-    description = models.TextField()
+    quote = models.CharField(
+        max_length=300,
+        blank=True,
+        null=True,
+        help_text="Short quote or headline shown above the full testimonial (avoids repeating the start of description)."
+    )
+    description = models.TextField(
+        help_text="Full testimonial text shown below the quote."
+    )
     profession = models.CharField(max_length=100)
     priority = models.PositiveSmallIntegerField(
         default=1,
