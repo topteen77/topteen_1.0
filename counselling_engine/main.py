@@ -136,10 +136,25 @@ Generate a single counselling reply that addresses the user's message using the 
             temperature=0.7,
         )
         text = (resp.choices[0].message.content or "").strip()
+        text = _strip_html_from_response(text)
         return text if text else None
     except Exception as e:
         logger.warning("OpenAI completion failed: %s", e)
         return None
+
+
+def _strip_html_from_response(text: str) -> str:
+    """Remove HTML from LLM response so the UI shows plain text, not raw HTML."""
+    if not text or not text.strip():
+        return ""
+    # If response looks like a full HTML document, treat as invalid
+    if re.match(r"\s*<!DOCTYPE", text, re.IGNORECASE) or re.match(r"\s*<html", text, re.IGNORECASE):
+        return ""
+    # Strip all HTML tags
+    text = re.sub(r"<[^>]+>", " ", text)
+    # Collapse multiple spaces and trim
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
 
 
 # ---------------------------------------------------------------------------

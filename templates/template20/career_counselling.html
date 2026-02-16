@@ -48,7 +48,7 @@
       </div>
       <div class="counsel-disclaimer">This is for career and education guidance only. If you’re in crisis, please contact iCall: +91-9152987821 or emergency: 112.</div>
       <div class="counsel-input-row">
-        <input type="text" id="counselInput" placeholder="Type your message..." maxlength="2000" autocomplete="off" aria-label="Your message" />
+        <input type="text" id="counselInput" placeholder="Type your message... (Press Enter to send)" maxlength="2000" autocomplete="off" aria-label="Your message" />
         <button type="button" id="counselSend" aria-label="Send">Send</button>
       </div>
     </div>
@@ -87,7 +87,14 @@
   }
   renderSuggested();
 
+  function stripHtml(s) {
+    if (typeof s !== 'string') return '';
+    if (/^\s*<!DOCTYPE/i.test(s) || /^\s*<html/i.test(s)) return '[Invalid response]';
+    return s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
   function addMessage(text, isUser, isCrisis, careerSuggestions, roadmap) {
+    text = isUser ? text : stripHtml(text);
     var wrap = document.createElement('div');
     wrap.className = 'counsel-msg ' + (isUser ? 'user' : 'bot') + (isCrisis ? ' crisis' : '');
     var p = document.createElement('div');
@@ -173,7 +180,11 @@
   sendBtn.addEventListener('click', function() { sendMessage(); });
 
   inputEl.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      sendMessage();
+    }
   });
 })();
 </script>

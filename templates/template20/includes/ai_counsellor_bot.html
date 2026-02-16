@@ -61,7 +61,7 @@
       <div class="ai-counsel-bot-suggested-list" id="aiCounselBotSuggestedList"></div>
     </div>
     <div class="ai-counsel-bot-input-row">
-      <input type="text" id="aiCounselBotInput" placeholder="Type your message..." maxlength="2000" autocomplete="off" aria-label="Your message" />
+      <input type="text" id="aiCounselBotInput" placeholder="Type your message... (Press Enter to send)" maxlength="2000" autocomplete="off" aria-label="Your message" />
       <button type="button" id="aiCounselBotSend" aria-label="Send">Send</button>
     </div>
     <div class="ai-counsel-bot-full-link"><a href="{{ url('core:career_counselling') }}">Open full counselling page &rarr;</a></div>
@@ -136,7 +136,14 @@
 
   var avatarUrl = (panel && panel.getAttribute('data-avatar-url')) || '';
 
+  function stripHtml(s) {
+    if (typeof s !== 'string') return '';
+    if (/^\s*<!DOCTYPE/i.test(s) || /^\s*<html/i.test(s)) return '[Invalid response]';
+    return s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
   function addMsg(text, isUser, isCrisis, careerSuggestions, roadmap) {
+    text = isUser ? text : stripHtml(text);
     var wrapEl = document.createElement('div');
     wrapEl.className = 'ai-counsel-bot-msg ' + (isUser ? 'user' : 'bot') + (isCrisis ? ' crisis' : '');
     if (!isUser) {
@@ -260,7 +267,11 @@
 
   sendBtn.addEventListener('click', function() { sendMsg(); });
   inputEl.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      sendMsg();
+    }
   });
 })();
 </script>
