@@ -8,349 +8,19 @@
 {% block bodyclass %}institute-register-page{% endblock %}
 
 {% block additionalhead %}
-<style>
-  .institute-register-page {
-    padding-top: 100px; /* Account for fixed header */
-    padding-bottom: 0;
-    min-height: 100vh;
-    background: #f8f9fa;
-  }
-  
-  .registration-container {
-    display: flex;
-    min-height: calc(100vh - 100px);
-    background-color: #f8f9fa;
-  }
 
-  .left-panel {
-    width: 35%;
-    background: linear-gradient(135deg, #541BCF 0%, #8662E3 100%);
-    color: white;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-  }
-  
-  @media (max-width: 767px) {
-    .left-panel {
-      display: none !important;
-    }
-  }
-
-  .left-panel-content {
-    margin-top: 60px;
-  }
-
-  .left-panel h2 {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: white;
-  }
-
-  .left-panel p {
-    font-size: 16px;
-    line-height: 1.6;
-    margin-bottom: 30px;
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .benefit-item {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 20px;
-  }
-
-  .benefit-item i {
-    margin-right: 15px;
-    font-size: 20px;
-    color: #ffffff;
-    margin-top: 3px;
-  }
-
-  .benefit-item strong {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-  }
-
-  .benefit-item p {
-    margin-bottom: 0;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
-  }
-
-  .right-panel {
-    width: 65%;
-    padding: 40px;
-    background-color: white;
-    overflow-y: auto;
-  }
-
-  .form-title {
-    text-align: center;
-    color: #541BCF;
-    font-weight: 700;
-    font-size: 24px;
-    margin-bottom: 30px;
-  }
-
-  .form-title i {
-    margin-right: 10px;
-  }
-
-  .info-alert {
-    background: #EDE4FC;
-    color: #541BCF;
-    padding: 16px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: flex-start;
-  }
-
-  .info-alert svg {
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    margin-right: 12px;
-    margin-top: 2px;
-  }
-
-  .info-alert-content {
-    flex: 1;
-    font-size: 14px;
-  }
-
-  .info-alert-close {
-    background: none;
-    border: none;
-    color: #541BCF;
-    cursor: pointer;
-    padding: 4px;
-    margin-left: 12px;
-  }
-
-  .file-upload-area {
-    border: 2px dashed #ddd;
-    border-radius: 8px;
-    padding: 40px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    background: #f9fafb;
-    margin-bottom: 10px;
-  }
-
-  .file-upload-area:hover {
-    border-color: #541BCF;
-    background: #EDE4FC;
-  }
-
-  .file-upload-area.dragover {
-    border-color: #541BCF;
-    background: #EDE4FC;
-  }
-
-  .file-upload-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .file-upload-icon {
-    width: 32px;
-    height: 32px;
-    margin-bottom: 10px;
-    color: #666;
-  }
-
-  .file-upload-text {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 10px;
-  }
-
-  .browse-button {
-    color: #541BCF;
-    border: 2px solid #541BCF;
-    border-radius: 20px;
-    padding: 6px 16px;
-    background: white;
-    font-weight: 600;
-    transition: all 0.3s;
-  }
-
-  .browse-button:hover {
-    background: #541BCF;
-    color: white;
-  }
-
-  .preview-container {
-    margin-top: 20px;
-    text-align: center;
-  }
-
-  .preview-container img {
-    max-height: 128px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-  }
-
-  .custom-input {
-    height: 50px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    padding: 10px 15px;
-    font-size: 16px;
-    width: 100%;
-    transition: all 0.3s;
-  }
-
-  .custom-input:focus {
-    outline: none;
-    border-color: #541BCF;
-    box-shadow: 0 0 0 0.2rem rgba(84, 27, 207, 0.25);
-  }
-
-  .form-group {
-    margin-bottom: 20px;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #333;
-    font-size: 14px;
-  }
-
-  .form-group textarea.custom-input {
-    height: auto;
-    min-height: 100px;
-    resize: vertical;
-  }
-
-  .error-message {
-    color: #dc3545;
-    font-size: 12px;
-    margin-top: 5px;
-    display: none;
-  }
-  
-  .form-group input.invalid,
-  .form-group textarea.invalid,
-  .form-group select.invalid {
-    border-color: #dc3545;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-  }
-  
-  .form-group input.valid,
-  .form-group textarea.valid,
-  .form-group select.valid {
-    border-color: #28a745;
-  }
-
-  .declaration-checkbox {
-    display: flex;
-    align-items: flex-start;
-    margin-top: 20px;
-  }
-
-  .declaration-checkbox input[type="checkbox"] {
-    margin-right: 10px;
-    margin-top: 4px;
-  }
-
-  .declaration-text {
-    font-size: 14px;
-  }
-
-  .declaration-text label {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 8px;
-    display: block;
-  }
-
-  .declaration-text ol {
-    margin-top: 8px;
-    padding-left: 20px;
-    font-size: 12px;
-    color: #666;
-  }
-
-  .declaration-text ol li {
-    margin-bottom: 8px;
-  }
-
-  .declaration-text a {
-    color: #541BCF;
-    text-decoration: underline;
-  }
-
-  .purple-button {
-    background-color: #541BCF;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 14px 30px;
-    font-weight: 600;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s;
-    width: 100%;
-    margin-top: 20px;
-  }
-
-  .purple-button:hover {
-    background-color: #4016a0;
-  }
-
-  .purple-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-
-  .purple-button i {
-    margin-right: 8px;
-  }
-
-  .file-format-info {
-    font-size: 12px;
-    color: #666;
-    text-align: center;
-    margin-top: 10px;
-  }
-
-  @media (max-width: 992px) {
-    .registration-container {
-      flex-direction: column;
-    }
-
-    .left-panel,
-    .right-panel {
-      width: 100%;
-    }
-
-    .left-panel {
-      padding: 30px;
-      min-height: auto;
-    }
-  }
-  
-  @media (min-width: 768px) {
-    .left-panel {
-      display: flex !important;
-    }
-  }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="registration-container">
+
+<div class="container mb-10">
+  <div class="row">
+
+    <div class="col-md-12"> 
+  
+  
+  
+  <div class="registration-container">
   <!-- Left Panel - Branding and Benefits -->
   <div class="left-panel">
     <div>
@@ -364,7 +34,7 @@
 
         <div class="benefits">
           <div class="benefit-item">
-            <i class="fas fa-globe"></i>
+            <i class='bx bx-globe' style='color:#ffffff'  ></i>
             <div>
               <strong>Enhanced Visibility</strong>
               <p>Reach thousands of students actively searching for educational opportunities</p>
@@ -372,7 +42,7 @@
           </div>
 
           <div class="benefit-item">
-            <i class="fas fa-chart-line"></i>
+            <i class='bx bx-bar-chart-alt-2'></i>
             <div>
               <strong>Data-Driven Insights</strong>
               <p>Access analytics to understand student preferences and optimize your offerings</p>
@@ -380,7 +50,7 @@
           </div>
 
           <div class="benefit-item">
-            <i class="fas fa-users"></i>
+            <i class='bx bx-user-circle' style='color:#ffffff' ></i>
             <div>
               <strong>Direct Student Engagement</strong>
               <p>Connect with qualified prospects through our platform</p>
@@ -389,12 +59,20 @@
         </div>
       </div>
     </div>
+
+
+
+    <div class="image-bottom">
+
+      <img class="img-fluid" src="{{ static('images_new/general/studentwith-tab.png') }}" alt="TopTeen Logo" />
+
+    </div>
   </div>
 
   <!-- Right Panel - Registration Form -->
   <div class="right-panel">
     <h3 class="form-title">
-      <i class="fas fa-building-columns"></i> Institute Information
+      <i class='bx bxs-bank' ></i> Institute Information
     </h3>
 
     <!-- Info Alert -->
@@ -439,12 +117,20 @@
       <p class="file-format-info">Supported formats: JPG, PNG, GIF. Maximum size: 5MB</p>
       <div class="error-message" id="institute_logo_error"></div>
 
+
+      <div class="row">
       <!-- Form Fields -->
+
+      <div class="col-md-6">  
       <div class="form-group">
         <label for="institute_name">Institute's Name <span style="color: red;">*</span></label>
         <input type="text" id="institute_name" name="institute_name" class="custom-input" placeholder="Institute's Name" required>
         <div class="error-message" id="institute_name_error"></div>
       </div>
+    </div>
+
+
+    <div class="col-md-6">  
 
       <div class="form-group">
         <label for="user_name">Principal's Name <span style="color: red;">*</span></label>
@@ -452,29 +138,44 @@
         <div class="error-message" id="user_name_error"></div>
       </div>
 
+    </div>
+
+    <div class="col-md-6">  
       <div class="form-group">
         <label for="institute_email">Principal's Email ID <span style="color: red;">*</span></label>
         <input type="email" id="institute_email" name="institute_email" class="custom-input" placeholder="Principal's Email ID" required>
         <div class="error-message" id="institute_email_error"></div>
       </div>
+    </div>
+
+      <div class="col-md-6">  
 
       <div class="form-group">
         <label for="institute_contact">Principal's Contact No. <span style="color: red;">*</span></label>
         <input type="tel" id="institute_contact" name="institute_contact" class="custom-input" placeholder="Principal's Contact No." required>
         <div class="error-message" id="institute_contact_error"></div>
       </div>
+    </div>
+
+    <div class="col-md-6">  
 
       <div class="form-group">
         <label for="institute_admin">Administrator or School Counselor Contact No. <span style="color: red;">*</span></label>
         <input type="tel" id="institute_admin" name="institute_admin" class="custom-input" placeholder="Administrator or School Counselor Contact No." required>
         <div class="error-message" id="institute_admin_error"></div>
       </div>
+    </div>
+
+      <div class="col-md-6">  
 
       <div class="form-group">
         <label for="institute_address">Address <span style="color: red;">*</span></label>
-        <textarea id="institute_address" name="institute_address" class="custom-input" placeholder="Address" rows="3" required></textarea>
+        <textarea id="institute_address" name="institute_address" class="custom-input" placeholder="Address" rows="1" required></textarea>
         <div class="error-message" id="institute_address_error"></div>
       </div>
+    </div>
+
+    <div class="col-md-6">  
 
       <div class="form-group">
         <label for="marketing_group">Marketing B2B Portal</label>
@@ -486,6 +187,9 @@
         </select>
         <div class="error-message" id="marketing_group_error"></div>
       </div>
+    </div>
+
+    <div class="col-md-6">  
 
       <div class="form-group">
         <label for="institute_type">Institute Type <span style="color: red;">*</span></label>
@@ -497,6 +201,9 @@
         </select>
         <div class="error-message" id="institute_type_error"></div>
       </div>
+    </div>
+
+    </div>
 
       <!-- Declaration Checkbox -->
       <div class="declaration-checkbox">
@@ -511,9 +218,12 @@
       </div>
       <div class="error-message" id="declaration_checkbox_error"></div>
 
-      <button type="submit" class="purple-button" id="submitBtn">
+      <div class="text-center"> 
+
+      <button type="submit" class="btn custom-button purple-button me-3" id="submitBtn">
         <i class="fas fa-building"></i> Create Institute
       </button>
+    </div>
     </form>
 
     <div style="text-align: center; margin-top: 20px;">
@@ -524,6 +234,9 @@
       </p>
     </div>
   </div>
+</div>
+</div> </div>
+
 </div>
 {% endblock %}
 

@@ -917,7 +917,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             Step
           </span>
           <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Explore
-            Expert Blogs for Parents & Students!</h3>
+            Expert Blogs for Students & Parents!</h3>
           <p class="text-gray">Stay informed with insights, tips, and
             resources to help students make confident career
             and academic choices.</p>
@@ -940,7 +940,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
                 </div>
                 <div class="blog-info">
                   {% if blog.category %}
-                  <span class="blog-tags text-gray fw-400 fs-12 mb-3">{{ blog.category.name|blog_category_display }}</span>
+                  <span class="blog-tags text-gray fw-400 fs-12 mb-3 d-none">{{ blog.category.name|blog_category_display }}</span>
                   {% else %}
                   <span class="blog-tags text-gray fw-400 fs-14 mb-3">Blog</span>
                   {% endif %}

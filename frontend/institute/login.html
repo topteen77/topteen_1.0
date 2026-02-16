@@ -9,13 +9,7 @@
 
 {% block additionalhead %}
 <style>
-  .institute-login-page {
-    padding-top: 80px;
-    padding-bottom: 50px;
-    min-height: 100vh;
-    background: #f7f7fa;
-  }
-  
+
   .auth-container {
     max-width: 500px;
     margin: 0 auto;
@@ -174,12 +168,17 @@
 {% endblock %}
 
 {% block content %}
-<section class="institute-login-page">
+<section class=" login-home d-flex align-items-center py-14">
   <div class="container">
     <div class="auth-container">
       <div class="auth-wrapper">
         <div class="form-container">
           <div class="form-header">
+
+            <div class="logo-header text-center mb-2">
+              <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
+            </div>
+
             <h2>Institute Login</h2>
             <p>Access your institute dashboard</p>
           </div>
