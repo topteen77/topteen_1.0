@@ -6,9 +6,9 @@
   .ai-counsel-bot-btn svg { width: 28px; height: 28px; }
   .ai-counsel-bot-panel { display: none; position: absolute; bottom: 72px; right: 0; width: 380px; min-width: 320px; max-width: calc(100vw - 32px); height: 520px; min-height: 360px; max-height: calc(100vh - 120px); background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); flex-direction: column; overflow: hidden; border: 1px solid #e9ecef; }
   .ai-counsel-bot-wrap.open .ai-counsel-bot-panel { display: flex; }
-  .ai-counsel-bot-resize { position: absolute; right: 0; bottom: 0; width: 20px; height: 20px; cursor: nwse-resize; z-index: 2; }
-  .ai-counsel-bot-resize::after { content: ''; position: absolute; right: 4px; bottom: 4px; width: 10px; height: 10px; border-right: 2px solid #adb5bd; border-bottom: 2px solid #adb5bd; border-radius: 0 0 4px 0; }
-  .ai-counsel-bot-resize:hover::after { border-color: #0d6efd; }
+  .ai-counsel-bot-resize-bar { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; background: #e9ecef; border-top: 1px solid #dee2e6; cursor: nwse-resize; font-size: 0.75rem; color: #6c757d; flex-shrink: 0; user-select: none; }
+  .ai-counsel-bot-resize-bar:hover { background: #dee2e6; color: #0d6efd; }
+  .ai-counsel-bot-resize-bar svg { width: 16px; height: 16px; opacity: 0.8; }
   .ai-counsel-bot-header { padding: 14px 16px; background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: #fff; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .ai-counsel-bot-header h3 { margin: 0; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
   .ai-counsel-bot-close { background: none; border: none; color: #fff; cursor: pointer; padding: 4px; line-height: 1; opacity: 0.9; }
@@ -65,7 +65,10 @@
       <button type="button" id="aiCounselBotSend" aria-label="Send">Send</button>
     </div>
     <div class="ai-counsel-bot-full-link"><a href="{{ url('core:career_counselling') }}">Open full counselling page &rarr;</a></div>
-    <div class="ai-counsel-bot-resize" id="aiCounselBotResize" aria-label="Resize chat window"></div>
+    <div class="ai-counsel-bot-resize-bar" id="aiCounselBotResize" aria-label="Drag to resize chat window" title="Drag to resize">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 11H3v2h18v-2zm0 5H3v2h18v-2z"/></svg>
+      <span>Drag to resize</span>
+    </div>
   </div>
 </div>
 <script>
@@ -82,7 +85,22 @@
   var welcomeEl = document.getElementById('aiCounselBotWelcome');
   var suggestedList = document.getElementById('aiCounselBotSuggestedList');
   var crisisActive = false;
-  var suggestedQuestions = ['What are the best streams for me?', 'Walk me through steps for Grade 11', 'I like science and maths – what careers suit me?', 'How do I choose between Engineering and Medicine?', 'What subjects for data science?'];
+  var defaultSuggested = ['What are the best streams for me?', 'I like science and maths – what careers suit me?', 'Walk me through steps for Grade 11'];
+
+  function renderSuggested(questions) {
+    if (!suggestedList) return;
+    suggestedList.innerHTML = '';
+    var qs = (questions && questions.length) ? questions : defaultSuggested;
+    qs.forEach(function(q) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ai-counsel-bot-suggested-btn';
+      btn.textContent = q;
+      btn.addEventListener('click', function() { sendMsg(q); });
+      suggestedList.appendChild(btn);
+    });
+  }
+  renderSuggested();
 
   var MIN_W = 320, MIN_H = 360;
   var DEFAULT_W = 380, DEFAULT_H = 520;
@@ -115,15 +133,6 @@
       document.addEventListener('mouseup', stop);
     });
   })();
-
-  suggestedQuestions.forEach(function(q) {
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'ai-counsel-bot-suggested-btn';
-    btn.textContent = q;
-    btn.addEventListener('click', function() { sendMsg(q); });
-    suggestedList.appendChild(btn);
-  });
 
   var avatarUrl = (panel && panel.getAttribute('data-avatar-url')) || '';
 
@@ -243,6 +252,7 @@
       }
       if (data.crisis_flag) crisisActive = true;
       addMsg(data.response_text || '', false, !!data.crisis_flag, data.career_suggestions, data.tactical_roadmap);
+      renderSuggested(data.suggested_questions);
     };
     xhr.onerror = function() { setLoading(false); addMsg('Connection error. Please try again.', false); };
     xhr.send(JSON.stringify(payload));

@@ -69,19 +69,14 @@
   var sendBtn = document.getElementById('counselSend');
   var crisisActive = false;
 
-  var suggestedQuestions = [
-    'What are the best streams for me?',
-    'Walk me through steps for Grade 11',
-    'I like science and maths – what careers suit me?',
-    'How do I choose between Engineering and Medicine?',
-    'What subjects should I take for a career in data science?'
-  ];
+  var defaultSuggested = ['What are the best streams for me?', 'I like science and maths – what careers suit me?', 'Walk me through steps for Grade 11'];
 
-  function renderSuggested() {
+  function renderSuggested(questions) {
     var list = document.getElementById('counselSuggestedList');
     if (!list) return;
     list.innerHTML = '';
-    suggestedQuestions.forEach(function(q) {
+    var qs = (questions && questions.length) ? questions : defaultSuggested;
+    qs.forEach(function(q) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'counsel-suggested-btn';
@@ -169,6 +164,7 @@
         data.career_suggestions,
         data.tactical_roadmap
       );
+      renderSuggested(data.suggested_questions);
     };
     xhr.onerror = function() { setLoading(false); addMessage('Connection error. Please try again.', false); };
     xhr.send(JSON.stringify(payload));

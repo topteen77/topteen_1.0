@@ -116,6 +116,7 @@ class CounselResponse(BaseModel):
     empathy_score: float
     crisis_flag: Optional[str]
     explanation: Dict[str, str]
+    suggested_questions: Optional[List[str]] = None
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
@@ -815,6 +816,12 @@ class DeepCounsellingEngine:
                 "why_suitable": self._generate_career_rationale(career_id, riasec_scores, data),
             })
         await self._update_profile_with_session(profile, request.message, final_response)
+        suggested = self._generate_suggested_questions(
+            career_suggestions=career_suggestions,
+            roadmap=roadmap,
+            grade=profile.grade,
+            final_response=final_response,
+        )
         return CounselResponse(
             student_id=request.student_id,
             session_id=session_id,
@@ -826,8 +833,32 @@ class DeepCounsellingEngine:
             empathy_score=round(emotional_state["anxiety_level"], 2),
             crisis_flag=None if crisis_type == CrisisType.NONE else crisis_type.value,
             explanation=explanation,
+            suggested_questions=suggested,
             timestamp=datetime.now(),
         )
+
+    def _generate_suggested_questions(
+        self,
+        career_suggestions: List[Dict],
+        roadmap: Optional[Dict],
+        grade: int,
+        final_response: str,
+    ) -> List[str]:
+        """Generate 3–4 context-aware follow-up questions based on the response."""
+        out: List[str] = []
+        names = [c.get("name") or c.get("career_id", "") for c in career_suggestions[:3] if c]
+        if names:
+            if len(names) >= 2:
+                out.append(f"How do I choose between {names[0]} and {names[1]}?")
+            out.append(f"Tell me more about {names[0]} and what I should study.")
+        if roadmap and roadmap.get("phases"):
+            out.append(f"Walk me through steps for Grade {grade + 1}")
+        out.append("What are the best streams for me?")
+        if grade <= 10:
+            out.append("What subjects should I focus on now?")
+        else:
+            out.append("What entrance exams should I prepare for?")
+        return list(dict.fromkeys(out))[:4]
 
     def _user_wants_roadmap_steps(self, message: str) -> bool:
         """True if the user is agreeing to or asking for roadmap steps (avoid repeating the question)."""
