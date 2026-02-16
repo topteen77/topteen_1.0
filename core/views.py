@@ -1229,6 +1229,24 @@ def page404(request,exception):
     return render(request,"template20/404.html",ctx)
 
 
+def serve_game_spa(request, path=None):
+    """
+    Serve the React game SPA (Career Battle) at /career-battle/ on our domain.
+    Assets are served by Django at /static/game/assets/... (from Vite build with base: '/static/game/').
+    """
+    from django.http import Http404, HttpResponse
+    index_name = 'index.html'
+    # Prefer collectstatic output (production), else dev static dir
+    for base in [settings.STATIC_ROOT, os.path.join(settings.BASE_DIR, 'static')]:
+        if not base:
+            continue
+        index_path = os.path.join(base, 'game', index_name)
+        if os.path.isfile(index_path):
+            with open(index_path, 'r', encoding='utf-8') as f:
+                return HttpResponse(f.read(), content_type='text/html; charset=utf-8')
+    raise Http404('Game not built. Run: cd react-game/react-game && npm run build')
+
+
 def s3_media_proxy(request, path):
     """
     Serve S3 media through Django so only your website can show the file.

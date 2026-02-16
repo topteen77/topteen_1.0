@@ -1,0 +1,217 @@
+/* App Base Styles */
+
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  position: relative;
+  outline: none; /* Remove default focus outline, we'll use custom */
+}
+
+.app-container:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: -2px;
+}
+
+/* Offline Banner */
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.offline-icon {
+  font-size: 1.2rem;
+}
+
+.offline-message {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Loading Fallback */
+.loading-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1rem;
+}
+
+.loading-spinner-large {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-fallback p {
+  color: #666;
+  font-size: 1rem;
+}
+
+/* Skip Link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #1976d2;
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 1000;
+  border-radius: 0 0 4px 0;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid #ffd700;
+  outline-offset: 2px;
+}
+
+/* Reset default button styles that might conflict */
+button {
+  font-family: inherit;
+}
+
+/* Logout Button - Fixed position */
+.logout-button {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 999;
+  padding: 0.625rem 1rem;
+  background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.logout-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+.logout-button:active {
+  transform: translateY(0);
+}
+
+.logout-icon {
+  font-size: 1.1rem;
+}
+
+.logout-text {
+  font-size: 0.9rem;
+}
+
+/* Adjust logout button position when offline banner is visible */
+.offline-banner ~ .logout-button {
+  top: 3.5rem;
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+  .app-container {
+    overflow-x: hidden;
+  }
+
+  .offline-banner {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .offline-icon {
+    font-size: 1rem;
+  }
+
+  .offline-message {
+    font-size: 0.85rem;
+  }
+
+  .loading-fallback {
+    padding: 1rem;
+  }
+
+  .loading-spinner-large {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+
+  .loading-fallback p {
+    font-size: 0.9rem;
+  }
+
+  .logout-button {
+    top: 0.75rem;
+    right: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .logout-icon {
+    font-size: 1rem;
+  }
+
+  .logout-text {
+    font-size: 0.8rem;
+  }
+
+  .offline-banner ~ .logout-button {
+    top: 3rem;
+  }
+}
+
+/* Very small mobile devices */
+@media (max-width: 375px) {
+  .offline-banner {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .offline-message {
+    font-size: 0.8rem;
+  }
+}

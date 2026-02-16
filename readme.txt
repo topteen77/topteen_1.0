@@ -86,6 +86,20 @@ python scripts/verify_class12_st
 ** testing script end ***
 
 
+=== Career Battle (React game) ===
+# The game is served at /career-battle/ on the Django site (e.g. http://localhost:8002/career-battle). Build outputs to static/game/.
+# Local: build once, then run Django on port 8002 (or your main port).
+cd react-game/react-game
+npm install
+npm run build
+cd ../..
+python manage.py runserver 8002
+# Open http://localhost:8002/career-battle
+
+# Production: after building, run collectstatic so staticfiles/game/ is deployed.
+cd react-game/react-game && npm run build && cd ../..
+python manage.py collectstatic --noinput
+# Deploy; ensure your server serves /static/ from STATIC_ROOT and /career-battle/ is handled by Django.
 
 
 python3 scripts/convert_docx_to_html.py

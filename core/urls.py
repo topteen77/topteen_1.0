@@ -40,5 +40,8 @@ urlpatterns = [
     path("ebooks/", views.EbookListView.as_view(), name="ebook_list"),
     path("ebooks/flip-book/<slug:slug>/", views.EbookDetailView.as_view(), name="ebook_detail"),
     path("delete-history/",views.deletehistory,name="deletehistory"), 
-    path("lead-submit/",views.LeadData.as_view(),name="lead_submit"),  
+    path("lead-submit/",views.LeadData.as_view(),name="lead_submit"),
+    # React game SPA (Career Battle / stream comparison) – serve index.html; assets at /static/game/
+    path("career-battle/", views.serve_game_spa, name="language_game"),
+    path("career-battle/<path:path>/", views.serve_game_spa, name="language_game_subpath"),
 ]
