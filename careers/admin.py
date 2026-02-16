@@ -645,19 +645,70 @@ class CareerRatingAdmin(admin.ModelAdmin):
     list_display = ['id','career','user','rating']
 
 
+def career_cluster_activate_selected(modeladmin, request, queryset):
+    updated = queryset.update(object_status=choices.ObjectStatus.ACTIVE)
+    modeladmin.message_user(request, f'{updated} career cluster(s) activated.', messages.SUCCESS)
+
+
+def career_cluster_deactivate_selected(modeladmin, request, queryset):
+    updated = queryset.update(object_status=choices.ObjectStatus.INACTIVE)
+    modeladmin.message_user(request, f'{updated} career cluster(s) deactivated.', messages.SUCCESS)
+
+
+career_cluster_activate_selected.short_description = 'Activate selected career clusters'
+career_cluster_deactivate_selected.short_description = 'Deactivate selected career clusters'
+
+
 class CareerClusterAdmin(admin.ModelAdmin):
-    """Enhanced CareerCluster admin with better organization"""
-    list_display = ['id', 'name', 'parent', 'careers_count', 'object_status', 'created']
+    """Enhanced CareerCluster admin with better organization. Shows all clusters (active, inactive, deleted)."""
+    list_display = ['id', 'name', 'parent', 'careers_count', 'has_track_icon', 'object_status', 'created']
     list_filter = ['parent', 'object_status', 'created']
     search_fields = ['name']
     list_per_page = 25
     ordering = ['name']
+    actions = [career_cluster_activate_selected, career_cluster_deactivate_selected]
+    
+    def get_queryset(self, request):
+        """Show all clusters (active, inactive, deleted) in admin."""
+        return CareerCluster.all_objects.get_queryset().order_by('name')
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'parent', 'image', 'object_status')
+            'fields': ('name', 'parent', 'image', 'object_status'),
+        }),
+        ('Career track icon (home page scroller)', {
+            'fields': ('career_track_icon', 'career_track_icon_s3_url'),
+            'description': 'Upload SVG icon; it will be uploaded to S3 and the URL stored. Used on home page "Find Your Perfect Fit!" scroller. If empty, a default icon is shown.',
         }),
     )
+    readonly_fields = ['career_track_icon_s3_url']
+    
+    def save_model(self, request, obj, form, change):
+        from django.core.files.uploadedfile import UploadedFile
+        from django.conf import settings
+        from django.contrib import messages
+        career_track_icon_file = form.cleaned_data.get('career_track_icon')
+        if career_track_icon_file and isinstance(career_track_icon_file, UploadedFile) and career_track_icon_file.name:
+            from core.s3_utils import get_s3_upload_service
+            s3_service = get_s3_upload_service()
+            if s3_service.is_enabled():
+                folder = getattr(settings, 'S3_CAREER_TRACK_ICONS_FOLDER', 'career_track_icons')
+                result = s3_service.upload_file(
+                    file_obj=career_track_icon_file,
+                    folder_path=folder,
+                    description=f'Career track icon for cluster: {obj.name or obj.pk}',
+                    uploaded_by=request.user.username if request.user.is_authenticated else '',
+                )
+                if result.get('success'):
+                    obj.career_track_icon_s3_url = result.get('s3_url')
+                else:
+                    messages.warning(request, f'S3 upload skipped: {result.get("error", "Unknown error")}. Icon saved locally only.')
+        super().save_model(request, obj, form, change)
+    
+    def has_track_icon(self, obj):
+        return bool(obj.career_track_icon and obj.career_track_icon.name)
+    has_track_icon.boolean = True
+    has_track_icon.short_description = 'Track icon'
     
     def careers_count(self, obj):
         """Show number of careers in this cluster"""

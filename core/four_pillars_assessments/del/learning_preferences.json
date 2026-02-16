@@ -1,0 +1,222 @@
+{
+  "questions": [
+    {
+      "title": "Question 1: Information Processing Style",
+      "text": "When you encounter new information, you prefer to:",
+      "options": {
+        "A": "Read detailed explanations and research multiple sources thoroughly",
+        "B": "Jump in and learn by doing, experimenting hands-on immediately",
+        "C": "Discuss it with others and learn through conversation and collaboration",
+        "D": "See examples and practice with guided, step-by-step instruction"
+      }
+    },
+    {
+      "title": "Question 2: Ideal Study Environment",
+      "text": "Your most productive study environment is:",
+      "options": {
+        "A": "A quiet library with access to many books and research materials",
+        "B": "A lab or workspace where you can build, create, and experiment",
+        "C": "A collaborative space where you can work and discuss with others",
+        "D": "A comfortable, organized personal space with minimal distractions"
+      }
+    },
+    {
+      "title": "Question 3: Problem-Solving Approach",
+      "text": "When solving problems, you typically:",
+      "options": {
+        "A": "Research thoroughly and gather all available information first",
+        "B": "Try different approaches through trial and error until something works",
+        "C": "Talk through the problem with others to gain different perspectives",
+        "D": "Follow a systematic, methodical step-by-step approach"
+      }
+    },
+    {
+      "title": "Question 4: Memory and Retention",
+      "text": "You remember information best when:",
+      "options": {
+        "A": "You write detailed notes and review them regularly over time",
+        "B": "You act it out, create something with it, or use it practically",
+        "C": "You explain it to someone else or discuss it in groups",
+        "D": "You practice it repeatedly in different contexts and situations"
+      }
+    },
+    {
+      "title": "Question 5: Learning Challenges",
+      "text": "When learning gets difficult, you prefer to:",
+      "options": {
+        "A": "Find additional resources, books, and supplementary materials",
+        "B": "Break it down into smaller parts and tackle each piece practically",
+        "C": "Form a study group or find a study partner for support",
+        "D": "Seek direct help and guidance from a teacher or tutor"
+      }
+    },
+    {
+      "title": "Question 6: Information Format Preference",
+      "text": "You learn most effectively from:",
+      "options": {
+        "A": "Written materials like textbooks, articles, and detailed handouts",
+        "B": "Interactive demonstrations, videos, and hands-on activities",
+        "C": "Lectures, discussions, podcasts, and verbal explanations",
+        "D": "Visual aids like charts, diagrams, mind maps, and infographics"
+      }
+    },
+    {
+      "title": "Question 7: Study Session Structure",
+      "text": "Your ideal study session involves:",
+      "options": {
+        "A": "Extended periods of focused reading and note-taking",
+        "B": "Short bursts of active practice with frequent breaks",
+        "C": "Group study sessions with discussion and collaboration",
+        "D": "Structured time blocks with clear goals and checkpoints"
+      }
+    },
+    {
+      "title": "Question 8: Feedback Preference",
+      "text": "You prefer to receive feedback that is:",
+      "options": {
+        "A": "Detailed written comments with specific suggestions for improvement",
+        "B": "Immediate and practical, showing you what to do differently",
+        "C": "Given verbally through conversation and discussion",
+        "D": "Visual and measurable, showing your progress over time"
+      }
+    },
+    {
+      "title": "Question 9: Learning Motivation",
+      "text": "You feel most motivated to learn when:",
+      "options": {
+        "A": "The material connects to your academic goals and interests",
+        "B": "You can see real-world applications and practical uses",
+        "C": "You're learning alongside others who share your interests",
+        "D": "You have clear milestones and can track your progress"
+      }
+    },
+    {
+      "title": "Question 10: Attention and Focus",
+      "text": "You maintain focus best when:",
+      "options": {
+        "A": "Working in complete silence with minimal interruptions",
+        "B": "Having some background activity or music while working",
+        "C": "Surrounded by the energy of other people working",
+        "D": "In a comfortable environment that you can control and adjust"
+      }
+    },
+    {
+      "title": "Question 11: Learning Pace",
+      "text": "Your natural learning pace is:",
+      "options": {
+        "A": "Slow and thorough, taking time to fully understand each concept",
+        "B": "Fast and energetic, covering lots of material quickly",
+        "C": "Conversational, learning through back-and-forth discussion",
+        "D": "Balanced, alternating between different speeds as needed"
+      }
+    },
+    {
+      "title": "Question 12: Knowledge Application",
+      "text": "You feel you truly understand something when:",
+      "options": {
+        "A": "You can explain all the theory and background concepts",
+        "B": "You can use it to solve real problems or create something",
+        "C": "You can teach it to someone else successfully",
+        "D": "You can connect it to other things you already know"
+      }
+    },
+    {
+      "title": "Question 13: Note-Taking Style",
+      "text": "Your preferred note-taking method is:",
+      "options": {
+        "A": "Detailed written notes with complete sentences and paragraphs",
+        "B": "Quick sketches, diagrams, and bullet points with key concepts",
+        "C": "Recording discussions or summarizing what others have said",
+        "D": "Organized outlines with clear headings and structured format"
+      }
+    },
+    {
+      "title": "Question 14: Test Preparation",
+      "text": "When preparing for exams, you typically:",
+      "options": {
+        "A": "Create comprehensive study guides and review all materials multiple times",
+        "B": "Focus on practice problems and hands-on application of concepts",
+        "C": "Form study groups and quiz each other on the material",
+        "D": "Use flashcards, timelines, and visual organizers to structure information"
+      }
+    },
+    {
+      "title": "Question 15: New Concept Introduction",
+      "text": "When a teacher introduces a new concept, you prefer they:",
+      "options": {
+        "A": "Provide extensive background reading and theoretical foundation",
+        "B": "Start with a demonstration or real-world example",
+        "C": "Begin with a class discussion about what students already know",
+        "D": "Present a clear outline of what will be covered and why"
+      }
+    },
+    {
+      "title": "Question 16: Assignment Preferences",
+      "text": "You perform best on assignments that:",
+      "options": {
+        "A": "Require extensive research and written analysis",
+        "B": "Involve building, creating, or experimenting with materials",
+        "C": "Include group work or peer collaboration components",
+        "D": "Have clear rubrics and step-by-step requirements"
+      }
+    },
+    {
+      "title": "Question 17: Learning from Mistakes",
+      "text": "When you make a mistake, you prefer to:",
+      "options": {
+        "A": "Research what went wrong and understand the underlying principles",
+        "B": "Try again immediately with a different approach",
+        "C": "Discuss the mistake with others to get their insights",
+        "D": "Review the correct process step-by-step before trying again"
+      }
+    },
+    {
+      "title": "Question 18: Technology in Learning",
+      "text": "You find technology most helpful when it:",
+      "options": {
+        "A": "Provides access to extensive databases and research materials",
+        "B": "Offers interactive simulations and hands-on digital tools",
+        "C": "Enables collaboration and communication with other learners",
+        "D": "Organizes information clearly and tracks your learning progress"
+      }
+    },
+    {
+      "title": "Question 19: Long-term Retention",
+      "text": "You best retain information over time when you:",
+      "options": {
+        "A": "Regularly review and re-read your notes and materials",
+        "B": "Continue to use and apply the knowledge in practical situations",
+        "C": "Regularly discuss and share the information with others",
+        "D": "Create visual reminders and review them systematically"
+      }
+    },
+    {
+      "title": "Question 20: Learning Satisfaction",
+      "text": "You feel most satisfied with your learning when:",
+      "options": {
+        "A": "You have thoroughly mastered the theoretical foundations",
+        "B": "You can successfully apply knowledge to solve real problems",
+        "C": "You can engage in meaningful discussions about the topic",
+        "D": "You can see clear evidence of your progress and achievement"
+      }
+    }
+  ],
+  "profiles": {
+    "A": {
+      "name": "Scholarly Learner (Theoretical/Reading-focused)",
+      "summary": "You learn best through deep reading, research, and careful analysis. Quiet study spaces, detailed notes, and comprehensive understanding are your strengths."
+    },
+    "B": {
+      "name": "Experiential Learner (Kinesthetic/Hands-on)",
+      "summary": "You learn best by doing. Hands-on activities, real-world applications, and experimentation help you understand and remember information."
+    },
+    "C": {
+      "name": "Social Learner (Auditory/Collaborative)",
+      "summary": "You learn best through discussion, collaboration, and verbal processing. Study groups, conversations, and teaching others help ideas stick."
+    },
+    "D": {
+      "name": "Structured Learner (Visual/Organized)",
+      "summary": "You learn best with clear structure, visual organization, and step-by-step guidance. Plans, checklists, and visual tools support your success."
+    }
+  }
+}

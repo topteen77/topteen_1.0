@@ -1,0 +1,184 @@
+<main class="lp-assessment-section">
+  <div class="container">
+    <a href="{{ url('core:four_pillars') }}" class="lp-back-btn" type="button">
+      <i class='bx bx-arrow-back'></i>
+      <span>Back</span>
+    </a>
+
+    <div class="lp-header-card">
+      <h1 class="lp-title">{{ assessment_title }}</h1>
+      <p class="lp-subtitle">{{ assessment_subtitle }}</p>
+    </div>
+
+    <ul class="nav nav-pills lp-tabs" id="lpTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="lp-assessment-tab" data-bs-toggle="pill"
+          data-bs-target="#lp-assessment-pane" type="button" role="tab" aria-controls="lp-assessment-pane"
+          aria-selected="true">
+          Assessment Wizard
+        </button>
+      </li>
+      <li class="nav-item lp-profile-tab-li lp-tab-locked" id="lpProfileTabLi" role="presentation">
+        <span class="lp-tab-tooltip" id="lpTabTooltip">Complete your test first</span>
+        <button class="nav-link lp-profile-tab-inactive" id="lp-profile-tab"
+          type="button" role="tab" aria-controls="lp-profile-pane" aria-selected="false"
+          data-bs-target="#lp-profile-pane">
+          {{ lp_profile_tab_label if lp_profile_tab_label is defined else 'Your Learning Profile Guide' }}
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="lpTabContent">
+      <div class="tab-pane fade show active" id="lp-assessment-pane" role="tabpanel"
+        aria-labelledby="lp-assessment-tab">
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="lp-wizard-card">
+              <div class="lp-progress-label">
+                <span id="lpProgressLabel">Question 1 of {{ questions|length }}</span>
+              </div>
+              <div class="progress lp-progress">
+                <div class="progress-bar" id="lpProgressBar" role="progressbar" style="width: 5%;"
+                  aria-valuenow="1" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <div class="lp-question-nav">
+                <div class="lp-question-nav-label">Quick question navigator</div>
+                <div class="lp-question-nav-buttons" id="lpQuestionNav"></div>
+              </div>
+              <div id="lpQuestionContainer"></div>
+              <div id="lpValidationMessage" class="lp-validation-message" role="alert" aria-live="polite" hidden></div>
+              <div class="lp-wizard-footer">
+                <div class="lp-complete-badge" id="lpCompleteBadge">
+                  <i class='bx bx-check-circle'></i>
+                  <span>All questions answered! Your profile has been generated.</span>
+                </div>
+                <div class="lp-wizard-buttons">
+                  <button type="button" class="lp-btn lp-btn-outline" id="lpPrevBtn">
+                    <i class='bx bx-chevron-left'></i>
+                    Previous
+                  </button>
+                  <button type="button" class="lp-btn lp-btn-primary" id="lpNextBtn">
+                    Next
+                    <i class='bx bx-chevron-right'></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="lp-profile-pane" role="tabpanel" aria-labelledby="lp-profile-tab">
+        <div class="lp-profile-pane-wrapper">
+          <div class="lp-analyze-overlay" id="lpAnalyzeOverlay">
+            <div class="lp-analyze-spinner"></div>
+            <div class="lp-analyze-text" id="lpAnalyzeText">Analyzing your responses...</div>
+            <div class="lp-analyze-subtext" id="lpAnalyzeSubtext">Optimizing your result</div>
+          </div>
+          <div class="lp-results-card">
+            <div id="lpResultSummary">
+              <p class="lp-results-summary mb-1">
+                Complete all {{ questions|length }} questions in the Assessment Wizard to see your personalised {{ lp_placeholder_text if lp_placeholder_text is defined else 'summary here.' }}
+              </p>
+            </div>
+            <div class="lp-style-grid">
+              <div class="lp-style-card a">
+                <div class="lp-style-card-icon"><i class='bx bx-book-open'></i></div>
+                <div class="lp-style-card-title">{{ profiles.get('A', {}).get('name', 'Type A')|safe }}</div>
+                <div class="lp-style-card-tag">{{ (lp_style_card_tags.get('A') if lp_style_card_tags is defined else none) or 'Style A' }}</div>
+              </div>
+              <div class="lp-style-card b">
+                <div class="lp-style-card-icon"><i class='bx bxs-flask'></i></div>
+                <div class="lp-style-card-title">{{ profiles.get('B', {}).get('name', 'Type B')|safe }}</div>
+                <div class="lp-style-card-tag">{{ (lp_style_card_tags.get('B') if lp_style_card_tags is defined else none) or 'Style B' }}</div>
+              </div>
+              <div class="lp-style-card c">
+                <div class="lp-style-card-icon"><i class='bx bx-group'></i></div>
+                <div class="lp-style-card-title">{{ profiles.get('C', {}).get('name', 'Type C')|safe }}</div>
+                <div class="lp-style-card-tag">{{ (lp_style_card_tags.get('C') if lp_style_card_tags is defined else none) or 'Style C' }}</div>
+              </div>
+              <div class="lp-style-card d">
+                <div class="lp-style-card-icon"><i class='bx bx-category'></i></div>
+                <div class="lp-style-card-title">{{ profiles.get('D', {}).get('name', 'Type D')|safe }}</div>
+                <div class="lp-style-card-tag">{{ (lp_style_card_tags.get('D') if lp_style_card_tags is defined else none) or 'Style D' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lp-results-card lp-guide-content">
+            <h3><span class="lp-section-icon"><i class='bx bx-bar-chart-alt-2'></i></span>Scoring Guide</h3>
+            <div class="lp-scoring-intro">{{ (lp_scoring_intro if lp_scoring_intro is defined else 'Count your responses for each letter:')|safe }}</div>
+            <div class="lp-scoring-cards">
+              <div class="lp-scoring-card a">
+                <div class="lp-scoring-icon"><i class='bx bx-book-open'></i></div>
+                <div>
+                  <div class="lp-scoring-card-title">{{ (profiles.get('A', {}).get('scoring_heading') or "Mostly A's: " ~ profiles.get('A', {}).get('name', 'Type A'))|safe }}</div>
+                  {% if profiles.get('A', {}).get('scoring_bullets') %}
+                  <ul class="lp-scoring-bullets">
+                    {% for item in profiles.get('A', {}).get('scoring_bullets') %}
+                    <li>{{ item|safe }}</li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <div class="lp-scoring-card-desc">{{ profiles.get('A', {}).get('summary', 'Your primary style is A.')|safe }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="lp-scoring-card b">
+                <div class="lp-scoring-icon"><i class='bx bxs-flask'></i></div>
+                <div>
+                  <div class="lp-scoring-card-title">{{ (profiles.get('B', {}).get('scoring_heading') or "Mostly B's: " ~ profiles.get('B', {}).get('name', 'Type B'))|safe }}</div>
+                  {% if profiles.get('B', {}).get('scoring_bullets') %}
+                  <ul class="lp-scoring-bullets">
+                    {% for item in profiles.get('B', {}).get('scoring_bullets') %}
+                    <li>{{ item|safe }}</li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <div class="lp-scoring-card-desc">{{ profiles.get('B', {}).get('summary', 'Your primary style is B.')|safe }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="lp-scoring-card c">
+                <div class="lp-scoring-icon"><i class='bx bx-group'></i></div>
+                <div>
+                  <div class="lp-scoring-card-title">{{ (profiles.get('C', {}).get('scoring_heading') or "Mostly C's: " ~ profiles.get('C', {}).get('name', 'Type C'))|safe }}</div>
+                  {% if profiles.get('C', {}).get('scoring_bullets') %}
+                  <ul class="lp-scoring-bullets">
+                    {% for item in profiles.get('C', {}).get('scoring_bullets') %}
+                    <li>{{ item|safe }}</li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <div class="lp-scoring-card-desc">{{ profiles.get('C', {}).get('summary', 'Your primary style is C.')|safe }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="lp-scoring-card d">
+                <div class="lp-scoring-icon"><i class='bx bx-category'></i></div>
+                <div>
+                  <div class="lp-scoring-card-title">{{ (profiles.get('D', {}).get('scoring_heading') or "Mostly D's: " ~ profiles.get('D', {}).get('name', 'Type D'))|safe }}</div>
+                  {% if profiles.get('D', {}).get('scoring_bullets') %}
+                  <ul class="lp-scoring-bullets">
+                    {% for item in profiles.get('D', {}).get('scoring_bullets') %}
+                    <li>{{ item|safe }}</li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <div class="lp-scoring-card-desc">{{ profiles.get('D', {}).get('summary', 'Your primary style is D.')|safe }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="lp-mixed-note">{{ (lp_mixed_note if lp_mixed_note is defined else 'Mixed Results: Many learners have a combination of preferences. Look at your top two categories to understand your primary and secondary styles.')|safe }}</div>
+            {% if understanding_guide_include %}
+            {% include understanding_guide_include %}
+            {% elif understanding_data %}
+            {% include 'template20/includes/four_pillars_understanding_from_data.html' %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

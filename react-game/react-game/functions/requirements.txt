@@ -1,0 +1,5 @@
+firebase-functions
+firebase-admin
+google-generativeai>=0.8.0
+google-cloud-secret-manager
+email-validator>=2.0.0

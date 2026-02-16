@@ -1,0 +1,434 @@
+/* Responsive Design Utilities */
+
+/* Mobile First Approach */
+:root {
+  --mobile-breakpoint: 320px;
+  --tablet-breakpoint: 768px;
+  --desktop-breakpoint: 1024px;
+  
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  
+  --touch-target-min: 44px;
+}
+
+/* Container utilities */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-sm);
+}
+
+.container-fluid {
+  width: 100%;
+  padding: var(--spacing-sm);
+}
+
+/* Responsive grid */
+.grid {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Mobile: 1 column */
+@media (max-width: 767px) {
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  .container {
+    padding: var(--spacing-xs);
+  }
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: Full columns */
+@media (min-width: 1024px) {
+  .grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Touch-friendly buttons */
+.btn-touch {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-touch:active {
+  transform: scale(0.98);
+}
+
+/* Responsive typography */
+@media (max-width: 767px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Responsive spacing */
+@media (max-width: 767px) {
+  .mobile-spacing-sm {
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .mobile-spacing-md {
+    margin-bottom: var(--spacing-md);
+  }
+}
+
+/* Hide/Show utilities */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile {
+    display: block;
+  }
+  
+  .hide-desktop {
+    display: none;
+  }
+}
+
+/* Card responsive */
+.card {
+  padding: var(--spacing-md);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (max-width: 767px) {
+  .card {
+    padding: var(--spacing-sm);
+  }
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Flexbox utilities */
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+
+.gap-md {
+  gap: var(--spacing-md);
+}
+
+.gap-lg {
+  gap: var(--spacing-lg);
+}
+
+/* Responsive text alignment */
+@media (max-width: 767px) {
+  .text-center-mobile {
+    text-align: center;
+  }
+}
+
+/* Enhanced Mobile Optimizations (320px - 768px) */
+@media (max-width: 767px) {
+  /* Ensure minimum font size for readability */
+  body {
+    font-size: 16px; /* Prevents zoom on iOS */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
+  /* Improve touch targets */
+  button,
+  a,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent text selection on tap (for better UX) */
+  button {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
+  /* Improve scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Better spacing for small screens */
+  .container,
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Tablet Optimizations (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Optimize for tablet landscape/portrait */
+  .container {
+    max-width: 100%;
+    padding: 1.5rem;
+  }
+
+  /* Better grid spacing for tablets */
+  .grid {
+    gap: 1.5rem;
+  }
+}
+
+/* Desktop Optimizations (1024px+) */
+@media (min-width: 1024px) {
+  /* Enhanced hover states */
+  button:hover:not(:disabled),
+  .card:hover,
+  .stream-card:hover:not(.stream-card-disabled):not(.stream-card-selected) {
+    cursor: pointer;
+  }
+
+  /* Smooth focus states for keyboard navigation */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible {
+    outline: 3px solid #1976d2;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Remove focus outline for mouse users */
+  button:focus:not(:focus-visible),
+  a:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* Keyboard Navigation Support */
+*:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+/* Skip to main content link (accessibility) */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #1976d2;
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Cross-browser compatibility */
+/* Fix for Safari flexbox issues */
+@supports (-webkit-appearance: none) {
+  .flex {
+    display: -webkit-flex;
+    display: flex;
+  }
+}
+
+/* Fix for Firefox scrollbar */
+@-moz-document url-prefix() {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #c0c0c0 #f0f0f0;
+  }
+}
+
+/* Fix for Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+/* Animation performance optimizations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  button {
+    border: 2px solid currentColor;
+  }
+
+  .card {
+    border: 2px solid #000;
+  }
+}
+
+/* Dark mode support (if needed in future) */
+@media (prefers-color-scheme: dark) {
+  /* Can be implemented later if dark mode is desired */
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  button,
+  .action-button,
+  .continue-button,
+  .fight-button {
+    display: none;
+  }
+}
+
+/* Landscape mobile optimizations */
+@media (max-width: 767px) and (orientation: landscape) {
+  .stream-selection-header,
+  .parameter-selection-header,
+  .fight-header {
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Large desktop optimizations (1440px+) */
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1400px;
+  }
+
+  /* Better spacing for large screens */
+  .grid {
+    gap: 2.5rem;
+  }
+}
+
+/* Very small mobile (320px - 375px) */
+@media (max-width: 375px) {
+  :root {
+    --spacing-xs: 0.375rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  button {
+    font-size: 0.9rem;
+    padding: 0.625rem 1rem;
+  }
+}
+

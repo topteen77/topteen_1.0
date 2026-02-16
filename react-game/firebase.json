@@ -1,0 +1,14 @@
+{
+    "functions": [
+      {
+        "source": "react-game/functions",
+        "runtime": "python313",
+        "codebase": "react-game-functions"
+      }
+    ],
+    "hosting": {
+      "public": "react-game/dist",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    }
+  }
+  

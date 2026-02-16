@@ -9,10 +9,40 @@ from .models import BlogCategory,Blog,BlogTag,SubscriptionEmail
 from django.views.generic import TemplateView
 from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
 from django.db.models import Q
-from django.http import HttpResponse,JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
+from django.views.decorators.http import require_http_methods
 from rest_framework.views import APIView
 from core import choices
+
+
+@require_http_methods(["GET"])
+def autocomplete_blogs(request):
+    """API for blog search suggest dropdown - returns matching blog titles and URLs."""
+    query = request.GET.get("q", "").strip()
+    limit = min(int(request.GET.get("limit", 15)), 30)
+    blogs = Blog.get_published_objects().only("title", "slug").exclude(title__isnull=True).exclude(title="")
+    if query:
+        blogs = blogs.filter(Q(title__icontains=query) | Q(summary__icontains=query))
+    blogs = blogs.order_by("title")[:limit]
+    results = []
+    seen = set()
+    for b in blogs:
+        title = (b.title or "").strip()
+        if not title:
+            continue
+        key = title.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        results.append({
+            "id": b.id,
+            "text": title,
+            "value": title,
+            "slug": b.slug or "",
+            "url": reverse("blog:blogdetail", args=[b.slug]),
+        })
+    return JsonResponse({"results": results})
 
 
 def _blog_category_display(name):

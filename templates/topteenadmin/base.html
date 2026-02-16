@@ -997,13 +997,12 @@
 				{% endif %}
 			</script>
 			<script>
-			// Auto-scroll sidebar so the active menu item for the current page is in view
+			// Keep sidebar scrolled so the active menu item (current page) is in view; run after theme may have reset scroll
 			(function() {
-				function scrollSidebarToActive() {
+				function expandActiveGroup() {
 					var aside = document.getElementById('kt_aside');
-					if (!aside) return;
+					if (!aside) return null;
 					var activeLink = aside.querySelector('.menu-link.active');
-					// Collapse all accordions, then expand only the one containing the active link
 					var allAccordions = aside.querySelectorAll('.menu-item.menu-accordion');
 					allAccordions.forEach(function(acc) {
 						acc.classList.remove('show');
@@ -1020,24 +1019,42 @@
 							}
 						}
 					}
+					return activeLink;
+				}
+				function scrollSidebarToActiveLink() {
+					var aside = document.getElementById('kt_aside');
 					var wrapper = document.getElementById('kt_aside_menu_wrapper');
-					if (!wrapper || !activeLink) return;
-					function doScroll() {
+					if (!aside || !wrapper) return;
+					var activeLink = aside.querySelector('.menu-link.active');
+					if (!activeLink) return;
+					requestAnimationFrame(function() {
 						var linkRect = activeLink.getBoundingClientRect();
 						var wrapperRect = wrapper.getBoundingClientRect();
-						// Position of active link within the sidebar scroll content
 						var scrollTarget = wrapper.scrollTop + (linkRect.top - wrapperRect.top) - 80;
-						wrapper.scrollTop = Math.max(0, Math.min(scrollTarget, wrapper.scrollHeight - wrapper.clientHeight));
+						var maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
+						wrapper.scrollTop = Math.max(0, Math.min(scrollTarget, maxScroll));
+					});
+				}
+				function run() {
+					var activeLink = expandActiveGroup();
+					if (activeLink) {
+						scrollSidebarToActiveLink();
+						// Run again at intervals so we win over theme JS that may reset sidebar to top
+						setTimeout(scrollSidebarToActiveLink, 200);
+						setTimeout(scrollSidebarToActiveLink, 500);
+						setTimeout(scrollSidebarToActiveLink, 900);
+						setTimeout(scrollSidebarToActiveLink, 1500);
 					}
-					// Run after layout updates (accordion expand)
-					setTimeout(doScroll, 150);
-					setTimeout(doScroll, 400);
 				}
 				if (document.readyState === 'loading') {
-					document.addEventListener('DOMContentLoaded', scrollSidebarToActive);
+					document.addEventListener('DOMContentLoaded', run);
 				} else {
-					scrollSidebarToActive();
+					run();
 				}
+				window.addEventListener('load', function() {
+					setTimeout(scrollSidebarToActiveLink, 100);
+					setTimeout(scrollSidebarToActiveLink, 600);
+				});
 			})();
 			</script>
         {% block endscript %}

@@ -1,0 +1,684 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}Learning Style Discovery Test | Top Teen{% endblock %}
+{% block description_content %}A 60-question self-assessment to uncover whether you learn best by seeing, hearing, reading/writing, or doing.{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block additionalhead %}
+<style>
+  body { font-family: "Space Grotesk", system-ui, sans-serif; background: #f5f5ff; }
+  .lsd-assessment-section { min-height: 60vh; padding-top: 40px; padding-bottom: 40px; }
+  .lsd-back-btn { border: none; background: transparent; color: #4b5563; display: inline-flex; align-items: center; gap: 8px; font-weight: 500; margin-bottom: 16px; cursor: pointer; text-decoration: none; font-size: 15px; }
+  .lsd-back-btn:hover { color: #1f2937; }
+  .lsd-header-card { background: #ffffff; border-radius: 20px; padding: 20px 24px; box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08); margin-bottom: 24px; }
+  .lsd-title { font-size: 26px; font-weight: 700; margin-bottom: 4px; color: #1f2937; }
+  .lsd-subtitle { font-size: 15px; color: #6b7280; margin-bottom: 0; line-height: 1.5; }
+  .lsd-card { background: #ffffff; border-radius: 20px; padding: 20px 22px 22px; box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08); margin-bottom: 20px; }
+  .lsd-intro-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: rgba(79, 70, 229, 0.06); color: #4338ca; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .lsd-intro-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #111827; }
+  .lsd-intro-text { font-size: 14px; color: #4b5563; margin-bottom: 10px; line-height: 1.6; }
+  .lsd-intro-list { margin: 0 0 8px 0; padding-left: 20px; }
+  .lsd-intro-list li { font-size: 14px; color: #4b5563; margin-bottom: 6px; line-height: 1.5; }
+  .lsd-intro-note { font-size: 13px; color: #6b7280; margin-top: 4px; margin-bottom: 16px; }
+  .lsd-btn { border-radius: 999px; padding: 9px 18px; font-size: 14px; font-weight: 600; border: 1px solid transparent; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; }
+  .lsd-btn-primary { background: linear-gradient(135deg, #7755EE 0%, #3F37C9 100%); color: #ffffff; }
+  .lsd-btn-primary:hover { filter: brightness(1.05); color: #fff; }
+  .lsd-btn-outline { border-color: #d1d5db; background: #ffffff; color: #374151; }
+  .lsd-btn-outline:hover { border-color: #4b5563; background: #f9fafb; }
+  .lsd-btn-outline:disabled { opacity: 0.6; cursor: not-allowed; }
+  .lsd-wizard-card { background: #ffffff; border-radius: 20px; padding: 20px 20px 24px; box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08); margin-bottom: 20px; }
+  .lsd-progress-label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+  .progress.lsd-progress { height: 8px; border-radius: 999px; background: #e5e7eb; margin-bottom: 12px; overflow: hidden; }
+  .lsd-progress .progress-bar { background: linear-gradient(90deg, #4F46E5 0%, #38BDF8 100%); }
+  .lsd-question-nav { margin-bottom: 14px; overflow: hidden; }
+  .lsd-question-nav-label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+  .lsd-question-nav-buttons { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+  .lsd-question-nav-btn { width: 30px; height: 30px; border-radius: 999px; border: 1px solid #e5e7eb; background: #ffffff; font-size: 12px; color: #4b5563; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; flex: 0 0 auto; }
+  .lsd-question-nav-btn.lsd-current { border-color: #4F46E5; }
+  .lsd-question-nav-btn.lsd-answered { background: #4F46E5; color: #ffffff; border-color: #4F46E5; }
+  .lsd-question-title { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+  .lsd-question-text { font-size: 15px; color: #4b5563; margin-bottom: 16px; }
+  .lsd-options-list { list-style: none; padding: 0; margin: 0 0 12px 0; }
+  .lsd-option-btn { width: 100%; text-align: left; border-radius: 14px; border: 2px solid #e5e7eb; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; background: #ffffff; cursor: pointer; transition: all 0.25s ease; font-size: 15px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); }
+  .lsd-option-btn:hover { border-color: #a5b4fc; box-shadow: 0 4px 16px rgba(79, 70, 229, 0.15); background: #faf5ff; }
+  .lsd-option-btn.lsd-selected { border-color: #7755EE; background: linear-gradient(135deg, rgba(119, 85, 238, 0.12) 0%, rgba(63, 55, 201, 0.08) 100%); box-shadow: 0 4px 20px rgba(119, 85, 238, 0.2); border-width: 2px; }
+  .lsd-option-btn.lsd-selected::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #7755EE 0%, #3F37C9 100%); border-radius: 14px 0 0 14px; }
+  .lsd-option-letter { width: 32px; height: 32px; min-width: 32px; border-radius: 10px; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #6b7280; flex-shrink: 0; background: #f9fafb; transition: all 0.25s ease; }
+  .lsd-option-btn.lsd-selected .lsd-option-letter { background: linear-gradient(135deg, #7755EE 0%, #3F37C9 100%); border-color: #7755EE; color: #ffffff; box-shadow: 0 2px 8px rgba(119, 85, 238, 0.35); }
+  .lsd-option-text { color: #4b5563; font-size: 15px; line-height: 1.45; flex: 1; }
+  .lsd-option-btn.lsd-selected .lsd-option-text { color: #1f2937; font-weight: 500; }
+  .lsd-option-check { width: 22px; height: 22px; min-width: 22px; border-radius: 50%; background: #22c55e; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .lsd-option-btn:not(.lsd-selected) .lsd-option-check { display: none; }
+  .lsd-wizard-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .lsd-wizard-buttons { display: flex; gap: 8px; }
+  .lsd-complete-badge { font-size: 13px; color: #059669; font-weight: 600; display: none; align-items: center; gap: 6px; }
+  .lsd-complete-badge.lsd-visible { display: inline-flex; }
+  .lsd-results-section { margin-top: 4px; }
+  .lsd-results-card { background: #ffffff; border-radius: 20px; padding: 20px 20px 24px; box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08); margin-bottom: 20px; }
+  .lsd-results-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: rgba(79, 70, 229, 0.06); color: #4338ca; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .lsd-results-type { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: #111827; }
+  .lsd-results-summary { font-size: 14px; color: #4b5563; margin-bottom: 10px; }
+  .lsd-results-counts { font-size: 15px; color: #008269; background: #dcffdc; padding: 9px 19px; border-radius: 10px; margin-bottom: 16px; border: 1px solid #57ea6e; }
+  .lsd-guide-title { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #111827; display: flex; align-items: center; gap: 8px; }
+  .lsd-guide-title i { color: #7755EE; font-size: 20px; }
+  .lsd-guide-text { font-size: 14px; color: #4b5563; margin-bottom: 8px; line-height: 1.6; }
+  .lsd-style-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+  .lsd-style-card { border-radius: 16px; padding: 12px 12px 14px; background: #f9fafb; border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 4px; }
+  .lsd-style-card-icon { width: 34px; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; color: #ffffff; margin-bottom: 4px; font-size: 18px; }
+  .lsd-style-card.a .lsd-style-card-icon { background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%); }
+  .lsd-style-card.b .lsd-style-card-icon { background: linear-gradient(135deg, #0EA5E9 0%, #22C55E 100%); }
+  .lsd-style-card.c .lsd-style-card-icon { background: linear-gradient(135deg, #EC4899 0%, #F97316 100%); }
+  .lsd-style-card.d .lsd-style-card-icon { background: linear-gradient(135deg, #FACC15 0%, #FB923C 100%); }
+  .lsd-style-card-title { font-size: 13px; font-weight: 700; color: #111827; }
+  .lsd-style-card-tag { font-size: 12px; color: #6b7280; }
+  .lsd-download-card { background: #ffffff; border-radius: 20px; padding: 18px 20px 20px; box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08); }
+  .lsd-download-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .lsd-download-icon { width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%); color: #fff; font-size: 20px; }
+  .lsd-download-title { font-size: 17px; font-weight: 700; color: #111827; }
+  .lsd-download-text { font-size: 14px; color: #4b5563; margin-bottom: 10px; }
+  .lsd-download-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+  .lsd-download-btn { text-decoration: none; border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #d1d5db; color: #111827; background: #ffffff; transition: all 0.2s ease; }
+  .lsd-download-btn:hover { border-color: #16A34A; background: #ecfdf5; }
+  .lsd-download-btn.lsd-primary-download { border-color: #16A34A; background: #16A34A; color: #ffffff; }
+  .lsd-download-note { font-size: 12px; color: #6b7280; margin-top: 6px; }
+  .lsd-validation-message { display: none; margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: rgba(239, 68, 68, 0.1); color: #b91c1c; font-size: 14px; font-weight: 500; }
+  .lsd-validation-message.lsd-validation-visible { display: block; }
+  .lsd-question-wrapper { padding: 20px 22px 22px; border-radius: 20px; transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease; }
+  .lsd-question-wrapper.lsd-question-invalid { border: 2px solid #dc2626; background: rgba(239, 68, 68, 0.08); box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2); }
+  .lsd-options-list.lsd-options-invalid { outline: 2px solid #dc2626; outline-offset: 2px; border-radius: 12px; background: rgba(239, 68, 68, 0.04); }
+  @media (max-width: 767px) { .lsd-style-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="lsd-assessment-section">
+  <div class="container">
+    <a href="{{ url('core:multiple_intelligences') }}" class="lsd-back-btn">
+      <i class='bx bx-arrow-back'></i>
+      <span>Back</span>
+    </a>
+
+    <div class="lsd-header-card">
+      <h1 class="lsd-title">Learning Style Discovery Test</h1>
+      <p class="lsd-subtitle">A 60-question self-assessment to uncover whether you learn best by seeing, hearing, reading/writing, or doing.</p>
+    </div>
+
+    <div class="lsd-card" id="lsdIntroCard">
+      <div class="lsd-intro-badge">
+        <i class='bx bx-info-circle'></i>
+        <span>Test Instructions</span>
+      </div>
+      <div class="lsd-intro-title">Your Guide to Taking This Test</div>
+      <p class="lsd-intro-text">
+        We've designed this test to be simple, fun, and insightful. Follow these steps to get the most accurate results and enjoy the process.
+      </p>
+      <ul class="lsd-intro-list">
+        <li><strong>1. Read each question carefully:</strong> Think about what feels most natural to you in real life (school, home, hobbies).</li>
+        <li><strong>2. Choose one option per question:</strong> Select A, B, C, or D for every question. There are no right or wrong answers—honesty matters most.</li>
+        <li><strong>3. Let the system track your choices:</strong> The test will record your answers automatically and calculate how many times you chose A, B, C, and D.</li>
+        <li><strong>4. Take your time:</strong> There is no time limit. Answer calmly and thoughtfully.</li>
+        <li><strong>5. Stay relaxed and have fun:</strong> This is not an exam. It is a tool to help you understand how you learn best.</li>
+      </ul>
+      <p class="lsd-intro-text">
+        If you feel unsure about a question, go with your first instinct or what you do most often. At the end, your results will clearly show which learning style(s) fit you best.
+      </p>
+      <p class="lsd-intro-note">
+        When you're ready, click <strong>Start Test</strong> to move to the questions. You can move back and forth between questions at any time.
+      </p>
+      <button type="button" class="lsd-btn lsd-btn-primary" id="lsdStartBtn">
+        Start Test
+        <i class='bx bx-chevron-right'></i>
+      </button>
+    </div>
+
+    <!-- 60-question wizard -->
+    <div class="lsd-wizard-card" id="lsdWizardCard" style="display:none;">
+      <div class="lsd-progress-label">
+        <span id="lsdProgressLabel">Question 1 of 60</span>
+      </div>
+      <div class="progress lsd-progress">
+        <div class="progress-bar" id="lsdProgressBar" role="progressbar" style="width: 2%;" aria-valuenow="1" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+      <div class="lsd-question-nav">
+        <div class="lsd-question-nav-label">Quick question navigator</div>
+        <div class="lsd-question-nav-buttons" id="lsdQuestionNav"></div>
+      </div>
+      <div id="lsdQuestionContainer"></div>
+      <div id="lsdValidationMessage" class="lsd-validation-message" role="alert" aria-live="polite" hidden></div>
+      <div class="lsd-wizard-footer">
+        <div class="lsd-complete-badge" id="lsdCompleteBadge">
+          <i class='bx bx-check-circle'></i>
+          <span>All questions answered! You can submit your test.</span>
+        </div>
+        <div class="lsd-wizard-buttons">
+          <button type="button" class="lsd-btn lsd-btn-outline" id="lsdPrevBtn">
+            <i class='bx bx-chevron-left'></i>
+            Previous
+          </button>
+          <button type="button" class="lsd-btn lsd-btn-primary" id="lsdNextBtn">
+            Next
+            <i class='bx bx-chevron-right'></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results section -->
+    <div class="lsd-results-section" id="lsdResultsSection" style="display:none;">
+      <div class="lsd-results-card">
+        <div id="lsdResultSummary">
+          <p class="lsd-results-summary mb-1">
+            Complete all 60 questions and submit your test to see your personalised learning style summary here.
+          </p>
+        </div>
+      </div>
+      <div class="lsd-results-card">
+        <div class="lsd-guide-title">
+          <i class='bx bx-bar-chart-alt-2'></i>
+          <span>How to Read Your Results</span>
+        </div>
+        <p class="lsd-guide-text">
+          This test is based on four classic learning preferences. Your result depends on which option letter (A, B, C, or D) you chose most often across the 60 questions.
+        </p>
+        <p class="lsd-guide-text">
+          After you finish, the test will count your answers for each letter and highlight your strongest learning style. You can also look at your second-highest letter to understand your secondary style.
+        </p>
+        <div class="lsd-style-grid">
+          <div class="lsd-style-card a">
+            <div class="lsd-style-card-icon"><i class='bx bx-image'></i></div>
+            <div class="lsd-style-card-title">Mostly A's: Visual Learner</div>
+            <div class="lsd-style-card-tag">You learn best with pictures, diagrams, charts, and videos.</div>
+          </div>
+          <div class="lsd-style-card b">
+            <div class="lsd-style-card-icon"><i class='bx bx-microphone'></i></div>
+            <div class="lsd-style-card-title">Mostly B's: Auditory / Social Learner</div>
+            <div class="lsd-style-card-tag">You learn best by listening, discussing, and talking things through.</div>
+          </div>
+          <div class="lsd-style-card c">
+            <div class="lsd-style-card-icon"><i class='bx bx-book-open'></i></div>
+            <div class="lsd-style-card-title">Mostly C's: Reading / Writing Learner</div>
+            <div class="lsd-style-card-tag">You learn best with written words—reading, note-taking, and lists.</div>
+          </div>
+          <div class="lsd-style-card d">
+            <div class="lsd-style-card-icon"><i class='bx bx-run'></i></div>
+            <div class="lsd-style-card-title">Mostly D's: Kinesthetic Learner</div>
+            <div class="lsd-style-card-tag">You learn best by doing, moving, building, and hands-on practice.</div>
+          </div>
+        </div>
+        <p class="lsd-guide-text" style="margin-top: 12px;">
+          Many students are a <strong>mix of two or more styles</strong>. Use your top one or two styles as a guide to choose study methods, classroom strategies, and activities that match how you naturally learn.
+        </p>
+      </div>
+      <div class="lsd-download-card">
+        <div class="lsd-download-header">
+          <div class="lsd-download-icon"><i class='bx bx-download'></i></div>
+          <div>
+            <div class="lsd-download-title">Download Your Self-Assessment Guides</div>
+            <div class="lsd-download-text">
+              Use these printable guides to review your results, reflect on your strengths, and plan next steps with a teacher, mentor, or parent.
+            </div>
+          </div>
+        </div>
+        <div class="lsd-download-buttons">
+          <a href="#" class="lsd-download-btn lsd-primary-download" id="lsdReportDownload"> <i class='bx bx-file-blank'></i> <span>Download Student Report (PDF)</span> </a>
+          <a href="#" class="lsd-download-btn" id="lsdScoringDownload"> <i class='bx bx-list-check'></i> <span>Download Scoring Method (PDF)</span> </a>
+        </div>
+        <div class="lsd-download-note">Note: Downloads are enabled after you complete and submit all 60 questions.</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="application/json" id="saved-mi-answers">{{ saved_mi_answers|safe }}</script>
+<script type="application/json" id="saved-mi-result">{{ saved_mi_result|safe }}</script>
+<span id="mi-config" data-save-url="{{ save_mi_url }}" data-report-pdf-url="{{ mi_report_pdf_url }}" style="display:none;"></span>
+<script>
+(function() {
+  var savedEl = document.getElementById("saved-mi-answers");
+  var configEl = document.getElementById("mi-config");
+  var savedAnswers = {};
+  try {
+    if (savedEl && savedEl.textContent && savedEl.textContent !== "null") {
+      var s = JSON.parse(savedEl.textContent);
+      if (s && typeof s === "object") {
+        for (var k in s) {
+          var i = parseInt(k, 10);
+          if (i >= 0 && i < 60 && ["A","B","C","D"].indexOf(s[k]) !== -1) savedAnswers[i] = s[k];
+        }
+      }
+    }
+  } catch (e) {}
+  var getCookie = function(name) {
+    var v = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([.*+?^${}()|[\]\\])/g, "\\$1") + "=([^;]*)"));
+    return v ? v[1] : null;
+  };
+  var miConfig = {
+    saveUrl: configEl ? configEl.getAttribute("data-save-url") || "" : "",
+    reportPdfUrl: configEl ? configEl.getAttribute("data-report-pdf-url") || "" : "",
+    csrfToken: getCookie("csrftoken") || ""
+  };
+
+  const questions = [
+    { text: "When I'm learning a new topic in class, I prefer to:", options: { A: "Look at diagrams, videos, or images to grasp the concept.", B: "Listen to the teacher's explanation or discuss it with peers.", C: "Read the textbook or take detailed notes to understand.", D: "Try hands-on activities or experiments to learn by doing." }},
+    { text: "To remember important information for an exam, I usually:", options: { A: "Visualize it in my mind or sketch it out.", B: "Repeat it out loud or explain it to someone.", C: "Write it down multiple times or review written notes.", D: "Act it out or use physical objects to reinforce it." }},
+    { text: "During a science class, I'm most engaged when:", options: { A: "There are charts, models, or videos to illustrate concepts.", B: "The teacher explains theories or we have discussions.", C: "I read about the topic in a book or worksheet.", D: "We conduct experiments or practical activities in the lab." }},
+    { text: "When I receive instructions for a project or assignment, I like:", options: { A: "Seeing a visual example or diagram of what's expected.", B: "Hearing a clear verbal explanation of the steps.", C: "Reading written guidelines or instructions.", D: "Starting the task and figuring it out through trial and error." }},
+    { text: "While studying history, I find it easiest to learn by:", options: { A: "Looking at timelines, maps, or historical images.", B: "Listening to stories, podcasts, or lectures about events.", C: "Reading chapters and jotting down key facts.", D: "Re-enacting events or creating physical models." }},
+    { text: "When tackling a new math concept, I understand it best by:", options: { A: "Seeing graphs, shapes, or visual representations.", B: "Hearing someone explain the steps or logic behind it.", C: "Reading the formula and examples in a textbook.", D: "Practicing with real objects or solving problems hands-on." }},
+    { text: "When I'm distracted or bored in class, I tend to:", options: { A: "Doodle, sketch, or observe my surroundings.", B: "Talk to someone or hum a tune to myself.", C: "Write random thoughts or make lists.", D: "Fidget with objects or shift in my seat." }},
+    { text: "If I need to give directions to someone, I usually:", options: { A: "Draw a map or describe visual landmarks.", B: "Explain the route step-by-step verbally.", C: "Write down the directions for them to read.", D: "Show the way with gestures or walk them through it." }},
+    { text: "I retain information best when I:", options: { A: "See it in a picture, chart, or video.", B: "Hear it explained or discussed.", C: "Read it in a book or write it myself.", D: "Engage in a related hands-on activity." }},
+    { text: "When working on a school project, I'd prefer to:", options: { A: "Create a poster, video, or visual presentation.", B: "Deliver a speech or record a podcast.", C: "Write a detailed report or essay.", D: "Build a model or demonstrate something physically." }},
+    { text: "While learning a new language, I find it most helpful to:", options: { A: "Use flashcards with pictures or visual cues.", B: "Listen to native speakers or songs in that language.", C: "Read texts or write sentences to practice.", D: "Role-play conversations or use gestures to learn." }},
+    { text: "In a group study session, I contribute by:", options: { A: "Drawing diagrams or using visuals to explain ideas.", B: "Talking through concepts and brainstorming aloud.", C: "Writing summaries or sharing detailed notes.", D: "Organizing activities or games to review material." }},
+    { text: "When reading a novel or story, I enjoy it most if:", options: { A: "There are illustrations or I can visualize the scenes.", B: "I listen to an audiobook or someone reading aloud.", C: "I read it myself and note down favorite parts.", D: "I act out scenes or move while imagining the story." }},
+    { text: "If I'm learning a new sport, I learn best by:", options: { A: "Watching videos or observing others play.", B: "Listening to a coach explain rules and techniques.", C: "Reading about strategies or rules in a guide.", D: "Practicing the moves myself on the field." }},
+    { text: "When solving a puzzle or problem, I usually:", options: { A: "Visualize the pattern or draw it out.", B: "Discuss possible solutions with someone.", C: "Read hints or write down my thought process.", D: "Test different approaches by manipulating pieces." }},
+    { text: "When learning to use a new app or software, I prefer:", options: { A: "Watching tutorial videos or looking at screenshots.", B: "Listening to a friend or guide explain the features.", C: "Reading the help section or user manual.", D: "Experimenting with it myself by clicking around." }},
+    { text: "While studying geography, I like to:", options: { A: "Examine maps, images, or virtual tours of places.", B: "Hear stories or discussions about different regions.", C: "Read about locations and write down key details.", D: "Create models of landscapes or trace maps physically." }},
+    { text: "If I'm memorizing a poem or speech, I remember it by:", options: { A: "Imagining the story or drawing related images.", B: "Reciting it aloud or listening to a recording.", C: "Writing it down or reading it repeatedly.", D: "Acting it out with expressions or movements." }},
+    { text: "In an art or design class, I enjoy:", options: { A: "Looking at examples of artwork or visual inspiration.", B: "Listening to the teacher describe techniques or ideas.", C: "Reading about art history or writing about concepts.", D: "Creating art myself and experimenting with materials." }},
+    { text: "When preparing for a debate or presentation, I prefer to:", options: { A: "Use charts, slides, or visuals to support my points.", B: "Practice speaking my arguments out loud.", C: "Write a detailed script or notes for my speech.", D: "Rehearse with gestures or physical props." }},
+    { text: "When learning about biology or plants, I understand best by:", options: { A: "Seeing diagrams or photos of organisms.", B: "Listening to explanations about life processes.", C: "Reading textbooks or taking notes on details.", D: "Observing real plants or conducting experiments." }},
+    { text: "If I'm stuck on a challenging problem, I usually:", options: { A: "Draw it out to visualize the issue.", B: "Talk it over with someone for new perspectives.", C: "Read related material or write out my thoughts.", D: "Try different solutions by testing them physically." }},
+    { text: "During a school play or drama activity, I'd rather:", options: { A: "Design sets or costumes with a visual focus.", B: "Practice lines by speaking them with others.", C: "Read the script and write character analyses.", D: "Act out scenes and move around on stage." }},
+    { text: "When learning to cook or bake, I prefer:", options: { A: "Watching videos or looking at recipe photos.", B: "Listening to someone explain the process.", C: "Reading the recipe from a book or website.", D: "Trying it out by handling ingredients myself." }},
+    { text: "If I'm studying for a spelling or vocabulary test, I like to:", options: { A: "Visualize words or draw them creatively.", B: "Say the words out loud or spell them to someone.", C: "Write the words repeatedly to memorize them.", D: "Use letter tiles or objects to form the words." }},
+    { text: "When planning a school event or activity, I prefer to:", options: { A: "Create posters or visual layouts for the event.", B: "Discuss ideas with the team and brainstorm aloud.", C: "Write a detailed plan or checklist.", D: "Organize hands-on tasks like setting up decorations." }},
+    { text: "If I'm learning about space or astronomy, I understand best by:", options: { A: "Looking at images or models of planets and stars.", B: "Listening to lectures or videos about the universe.", C: "Reading books or articles on space science.", D: "Building a model of the solar system or stargazing." }},
+    { text: "When doing a group presentation, I like to:", options: { A: "Design slides with graphics and images.", B: "Speak my part and explain ideas verbally.", C: "Write the content and prepare handouts.", D: "Use props or demonstrate concepts live." }},
+    { text: "If I'm learning a dance or choreography, I learn best by:", options: { A: "Watching someone perform the steps or videos.", B: "Listening to the rhythm and verbal instructions.", C: "Reading about the moves or noting them down.", D: "Practicing the steps myself repeatedly." }},
+    { text: "When I'm trying to focus during study sessions, I find it helpful to:", options: { A: "Use visual aids like colourful notes or charts.", B: "Listen to background music or recordings.", C: "Take written notes or read along with material.", D: "Hold objects like a stress ball or move slightly." }},
+    { text: "If I'm learning about animals or wildlife, I prefer:", options: { A: "Seeing pictures, videos, or exhibits of them.", B: "Hearing their sounds or stories about them.", C: "Reading facts in books or writing reports.", D: "Visiting a zoo or interacting with models." }},
+    { text: "When revising for exams, I like to:", options: { A: "Use mind maps, diagrams, or highlighted notes.", B: "Record myself reading notes and listen back.", C: "Rewrite key points or read summaries.", D: "Walk around while studying or use active methods." }},
+    { text: "If I'm learning to play a musical instrument, I prefer:", options: { A: "Watching tutorials or visual sheet music.", B: "Listening to the tune and verbal guidance.", C: "Reading music notes or writing practice tips.", D: "Practicing by playing the instrument myself." }},
+    { text: "When working on a craft or DIY project, I like to:", options: { A: "Look at examples or designs for inspiration.", B: "Listen to advice on how to create it.", C: "Read step-by-step guides or plan in writing.", D: "Start making it and learn by doing." }},
+    { text: "If I'm learning about weather or climate, I understand best by:", options: { A: "Seeing charts or videos of weather patterns.", B: "Listening to discussions about climate issues.", C: "Reading articles or writing about weather facts.", D: "Doing experiments like making a rain gauge." }},
+    { text: "When memorizing formulas or equations, I prefer to:", options: { A: "Draw them out or visualize their application.", B: "Say them aloud or create a chant.", C: "Write them down multiple times to remember.", D: "Use objects or fingers to represent them." }},
+    { text: "If I'm in a library or resource centre, I'm most likely to:", options: { A: "Explore picture books or graphic novels.", B: "Listen to audiobooks or storytelling sessions.", C: "Read novels or write in a journal.", D: "Check out interactive displays or move around." }},
+    { text: "When learning about technology or gadgets, I prefer:", options: { A: "Watching videos or diagrams of how they work.", B: "Listening to podcasts or verbal explanations.", C: "Reading manuals or online tutorials.", D: "Trying out the device myself to learn." }},
+    { text: "If I'm preparing for a quiz or competition, I like to:", options: { A: "Use visual aids like charts or flashcards.", B: "Discuss questions with friends or teachers.", C: "Read over notes or write practice answers.", D: "Play quiz games or act out scenarios." }},
+    { text: "When learning about different cultures, I enjoy:", options: { A: "Seeing images of traditions or costumes.", B: "Hearing stories or music from that culture.", C: "Reading about their history or writing essays.", D: "Trying their food, crafts, or activities." }},
+    { text: "If I'm solving a mystery or riddle, I prefer to:", options: { A: "Draw clues or visualize the scenario.", B: "Talk through possibilities with others.", C: "Write down clues or read related content.", D: "Act out the situation to think it through." }},
+    { text: "When visiting a museum, I'm drawn to:", options: { A: "Visual exhibits like paintings or sculptures.", B: "Audio guides or storytelling tours.", C: "Reading information boards or plaques.", D: "Interactive displays I can touch or try." }},
+    { text: "If I'm learning to draw or sketch, I learn best by:", options: { A: "Observing examples or video tutorials.", B: "Listening to tips from an artist or teacher.", C: "Reading about techniques in books or online.", D: "Practicing sketching repeatedly myself." }},
+    { text: "When studying literature or poetry, I like to:", options: { A: "Watch adaptations or visualize scenes.", B: "Listen to readings or discuss interpretations.", C: "Read the text and write detailed analyses.", D: "Act out parts or create props for the story." }},
+    { text: "If I'm learning about electricity or physics, I prefer:", options: { A: "Seeing diagrams of circuits or experiments.", B: "Hearing explanations of scientific principles.", C: "Reading textbooks or writing notes on concepts.", D: "Building circuits or conducting experiments." }},
+    { text: "When organizing my study space or schedule, I like to:", options: { A: "Arrange things with colors or visual patterns.", B: "Talk to myself about priorities or plans.", C: "Label items or write detailed to-do lists.", D: "Move things around until it feels right." }},
+    { text: "If I'm learning a board game or strategy game, I prefer:", options: { A: "Looking at the board setup or rule visuals.", B: "Listening to someone explain how to play.", C: "Reading the rulebook or instructions.", D: "Playing a practice round to learn." }},
+    { text: "When studying for a language exam, I like to:", options: { A: "Use visual aids like labelled images.", B: "Listen to conversations or audio clips.", C: "Read vocabulary lists or write sentences.", D: "Practice speaking or use physical gestures." }},
+    { text: "If I'm learning about environmental issues, I prefer:", options: { A: "Watching documentaries or seeing data charts.", B: "Listening to talks on sustainability.", C: "Reading articles or writing about solutions.", D: "Participating in clean-ups or planting activities." }},
+    { text: "When brainstorming ideas for a project, I like to:", options: { A: "Draw mind maps or sketch concepts.", B: "Talk about ideas with friends or peers.", C: "Write lists or outlines of thoughts.", D: "Move around or use objects for inspiration." }},
+    { text: "If I'm learning to code or program, I prefer:", options: { A: "Seeing flowcharts or visual coding tools.", B: "Listening to tutorials or explanations.", C: "Reading documentation or coding guides.", D: "Writing and testing code myself." }},
+    { text: "When in a physical education or sports class, I enjoy:", options: { A: "Watching demonstrations of techniques.", B: "Listening to the coach's instructions.", C: "Reading about strategies or rules.", D: "Practicing the sport or activity hands-on." }},
+    { text: "If I'm learning about money management, I prefer:", options: { A: "Seeing charts or apps for tracking finances.", B: "Hearing advice or discussions on budgeting.", C: "Reading tips or writing a budget plan.", D: "Using fake money or props to practice." }},
+    { text: "When studying for a civics or government test, I like to:", options: { A: "Look at diagrams of political structures.", B: "Listen to debates or explanations of systems.", C: "Read textbooks or write key summaries.", D: "Role-play scenarios like elections or debates." }},
+    { text: "If I'm learning to fix or repair something, I prefer:", options: { A: "Watching a video or diagram of the process.", B: "Listening to step-by-step verbal guidance.", C: "Reading a manual or set of instructions.", D: "Trying to fix it by using the tools myself." }},
+    { text: "When participating in a drama or theatre class, I like to:", options: { A: "Visualize scenes or design stage elements.", B: "Practice lines by speaking them aloud.", C: "Read the play or write about characters.", D: "Act out the story with physical movements." }},
+    { text: "If I'm learning about health or nutrition, I prefer:", options: { A: "Seeing posters or videos about the body.", B: "Listening to talks on healthy habits.", C: "Reading about diets or writing health tips.", D: "Doing exercises or cooking healthy meals." }},
+    { text: "When preparing a speech or oral presentation, I like to:", options: { A: "Use visual aids like slides or posters.", B: "Practice saying it out loud repeatedly.", C: "Write it down and review the script.", D: "Rehearse with gestures or physical pacing." }},
+    { text: "If I'm learning about inventions or innovations, I prefer:", options: { A: "Seeing pictures or models of inventions.", B: "Hearing stories of how they were created.", C: "Reading about inventors or writing reports.", D: "Trying to build or recreate something similar." }},
+    { text: "When relaxing after a study session, I enjoy:", options: { A: "Watching videos, movies, or drawing.", B: "Listening to music or podcasts.", C: "Reading books or writing in a journal.", D: "Playing active games or doing crafts." }}
+  ];
+
+  const introCard = document.getElementById("lsdIntroCard");
+  const startBtn = document.getElementById("lsdStartBtn");
+  const wizardCard = document.getElementById("lsdWizardCard");
+  const progressLabel = document.getElementById("lsdProgressLabel");
+  const progressBar = document.getElementById("lsdProgressBar");
+  const questionContainer = document.getElementById("lsdQuestionContainer");
+  const questionNav = document.getElementById("lsdQuestionNav");
+  const prevBtn = document.getElementById("lsdPrevBtn");
+  const nextBtn = document.getElementById("lsdNextBtn");
+  const completeBadge = document.getElementById("lsdCompleteBadge");
+  const resultsSection = document.getElementById("lsdResultsSection");
+  const resultSummary = document.getElementById("lsdResultSummary");
+  const reportDownload = document.getElementById("lsdReportDownload");
+  const scoringDownload = document.getElementById("lsdScoringDownload");
+  const validationEl = document.getElementById("lsdValidationMessage");
+
+  function showValidation(message) {
+    if (!validationEl) return;
+    validationEl.textContent = message;
+    validationEl.removeAttribute("hidden");
+    validationEl.classList.add("lsd-validation-visible");
+    validationEl.setAttribute("tabindex", "-1");
+    validationEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    var questionTitle = questionContainer && questionContainer.querySelector(".lsd-question-title");
+    if (questionTitle) {
+      questionTitle.setAttribute("tabindex", "-1");
+      questionTitle.focus();
+    } else {
+      validationEl.focus();
+    }
+  }
+  function clearValidation() {
+    if (!validationEl) return;
+    validationEl.textContent = "";
+    validationEl.setAttribute("hidden", "");
+    validationEl.classList.remove("lsd-validation-visible");
+    var list = questionContainer && questionContainer.querySelector(".lsd-options-list");
+    if (list) {
+      list.classList.remove("lsd-options-invalid");
+      if (list.parentElement) list.parentElement.classList.remove("lsd-question-invalid");
+    }
+  }
+
+  function highlightMissingAnswer() {
+    var list = questionContainer && questionContainer.querySelector(".lsd-options-list");
+    if (list) {
+      list.classList.add("lsd-options-invalid");
+      if (list.parentElement) list.parentElement.classList.add("lsd-question-invalid");
+    }
+  }
+
+  let currentIndex = 0;
+  const answers = {};
+  for (var _k in savedAnswers) answers[_k] = savedAnswers[_k];
+  let testCompleted = false;
+  let lastResultData = null;
+
+  function updateProgress() {
+    const total = questions.length;
+    const answeredCount = Object.keys(answers).length;
+    const percent = Math.round((answeredCount / total) * 100);
+    progressLabel.textContent = "Question " + (currentIndex + 1) + " of " + total;
+    progressBar.style.width = Math.max(percent, 2) + "%";
+    progressBar.setAttribute("aria-valuenow", String(percent));
+    if (answeredCount === total) {
+      completeBadge.classList.add("lsd-visible");
+    } else {
+      completeBadge.classList.remove("lsd-visible");
+    }
+  }
+
+  function renderQuestionNav() {
+    questionNav.innerHTML = "";
+    questions.forEach(function(_, idx) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "lsd-question-nav-btn";
+      btn.textContent = String(idx + 1);
+      if (answers[idx] != null) btn.classList.add("lsd-answered");
+      if (idx === currentIndex) btn.classList.add("lsd-current");
+      btn.addEventListener("click", function() {
+        currentIndex = idx;
+        clearValidation();
+        renderQuestion();
+        renderQuestionNav();
+        updateProgress();
+      });
+      questionNav.appendChild(btn);
+    });
+    var currentBtn = questionNav.querySelector(".lsd-question-nav-btn.lsd-current");
+    if (currentBtn) currentBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }
+
+  function renderQuestion() {
+    const q = questions[currentIndex];
+    const selected = answers[currentIndex] || null;
+    const wrapper = document.createElement("div");
+    wrapper.className = "lsd-question-wrapper";
+    const titleEl = document.createElement("h2");
+    titleEl.className = "lsd-question-title";
+    titleEl.textContent = "Question " + (currentIndex + 1);
+    wrapper.appendChild(titleEl);
+    const textEl = document.createElement("p");
+    textEl.className = "lsd-question-text";
+    textEl.textContent = q.text;
+    wrapper.appendChild(textEl);
+    const listEl = document.createElement("ul");
+    listEl.className = "lsd-options-list";
+    ["A", "B", "C", "D"].forEach(function(letter) {
+      const li = document.createElement("li");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "lsd-option-btn";
+      if (selected === letter) btn.classList.add("lsd-selected");
+      btn.dataset.option = letter;
+      const badge = document.createElement("span");
+      badge.className = "lsd-option-letter";
+      badge.textContent = letter;
+      const textSpan = document.createElement("span");
+      textSpan.className = "lsd-option-text";
+      textSpan.textContent = q.options[letter];
+      const checkIcon = document.createElement("span");
+      checkIcon.className = "lsd-option-check";
+      checkIcon.innerHTML = "<i class='bx bx-check'></i>";
+      btn.appendChild(badge);
+      btn.appendChild(textSpan);
+      btn.appendChild(checkIcon);
+      btn.addEventListener("click", function() {
+        answers[currentIndex] = letter;
+        clearValidation();
+        renderQuestion();
+        renderQuestionNav();
+        updateProgress();
+      });
+      li.appendChild(btn);
+      listEl.appendChild(li);
+    });
+    wrapper.appendChild(listEl);
+    titleEl.setAttribute("tabindex", "-1");
+    questionContainer.innerHTML = "";
+    questionContainer.appendChild(wrapper);
+    if (validationEl) questionContainer.appendChild(validationEl);
+
+    prevBtn.disabled = currentIndex === 0;
+    if (currentIndex === questions.length - 1) {
+      nextBtn.innerHTML = "Submit";
+    } else {
+      nextBtn.innerHTML = "Next <i class='bx bx-chevron-right'></i>";
+    }
+  }
+
+  function buildResults() {
+    if (testCompleted) return;
+    const counts = { A: 0, B: 0, C: 0, D: 0 };
+    Object.values(answers).forEach(function(letter) {
+      if (counts[letter] != null) counts[letter]++;
+    });
+    let top = "A";
+    ["B", "C", "D"].forEach(function(letter) {
+      if (counts[letter] > counts[top]) top = letter;
+    });
+    let styleName = "", styleSummary = "";
+    if (top === "A") {
+      styleName = "Visual Learner (Seeing & Imagining)";
+      styleSummary = "You understand ideas fastest when you can see them. Diagrams, colours, charts, images, and videos make information clear and memorable for you.";
+    } else if (top === "B") {
+      styleName = "Auditory / Social Learner (Listening & Talking)";
+      styleSummary = "You learn best through sound and conversation. Explanations, discussions, debates, and reading aloud help you to remember and process information.";
+    } else if (top === "C") {
+      styleName = "Reading / Writing Learner (Words & Notes)";
+      styleSummary = "You prefer information in written form. Reading, note-taking, lists, and writing summaries are your strongest tools for understanding and revision.";
+    } else {
+      styleName = "Kinesthetic Learner (Hands-on & Movement)";
+      styleSummary = "You learn best by doing. Movement, experiments, models, and real-life activities help you connect with what you are learning.";
+    }
+    resultSummary.innerHTML = "";
+    const badge = document.createElement("div");
+    badge.className = "lsd-results-badge";
+    badge.innerHTML = "<i class='bx bx-star'></i><span>Your primary learning style</span>";
+    const typeEl = document.createElement("div");
+    typeEl.className = "lsd-results-type";
+    typeEl.textContent = styleName;
+    const summaryEl = document.createElement("p");
+    summaryEl.className = "lsd-results-summary";
+    summaryEl.textContent = styleSummary;
+    const countsEl = document.createElement("p");
+    countsEl.className = "lsd-results-counts";
+    countsEl.textContent = "Your answers: A = " + counts.A + ", B = " + counts.B + ", C = " + counts.C + ", D = " + counts.D + ". Use your highest and second-highest letters to understand your main and backup learning styles.";
+    resultSummary.appendChild(badge);
+    resultSummary.appendChild(typeEl);
+    resultSummary.appendChild(summaryEl);
+    resultSummary.appendChild(countsEl);
+    resultsSection.style.display = "block";
+    testCompleted = true;
+    lastResultData = { styleName: styleName, styleSummary: styleSummary, counts: counts };
+    reportDownload.classList.add("lsd-primary-download");
+    reportDownload.removeAttribute("aria-disabled");
+    scoringDownload.removeAttribute("aria-disabled");
+    resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (miConfig.saveUrl && miConfig.csrfToken) {
+      fetch(miConfig.saveUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": miConfig.csrfToken },
+        body: JSON.stringify({
+          answers: answers,
+          counts: counts,
+          primary_style: top,
+          style_name: styleName,
+          style_summary: styleSummary
+        }),
+        credentials: "same-origin"
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data && data.ok) { /* saved */ }
+      }).catch(function() {});
+    }
+  }
+
+  function downloadResultPdf() {
+    if (!lastResultData) return;
+    if (miConfig.reportPdfUrl) {
+      window.location.href = miConfig.reportPdfUrl;
+      return;
+    }
+    if (!window.jspdf) return;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const margin = 20;
+    let y = 20;
+    doc.setFontSize(18);
+    doc.text("Learning Style Discovery Test", margin, y);
+    y += 12;
+    doc.setFontSize(11);
+    doc.text("Your primary learning style", margin, y);
+    y += 10;
+    doc.setFontSize(14);
+    const styleLines = doc.splitTextToSize(lastResultData.styleName, 170);
+    doc.text(styleLines, margin, y);
+    y += styleLines.length * 7 + 6;
+    doc.setFontSize(11);
+    const summaryLines = doc.splitTextToSize(lastResultData.styleSummary, 170);
+    doc.text(summaryLines, margin, y);
+    y += summaryLines.length * 6 + 10;
+    doc.setFontSize(10);
+    const counts = lastResultData.counts;
+    doc.text("Your answers: A = " + counts.A + ", B = " + counts.B + ", C = " + counts.C + ", D = " + counts.D + ".", margin, y);
+    y += 8;
+    doc.text("Use your highest and second-highest letters to understand your main and backup learning styles.", margin, y, { maxWidth: 170 });
+    doc.save("Learning-Style-Report.pdf");
+  }
+
+  prevBtn.addEventListener("click", function() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      clearValidation();
+      renderQuestion();
+      renderQuestionNav();
+      updateProgress();
+    }
+  });
+
+  nextBtn.addEventListener("click", function() {
+    if (answers[currentIndex] == null) {
+      showValidation("Please select an answer before continuing.");
+      highlightMissingAnswer();
+      return;
+    }
+    clearValidation();
+    if (currentIndex < questions.length - 1) {
+      currentIndex++;
+      renderQuestion();
+      renderQuestionNav();
+      updateProgress();
+    } else {
+      if (Object.keys(answers).length === questions.length) {
+        buildResults();
+      } else {
+        showValidation("Please answer all 60 questions to see your results. Use the question navigator above to find any missing answers.");
+        var firstUnanswered = -1;
+        for (var i = 0; i < questions.length; i++) { if (answers[i] == null) { firstUnanswered = i; break; } }
+        if (firstUnanswered >= 0) {
+          currentIndex = firstUnanswered;
+          renderQuestion();
+          renderQuestionNav();
+          updateProgress();
+          highlightMissingAnswer();
+        }
+      }
+    }
+  });
+
+  if (reportDownload) {
+    reportDownload.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (lastResultData) downloadResultPdf();
+    });
+  }
+  if (scoringDownload) {
+    scoringDownload.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (miConfig.reportPdfUrl) window.location.href = miConfig.reportPdfUrl;
+      else if (lastResultData) downloadResultPdf();
+    });
+  }
+
+  function showSavedResult(saved) {
+    if (!saved || !saved.style_name || !saved.counts) return;
+    var counts = saved.counts;
+    resultSummary.innerHTML = "";
+    var badge = document.createElement("div");
+    badge.className = "lsd-results-badge";
+    badge.innerHTML = "<i class='bx bx-star'></i><span>Your primary learning style</span>";
+    var typeEl = document.createElement("div");
+    typeEl.className = "lsd-results-type";
+    typeEl.textContent = saved.style_name;
+    var summaryEl = document.createElement("p");
+    summaryEl.className = "lsd-results-summary";
+    summaryEl.textContent = saved.style_summary || "";
+    var countsEl = document.createElement("p");
+    countsEl.className = "lsd-results-counts";
+    countsEl.textContent = "Your answers: A = " + (counts.A || 0) + ", B = " + (counts.B || 0) + ", C = " + (counts.C || 0) + ", D = " + (counts.D || 0) + ". Use your highest and second-highest letters to understand your main and backup learning styles.";
+    resultSummary.appendChild(badge);
+    resultSummary.appendChild(typeEl);
+    resultSummary.appendChild(summaryEl);
+    resultSummary.appendChild(countsEl);
+    resultsSection.style.display = "block";
+    testCompleted = true;
+    lastResultData = { styleName: saved.style_name, styleSummary: saved.style_summary || "", counts: counts };
+    reportDownload.classList.add("lsd-primary-download");
+    reportDownload.removeAttribute("aria-disabled");
+    scoringDownload.removeAttribute("aria-disabled");
+  }
+
+  var savedResultEl = document.getElementById("saved-mi-result");
+  if (savedResultEl && savedResultEl.textContent && savedResultEl.textContent !== "null") {
+    try {
+      var savedResult = JSON.parse(savedResultEl.textContent);
+      if (savedResult && savedResult.style_name && savedResult.counts && Object.keys(answers).length === 60) {
+        introCard.style.display = "none";
+        wizardCard.style.display = "block";
+        renderQuestionNav();
+        renderQuestion();
+        updateProgress();
+        showSavedResult(savedResult);
+      }
+    } catch (e) {}
+  }
+
+  if (startBtn) {
+    startBtn.addEventListener("click", function() {
+      introCard.style.display = "none";
+      wizardCard.style.display = "block";
+      renderQuestionNav();
+      renderQuestion();
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+})();
+</script>
+{% endblock %}

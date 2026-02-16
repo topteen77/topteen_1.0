@@ -1,0 +1,264 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}Emotional Intelligences | Top Teen{% endblock %}
+{% block description_content %}Discover your Emotional Intelligences. EQ shapes relationships, choices, and real-life success—often more than IQ.{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block additionalhead %}
+<style>
+  .four-pillars-hero-section { background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%); }
+  .mi-framework-section { background-color: #ffffff; padding: 80px 0; }
+  .mi-framework-section ul li i { font-size: 8px; color: #6548eb; }
+  .mi-unique-section-content { padding: 72px; color: white; background: rgba(63, 55, 201, 1); border-radius: 20px; }
+  .eq-unique-section-content { padding: 36px; }
+  .mi-unique-section .card { background: rgba(233, 237, 255, 1); border-radius: 15px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); height: 100%; transition: all 0.3s ease; }
+  .mi-unique-section .card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); }
+  .mi-unique-section .learner-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; background: rgba(205, 202, 255, 1); }
+  .mi-unique-section .learner-icon img { width: 30px; height: 30px; }
+  .mi-matters-section { padding: 80px 0; }
+  .mi-matters-section .card { border-radius: 15px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); height: 100%; transition: all 0.3s ease; }
+  .in-card-one { background: linear-gradient(180deg, #FFFDF6 0%, #FFFAE8 100%); border: 1px solid rgba(244, 207, 20, 1); }
+  .in-card-two { background: linear-gradient(180deg, #FFF6F6 0%, #FFE8E8 100%); border: 1px solid rgba(255, 166, 166, 1); }
+  .in-card-three { background: linear-gradient(180deg, #F6F6FF 0%, #E9E8FF 100%); border: 1px solid rgba(170, 166, 255, 1); }
+  .in-card-four { background: linear-gradient(180deg, #F5F9FF 0%, #E1EEFF 100%); border: 0.8px solid rgba(166, 204, 255, 1); }
+  .in-card-five { background: linear-gradient(180deg, #FFF8FD 0%, #FFE5FA 100%); border: 0.8px solid rgba(235, 178, 223, 1); }
+  .mi-matters-section .card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); }
+  .mi-matters-section .icon-circle { min-width: 60px; min-height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .mi-matters-section .school-icon { background: rgba(244, 207, 20, 1); }
+  .mi-matters-section .life-icon { background-color: rgba(233, 30, 99, 0.2); }
+  .mi-matters-section .growth-icon { background-color: rgba(33, 150, 243, 0.2); }
+  .icon-circle.leadership-icon { background: rgba(166, 204, 255, 1); }
+  .icon-circle.future-success-icon { background: rgba(235, 178, 223, 1); }
+  .custom-bullet-list { list-style-type: none; padding-left: 0; }
+  .custom-bullet-list li { position: relative; padding-left: 25px; margin-bottom: 15px; }
+  .custom-bullet-list li::before { content: ""; position: absolute; left: 0; top: 5px; width: 18px; height: 18px; background-color: #6548eb; border-radius: 50%; }
+  @media (max-width: 768px) {
+    .mi-framework-section, .mi-unique-section, .mi-matters-section { padding: 50px 0; }
+    .mi-unique-section-content { padding: 11px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="py-test-page">
+  <section class="hero-section-inner four-pillars-hero-section pt-md-18 pt-14 pb-5 position-relative">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          {% include 'template20/includes/breadcrumb.html' %}
+        </div>
+        <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2">
+          <span class="highlighter">
+            <img src="{{ eq_images_base }}lens-icon.svg" alt="icon" /> One Powerful Learning System
+          </span>
+          <h1 class="heading-title fs-50 mt-5">Discover Your</h1>
+          <p class="text-gray fs-25 fs-sm-18 fw-700"><span class="text-yellow"> Emotional </span> Intelligences!</p>
+          <p class="text-gray fs-16">Academic intelligence helps you solve problems; emotional intelligence helps you understand people. EQ shapes relationships, choices, and real-life success—often more than IQ.</p>
+          <div class="hero-button d-flex flex-row mt-md-8 mt-5">
+            {% if request.user.is_authenticated %}
+            <a href="{{ url('core:emotional_intelligences_assessment') }}" class="btn custom-button blue-button me-3">Take the Emotional Intelligences Assessment</a>
+            {% else %}
+            <a href="{{ login_to_take_url }}" class="btn custom-button blue-button me-3">Take the Emotional Intelligences Assessment</a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-lg-6 col-md-12 order-md-2 order-1">
+          <div class="right-banner d-md-flex justify-content-end">
+            <div class="four-pillars-hero-image-wrapper">
+              <img class="img-fluid" src="{{ eq_images_base }}eq-hero-section-bg.png" alt="Emotional Intelligences" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="mi-framework-section" class="mi-framework-section py-5">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <img src="{{ eq_images_base }}eq-framework.png" alt="Emotional Intelligence Framework" class="img-fluid rounded-circle">
+        </div>
+        <div class="col-lg-6">
+          <h2 class="title-two fs-38 fw-700 mb-4 fs-sm-28">Why <span class="text-purple">Emotional Intelligence</span> Changes Everything</h2>
+          <p class="text-gray mb-4">Emotional intelligence drives academic success, strong relationships, low stress, &amp; lifelong leadership beyond textbooks.</p>
+          <h5 class="fs-20 fw-600 mt-5 mb-4">When you develop your emotional intelligence:</h5>
+          <ul class="custom-bullet-list">
+            <li>You handle stress and pressure more effectively</li>
+            <li>Your friendships become deeper and more meaningful</li>
+            <li>You communicate better with parents, teachers, &amp; peers</li>
+            <li>You become a natural leader others want to follow</li>
+            <li>You make better decisions under pressure</li>
+            <li>You bounce back faster from setbacks and disappointments</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mi-unique-section py-md-5 py-0">
+    <div class="container">
+      <div class="mi-unique-section-content eq-unique-section-content">
+        <div class="row">
+          <div class="col-md-8 mb-5 mx-auto text-center">
+            <h2 class="title-two fs-38 fw-700 mb-4 fs-sm-28">What Makes You <span class="text-yellow">Emotionally Smart?</span></h2>
+            <p class="mt-4 text-white">
+              Some people handle stress and social situations with ease because of Emotional Intelligence (EQ)—the six core skills that shape emotional and social success.
+            </p>
+          </div>
+          <div class="col-md-12">
+            <div class="row">
+              <div class="col-md-2 mb-4 text-center">
+                <div class="card h-100 p-2">
+                  <div class="d-flex align-items-center flex-column mb-2">
+                    <div class="learner-icon"><img src="{{ eq_images_base }}visual-icon.png" alt="Self-Awareness"></div>
+                    <h5 class="fs-18 fw-600 mb-0 text-dark">Self-Awareness &amp; Self-Esteem</h5>
+                  </div>
+                  <p class="text-gray mb-2 fs-14 lh-sm">Understanding your emotions, recognizing your strengths and weaknesses, &amp; maintaining healthy confidence in yourself.</p>
+                </div>
+              </div>
+              <div class="col-md-2 mb-4 text-center">
+                <div class="card h-100 p-2">
+                  <div class="d-flex align-items-center flex-column mb-2">
+                    <div class="learner-icon"><img src="{{ eq_images_base }}visual-icon.png" alt="Self-Control"></div>
+                    <h5 class="fs-18 fw-600 mb-0 text-dark">Self-Control &amp; Emotional Regulation</h5>
+                  </div>
+                  <p class="text-gray mb-2 fs-14 lh-sm">Managing your emotions effectively, controlling impulses, and staying calm under pressure.</p>
+                </div>
+              </div>
+              <div class="col-md-2 mb-4 text-center">
+                <div class="card h-100 p-2">
+                  <div class="d-flex align-items-center flex-column mb-2">
+                    <div class="learner-icon"><img src="{{ eq_images_base }}visual-icon.png" alt="Empathy"></div>
+                    <h5 class="fs-18 fw-600 mb-0 text-dark">Empathy &amp; Understanding Others</h5>
+                  </div>
+                  <p class="text-gray mb-2 fs-14 lh-sm">Reading other people's emotions, understanding different perspectives, &amp; connecting with how others feel.</p>
+                </div>
+              </div>
+              <div class="col-md-2 mb-4 text-center">
+                <div class="card h-100 p-2">
+                  <div class="d-flex align-items-center flex-column mb-2">
+                    <div class="learner-icon"><img src="{{ eq_images_base }}visual-icon.png" alt="Conflict Resolution"></div>
+                    <h5 class="fs-18 fw-600 mb-0 text-dark">Conflict Resolution &amp; Interpersonal Skills</h5>
+                  </div>
+                  <p class="text-gray mb-2 fs-14 lh-sm">Solving disagreements peacefully, working well with others, &amp; building positive relationships.</p>
+                </div>
+              </div>
+              <div class="col-md-2 mb-4 text-center">
+                <div class="card h-100 p-2">
+                  <div class="d-flex align-items-center flex-column mb-2">
+                    <div class="learner-icon"><img src="{{ eq_images_base }}visual-icon.png" alt="Self-Motivation"></div>
+                    <h5 class="fs-18 fw-600 mb-0 text-dark">Self-Motivation &amp; Resilience</h5>
+                  </div>
+                  <p class="text-gray mb-2 fs-14 lh-sm">Staying motivated toward your goals, bouncing back from failures, and persisting through challenges.</p>
+                </div>
+              </div>
+              <div class="col-md-2 mb-4 text-center">
+                <div class="card h-100 p-2">
+                  <div class="d-flex align-items-center flex-column mb-2">
+                    <div class="learner-icon"><img src="{{ eq_images_base }}visual-icon.png" alt="Assertiveness"></div>
+                    <h5 class="fs-18 fw-600 mb-0 text-dark">Assertiveness &amp; Communication</h5>
+                  </div>
+                  <p class="text-gray mb-2 fs-14 lh-sm">Expressing your thoughts and feelings clearly, standing up for yourself respectfully, and communicating effectively.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mi-matters-section py-5">
+    <div class="container">
+      <div class="row mb-5">
+        <div class="col-12 text-center">
+          <h2 class="title-two fs-38 fw-700 mb-4 fs-sm-28">Why This Matters for <span class="text-purple">Your Success</span></h2>
+          <p class="mx-auto" style="max-width: 800px;">
+            Understanding your strengths and growth areas across these six emotional intelligence domains gives you a roadmap for personal development:
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col mb-4">
+          <div class="card h-100 p-2 in-card-one">
+            <div class="d-flex align-items-center mb-3">
+              <div class="icon-circle school-icon me-3"><img src="{{ eq_images_base }}in-school-icon.png" alt="In School" width="30"></div>
+              <h5 class="fs-20 fw-600 mb-0 text-dark">In School</h5>
+            </div>
+            <p class="text-gray mb-0 lh-sm fs-14">Use study methods that fit your brain—mind maps, study songs, notes, or learning through movement.</p>
+          </div>
+        </div>
+        <div class="col mb-4">
+          <div class="card h-100 p-2 in-card-two">
+            <div class="d-flex align-items-center mb-3">
+              <div class="icon-circle life-icon me-3"><img src="{{ eq_images_base }}in-life-icon.png" alt="In Life" width="30"></div>
+              <h5 class="fs-20 fw-600 mb-0 text-dark">In Life</h5>
+            </div>
+            <p class="text-gray mb-0 lh-sm fs-14">You can make better decisions about subjects, activities, and future careers that align with both your natural intelligences and preferred learning methods.</p>
+          </div>
+        </div>
+        <div class="col mb-4">
+          <div class="card h-100 p-2 in-card-three">
+            <div class="d-flex align-items-center mb-3">
+              <div class="icon-circle growth-icon me-3"><img src="{{ eq_images_base }}in-family-relation.png" alt="In Family Relationships" width="30"></div>
+              <h5 class="fs-20 fw-600 mb-0 text-dark">In Family Relationships</h5>
+            </div>
+            <p class="text-gray mb-0 lh-sm fs-14">EQ helps you communicate clearly with family, manage stress calmly, and create a more positive home environment.</p>
+          </div>
+        </div>
+        <div class="col mb-4">
+          <div class="card h-100 p-2 in-card-four">
+            <div class="d-flex align-items-center mb-3">
+              <div class="icon-circle leadership-icon me-3"><img src="{{ eq_images_base }}in-leadership.png" alt="In Leadership" width="30"></div>
+              <h5 class="fs-20 fw-600 mb-0 text-dark">In Leadership</h5>
+            </div>
+            <p class="text-gray mb-0 lh-sm fs-14">You develop confidence in your unique abilities while understanding exactly how to tackle challenging subjects using your preferred learning channels.</p>
+          </div>
+        </div>
+        <div class="col mb-4">
+          <div class="card h-100 p-2 in-card-five">
+            <div class="d-flex align-items-center mb-3">
+              <div class="icon-circle future-success-icon me-3"><img src="{{ eq_images_base }}in-future-sucess.png" alt="In Future Success" width="30"></div>
+              <h5 class="fs-20 fw-600 mb-0 text-dark">In Future Success</h5>
+            </div>
+            <p class="text-gray mb-0 lh-sm fs-14">Employers value emotional skills most—the ability to collaborate, manage pressure, communicate clearly, &amp; recover from setbacks.</p>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-5 mb-md-5 mb-0">
+        <div class="col-md-8 mx-auto text-center">
+          {% if request.user.is_authenticated %}
+          <a href="{{ url('core:emotional_intelligences_assessment') }}" class="btn custom-button purple-button px-5 py-3">Take the Emotional Intelligences Assessment</a>
+          {% else %}
+          <a href="{{ login_to_take_url }}" class="btn custom-button purple-button px-5 py-3">Take the Emotional Intelligences Assessment</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="eq-journey-section" class="mi-framework-section py-5">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <h2 class="title-two fs-38 fw-700 mb-4 fs-sm-28">Your <span class="text-purple">Emotional Intelligence</span> Journey</h2>
+          <p class="text-gray mb-4">Every student has unique emotional strengths and growth areas—our assessment reveals all six and gives clear steps to improve.</p>
+          <h5 class="fs-20 fw-600 mt-5 mb-4">What You'll Discover:</h5>
+          <ul class="custom-bullet-list">
+            <li><strong>Your EQ Strengths:</strong> Your natural emotional skills help you navigate relationships and handle challenges effectively.</li>
+            <li><strong>Your Growth Opportunities:</strong> Improving these key skills can greatly enhance your life and relationships.</li>
+            <li><strong>Your Emotional Patterns:</strong> How you usually handle stress, conflict, and social interactions.</li>
+            <li><strong>Personalized Development Plan:</strong> Practical strategies to strengthen every area of your emotional intelligence.</li>
+            <li><strong>Real-World Applications:</strong> How to use your EQ profile to improve school life, relationships, and future goals.</li>
+          </ul>
+        </div>
+        <div class="col-lg-6">
+          <img src="{{ eq_images_base }}eq-journey.png" alt="Your Emotional Intelligence Journey" class="img-fluid">
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

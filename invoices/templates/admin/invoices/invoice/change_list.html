@@ -1,0 +1,19 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block content %}
+  {% if callback_health_broken %}
+  <div class="messagelist" style="margin-bottom: 15px;">
+    <div class="warning" style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px 15px; border-radius: 4px;">
+      <strong>Payment gateway callback alert:</strong> The following gateway callback URL may not be working:
+      <ul style="margin: 8px 0 0 20px;">
+        {% for h in callback_health_broken %}
+        <li>{{ h.get_gateway_display }} – last success: {{ h.last_callback_at|default:"Never" }}{% if h.last_error_message %} – {{ h.last_error_message|truncatewords:15 }}{% endif %}</li>
+        {% endfor %}
+      </ul>
+      <a href="{% url 'admin:invoices_paymentgatewayhealth_changelist' %}">View gateway health</a>
+    </div>
+  </div>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}

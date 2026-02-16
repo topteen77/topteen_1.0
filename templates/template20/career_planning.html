@@ -5,40 +5,55 @@ Career Planning | Top Teen
 {% endblock %}
 
 {% block description_content %}
-Strategic career planning for high school students: assess your potential, explore pathways, and plan your next steps.
+Strategic career planning for high school students: Four-Year Success Plan for Classes 9–12. Discover your perfect academic path.
 {% endblock %}
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
 
 {% block content %}
+<style>
+.gradient-bg {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%);
+}
+.phy-item-box .learner-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  background: rgba(205, 202, 255, 1);
+}
+.phy-item-box.new-cp-hub-box {
+  height: auto;
+}
+.phy-item-box.new-cp-hub-box .top-list-style li {
+  line-height: 22px;
+}
+.phy-item-box.new-cp-hub-box .top-list-style ul li::before {
+  top: 2px;
+}
+</style>
 
 <main class="py-test-page">
   <!-- Hero Section -->
-  <section class="hero-section-inner pt-md-18 pt-14 pb-5">
+  <section class="hero-section-inner pt-md-18 pt-14 pb-5 gradient-bg">
     <div class="container">
       <div class="row">
         <div class="col-md-12">
           {% include 'template20/includes/breadcrumb.html' %}
         </div>
-
         <div class="col-lg-6 col-md-12">
           <span class="highlighter">
             <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> How to Plan Your Career
           </span>
           <h1 class="heading-title mt-md-9 mb-md-8 mt-8 mb-3">
             Career Planning Hub
-            <p>Discover Your <span class="text-yellow">Perfect Academic</span> Path!</p>
+            <p class="lh-sm fs-sm-20">Discover Your <span class="text-yellow">Perfect Academic</span> Path!</p>
           </h1>
-          <p class="text-gray fs-16">
-            Take the Stream Sorter Psychometric Test to uncover the academic and career path that aligns with your strengths and interests.
-            Get personalized insights to make informed decisions about your future and set yourself up for success.
-          </p>
-
-          <div class="hero-button d-flex flex-row mt-md-8 mt-5">
-            <a href="{{ url('users:login') }}" class="btn custom-button purple-button me-3">Take The Test</a>
-          </div>
+          <p class="text-gray fs-16">Take the Stream Sorter Psychometric Test to uncover the academic and career path that aligns with your strengths and interests. Get personalized insights to make informed decisions about your future and set yourself up for success.</p>
         </div>
-
         <div class="col-lg-6 col-md-12">
           <div class="right-banner d-md-flex d-none justify-content-end">
             <img class="img-fluid" src="{{ static('images_new/careers/career-planning-banner.svg') }}" alt="Career Planning Hub" />
@@ -48,7 +63,7 @@ Strategic career planning for high school students: assess your potential, explo
     </div>
   </section>
 
-  <!-- find direction -->
+  <!-- Find direction -->
   <section class="find-direction py-10">
     <div class="container">
       <div class="row">
@@ -57,128 +72,95 @@ Strategic career planning for high school students: assess your potential, explo
             <img class="img-fluid" src="{{ static('images_new/careers/career-planning-banner-2.svg') }}" alt="Assess Your Potential" />
           </div>
         </div>
-
         <div class="offset-md-1 col-md-6 d-flex flex-column justify-content-center align-items-start mt-md-0 mt-5">
           <span class="highlighter text-gray fw-400">
             <img class="position-relative top--10" src="{{ static('images_new/general/find-direction.svg') }}" alt="icon" /> Assess Your Potential
           </span>
           <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Strategic Career Planning for High School Students</h3>
-          <p class="text-gray fs-16">
-            Your future starts now! Take charge of your career journey with TopTeen’s expert-guided career planning resources.
-            Designed specifically for High School students, this guide helps you navigate your academic choices, discover your strengths,
-            and align your aspirations with the right career path.
-          </p>
-          <a href="{{ url('users:login') }}" class="btn custom-button purple-button mt-md-3 me-3">Take The Test Now!</a>
+          <p class="text-gray fs-16">Four-Year Success Plan for high school students (Classes 9–12) is a transformative roadmap crafted to build a strong academic foundation, foster essential 21st-century skills, and guide informed stream and career choices. This comprehensive program promotes global awareness, prepares students for future-ready careers and higher education, and prioritizes well-being and inclusivity at every step.</p>
+          <div class="hero-button d-flex flex-row mt-5">
+            <a href="{{ url('core:career_planning_4_year') }}" class="btn custom-button purple-button me-3">Read More</a>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Gateway Higher Education -->
+  <!-- Step-by-Step Guide: Class 9-12 -->
   <section class="gateway">
     <div class="container">
-      <div class="cta-purple px-5 py-md-10 py-5">
+      <div class="cta-purple p-5">
         <div class="row">
-          <div class="col-md-7 d-flex justify-content-center align-items-start flex-column order-md-1 order-2 mt-md-0 mt-5">
-            <span class="highlighter text-gray fw-400">
-              <img class="position-relative top--10" src="{{ static('images_new/icons/entrance-exam.svg') }}" alt="icon" /> Entrance Exam
-            </span>
-            <h3 class="title-two mt-3 fs-38 fs-sm-28 fw-700 my-4 text-white">
-              Your Gateway to Higher Education and Career Success!
-            </h3>
-            <p class="text-white fs-18">
-              Get expert guidance on entrance exams, Olympiads, and government exams after 10th, 12th, and graduation.
-            </p>
-            <div class="com-btn mt-3">
-              <button type="button" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After 10th</button>
-              <button type="button" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After 12th</button>
-              <button type="button" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After Graduation</button>
-            </div>
-          </div>
-          <div class="col-md-5 d-flex justify-content-center align-items-center order-md-2 order-1">
-            <div class="cta-image">
-              <img class="img-fluid" src="{{ static('images_new/general/gateway.svg') }}" alt="gateway" />
-            </div>
+          <div class="col-md-8 mx-auto">
+            <h2 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28 text-center text-white">Step-by-Step <span class="text-yellow">Career Planning Guide for Class 9-12</span> Students</h2>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Why Psy test (static carousel markup; JS handled globally by template assets) -->
-  <section class="explore-video py-10">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12">
-          <span class="highlighter text-gray fw-400">
-            <img class="position-relative top--10" src="{{ static('images_new/icons/uncover-icon.svg') }}" alt="icon"> Uncover True Potential
-          </span>
-        </div>
-        <div class="w-100 d-flex justify-content-between align-items-center">
-          <div class="col-md-5">
-            <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Why is a Psychometric Test Needed?</h3>
-          </div>
-          <div class="col-md-2 offset-md-4">
-            <div class="btn-wrap">
-              <button class="prev-btn"><i class='bx bx-chevron-left' style='color:#808080'></i></button>
-              <button class="next-btn"><i class='bx bx-chevron-right' style='color:#808080'></i></button>
+        <div class="row">
+          <div class="col-md-3 mb-md-0 mb-4">
+            <div class="phy-item-box new-cp-hub-box">
+              <div class="d-flex align-items-center mb-3">
+                <div class="learner-icon">
+                  <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="Class 9th" style="width:28px;height:28px;" />
+                </div>
+                <h5 class="fs-20 fw-800 mb-0 text-dark">Class 9th</h5>
+              </div>
+              <div class="top-list-style">
+                <ul>
+                  <li>Establishes core academics and vital life skills.</li>
+                  <li>Ignites self-discovery and early career exploration.</li>
+                </ul>
+                <a href="{{ url('core:career_planning_class_9') }}" class="btn custom-button blue-button d-flex align-items-center w-100 text-center px-3 py-2 justify-content-center mt-md-8">Read More</a>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-12 pys-test-carousel">
-          <div class="owl-carousel owl-theme career-carousel">
-            <div class="item">
-              <div class="phy-item-box">
-                <h5 class="bg-purple text-white">Self-Assessment &amp; Understanding</h5>
-                <div class="top-list-style">
-                  <ul>
-                    <li>Take the Stream Sorter Psychometric Test to identify strengths and career interests.</li>
-                    <li>Reflect on the results and create a personal career profile.</li>
-                  </ul>
-                  <div class="no-list">1</div>
+          <div class="col-md-3 mb-md-0 mb-4">
+            <div class="phy-item-box new-cp-hub-box">
+              <div class="d-flex align-items-center mb-3">
+                <div class="learner-icon">
+                  <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="Class 10th" style="width:28px;height:28px;" />
                 </div>
+                <h5 class="fs-20 fw-800 mb-0 text-dark">Class 10th</h5>
+              </div>
+              <div class="top-list-style">
+                <ul>
+                  <li>Focuses on board exam mastery and stream selection.</li>
+                  <li>Strengthens resilience through analytical skills &amp; stress management.</li>
+                </ul>
+                <a href="{{ url('core:career_planning_class_10') }}" class="btn custom-button blue-button d-flex align-items-center w-100 text-center px-3 py-2 justify-content-center">Read More</a>
               </div>
             </div>
-
-            <div class="item">
-              <div class="phy-item-box">
-                <h5 class="bg-purple text-white">Comprehensive Career Exploration</h5>
-                <div class="top-list-style">
-                  <ul>
-                    <li>Research career options using TopTeen resources.</li>
-                    <li>Attend webinars and workshops for industry insights.</li>
-                  </ul>
-                  <div class="no-list">2</div>
+          </div>
+          <div class="col-md-3 mb-md-0 mb-4">
+            <div class="phy-item-box new-cp-hub-box">
+              <div class="d-flex align-items-center mb-3">
+                <div class="learner-icon">
+                  <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="Class 11th" style="width:28px;height:28px;" />
                 </div>
+                <h5 class="fs-20 fw-800 mb-0 text-dark">Class 11th</h5>
+              </div>
+              <div class="top-list-style">
+                <ul>
+                  <li>Deepens stream-specific expertise &amp; competitive exam readiness.</li>
+                  <li>Develops professional skills with a window to global opportunities.</li>
+                </ul>
+                <a href="{{ url('core:career_planning_class_11') }}" class="btn custom-button blue-button d-flex align-items-center w-100 text-center px-3 py-2 justify-content-center">Read More</a>
               </div>
             </div>
-
-            <div class="item">
-              <div class="phy-item-box">
-                <h5 class="bg-purple text-white">Detailed Information Gathering</h5>
-                <div class="top-list-style">
-                  <ul>
-                    <li>Explore detailed career profiles and specializations.</li>
-                    <li>Access interviews and case studies for real-world insights.</li>
-                  </ul>
-                  <div class="no-list">3</div>
+          </div>
+          <div class="col-md-3 mb-md-0 mb-4">
+            <div class="phy-item-box new-cp-hub-box">
+              <div class="d-flex align-items-center mb-3">
+                <div class="learner-icon">
+                  <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="Class 12th" style="width:28px;height:28px;" />
                 </div>
+                <h5 class="fs-20 fw-800 mb-0 text-dark">Class 12th</h5>
               </div>
-            </div>
-
-            <div class="item">
-              <div class="phy-item-box">
-                <h5 class="bg-purple text-white">Goal Setting &amp; Planning</h5>
-                <div class="top-list-style">
-                  <ul>
-                    <li>Set clear academic and career goals based on your strengths.</li>
-                    <li>Create a roadmap of courses, skills, and milestones.</li>
-                  </ul>
-                  <div class="no-list">4</div>
-                </div>
+              <div class="top-list-style">
+                <ul>
+                  <li>Aims for board exam triumph &amp; higher education preparation.</li>
+                  <li>Equips with life skills for confident, successful transitions.</li>
+                </ul>
+                <a href="{{ url('core:career_planning_class_12') }}" class="btn custom-button blue-button d-flex align-items-center w-100 text-center px-3 py-2 justify-content-center">Read More</a>
               </div>
             </div>
           </div>
@@ -187,8 +169,8 @@ Strategic career planning for high school students: assess your potential, explo
     </div>
   </section>
 
-  <!-- FAQ section (static content copied from HTML; can be made dynamic later) -->
-  <section class="blog-section pb-10">
+  <!-- FAQ Section -->
+  <section class="blog-section py-md-10 py-5">
     <div class="container">
       <div class="row">
         <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
@@ -196,63 +178,251 @@ Strategic career planning for high school students: assess your potential, explo
             <img class="position-relative top--10" src="{{ static('images_new/icons/gudiance-icona.svg') }}" alt="icon"> Frequently Asked Questions
           </span>
           <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Got Questions? We've Got Answers!</h3>
-          <p class="text-gray">Explore our FAQ section for quick and reliable answers to common queries.</p>
+          <p class="text-gray">Explore our FAQ section for quick and reliable answers to common queries. Whether you're a student or a parent, find the guidance you need to make informed decisions about education and career choices.</p>
         </div>
       </div>
-
       <div class="row">
         <div class="col-md-10 mx-auto custom-faq">
-          <ul class="nav nav-pills mb-3 d-flex justify-content-center my-3 gap-2" id="pills-tab" role="tablist">
-            <li class="nav-item" role="student">
-              <button class="nav-link active" id="pills-student-tab" data-bs-toggle="pill" data-bs-target="#pills-student" type="button" role="tab" aria-controls="pills-student" aria-selected="true">For Students</button>
-            </li>
-            <li class="nav-item" role="parents">
-              <button class="nav-link" id="pills-parents-tab" data-bs-toggle="pill" data-bs-target="#pills-parents" type="button" role="tab" aria-controls="pills-parents" aria-selected="false">For Parents</button>
-            </li>
-          </ul>
-
-          <div class="tab-content" id="pills-tabContent">
-            <div class="tab-pane fade show active" id="pills-student" role="tabpanel" aria-labelledby="pills-student-tab">
-              <div class="accordion" id="accordionStudent">
-                <div class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                      When should I start career counselling?
-                    </button>
-                  </h2>
-                  <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionStudent">
-                    <div class="accordion-body">
-                      The earlier, the better! Ideally, career counselling should start in Class 9 or 10 to help you choose the right stream.
-                    </div>
-                  </div>
+          <div class="accordion" id="accordionStudent">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#faq1">What is career planning, and why is it important?</button>
+              </h2>
+              <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">Career planning is the process of identifying your interests, strengths, skills, and career goals to make informed decisions about your future. It helps you choose the right subjects, courses, and career path based on your abilities.</div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq2">When should I start career planning?</button>
+              </h2>
+              <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">The earlier, the better! Class 9–10 is the ideal time to explore different career options, while Class 11–12 is crucial for making final decisions about higher education and career choices.</div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq3">How do I choose the right stream in Class 11?</button>
+              </h2>
+              <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">Your stream should match your interests, aptitude, and career goals. Taking a Stream Selector Test and seeking career counselling can help you make the right decision.</div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq4">What if I choose the wrong stream or career?</button>
+              </h2>
+              <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">If you feel your choice is not right, don't worry! Career transitions are possible. Career counselling can help you explore alternative paths or career shifts.</div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq5">How do I know which career is right for me?</button>
+              </h2>
+              <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">A career should align with your interests, skills, personality, and long-term goals. Career assessment tests and expert guidance can help you identify the best-fit options.</div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq6">What are the key steps in career planning?</button>
+              </h2>
+              <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">
+                  <ol>
+                    <li>Self-assessment – Identify your interests, skills, and values.</li>
+                    <li>Explore career options – Research different fields and job opportunities.</li>
+                    <li>Set career goals – Define short-term and long-term goals.</li>
+                    <li>Choose the right education path – Select subjects, courses, and training.</li>
+                    <li>Gain experience – Internships, extracurricular activities, and skill-building.</li>
+                    <li>Make informed decisions – Get expert guidance through career counselling.</li>
+                  </ol>
                 </div>
               </div>
             </div>
-
-            <div class="tab-pane fade" id="pills-parents" role="tabpanel" aria-labelledby="pills-parents-tab">
-              <div class="accordion" id="accordionParents">
-                <div class="accordion-item">
-                  <h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsepOne" aria-expanded="true" aria-controls="collapsepOne">
-                      What role do parents play in their child's career decision-making?
-                    </button>
-                  </h2>
-                  <div id="collapsepOne" class="accordion-collapse collapse show" data-bs-parent="#accordionParents">
-                    <div class="accordion-body">
-                      Parents are a child's first mentors and play a crucial role in guiding career decisions, especially when children are too young to decide independently.
-                    </div>
-                  </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq7">What role do parents play in career planning?</button>
+              </h2>
+              <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">Parents can provide guidance and support, but career decisions should be based on your own interests and abilities. Open discussions and career counselling can help bridge differences in opinions.</div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq8">How can I explore different career options?</button>
+              </h2>
+              <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">
+                  <ul>
+                    <li>Take career assessment tests.</li>
+                    <li>Attend career workshops and webinars.</li>
+                    <li>Research online about different careers and industries.</li>
+                    <li>Speak to career counsellors and professionals.</li>
+                  </ul>
                 </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq9">Is it necessary to have a fixed career goal in Class 9 or 10?</button>
+              </h2>
+              <div id="faq9" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">No, but having an idea of your interests can help in selecting the right subjects in Class 11–12. Career exploration at this stage helps you make better decisions later.</div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq10">What careers are in high demand in the future?</button>
+              </h2>
+              <div id="faq10" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">
+                  <ul>
+                    <li>Artificial Intelligence &amp; Data Science</li>
+                    <li>Cybersecurity &amp; Ethical Hacking</li>
+                    <li>Digital Marketing &amp; E-Commerce</li>
+                    <li>Biomedical Sciences &amp; Genetics</li>
+                    <li>Renewable Energy &amp; Environmental Science</li>
+                    <li>Entrepreneurship &amp; Startups</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq11">Do I need to take entrance exams for all careers?</button>
+              </h2>
+              <div id="faq11" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">No. Some fields like Engineering, Medicine, Law, and Government jobs require entrance exams, while others focus on skills and portfolios.</div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq12">How can I build a strong career profile while in school?</button>
+              </h2>
+              <div id="faq12" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">
+                  <ul>
+                    <li>Participate in extracurricular activities like sports, debates, and clubs.</li>
+                    <li>Take up internships, volunteering, or freelancing.</li>
+                    <li>Learn new skills like coding, communication, or graphic design.</li>
+                    <li>Join online courses and certifications relevant to your career interests.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq13">Can I plan a career based on my hobbies?</button>
+              </h2>
+              <div id="faq13" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">Yes! Many hobbies can turn into successful careers, like music, gaming, photography, writing, and designing. A career counsellor can help you identify opportunities in these fields.</div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq14">How do I prepare for careers in science, commerce, and humanities?</button>
+              </h2>
+              <div id="faq14" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">
+                  <strong>Science:</strong> Focus on math, physics, chemistry, biology based on career goals (Engineering, Medicine, Research, etc.).<br><br>
+                  <strong>Commerce:</strong> Build knowledge in accounting, business studies, finance, and economics (CA, MBA, Banking, etc.).<br><br>
+                  <strong>Humanities:</strong> Strengthen skills in communication, history, psychology, and social sciences (Law, Journalism, Civil Services, etc.).
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq15">How do I decide between studying in India or abroad?</button>
+              </h2>
+              <div id="faq15" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">
+                  Factors to consider:
+                  <ul>
+                    <li>Course availability – Some programs are better abroad.</li>
+                    <li>Cost – Studying abroad can be expensive.</li>
+                    <li>Career opportunities – Research job prospects in both countries.</li>
+                    <li>Entrance exams – Check for SAT, IELTS, TOEFL for foreign universities.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq16">How can I improve my decision-making skills for career planning?</button>
+              </h2>
+              <div id="faq16" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">
+                  <ul>
+                    <li>Gather information about different careers.</li>
+                    <li>Talk to professionals in your field of interest.</li>
+                    <li>Analyze pros and cons of career options.</li>
+                    <li>Take career counselling for expert advice.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq17">What skills are essential for career success?</button>
+              </h2>
+              <div id="faq17" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">
+                  <ul>
+                    <li>Communication &amp; Interpersonal Skills</li>
+                    <li>Critical Thinking &amp; Problem-Solving</li>
+                    <li>Adaptability &amp; Emotional Intelligence</li>
+                    <li>Leadership &amp; Teamwork</li>
+                    <li>Time Management &amp; Organization</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq18">How do I set career goals?</button>
+              </h2>
+              <div id="faq18" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">
+                  Follow the SMART goal method:
+                  <ul>
+                    <li>S – Specific (Choose a clear goal)</li>
+                    <li>M – Measurable (Set milestones)</li>
+                    <li>A – Achievable (Be realistic)</li>
+                    <li>R – Relevant (Align with your interests)</li>
+                    <li>T – Time-bound (Set deadlines)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq19">How do I deal with career stress and confusion?</button>
+              </h2>
+              <div id="faq19" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">
+                  <ul>
+                    <li>Break career planning into small steps.</li>
+                    <li>Seek guidance from teachers, mentors, and career counsellors.</li>
+                    <li>Stay open to exploring new options and interests.</li>
+                    <li>Engage in stress-relieving activities like meditation or exercise.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq20">How can I book a career counselling session?</button>
+              </h2>
+              <div id="faq20" class="accordion-collapse collapse" data-bs-parent="#accordionStudent">
+                <div class="accordion-body">You can book an online or in-person counselling session through TopTeen's website to get personalized career guidance.</div>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
   </section>
 </main>
-
 {% endblock %}
-
-

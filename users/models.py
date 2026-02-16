@@ -215,6 +215,15 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
     referral=models.CharField(max_length=255,null=True,blank=True)
     user_type = models.SmallIntegerField(choices=choices.UserType.CHOICES, default=choices.UserType.STUDENT)
     user_status=models.SmallIntegerField(choices=choices.UserStatus.CHOICES,default=choices.UserStatus.UNBLOCK)
+    is_demo_account = models.BooleanField(
+        default=False,
+        help_text=_('If checked, this account is shown on the login page as a demo account (name and role only; credentials are not displayed).'),
+    )
+    is_system_demo = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text=_('Set only by the system when creating demo dataset. Only such data can be reset. Do not edit.'),
+    )
     objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name']
@@ -243,9 +252,11 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if not self.name:
-            self.name = "Student"
-            self.save()
+        name_val = (self.name or "").strip()
+        if not name_val or name_val == "Student":
+            self.name = (self.email or self.mobile or "").strip()
+            if self.name:
+                self.save(update_fields=["name"])
         if not self.image:
             self._grab_avatar()
 

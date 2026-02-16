@@ -214,6 +214,9 @@ function loginsingupotp() {
   if (validateotp(formData) == false) {
     return false;
   }
+  if (typeof loginNextUrl !== 'undefined' && loginNextUrl) {
+    formData.append('next', loginNextUrl);
+  }
   $.ajax({
     type: "POST",
     url: userssignupotpverify,
@@ -409,7 +412,9 @@ function loginsinguppwd() {
   if (validatepwd(formData) == false) {
     return false;
   }
-  
+  if (typeof loginNextUrl !== 'undefined' && loginNextUrl) {
+    formData.append('next', loginNextUrl);
+  }
   // Clear any previous error messages
   var otperrtag = document.getElementById("errorMsgOtpSinguploginpwd");
   if (otperrtag) {
@@ -712,7 +717,9 @@ function loginpwd() {
   if (validateloginpwd(formData) == false) {
     return false;
   }
-  
+  if (typeof loginNextUrl !== 'undefined' && loginNextUrl) {
+    formData.append('next', loginNextUrl);
+  }
   // Clear previous error messages
   var otperrtag = document.getElementById("errorMsgloginpwd");
   if (otperrtag) {
@@ -984,6 +991,9 @@ function loginwithotp() {
   var formData = new FormData(document.getElementById("singupotp"));
   if (validateotp(formData) == false) {
     return false;
+  }
+  if (typeof loginNextUrl !== 'undefined' && loginNextUrl) {
+    formData.append('next', loginNextUrl);
   }
   $.ajax({
     type: "POST",

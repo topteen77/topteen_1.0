@@ -1,0 +1,302 @@
+{
+  "title": "Understanding Your Engagement Patterns",
+  "intro": "Your engagement pattern reveals what naturally motivates you, sustains your energy, and drives your best performance. These patterns show how you prefer to approach work, what environments energize you, and what conditions help you thrive.",
+  "primary_profiles": [
+    {
+      "label": "A) Achievement-Driven (Results & Goal Orientation)",
+      "sections": [
+        {
+          "heading": "Core Motivation Drivers",
+          "bullets": [
+            "Goal Completion: Deeply motivated by reaching specific targets and objectives",
+            "Progress Visibility: Need to see measurable advancement and concrete results",
+            "Performance Excellence: Driven by the satisfaction of high performance and success",
+            "Competitive Edge: Energized by challenges that test and prove capabilities"
+          ]
+        },
+        {
+          "heading": "Energy Sources",
+          "bullets": [
+            "Completing projects and achieving milestones",
+            "Seeing tangible results from efforts",
+            "Recognition for accomplishments and performance",
+            "Clear metrics and feedback on progress",
+            "Competitive environments and challenges"
+          ]
+        },
+        {
+          "heading": "Optimal Work Conditions",
+          "bullets": [
+            "Clear, specific goals with defined success metrics",
+            "Regular feedback on performance and progress",
+            "Opportunities for advancement and recognition",
+            "Results-oriented culture and environment",
+            "Autonomy in how to achieve objectives"
+          ]
+        },
+        {
+          "heading": "Motivation Sustainability Factors",
+          "bullets": [
+            "Consistent goal-setting and achievement cycles",
+            "Regular recognition and celebration of wins",
+            "Progressive challenges that build on previous successes",
+            "Clear connection between effort and results",
+            "Opportunities for leadership and increased responsibility"
+          ]
+        },
+        {
+          "heading": "Natural Career Alignments",
+          "bullets": [
+            "Sales and Business Development",
+            "Project Management and Operations",
+            "Entrepreneurship and Business Leadership",
+            "Competitive Sports and Performance Roles",
+            "Results-driven consulting and advisory roles"
+          ]
+        },
+        {
+          "heading": "Engagement Challenges",
+          "bullets": [
+            "Burnout from constant pressure to achieve",
+            "Demotivation when goals are unclear or constantly changing",
+            "Difficulty finding meaning in process-oriented work",
+            "Potential neglect of relationships in pursuit of results",
+            "Risk of short-term focus at expense of long-term development"
+          ]
+        },
+        {
+          "heading": "Engagement Strategies",
+          "bullets": [
+            "Set clear, challenging but achievable goals",
+            "Create regular milestone celebrations",
+            "Provide frequent performance feedback",
+            "Offer advancement opportunities",
+            "Connect individual achievements to larger organizational success"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "B) Mastery-Oriented (Learning & Expertise Development)",
+      "sections": [
+        {
+          "heading": "Core Motivation Drivers",
+          "bullets": [
+            "Skill Development: Deeply motivated by becoming excellent at meaningful work",
+            "Knowledge Acquisition: Energized by learning new concepts and expanding understanding",
+            "Expertise Building: Driven by the journey toward mastery and professional growth",
+            "Intellectual Challenge: Motivated by complex problems that require deep thinking"
+          ]
+        },
+        {
+          "heading": "Energy Sources",
+          "bullets": [
+            "Learning new skills and expanding capabilities",
+            "Solving complex, intellectually stimulating problems",
+            "Developing expertise and becoming a go-to resource",
+            "Continuous improvement and professional development",
+            "Recognition for knowledge and expertise"
+          ]
+        },
+        {
+          "heading": "Optimal Work Conditions",
+          "bullets": [
+            "Opportunities for continuous learning and skill development",
+            "Access to training, education, and development resources",
+            "Complex, challenging work that requires expertise",
+            "Time and space for deep focus and concentration",
+            "Recognition as a subject matter expert"
+          ]
+        },
+        {
+          "heading": "Motivation Sustainability Factors",
+          "bullets": [
+            "Regular learning opportunities and skill development",
+            "Progressive complexity in work assignments",
+            "Access to mentors, experts, and learning communities",
+            "Time for reflection and integration of new knowledge",
+            "Opportunities to teach or share expertise with others"
+          ]
+        },
+        {
+          "heading": "Natural Career Alignments",
+          "bullets": [
+            "Research and Development roles",
+            "Technical and Scientific positions",
+            "Education and Training roles",
+            "Consulting and Advisory positions",
+            "Specialized professional services"
+          ]
+        },
+        {
+          "heading": "Engagement Challenges",
+          "bullets": [
+            "Frustration with repetitive or routine tasks",
+            "Demotivation when learning opportunities are limited",
+            "Difficulty with time pressure that prevents thorough work",
+            "Potential perfectionism that slows progress",
+            "Risk of becoming too focused on learning at expense of application"
+          ]
+        },
+        {
+          "heading": "Engagement Strategies",
+          "bullets": [
+            "Provide regular learning and development opportunities",
+            "Assign increasingly complex and challenging projects",
+            "Create pathways for expertise recognition and sharing",
+            "Allow time for deep work and skill development",
+            "Connect learning to practical application and impact"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "C) Purpose-Driven (Meaning & Impact Orientation)",
+      "sections": [
+        {
+          "heading": "Core Motivation Drivers",
+          "bullets": [
+            "Meaningful Impact: Deeply motivated by work that makes a positive difference",
+            "Value Alignment: Energized when work connects to personal values and beliefs",
+            "Service to Others: Driven by opportunities to help, support, and contribute to others",
+            "Legacy Building: Motivated by creating lasting positive change"
+          ]
+        },
+        {
+          "heading": "Energy Sources",
+          "bullets": [
+            "Seeing positive impact of work on others",
+            "Connecting daily tasks to larger meaningful purpose",
+            "Working with like-minded people on shared missions",
+            "Recognition for contribution and positive impact",
+            "Alignment between personal values and work activities"
+          ]
+        },
+        {
+          "heading": "Optimal Work Conditions",
+          "bullets": [
+            "Clear connection between work and positive impact",
+            "Value-aligned organizational culture and mission",
+            "Collaborative, supportive work environment",
+            "Opportunities to help and develop others",
+            "Recognition for contribution beyond just results"
+          ]
+        },
+        {
+          "heading": "Motivation Sustainability Factors",
+          "bullets": [
+            "Regular reminders of work's positive impact",
+            "Opportunities to see beneficiaries of the work",
+            "Alignment between personal and organizational values",
+            "Collaborative relationships with colleagues",
+            "Balance between individual contribution and team success"
+          ]
+        },
+        {
+          "heading": "Natural Career Alignments",
+          "bullets": [
+            "Healthcare and Social Services",
+            "Education and Development roles",
+            "Non-profit and Social Impact organizations",
+            "Human Resources and People Development",
+            "Community and Public Service roles"
+          ]
+        },
+        {
+          "heading": "Engagement Challenges",
+          "bullets": [
+            "Demotivation when work feels meaningless or purely transactional",
+            "Difficulty with work that conflicts with personal values",
+            "Potential burnout from over-investment in others' success",
+            "Frustration with purely profit-driven environments",
+            "Risk of neglecting personal needs in service of others"
+          ]
+        },
+        {
+          "heading": "Engagement Strategies",
+          "bullets": [
+            "Clearly communicate the purpose and impact of work",
+            "Connect individual roles to organizational mission",
+            "Provide opportunities for meaningful collaboration",
+            "Recognize contribution and positive impact regularly",
+            "Ensure alignment between personal and organizational values"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "D) Variety-Seeking (Stimulation & Change Orientation)",
+      "sections": [
+        {
+          "heading": "Core Motivation Drivers",
+          "bullets": [
+            "Novelty and Change: Deeply motivated by new experiences and fresh challenges",
+            "Stimulation and Excitement: Energized by dynamic, unpredictable environments",
+            "Flexibility and Autonomy: Driven by freedom to adapt and try different approaches",
+            "Growth Through Challenge: Motivated by overcoming obstacles and expanding comfort zones"
+          ]
+        },
+        {
+          "heading": "Energy Sources",
+          "bullets": [
+            "Taking on new and different types of projects",
+            "Working in dynamic, changing environments",
+            "Having flexibility in how and when work gets done",
+            "Solving unique problems that require creative approaches",
+            "Recognition for adaptability and innovation"
+          ]
+        },
+        {
+          "heading": "Optimal Work Conditions",
+          "bullets": [
+            "Diverse, changing work assignments and projects",
+            "Flexible work arrangements and autonomy",
+            "Dynamic, fast-paced work environment",
+            "Opportunities for creativity and innovation",
+            "Minimal routine or repetitive tasks"
+          ]
+        },
+        {
+          "heading": "Motivation Sustainability Factors",
+          "bullets": [
+            "Regular rotation of projects and responsibilities",
+            "Opportunities to work in different teams or locations",
+            "Freedom to experiment with new approaches",
+            "Recognition for adaptability and creative solutions",
+            "Balance between challenge and achievable success"
+          ]
+        },
+        {
+          "heading": "Natural Career Alignments",
+          "bullets": [
+            "Consulting and Project-based work",
+            "Startup and Entrepreneurial environments",
+            "Creative and Innovation roles",
+            "Emergency Services and Crisis Management",
+            "Travel and Adventure-based careers"
+          ]
+        },
+        {
+          "heading": "Engagement Challenges",
+          "bullets": [
+            "Boredom and demotivation with routine work",
+            "Difficulty with highly structured or rigid environments",
+            "Potential inconsistency in performance due to interest fluctuations",
+            "Risk of starting many projects without finishing them",
+            "Challenge with long-term commitment to single focus areas"
+          ]
+        },
+        {
+          "heading": "Engagement Strategies",
+          "bullets": [
+            "Provide variety in projects and responsibilities",
+            "Allow flexibility in work methods and schedules",
+            "Create opportunities for innovation and experimentation",
+            "Rotate assignments and team memberships regularly",
+            "Recognize adaptability and creative problem-solving"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.db.models import Q
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.urls import reverse
-from .models import Profession, Skill, CareerCluster, Career
+from .models import Profession, Skill, CareerCluster, Career, Videos
 from .docx_utils import convert_docx_to_html, extract_career_data_from_html
 from .ai_query_processor import QueryProcessor
 import json
@@ -641,6 +641,37 @@ def autocomplete_careers(request):
             'id': c.id,
             'text': nm,
             'value': nm,
+        })
+
+    return JsonResponse({'results': results})
+
+
+@require_http_methods(["GET"])
+def autocomplete_videos(request):
+    """API endpoint for career video autocomplete - returns video titles for suggest dropdown."""
+    query = request.GET.get('q', '').strip()
+    limit = min(int(request.GET.get('limit', 15)), 30)
+
+    videos = Videos.objects.all().exclude(name__isnull=True).exclude(name='')
+    if query:
+        videos = videos.filter(name__icontains=query)
+    videos = videos.order_by('name')[:limit]
+
+    seen = set()
+    results = []
+    for v in videos:
+        name = (v.name or '').strip()
+        if not name:
+            continue
+        key = name.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        results.append({
+            'id': v.id,
+            'text': name,
+            'value': name,
+            'slug': v.slug or '',
         })
 
     return JsonResponse({'results': results})

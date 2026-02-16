@@ -75,6 +75,8 @@ class PsychometricTest(TemplateView):
             # Use API endpoint for payment creation
             ctx["psychometric_test_payment_url"]=reverse('psychometrictests:createpsychomerticttestpayment')
             ctx['delete_demo_payment_url']=False
+        ctx['is_authenticated'] = request.user.is_authenticated
+        ctx['login_url'] = reverse('users:login')
         return ctx
 
     def get(self, request,*args, **kwargs):
@@ -133,6 +135,8 @@ class PsychometricTest12(TemplateView):
             # Use API endpoint for payment creation
             ctx["psychometric_test_payment_url"]=reverse('psychometrictests:createpsychomerticttestpayment')
             ctx['delete_demo_payment_url']=False
+        ctx['is_authenticated'] = request.user.is_authenticated
+        ctx['login_url'] = reverse('users:login')
         return ctx
 
     def get(self, request,*args, **kwargs):
@@ -528,7 +532,16 @@ class UpdatePsychometricTestPayment(APIView):
                     print(f"[Payment Update] Gateway Order ID: {gateway_order_id}")
                     
                     payment_status=payment.update_payment(gateway_payment_id,gateway_order_id,gateway_signature)
-                    
+                    try:
+                        from invoices.utils import record_gateway_callback
+                        from invoices.models import PaymentGatewayHealth
+                        record_gateway_callback(
+                            PaymentGatewayHealth.RAZORPAY,
+                            success=bool(payment_status),
+                            callback_url=request.build_absolute_uri(request.path) if request else None,
+                        )
+                    except Exception:
+                        pass
                     print(f"[Payment Update] Payment verification status: {payment_status}")
                     print(f"[Payment Update] Payment is_success after update: {payment.is_success}")
                     

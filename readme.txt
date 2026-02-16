@@ -36,21 +36,29 @@ python manage.py check_db_structure --detailed
 
 
 +++ Migrations++
-#If you manually add tables that have Django models: Check migration status:
-python manage.py showmigrations app_name
-#If migrations exist but table is already created, fake the migration:
 
-# Find the migration number that creates the tablepython manage.py showmigrations app_post_matric# Fake it (tell Django "this is already done")
+# If you manually add tables that have Django models: Check migration status:
+python manage.py showmigrations app_name
+# If migrations exist but table is already created, fake the migration:
+# Find the migration number that creates the table
+python manage.py showmigrations app_post_matric
+# Fake it (tell Django "this is already done")
 python manage.py migrate app_post_matric 0001_initial --fake
 # Create the migration
 python manage.py makemigrations app_name
-
-# Fake it since table already exists
-# Create the migration
-python manage.py makemigrations app_name
-
 # Fake it since table already exists
 python manage.py migrate app_name --fake
+
+--- Safe schema migrations (idempotent: table/column exists or not) ---
+# Location: core/safe_schema_utils.py
+# Migration: core/migrations/0021_safe_ensure_schema.py
+# Behaviour: Creates tables/columns only if they do not exist. Safe to run on production
+# and when some migrations were skipped or DB was partially created.
+python manage.py migrate
+
+# Run safe-schema tests (no actual migration, no DB required; uses mocks):
+python manage.py test core.test_safe_schema
+python manage.py test core.test_safe_schema -v 2
 
 
 ===================================================
@@ -78,6 +86,20 @@ python scripts/verify_class12_st
 ** testing script end ***
 
 
+=== Career Battle (React game) ===
+# The game is served at /career-battle/ on the Django site (e.g. http://localhost:8002/career-battle). Build outputs to static/game/.
+# Local: build once, then run Django on port 8002 (or your main port).
+cd react-game/react-game
+npm install
+npm run build
+cd ../..
+python manage.py runserver 8002
+# Open http://localhost:8002/career-battle
+
+# Production: after building, run collectstatic so staticfiles/game/ is deployed.
+cd react-game/react-game && npm run build && cd ../..
+python manage.py collectstatic --noinput
+# Deploy; ensure your server serves /static/ from STATIC_ROOT and /career-battle/ is handled by Django.
 
 
 python3 scripts/convert_docx_to_html.py

@@ -1,0 +1,240 @@
+{
+  "questions": [
+    {
+      "title": "Question 1: Information Attraction",
+      "text": "What type of information naturally captures your attention?",
+      "options": {
+        "A": "Data, statistics, research findings, and factual analysis",
+        "B": "How things work, technical processes, and systematic explanations",
+        "C": "People's stories, experiences, and interpersonal dynamics",
+        "D": "New trends, creative concepts, and innovative possibilities"
+      }
+    },
+    {
+      "title": "Question 2: Reading Preferences",
+      "text": "When choosing something to read, you're naturally drawn to:",
+      "options": {
+        "A": "Research reports, analytical articles, and evidence-based content",
+        "B": "Technical manuals, how-to guides, and detailed explanations",
+        "C": "Biographies, human interest stories, and relationship-focused content",
+        "D": "Creative works, futuristic concepts, and imaginative possibilities"
+      }
+    },
+    {
+      "title": "Question 3: Conversation Engagement",
+      "text": "You become most engaged in conversations about:",
+      "options": {
+        "A": "Facts, theories, and logical analysis of complex topics",
+        "B": "Practical solutions, methods, and how to accomplish things",
+        "C": "Personal experiences, relationships, and human emotions",
+        "D": "Ideas, possibilities, and creative or innovative concepts"
+      }
+    },
+    {
+      "title": "Question 4: Learning Curiosity",
+      "text": "You're most curious to learn about:",
+      "options": {
+        "A": "Why things happen and what evidence supports different conclusions",
+        "B": "How systems function and what makes processes work effectively",
+        "C": "What motivates people and how relationships develop and change",
+        "D": "What's possible in the future and how new ideas might be applied"
+      }
+    },
+    {
+      "title": "Question 5: Problem Interest",
+      "text": "You're naturally drawn to problems involving:",
+      "options": {
+        "A": "Research, investigation, and finding truth through analysis",
+        "B": "Troubleshooting, optimization, and making things work better",
+        "C": "Understanding people, resolving conflicts, and improving relationships",
+        "D": "Innovation, creativity, and discovering new approaches"
+      }
+    },
+    {
+      "title": "Question 6: Documentary Preferences",
+      "text": "You'd be most interested in watching documentaries about:",
+      "options": {
+        "A": "Scientific discoveries, historical analysis, or investigative journalism",
+        "B": "Engineering marvels, manufacturing processes, or skill development",
+        "C": "Human stories, cultural studies, or social dynamics",
+        "D": "Artistic movements, future technologies, or creative innovations"
+      }
+    },
+    {
+      "title": "Question 7: Curiosity Triggers",
+      "text": "Your curiosity is most triggered by:",
+      "options": {
+        "A": "Questions that can be answered through research and logical analysis",
+        "B": "Challenges that require figuring out practical solutions and methods",
+        "C": "Situations involving human behavior, emotions, and relationships",
+        "D": "Opportunities to explore new ideas and creative possibilities"
+      }
+    },
+    {
+      "title": "Question 8: Information Processing",
+      "text": "When encountering new information, you're most interested in:",
+      "options": {
+        "A": "Evaluating its accuracy, sources, and logical consistency",
+        "B": "Understanding its practical applications and implementation",
+        "C": "Considering its impact on people and relationships",
+        "D": "Exploring its creative potential and future possibilities"
+      }
+    },
+    {
+      "title": "Question 9: Hobby Attractions",
+      "text": "Your hobbies and interests tend to involve:",
+      "options": {
+        "A": "Research, analysis, collecting data, or studying complex subjects",
+        "B": "Building, fixing, crafting, or developing practical skills",
+        "C": "Social activities, helping others, or understanding human nature",
+        "D": "Creative expression, exploring new experiences, or innovative projects"
+      }
+    },
+    {
+      "title": "Question 10: Question Types",
+      "text": "You're most likely to ask questions like:",
+      "options": {
+        "A": "\"What does the research show?\" or \"What's the evidence for this?\"",
+        "B": "\"How does this work?\" or \"What's the best way to do this?\"",
+        "C": "\"How do people feel about this?\" or \"What's the impact on relationships?\"",
+        "D": "\"What if we tried something different?\" or \"What possibilities does this open up?\""
+      }
+    },
+    {
+      "title": "Question 11: News Interest",
+      "text": "In news and current events, you're most drawn to:",
+      "options": {
+        "A": "In-depth analysis, investigative reporting, and fact-checking",
+        "B": "Practical implications, policy details, and implementation strategies",
+        "C": "Human interest stories, social impact, and community effects",
+        "D": "Emerging trends, innovative solutions, and future implications"
+      }
+    },
+    {
+      "title": "Question 12: Museum Preferences",
+      "text": "At a museum, you'd spend most time in sections about:",
+      "options": {
+        "A": "Historical research, scientific discoveries, or analytical exhibits",
+        "B": "Technology, engineering, or demonstrations of how things work",
+        "C": "Cultural artifacts, human stories, or social history",
+        "D": "Art, design, or exhibits about innovation and creativity"
+      }
+    },
+    {
+      "title": "Question 13: Online Browsing",
+      "text": "When browsing online, you're most likely to click on:",
+      "options": {
+        "A": "Research articles, analytical pieces, or fact-based content",
+        "B": "How-to guides, tutorials, or practical advice articles",
+        "C": "Personal stories, social content, or relationship advice",
+        "D": "Creative content, trend articles, or innovative ideas"
+      }
+    },
+    {
+      "title": "Question 14: Expertise Development",
+      "text": "You're most motivated to develop expertise in areas that involve:",
+      "options": {
+        "A": "Research methods, analytical thinking, or evidence evaluation",
+        "B": "Technical skills, practical applications, or systematic processes",
+        "C": "Understanding people, communication, or relationship building",
+        "D": "Creative thinking, innovation, or exploring new possibilities"
+      }
+    },
+    {
+      "title": "Question 15: Discussion Preferences",
+      "text": "In group discussions, you're most engaged when talking about:",
+      "options": {
+        "A": "Facts, research findings, and logical analysis of issues",
+        "B": "Practical solutions, implementation strategies, and methods",
+        "C": "Personal experiences, human impact, and relationship dynamics",
+        "D": "New ideas, creative approaches, and future possibilities"
+      }
+    },
+    {
+      "title": "Question 16: Information Seeking",
+      "text": "When you need to understand something new, you first look for:",
+      "options": {
+        "A": "Research studies, expert analysis, and evidence-based explanations",
+        "B": "Step-by-step guides, practical examples, and how-to information",
+        "C": "Personal testimonials, case studies, and human experiences",
+        "D": "Creative examples, innovative approaches, and possibility thinking"
+      }
+    },
+    {
+      "title": "Question 17: Workplace Interest",
+      "text": "At work, you're most interested in projects involving:",
+      "options": {
+        "A": "Data analysis, research, or investigating complex questions",
+        "B": "Process improvement, system optimization, or practical problem-solving",
+        "C": "Team development, stakeholder engagement, or people-focused initiatives",
+        "D": "Innovation, creative problem-solving, or exploring new approaches"
+      }
+    },
+    {
+      "title": "Question 18: Learning Style",
+      "text": "You learn best when information is presented through:",
+      "options": {
+        "A": "Research findings, logical arguments, and analytical frameworks",
+        "B": "Practical examples, demonstrations, and step-by-step processes",
+        "C": "Stories, case studies, and human examples",
+        "D": "Creative metaphors, visual concepts, and imaginative scenarios"
+      }
+    },
+    {
+      "title": "Question 19: Attention Span",
+      "text": "You can maintain attention longest when content involves:",
+      "options": {
+        "A": "Deep analysis, research exploration, or logical investigation",
+        "B": "Practical application, skill development, or systematic learning",
+        "C": "Human stories, interpersonal dynamics, or social situations",
+        "D": "Creative possibilities, innovative concepts, or imaginative scenarios"
+      }
+    },
+    {
+      "title": "Question 20: Intellectual Stimulation",
+      "text": "You feel most intellectually stimulated by:",
+      "options": {
+        "A": "Analyzing complex data and drawing evidence-based conclusions",
+        "B": "Understanding how systems work and optimizing their performance",
+        "C": "Exploring human behavior and improving interpersonal relationships",
+        "D": "Imagining new possibilities and creating innovative solutions"
+      }
+    }
+  ],
+  "profiles": {
+    "A": {
+      "name": "Analytical & Research-Focused",
+      "summary": "You are drawn to data, facts, research, and logical analysis. You want to understand evidence and how conclusions are reached.",
+      "scoring_heading": "15–20 A's: Strong Analytical Interest",
+      "scoring_bullets": [
+        "Data & research curiosity. Evidence, proof, logical investigation; thrives with research databases, systematic analysis, and evidence-based content."
+      ]
+    },
+    "B": {
+      "name": "Practical & Systems-Focused",
+      "summary": "You are interested in how things work, technical details, and practical applications. You like solving real problems.",
+      "scoring_heading": "15–20 B's: Strong Technical Interest",
+      "scoring_bullets": [
+        "Systems & process curiosity. How things work, practical application, skill development; thrives with hands-on learning and technical problem-solving."
+      ]
+    },
+    "C": {
+      "name": "People & Experience-Focused",
+      "summary": "You are curious about people, stories, and human experience. You engage with ideas through conversation and narrative.",
+      "scoring_heading": "15–20 C's: Strong People Interest",
+      "scoring_bullets": [
+        "Human & social curiosity. Human behavior, relationship dynamics, social impact; thrives with stories, collaboration, and understanding people."
+      ]
+    },
+    "D": {
+      "name": "Creative & Big-Picture Focused",
+      "summary": "You are drawn to creative expression, trends, and broader implications. You like connecting ideas and seeing the bigger picture.",
+      "scoring_heading": "15–20 D's: Strong Creative Interest",
+      "scoring_bullets": [
+        "Innovation & possibility curiosity. New ideas, creative solutions, future orientation; thrives with creative expression and exploring possibilities."
+      ]
+    }
+  },
+  "scoring_intro": "Step 1: Count your responses for each letter: A (Analytical Interest), B (Technical Interest), C (People Interest), D (Creative Interest). Step 2: Determine your interest driver pattern from the ranges below..",
+  "mixed_results": "Dual Interest Driver: 8–12 in two categories (e.g. A+B Research Engineer, C+D Social Innovator). Balanced: 6–10 across three or more = combination pattern. Multi-Domain Curiosity: 5–8 in each = balanced across all four. See combination profiles below."
+}

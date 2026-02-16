@@ -10,6 +10,7 @@ from ckeditor.fields import RichTextField
 from django.utils.text import slugify
 from django.core.validators import MaxLengthValidator
 from django.urls import reverse
+from django.conf import settings
 import datetime
 # Create your models here.
 
@@ -195,17 +196,48 @@ def review_image_directory(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     return 'upload/core/review/image/{0}'.format(filename)
 
-class Review(BaseModel,PublishableModel):
+class Review(BaseModel, PublishableModel):
+    """Student testimonial / success story shown on the home page."""
     name = models.CharField(max_length=100)
-    image = models.ImageField(upload_to=review_image_directory)
-    description = models.TextField()
-    profession= models.CharField(max_length=100)
+    image = models.ImageField(upload_to=review_image_directory, null=True, blank=True)
+    image_s3_url = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="S3 URL for testimonial photo (auto-set when uploading image in admin)."
+    )
+    quote = models.CharField(
+        max_length=300,
+        blank=True,
+        null=True,
+        help_text="Short quote or headline shown above the full testimonial (avoids repeating the start of description)."
+    )
+    description = models.TextField(
+        help_text="Full testimonial text shown below the quote."
+    )
+    profession = models.CharField(max_length=100)
+    priority = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Display order on home page (1 = first). Lower number = higher position."
+    )
+
+    class Meta:
+        verbose_name = "Student testimonial"
+        verbose_name_plural = "Student testimonials"
+        ordering = ["priority", "created"]
 
     def get_image_url(self):
-        """Get image URL with default fallback"""
+        """Get image URL: S3 URL if set, else local image, else default placeholder."""
+        if self.image_s3_url:
+            return self.image_s3_url
         if self.image and self.image.name:
             return self.image.url
-        return '/static/images/review-default.png'  # Default review image
+        return "/static/images/review-default.png"
+
+    @property
+    def display_image_url(self):
+        """For templates: single URL to use for the testimonial photo."""
+        return self.get_image_url()
 
     @classmethod
     def get_all_reviews(cls):
@@ -216,7 +248,9 @@ class Review(BaseModel,PublishableModel):
 
     @classmethod
     def get_published_objects(cls):
-        return Review.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)
+        return Review.objects.filter(
+            publish_status=choices.PublishStatus.PUBLISHED
+        ).order_by("priority", "created")
 
 class CommonFAQ(BaseModel):
     question = models.CharField(max_length=300,null=True)
@@ -549,3 +583,178 @@ class S3FileUpload(BaseModel):
                 return f"{size:.2f} {unit}"
             size /= 1024.0
         return f"{size:.2f} TB"
+
+
+class FourPillarsAssessmentResult(models.Model):
+    """Stores the latest assessment result per user per pillar (one row per user per pillar_slug)."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="four_pillars_assessment_results",
+    )
+    pillar_slug = models.CharField(max_length=64, db_index=True)
+    answers = models.JSONField(help_text="Question index -> choice, e.g. {\"0\": \"A\", \"1\": \"B\"}")
+    primary_style = models.CharField(max_length=1)
+    counts = models.JSONField(help_text="{\"A\": n, \"B\": n, \"C\": n, \"D\": n}")
+    profile_name = models.CharField(max_length=255)
+    profile_summary = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "pillar_slug"], name="unique_user_pillar_four_pillars"),
+        ]
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return f"{self.user_id} – {self.pillar_slug} ({self.primary_style})"
+
+
+class MIAssessmentResult(models.Model):
+    """Stores Multiple Intelligences (Learning Style) assessment result per user. One row per attempt."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="mi_assessment_results",
+    )
+    answers = models.JSONField(help_text="Question index (0–59) -> choice: A/B/C/D")
+    counts = models.JSONField(help_text="{\"A\": n, \"B\": n, \"C\": n, \"D\": n}")
+    primary_style = models.CharField(max_length=1)
+    style_name = models.CharField(max_length=255)
+    style_summary = models.TextField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        verbose_name = "MI Assessment Result"
+        verbose_name_plural = "MI Assessment Results"
+
+    def __str__(self):
+        return f"{self.user_id} – MI ({self.primary_style}) @ {self.updated_at}"
+
+
+class EQAssessmentResult(models.Model):
+    """Stores Emotional Intelligence assessment result per user. One row per attempt."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="eq_assessment_results",
+    )
+    responses = models.JSONField(help_text="Q1–Q36 -> 1–5")
+    subscale_scores = models.JSONField(help_text="SA, SC, EM, CR, SM, AC")
+    weighted = models.JSONField(blank=True, null=True)
+    ei_total = models.FloatField()
+    pbi = models.FloatField()
+    intrapersonal_eq = models.FloatField()
+    interpersonal_eq = models.FloatField()
+    adaptive_eq = models.FloatField()
+    band_label = models.CharField(max_length=128)
+    created = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        verbose_name = "EQ Assessment Result"
+        verbose_name_plural = "EQ Assessment Results"
+
+    def __str__(self):
+        return f"{self.user_id} – EQ ({self.ei_total:.1f}) @ {self.updated_at}"
+
+
+class FourPillarsAssessment(models.Model):
+    """Definition of a Four Pillars assessment (questions, scoring, profiles). Editable from admin."""
+    slug = models.SlugField(max_length=64, unique=True, help_text="URL slug, e.g. engagement-patterns")
+    title = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=512, blank=True)
+    scoring_intro = RichTextField(
+        blank=True,
+        help_text="Intro text for the Scoring Guide (e.g. How to Calculate Your Score). Use the editor for formatting.",
+    )
+    mixed_results = RichTextField(
+        blank=True,
+        help_text="Text for dual/balanced/multi-modal patterns (mixed results note). Use the editor for formatting.",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="If True, assessment content is loaded from DB. If False, falls back to JSON file.",
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["slug"]
+
+    def __str__(self):
+        return f"{self.title} ({self.slug})"
+
+
+class FourPillarsAssessmentScoringGuide(FourPillarsAssessment):
+    """Proxy model: edit only the Scoring Guide section (intro + mixed results) separately in admin."""
+    class Meta:
+        proxy = True
+        verbose_name = "Four Pillars Scoring Guide"
+        verbose_name_plural = "Four Pillars Scoring Guides"
+
+
+class FourPillarsAssessmentQuestion(models.Model):
+    """A single question in a Four Pillars assessment."""
+    assessment = models.ForeignKey(
+        FourPillarsAssessment,
+        on_delete=models.CASCADE,
+        related_name="questions",
+    )
+    order = models.PositiveIntegerField(default=0, help_text="Display order (0-based).")
+    title = models.CharField(max_length=255, help_text="e.g. Question 1: Energy Source")
+    text = models.TextField(help_text="Question text shown to the user.")
+
+    class Meta:
+        ordering = ["assessment", "order"]
+        unique_together = [["assessment", "order"]]
+
+    def __str__(self):
+        return f"{self.assessment.slug} – {self.title}"
+
+
+class FourPillarsAssessmentQuestionOption(models.Model):
+    """One option (A/B/C/D) for a question."""
+    question = models.ForeignKey(
+        FourPillarsAssessmentQuestion,
+        on_delete=models.CASCADE,
+        related_name="options",
+    )
+    option_key = models.CharField(max_length=1, choices=[("A", "A"), ("B", "B"), ("C", "C"), ("D", "D")])
+    text = models.TextField()
+
+    class Meta:
+        ordering = ["question", "option_key"]
+        unique_together = [["question", "option_key"]]
+
+    def __str__(self):
+        return f"{self.question.title} – {self.option_key}"
+
+
+class FourPillarsAssessmentProfile(models.Model):
+    """Scoring profile (A/B/C/D) for an assessment – name, summary, scoring heading and bullets."""
+    assessment = models.ForeignKey(
+        FourPillarsAssessment,
+        on_delete=models.CASCADE,
+        related_name="profiles",
+    )
+    option_key = models.CharField(max_length=1, choices=[("A", "A"), ("B", "B"), ("C", "C"), ("D", "D")])
+    name = models.CharField(max_length=255, help_text="Short profile name, e.g. Goal-Oriented Achiever")
+    summary = RichTextField(blank=True, help_text="Profile summary. Use the editor for formatting.")
+    scoring_heading = RichTextField(blank=True, help_text="Heading for the Scoring Guide card. Use the editor for formatting.")
+    scoring_bullets = models.JSONField(
+        default=list,
+        help_text="List of bullet strings for the Scoring Guide card.",
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["assessment", "option_key"]
+        unique_together = [["assessment", "option_key"]]
+
+    def __str__(self):
+        return f"{self.assessment.slug} – {self.option_key} ({self.name})"

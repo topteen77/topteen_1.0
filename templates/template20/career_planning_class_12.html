@@ -1,0 +1,125 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Year 4 – Class 12: Board Mastery & Career Launchpad | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Class 12 career planning: board excellence, entrance exams, college applications, life-ready skills. Part of the Four-Year Success Plan.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+<style>
+.gradient-bg { background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%); }
+.fs-60{font-size: 60px;}
+.four-year-section { padding: 48px 0; }
+.focus-point { background: #f6f6ff; border-radius: 7px; padding: 13px; }
+.focus-point p { margin-bottom: 0; }
+.implementation-tips .tip-card { border-radius: 12px; padding: 18px; background: linear-gradient(180deg,#ffffff,#fbfbff); box-shadow: 0 10px 30px rgba(15,23,42,0.06); height: 100%; }
+.tip-icon { min-width:46px; min-height:46px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; margin-right:12px; background:linear-gradient(90deg,#22c55e,#16a34a); color:#fff; font-size:20px; }
+.custom-bullet-list { list-style-type: none; padding-left: 0; }
+.custom-bullet-list li { position: relative; padding-left: 25px; margin-bottom: 15px; }
+.custom-bullet-list li::before { content: ""; position: absolute; left: 0; top: 5px; width: 18px; height: 18px; background: linear-gradient(135deg, #7755EE, #3F37C9); border-radius: 50%; }
+.moritoring-img { position: sticky; top: 65px; }
+</style>
+
+<main class="py-test-page">
+  <section class="hero-section-inner pt-md-18 pt-14 pb-5 gradient-bg">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
+        <div class="col-lg-6 col-md-12">
+          <span class="highlighter"><img src="{{ static('images_new/icons/d-future-icon.svg') }}" alt="icon" /> Year 4</span>
+          <h1 class="heading-title fs-60">Class 12 <p class="lh-sm fs-sm-20">Board <span class="text-yellow">Mastery &amp; Career</span> Launchpad</p></h1>
+          <p class="text-gray fs-16"><strong class="text-purple">Focus:</strong> The capstone year where students achieve academic excellence in board exams, master competitive exam strategies, finalize college/career pathways, refine professional and life skills, ensure emotional resilience, contribute to community and sustainability, and transition confidently to higher education, vocational paths, or alternative journeys with a global and future-ready mindset.</p>
+        </div>
+        <div class="col-lg-6 col-md-12">
+          <div class="right-banner d-md-flex d-none justify-content-end">
+            <img class="img-fluid" src="{{ static('images_new/careers/career-planning-banner.svg') }}" alt="Class 12" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="four-year-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-9 mx-auto custom-faq">
+          <h2 class="fs-28 fw-700 text-center mb-4">Board Mastery &amp; Career Launchpad <span class="text-purple">Class 12</span></h2>
+          {% include 'template20/career_planning/class_12_table.html' %}
+          <h3 class="fs-26 fw-700 mt-5">Expected Outcomes by End of <span class="text-purple">Class 12</span> (Enhanced)</h3>
+          <p class="text-gray">Purpose: Create a clear, actionable evidence base to track expected outcomes, guide instruction, and inform parents/stakeholders.</p>
+          <ul class="custom-bullet-list">
+            <li><strong>Board Excellence:</strong> Achieve ≥90% in theory and ≥95% in practicals, with a zero "silly-error" pledge log, demonstrated through top performance in pre-boards, mocks, and final exams, ensuring a strong academic transcript for college applications.</li>
+            <li><strong>Entrance-Exam Edge:</strong> Secure personal best mock ranks (top percentile in All-India tests), develop micro-timing strategy cards, create an "A-zone" question list for prioritized focus, and build confidence for competitive exams (JEE, NEET, CLAT, etc.) through consistent practice and analytics-driven improvement.</li>
+            <li><strong>Confirmed Pathway:</strong> Obtain offer letter/admit ID for college or vocational program, finalize a backup plan PDF (with multiple fallback options), and prepare a detailed gap-year binder if chosen, with clear post-school direction supported by counselor and family input.</li>
+            <li><strong>Professional Portfolio:</strong> Build a dynamic digital résumé site (interactive with HTML/CSS elements), pass a LinkedIn audit (optimized profile + 50 connections + professional posts), earn skill certificates (e.g., Excel, Python, Google Analytics, communication) for higher education or job readiness, and showcase capstone projects for credibility.</li>
+            <li><strong>Well-Being Habit:</strong> Establish a 3-step stress routine (e.g., breathing, grounding, journaling), identify a peer-support buddy and counselor contact for emergencies, participate in post-exam debrief sessions, and adopt lifelong wellness practices (e.g., sleep hygiene, mindful tech use) to maintain emotional balance.</li>
+            <li><strong>Leadership &amp; Civic Legacy:</strong> Leave a lasting mark through club leadership (e.g., new initiatives launched), event organization (e.g., record-breaking fest attendance), and community service projects with measurable impact (e.g., 100+ beneficiaries), showcasing responsibility, teamwork, and social commitment in final school contributions.</li>
+            <li><strong>Global &amp; Sustainable Mindset:</strong> Demonstrate deep awareness of global issues (e.g., climate change, human rights) and sustainability through curriculum-integrated projects, campaigns (e.g., school-wide green challenges), or international engagements (e.g., virtual exchanges), preparing for a future as a responsible global citizen and eco-advocate.</li>
+            <li><strong>Life Skills &amp; Transition Readiness:</strong> Acquire practical life skills (e.g., budgeting, basic cooking, professional etiquette) through workshops and toolkits, ensuring confidence for independent living in college or work environments, supported by alumni networks for ongoing guidance.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="implementation-tips bg-light py-md-8 py-5">
+    <div class="container">
+      <div class="row"><div class="col-md-8 mx-auto text-center mb-4"><h3 class="fs-26 fw-700">Implementation Tips for <span class="text-purple">Class 12</span> (Year 4 – Enhanced)</h3><p class="text-gray">Practical, high-impact recommendations to bring the four-year plan to life.</p></div></div>
+      <div class="row g-4">
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#3b82f6,#1e40af)"><i class='bx bx-slider'></i></div><div><h5 class="fs-16 mb-1">Intensive Academic Schedule with Flexibility</h5><p class="text-gray fs-14 mb-0">Allocate time for board revision (50%), competitive exam prep (30%), application processes (10%), and well-being/extracurriculars (10%), with weekly adjustments based on mock performance, application deadlines, and stress indicators, including buffer time for unexpected challenges or deeper exploration.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#ef4444,#991b1b)"><i class='bx bx-network-chart'></i></div><div><h5 class="fs-16 mb-1">Mentor &amp; Counselor Support Network</h5><p class="text-gray fs-14 mb-0">Provide dedicated board exam mentors, competitive exam coaches, career counselors, and emotional well-being advisors with bi-weekly check-ins (in-person or virtual) to address academic gaps, application stress, emotional challenges, and last-minute pathway doubts, supplemented by alumni mentors for real-world insights.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#8b5cf6,#5b21b6)"><i class='bx bx-user-circle'></i></div><div><h5 class="fs-16 mb-1">Parent Engagement &amp; Transition Support</h5><p class="text-gray fs-14 mb-0">Conduct monthly parent-student-counselor meetings to align on final career decisions, financial planning (e.g., scholarship strategies, loan options), and emotional support during high-pressure periods, supplemented by webinars on college transitions, abroad studies, and parenting through change.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#06b6d4,#164e63)"><i class='bx bx-chip'></i></div><div><h5 class="fs-16 mb-1">Technology Integration for Efficiency</h5><p class="text-gray fs-14 mb-0">Leverage digital platforms for revision (e.g., Anki, Quizlet for flashcards), mock exams (e.g., Testbook, Unacademy for adaptive testing), application tracking (e.g., Notion, Trello for deadlines), virtual counseling (e.g., Zoom therapy slots), and VR/AR tools (e.g., campus tours, lab simulations) to enhance accessibility, engagement, and futuristic learning.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#f59e0b,#92400e)"><i class='bx bx-analyse'></i></div><div><h5 class="fs-16 mb-1">Mock Exam Simulations &amp; Real-Time Analytics</h5><p class="text-gray fs-14 mb-0">Organize bi-weekly full-length board and entrance exams under realistic conditions (e.g., timed, proctored settings), with detailed post-test feedback via digital dashboards (topic-wise error heatmaps, percentile trends) to refine strategies, reduce anxiety, build endurance, and predict final performance.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#ec4899,#9f1239)"><i class='bx bx-donate-heart'></i></div><div><h5 class="fs-16 mb-1">Well-Being Priority with Proactive Measures</h5><p class="text-gray fs-14 mb-0">Establish stress-relief zones (quiet rooms with calming activities, pet therapy if feasible), mindfulness sessions (daily 10-min guided meditations), counselor drop-in hours (physical and virtual), peer support circles, digital detox challenges, and emergency mental health protocols to manage peak exam stress and prevent burnout.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#10b981,#065f46)"><i class='bx bx-low-vision'></i></div><div><h5 class="fs-16 mb-1">Inclusivity Measures for Equitable Success</h5><p class="text-gray fs-14 mb-0">Offer adaptive resources (e.g., audio notes, braille materials for visually impaired students, extra time for exams), tailored support for diverse learners (e.g., multilingual revision guides, dyslexia-friendly formats), and cultural sensitivity training for staff to ensure equitable success in board and entrance exams across all student backgrounds.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#312e81)"><i class='bx bx-map-alt'></i></div><div><h5 class="fs-16 mb-1">Career Finalization Framework with Global Lens</h5><p class="text-gray fs-14 mb-0">Integrate mock results, psychometric data, counselor guidance, parental input, and global career trends (e.g., demand for AI skills, green jobs) to finalize college/vocational choices, with workshops on SOPs, interviews, scholarship applications, and international education pathways (e.g., navigating US/UK visa processes).</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#14b8a6,#134e4a)"><i class='bx bx-laptop'></i></div><div><h5 class="fs-16 mb-1">Skill Application &amp; Real-World Relevance</h5><p class="text-gray fs-14 mb-0">Encourage final projects (e.g., business pitches, tech apps, social impact campaigns) and digital portfolios (e.g., GitHub for coders, Behance for artists) to showcase skills for college admissions or internships, ensuring practical readiness for post-school life through industry feedback and community application.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#0ea5e9,#0c4a6e)"><i class='bx bx-brain'></i></div><div><h5 class="fs-16 mb-1">Progress Monitoring with AI Insights</h5><p class="text-gray fs-14 mb-0">Use digital dashboards (e.g., school LMS, Google Classroom) to track board prep, mock scores, application statuses, skill development, and well-being indicators, integrating AI-driven insights (e.g., predictive performance models, stress pattern alerts) for real-time feedback and early intervention.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#f97316,#9a3412)"><i class='bx bx-chalkboard'></i></div><div><h5 class="fs-16 mb-1">Teacher Training for Holistic Support</h5><p class="text-gray fs-14 mb-0">Equip educators with board exam marking schemes, competitive exam trends (updated yearly), stress management techniques for students, inclusive teaching strategies (e.g., UDL principles), and technology integration (e.g., AI tools, virtual labs) to support students holistically and adapt to diverse needs in their final year.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#84cc16,#365314)"><i class='bx bx-star'></i></div><div><h5 class="fs-16 mb-1">Recognition &amp; Motivation for Sustained Effort</h5><p class="text-gray fs-14 mb-0">Celebrate achievements (e.g., top mock scores, completed applications, community impact, competition wins) through monthly awards, graduation events, digital shout-outs on school platforms, and personalized letters of appreciation to boost morale in a high-pressure year.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#22c55e,#14532d)"><i class='bx bx-planet'></i></div><div><h5 class="fs-16 mb-1">Sustainability Legacy as a Graduation Mark</h5><p class="text-gray fs-14 mb-0">Encourage final-year green projects (e.g., school-wide energy audits with IoT data, sustainability podcasts or documentaries) to leave an eco-conscious legacy, integrating environmental responsibility into student contributions through partnerships with green NGOs or local authorities.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#a855f7,#581c87)"><i class='bx bx-unite'></i></div><div><h5 class="fs-16 mb-1">Community Partnerships for Lasting Impact</h5><p class="text-gray fs-14 mb-0">Strengthen ties with local businesses, NGOs, environmental groups, hospitals, cultural organizations, and universities for last-minute internships, mentorships, college fairs, or collaborative projects (e.g., health drives, heritage preservation) to bridge the gap between school and post-school pathways.</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#f43f5e,#881337)"><i class='bx bxs-graduation'></i></div><div><h5 class="fs-16 mb-1">Student Empowerment &amp; Voice in Final Year</h5><p class="text-gray fs-14 mb-0">Form a Class 12 Student Committee to voice concerns on exam prep, career guidance, mental health support, and graduation events, empowering students to co-create their final school experience collaboratively and propose legacy initiatives (e.g., time capsules, alumni funds).</p></div></div></div></div>
+        <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#06b6d4,#083344)"><i class='bx bx-send'></i></div><div><h5 class="fs-16 mb-1">Post-Graduation Transition Plan with Lifelong Focus</h5><p class="text-gray fs-14 mb-0">Develop a summer roadmap post-Class 12 with pre-college courses (e.g., academic writing MOOCs), internships (e.g., virtual roles via Internshala), skill certifications (e.g., digital marketing, coding), travel/volunteering plans, and a lifelong learning framework (e.g., reading lists, learning apps) to ensure a smooth transition and sustained growth.</p></div></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="monitoring-section py-md-8 py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6"><div class="moritoring-img"><img src="{{ static('images_new/careers/career-planning-banner-2.svg') }}" alt="Monitoring" class="img-fluid" /></div></div>
+        <div class="col-md-6 d-flex flex-column justify-content-center">
+          <h3 class="fs-26 fw-700 mb-5">Monitoring &amp; Evaluation for <span class="text-purple">Class 12</span> (Enhanced)</h3>
+          <ul class="custom-bullet-list">
+            <li><strong>Student Feedback with Depth:</strong> Conduct monthly surveys (anonymous options for mental health and stress topics) to gauge satisfaction with board prep, career guidance, skill-building, well-being support, and transition readiness, using qualitative insights (open-ended responses) and quantitative data (ratings) for real-time adjustments and personalized interventions.</li>
+            <li><strong>Progress Reports with Granularity:</strong> Share detailed monthly reports with parents on board readiness (subject-wise trends), mock exam analytics (error patterns, percentile growth), application progress (submitted vs. pending), emotional health (stress indicators), extracurricular impact, and final pathway plans, with actionable, data-driven recommendations for family support.</li>
+            <li><strong>Outcome Tracking with Multi-Dimensional Metrics:</strong> Measure success via board exam results (percentage, distinctions), entrance exam ranks (All-India percentiles), college admission offers (acceptance rates, scholarship awards), skill certificate completions (number and relevance), community service impact (hours served, outcomes achieved), and qualitative feedback on confidence, resilience, and life readiness through exit interviews or reflection essays.</li>
+            <li><strong>Continuous Improvement with Stakeholder Input:</strong> Host quarterly review meetings with stakeholders (teachers, counselors, parents, students, alumni) to assess plan effectiveness, address exam stress peaks (e.g., pre-board anxiety), incorporate last-minute updates (e.g., new exam patterns, policy changes like NEP 2020), and brainstorm innovative additions (e.g., VR career simulations).</li>
+            <li><strong>Well-Being Indicators with Proactive Alerts:</strong> Monitor stress levels through counselor interactions, journaling reflections (tracked for mood trends), peer feedback, anonymous surveys, and wearable tech (if feasible, e.g., stress monitoring via smartwatches), ensuring early intervention for burnout or anxiety during critical board and entrance exam phases with tailored support plans.</li>
+            <li><strong>Skill &amp; Portfolio Assessment for Future Readiness:</strong> Evaluate readiness for post-school life through final project outcomes (e.g., business plans rated by industry mentors), digital portfolio reviews (e.g., GitHub stars, Behance views), LinkedIn profile strength (connection quality, engagement metrics), and feedback on leadership, communication, and innovation skills in real-world contexts (e.g., internship supervisor reports).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-3">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <a href="{{ url('core:career_planning_class_11') }}" class="btn btn-outline-secondary me-2">← Class 11</a>
+          <a href="{{ url('core:career_planning') }}" class="btn custom-button purple-button me-2">Career Planning Hub</a>
+          <a href="{{ url('core:career_planning_4_year') }}" class="btn custom-button blue-button me-2">4 Year Course Plan</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

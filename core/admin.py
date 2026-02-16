@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
-from django.utils.html import format_html
+from django.utils.html import format_html, strip_tags
 from django.urls import path, reverse
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -23,6 +23,13 @@ from .models import (
     VocationalCourse,
     Ebook,
     S3FileUpload,
+    FourPillarsAssessment,
+    FourPillarsAssessmentScoringGuide,
+    FourPillarsAssessmentQuestion,
+    FourPillarsAssessmentQuestionOption,
+    FourPillarsAssessmentProfile,
+    MIAssessmentResult,
+    EQAssessmentResult,
 )
 # Register your models here.
 
@@ -179,11 +186,109 @@ admin.site.register(City,CityAdmin)
 admin.site.register(State,StateAdmin)
 admin.site.register(Country,CountryAdmin)
 admin.site.register(Lead,LeadAdmin)
-admin.site.register(Review)
+
+
+class ReviewAdmin(admin.ModelAdmin):
+    """Admin CRUD for student testimonials (home page success stories). Images upload to S3 media bucket."""
+    list_display = ("id", "name", "profession", "priority", "publish_status", "image_thumbnail", "object_status", "created")
+    list_filter = ("publish_status", "object_status", "created")
+    search_fields = ("name", "profession", "description")
+    list_editable = ("priority", "publish_status")
+    ordering = ("priority", "created")
+    list_display_links = ("id", "name")
+    S3_MEDIA_FOLDER = "media/student-testimonials"
+    fieldsets = (
+        (None, {
+            "fields": ("name", "profession", "quote", "description", "image", "image_s3_url", "priority", "publish_status", "object_status"),
+            "description": "Student testimonial shown in the “Your Success Is Our Story” section. Quote = short headline (no repetition with description). Upload an image to store it in the S3 media bucket (folder: media/student-testimonials).",
+        }),
+        ("Timestamps", {
+            "fields": ("created", "modified"),
+            "classes": ("collapse",),
+        }),
+    )
+    readonly_fields = ("created", "modified", "image_s3_url")
+
+    def get_queryset(self, request):
+        """Show all testimonials in admin (including inactive/soft-deleted)."""
+        return self.model.objects.complete()
+
+    def image_thumbnail(self, obj):
+        url = obj.get_image_url()
+        if url and url != "/static/images/review-default.png":
+            return format_html(
+                '<img src="{}" style="max-width: 50px; max-height: 50px; object-fit: cover; border-radius: 4px;" />',
+                url,
+            )
+        return "—"
+    image_thumbnail.short_description = "Photo"
+
+    def save_model(self, request, obj, form, change):
+        """Upload testimonial image to S3 media bucket; store URL in image_s3_url."""
+        from django.core.files.uploadedfile import UploadedFile
+        from urllib.parse import urlparse
+
+        cover_image = form.cleaned_data.get("image")
+        is_new_upload = cover_image and isinstance(cover_image, UploadedFile) and getattr(cover_image, "name", None)
+
+        if change and obj.pk and is_new_upload and obj.image_s3_url:
+            # Replace: delete old file from S3
+            from core.s3_utils import get_s3_upload_service
+            s3_service = get_s3_upload_service()
+            parsed = urlparse(obj.image_s3_url)
+            s3_key = parsed.path.lstrip("/")
+            if s3_key:
+                s3_file = S3FileUpload.objects.filter(s3_url=obj.image_s3_url).first()
+                if s3_file:
+                    s3_service.delete_file(s3_file.s3_key)
+                else:
+                    s3_service.delete_file(s3_key)
+            obj.image_s3_url = None
+        elif change and obj.pk and is_new_upload and not obj.image_s3_url:
+            # Had local image only; will replace with S3
+            obj.image_s3_url = None
+
+        if is_new_upload:
+            from core.s3_utils import get_s3_upload_service
+            s3_service = get_s3_upload_service()
+            result = s3_service.upload_file(
+                file_obj=cover_image,
+                folder_path=self.S3_MEDIA_FOLDER,
+                description=f"Student testimonial: {obj.name}",
+                uploaded_by=getattr(request.user, "username", "") or "",
+            )
+            if result.get("success"):
+                obj.image_s3_url = result["s3_url"]
+                obj.image = None
+            else:
+                messages.error(request, f"Image upload to S3 failed: {result.get('error', 'Unknown error')}")
+                return
+        super().save_model(request, obj, form, change)
+
+
+admin.site.register(Review, ReviewAdmin)
 admin.site.register(CommonFAQ)
 admin.site.register(APILog)
 admin.site.register(Stories)
 admin.site.register(Contact,ContactAdmin)
+
+
+@admin.register(MIAssessmentResult)
+class MIAssessmentResultAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "primary_style", "style_name", "updated_at")
+    list_filter = ("primary_style", "updated_at")
+    search_fields = ("user__email", "style_name")
+    readonly_fields = ("user", "answers", "counts", "primary_style", "style_name", "style_summary", "created", "updated_at")
+    ordering = ("-updated_at",)
+
+
+@admin.register(EQAssessmentResult)
+class EQAssessmentResultAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "ei_total", "band_label", "updated_at")
+    list_filter = ("updated_at",)
+    search_fields = ("user__email",)
+    readonly_fields = ("user", "responses", "subscale_scores", "weighted", "ei_total", "pbi", "intrapersonal_eq", "interpersonal_eq", "adaptive_eq", "band_label", "created", "updated_at")
+    ordering = ("-updated_at",)
 
 
 class ExtracurricularActivityInline(admin.TabularInline):
@@ -1112,5 +1217,165 @@ class S3FileUploadAdmin(admin.ModelAdmin):
         extra_context['s3_config'] = config
         
         return super().changelist_view(request, extra_context)
+
+
+# ----- Four Pillars Assessments (admin-editable) -----
+
+
+def strip_html_from_text(text):
+    """Return plain text with HTML tags removed."""
+    if not text or not isinstance(text, str):
+        return text or ""
+    return strip_tags(text).strip()
+
+
+class FourPillarsAssessmentQuestionOptionForm(forms.ModelForm):
+    """Strip HTML from option text on save."""
+    class Meta:
+        model = FourPillarsAssessmentQuestionOption
+        fields = "__all__"
+
+    def clean_text(self):
+        value = self.cleaned_data.get("text") or ""
+        return strip_html_from_text(value)
+
+
+class FourPillarsAssessmentQuestionForm(forms.ModelForm):
+    """Strip HTML from question text on save."""
+    class Meta:
+        model = FourPillarsAssessmentQuestion
+        fields = "__all__"
+
+    def clean_text(self):
+        value = self.cleaned_data.get("text") or ""
+        return strip_html_from_text(value)
+
+
+class FourPillarsAssessmentQuestionOptionInline(admin.TabularInline):
+    model = FourPillarsAssessmentQuestionOption
+    form = FourPillarsAssessmentQuestionOptionForm
+    extra = 0
+    fields = ("option_key", "text")
+    ordering = ("option_key",)
+    verbose_name = "Option (A, B, C or D)"
+    verbose_name_plural = "Options (A, B, C, D) – edit option text below"
+
+    def get_extra(self, request, obj=None, **kwargs):
+        """Show 4 empty option rows when adding a new question."""
+        return 4 if obj is None else 0
+
+
+class FourPillarsAssessmentQuestionInline(admin.TabularInline):
+    model = FourPillarsAssessmentQuestion
+    extra = 0
+    fields = ("order", "title", "text")
+    ordering = ("order",)
+    show_change_link = True
+
+
+class FourPillarsAssessmentProfileInline(admin.TabularInline):
+    model = FourPillarsAssessmentProfile
+    extra = 0
+    fields = ("option_key", "name", "summary", "scoring_heading", "scoring_bullets")
+    ordering = ("option_key",)
+    show_change_link = True
+
+
+@admin.register(FourPillarsAssessmentProfile)
+class FourPillarsAssessmentProfileAdmin(admin.ModelAdmin):
+    list_display = ("id", "assessment", "option_key", "name", "summary_preview")
+    list_filter = ("assessment", "option_key")
+    search_fields = ("name", "summary", "scoring_heading")
+    ordering = ("assessment", "option_key")
+    raw_id_fields = ("assessment",)
+    fieldsets = (
+        (None, {"fields": ("assessment", "option_key", "name", "summary")}),
+        ("Scoring Guide card", {"fields": ("scoring_heading", "scoring_bullets")}),
+        ("Timestamps", {"fields": ("created", "modified"), "classes": ("collapse",)}),
+    )
+    readonly_fields = ("created", "modified")
+
+    def summary_preview(self, obj):
+        return (obj.summary[:50] + "…") if obj.summary and len(obj.summary) > 50 else (obj.summary or "")
+    summary_preview.short_description = "Summary"
+
+
+@admin.register(FourPillarsAssessmentQuestion)
+class FourPillarsAssessmentQuestionAdmin(admin.ModelAdmin):
+    form = FourPillarsAssessmentQuestionForm
+    list_display = ("id", "assessment", "order", "title", "text_preview")
+    list_filter = ("assessment",)
+    search_fields = ("title", "text")
+    ordering = ("assessment", "order")
+    inlines = (FourPillarsAssessmentQuestionOptionInline,)
+    raw_id_fields = ("assessment",)
+    fieldsets = (
+        (None, {"fields": ("assessment", "order", "title", "text")}),
+    )
+
+    def text_preview(self, obj):
+        raw = obj.text or ""
+        plain = strip_html_from_text(raw)
+        return (plain[:60] + "…") if len(plain) > 60 else plain
+    text_preview.short_description = "Question text"
+
+
+@admin.register(FourPillarsAssessment)
+class FourPillarsAssessmentAdmin(admin.ModelAdmin):
+    list_display = ("id", "slug", "title", "is_active", "questions_count", "profiles_count", "guide_link", "modified")
+    list_filter = ("is_active",)
+    search_fields = ("slug", "title")
+    ordering = ("slug",)
+    prepopulated_fields = {"slug": ("title",)}
+    inlines = (FourPillarsAssessmentProfileInline,)
+    fieldsets = (
+        (None, {"fields": ("slug", "title", "subtitle", "is_active")}),
+        ("Scoring Guide", {"fields": ("scoring_intro", "mixed_results")}),
+        ("Timestamps", {"fields": ("created", "modified"), "classes": ("collapse",)}),
+    )
+    readonly_fields = ("created", "modified")
+
+    def questions_count(self, obj):
+        if not obj.pk:
+            return "—"
+        n = obj.questions.count()
+        url = reverse("admin:core_fourpillarsassessmentquestion_changelist") + "?assessment__id__exact=" + str(obj.pk)
+        return format_html('<a href="{}">{} question{}</a>', url, n, "s" if n != 1 else "")
+    questions_count.short_description = "Questions"
+
+    def profiles_count(self, obj):
+        if not obj.pk:
+            return "—"
+        n = obj.profiles.count()
+        url = reverse("admin:core_fourpillarsassessmentprofile_changelist") + "?assessment__id__exact=" + str(obj.pk)
+        return format_html('<a href="{}">{} profile{}</a>', url, n, "s" if n != 1 else "")
+    profiles_count.short_description = "Profiles"
+
+    def guide_link(self, obj):
+        if not obj.pk:
+            return "—"
+        url = reverse("admin:core_fourpillarsassessmentscoringguide_change", args=[obj.pk])
+        return format_html('<a href="{}">Edit guide</a>', url)
+    guide_link.short_description = "Scoring Guide"
+
+
+@admin.register(FourPillarsAssessmentScoringGuide)
+class FourPillarsAssessmentScoringGuideAdmin(admin.ModelAdmin):
+    """Edit only the Scoring Guide section (intro + mixed results) separately from the full assessment."""
+    list_display = ("id", "slug", "title")
+    list_display_links = ("id", "slug", "title")
+    search_fields = ("slug", "title")
+    ordering = ("slug",)
+    readonly_fields = ("slug", "title")
+    fieldsets = (
+        (None, {"fields": ("slug", "title"), "description": "Which assessment this Scoring Guide belongs to."}),
+        ("Scoring Guide section", {
+            "fields": ("scoring_intro", "mixed_results"),
+            "description": "Intro text and mixed-results note shown in the Scoring Guide block on the assessment page.",
+        }),
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request)
 
 

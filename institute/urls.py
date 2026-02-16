@@ -1,7 +1,8 @@
-from django.urls import path,include
+from django.urls import path, include
 from . import views
+from users.views import DemoLoginView
 
-app_name="institute"
+app_name = "institute"
 
 urlpatterns = [
     path("admindashboard/",views.AdminDashboardView.as_view(),name="admindashboard"),
@@ -48,7 +49,8 @@ urlpatterns = [
     # old code not in use - start
     # New isolated routes for institute authentication frontend
     # old code not in use - end
-    path("auth/register/",views.InstituteRegisterView.as_view(),name="register"),
-    path("auth/login/",views.InstituteLoginView.as_view(),name="login"),
+    path("auth/register/", views.InstituteRegisterView.as_view(), name="register"),
+    path("auth/login/", views.InstituteLoginView.as_view(), name="login"),
+    path("auth/demo-login/", DemoLoginView.as_view(), name="demo_login"),
     path("api/heatmap-data/", views.get_heatmap_data_api, name="heatmap_data_api"),
 ]

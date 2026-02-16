@@ -11,6 +11,46 @@
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
 
 {% block content %}
+<style>
+/* Video search suggest dropdown - Google-style */
+.video-search-suggest {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 2px;
+  z-index: 1020;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 0.25rem 0;
+}
+.video-search-suggest li {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  transition: background 0.15s ease;
+}
+.video-search-suggest li:last-child {
+  border-bottom: none;
+}
+.video-search-suggest li:hover,
+.video-search-suggest li.active {
+  background: rgba(107, 61, 240, 0.08);
+  color: #6b3df0;
+}
+.video-search-suggest-empty {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: #888;
+  text-align: center;
+}
+</style>
 
 <!-- Hero Section -->
 <section class="hero-section-inner pt-md-18 pt-14 pb-5">
@@ -52,10 +92,13 @@
     <div class="row">
       <!-- Main Content -->
       <div class="col-lg-9 col-md-12">
-        <!-- Search Form (Mobile) -->
+        <!-- Search Form (Mobile) with suggest dropdown -->
         <div class="d-md-none mb-4">
-          <form action="{{ url('careers:careervideos') }}" method="GET" class="d-flex gap-2">
-            <input type="text" name="search" class="form-control" placeholder="Search videos..." value="{{ search_videos if search_videos else '' }}">
+          <form action="{{ url('careers:careervideos') }}" method="GET" class="d-flex gap-2 video-search-form">
+            <div class="video-search-wrapper position-relative flex-grow-1">
+              <input type="text" name="search" class="form-control js-video-search-input" placeholder="Search videos..." value="{{ search_videos if search_videos else '' }}" autocomplete="off" data-autocomplete-url="{{ url('careers:autocomplete_videos') }}">
+              <ul class="video-search-suggest list-unstyled mb-0 js-video-search-suggest" role="listbox" aria-label="Video suggestions" style="display: none;"></ul>
+            </div>
             <button type="submit" class="btn custom-button purple-button">
               <i class='bx bx-search'></i>
             </button>
@@ -226,12 +269,15 @@
       <!-- Sidebar -->
       <div class="col-lg-3 col-md-12">
         <div class="video-sidebar">
-          <!-- Search Form (Desktop) -->
+          <!-- Search Form (Desktop) with suggest dropdown -->
           <div class="sidebar-widget mb-4 d-none d-md-block">
             <h4 class="widget-title mb-3">Search</h4>
-            <form action="{{ url('careers:careervideos') }}" method="GET">
+            <form action="{{ url('careers:careervideos') }}" method="GET" class="video-search-form">
               <div class="input-group">
-                <input type="text" name="search" class="form-control" placeholder="Search videos..." value="{{ search_videos if search_videos else '' }}">
+                <div class="video-search-wrapper position-relative flex-grow-1">
+                  <input type="text" name="search" class="form-control js-video-search-input" placeholder="Search videos..." value="{{ search_videos if search_videos else '' }}" autocomplete="off" data-autocomplete-url="{{ url('careers:autocomplete_videos') }}">
+                  <ul class="video-search-suggest list-unstyled mb-0 js-video-search-suggest" role="listbox" aria-label="Video suggestions" style="display: none;"></ul>
+                </div>
                 <button type="submit" class="btn custom-button purple-button">
                   <i class='bx bx-search'></i>
                 </button>
@@ -299,6 +345,159 @@
   window.IS_AUTHENTICATED = !!(cfg && cfg.dataset && cfg.dataset.isAuthenticated === '1');
   window.LOGIN_URL = (cfg && cfg.dataset && cfg.dataset.loginUrl) ? cfg.dataset.loginUrl : '';
   window.SHORTLIST_VIDEO_URL = (cfg && cfg.dataset && cfg.dataset.shortlistVideoUrl) ? cfg.dataset.shortlistVideoUrl : '';
+})();
+
+// Video search suggest dropdown (Google-style)
+(function() {
+  const DEBOUNCE_MS = 280;
+  let suggestTimer = null;
+  let blurTimer = null;
+
+  function getSuggestUrl(input) {
+    return input.getAttribute('data-autocomplete-url') || '';
+  }
+
+  function getSuggestList(input) {
+    const wrapper = input.closest('.video-search-wrapper');
+    return wrapper ? wrapper.querySelector('.js-video-search-suggest') : null;
+  }
+
+  function getForm(input) {
+    return input.closest('form.video-search-form');
+  }
+
+  function hideSuggest(list) {
+    if (list) {
+      list.style.display = 'none';
+      list.innerHTML = '';
+    }
+  }
+
+  function showSuggest(list, items, selectedIndex, emptyMessage) {
+    if (!list) return;
+    if (!items || items.length === 0) {
+      list.innerHTML = '<li class="video-search-suggest-empty">' + (emptyMessage || 'No videos found') + '</li>';
+      list.style.display = 'block';
+      return;
+    }
+    list.innerHTML = items.map(function(r, i) {
+      var text = (r.text || r.value || '').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      var active = i === selectedIndex ? ' active' : '';
+      return '<li class="video-search-suggest-item' + active + '" data-value="' + text.replace(/"/g, '&quot;') + '" role="option">' + text + '</li>';
+    }).join('');
+    list.style.display = 'block';
+  }
+
+  function fetchSuggestions(input, callback) {
+    var q = (input.value || '').trim();
+    var url = getSuggestUrl(input);
+    if (!url || q.length === 0) {
+      callback([]);
+      return;
+    }
+    fetch(url + '?q=' + encodeURIComponent(q) + '&limit=15', { headers: { 'Accept': 'application/json' } })
+      .then(function(res) { return res.ok ? res.json() : { results: [] }; })
+      .then(function(data) {
+        var results = (data && data.results) ? data.results : [];
+        callback(results);
+      })
+      .catch(function() { callback([]); });
+  }
+
+  function bindInput(input) {
+    var list = getSuggestList(input);
+    if (!list) return;
+    var selectedIndex = -1;
+
+    function renderAndShow(results) {
+      selectedIndex = results.length > 0 ? 0 : -1;
+      showSuggest(list, results, selectedIndex, 'No videos found');
+    }
+
+    function onInput() {
+      if (suggestTimer) clearTimeout(suggestTimer);
+      var q = (input.value || '').trim();
+      if (q.length === 0) {
+        hideSuggest(list);
+        return;
+      }
+      suggestTimer = setTimeout(function() {
+        suggestTimer = null;
+        fetchSuggestions(input, renderAndShow);
+      }, DEBOUNCE_MS);
+    }
+
+    function submitForm() {
+      var form = getForm(input);
+      if (form) form.submit();
+    }
+
+    function onSuggestionSelect(value) {
+      input.value = value || '';
+      hideSuggest(list);
+      selectedIndex = -1;
+      submitForm();
+    }
+
+    input.addEventListener('input', onInput);
+    input.addEventListener('focus', function() {
+      if (blurTimer) clearTimeout(blurTimer);
+      blurTimer = null;
+      var q = (input.value || '').trim();
+      if (q.length > 0 && list.innerHTML) list.style.display = 'block';
+    });
+    input.addEventListener('blur', function() {
+      blurTimer = setTimeout(function() {
+        blurTimer = null;
+        hideSuggest(list);
+        selectedIndex = -1;
+      }, 200);
+    });
+    input.addEventListener('keydown', function(e) {
+      var items = list.querySelectorAll('.video-search-suggest-item');
+      if (e.key === 'Escape') {
+        hideSuggest(list);
+        selectedIndex = -1;
+        input.blur();
+        e.preventDefault();
+        return;
+      }
+      if (e.key === 'Enter') {
+        if (list.style.display === 'block' && items.length > 0 && selectedIndex >= 0 && items[selectedIndex]) {
+          e.preventDefault();
+          onSuggestionSelect(items[selectedIndex].getAttribute('data-value'));
+        }
+        return;
+      }
+      if (e.key === 'ArrowDown' && items.length > 0) {
+        e.preventDefault();
+        selectedIndex = (selectedIndex + 1) % items.length;
+        items.forEach(function(el, i) { el.classList.toggle('active', i === selectedIndex); });
+        items[selectedIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp' && items.length > 0) {
+        e.preventDefault();
+        selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
+        items.forEach(function(el, i) { el.classList.toggle('active', i === selectedIndex); });
+        items[selectedIndex].scrollIntoView({ block: 'nearest' });
+      }
+    });
+
+    list.addEventListener('mousedown', function(e) {
+      if (blurTimer) clearTimeout(blurTimer);
+      blurTimer = null;
+    });
+    list.addEventListener('click', function(e) {
+      var li = e.target.closest('.video-search-suggest-item');
+      if (li) {
+        e.preventDefault();
+        onSuggestionSelect(li.getAttribute('data-value'));
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.js-video-search-input').forEach(bindInput);
+  });
 })();
 
 // Generate thumbnails from first frame (0:00:00) for S3 videos

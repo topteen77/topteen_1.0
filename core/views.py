@@ -1,9 +1,15 @@
 import json
+import logging
 import re
 import os
+from urllib.parse import quote
+
+logger = logging.getLogger(__name__)
 from multiprocessing import get_context
 from .utils import build_breadcrumb,build_html_head
+from django.db import connection
 from django.db.models import Q
+from django.db.utils import ProgrammingError
 from xml.etree.ElementInclude import include
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
@@ -12,7 +18,7 @@ from blog.models import Blog
 from careers.models import Career, CareerTags,Videos,CareerCluster
 from core import choices
 from django.views.generic import TemplateView
-from core.models import CommonFAQ, Country, Review,Contact,Lead, Ebook
+from core.models import CommonFAQ, Country, Review, Contact, Lead, Ebook, FourPillarsAssessmentResult, FourPillarsAssessment, MIAssessmentResult, EQAssessmentResult
 from courses.models import Course
 from colleges.models import College
 from django.conf import settings
@@ -32,8 +38,12 @@ from users.models import UserSearchHistory
 from django.shortcuts import HttpResponse,HttpResponseRedirect
 from skilllab.models import SkillLabCourse
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.decorators.http import require_http_methods, require_GET, require_POST
 from rest_framework.views import APIView
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from pathlib import Path
 
 class Home(TemplateView):
     template_name ="template20/home_new.html"
@@ -91,7 +101,63 @@ class Home(TemplateView):
         ).first()
         
         ctx['exams']=EntranceExam.objects.all().order_by('?')[:3]
-        ctx['clusters']=CareerCluster.objects.filter(parent__isnull=True)
+        # Find Your Perfect Fit!: show all active career clusters from admin (same list as /admin/careers/careercluster/); each card links to careers/?mode=traditional&cluster=ID
+        clusters = CareerCluster.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('name')
+        ctx['clusters'] = clusters
+        from django.templatetags.static import static
+        careers_base_url = reverse('careers:career')
+        default_career_library_url = reverse('careers:defaultcareerlibrary')
+        default_svg_icon_url = static('images_new/careers/career-tracks/stem-icon.svg') or '/static/images_new/careers/career-tracks/stem-icon.svg'
+        career_track_cards = []
+        if clusters:
+            for c in clusters:
+                if not c.name:
+                    continue
+                label = (c.name or '').strip()
+                # Each cluster card links to its own cluster page (all careers for that cluster)
+                url = f"{careers_base_url}?mode=traditional&cluster={c.id}"
+                # Use Career track icon: S3 URL if set, else uploaded file URL, else default SVG (keeps icon with category)
+                icon_url = (
+                    getattr(c, 'career_track_icon_s3_url', None) or
+                    (c.career_track_icon.url if (c.career_track_icon and c.career_track_icon.name) else None)
+                ) or default_svg_icon_url
+                career_track_cards.append({
+                    'label': label,
+                    'icon_url': icon_url,
+                    'url': url,
+                })
+        if not career_track_cards:
+            # Original static list: distinct labels and icons, all link to career library (no cluster filter when no clusters)
+            career_track_specs = [
+                ("Agriculture & Environmental Sciences", "agriculture-icon.svg"),
+                ("Architecture & Constructions", "architecture-icon.svg"),
+                ("Arts, Media & Mass Communication", "avtechnology.svg"),
+                ("Business, Management & Administration", "businessmanage-icon.svg"),
+                ("Finance, Economics and Statistics", "finance-icon.svg"),
+                ("Education And Training", "educationtraining.svg"),
+                ("Government Sector, Pub Adm. & Int. Relations", "government-services.svg"),
+                ("Engineering & Technology", "eit-icon.svg"),
+                ("Information Technology (IT)", "it-icon.svg"),
+                ("STEM", "stem-icon.svg"),
+                ("Health Science & Medical Services", "health-services.svg"),
+                ("Hospitality and Tourism", "tourism-icon.svg"),
+                ("Humanities, Social Work & Psychology", "humanities-icon.svg"),
+                ("Law and Public Safety", "law-icon.svg"),
+                ("Distribution, Transportation & Logistics", "transport.svg"),
+                ("Marketing & Sales", "marketing-icon.svg"),
+                ("Scientific Research, R & D", "scientific-research.svg"),
+                ("Sports, Fitness & Wellness", "sports-icon.svg"),
+                ("Fashion, Design & Creativity", "faishion-icon.svg"),
+            ]
+            for label, icon_name in career_track_specs:
+                icon_url = static(f"images_new/careers/career-tracks/{icon_name}") or f"/static/images_new/careers/career-tracks/{icon_name}"
+                career_track_cards.append({
+                    'label': label,
+                    'icon_url': icon_url,
+                    'url': f"{careers_base_url}?mode=traditional",
+                })
+        ctx['career_track_cards'] = career_track_cards
+        ctx['default_career_library_url'] = default_career_library_url
         return ctx
         
     def get(self, request,*args, **kwargs):
@@ -408,7 +474,223 @@ class CareerPlanningView(TemplateView):
     def get_context(self, request, *args, **kwargs):
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = {"text": "Career Planning Hub", "url": reverse("core:career_planning")}
+        ctx["breadcrumb"] = [
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Career Planning", "url": None},
+        ]
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class CareerPlanning4YearView(TemplateView):
+    template_name = "template20/career_planning_4_year.html"
+
+    def html_head(self):
+        return build_html_head(title="4 Year Course Plan", description="Four-Year Success Plan for Classes 9–12")
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = [
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Career Planning", "url": reverse("core:career_planning")},
+            {"text": "4 Year Course Plan", "url": None},
+        ]
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class _CareerPlanningClassYearView(TemplateView):
+    """Base for class-year career planning pages."""
+    year_number = 1
+    class_label = "Class 9"
+    page_title = "Year 1 - Class 9"
+    template_name = "template20/career_planning_class_9.html"
+
+    def html_head(self):
+        return build_html_head(title=self.page_title, description="Career planning for " + self.class_label)
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = [
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Career Planning", "url": reverse("core:career_planning")},
+            {"text": self.page_title, "url": None},
+        ]
+        ctx["class_label"] = self.class_label
+        ctx["year_number"] = self.year_number
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class CareerPlanningClass9View(_CareerPlanningClassYearView):
+    year_number = 1
+    class_label = "Class 9"
+    page_title = "Year 1 - Class 9"
+    template_name = "template20/career_planning_class_9.html"
+
+
+class CareerPlanningClass10View(_CareerPlanningClassYearView):
+    year_number = 2
+    class_label = "Class 10"
+    page_title = "Year 2 - Class 10"
+    template_name = "template20/career_planning_class_10.html"
+
+
+class CareerPlanningClass11View(_CareerPlanningClassYearView):
+    year_number = 3
+    class_label = "Class 11"
+    page_title = "Year 3 - Class 11"
+    template_name = "template20/career_planning_class_11.html"
+
+
+class CareerPlanningClass12View(_CareerPlanningClassYearView):
+    year_number = 4
+    class_label = "Class 12"
+    page_title = "Year 4 - Class 12"
+    template_name = "template20/career_planning_class_12.html"
+
+
+class EmotionalIntelligencesView(TemplateView):
+    """Emotional Intelligences (EQ) landing page. Images from S3 via S3_EQ_IMAGES_BASE_URL or static fallback."""
+    template_name = "template20/emotional_intelligences.html"
+
+    def html_head(self):
+        return build_html_head(
+            title="Emotional Intelligences",
+            description="Discover your Emotional Intelligences. EQ shapes relationships, choices, and real-life success—often more than IQ."
+        )
+
+    def get_context(self, request, *args, **kwargs):
+        from django.templatetags.static import static
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = {"text": "Emotional Intelligences", "url": reverse("core:emotional_intelligences")}
+        ctx["login_to_take_url"] = reverse("users:login") + "?next=" + quote(reverse("core:emotional_intelligences_assessment"))
+        base = getattr(settings, "S3_EQ_IMAGES_BASE_URL", None)
+        if base:
+            ctx["eq_images_base"] = base.rstrip("/") + "/"
+        else:
+            ctx["eq_images_base"] = static("images_new/eq/")  # Add eq assets to static/images_new/eq/ or set S3_EQ_IMAGES_BASE_URL
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
+    """Emotional Intelligences (EQ) assessment – 6 levels, 36 statements. Requires login."""
+    template_name = "template20/emotional_intelligences_assessment.html"
+    login_url = reverse_lazy("users:login")
+
+    def html_head(self):
+        return build_html_head(
+            title="Emotional Intelligence Assessment",
+            description="Take the Emotional Intelligence assessment to understand and strengthen key emotional intelligence skills."
+        )
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = [
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Emotional Intelligences", "url": reverse("core:emotional_intelligences")},
+            {"text": "Assessment", "url": reverse("core:emotional_intelligences_assessment")},
+        ]
+        ctx["save_eq_url"] = reverse("core:save_eq_assessment")
+        ctx["eq_report_pdf_url"] = reverse("core:eq_report_pdf")
+        if getattr(request, "user", None) and request.user.is_authenticated:
+            latest = EQAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+            if latest:
+                ctx["saved_eq_responses"] = json.dumps(latest.responses)
+                ctx["saved_eq_result"] = json.dumps({
+                    "subscale_scores": latest.subscale_scores,
+                    "ei_total": latest.ei_total,
+                    "pbi": latest.pbi,
+                    "band_label": latest.band_label,
+                    "intrapersonal_eq": latest.intrapersonal_eq,
+                    "interpersonal_eq": latest.interpersonal_eq,
+                    "adaptive_eq": latest.adaptive_eq,
+                })
+        if not ctx.get("saved_eq_responses"):
+            ctx["saved_eq_responses"] = "null"
+            ctx["saved_eq_result"] = "null"
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class MultipleIntelligencesView(TemplateView):
+    """Multiple Intelligences (MI) landing page. Images from S3 via S3_MI_IMAGES_BASE_URL or static fallback."""
+    template_name = "template20/multiple_intelligences.html"
+
+    def html_head(self):
+        return build_html_head(
+            title="Multiple Intelligences",
+            description="Discover your Multiple Intelligences. Your learning success comes from understanding the distinct intelligences that shape how your mind thinks and excels."
+        )
+
+    def get_context(self, request, *args, **kwargs):
+        from django.templatetags.static import static
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = {"text": "Multiple Intelligences", "url": reverse("core:multiple_intelligences")}
+        # Login required before starting test: send unauthenticated users to login with next=assessment URL
+        ctx["login_to_take_url"] = reverse("users:login") + "?next=" + quote(reverse("core:multiple_intelligences_assessment"))
+        # S3 base URL for MI images (upload MI images to this folder in S3). Fallback: static/images_new/mi/
+        base = getattr(settings, "S3_MI_IMAGES_BASE_URL", None)
+        if base:
+            ctx["mi_images_base"] = base.rstrip("/") + "/"
+        else:
+            ctx["mi_images_base"] = static("images_new/mi/")
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class MultipleIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
+    """Multiple Intelligences / Learning Style Discovery Test (assessment). Requires login."""
+    template_name = "template20/multiple_intelligences_assessment.html"
+    login_url = reverse_lazy("users:login")
+
+    def html_head(self):
+        return build_html_head(
+            title="Multiple Intelligences Assessment",
+            description="Take the Multiple Intelligences (Learning Style Discovery) assessment to discover how you learn best."
+        )
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = [
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Multiple Intelligences", "url": reverse("core:multiple_intelligences")},
+            {"text": "Assessment", "url": reverse("core:multiple_intelligences_assessment")},
+        ]
+        ctx["save_mi_url"] = reverse("core:save_mi_assessment")
+        ctx["mi_report_pdf_url"] = reverse("core:mi_report_pdf")
+        if getattr(request, "user", None) and request.user.is_authenticated:
+            latest = MIAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+            if latest:
+                ctx["saved_mi_answers"] = json.dumps(latest.answers)
+                ctx["saved_mi_result"] = json.dumps({
+                    "counts": latest.counts,
+                    "primary_style": latest.primary_style,
+                    "style_name": latest.style_name,
+                    "style_summary": latest.style_summary,
+                })
+        if not ctx.get("saved_mi_answers"):
+            ctx["saved_mi_answers"] = "null"
+            ctx["saved_mi_result"] = "null"
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -442,6 +724,276 @@ class FourPillarsOfLearningView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+# Pillar detail pages (static content from pillar-1.html ... pillar-4.html)
+FOUR_PILLARS_PILLAR_CONFIG = {
+    1: {
+        "title": "Learning Preferences",
+        "subtitle_before": "Your ",
+        "subtitle_highlight": "Information",
+        "subtitle_after": " Processing Blueprint",
+        "description": "Your Learning Preferences Pillar reveals how your brain naturally receives, processes, and retains information. Understanding this pillar helps you choose study methods that work WITH your brain, not against it.",
+        "assessment_slug": "learning-preferences",
+    },
+    2: {
+        "title": "Natural Abilities",
+        "subtitle_before": "Your ",
+        "subtitle_highlight": "Talent",
+        "subtitle_after": " Foundation",
+        "description": "Your Natural Abilities Pillar identifies the subjects and skills where you demonstrate inherent strengths and rapid learning capacity. These are areas where you naturally excel and could potentially build a career.",
+        "assessment_slug": "natural-abilities",
+    },
+    3: {
+        "title": "Engagement Patterns",
+        "subtitle_before": "Your ",
+        "subtitle_highlight": "Motivation and Energy",
+        "subtitle_after": " Foundation",
+        "description": "Your Engagement Patterns Pillar examines how you naturally combine theoretical learning with practical application. This pillar reveals your optimal approach to skill development and sustained motivation.",
+        "assessment_slug": "engagement-patterns",
+    },
+    4: {
+        "title": "Interest Drivers",
+        "subtitle_before": "Your ",
+        "subtitle_highlight": "Passion and Curiosity",
+        "subtitle_after": " Foundation",
+        "description": "Your Interest Drivers Pillar identifies the specific areas that naturally energize you and sustain your long-term engagement. These are the topics and activities that make you lose track of time because you're so absorbed in them.",
+        "assessment_slug": "interest-drivers",
+    },
+}
+
+
+class FourPillarsPillarDetailView(TemplateView):
+    """Static pillar detail page (content from pillar-1.html ... pillar-4.html)."""
+
+    def get_template_names(self):
+        pillar_number = self.kwargs.get("pillar_number")
+        if pillar_number not in FOUR_PILLARS_PILLAR_CONFIG:
+            return ["template20/404.html"]
+        return [f"template20/four_pillars_pillar_{pillar_number}.html"]
+
+    def get_context_data(self, **kwargs):
+        from django.core.files.storage import default_storage
+        pillar_number = kwargs.get("pillar_number") or self.kwargs.get("pillar_number")
+        if pillar_number not in FOUR_PILLARS_PILLAR_CONFIG:
+            return {}
+        config = FOUR_PILLARS_PILLAR_CONFIG[pillar_number]
+        folder = getattr(settings, 'S3_FOUR_PILLARS_FOLDER', 'four_pillars')
+        ctx = super().get_context_data(**kwargs)
+        ctx["pillar_number"] = pillar_number
+        ctx["pillar_title"] = config["title"]
+        ctx["pillar_subtitle_before"] = config.get("subtitle_before", "")
+        ctx["pillar_subtitle_highlight"] = config.get("subtitle_highlight", "")
+        ctx["pillar_subtitle_after"] = config.get("subtitle_after", "")
+        ctx["pillar_description"] = config["description"]
+        ctx["assessment_slug"] = config["assessment_slug"]
+        ctx["html_head"] = build_html_head(title=config["title"], description=config["description"])
+        ctx["breadcrumb"] = build_breadcrumb([
+            {"text": "Four Pillars of Learning", "url": reverse("core:four_pillars")},
+            {"text": f"Pillar {pillar_number}", "url": ""},
+        ])
+        # ctx["pillar_icon_url"] = default_storage.url(f"{folder}/four-pillar-icon-{pillar_number}.png")
+        ctx["pillar_icon_url"] = default_storage.url(f"{folder}/pillar-one-icon.png")
+
+        hero_name = f"pillar-{pillar_number}-herobanner.png"
+        try:
+            ctx["pillar_hero_url"] = default_storage.url(f"{folder}/{hero_name}")
+        except Exception:
+            ctx["pillar_hero_url"] = default_storage.url(f"{folder}/four-pillar-hero-banner.png")
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        if self.kwargs.get("pillar_number") not in FOUR_PILLARS_PILLAR_CONFIG:
+            from django.http import Http404
+            raise Http404("Pillar not found")
+        return super().get(request, *args, **kwargs)
+
+
+FOUR_PILLARS_ASSESSMENT_SLUGS = {
+    "learning-preferences": ("Learning Preferences Assessment", "Answer 20 short questions to discover how you learn best. Then view your personalised learning style profile."),
+    "natural-abilities": ("Natural Abilities Assessment", "Answer 20 short questions to discover your inherent talents and strengths. Then view your personalised natural abilities profile."),
+    "engagement-patterns": ("Engagement Patterns Assessment", "Answer 20 short questions to discover your motivation and energy styles. Then view your personalised engagement profile."),
+    "interest-drivers": ("Interest Drivers Assessment", "Answer 20 short questions to discover what captivates your curiosity. Then view your personalised interest profile."),
+}
+
+# Per-pillar copy for placeholder, tab label, scoring intro, mixed note, and style card tags (aligned with reference HTML in topteenhtml/html/a/)
+FOUR_PILLARS_ASSESSMENT_COPY = {
+    "learning-preferences": {
+        "lp_placeholder_text": "learning style summary here.",
+        "lp_profile_tab_label": "Your Learning Profile Guide",
+        "lp_scoring_intro": "Count your responses for each letter:",
+        "lp_mixed_note": "Mixed Results: Many learners have a combination of preferences. Look at your top two categories to understand your primary and secondary learning styles.",
+        "lp_style_card_tags": {"A": "Deep reading & research", "B": "Hands-on & practical", "C": "Discussion & collaboration", "D": "Organised & visual"},
+    },
+    "natural-abilities": {
+        "lp_placeholder_text": "natural abilities summary here.",
+        "lp_profile_tab_label": "Your Natural Abilities Profile Guide",
+        "lp_scoring_intro": "Step 1: Count your responses for each letter (A, B, C, D). Step 2: Use the ranges below to determine your profile.",
+        "lp_mixed_note": "Dual Profile: 8–12 in two categories = combination (e.g. A+B Strategic Implementer, C+D Inspirational Leader). Balanced: 6–10 across three or more = Adaptive Multi-Talent. See combination profiles below.",
+        "lp_style_card_tags": {"A": "Logical & systematic", "B": "Efficient & results-focused", "C": "Interpersonal & emotional intelligence", "D": "Innovative & conceptual"},
+    },
+    "engagement-patterns": {
+        "lp_placeholder_text": "engagement pattern summary and complete results here.",
+        "lp_profile_tab_label": "Complete Results Report",
+        "lp_scoring_intro": "Step 1: Count your responses for each letter: A (Achievement-Driven), B (Mastery-Oriented), C (Purpose-Driven), D (Variety-Seeking). Step 2: Determine your engagement pattern from the ranges below.",
+        "lp_mixed_note": "Dual Engagement Pattern: 8–12 in two categories (e.g. A+B Expert Achiever, C+D Flexible Contributor). Balanced: 6–10 across three or more = combination pattern. Multi-Modal: 5–8 in each = balanced across all four. See combination profiles below.",
+        "lp_style_card_tags": {"A": "Results & goal orientation", "B": "Learning & expertise development", "C": "Meaning & impact orientation", "D": "Stimulation & change orientation"},
+    },
+    "interest-drivers": {
+        "lp_placeholder_text": "interest drivers summary and complete results here.",
+        "lp_profile_tab_label": "Complete Results Report",
+        "lp_scoring_intro": "Step 1: Count your responses for each letter: A (Analytical Interest), B (Technical Interest), C (People Interest), D (Creative Interest). Step 2: Determine your interest driver pattern from the ranges below.",
+        "lp_mixed_note": "Dual Interest Driver: 8–12 in two categories (e.g. A+B Research Engineer, C+D Social Innovator). Balanced: 6–10 across three or more = combination pattern. Multi-Domain Curiosity: 5–8 in each = balanced across all four. See combination profiles below.",
+        "lp_style_card_tags": {"A": "Data & research curiosity", "B": "Systems & process curiosity", "C": "Human & social curiosity", "D": "Innovation & possibility curiosity"},
+    },
+}
+
+
+class FourPillarsAssessmentView(LoginRequiredMixin, TemplateView):
+    """Serve one of the four pillar assessments (login required). Option A: one template per pillar."""
+    login_url = reverse_lazy("users:login")
+
+    def get_template_names(self):
+        slug = self.kwargs.get("pillar_slug", "")
+        if slug not in FOUR_PILLARS_ASSESSMENT_SLUGS:
+            return ["template20/404.html"]
+        return [f"template20/four_pillars_assessment_{slug.replace('-', '_')}.html"]
+
+    def get_context_data(self, **kwargs):
+        import os
+        slug = kwargs.get("pillar_slug") or getattr(self, "kwargs", {}).get("pillar_slug")
+        if slug not in FOUR_PILLARS_ASSESSMENT_SLUGS:
+            return {}
+        json_slug = slug.replace("-", "_")
+        json_path = os.path.join(os.path.dirname(__file__), "four_pillars_assessments", f"{json_slug}.json")
+        # Prefer admin-defined assessment from DB when active
+        db_assessment = FourPillarsAssessment.objects.filter(slug=slug, is_active=True).prefetch_related(
+            "questions__options", "profiles"
+        ).first()
+        if db_assessment:
+            title = db_assessment.title
+            subtitle = db_assessment.subtitle or ""
+            questions = []
+            for q in db_assessment.questions.order_by("order"):
+                options = {o.option_key: o.text for o in q.options.all()}
+                questions.append({"title": q.title, "text": q.text, "options": options})
+            profiles = {}
+            for p in db_assessment.profiles.all():
+                profiles[p.option_key] = {
+                    "name": p.name,
+                    "summary": p.summary or "",
+                    "scoring_heading": p.scoring_heading or "",
+                    "scoring_bullets": list(p.scoring_bullets) if p.scoring_bullets else [],
+                }
+            data = {
+                "questions": questions,
+                "profiles": profiles,
+                "scoring_intro": db_assessment.scoring_intro or "",
+                "mixed_results": db_assessment.mixed_results or "",
+            }
+        else:
+            title, subtitle = FOUR_PILLARS_ASSESSMENT_SLUGS[slug]
+            data = {}
+            if os.path.exists(json_path):
+                with open(json_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            questions = data.get("questions", [])
+            profiles = data.get("profiles", {})
+        ctx = super().get_context_data(**kwargs)
+        ctx["assessment_title"] = title
+        ctx["assessment_subtitle"] = subtitle
+        ctx["questions"] = questions
+        ctx["profiles"] = profiles
+        ctx["questions_json"] = json.dumps(questions)
+        ctx["profiles_json"] = json.dumps(profiles)
+        ctx["html_head"] = build_html_head(title=title, description=subtitle)
+        ctx["assessment_submit_url"] = reverse("core:four_pillars_assessment_submit", kwargs={"pillar_slug": slug})
+        ctx["pillar_slug"] = slug
+        # Full "Understanding" accordion (Primary + Combination + Maximizing): use static include when generated
+        understanding_include_path = os.path.join(settings.BASE_DIR, "templates", "template20", "includes", f"{json_slug}_understanding_guide.html")
+        ctx["understanding_guide_include"] = f"template20/includes/{json_slug}_understanding_guide.html" if os.path.exists(understanding_include_path) else None
+        # Fallback: understanding_data JSON (primary_profiles only) when no static include
+        understanding_path = os.path.join(os.path.dirname(__file__), "four_pillars_assessments", f"{json_slug}_understanding_data.json")
+        ctx["understanding_data"] = None
+        if os.path.exists(understanding_path):
+            try:
+                with open(understanding_path, "r", encoding="utf-8") as f:
+                    ctx["understanding_data"] = json.load(f)
+            except (json.JSONDecodeError, OSError):
+                pass
+        copy = FOUR_PILLARS_ASSESSMENT_COPY.get(slug, {})
+        ctx["lp_placeholder_text"] = copy.get("lp_placeholder_text", "summary here.")
+        ctx["lp_profile_tab_label"] = copy.get("lp_profile_tab_label", "Your Learning Profile Guide")
+        ctx["lp_scoring_intro"] = data.get("scoring_intro") or copy.get("lp_scoring_intro", "Count your responses for each letter:")
+        ctx["lp_mixed_note"] = data.get("mixed_results") or copy.get("lp_mixed_note", "Mixed Results: Many learners have a combination of preferences. Look at your top two categories to understand your primary and secondary styles.")
+        ctx["lp_style_card_tags"] = copy.get("lp_style_card_tags") or {"A": "Style A", "B": "Style B", "C": "Style C", "D": "Style D"}
+        saved_result = None
+        if getattr(self.request, "user", None) and self.request.user.is_authenticated:
+            r = FourPillarsAssessmentResult.objects.filter(
+                user=self.request.user, pillar_slug=slug
+            ).order_by("-updated_at").first()
+            if r:
+                saved_result = {
+                    "answers": r.answers,
+                    "counts": r.counts,
+                    "primary_style": r.primary_style,
+                    "profile_name": r.profile_name,
+                    "profile_summary": r.profile_summary or "",
+                }
+        ctx["saved_result"] = saved_result
+        ctx["saved_result_json"] = json.dumps(saved_result) if saved_result else "null"
+        # Debug: log to server console when each assessment page is served
+        profile_keys = list(profiles.keys()) if profiles else []
+        scoring_bullets = {k: len(profiles.get(k, {}).get("scoring_bullets", [])) for k in ("A", "B", "C", "D")} if profiles else {}
+        source = "db" if db_assessment else "json"
+        msg = (
+            f"[Four Pillars] slug={slug!r} title={title!r} questions={len(questions)} "
+            f"profiles={profile_keys} source={source} scoring_bullets={scoring_bullets}"
+        )
+        logger.info(msg)
+        print(msg, flush=True)
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        if self.kwargs.get("pillar_slug") not in FOUR_PILLARS_ASSESSMENT_SLUGS:
+            from django.http import Http404
+            raise Http404("Assessment not found")
+        return super().get(request, *args, **kwargs)
+
+
+@require_http_methods(["POST"])
+def four_pillars_assessment_submit(request, pillar_slug):
+    """Save or update the latest assessment result for the current user. Requires login. Returns 200 or 401."""
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Login required"}, status=401)
+    if pillar_slug not in FOUR_PILLARS_ASSESSMENT_SLUGS:
+        return JsonResponse({"error": "Invalid assessment"}, status=400)
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, TypeError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    answers = body.get("answers")
+    counts = body.get("counts")
+    primary = body.get("primary")
+    profile_name = body.get("profile_name", "")
+    profile_summary = body.get("profile_summary", "")
+    if not isinstance(answers, dict) or not isinstance(counts, dict) or primary not in ("A", "B", "C", "D"):
+        return JsonResponse({"error": "Missing or invalid answers/counts/primary"}, status=400)
+    # Normalize answers: keys as string indices
+    answers = {str(k): str(v) for k, v in answers.items() if str(v) in ("A", "B", "C", "D")}
+    counts = {k: int(v) for k, v in counts.items() if k in ("A", "B", "C", "D")}
+    FourPillarsAssessmentResult.objects.update_or_create(
+        user=request.user,
+        pillar_slug=pillar_slug,
+        defaults={
+            "answers": answers,
+            "primary_style": primary,
+            "counts": counts,
+            "profile_name": profile_name,
+            "profile_summary": profile_summary,
+        },
+    )
+    return JsonResponse({"status": "ok"})
 
 
 class EbookListView(TemplateView):
@@ -677,6 +1229,24 @@ def page404(request,exception):
     return render(request,"template20/404.html",ctx)
 
 
+def serve_game_spa(request, path=None):
+    """
+    Serve the React game SPA (Career Battle) at /career-battle/ on our domain.
+    Assets are served by Django at /static/game/assets/... (from Vite build with base: '/static/game/').
+    """
+    from django.http import Http404, HttpResponse
+    index_name = 'index.html'
+    # Prefer collectstatic output (production), else dev static dir
+    for base in [settings.STATIC_ROOT, os.path.join(settings.BASE_DIR, 'static')]:
+        if not base:
+            continue
+        index_path = os.path.join(base, 'game', index_name)
+        if os.path.isfile(index_path):
+            with open(index_path, 'r', encoding='utf-8') as f:
+                return HttpResponse(f.read(), content_type='text/html; charset=utf-8')
+    raise Http404('Game not built. Run: cd react-game/react-game && npm run build')
+
+
 def s3_media_proxy(request, path):
     """
     Serve S3 media through Django so only your website can show the file.
@@ -742,3 +1312,190 @@ def s3_media_proxy(request, path):
         out['Content-Length'] = content_length
     out['Cache-Control'] = 'private, max-age=3600'
     return out
+
+
+# ----- MI / EQ assessment save and PDF report -----
+
+@require_POST
+def save_mi_assessment(request):
+    """Save MI assessment result for the current user. Requires login."""
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return JsonResponse({"ok": False, "error": "Login required to save."}, status=401)
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({"ok": False, "error": "Invalid JSON."}, status=400)
+    answers = data.get("answers")
+    counts = data.get("counts")
+    primary_style = data.get("primary_style")
+    style_name = data.get("style_name")
+    style_summary = data.get("style_summary", "")
+    if not isinstance(answers, dict) or not isinstance(counts, dict) or not primary_style or not style_name:
+        return JsonResponse({"ok": False, "error": "Missing or invalid fields."}, status=400)
+    # Normalize answers keys to string (0..59)
+    answers = {str(k): v for k, v in answers.items() if str(v) in ("A", "B", "C", "D")}
+    if len(answers) != 60:
+        return JsonResponse({"ok": False, "error": "All 60 questions must be answered."}, status=400)
+    MIAssessmentResult.objects.create(
+        user=request.user,
+        answers=answers,
+        counts={"A": int(counts.get("A", 0)), "B": int(counts.get("B", 0)), "C": int(counts.get("C", 0)), "D": int(counts.get("D", 0))},
+        primary_style=str(primary_style),
+        style_name=str(style_name),
+        style_summary=str(style_summary),
+    )
+    return JsonResponse({"ok": True})
+
+
+@require_POST
+def save_eq_assessment(request):
+    """Save EQ assessment result for the current user. Requires login."""
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return JsonResponse({"ok": False, "error": "Login required to save."}, status=401)
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({"ok": False, "error": "Invalid JSON."}, status=400)
+    responses = data.get("responses")
+    subscale_scores = data.get("subscale_scores")
+    ei_total = data.get("EI_total")
+    pbi = data.get("PBI")
+    intrapersonal_eq = data.get("intrapersonalEQ")
+    interpersonal_eq = data.get("interpersonalEQ")
+    adaptive_eq = data.get("adaptiveEQ")
+    band_label = data.get("bandLabel", "")
+    if not isinstance(responses, dict) or not isinstance(subscale_scores, dict) or ei_total is None:
+        return JsonResponse({"ok": False, "error": "Missing or invalid fields."}, status=400)
+    if len(responses) != 36:
+        return JsonResponse({"ok": False, "error": "All 36 statements must be answered."}, status=400)
+    EQAssessmentResult.objects.create(
+        user=request.user,
+        responses=responses,
+        subscale_scores=subscale_scores,
+        weighted=data.get("weighted"),
+        ei_total=float(ei_total),
+        pbi=float(pbi or 0),
+        intrapersonal_eq=float(intrapersonal_eq or 0),
+        interpersonal_eq=float(interpersonal_eq or 0),
+        adaptive_eq=float(adaptive_eq or 0),
+        band_label=str(band_label),
+    )
+    return JsonResponse({"ok": True})
+
+
+def _docx_path_to_html(docx_path):
+    """Convert a .docx file path to HTML. Uses careers.docx_utils if available."""
+    path = Path(docx_path)
+    if not path.exists():
+        return None
+    try:
+        from careers.docx_utils import convert_docx_to_html
+        with open(path, "rb") as f:
+            return convert_docx_to_html(f)
+    except Exception:
+        try:
+            from docx import Document
+            doc = Document(str(path))
+            parts = []
+            for p in doc.paragraphs:
+                if p.text.strip():
+                    parts.append("<p>%s</p>" % p.text.strip().replace("<", "&lt;").replace(">", "&gt;"))
+            return "\n".join(parts) if parts else ""
+        except Exception:
+            return None
+
+
+@login_required(login_url=None)
+def mi_report_pdf(request):
+    """Generate and download MI report PDF from docx content + user's latest result."""
+    latest = MIAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+    if not latest:
+        return HttpResponse("No MI assessment result found. Complete the assessment first.", status=404)
+    base = getattr(settings, "ASSESSMENT_REFERENCE_BASE", None) or ""
+    reports_path = Path(base) / "mi" / "reports.docx"
+    scoring_path = Path(base) / "mi" / "scoring method.docx"
+    html_parts = []
+    if reports_path.exists():
+        reports_html = _docx_path_to_html(reports_path)
+        if reports_html:
+            html_parts.append(reports_html)
+    if scoring_path.exists():
+        scoring_html = _docx_path_to_html(scoring_path)
+        if scoring_html:
+            html_parts.append("<h2>Scoring Method</h2>")
+            html_parts.append(scoring_html)
+    result_block = """
+    <div style="margin-top:2em; padding:1em; border:1px solid #ddd;">
+    <h2>Your Result</h2>
+    <p><strong>Primary learning style:</strong> %s</p>
+    <p>%s</p>
+    <p><strong>Your answers:</strong> A = %s, B = %s, C = %s, D = %s</p>
+    </div>
+    """ % (
+        latest.style_name,
+        latest.style_summary.replace("\n", "<br>"),
+        latest.counts.get("A", 0), latest.counts.get("B", 0), latest.counts.get("C", 0), latest.counts.get("D", 0),
+    )
+    html_parts.append(result_block)
+    full_html = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Learning Style Report</title></head><body style="font-family: sans-serif; padding: 20px;">%s</body></html>""" % "\n".join(html_parts)
+    try:
+        import weasyprint
+        import ssl
+        _ssl = ssl._create_default_https_context
+        ssl._create_default_https_context = ssl._create_unverified_context
+        try:
+            pdf_bytes = weasyprint.HTML(string=full_html, base_url=request.build_absolute_uri("/")).write_pdf()
+        finally:
+            ssl._create_default_https_context = _ssl
+    except Exception as e:
+        logger.exception("MI PDF generation failed")
+        return HttpResponse("PDF generation failed: %s" % str(e), status=500)
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="Learning-Style-Report.pdf"'
+    return response
+
+
+@login_required(login_url=None)
+def eq_report_pdf(request):
+    """Generate and download EQ report PDF from docx content + user's latest result."""
+    latest = EQAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+    if not latest:
+        return HttpResponse("No EQ assessment result found. Complete the assessment first.", status=404)
+    base = getattr(settings, "ASSESSMENT_REFERENCE_BASE", None) or ""
+    docx_path = Path(base) / "eq" / "EQ_Assessment_and_Scoring.docx"
+    html_parts = []
+    if docx_path.exists():
+        docx_html = _docx_path_to_html(docx_path)
+        if docx_html:
+            html_parts.append(docx_html)
+    result_block = """
+    <div style="margin-top:2em; padding:1em; border:1px solid #ddd;">
+    <h2>Your EQ Result</h2>
+    <p><strong>Composite EQ Score:</strong> %.1f (%s)</p>
+    <p><strong>Profile Balance Index (PBI):</strong> %.1f</p>
+    <p><strong>Subscale scores:</strong> SA = %s, SC = %s, EM = %s, CR = %s, SM = %s, AC = %s</p>
+    <p><strong>Intrapersonal EQ:</strong> %s | <strong>Interpersonal EQ:</strong> %s | <strong>Adaptive EQ:</strong> %s</p>
+    </div>
+    """ % (
+        latest.ei_total, latest.band_label, latest.pbi,
+        latest.subscale_scores.get("SA"), latest.subscale_scores.get("SC"), latest.subscale_scores.get("EM"),
+        latest.subscale_scores.get("CR"), latest.subscale_scores.get("SM"), latest.subscale_scores.get("AC"),
+        latest.intrapersonal_eq, latest.interpersonal_eq, latest.adaptive_eq,
+    )
+    html_parts.append(result_block)
+    full_html = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Emotional Intelligence Report</title></head><body style="font-family: sans-serif; padding: 20px;">%s</body></html>""" % "\n".join(html_parts)
+    try:
+        import weasyprint
+        import ssl
+        _ssl = ssl._create_default_https_context
+        ssl._create_default_https_context = ssl._create_unverified_context
+        try:
+            pdf_bytes = weasyprint.HTML(string=full_html, base_url=request.build_absolute_uri("/")).write_pdf()
+        finally:
+            ssl._create_default_https_context = _ssl
+    except Exception as e:
+        logger.exception("EQ PDF generation failed")
+        return HttpResponse("PDF generation failed: %s" % str(e), status=500)
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="Emotional-Intelligence-Report.pdf"'
+    return response

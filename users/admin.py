@@ -1,8 +1,9 @@
 from django.contrib import admin
 from .models import User,UserProfile,UserCalender, UserNote, UserResume, UserFolder, UserSearchHistory
 from django.urls import reverse, path
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from django.utils.html import format_html, format_html_join
+from django.utils.html import format_html_join
 from django.contrib import messages
 from django.conf import settings
 from django.db.models import Q, Max
@@ -12,6 +13,16 @@ from django.shortcuts import render
 import os
 import glob
 import json
+
+try:
+    from payments.models import Payment
+except ImportError:
+    Payment = None
+try:
+    from psychometric_tests.models import PsychometricTestPayment
+except ImportError:
+    PsychometricTestPayment = None
+
 # Register your models here.
 
 
@@ -107,15 +118,106 @@ def _reset_student_tests(user, test_ids=None):
                 pass
 
 
+class PaymentInline(admin.TabularInline):
+    extra = 0
+    max_num = 0
+    can_delete = False
+    readonly_fields = (
+        'payment_id', 'amount_display', 'gateway_display', 'obj_type_display',
+        'is_success_display', 'gateway_order_id', 'created',
+    )
+    fields = readonly_fields
+    show_change_link = True
+    verbose_name = 'Payment'
+    verbose_name_plural = 'Payments'
+
+    def payment_id(self, obj):
+        return obj.id if obj else '-'
+
+    payment_id.short_description = 'ID'
+
+    def amount_display(self, obj):
+        return obj.get_display_price() if obj else '-'
+
+    amount_display.short_description = 'Amount'
+
+    def gateway_display(self, obj):
+        return obj.get_gateway_display() if obj else '-'
+
+    gateway_display.short_description = 'Gateway'
+
+    def obj_type_display(self, obj):
+        return obj.get_obj_type_display() if obj else '-'
+
+    obj_type_display.short_description = 'For'
+
+    def is_success_display(self, obj):
+        if obj is None:
+            return '-'
+        if obj.is_success == 1:
+            return format_html('<span style="color: green;">✓</span>')
+        return format_html('<span style="color: red;">✗</span>')
+
+    is_success_display.short_description = 'Success'
+
+
+class PsychometricTestPaymentInline(admin.TabularInline):
+    extra = 0
+    max_num = 0
+    can_delete = False
+    readonly_fields = ('payment_id', 'test_type_display', 'amount_display', 'is_success_display', 'created')
+    fields = readonly_fields
+    show_change_link = True
+    verbose_name = 'Psychometric test payment'
+    verbose_name_plural = 'Psychometric test payments'
+
+    def payment_id(self, obj):
+        return obj.id if obj else '-'
+
+    payment_id.short_description = 'ID'
+
+    def test_type_display(self, obj):
+        return obj.get_test_name() if obj else '-'
+
+    test_type_display.short_description = 'Test'
+
+    def amount_display(self, obj):
+        return obj.get_display_price() if obj else '-'
+
+    amount_display.short_description = 'Amount'
+
+    def is_success_display(self, obj):
+        if obj is None:
+            return '-'
+        if obj.is_success == 1:
+            return format_html('<span style="color: green;">✓</span>')
+        return format_html('<span style="color: red;">✗</span>')
+
+    is_success_display.short_description = 'Success'
+
+
+def _user_admin_inlines():
+    inlines = []
+    if Payment is not None:
+        PaymentInline.model = Payment
+        inlines.append(PaymentInline)
+    if PsychometricTestPayment is not None:
+        PsychometricTestPaymentInline.model = PsychometricTestPayment
+        inlines.append(PsychometricTestPaymentInline)
+    return inlines
+
+
 class UserAdmin(admin.ModelAdmin):
     # form = UserForm
-    fields = ['name','email','mobile','is_active','is_staff','image','password','groups', 'user_permissions','user_type','user_status']
+    fields = ['name','email','mobile','is_active','is_staff','image','password','groups', 'user_permissions','user_type','user_status','is_demo_account','is_system_demo']
+    readonly_fields = ['is_system_demo']
+    inlines = _user_admin_inlines()
     # date_hierarchy = 'created'
-    list_display = ['id', 'name','email','mobile','is_active','object_status','created','last_login']
+    list_display = ['id', 'name','email','mobile','is_active','is_demo_account','is_system_demo','object_status','created','last_login']
     sortable_by=['id', 'name','email','mobile']
     ordering = ['-id']
-    # list_editable=['name','email']
-    list_filter = ('is_active','last_login','user_type','object_status')
+    list_editable = ['is_demo_account']
+    list_filter = ('is_active','is_demo_account','is_system_demo','last_login','user_type','object_status')
     search_fields=['id','name','email','mobile']
     actions = ['hard_delete_selected']
     change_list_template = 'admin/users/user/change_list.html'

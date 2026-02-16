@@ -1,0 +1,51 @@
+{# Renders "Understanding Your X" from understanding_data (title, intro, primary_profiles). Used for learning_preferences, natural_abilities, interest_drivers. #}
+<h3 class="mt-4"><span class="lp-section-icon"><i class='bx bx-info-circle'></i></span>{{ understanding_data.title }}</h3>
+<p>{{ understanding_data.intro }}</p>
+<div class="accordion lp-guide-accordion" id="lpUnderstandingAccordion">
+  <div class="accordion-item lp-guide-accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#lpUnderstandingPrimary" aria-expanded="true" aria-controls="lpUnderstandingPrimary">
+        <span class="lp-accordion-icon"><i class='bx bx-book-content'></i></span>
+        <span class="lp-accordion-title">Primary Profiles</span>
+      </button>
+    </h2>
+    <div id="lpUnderstandingPrimary" class="accordion-collapse collapse show" data-bs-parent="#lpUnderstandingAccordion">
+      <div class="accordion-body pt-0">
+        <div class="accordion lp-inner-accordion" id="lpUnderstandingInner">
+          {% for profile in understanding_data.primary_profiles %}
+          {% set box_letter = ['a', 'b', 'c', 'd'][loop.index0] %}
+          {% set icon_name = ['bx-target-lock', 'bx-brain', 'bx-heart', 'bx-trip'][loop.index0] %}
+          <div class="accordion-item {{ box_letter }}">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#lpUnderstandingProfile{{ loop.index }}" aria-expanded="false" aria-controls="lpUnderstandingProfile{{ loop.index }}">
+                <span class="lp-inner-icon"><i class='bx {{ icon_name }}'></i></span>
+                <span>{{ profile.label }}</span>
+              </button>
+            </h2>
+            <div id="lpUnderstandingProfile{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#lpUnderstandingInner">
+              <div class="accordion-body">
+                <div class="lp-primary-box {{ box_letter }}">
+                  <div class="lp-primary-header">
+                    <div class="lp-primary-icon"><i class='bx {{ icon_name }}'></i></div>
+                    <h4>{{ profile.label }}</h4>
+                  </div>
+                  {% for section in profile.sections %}
+                  <div class="lp-primary-section">
+                    <strong>{{ section.heading }}</strong>
+                    <ul>
+                      {% for item in section.bullets %}
+                      <li>{{ item|safe }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

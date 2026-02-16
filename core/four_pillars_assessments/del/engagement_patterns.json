@@ -1,0 +1,222 @@
+{
+  "questions": [
+    {
+      "title": "Question 1: Energy Source",
+      "text": "What naturally energizes and motivates you most?",
+      "options": {
+        "A": "Achieving specific goals and seeing measurable progress toward objectives",
+        "B": "Learning new things and expanding your knowledge or skills",
+        "C": "Making a positive difference in people's lives or contributing to something meaningful",
+        "D": "Experiencing variety, excitement, and new challenges regularly"
+      }
+    },
+    {
+      "title": "Question 2: Work Rhythm Preference",
+      "text": "Your ideal work rhythm involves:",
+      "options": {
+        "A": "Steady, consistent progress with clear milestones and regular achievements",
+        "B": "Deep focus periods alternating with time for reflection and skill development",
+        "C": "Collaborative work that creates value for others and builds relationships",
+        "D": "Dynamic, varied activities with frequent changes and new experiences"
+      }
+    },
+    {
+      "title": "Question 3: Feedback and Recognition",
+      "text": "You feel most motivated by feedback that:",
+      "options": {
+        "A": "Shows concrete results and measurable improvements in performance",
+        "B": "Acknowledges your expertise, learning progress, and skill development",
+        "C": "Recognizes your positive impact on others and contribution to the team",
+        "D": "Celebrates your adaptability, creativity, and ability to handle challenges"
+      }
+    },
+    {
+      "title": "Question 4: Challenge Response",
+      "text": "When faced with a difficult task, you're most energized when:",
+      "options": {
+        "A": "You can break it into clear steps with specific outcomes to achieve",
+        "B": "You can research, analyze, and develop expertise to master it completely",
+        "C": "You can work with others and see how success will benefit people",
+        "D": "It offers something new and different from your usual routine"
+      }
+    },
+    {
+      "title": "Question 5: Success Definition",
+      "text": "You feel most successful when:",
+      "options": {
+        "A": "You've accomplished your goals and can see tangible results from your efforts",
+        "B": "You've gained mastery or deep understanding in an area that interests you",
+        "C": "You've helped others succeed or contributed to something larger than yourself",
+        "D": "You've overcome challenges and experienced growth through new experiences"
+      }
+    },
+    {
+      "title": "Question 6: Motivation Drivers",
+      "text": "What drives you to put in extra effort?",
+      "options": {
+        "A": "The satisfaction of completing projects and achieving targets",
+        "B": "The opportunity to become an expert or learn something fascinating",
+        "C": "The chance to make a meaningful impact on others or society",
+        "D": "The excitement of tackling something new and unpredictable"
+      }
+    },
+    {
+      "title": "Question 7: Energy Drain",
+      "text": "You feel most drained and unmotivated when:",
+      "options": {
+        "A": "Progress is unclear or you can't see concrete results from your work",
+        "B": "Work is repetitive with no opportunity to learn or develop skills",
+        "C": "Your work feels meaningless or disconnected from helping others",
+        "D": "You're stuck in routine tasks with no variety or new challenges"
+      }
+    },
+    {
+      "title": "Question 8: Team Dynamics",
+      "text": "In team settings, you're most energized when:",
+      "options": {
+        "A": "The team has clear objectives and everyone is working toward specific results",
+        "B": "You can contribute your expertise and learn from others' knowledge",
+        "C": "There's strong collaboration and mutual support among team members",
+        "D": "The team tackles diverse projects and adapts quickly to changing needs"
+      }
+    },
+    {
+      "title": "Question 9: Long-term Engagement",
+      "text": "For long-term motivation, you need:",
+      "options": {
+        "A": "Clear career progression with achievable goals and visible advancement",
+        "B": "Continuous opportunities to develop expertise and expand your capabilities",
+        "C": "Work that aligns with your values and creates positive impact",
+        "D": "Regular changes in responsibilities, projects, or work environment"
+      }
+    },
+    {
+      "title": "Question 10: Decision-Making Energy",
+      "text": "You're most motivated to make decisions when:",
+      "options": {
+        "A": "You can evaluate options based on likely outcomes and results",
+        "B": "You have sufficient information and expertise to make an informed choice",
+        "C": "The decision will positively affect people you care about",
+        "D": "The decision opens up new possibilities and adventures"
+      }
+    },
+    {
+      "title": "Question 11: Stress and Pressure",
+      "text": "Under pressure, you maintain energy best when:",
+      "options": {
+        "A": "You can focus on specific deliverables and track progress toward completion",
+        "B": "You can apply your knowledge and skills to solve the problem systematically",
+        "C": "You remember how your work serves others and contributes to something important",
+        "D": "You can approach the situation creatively and try different solutions"
+      }
+    },
+    {
+      "title": "Question 12: Learning Motivation",
+      "text": "You're most motivated to learn when:",
+      "options": {
+        "A": "The learning will help you achieve specific goals or improve performance",
+        "B": "The subject matter is intellectually stimulating and builds expertise",
+        "C": "The knowledge will help you better serve others or make a difference",
+        "D": "The learning involves new experiences and keeps things interesting"
+      }
+    },
+    {
+      "title": "Question 13: Autonomy and Control",
+      "text": "You feel most energized when you have:",
+      "options": {
+        "A": "Clear expectations but freedom in how you achieve your goals",
+        "B": "Time and resources to pursue mastery in areas of interest",
+        "C": "Opportunities to collaborate while contributing your unique strengths",
+        "D": "Flexibility to adapt your approach and try new methods"
+      }
+    },
+    {
+      "title": "Question 14: Recognition Preferences",
+      "text": "You prefer recognition that:",
+      "options": {
+        "A": "Highlights specific achievements and measurable contributions",
+        "B": "Acknowledges your expertise, knowledge, and professional growth",
+        "C": "Emphasizes your positive impact on others and team contribution",
+        "D": "Celebrates your adaptability, innovation, and willingness to take on challenges"
+      }
+    },
+    {
+      "title": "Question 15: Work Environment Energy",
+      "text": "You thrive in environments that:",
+      "options": {
+        "A": "Have clear structures, expectations, and opportunities for advancement",
+        "B": "Value expertise, provide learning resources, and encourage skill development",
+        "C": "Emphasize collaboration, shared purpose, and positive impact",
+        "D": "Offer variety, flexibility, and opportunities for new experiences"
+      }
+    },
+    {
+      "title": "Question 16: Motivation Sustainability",
+      "text": "Your motivation stays high when:",
+      "options": {
+        "A": "You can see steady progress and regular accomplishments",
+        "B": "You're continuously growing and developing new capabilities",
+        "C": "Your work connects to your values and benefits others",
+        "D": "You face new challenges and have opportunities for change"
+      }
+    },
+    {
+      "title": "Question 17: Goal Setting Energy",
+      "text": "You're most motivated by goals that are:",
+      "options": {
+        "A": "Specific, measurable, and have clear deadlines for achievement",
+        "B": "Focused on skill development, learning, or expertise building",
+        "C": "Connected to helping others or contributing to meaningful causes",
+        "D": "Flexible, exciting, and offer opportunities for creative approaches"
+      }
+    },
+    {
+      "title": "Question 18: Collaboration Style",
+      "text": "In collaborative work, you're energized when:",
+      "options": {
+        "A": "Everyone has clear roles and the team is focused on achieving results",
+        "B": "You can share knowledge and learn from others' expertise",
+        "C": "There's mutual support and the work benefits everyone involved",
+        "D": "The collaboration brings together diverse perspectives and approaches"
+      }
+    },
+    {
+      "title": "Question 19: Change Response",
+      "text": "Your energy level with organizational change:",
+      "options": {
+        "A": "Increases when change leads to clearer goals and better results",
+        "B": "Increases when change provides learning opportunities and skill development",
+        "C": "Increases when change improves conditions for people and creates positive impact",
+        "D": "Increases when change brings variety and new challenges"
+      }
+    },
+    {
+      "title": "Question 20: Legacy and Impact",
+      "text": "You're most motivated by the prospect of:",
+      "options": {
+        "A": "Building a track record of consistent achievement and successful results",
+        "B": "Becoming recognized as an expert or thought leader in your field",
+        "C": "Making a lasting positive difference in people's lives or society",
+        "D": "Having diverse experiences and adapting successfully to whatever comes"
+      }
+    }
+  ],
+  "profiles": {
+    "A": {
+      "name": "Goal-Oriented Achiever",
+      "summary": "You are energized by clear goals, measurable progress, and achieving specific outcomes. You like steady progress and milestones."
+    },
+    "B": {
+      "name": "Hands-On Creator",
+      "summary": "You are motivated by building, creating, and making things. You prefer learning by doing and seeing tangible results."
+    },
+    "C": {
+      "name": "Knowledge Seeker",
+      "summary": "You are driven by understanding concepts deeply and exploring ideas. You value insight and mastery of subject matter."
+    },
+    "D": {
+      "name": "Balanced Innovator",
+      "summary": "You combine theory and practice. You like both understanding why and applying how, with flexibility in your approach."
+    }
+  }
+}

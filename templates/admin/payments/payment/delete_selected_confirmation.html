@@ -1,0 +1,9 @@
+{% extends "admin/delete_selected_confirmation.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div class="message warning" style="margin-bottom: 1em; padding: 10px 14px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px;">
+    <strong>{% translate "Permanent delete" %}</strong>: {% translate "Only testing payments will be permanently deleted. Actual payments cannot be deleted and will be skipped. Are you sure you want to continue?" %}
+  </div>
+  {{ block.super }}
+{% endblock %}

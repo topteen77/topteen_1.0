@@ -77,6 +77,12 @@
 <!-- Main Content -->
 <section class="user-dashboard pb-5">
   <div class="container">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3 mb-0" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
     <div class="row g-4 pt-4">
       <!-- Left Part Mobile -->
       <div class="col-12 d-lg-none">
@@ -284,6 +290,34 @@
             </div>
             {% endif %}
             <!-- End of Psychometric Test Reports -->
+
+            <!-- My Invoices -->
+            <div class="quick-link-card">
+              <div class="d-flex align-items-center gap-3 flex-grow-1">
+                <div>
+                  <i class='bx bx-receipt fs-35 text-primary'></i>
+                </div>
+                <div class="flex-grow-1">
+                  <p class="fs-13 fw-semibold mb-1">My Invoices</p>
+                  <p class="text-gray fs-10 mb-0">Download GST invoices for your payments</p>
+                  {% if user_invoices %}
+                  <div class="mt-2">
+                    {% for inv in user_invoices %}
+                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+                      <span class="fs-12">{{ inv.invoice_number }} · ₹{{ inv.amount }}</span>
+                      <div class="d-flex gap-1">
+                        <a href="{{ url('users:invoice_download', args=[inv.id]) }}?view=1" class="btn btn-sm btn-outline-secondary py-0 px-2" target="_blank" rel="noopener">View</a>
+                        <a href="{{ url('users:invoice_download', args=[inv.id]) }}" class="btn btn-sm btn-outline-primary py-0 px-2" target="_blank" rel="noopener">Download</a>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              <a href="{{ url('users:userhistory') }}" class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">Payment History</a>
+            </div>
+            <!-- End of My Invoices -->
 
             <!-- Your Calendar -->
             <div class="quick-link-card" onclick="window.location='{{ url('users:usercalender') }}'">

@@ -71,6 +71,8 @@ INSTALLED_APPS = [
     'app_post_matric',
     'user_analytics',
     'forum',
+    'demo_data',
+    'invoices',
 ]
 
 # Add django_elasticsearch_dsl conditionally based on environment
@@ -239,7 +241,12 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
         'PORT': config('DB_PORT'),
-        'OPTIONS': {'charset': 'utf8mb4'},
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            # Use UTC for every connection so datetime values are valid (fixes admin date_hierarchy
+            # "invalid datetime / time zone definitions" on MySQL when tz tables are not loaded).
+            'init_command': "SET time_zone = '+00:00'",
+        },
     }
 }
 
@@ -368,6 +375,15 @@ S3_BUCKET_PREFIX = config('S3_BUCKET_PREFIX', default='s3://topteenc/')
 S3_BUCKET_BASE_URL = config('S3_BUCKET_BASE_URL', default='https://topteenc.s3.ap-northeast-1.amazonaws.com/')
 S3_EBOOK_FOLDER = 'ebook'  # Folder path for ebooks in S3
 S3_FOUR_PILLARS_FOLDER = config('S3_FOUR_PILLARS_FOLDER', default='four_pillars')  # Folder for Four Pillars of Learning images in S3
+# Multiple Intelligences (MI) page: full base URL for MI images in S3 (e.g. https://bucket.s3.region.amazonaws.com/mi/). If unset, uses static/images_new/mi/
+S3_MI_IMAGES_BASE_URL = config('S3_MI_IMAGES_BASE_URL', default='')
+S3_EQ_IMAGES_BASE_URL = config('S3_EQ_IMAGES_BASE_URL', default='')
+
+# Path to assessment reference docx (MI reports, scoring method, EQ report). Default: sibling topteens html/b.
+# 7nov/topteenhtml/html/b (go up from topteen_1.0: parent=new_template-demo-topteens, parent=git, parent=7nov)
+_assessment_ref = BASE_DIR.parent.parent.parent / 'topteenhtml' / 'html' / 'b'
+_ASSESSMENT_REF_DEFAULT = str(_assessment_ref) if _assessment_ref.exists() else ''
+ASSESSMENT_REFERENCE_BASE = config('ASSESSMENT_REFERENCE_BASE', default=_ASSESSMENT_REF_DEFAULT)
 
 # AWS S3 Upload Configuration
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
@@ -637,24 +653,9 @@ PSYCHOMETRIC_COURSE_FREE_ID=3
 DEMO_EMAIL=[]
 CREDIT_LIMIT=5000
 
-# Demo credentials for development - shown on login pages when SHOW_DEMO_CREDENTIALS=True and ENVIRONMENT=development
-SHOW_DEMO_CREDENTIALS = config('SHOW_DEMO_CREDENTIALS', default=False, cast=bool)
 ENVIRONMENT = config('ENVIRONMENT', default='production')
 
-def _parse_demo_emails(value):
-    """Parse comma-separated emails from env."""
-    if not value:
-        return []
-    return [e.strip() for e in str(value).split(',') if e.strip()]
-
-DEMO_STUDENT_EMAILS = _parse_demo_emails(config('DEMO_STUDENT_EMAILS', default=''))
-DEMO_STUDENT_PASSWORD = config('DEMO_STUDENT_PASSWORD', default='')
-DEMO_PARENTS_EMAILS = _parse_demo_emails(config('DEMO_PARENTS_EMAILS', default=''))
-DEMO_PARENTS_PASSWORD = config('DEMO_PARENTS_PASSWORD', default='')
-DEMO_INSTITUTE_EMAIL = config('DEMO_INSTITUTE_EMAIL', default='')
-DEMO_INSTITUTE_PASSWORD = config('DEMO_INSTITUTE_PASSWORD', default='')
-DEMO_COUNSELOR_EMAILS = _parse_demo_emails(config('DEMO_COUNSELOR_EMAILS', default=''))
-DEMO_COUNSELOR_PASSWORD = config('DEMO_COUNSELOR_PASSWORD', default='')
+# Demo accounts: use DB only (User.is_demo_account, Institute.is_demo_institute). No .env demo credentials.
 
 # Chatbot visibility: home-only | students-parents | institutes | counselors
 CHATBOT_VISIBILITY = config('CHATBOT_VISIBILITY', default='home-only')
