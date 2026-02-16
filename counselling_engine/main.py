@@ -9,10 +9,23 @@ import hashlib
 import logging
 import random
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
 from enum import Enum
 from contextlib import asynccontextmanager
+
+# Load .env: project root first (so OPENAI_API_KEY from main .env works), then engine dir to override
+try:
+    from dotenv import load_dotenv
+    _root = Path(__file__).resolve().parent.parent
+    _engine = Path(__file__).resolve().parent
+    for _d in (_root, _engine):
+        _f = _d / ".env"
+        if _f.exists():
+            load_dotenv(_f)
+except ImportError:
+    pass
 
 import numpy as np
 from pydantic import BaseModel, Field, field_validator
@@ -38,6 +51,95 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# SECTION 1.5: LLM (OpenAI) – .env-based, optional
+# ---------------------------------------------------------------------------
+
+def _get_openai_config() -> Tuple[Optional[str], str]:
+    """Return (api_key, model). Key from OPENAI_API_KEY or COUNSELLING_OPENAI_API_KEY."""
+    key = os.getenv("COUNSELLING_OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY") or ""
+    key = (key or "").strip()
+    model = (
+        os.getenv("COUNSELLING_OPENAI_MODEL")
+        or os.getenv("OPENAI_MODEL")
+        or "gpt-4o-mini"
+    ).strip()
+    return (key or None, model)
+
+
+def generate_counseling_reply_llm(
+    user_message: str,
+    conversation_history: List[str],
+    career_suggestions: List[Dict],
+    roadmap: Optional[Dict],
+    grade: int,
+    dominant_riasec: List[str],
+    riasec_descriptions: str,
+    emotional_tone: str,
+    student_name: Optional[str] = None,
+) -> Optional[str]:
+    """
+    Call OpenAI to generate one empathetic career-counselling reply.
+    Returns None if API key missing or on error.
+    """
+    api_key, model = _get_openai_config()
+    if not api_key:
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+    except Exception as e:
+        logger.warning("OpenAI client init failed: %s", e)
+        return None
+
+    career_blob = ""
+    if career_suggestions:
+        parts = []
+        for c in career_suggestions[:5]:
+            name = c.get("name") or c.get("career_id", "")
+            score = c.get("compatibility_score")
+            pct = f" ({int(score * 100)}% match)" if score is not None else ""
+            parts.append(f"- {name}{pct}")
+        career_blob = "Top career matches:\n" + "\n".join(parts)
+
+    roadmap_blob = ""
+    if roadmap and roadmap.get("phases"):
+        phases = [p.get("phase_name", "") for p in roadmap["phases"]]
+        roadmap_blob = "Personalized roadmap phases: " + " → ".join(phases)
+
+    system = """You are a professional career counsellor for Indian high school students (NEP 2020 aware).
+Be warm, concise, and empathetic. Use the structured data below to personalize your reply.
+Do not invent careers or exams; only refer to the data provided. Keep the reply to 2–4 short paragraphs.
+Use **bold** only for career names or key terms. Do not repeat "Hi" or the student's name every time."""
+
+    user_blob = f"""Current user message: {user_message}
+
+Context:
+- Grade: {grade}
+- RIASEC strengths: {dominant_riasec} — {riasec_descriptions}
+- Recommended emotional tone: {emotional_tone}
+{chr(10) + career_blob if career_blob else ""}
+{chr(10) + roadmap_blob if roadmap_blob else ""}
+
+Generate a single counselling reply that addresses the user's message using the above context. Be specific and actionable."""
+
+    try:
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user_blob},
+            ],
+            max_tokens=600,
+            temperature=0.7,
+        )
+        text = (resp.choices[0].message.content or "").strip()
+        return text if text else None
+    except Exception as e:
+        logger.warning("OpenAI completion failed: %s", e)
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -790,17 +892,21 @@ class DeepCounsellingEngine:
             roadmap = self.roadmap_gen.generate_roadmap(
                 top_career_id, profile.grade, riasec_scores
             )
-        base_response = self._generate_counseling_response(
+        base_response, from_llm = self._generate_counseling_response(
             boosted_careers,
             emotional_state,
             profile.grade,
             dominant_riasec,
             current_user_message=request.message,
             roadmap=roadmap,
+            conversation_history=conversation_history,
         )
-        final_response = self.empathy.generate_empathetic_response(
-            base_response, emotional_state, request.context.get("student_name")
-        )
+        if from_llm or (base_response or "").startswith("Configure OPENAI") or (base_response or "").startswith("I'm still"):
+            final_response = base_response or ""
+        else:
+            final_response = self.empathy.generate_empathetic_response(
+                base_response, emotional_state, request.context.get("student_name")
+            )
         explanation = self._generate_explanation(
             boosted_careers[0] if boosted_careers else None, riasec_scores, emotional_state
         )
@@ -879,51 +985,47 @@ class DeepCounsellingEngine:
         dominant_riasec: List[RIASECType],
         current_user_message: Optional[str] = None,
         roadmap: Optional[Dict] = None,
-    ) -> str:
+        conversation_history: Optional[List[str]] = None,
+    ) -> Tuple[str, bool]:
+        """Returns (response_text, from_llm). When from_llm is True, caller should not add empathy layer."""
+        # Build career_suggestions list for LLM
+        career_suggestions = []
+        for career_id, score, data in careers:
+            career_suggestions.append({
+                "career_id": career_id,
+                "name": data["name"],
+                "compatibility_score": round(score, 2),
+            })
+        riasec_desc = self._describe_riasec(dominant_riasec)
+        dominant_str = [r.value for r in dominant_riasec]
+        tone = emotional_state.get("tone_recommendation", "neutral_informative_balanced")
+
+        # Try .env-based LLM (OpenAI) first
+        llm_reply = generate_counseling_reply_llm(
+            user_message=current_user_message or "",
+            conversation_history=conversation_history or [],
+            career_suggestions=career_suggestions,
+            roadmap=roadmap,
+            grade=grade,
+            dominant_riasec=dominant_str,
+            riasec_descriptions=riasec_desc,
+            emotional_tone=tone,
+            student_name=None,
+        )
+        if llm_reply:
+            return (llm_reply, True)
+
+        # No LLM: short fallback (no long static template)
         if not careers:
-            return "I'm still learning about your interests. Please share what subjects you enjoy or what kind of work you see yourself doing."
-        top_career = careers[0]
-        career_name = top_career[2]["name"]
-        score_pct = int(top_career[1] * 100)
-        if grade <= 10:
-            stage_msg = "Since you're in the early stages of high school, you have time to explore."
-        elif grade == 11:
-            stage_msg = "This is a crucial year for building your foundation."
-        else:
-            stage_msg = "With college applications approaching, strategic focus is key."
-
-        user_wants_steps = self._user_wants_roadmap_steps(current_user_message or "")
-        if user_wants_steps and roadmap and roadmap.get("phases"):
-            # User already said yes / walk me through: return actual steps instead of asking again.
-            lines = [
-                f"Here are the specific steps for your path toward **{career_name}** (match: {score_pct}%).",
-                "",
-                stage_msg,
-                "",
-                "Your roadmap:",
-            ]
-            for phase in roadmap["phases"]:
-                name = phase.get("phase_name", "")
-                focus = phase.get("focus", "")
-                actions = phase.get("actions", [])
-                lines.append(f"\n**{name}**")
-                if focus:
-                    lines.append(focus)
-                for a in actions[:5]:
-                    lines.append(f"• {a}")
-            response = "\n".join(lines)
-        else:
-            response = f"""Based on our conversation, I see strong potential for you in **{career_name}** (match: {score_pct}%).
-
-{stage_msg}
-
-Your profile shows strengths in {', '.join([r.value for r in dominant_riasec])} areas—{self._describe_riasec(dominant_riasec)}.
-
-I've prepared a personalized 3-year roadmap (subjects, entrance exams, and skills). Would you like me to walk you through the specific steps for Grade {grade + 1}?"""
-
-        if len(careers) > 1:
-            response += f"\n\nI also see possibilities in {careers[1][2]['name']} and {careers[2][2]['name']} if you want to explore alternatives."
-        return response
+            return (
+                "I'm still learning about your interests. Please share what subjects you enjoy or what kind of work you see yourself doing.",
+                False,
+            )
+        return (
+            "To get AI-generated career guidance, set OPENAI_API_KEY (or COUNSELLING_OPENAI_API_KEY) "
+            "and optionally OPENAI_MODEL in your .env file, then restart the counselling engine.",
+            False,
+        )
 
     def _describe_riasec(self, riasec_types: List[RIASECType]) -> str:
         descriptions = {
