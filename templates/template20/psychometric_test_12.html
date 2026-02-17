@@ -101,14 +101,16 @@ Test. Make informed decisions and choose the right career path.
         <div class="col-md-12">
           {% include 'template20/includes/breadcrumb.html' %}
         </div>
-        <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2">
+        <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2 d-flex flex-column justify-content-center">
           <h1 class="heading-title  mb-3  mt-4">
-            <span class="text-purple">Career Direction Test </span> - Class 11-12th Career Assessment
+            <span class="text-purple">Career Direction Test </span> 
+            <span class="fs-26">  Class 11th - 12th Career Assessment </span>
+           
           </h1>
           <p class="text-gray fs-25 fs-sm-18 fw-700">Discover Your True Potential and Career Direction</p>
           <p class="text-gray fs-16">Our comprehensive psychometric assessment helps you identify your strengths,
             interests, and abilities to find the career that's right for you. </p>
-          <div class="hero-button d-flex flex-row mt-md-6 mt-5">
+          <div class="hero-button d-none flex-row mt-md-6 mt-5">
             <button onclick="scrollToPayment()" type="button" class="btn custom-button purple-button me-3">Start Your Assessment</button>
           </div>
         </div>
@@ -360,7 +362,7 @@ Test. Make informed decisions and choose the right career path.
                       <li class="mb-2"><strong>Mastery</strong> - Pursuit of excellence and competence</li>
                       <li class="mb-2"><strong>Purpose</strong> - Connection to meaningful goals and values</li>
                       <!-- <li></li> -->
-                       <li>ss</li>
+                    
                     </ul>
                   </div>
                 </div>
@@ -757,7 +759,7 @@ Test. Make informed decisions and choose the right career path.
         </div>
         <div class="cta-box-content">
           <div>
-            <h2 class="cta-box-title">Career Direction Test (Class 11th-12th)</h2>
+            <h2 class="cta-box-title">Career Direction Test <br> <span class="fs-20" > (Class 11th-12th) </span></h2>
             <div class="cta-plan-badge">
               <div class="cta-plan-icon"><i class='bx bx-cube'></i></div>
               <span>Advanced</span>
@@ -781,7 +783,7 @@ Test. Make informed decisions and choose the right career path.
           <form id="paymentForm" onsubmit="handlePaymentSubmit(event); return false;">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <input type="hidden" name="test_type" value="{{ test_type_id }}">
-            <button type="submit" class="cta-button">Proceed to Buy</button>
+            <button type="submit" class="cta-button">Buy Now</button>
           </form>
           {% if delete_demo_payment_url %}
           <button onclick="delete_demo_payment()" class="btn btn-secondary w-100 mt-2">Clear Demo Test</button>

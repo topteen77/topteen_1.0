@@ -97,13 +97,15 @@ Discover what you're made for with the Stream Sorter Test for Class 9-10th. RIAS
         <div class="col-md-12">
           {% include 'template20/includes/breadcrumb.html' %}
         </div>
-        <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2">
+        <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2 d-flex flex-column justify-content-center">
           <h1 class="heading-title  mb-3  mt-4">
-            <span class="text-purple">Stream Sorter Test</span> - Class 9-10th Career Assessment
-          </h1>
+            <span class="text-purple">Stream Sorter Test</span><br>
+            
+            <span class="fs-26"> Class 9th - 10th Career Assessment </span>
+          </h1> 
           <p class="text-gray fs-25 fs-sm-18 fw-700">Discover What You're Made for, Like Never Before</p>
           <p class="text-gray fs-16">Take the next step with our RIASEC personality, career interest, and aptitude assessments. Discover your strengths and passions to align with rewarding career paths—your journey to success starts here.</p>
-          <div class="hero-button d-flex flex-row mt-md-6 mt-5">
+          <div class="hero-button d-none flex-row mt-md-6 mt-5">
             <button onclick="scrollToPayment()" type="button" class="btn custom-button purple-button me-3">Start Your Assessment</button>
           </div>
         </div>
@@ -513,7 +515,10 @@ Discover what you're made for with the Stream Sorter Test for Class 9-10th. RIAS
         </div>
         <div class="cta-box-content">
           <div>
-            <h2 class="cta-box-title">Stream Sorter Test (Class 9th-10th)</h2>
+            <h2 class="cta-box-title">Stream Sorter Test <br>
+            
+            <span class="fs-20" > (Class 9th-10th) </span>
+            </h2>
             <div class="cta-plan-badge">
               <div class="cta-plan-icon"><i class='bx bx-cube'></i></div>
               <span>Advanced</span>
@@ -537,7 +542,7 @@ Discover what you're made for with the Stream Sorter Test for Class 9-10th. RIAS
           <form id="paymentForm" onsubmit="handlePaymentSubmit(event); return false;">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <input type="hidden" name="test_type" value="{{ test_type_id }}">
-            <button type="submit" id="proceedToBuyBtn" class="cta-button">Proceed to Buy</button>
+            <button type="submit" id="proceedToBuyBtn" class="cta-button">Buy Now</button>
           </form>
           {% if delete_demo_payment_url %}
           <button onclick="delete_demo_payment()" class="btn btn-secondary w-100 mt-2">Clear Demo Test</button>
